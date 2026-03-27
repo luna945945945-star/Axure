@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>角色列表</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;font-size:13px;color:#333;background:#fff;min-width:900px}
+.page{padding:16px 20px}
+.page-title{font-size:14px;font-weight:600;color:#6a30e0;margin-bottom:14px}
+
+/* 筛选行 */
+.filter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+
+/* 角色名称 */
+.f-name{border:1px solid #d0d0d0;border-radius:3px;padding:0 10px;height:30px;font-size:12px;color:#333;width:130px;outline:none;font-family:inherit}
+.f-name:focus{border-color:#6a30e0}
+
+/* 字段+下拉组合 */
+.fg{display:inline-flex;align-items:center;border:1px solid #d0d0d0;border-radius:3px;height:30px;background:#fff;position:relative;transition:border-color .15s}
+.fg:hover{border-color:#9b72e8}
+.fg.open{border-color:#6a30e0}
+.fg.has-val{border-color:#6a30e0}
+.fg-label{padding:0 8px;font-size:12px;color:#555;border-right:1px solid #e8e8e8;height:100%;display:flex;align-items:center;white-space:nowrap;background:#f9f9f9;border-radius:3px 0 0 3px;flex-shrink:0;user-select:none;cursor:default}
+.fg-label.dim{color:#ccc}
+
+/* 可输入的下拉框 */
+.fg-input{border:none;outline:none;padding:0 22px 0 8px;font-size:12px;color:#333;height:100%;width:90px;background:transparent;font-family:inherit;cursor:text}
+.fg-input::placeholder{color:#bbb}
+.fg-input:disabled{cursor:not-allowed;color:#ccc;background:transparent}
+.fg-arrow{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:#aaa;pointer-events:none;transition:transform .15s;cursor:pointer}
+.fg-arrow.open{transform:translateY(-50%) rotate(180deg)}
+.fg-arrow.dim{color:#ddd}
+
+/* 下拉面板 */
+.drop{position:absolute;top:calc(100% + 3px);left:-1px;min-width:calc(100% + 2px);background:#fff;border:1px solid #ccc;border-radius:3px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:9999;display:none;overflow:hidden}
+.drop.open{display:block}
+.drop-list{max-height:200px;overflow-y:auto}
+.di{padding:6px 12px;font-size:12px;color:#333;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;user-select:none}
+.di:hover{background:#f5f0ff}
+.di.sel{color:#6a30e0;background:#f8f4ff}
+.di-ck{width:12px;font-size:10px;color:#6a30e0;flex-shrink:0}
+.di-empty{padding:8px 12px;font-size:12px;color:#bbb;text-align:center}
+
+/* 勾选框 — 只置灰checkbox，不置灰文字 */
+.cb-wrap{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#444;user-select:none;height:30px;white-space:nowrap}
+.cb-wrap.dim .cb{border-color:#ddd;background:#f5f5f5;cursor:not-allowed}
+.cb-wrap.dim .cb::after{display:none}
+.cb-wrap.dim{cursor:default}
+.cb-wrap:not(.dim){cursor:pointer}
+.cb{width:13px;height:13px;border:1.5px solid #ccc;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;background:#fff;transition:all .12s;flex-shrink:0}
+.cb.on{background:#6a30e0;border-color:#6a30e0;cursor:pointer}
+.cb.on::after{content:"✓";color:#fff;font-size:9px;font-weight:bold;line-height:1}
+
+/* 按钮 */
+.btn{height:30px;border-radius:3px;padding:0 14px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;border:none;font-family:inherit;white-space:nowrap;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-purple{background:#6a30e0;color:#fff}
+.btn-off{background:#c4b5fd;color:#fff;cursor:not-allowed;pointer-events:none}
+
+/* 红色提示行 */
+.hint-row{margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hint-item{font-size:12px;color:#e53935;display:flex;align-items:center;gap:3px}
+
+/* 分割线 */
+.sep{width:1px;height:16px;background:#e0e0e0}
+
+/* 警告提示（查询前） */
+.warn{font-size:12px;color:#e53935;margin-bottom:10px;display:none;align-items:center;gap:5px;padding:4px 0}
+.warn.show{display:flex}
+
+/* 表格 */
+.tbl-wrap{border:1px solid #e8e8e8;border-radius:2px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:#eeeaf8}
+th{padding:10px 14px;text-align:left;font-weight:500;color:#555;font-size:12.5px;border-bottom:1px solid #e0e0e0;white-space:nowrap}
+th:first-child,td:first-child{text-align:center;width:50px}
+td{padding:9px 14px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:middle;font-size:13px}
+tbody tr{background:#fff}
+tbody tr.hidden{display:none}
+tbody tr:not(.hidden):hover td{background:#faf8ff}
+
+/* 操作图标 */
+.op-wrap{display:flex;align-items:center;justify-content:center;gap:10px}
+.op-icon{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#999;border-radius:3px;transition:all .12s;font-size:15px;border:none;background:transparent}
+.op-icon:hover{color:#6a30e0;background:#f5f0ff}
+.op-icon.del:hover{color:#e53935;background:#fff0f0}
+.row-cb{width:14px;height:14px;cursor:pointer;accent-color:#6a30e0}
+
+/* 底部 */
+.footer{display:flex;align-items:center;justify-content:space-between;padding:10px 0 4px;font-size:12px;color:#666}
+.pg-left{display:flex;align-items:center;gap:4px}
+.pg-right{display:flex;align-items:center;gap:4px}
+.pg-input{width:36px;border:1px solid #d0d0d0;border-radius:2px;padding:3px 5px;font-size:12px;text-align:center;font-family:inherit;outline:none}
+.pg-sel{border:1px solid #d0d0d0;border-radius:2px;padding:2px 4px;font-size:12px;font-family:inherit;outline:none;height:24px}
+.pg-btn{border:1px solid #d0d0d0;border-radius:2px;padding:2px 10px;font-size:12px;background:#fff;cursor:pointer;font-family:inherit;color:#555}
+.pg-btn:hover{border-color:#6a30e0;color:#6a30e0}
+.pg-btn.cur{background:#6a30e0;color:#fff;border-color:#6a30e0}
+.pg-go{border:1px solid #d0d0d0;border-radius:2px;padding:2px 8px;font-size:12px;background:#fff;cursor:pointer;font-family:inherit}
+.empty{text-align:center;padding:40px;color:#bbb;font-size:13px;display:none}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-title">角色列表</div>
+
+  <!-- 筛选行 -->
+  <div class="filter-row">
+
+    <!-- 角色名称 -->
+    <input class="f-name" id="inp-name" placeholder="角色名称" oninput="onName()">
+
+    <!-- 模块 -->
+    <div class="fg" id="fg-mod">
+      <div class="fg-label">模块</div>
+      <input class="fg-input" id="inp-mod" placeholder="请选择"
+        oninput="onInput('mod',this.value)"
+        onfocus="openDrop('mod')"
+        autocomplete="off">
+      <span class="fg-arrow" id="arr-mod" onclick="toggleDrop('mod')">▾</span>
+      <div class="drop" id="drop-mod"><div class="drop-list" id="list-mod"></div></div>
+    </div>
+
+    <!-- 菜单 -->
+    <div class="fg" id="fg-menu">
+      <div class="fg-label">菜单</div>
+      <input class="fg-input" id="inp-menu" placeholder="请选择"
+        oninput="onInput('menu',this.value)"
+        onfocus="openDrop('menu')"
+        autocomplete="off">
+      <span class="fg-arrow" id="arr-menu" onclick="toggleDrop('menu')">▾</span>
+      <div class="drop" id="drop-menu"><div class="drop-list" id="list-menu"></div></div>
+    </div>
+
+    <!-- 子权限 -->
+    <div class="fg" id="fg-sub">
+      <div class="fg-label dim" id="lbl-sub">子权限</div>
+      <input class="fg-input" id="inp-sub" placeholder="请先选择菜单"
+        oninput="onInput('sub',this.value)"
+        onfocus="openDrop('sub')"
+        autocomplete="off" disabled>
+      <span class="fg-arrow dim" id="arr-sub" onclick="toggleDrop('sub')">▾</span>
+      <div class="drop" id="drop-sub"><div class="drop-list" id="list-sub"></div></div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- 已授权/未授权 勾选框 -->
+    <div class="cb-wrap dim" id="cb-wrap" onclick="toggleCb()">
+      <div class="cb" id="cb-box"></div>
+      <span>已授权/未授权</span>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- 按钮 -->
+    <button class="btn btn-off" id="btn-q" onclick="doSearch()">🔍 查询</button>
+    <button class="btn btn-purple" onclick="doReset()">↺ 重置</button>
+    <button class="btn btn-purple">+ 新增</button>
+    <button class="btn btn-purple">批量删除</button>
+  </div>
+
+  <!-- 红色提示行（固定显示） -->
+  <div class="hint-row">
+    <span class="hint-item">※ 子权限查询需要先选菜单</span>
+    <span class="hint-item">※ 已授权/未授权需要先选择筛选条件</span>
+  </div>
+
+  <!-- 动态警告（有权限条件但未选授权状态时） -->
+  <div class="warn" id="warn">⚠ 已选择权限条件，请勾选「已授权/未授权」后再点击查询</div>
+
+  <!-- 表格 -->
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" class="row-cb"></th>
+          <th style="width:100px;text-align:center">操作</th>
+          <th>角色名称</th>
+          <th>角色描述</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr data-name="系统管理员" data-mods="会员管理,提现管理,充值管理,系统管理,报表管理,大转盘" data-menus="会员列表,会员等级,提现审核,提现锁定,充值列表,系统角色,系统用户,报表统计,转盘任务" data-subs="查看,修改,导出,充值,封号,处理,批量操作,锁定操作,派单,编辑,删除,新增,打印">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>系统管理员</td><td>测试账号</td>
+        </tr>
+        <tr data-name="技术客服" data-mods="会员管理,充值管理" data-menus="会员列表,充值列表" data-subs="查看,充值">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>技术客服</td><td>技术客服</td>
+        </tr>
+        <tr data-name="AR测试" data-mods="报表管理" data-menus="报表统计" data-subs="查看,导出">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>AR测试</td><td>测试专用</td>
+        </tr>
+        <tr data-name="权限测试" data-mods="系统管理" data-menus="系统角色,系统用户" data-subs="查看,编辑">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>权限测试</td><td>1</td>
+        </tr>
+        <tr data-name="商务测试账号" data-mods="报表管理" data-menus="报表统计" data-subs="查看">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>商务测试账号</td><td></td>
+        </tr>
+        <tr data-name="临时测试" data-mods="会员管理" data-menus="会员列表" data-subs="查看">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>临时测试</td><td></td>
+        </tr>
+        <tr data-name="产品测试权限" data-mods="会员管理,系统管理" data-menus="会员列表,系统角色" data-subs="查看,修改">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>产品测试权限</td><td></td>
+        </tr>
+        <tr data-name="远程-组员" data-mods="提现管理" data-menus="提现审核,提现锁定" data-subs="查看,处理,锁定操作">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>远程-组员</td><td></td>
+        </tr>
+        <tr data-name="远程-组长" data-mods="提现管理,会员管理" data-menus="提现审核,提现锁定,会员列表,会员等级" data-subs="查看,处理,批量操作,锁定操作,派单,修改">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>远程-组长</td><td></td>
+        </tr>
+        <tr data-name="远程-管理员" data-mods="提现管理,会员管理,报表管理" data-menus="提现审核,提现锁定,会员列表,会员等级,报表统计" data-subs="查看,处理,批量操作,导出,锁定操作,派单,修改">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>远程-管理员</td><td></td>
+        </tr>
+        <tr data-name="远程-主管" data-mods="提现管理,会员管理,报表管理,系统管理" data-menus="提现审核,提现锁定,会员列表,会员等级,报表统计,系统角色" data-subs="查看,处理,批量操作,导出,锁定操作,派单,修改,编辑">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>远程-主管</td><td></td>
+        </tr>
+        <tr data-name="测试123" data-mods="系统管理" data-menus="系统角色,系统用户" data-subs="查看,编辑,删除,新增">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>测试123</td><td>111</td>
+        </tr>
+        <tr data-name="中台公共角色" data-mods="会员管理,提现管理,充值管理,系统管理,报表管理" data-menus="会员列表,会员等级,提现审核,提现锁定,充值列表,系统角色,系统用户,报表统计" data-subs="查看,修改,导出,处理,批量操作,锁定操作,编辑">
+          <td><input type="checkbox" class="row-cb"></td>
+          <td><div class="op-wrap"><button class="op-icon" title="编辑">✎</button><button class="op-icon del" title="删除">⊗</button></div></td>
+          <td>中台公共角色</td><td>测试账号</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="empty" id="empty">暂无数据</div>
+  </div>
+
+  <!-- 底部分页 -->
+  <div class="footer">
+    <div class="pg-left">
+      <span>共1页，前往</span>
+      <input class="pg-input" value="1">
+      <span>页，</span>
+      <select class="pg-sel">
+        <option>20条/页</option><option>50条/页</option><option>100条/页</option>
+      </select>
+      <button class="pg-go">GO</button>
+    </div>
+    <div class="pg-right">
+      <button class="pg-btn">首页</button>
+      <button class="pg-btn">上一页</button>
+      <button class="pg-btn cur">1</button>
+      <button class="pg-btn">下一页</button>
+      <button class="pg-btn">尾页</button>
+      <span id="pg-total">共13条</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const menuMap={
+  '':['会员列表','会员等级','提现审核','提现锁定','充值列表','系统角色','系统用户','报表统计','转盘任务'],
+  '会员管理':['会员列表','会员等级'],
+  '提现管理':['提现审核','提现锁定'],
+  '充值管理':['充值列表'],
+  '大转盘':['转盘任务'],
+  '系统管理':['系统角色','系统用户'],
+  '报表管理':['报表统计'],
+};
+const subMap={
+  '会员列表':['查看','修改','导出','充值','封号','新增'],
+  '会员等级':['查看','修改','导入','导出'],
+  '提现审核':['查看','处理','批量操作','导出','打印'],
+  '提现锁定':['查看','锁定操作','派单'],
+  '充值列表':['查看','新增','导出'],
+  '系统角色':['查看','编辑','删除','新增'],
+  '系统用户':['查看','新增','编辑','删除'],
+  '报表统计':['查看','导出'],
+  '转盘任务':['查看','新增','修改','导出'],
+};
+const allMods=['会员管理','提现管理','充值管理','大转盘','系统管理','报表管理'];
+
+// 每个key对应的全量选项（用于过滤还原）
+const fullData={mod:allMods, menu:menuMap[''], sub:[]};
+// 当前选中的实际值
+let st={name:'',mod:'',menu:'',sub:'',granted:null};
+const $=id=>document.getElementById(id);
+
+// ===== 初始化 =====
+function init(){
+  buildList('list-mod',allMods,'全部模块',v=>pickMod(v));
+  buildList('list-menu',menuMap[''],'全部菜单',v=>pickMenu(v));
+  buildList('list-sub',[],'全部子权限',v=>pickSub(v));
+}
+
+// ===== 构建下拉列表 =====
+function buildList(lid,items,allLabel,onSel){
+  const l=$(lid); l.innerHTML='';
+  addItem(l,'',allLabel,false,()=>onSel(''));
+  items.forEach(v=>addItem(l,v,v,false,()=>onSel(v)));
+}
+
+function addItem(container,val,text,selected,fn){
+  const d=document.createElement('div');
+  d.className='di'+(selected?' sel':'');
+  d.dataset.v=val;
+  d.innerHTML='<span class="di-ck">'+(selected?'✓':'')+'</span>'+text;
+  d.onclick=fn;
+  container.appendChild(d);
+}
+
+function markSel(lid,val){
+  const l=$(lid); if(!l) return;
+  l.querySelectorAll('.di').forEach(i=>{
+    const s=i.dataset.v===val;
+    i.classList.toggle('sel',s);
+    i.querySelector('.di-ck').textContent=s?'✓':'';
+  });
+}
+
+// ===== 输入过滤（模糊搜索） =====
+function onInput(key,val){
+  const l=$('list-'+key);
+  if(!l) return;
+  const items=l.querySelectorAll('.di[data-v]');
+  let anyVisible=false;
+  items.forEach(i=>{
+    if(i.dataset.v===''){i.style.display=''; return;}
+    const show=!val||i.dataset.v.includes(val);
+    i.style.display=show?'':'none';
+    if(show) anyVisible=true;
+  });
+  // 空提示
+  let empty=l.querySelector('.di-empty');
+  if(!anyVisible&&val){
+    if(!empty){empty=document.createElement('div');empty.className='di-empty';empty.textContent='无匹配结果';l.appendChild(empty);}
+    empty.style.display='';
+  } else if(empty){
+    empty.style.display='none';
+  }
+  // 打开下拉
+  openDrop(key);
+  // 清空已选值（用户在重新输入）
+  if(key==='mod'){st.mod=''; $('fg-mod').classList.remove('has-val');}
+  else if(key==='menu'){st.menu=''; $('fg-menu').classList.remove('has-val');}
+  else if(key==='sub'){st.sub=''; $('fg-sub').classList.remove('has-val');}
+  upState();
+}
+
+// ===== 开关下拉 =====
+function openDrop(key){
+  if(key==='sub'&&$('inp-sub').disabled) return;
+  ['mod','menu','sub'].forEach(k=>{
+    if(k!==key){
+      $('drop-'+k).classList.remove('open');
+      $('arr-'+k).classList.remove('open');
+      $('fg-'+k).classList.remove('open');
+    }
+  });
+  $('drop-'+key).classList.add('open');
+  $('arr-'+key).classList.add('open');
+  $('fg-'+key).classList.add('open');
+}
+
+function toggleDrop(key){
+  if(key==='sub'&&$('inp-sub').disabled) return;
+  const isOpen=$('drop-'+key).classList.contains('open');
+  closeAll();
+  if(!isOpen){
+    $('drop-'+key).classList.add('open');
+    $('arr-'+key).classList.add('open');
+    $('fg-'+key).classList.add('open');
+  }
+}
+
+function closeAll(){
+  ['mod','menu','sub'].forEach(k=>{
+    $('drop-'+k).classList.remove('open');
+    $('arr-'+k).classList.remove('open');
+    $('fg-'+k).classList.remove('open');
+  });
+}
+
+// ===== 选择项 =====
+function pickMod(val){
+  st.mod=val;
+  $('inp-mod').value=val;
+  val?$('fg-mod').classList.add('has-val'):$('fg-mod').classList.remove('has-val');
+  markSel('list-mod',val);
+  closeAll();
+  // 联动菜单
+  st.menu=''; st.sub='';
+  $('inp-menu').value=''; $('fg-menu').classList.remove('has-val');
+  const menus=menuMap[val]||menuMap[''];
+  fullData.menu=menus;
+  buildList('list-menu',menus,'全部菜单',v=>pickMenu(v));
+  resetSub();
+  upState();
+}
+
+function pickMenu(val){
+  st.menu=val;
+  $('inp-menu').value=val;
+  val?$('fg-menu').classList.add('has-val'):$('fg-menu').classList.remove('has-val');
+  markSel('list-menu',val);
+  closeAll();
+  st.sub='';
+  if(val){enableSub(val);}else{resetSub();}
+  upState();
+}
+
+function pickSub(val){
+  st.sub=val;
+  $('inp-sub').value=val;
+  val?$('fg-sub').classList.add('has-val'):$('fg-sub').classList.remove('has-val');
+  markSel('list-sub',val);
+  closeAll();
+  upState();
+}
+
+function enableSub(menuVal){
+  const inp=$('inp-sub');
+  inp.disabled=false; inp.placeholder='请选择'; inp.style.cursor='text';
+  $('lbl-sub').classList.remove('dim'); $('arr-sub').classList.remove('dim');
+  const subs=subMap[menuVal]||[];
+  fullData.sub=subs;
+  buildList('list-sub',subs,'全部子权限',v=>pickSub(v));
+  $('fg-sub').classList.remove('has-val'); st.sub=''; $('inp-sub').value='';
+}
+
+function resetSub(){
+  const inp=$('inp-sub');
+  inp.disabled=true; inp.value=''; inp.placeholder='请先选择菜单'; inp.style.cursor='not-allowed';
+  $('lbl-sub').classList.add('dim'); $('arr-sub').classList.add('dim');
+  $('fg-sub').classList.remove('has-val','open'); st.sub='';
+  buildList('list-sub',[],'全部子权限',v=>pickSub(v));
+}
+
+// ===== 角色名称 =====
+function onName(){st.name=$('inp-name').value.trim(); upState();}
+
+// ===== 勾选框 =====
+function toggleCb(){
+  const hasP=!!(st.mod||st.menu||st.sub);
+  if(!hasP) return;
+  if(st.granted===null||st.granted===false){
+    st.granted=true;
+    $('cb-box').classList.add('on');
+  } else {
+    st.granted=false;
+    $('cb-box').classList.remove('on');
+  }
+  upState();
+}
+
+// ===== 状态更新 =====
+function upState(){
+  const hasP=!!(st.mod||st.menu||st.sub);
+  const cbw=$('cb-wrap'), btn=$('btn-q'), warn=$('warn');
+  if(hasP){
+    cbw.classList.remove('dim');
+    if(st.granted===null){btn.classList.add('btn-off');btn.classList.remove('btn-purple'); warn.classList.add('show');}
+    else{btn.classList.remove('btn-off');btn.classList.add('btn-purple'); warn.classList.remove('show');}
+  } else {
+    cbw.classList.add('dim');
+    st.granted=null; $('cb-box').classList.remove('on');
+    warn.classList.remove('show');
+    if(st.name){btn.classList.remove('btn-off');btn.classList.add('btn-purple');}
+    else{btn.classList.add('btn-off');btn.classList.remove('btn-purple');}
+  }
+}
+
+// ===== 查询 =====
+function doSearch(){
+  if($('btn-q').classList.contains('btn-off')) return;
+  const rows=document.querySelectorAll('#tbody tr');
+  let cnt=0;
+  rows.forEach(r=>{
+    const name=r.dataset.name||'';
+    const mods=(r.dataset.mods||'').split(',');
+    const menus=(r.dataset.menus||'').split(',');
+    const subs=(r.dataset.subs||'').split(',');
+    const okN=!st.name||name.includes(st.name);
+    if(!st.mod&&!st.menu&&!st.sub){
+      r.classList.toggle('hidden',!okN); if(okN)cnt++; return;
+    }
+    const pm=(!st.mod||mods.includes(st.mod))&&(!st.menu||menus.includes(st.menu))&&(!st.sub||subs.includes(st.sub));
+    let show=false;
+    if(st.granted===true) show=okN&&pm;
+    else if(st.granted===false) show=okN&&!pm;
+    r.classList.toggle('hidden',!show); if(show)cnt++;
+  });
+  $('empty').style.display=cnt===0?'block':'none';
+  $('pg-total').textContent='共'+cnt+'条';
+}
+
+// ===== 重置 =====
+function doReset(){
+  st={name:'',mod:'',menu:'',sub:'',granted:null};
+  $('inp-name').value='';
+  ['mod','menu'].forEach(k=>{$('inp-'+k).value=''; $('fg-'+k).classList.remove('has-val');});
+  $('cb-box').classList.remove('on'); $('cb-wrap').classList.add('dim');
+  $('btn-q').classList.add('btn-off'); $('btn-q').classList.remove('btn-purple');
+  $('warn').classList.remove('show');
+  resetSub();
+  buildList('list-menu',menuMap[''],'全部菜单',v=>pickMenu(v));
+  markSel('list-mod',''); markSel('list-menu','');
+  document.querySelectorAll('#tbody tr').forEach(r=>r.classList.remove('hidden'));
+  $('empty').style.display='none'; $('pg-total').textContent='共13条';
+}
+
+// ===== 点外部关闭下拉 =====
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.fg')) closeAll();
+});
+
+init();
+</script>
+</body>
+</html>
