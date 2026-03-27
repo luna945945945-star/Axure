@@ -24,12 +24,10 @@ body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;font-size:13px;color
 .fg.has-val{border-color:#6a30e0}
 .fg-label{padding:0 8px;font-size:12px;color:#555;border-right:1px solid #e8e8e8;height:100%;display:flex;align-items:center;white-space:nowrap;background:#f9f9f9;border-radius:3px 0 0 3px;flex-shrink:0;user-select:none;cursor:default}
 .fg-label.dim{color:#ccc}
-
-/* 可输入的下拉框 */
 .fg-input{border:none;outline:none;padding:0 22px 0 8px;font-size:12px;color:#333;height:100%;width:90px;background:transparent;font-family:inherit;cursor:text}
 .fg-input::placeholder{color:#bbb}
 .fg-input:disabled{cursor:not-allowed;color:#ccc;background:transparent}
-.fg-arrow{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:#aaa;pointer-events:none;transition:transform .15s;cursor:pointer}
+.fg-arrow{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:#aaa;pointer-events:none;transition:transform .15s}
 .fg-arrow.open{transform:translateY(-50%) rotate(180deg)}
 .fg-arrow.dim{color:#ddd}
 
@@ -43,30 +41,29 @@ body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;font-size:13px;color
 .di-ck{width:12px;font-size:10px;color:#6a30e0;flex-shrink:0}
 .di-empty{padding:8px 12px;font-size:12px;color:#bbb;text-align:center}
 
-/* 勾选框 — 只置灰checkbox，不置灰文字 */
-.cb-wrap{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#444;user-select:none;height:30px;white-space:nowrap}
-.cb-wrap.dim .cb{border-color:#ddd;background:#f5f5f5;cursor:not-allowed}
-.cb-wrap.dim .cb::after{display:none}
-.cb-wrap.dim{cursor:default}
-.cb-wrap:not(.dim){cursor:pointer}
-.cb{width:13px;height:13px;border:1.5px solid #ccc;border-radius:2px;display:inline-flex;align-items:center;justify-content:center;background:#fff;transition:all .12s;flex-shrink:0}
-.cb.on{background:#6a30e0;border-color:#6a30e0;cursor:pointer}
-.cb.on::after{content:"✓";color:#fff;font-size:9px;font-weight:bold;line-height:1}
+/* 单选框组 */
+.radio-group{display:inline-flex;align-items:center;gap:12px;height:30px}
+.radio-item{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#444;user-select:none;cursor:pointer;white-space:nowrap}
+.radio-item.dim{color:#ccc;cursor:not-allowed;pointer-events:none}
+.radio-box{width:13px;height:13px;border:1.5px solid #ccc;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#fff;transition:all .12s;flex-shrink:0}
+.radio-item.dim .radio-box{border-color:#e0e0e0;background:#f5f5f5}
+.radio-box.on{border-color:#6a30e0;background:#fff}
+.radio-box.on::after{content:"";width:7px;height:7px;border-radius:50%;background:#6a30e0;display:block}
 
 /* 按钮 */
 .btn{height:30px;border-radius:3px;padding:0 14px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;border:none;font-family:inherit;white-space:nowrap;transition:opacity .15s}
 .btn:hover{opacity:.85}
 .btn-purple{background:#6a30e0;color:#fff}
-.btn-off{background:#c4b5fd;color:#fff;cursor:not-allowed;pointer-events:none}
+.btn-off{background:#c4b5fd;color:#fff;cursor:not-allowed;pointer-events:none;opacity:1}
+
+/* 分割线 */
+.sep{width:1px;height:16px;background:#e0e0e0}
 
 /* 红色提示行 */
 .hint-row{margin-bottom:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .hint-item{font-size:12px;color:#e53935;display:flex;align-items:center;gap:3px}
 
-/* 分割线 */
-.sep{width:1px;height:16px;background:#e0e0e0}
-
-/* 警告提示（查询前） */
+/* 动态警告 */
 .warn{font-size:12px;color:#e53935;margin-bottom:10px;display:none;align-items:center;gap:5px;padding:4px 0}
 .warn.show{display:flex}
 
@@ -80,8 +77,6 @@ td{padding:9px 14px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:mi
 tbody tr{background:#fff}
 tbody tr.hidden{display:none}
 tbody tr:not(.hidden):hover td{background:#faf8ff}
-
-/* 操作图标 */
 .op-wrap{display:flex;align-items:center;justify-content:center;gap:10px}
 .op-icon{width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#999;border-radius:3px;transition:all .12s;font-size:15px;border:none;background:transparent}
 .op-icon:hover{color:#6a30e0;background:#f5f0ff}
@@ -117,8 +112,7 @@ tbody tr:not(.hidden):hover td{background:#faf8ff}
       <div class="fg-label">模块</div>
       <input class="fg-input" id="inp-mod" placeholder="请选择"
         oninput="onInput('mod',this.value)"
-        onfocus="openDrop('mod')"
-        autocomplete="off">
+        onfocus="openDrop('mod')" autocomplete="off">
       <span class="fg-arrow" id="arr-mod" onclick="toggleDrop('mod')">▾</span>
       <div class="drop" id="drop-mod"><div class="drop-list" id="list-mod"></div></div>
     </div>
@@ -128,8 +122,7 @@ tbody tr:not(.hidden):hover td{background:#faf8ff}
       <div class="fg-label">菜单</div>
       <input class="fg-input" id="inp-menu" placeholder="请选择"
         oninput="onInput('menu',this.value)"
-        onfocus="openDrop('menu')"
-        autocomplete="off">
+        onfocus="openDrop('menu')" autocomplete="off">
       <span class="fg-arrow" id="arr-menu" onclick="toggleDrop('menu')">▾</span>
       <div class="drop" id="drop-menu"><div class="drop-list" id="list-menu"></div></div>
     </div>
@@ -139,18 +132,23 @@ tbody tr:not(.hidden):hover td{background:#faf8ff}
       <div class="fg-label dim" id="lbl-sub">子权限</div>
       <input class="fg-input" id="inp-sub" placeholder="请先选择菜单"
         oninput="onInput('sub',this.value)"
-        onfocus="openDrop('sub')"
-        autocomplete="off" disabled>
+        onfocus="openDrop('sub')" autocomplete="off" disabled>
       <span class="fg-arrow dim" id="arr-sub" onclick="toggleDrop('sub')">▾</span>
       <div class="drop" id="drop-sub"><div class="drop-list" id="list-sub"></div></div>
     </div>
 
     <div class="sep"></div>
 
-    <!-- 已授权/未授权 勾选框 -->
-    <div class="cb-wrap dim" id="cb-wrap" onclick="toggleCb()">
-      <div class="cb" id="cb-box"></div>
-      <span>已授权/未授权</span>
+    <!-- 已授权 / 未授权 两个独立单选框 -->
+    <div class="radio-group">
+      <div class="radio-item dim" id="ri-granted" onclick="toggleRadio('granted')">
+        <div class="radio-box" id="rb-granted"></div>
+        <span>已授权</span>
+      </div>
+      <div class="radio-item dim" id="ri-ungranted" onclick="toggleRadio('ungranted')">
+        <div class="radio-box" id="rb-ungranted"></div>
+        <span>未授权</span>
+      </div>
     </div>
 
     <div class="sep"></div>
@@ -168,8 +166,8 @@ tbody tr:not(.hidden):hover td{background:#faf8ff}
     <span class="hint-item">※ 已授权/未授权需要先选择筛选条件</span>
   </div>
 
-  <!-- 动态警告（有权限条件但未选授权状态时） -->
-  <div class="warn" id="warn">⚠ 已选择权限条件，请勾选「已授权/未授权」后再点击查询</div>
+  <!-- 动态警告 -->
+  <div class="warn" id="warn">⚠ 已选择权限条件，请选择「已授权」或「未授权」后再点击查询</div>
 
   <!-- 表格 -->
   <div class="tbl-wrap">
@@ -253,7 +251,7 @@ tbody tr:not(.hidden):hover td{background:#faf8ff}
     <div class="empty" id="empty">暂无数据</div>
   </div>
 
-  <!-- 底部分页 -->
+  <!-- 底部 -->
   <div class="footer">
     <div class="pg-left">
       <span>共1页，前往</span>
@@ -299,20 +297,16 @@ const subMap={
 };
 const allMods=['会员管理','提现管理','充值管理','大转盘','系统管理','报表管理'];
 
-// 每个key对应的全量选项（用于过滤还原）
-const fullData={mod:allMods, menu:menuMap[''], sub:[]};
-// 当前选中的实际值
+// st.granted: null=不限, true=已授权, false=未授权
 let st={name:'',mod:'',menu:'',sub:'',granted:null};
 const $=id=>document.getElementById(id);
 
-// ===== 初始化 =====
 function init(){
   buildList('list-mod',allMods,'全部模块',v=>pickMod(v));
   buildList('list-menu',menuMap[''],'全部菜单',v=>pickMenu(v));
   buildList('list-sub',[],'全部子权限',v=>pickSub(v));
 }
 
-// ===== 构建下拉列表 =====
 function buildList(lid,items,allLabel,onSel){
   const l=$(lid); l.innerHTML='';
   addItem(l,'',allLabel,false,()=>onSel(''));
@@ -337,44 +331,32 @@ function markSel(lid,val){
   });
 }
 
-// ===== 输入过滤（模糊搜索） =====
 function onInput(key,val){
-  const l=$('list-'+key);
-  if(!l) return;
+  const l=$('list-'+key); if(!l) return;
   const items=l.querySelectorAll('.di[data-v]');
-  let anyVisible=false;
+  let any=false;
   items.forEach(i=>{
-    if(i.dataset.v===''){i.style.display=''; return;}
+    if(i.dataset.v===''){i.style.display='';return;}
     const show=!val||i.dataset.v.includes(val);
     i.style.display=show?'':'none';
-    if(show) anyVisible=true;
+    if(show) any=true;
   });
-  // 空提示
   let empty=l.querySelector('.di-empty');
-  if(!anyVisible&&val){
+  if(!any&&val){
     if(!empty){empty=document.createElement('div');empty.className='di-empty';empty.textContent='无匹配结果';l.appendChild(empty);}
     empty.style.display='';
-  } else if(empty){
-    empty.style.display='none';
-  }
-  // 打开下拉
+  } else if(empty){empty.style.display='none';}
   openDrop(key);
-  // 清空已选值（用户在重新输入）
-  if(key==='mod'){st.mod=''; $('fg-mod').classList.remove('has-val');}
-  else if(key==='menu'){st.menu=''; $('fg-menu').classList.remove('has-val');}
-  else if(key==='sub'){st.sub=''; $('fg-sub').classList.remove('has-val');}
+  if(key==='mod'){st.mod='';$('fg-mod').classList.remove('has-val');}
+  else if(key==='menu'){st.menu='';$('fg-menu').classList.remove('has-val');}
+  else if(key==='sub'){st.sub='';$('fg-sub').classList.remove('has-val');}
   upState();
 }
 
-// ===== 开关下拉 =====
 function openDrop(key){
   if(key==='sub'&&$('inp-sub').disabled) return;
   ['mod','menu','sub'].forEach(k=>{
-    if(k!==key){
-      $('drop-'+k).classList.remove('open');
-      $('arr-'+k).classList.remove('open');
-      $('fg-'+k).classList.remove('open');
-    }
+    if(k!==key){$('drop-'+k).classList.remove('open');$('arr-'+k).classList.remove('open');$('fg-'+k).classList.remove('open');}
   });
   $('drop-'+key).classList.add('open');
   $('arr-'+key).classList.add('open');
@@ -400,18 +382,15 @@ function closeAll(){
   });
 }
 
-// ===== 选择项 =====
 function pickMod(val){
   st.mod=val;
   $('inp-mod').value=val;
   val?$('fg-mod').classList.add('has-val'):$('fg-mod').classList.remove('has-val');
   markSel('list-mod',val);
   closeAll();
-  // 联动菜单
   st.menu=''; st.sub='';
   $('inp-menu').value=''; $('fg-menu').classList.remove('has-val');
   const menus=menuMap[val]||menuMap[''];
-  fullData.menu=menus;
   buildList('list-menu',menus,'全部菜单',v=>pickMenu(v));
   resetSub();
   upState();
@@ -424,7 +403,7 @@ function pickMenu(val){
   markSel('list-menu',val);
   closeAll();
   st.sub='';
-  if(val){enableSub(val);}else{resetSub();}
+  val?enableSub(val):resetSub();
   upState();
 }
 
@@ -442,7 +421,6 @@ function enableSub(menuVal){
   inp.disabled=false; inp.placeholder='请选择'; inp.style.cursor='text';
   $('lbl-sub').classList.remove('dim'); $('arr-sub').classList.remove('dim');
   const subs=subMap[menuVal]||[];
-  fullData.sub=subs;
   buildList('list-sub',subs,'全部子权限',v=>pickSub(v));
   $('fg-sub').classList.remove('has-val'); st.sub=''; $('inp-sub').value='';
 }
@@ -452,44 +430,76 @@ function resetSub(){
   inp.disabled=true; inp.value=''; inp.placeholder='请先选择菜单'; inp.style.cursor='not-allowed';
   $('lbl-sub').classList.add('dim'); $('arr-sub').classList.add('dim');
   $('fg-sub').classList.remove('has-val','open'); st.sub='';
-  buildList('list-sub',[],'全部子权限',v=>pickSub(v));
 }
 
-// ===== 角色名称 =====
 function onName(){st.name=$('inp-name').value.trim(); upState();}
 
-// ===== 勾选框 =====
-function toggleCb(){
+// ===== 单选框逻辑：点击已选中的再次点击则取消，互斥 =====
+function toggleRadio(which){
   const hasP=!!(st.mod||st.menu||st.sub);
   if(!hasP) return;
-  if(st.granted===null||st.granted===false){
-    st.granted=true;
-    $('cb-box').classList.add('on');
+  if(which==='granted'){
+    if(st.granted===true){
+      // 再次点击取消
+      st.granted=null;
+      $('rb-granted').classList.remove('on');
+    } else {
+      st.granted=true;
+      $('rb-granted').classList.add('on');
+      $('rb-ungranted').classList.remove('on');
+    }
   } else {
-    st.granted=false;
-    $('cb-box').classList.remove('on');
+    if(st.granted===false){
+      // 再次点击取消
+      st.granted=null;
+      $('rb-ungranted').classList.remove('on');
+    } else {
+      st.granted=false;
+      $('rb-ungranted').classList.add('on');
+      $('rb-granted').classList.remove('on');
+    }
   }
   upState();
 }
 
-// ===== 状态更新 =====
 function upState(){
   const hasP=!!(st.mod||st.menu||st.sub);
-  const cbw=$('cb-wrap'), btn=$('btn-q'), warn=$('warn');
-  if(hasP){
-    cbw.classList.remove('dim');
-    if(st.granted===null){btn.classList.add('btn-off');btn.classList.remove('btn-purple'); warn.classList.add('show');}
-    else{btn.classList.remove('btn-off');btn.classList.add('btn-purple'); warn.classList.remove('show');}
-  } else {
-    cbw.classList.add('dim');
-    st.granted=null; $('cb-box').classList.remove('on');
+  const btn=$('btn-q'), warn=$('warn');
+
+  // 单选框激活/置灰
+  ['granted','ungranted'].forEach(k=>{
+    const ri=$('ri-'+k);
+    hasP?ri.classList.remove('dim'):ri.classList.add('dim');
+  });
+
+  if(!hasP){
+    // 无权限条件：清空单选
+    st.granted=null;
+    $('rb-granted').classList.remove('on');
+    $('rb-ungranted').classList.remove('on');
     warn.classList.remove('show');
-    if(st.name){btn.classList.remove('btn-off');btn.classList.add('btn-purple');}
-    else{btn.classList.add('btn-off');btn.classList.remove('btn-purple');}
+    // 只有角色名称时可查询
+    st.name?setBtn(true):setBtn(false);
+  } else {
+    // 有权限条件
+    if(st.granted===null){
+      // 未选授权状态：查询按钮置灰，显示警告
+      setBtn(false);
+      warn.classList.add('show');
+    } else {
+      // 已选授权状态：查询按钮可用
+      setBtn(true);
+      warn.classList.remove('show');
+    }
   }
 }
 
-// ===== 查询 =====
+function setBtn(active){
+  const btn=$('btn-q');
+  if(active){btn.classList.remove('btn-off');btn.classList.add('btn-purple');}
+  else{btn.classList.add('btn-off');btn.classList.remove('btn-purple');}
+}
+
 function doSearch(){
   if($('btn-q').classList.contains('btn-off')) return;
   const rows=document.querySelectorAll('#tbody tr');
@@ -500,6 +510,7 @@ function doSearch(){
     const menus=(r.dataset.menus||'').split(',');
     const subs=(r.dataset.subs||'').split(',');
     const okN=!st.name||name.includes(st.name);
+    // 无权限条件：只按角色名称筛
     if(!st.mod&&!st.menu&&!st.sub){
       r.classList.toggle('hidden',!okN); if(okN)cnt++; return;
     }
@@ -513,22 +524,23 @@ function doSearch(){
   $('pg-total').textContent='共'+cnt+'条';
 }
 
-// ===== 重置 =====
 function doReset(){
   st={name:'',mod:'',menu:'',sub:'',granted:null};
   $('inp-name').value='';
-  ['mod','menu'].forEach(k=>{$('inp-'+k).value=''; $('fg-'+k).classList.remove('has-val');});
-  $('cb-box').classList.remove('on'); $('cb-wrap').classList.add('dim');
-  $('btn-q').classList.add('btn-off'); $('btn-q').classList.remove('btn-purple');
+  ['mod','menu'].forEach(k=>{$('inp-'+k).value='';$('fg-'+k).classList.remove('has-val');});
+  $('rb-granted').classList.remove('on');
+  $('rb-ungranted').classList.remove('on');
+  ['granted','ungranted'].forEach(k=>$('ri-'+k).classList.add('dim'));
+  setBtn(false);
   $('warn').classList.remove('show');
   resetSub();
   buildList('list-menu',menuMap[''],'全部菜单',v=>pickMenu(v));
   markSel('list-mod',''); markSel('list-menu','');
   document.querySelectorAll('#tbody tr').forEach(r=>r.classList.remove('hidden'));
-  $('empty').style.display='none'; $('pg-total').textContent='共13条';
+  $('empty').style.display='none';
+  $('pg-total').textContent='共13条';
 }
 
-// ===== 点外部关闭下拉 =====
 document.addEventListener('click',e=>{
   if(!e.target.closest('.fg')) closeAll();
 });
