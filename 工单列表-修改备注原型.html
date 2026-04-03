@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工单列表 — 修改备注原型</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; font-size: 13px; }
+
+  /* ===== TAB BAR ===== */
+  .tab-bar { background: #fff; padding: 0 16px; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; height: 40px; }
+  .tab { padding: 8px 16px; font-size: 13px; cursor: pointer; position: relative; color: #666; }
+  .tab.active { color: #1890ff; font-weight: 600; }
+  .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background: #1890ff; }
+  .tab .close { margin-left: 6px; font-size: 11px; color: #999; }
+
+  /* ===== PAGE ===== */
+  .page { background: #fff; margin: 0; min-height: calc(100vh - 40px); }
+  .page-title { font-size: 15px; font-weight: 600; padding: 16px 20px 12px; color: #333; }
+
+  /* ===== SEARCH AREA ===== */
+  .search-area { padding: 0 20px 12px; }
+  .search-row { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 8px; align-items: center; }
+  .search-item { display: flex; align-items: center; gap: 6px; }
+  .search-item label { font-size: 12px; color: #666; white-space: nowrap; min-width: 48px; text-align: right; }
+  .search-item input, .search-item select {
+    height: 30px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 8px; font-size: 12px;
+    color: #333; background: #fff; outline: none; min-width: 140px;
+  }
+  .search-item input:focus, .search-item select:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+  .search-item input::placeholder { color: #bbb; }
+
+  .search-btns { display: flex; gap: 8px; margin-left: auto; }
+  .btn { height: 30px; padding: 0 14px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+  .btn-primary { background: #1890ff; color: #fff; border-color: #1890ff; }
+  .btn-primary:hover { background: #40a9ff; }
+  .btn:hover { border-color: #40a9ff; color: #1890ff; }
+  .btn-link { background: none; border: none; color: #1890ff; cursor: pointer; font-size: 12px; padding: 0; }
+  .btn-link:hover { color: #40a9ff; }
+
+  /* ===== ACTION BUTTONS ROW ===== */
+  .action-bar { padding: 8px 20px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .btn-action { height: 28px; padding: 0 12px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid; display: inline-flex; align-items: center; }
+  .btn-green { background: #fff; color: #52c41a; border-color: #52c41a; }
+  .btn-green:hover { background: #f6ffed; }
+  .btn-red { background: #ff4d4f; color: #fff; border-color: #ff4d4f; }
+  .btn-blue { background: #1890ff; color: #fff; border-color: #1890ff; }
+  .btn-outline { background: #fff; color: #333; border-color: #d9d9d9; }
+
+  .collapse-text { color: #1890ff; font-size: 12px; cursor: pointer; margin: 0 auto; display: flex; align-items: center; gap: 2px; }
+
+  /* ===== TABLE ===== */
+  .table-wrap { overflow-x: auto; padding: 0 20px; }
+  table { width: 100%; border-collapse: collapse; min-width: 1600px; }
+  th { background: #fafafa; font-weight: 600; font-size: 12px; color: #333; padding: 10px 12px;
+       border-bottom: 1px solid #e8e8e8; text-align: left; white-space: nowrap; position: sticky; top: 0; z-index: 1; }
+  td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 12px; vertical-align: middle; }
+  tr:hover td { background: #fafafa; }
+  .col-center { text-align: center; }
+
+  /* ===== CHECKBOX ===== */
+  .checkbox { width: 15px; height: 15px; cursor: pointer; accent-color: #1890ff; }
+
+  /* ===== BADGES ===== */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; white-space: nowrap; }
+  .badge-green { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+  .badge-orange { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+  .badge-blue { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+  .badge-red { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+
+  /* ===== MEMBER ID ===== */
+  .member-info { line-height: 1.8; }
+  .member-id { color: #1890ff; cursor: pointer; }
+  .member-id:hover { text-decoration: underline; }
+  .member-account { display: inline-block; background: #fff2f0; color: #ff4d4f; padding: 0 4px; border-radius: 2px; font-size: 11px; }
+  .copy-icon { cursor: pointer; color: #999; font-size: 10px; margin-left: 2px; }
+
+  /* ===== OPERATION LINKS ===== */
+  .op-link { color: #1890ff; cursor: pointer; font-size: 12px; margin-right: 8px; white-space: nowrap; }
+  .op-link:hover { color: #40a9ff; text-decoration: underline; }
+  .op-link-warn { color: #fa8c16; }
+  .op-link-warn:hover { color: #ffa940; }
+
+  /* ===== REMARK CELL ===== */
+  .remark-cell { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ===== PAGINATION ===== */
+  .pagination { display: flex; align-items: center; justify-content: flex-end; padding: 12px 20px; gap: 6px; font-size: 12px; color: #666; }
+  .page-btn { width: 28px; height: 28px; border: 1px solid #d9d9d9; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: #fff; font-size: 12px; }
+  .page-btn.active { border-color: #1890ff; color: #1890ff; }
+  .page-btn:hover { border-color: #1890ff; color: #1890ff; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
+    animation: fadeIn 0.2s ease;
+  }
+  .modal-overlay.show { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal {
+    background: #fff; border-radius: 8px; width: 420px; box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    animation: slideIn 0.25s ease;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid #f0f0f0;
+  }
+  .modal-header h3 { font-size: 15px; font-weight: 600; color: #333; }
+  .modal-close { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 4px; font-size: 16px; color: #999; border: none; background: none; }
+  .modal-close:hover { background: #f5f5f5; color: #666; }
+
+  .modal-body { padding: 20px; }
+  .modal-body label { font-size: 13px; color: #333; margin-bottom: 8px; display: block; }
+  .modal-body label .req { color: #ff4d4f; margin-right: 4px; }
+
+  .modal-textarea {
+    width: 100%; height: 100px; border: 1px solid #d9d9d9; border-radius: 4px;
+    padding: 8px 12px; font-size: 13px; font-family: inherit; resize: vertical;
+    outline: none; color: #333; line-height: 1.6;
+  }
+  .modal-textarea:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+  .modal-textarea.error { border-color: #ff4d4f; }
+  .modal-textarea::placeholder { color: #bbb; }
+
+  .textarea-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+  .char-count { font-size: 12px; color: #999; }
+  .char-count.over { color: #ff4d4f; }
+  .error-msg { font-size: 12px; color: #ff4d4f; }
+
+  .modal-footer { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 8px; }
+  .modal-btn { height: 32px; padding: 0 16px; border-radius: 4px; font-size: 13px; cursor: pointer; border: 1px solid; }
+  .modal-btn-default { background: #fff; color: #333; border-color: #d9d9d9; }
+  .modal-btn-default:hover { border-color: #40a9ff; color: #1890ff; }
+  .modal-btn-primary { background: #1890ff; color: #fff; border-color: #1890ff; }
+  .modal-btn-primary:hover { background: #40a9ff; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+    background: #fff; border-radius: 6px; padding: 10px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    display: none; align-items: center; gap: 8px; z-index: 2000; font-size: 13px;
+    animation: slideDown 0.3s ease;
+  }
+  .toast.show { display: flex; }
+  @keyframes slideDown { from { transform: translateX(-50%) translateY(-20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+  .toast-icon { font-size: 16px; }
+  .toast-success .toast-icon { color: #52c41a; }
+
+  /* ===== TOGGLE ===== */
+  .toggle-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .toggle-label { font-size: 12px; color: #666; }
+</style>
+</head>
+<body>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <div class="tab active">工单列表 <span class="close">×</span></div>
+</div>
+
+<!-- Page -->
+<div class="page">
+  <div class="page-title">工单管理</div>
+
+  <!-- Search Area -->
+  <div class="search-area">
+    <div class="search-row">
+      <div class="search-item"><label>会员账号</label><input placeholder="请输入会员账号,id,邮箱查询" style="width:180px"></div>
+      <div class="search-item"><label>工单号</label><input placeholder="请输入工单号"></div>
+      <div class="search-item"><label>三方名称</label><input placeholder="请输入三方名称"></div>
+      <div class="search-item"><label>订单号</label><input placeholder="请输入订单号"></div>
+      <div class="search-item"><label>查询结果</label><input placeholder="请输入查询结果"></div>
+      <div class="search-item"><label>UTR</label><input placeholder="请输入UTR"></div>
+    </div>
+    <div class="search-row">
+      <div class="search-item"><label>状态</label>
+        <select><option>请选择状态</option><option>待处理</option><option selected>已处理</option><option>已驳回</option><option>已锁定</option></select>
+      </div>
+      <div class="search-item"><label>商户</label><select><option>请选择商户</option></select></div>
+      <div class="search-item"><label>工单名称</label><input placeholder="工单名称"></div>
+      <div class="search-item"><label>工单类型</label><select><option>请选择工单类型</option></select></div>
+      <div class="search-item"><label>vip等级</label><select><option>请选择Vip等级</option></select></div>
+      <div class="search-item"><label>金额区间</label><input placeholder="最小金额" style="width:80px"> - <input placeholder="最大金额" style="width:80px"></div>
+    </div>
+    <div class="search-row" style="justify-content:flex-end;">
+      <div class="search-btns">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn">重置</button>
+        <span class="btn-link" style="margin-left:4px">收起 ∧</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <button class="btn-action btn-green">导出</button>
+    <button class="btn-action btn-green">批量三方查询</button>
+    <button class="btn-action btn-red">批量驳回</button>
+    <button class="btn-action btn-green">批量生成</button>
+    <button class="btn-action btn-outline">模版下载</button>
+    <button class="btn-action btn-green">批量转发</button>
+    <button class="btn-action btn-green">评论导出</button>
+    <button class="btn-action btn-blue">提交工单</button>
+    <div class="toggle-wrap">
+      <span style="font-size:12px;color:#999;">共 42 条</span>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="orderTable">
+      <thead>
+        <tr>
+          <th class="col-center" style="width:36px"><input type="checkbox" class="checkbox"></th>
+          <th>商户名称</th>
+          <th>工单号</th>
+          <th>工单类型</th>
+          <th>工单名称</th>
+          <th>vip等级</th>
+          <th>会员id</th>
+          <th>状态</th>
+          <th>三方名称</th>
+          <th>三方映射码</th>
+          <th>三方通道ID</th>
+          <th>订单金额</th>
+          <th>催单次数</th>
+          <th>提交时间</th>
+          <th>操作时间</th>
+          <th>操作人</th>
+          <th>备注</th>
+          <th style="position:sticky;right:0;background:#fafafa;z-index:2;box-shadow:-2px 0 4px rgba(0,0,0,0.04);">操作</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <span class="page-btn">‹</span>
+    <span class="page-btn active">1</span>
+    <span class="page-btn">2</span>
+    <span class="page-btn">3</span>
+    <span class="page-btn">›</span>
+    <span style="margin-left:8px;">20 / 页</span>
+    <span style="margin-left:8px;">跳至 <input style="width:40px;height:24px;border:1px solid #d9d9d9;border-radius:3px;text-align:center;font-size:12px;" value="1"> 页</span>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="remarkModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>修改备注</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <label><span class="req">*</span>备注</label>
+      <textarea class="modal-textarea" id="remarkInput" placeholder="请输入备注信息" maxlength="300" oninput="updateCount()"></textarea>
+      <div class="textarea-footer">
+        <span class="error-msg" id="errorMsg"></span>
+        <span class="char-count" id="charCount">0 / 256</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-default" onclick="closeModal()">取消</button>
+      <button class="modal-btn modal-btn-primary" onclick="confirmRemark()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast toast-success" id="toast">
+  <span class="toast-icon">✓</span>
+  <span>备注修改成功</span>
+</div>
+
+<script>
+// Mock data
+const orders = [
+  { merchant: "AR062-diuwin", orderNo: "26040208021424107", type: "其他问题", name: "其他问题", vip: "VIP 8", memberId: "1894980", account: "mic****com", status: "已处理", amount: 0, channel: 0, rushCount: 0, submitTime: "2026-04-02 13:02:28", opTime: "2026-04-02 20:23:06", operator: "luna001", remark: "测试备注" },
+  { merchant: "AR062-diuwin", orderNo: "26040108012014410", type: "其他问题", name: "其他问题", vip: "VIP 10", memberId: "600855", account: "mic****com", status: "已处理", amount: 0, channel: 0, rushCount: 0, submitTime: "2026-04-01 20:14:41", opTime: "2026-04-02 20:22:50", operator: "luna001", remark: "" },
+  { merchant: "AR062-diuwin", orderNo: "26033008173127458", type: "其他问题", name: "其他问题", vip: "VIP 5", memberId: "2247480", account: "668****462", status: "已处理", amount: 0, channel: 0, rushCount: 0, submitTime: "2026-03-30 17:31:27", opTime: "2026-03-30 17:32:11", operator: "milo", remark: "11" },
+  { merchant: "AR062-diuwin", orderNo: "26033008171700654", type: "其他问题", name: "其他问题", vip: "VIP 5", memberId: "2247480", account: "668****462", status: "已处理", amount: 0, channel: 0, rushCount: 0, submitTime: "2026-03-30 17:17:00", opTime: "2026-03-30 17:17:10", operator: "admin", remark: "Bank information error, need to correct" },
+  { merchant: "AR062-diuwin", orderNo: "26033008153000122", type: "充值问题", name: "充值未到账", vip: "VIP 3", memberId: "2247491", account: "test***123", status: "已驳回", amount: 500, channel: 0, rushCount: 1, submitTime: "2026-03-30 15:30:00", opTime: "2026-03-30 16:00:00", operator: "luna001", remark: "信息不完整" },
+  { merchant: "AR062-diuwin", orderNo: "26032908141200987", type: "提现问题", name: "提现超时", vip: "VIP 0", memberId: "0", account: "", status: "待处理", amount: 0, channel: 0, rushCount: 0, submitTime: "2026-03-29 14:12:00", opTime: "", operator: "", remark: "" },
+  { merchant: "AR062-diuwin", orderNo: "26032808120800321", type: "其他问题", name: "其他问题", vip: "VIP 0", memberId: "0", account: "", status: "待处理", amount: 0, channel: 0, rushCount: 0, submitTime: "2026-03-28 12:08:00", opTime: "", operator: "", remark: "" },
+];
+
+let currentEditIndex = -1;
+
+function getStatusBadge(status) {
+  const map = {
+    '已处理': 'badge-green',
+    '已驳回': 'badge-red',
+    '待处理': 'badge-orange',
+    '已锁定': 'badge-blue',
+  };
+  return `<span class="badge ${map[status] || 'badge-blue'}">${status}</span>`;
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = orders.map((o, i) => {
+    const canEdit = o.status === '已处理' || o.status === '已驳回';
+    const remarkDisplay = o.remark ? `<div class="remark-cell" title="${o.remark}">${o.remark}</div>` : '-';
+    const editBtn = canEdit ? `<span class="op-link op-link-warn" onclick="openModal(${i})">修改备注</span>` : '';
+    const lockBtn = o.status === '待处理' ? '<span class="op-link" style="color:#fa8c16">锁定</span>' : '';
+
+    return `<tr>
+      <td class="col-center"><input type="checkbox" class="checkbox"></td>
+      <td>${o.merchant}</td>
+      <td>${o.orderNo} <span class="copy-icon">📋</span></td>
+      <td>${o.type}</td>
+      <td>${o.name}</td>
+      <td>${o.vip}</td>
+      <td class="member-info">
+        会员id: <span class="member-id">${o.memberId}</span> <span class="copy-icon">📋</span><br>
+        ${o.account ? `账户: <span class="member-account">${o.account}</span>` : ''}
+      </td>
+      <td>${getStatusBadge(o.status)}</td>
+      <td></td>
+      <td></td>
+      <td>${o.channel}</td>
+      <td>${o.amount}</td>
+      <td>${o.rushCount}</td>
+      <td style="white-space:nowrap">${o.submitTime}</td>
+      <td style="white-space:nowrap">${o.opTime || '-'}</td>
+      <td>${o.operator || '-'}</td>
+      <td>${remarkDisplay}</td>
+      <td style="position:sticky;right:0;background:${i%2===0?'#fff':'#fff'};z-index:1;box-shadow:-2px 0 4px rgba(0,0,0,0.04);white-space:nowrap;">
+        <span class="op-link">查看</span>${editBtn}${lockBtn}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openModal(index) {
+  currentEditIndex = index;
+  const modal = document.getElementById('remarkModal');
+  const input = document.getElementById('remarkInput');
+  const errorMsg = document.getElementById('errorMsg');
+
+  input.value = orders[index].remark || '';
+  input.classList.remove('error');
+  errorMsg.textContent = '';
+  updateCount();
+  modal.classList.add('show');
+  setTimeout(() => input.focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('remarkModal').classList.remove('show');
+  currentEditIndex = -1;
+}
+
+function updateCount() {
+  const input = document.getElementById('remarkInput');
+  const count = document.getElementById('charCount');
+  const len = input.value.length;
+  count.textContent = `${len} / 256`;
+  count.className = len > 256 ? 'char-count over' : 'char-count';
+
+  if (input.value.trim()) {
+    input.classList.remove('error');
+    document.getElementById('errorMsg').textContent = '';
+  }
+}
+
+function confirmRemark() {
+  const input = document.getElementById('remarkInput');
+  const errorMsg = document.getElementById('errorMsg');
+  const val = input.value;
+
+  if (!val.trim()) {
+    input.classList.add('error');
+    errorMsg.textContent = '请输入备注信息';
+    input.focus();
+    return;
+  }
+  if (val.length > 256) {
+    input.classList.add('error');
+    errorMsg.textContent = '备注内容不能超过 256 个字符';
+    input.focus();
+    return;
+  }
+
+  orders[currentEditIndex].remark = val;
+  closeModal();
+  renderTable();
+  showToast();
+}
+
+function showToast() {
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// Click overlay to close
+document.getElementById('remarkModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ESC to close
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal();
+});
+
+// Init
+renderTable();
+</script>
+</body>
+</html>
