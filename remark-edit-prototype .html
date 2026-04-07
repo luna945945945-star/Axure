@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>修改备注 — 谷歌验证码校验原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;background:#f0f2f5;color:#333;min-width:900px}
+
+.tabs{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 16px;display:flex;align-items:center;height:38px}
+.tab{padding:0 14px;height:38px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:#666;cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:#1677ff;border-bottom-color:#1677ff;background:#e8f4ff}
+.tab-x{font-size:11px;color:#aaa;cursor:pointer;padding:1px 3px;border-radius:3px}.tab-x:hover{background:#e0e0e0;color:#555}
+
+.page{padding:16px}
+.page-title{font-size:16px;font-weight:600;margin-bottom:14px;color:#222}
+
+.action-bar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.btn{height:28px;padding:0 14px;border-radius:4px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center}
+.btn-default{background:#fff;color:#333;border:1px solid #d9d9d9}.btn-default:hover{border-color:#1677ff;color:#1677ff}
+.btn-blue{background:#1677ff;color:#fff}.btn-blue:hover{background:#0958d9}
+.btn-orange{background:#fa8c16;color:#fff}.btn-orange:hover{background:#d46b08}
+.btn-green{background:#52c41a;color:#fff}.btn-green:hover{background:#389e0d}
+
+.list-card{background:#fff;border-radius:6px;border:1px solid #e8e8e8;overflow:hidden}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{background:#fafafa;padding:10px 12px;text-align:left;font-weight:500;color:#555;font-size:12.5px;border-bottom:1px solid #e8e8e8;white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle;font-size:12.5px}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#f8fbff}
+
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:11.5px;font-weight:500;white-space:nowrap}
+.tag-green{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.tag-blue{background:#e6f4ff;color:#1677ff;border:1px solid #91caff}
+.tag-gray{background:#f5f5f5;color:#666;border:1px solid #d9d9d9}
+.mid{color:#1677ff;font-size:12px;cursor:pointer}.mid:hover{text-decoration:underline}
+.acct{background:#f0f0f0;border-radius:3px;padding:1px 5px;font-size:11.5px;color:#666}
+.copy-icon{font-size:10px;color:#bbb;cursor:pointer;margin-left:3px}.copy-icon:hover{color:#1677ff}
+.op-view{color:#1677ff;cursor:pointer;font-size:12.5px}.op-view:hover{text-decoration:underline}
+.op-remark{color:#fa8c16;cursor:pointer;font-size:12.5px;margin-left:10px}.op-remark:hover{text-decoration:underline}
+.op-lock{color:#fa8c16;cursor:pointer;font-size:12.5px;margin-left:10px}.op-lock:hover{text-decoration:underline}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{background:#fff;border-radius:8px;width:480px;max-width:95vw;box-shadow:0 8px 36px rgba(0,0,0,.2);animation:slideUp .2s}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:14px 20px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600;color:#222}
+.modal-close{width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:18px;color:#aaa;display:flex;align-items:center;justify-content:center;border-radius:4px}.modal-close:hover{background:#f0f0f0;color:#333}
+.modal-body{padding:24px 24px 8px}
+
+.form-row{display:flex;gap:12px;margin-bottom:18px;align-items:flex-start}
+.form-label{width:56px;flex-shrink:0;padding-top:7px;font-size:13px;color:#555;text-align:right}
+.req{color:#f5222d;margin-right:2px}
+.form-col{flex:1;display:flex;flex-direction:column;gap:4px}
+.form-textarea{border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:13px;color:#333;outline:none;resize:vertical;height:90px;font-family:inherit;line-height:1.6;transition:border .15s;width:100%}
+.form-textarea:focus{border-color:#1677ff;box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.char-count{text-align:right;font-size:11.5px;color:#aaa}
+.form-input{height:34px;border:1px solid #d9d9d9;border-radius:4px;padding:0 10px;font-size:13px;color:#333;outline:none;font-family:inherit;transition:border .15s;width:160px;letter-spacing:3px}
+.form-input:focus{border-color:#1677ff;box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.input-hint{font-size:11.5px;color:#aaa;margin-left:8px}
+
+.err-tip{font-size:12px;color:#f5222d;display:flex;align-items:center;gap:4px;margin-top:2px}
+.err-tip.hidden{display:none}
+
+.divider-note{border-top:1px dashed #e8e8e8;padding:10px 24px 0;display:flex;align-items:center;gap:6px;font-size:12px;color:#aaa}
+
+.modal-footer{padding:16px 24px;display:flex;justify-content:flex-end;gap:10px}
+.btn-cancel{height:32px;padding:0 18px;border:1px solid #d9d9d9;background:#fff;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;color:#555;transition:all .15s}.btn-cancel:hover{border-color:#1677ff;color:#1677ff}
+.btn-confirm{height:32px;padding:0 18px;background:#1677ff;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:6px}.btn-confirm:hover:not(:disabled){background:#0958d9}.btn-confirm:disabled{background:#b0c8f5;cursor:not-allowed}
+
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #b7eb8f;border-radius:6px;padding:10px 20px;font-size:13px;color:#389e0d;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:999;display:flex;align-items:center;gap:8px;animation:toastIn .25s;pointer-events:none}
+@keyframes toastIn{from{top:0;opacity:0}to{top:20px;opacity:1}}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab">Welcome <span class="tab-x">×</span></div>
+  <div class="tab active">工单列表 <span class="tab-x">×</span></div>
+</div>
+
+<div class="page">
+  <div class="page-title">工单管理</div>
+
+  <div style="background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:10px 16px;margin-bottom:14px;font-size:12.5px;color:#7c5800;display:flex;gap:8px;align-items:center">
+    <span>⚠</span>
+    <span>原型说明：点击操作列「修改备注」触发弹窗。谷歌验证码演示规则：输入
+      <code style="background:#fff3cd;padding:1px 6px;border-radius:3px;color:#d46b08;font-weight:600;margin:0 2px">123456</code>
+      为正确验证码，其他输入触发错误提示。
+    </span>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn btn-default">导出</button>
+    <button class="btn btn-blue">批量三方查询</button>
+    <button class="btn btn-blue">批量驳回</button>
+    <button class="btn btn-blue">批量生成</button>
+    <button class="btn btn-default">模版下载</button>
+    <button class="btn btn-blue">批量转发</button>
+    <button class="btn btn-orange">评论导出</button>
+    <button class="btn btn-green">提交工单</button>
+  </div>
+
+  <div class="list-card">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:36px"><input type="checkbox"></th>
+          <th>商户名称</th><th>工单号</th><th>工单类型</th><th>工单名称</th>
+          <th>vip等级</th><th>会员id</th><th>状态</th><th>三方名称</th>
+          <th>三方映射码</th><th>三方通道ID</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>AR062-diuwin</td>
+          <td><span style="color:#1677ff;font-size:12px">2604060553475833375</span><span class="copy-icon">⧉</span></td>
+          <td><span class="tag tag-blue">一对一客服</span></td>
+          <td style="color:#888;font-size:12px">One-to-one ...</td>
+          <td>VIP 5</td>
+          <td>
+            <div style="font-size:12px">会员id: <span class="mid">1670087</span><span class="copy-icon">⧉</span></div>
+            <div style="margin-top:3px"><span class="acct">918****004</span></div>
+          </td>
+          <td><span class="tag tag-green">已处理</span></td>
+          <td></td><td></td><td>0</td>
+          <td>
+            <span class="op-view">查看</span>
+            <span class="op-remark" onclick="openModal('这是测试数据')">修改备注</span>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>AR062-diuwin</td>
+          <td><span style="color:#1677ff;font-size:12px">2604060553438683175</span><span class="copy-icon">⧉</span></td>
+          <td><span class="tag tag-blue">一对一客服</span></td>
+          <td style="color:#888;font-size:12px">One-to-one ...</td>
+          <td>VIP 5</td>
+          <td>
+            <div style="font-size:12px">会员id: <span class="mid">1668753</span><span class="copy-icon">⧉</span></div>
+            <div style="margin-top:3px"><span class="acct">918****003</span></div>
+          </td>
+          <td><span class="tag tag-green">已处理</span></td>
+          <td></td><td></td><td>0</td>
+          <td>
+            <span class="op-view">查看</span>
+            <span class="op-remark" onclick="openModal('')">修改备注</span>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>AR062-diuwin</td>
+          <td><span style="color:#1677ff;font-size:12px">2604060553050612775</span><span class="copy-icon">⧉</span></td>
+          <td><span class="tag tag-blue">一对一客服</span></td>
+          <td style="color:#888;font-size:12px">One-to-one ...</td>
+          <td>VIP 9</td>
+          <td>
+            <div style="font-size:12px">会员id: <span class="mid">600863</span><span class="copy-icon">⧉</span></div>
+            <div style="margin-top:3px"><span class="acct">669****010</span></div>
+          </td>
+          <td><span class="tag tag-gray">待处理</span></td>
+          <td></td><td></td><td>0</td>
+          <td>
+            <span class="op-view">查看</span>
+            <span class="op-lock">锁定</span>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>AR062-diuwin</td>
+          <td><span style="color:#1677ff;font-size:12px">2604060550338612575</span><span class="copy-icon">⧉</span></td>
+          <td><span class="tag tag-blue">一对一客服</span></td>
+          <td style="color:#888;font-size:12px">One-to-one ...</td>
+          <td>VIP 5</td>
+          <td>
+            <div style="font-size:12px">会员id: <span class="mid">1663809</span><span class="copy-icon">⧉</span></div>
+            <div style="margin-top:3px"><span class="acct">918****013</span></div>
+          </td>
+          <td><span class="tag tag-green">已处理</span></td>
+          <td></td><td></td><td>0</td>
+          <td>
+            <span class="op-view">查看</span>
+            <span class="op-remark" onclick="openModal('客户VIP5，已跟进')">修改备注</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 修改备注弹窗 -->
+<div class="overlay hidden" id="remarkModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">修改备注</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-label"><span class="req">*</span>备注</div>
+        <div class="form-col">
+          <textarea class="form-textarea" id="remarkText" maxlength="256"
+            placeholder="请输入备注内容" oninput="onInput()"></textarea>
+          <div class="char-count"><span id="charNum">0</span> / 256</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label"><span class="req">*</span>验证码</div>
+        <div class="form-col">
+          <div style="display:flex;align-items:center">
+            <input class="form-input" id="googleCode" type="text" maxlength="6"
+              placeholder="请输入验证码" oninput="onCodeInput(this)">
+            <span class="input-hint">请输入6位谷歌验证码</span>
+          </div>
+          <div class="err-tip hidden" id="codeErr">⚠ 验证码错误，请重新输入</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider-note">
+      🔒 验证码来自您账号绑定的登录谷歌验证码
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-confirm" id="confirmBtn" onclick="doSave()" disabled>
+        <span id="confirmText">确认</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openModal(text) {
+  document.getElementById("remarkText").value = text;
+  document.getElementById("charNum").textContent = text.length;
+  document.getElementById("googleCode").value = "";
+  document.getElementById("codeErr").classList.add("hidden");
+  checkBtn();
+  document.getElementById("remarkModal").classList.remove("hidden");
+}
+function closeModal() {
+  document.getElementById("remarkModal").classList.add("hidden");
+}
+function onInput() {
+  const v = document.getElementById("remarkText").value;
+  document.getElementById("charNum").textContent = v.length;
+  checkBtn();
+}
+function onCodeInput(el) {
+  el.value = el.value.replace(/\D/g, "").slice(0, 6);
+  document.getElementById("codeErr").classList.add("hidden");
+  checkBtn();
+}
+function checkBtn() {
+  const hasRemark = document.getElementById("remarkText").value.trim().length > 0;
+  const hasCode   = document.getElementById("googleCode").value.length === 6;
+  document.getElementById("confirmBtn").disabled = !(hasRemark && hasCode);
+}
+function doSave() {
+  const code = document.getElementById("googleCode").value;
+  const btn  = document.getElementById("confirmBtn");
+  if (code !== "123456") {
+    document.getElementById("codeErr").classList.remove("hidden");
+    document.getElementById("googleCode").value = "";
+    checkBtn();
+    return;
+  }
+  btn.disabled = true;
+  document.getElementById("confirmText").innerHTML = '<span class="spinner"></span> 保存中...';
+  setTimeout(() => {
+    btn.disabled = false;
+    document.getElementById("confirmText").textContent = "确认";
+    closeModal();
+    showToast("✓ 备注修改成功");
+  }, 1000);
+}
+function showToast(msg) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+document.getElementById("remarkModal").addEventListener("click", function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
