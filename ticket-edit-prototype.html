@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工单管理 — 一对一客服消息编辑原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;background:#f0f2f5;color:#333;min-width:1100px}
+
+/* ── 顶部 tab ── */
+.tabs{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 16px;display:flex;align-items:center;gap:0;height:38px}
+.tab{padding:0 14px;height:38px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:#666;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.active{color:#1677ff;border-bottom-color:#1677ff;background:#e8f4ff}
+.tab-close{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999;cursor:pointer}
+.tab-close:hover{background:#e0e0e0;color:#333}
+
+/* ── 页面容器 ── */
+.page{padding:16px}
+.page-title{font-size:16px;font-weight:600;color:#222;margin-bottom:14px}
+
+/* ── 搜索卡 ── */
+.search-card{background:#fff;border-radius:6px;padding:14px 16px;margin-bottom:12px;border:1px solid #e8e8e8}
+.search-row{display:flex;flex-wrap:wrap;gap:10px 14px;margin-bottom:10px;align-items:center}
+.search-row:last-child{margin-bottom:0}
+.sf{display:flex;align-items:center;gap:6px}
+.sf label{white-space:nowrap;color:#555;font-size:12.5px;flex-shrink:0}
+.sf input,.sf select{height:28px;border:1px solid #d9d9d9;border-radius:4px;padding:0 8px;font-size:12.5px;color:#333;outline:none;font-family:inherit;background:#fff;min-width:140px}
+.sf input:focus,.sf select:focus{border-color:#1677ff;box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.sf.wide input{min-width:180px}
+.sf .range-sep{color:#aaa;padding:0 4px}
+.search-btns{display:flex;gap:8px;margin-left:auto;flex-shrink:0}
+.btn{height:28px;padding:0 14px;border-radius:4px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.btn-primary{background:#1677ff;color:#fff}.btn-primary:hover{background:#0958d9}
+.btn-default{background:#fff;color:#333;border:1px solid #d9d9d9}.btn-default:hover{border-color:#1677ff;color:#1677ff}
+.btn-link{background:none;border:none;color:#1677ff;padding:0 8px;cursor:pointer;font-size:12.5px}.btn-link:hover{color:#0958d9}
+.btn-sm{height:24px;padding:0 10px;font-size:12px}
+.collapse-btn{color:#1677ff;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:2px;margin-left:auto}
+
+/* ── 操作栏 ── */
+.action-bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.btn-blue{background:#1677ff;color:#fff;border:none}.btn-blue:hover{background:#0958d9}
+.btn-gray{background:#fff;color:#333;border:1px solid #d9d9d9}.btn-gray:hover{border-color:#1677ff;color:#1677ff}
+.btn-orange{background:#fa8c16;color:#fff;border:none}.btn-orange:hover{background:#d46b08}
+.btn-green{background:#52c41a;color:#fff;border:none}.btn-green:hover{background:#389e0d}
+
+/* ── 列表卡 ── */
+.list-card{background:#fff;border-radius:6px;border:1px solid #e8e8e8;overflow:hidden}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{background:#fafafa;padding:10px 12px;text-align:left;font-weight:500;color:#555;font-size:12.5px;border-bottom:1px solid #e8e8e8;white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle;font-size:12.5px}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#f8fbff}
+.tbl input[type=checkbox]{cursor:pointer}
+
+/* 状态标签 */
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:11.5px;font-weight:500;white-space:nowrap}
+.tag-orange{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.tag-green{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.tag-blue{background:#e6f4ff;color:#1677ff;border:1px solid #91caff}
+.tag-red{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+
+.member-id{color:#1677ff;cursor:pointer;font-size:12px}.member-id:hover{text-decoration:underline}
+.copy-icon{font-size:10px;color:#aaa;cursor:pointer;margin-left:3px}.copy-icon:hover{color:#1677ff}
+.acct{background:#f0f0f0;border-radius:3px;padding:1px 5px;font-size:11.5px;color:#666}
+
+/* 操作列 */
+.op-btns{display:flex;gap:8px;align-items:center}
+.op-view{color:#1677ff;cursor:pointer;font-size:12.5px}.op-view:hover{text-decoration:underline}
+.op-edit{color:#1677ff;cursor:pointer;font-size:12.5px}.op-edit:hover{text-decoration:underline}
+.op-unlock{color:#fa8c16;cursor:pointer;font-size:12.5px}.op-unlock:hover{text-decoration:underline}
+.op-remark{color:#fa8c16;cursor:pointer;font-size:12.5px}.op-remark:hover{text-decoration:underline}
+
+/* ── 工单详情弹窗 ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:#fff;border-radius:8px;width:900px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2);animation:slideUp .2s}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:14px 20px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.modal-title{font-size:15px;font-weight:600;color:#222}
+.modal-close{width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:18px;color:#999;border-radius:4px;display:flex;align-items:center;justify-content:center}.modal-close:hover{background:#f0f0f0;color:#333}
+.modal-body{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* 左侧工单信息 */
+.modal-left{width:360px;flex-shrink:0;border-right:1px solid #e8e8e8;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.info-row{display:flex;gap:6px;font-size:12.5px}
+.info-row .lbl{color:#888;white-space:nowrap;width:72px;flex-shrink:0}
+.info-row .val{color:#333;word-break:break-all}
+.remark-box{border:1px solid #e8e8e8;border-radius:4px;padding:8px 10px;min-height:36px;font-size:12.5px;color:#666;background:#fafafa;resize:none;width:100%;outline:none;font-family:inherit}
+.char-count{text-align:right;font-size:11px;color:#aaa;margin-top:2px}
+.quick-btns{display:flex;gap:6px;flex-wrap:wrap}
+.qbtn{padding:4px 10px;border-radius:4px;border:1px solid #1677ff;color:#1677ff;background:#fff;font-size:12px;cursor:pointer;font-family:inherit}.qbtn:hover{background:#e8f4ff}
+.history-title{font-size:12.5px;color:#555;font-weight:500;margin-top:4px}
+.history-item{padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:12px;color:#666}
+.history-item:last-child{border-bottom:none}
+.history-item .hi-type{color:#888}
+.history-item .hi-time{color:#aaa;margin:0 6px}
+.history-item .hi-no{color:#1677ff;cursor:pointer}.hi-no:hover{text-decoration:underline}
+
+/* 右侧消息区 */
+.modal-right{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.msg-area{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+
+/* 消息气泡 */
+.msg-bubble{display:flex;flex-direction:column;gap:4px}
+.msg-bubble.user{align-items:flex-start}
+.msg-bubble.agent{align-items:flex-end}
+.bubble-meta{font-size:11px;color:#aaa;display:flex;align-items:center;gap:6px}
+.bubble-body{max-width:85%;padding:10px 12px;border-radius:8px;font-size:12.5px;line-height:1.6;position:relative;word-break:break-word}
+.msg-bubble.user .bubble-body{background:#f0f0f0;border-radius:8px 8px 8px 2px;color:#333}
+.msg-bubble.agent .bubble-body{background:#e8f4ff;border-radius:8px 8px 2px 8px;color:#1a1a2e}
+.bubble-actions{display:flex;gap:6px;align-items:center;opacity:0;transition:opacity .15s}
+.msg-bubble:hover .bubble-actions{opacity:1}
+.bact{background:none;border:1px solid #d9d9d9;border-radius:3px;padding:1px 7px;font-size:11px;cursor:pointer;color:#666;font-family:inherit;display:flex;align-items:center;gap:3px}
+.bact:hover{border-color:#1677ff;color:#1677ff;background:#e8f4ff}
+.bact-edit{border-color:#fa8c16;color:#fa8c16}.bact-edit:hover{background:#fff7e6;border-color:#fa8c16}
+.bubble-img{margin-top:6px;max-width:200px;max-height:160px;border-radius:6px;border:1px solid #e8e8e8;cursor:pointer}
+.edited-badge{font-size:10px;color:#aaa;font-style:italic;margin-top:2px;display:flex;align-items:center;gap:3px}
+
+/* ── 编辑弹窗 ── */
+.edit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s}
+.edit-modal{background:#fff;border-radius:8px;width:520px;max-width:96vw;box-shadow:0 12px 40px rgba(0,0,0,.25);animation:slideUp .2s;display:flex;flex-direction:column}
+.edit-header{padding:14px 20px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between}
+.edit-title{font-size:14px;font-weight:600;color:#222}
+.edit-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+.form-item{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:12.5px;color:#555;font-weight:500;display:flex;align-items:center;gap:4px}
+.form-label .req{color:#f5222d}
+.form-textarea{border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:12.5px;color:#333;outline:none;resize:vertical;min-height:100px;font-family:inherit;line-height:1.6;transition:border .15s}
+.form-textarea:focus{border-color:#1677ff;box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.form-char{text-align:right;font-size:11px;color:#aaa;margin-top:2px}
+.attach-box{border:1px dashed #d9d9d9;border-radius:4px;padding:10px 12px;background:#fafafa;display:flex;flex-direction:column;gap:8px}
+.attach-preview{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#fff;border:1px solid #e8e8e8;border-radius:4px}
+.attach-icon{width:32px;height:32px;border-radius:4px;object-fit:cover;background:#f0f0f0}
+.attach-name{flex:1;font-size:12.5px;color:#333;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.attach-acts{display:flex;gap:6px;flex-shrink:0}
+.attach-act{font-size:12px;cursor:pointer;padding:2px 8px;border-radius:3px;border:1px solid #d9d9d9;color:#666;background:#fff}.attach-act:hover{border-color:#1677ff;color:#1677ff}
+.attach-act.del:hover{border-color:#f5222d;color:#f5222d}
+.upload-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border:1px dashed #d9d9d9;border-radius:4px;color:#1677ff;font-size:12.5px;cursor:pointer;background:#fff;transition:all .15s}.upload-btn:hover{border-color:#1677ff;background:#e8f4ff}
+.google-input{height:34px;border:1px solid #d9d9d9;border-radius:4px;padding:0 10px;font-size:13px;color:#333;outline:none;letter-spacing:4px;font-family:inherit;width:160px;transition:border .15s}
+.google-input:focus{border-color:#1677ff;box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.google-hint{font-size:11.5px;color:#aaa;margin-left:6px}
+.form-row{display:flex;align-items:center;gap:8px}
+.edit-footer{padding:14px 20px;border-top:1px solid #e8e8e8;display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.btn-cancel-lg{height:32px;padding:0 18px;border:1px solid #d9d9d9;background:#fff;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;color:#555}.btn-cancel-lg:hover{border-color:#1677ff;color:#1677ff}
+.btn-save{height:32px;padding:0 18px;background:#1677ff;color:#fff;border:none;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;gap:6px}.btn-save:hover{background:#0958d9}.btn-save:disabled{background:#bbb;cursor:not-allowed}
+
+/* 成功 toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #b7eb8f;border-radius:6px;padding:10px 20px;font-size:13px;color:#389e0d;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:999;display:flex;align-items:center;gap:8px;animation:slideDown .3s;pointer-events:none}
+@keyframes slideDown{from{top:0;opacity:0}to{top:20px;opacity:1}}
+
+/* 错误提示 */
+.err-tip{font-size:11.5px;color:#f5222d;margin-top:3px;display:flex;align-items:center;gap:4px}
+
+/* loading spinner */
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- tabs -->
+<div class="tabs">
+  <div class="tab">Welcome <span class="tab-close">×</span></div>
+  <div class="tab active">工单列表 <span class="tab-close">×</span></div>
+</div>
+
+<div class="page">
+  <div class="page-title">工单管理</div>
+
+  <!-- 搜索区 -->
+  <div class="search-card">
+    <div class="search-row">
+      <div class="sf"><label>会员账号</label><input placeholder="请输入会员账号,Id,邮箱" style="min-width:170px"></div>
+      <div class="sf"><label>工单号</label><input placeholder="请输入工单号" style="min-width:150px"></div>
+      <div class="sf"><label>三方名称</label><input placeholder="请输入三方名称" style="min-width:130px"></div>
+      <div class="sf"><label>订单号</label><input placeholder="请输入订单号" style="min-width:130px"></div>
+      <div class="sf"><label>查询结果</label><input placeholder="请输入查询结果" style="min-width:130px"></div>
+      <div class="sf"><label>UTR</label><input placeholder="请输入UTR" style="min-width:110px"></div>
+    </div>
+    <div class="search-row">
+      <div class="sf"><label>状态</label>
+        <select style="min-width:100px"><option>全部</option><option>待处理</option><option>处理中</option><option>已处理</option><option>已驳回</option></select>
+      </div>
+      <div class="sf"><label>商户</label><select style="min-width:130px"><option>请选择商户</option><option>AR062-diuwin</option></select></div>
+      <div class="sf"><label>工单名称</label><input placeholder="工单名称" style="min-width:110px"></div>
+      <div class="sf"><label>工单类型</label>
+        <select style="min-width:120px"><option>一对一客服</option><option>充值</option><option>提现</option></select>
+      </div>
+      <div class="sf"><label>vip等级</label><select style="min-width:110px"><option>请选择Vip等级</option><option>VIP 1</option><option>VIP 5</option></select></div>
+      <div class="sf"><label>金额区间</label><input placeholder="最小金额" style="min-width:80px"><span class="range-sep">-</span><input placeholder="最大金额" style="min-width:80px"></div>
+      <div class="search-btns">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn btn-default">重置</button>
+        <span class="collapse-btn">收起 ∧</span>
+      </div>
+    </div>
+    <div class="search-row">
+      <div class="sf"><label>附件类型</label><select style="min-width:110px"><option>请选择状态</option></select></div>
+      <div class="sf"><label>操作人</label><input placeholder="请输入操作人" style="min-width:130px"></div>
+      <div class="sf"><label>操作时间</label><input placeholder="开始日期时间" style="min-width:140px"><span class="range-sep">→</span><input placeholder="结束日期时间" style="min-width:140px"></div>
+      <div class="sf"><label>提交时间</label><input value="2026-04-01 00:00:00" style="min-width:148px"><span class="range-sep">→</span><input value="2026-04-07 23:59:59" style="min-width:148px"></div>
+    </div>
+  </div>
+
+  <!-- 操作栏 -->
+  <div class="action-bar">
+    <button class="btn btn-gray">导出</button>
+    <button class="btn btn-blue">批量三方查询</button>
+    <button class="btn btn-blue">批量驳回</button>
+    <button class="btn btn-blue">批量生成</button>
+    <button class="btn btn-gray">模版下载</button>
+    <button class="btn btn-blue">批量转发</button>
+    <button class="btn btn-orange">评论导出</button>
+    <button class="btn btn-green">提交工单</button>
+  </div>
+
+  <!-- 列表 -->
+  <div class="list-card">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:36px"><input type="checkbox"></th>
+          <th>商户名称</th><th>工单号</th><th>工单类型</th><th>工单名称</th><th>vip等级</th>
+          <th>会员id</th><th>状态</th><th>三方名称</th><th>三方映射码</th><th>三方通道ID</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>AR062-diuwin</td>
+          <td><span style="color:#1677ff;font-size:12px">2604071158852320507</span> <span class="copy-icon">⧉</span></td>
+          <td><span class="tag tag-blue">一对一客服</span></td>
+          <td style="color:#888;font-size:12px">One-to-one ...</td>
+          <td>VIP 5</td>
+          <td>
+            <div style="font-size:12px">会员id: <span class="member-id">2234891</span> <span class="copy-icon">⧉</span></div>
+            <div style="margin-top:3px"><span class="acct">912****005</span></div>
+          </td>
+          <td><span class="tag tag-orange">处理中</span></td>
+          <td></td><td></td><td>0</td>
+          <td>
+            <div class="op-btns">
+              <span class="op-view" onclick="openTicket(0)">查看</span>
+              <span class="op-edit" onclick="openTicket(0)">编辑</span>
+              <span class="op-unlock">解锁</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>AR062-diuwin</td>
+          <td><span style="color:#1677ff;font-size:12px">2604060553475833375</span> <span class="copy-icon">⧉</span></td>
+          <td><span class="tag tag-blue">一对一客服</span></td>
+          <td style="color:#888;font-size:12px">One-to-one ...</td>
+          <td>VIP 5</td>
+          <td>
+            <div style="font-size:12px">会员id: <span class="member-id">1670087</span> <span class="copy-icon">⧉</span></div>
+            <div style="margin-top:3px"><span class="acct">918****004</span></div>
+          </td>
+          <td><span class="tag tag-green">已处理</span></td>
+          <td></td><td></td><td>0</td>
+          <td>
+            <div class="op-btns">
+              <span class="op-view" onclick="openTicket(1)">查看</span>
+              <span class="op-remark">修改备注</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>AR062-diuwin</td>
+          <td><span style="color:#1677ff;font-size:12px">2604060553438683175</span> <span class="copy-icon">⧉</span></td>
+          <td><span class="tag tag-blue">一对一客服</span></td>
+          <td style="color:#888;font-size:12px">One-to-one ...</td>
+          <td>VIP 5</td>
+          <td>
+            <div style="font-size:12px">会员id: <span class="member-id">1668753</span> <span class="copy-icon">⧉</span></div>
+            <div style="margin-top:3px"><span class="acct">918****003</span></div>
+          </td>
+          <td><span class="tag tag-green">已处理</span></td>
+          <td></td><td></td><td>0</td>
+          <td>
+            <div class="op-btns">
+              <span class="op-view" onclick="openTicket(2)">查看</span>
+              <span class="op-remark">修改备注</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><input type="checkbox"></td>
+          <td>AR062-diuwin</td>
+          <td><span style="color:#1677ff;font-size:12px">2604060553388452975</span> <span class="copy-icon">⧉</span></td>
+          <td><span class="tag tag-blue">一对一客服</span></td>
+          <td style="color:#888;font-size:12px">One-to-one ...</td>
+          <td>VIP 5</td>
+          <td>
+            <div style="font-size:12px">会员id: <span class="member-id">1665979</span> <span class="copy-icon">⧉</span></div>
+            <div style="margin-top:3px"><span class="acct">918****002</span></div>
+          </td>
+          <td><span class="tag tag-green">已处理</span></td>
+          <td></td><td></td><td>0</td>
+          <td>
+            <div class="op-btns">
+              <span class="op-view" onclick="openTicket(3)">查看</span>
+              <span class="op-remark">修改备注</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── 工单详情弹窗 ── -->
+<div class="overlay hidden" id="ticketModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">工单详情</span>
+      <button class="modal-close" onclick="closeTicket()">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- 左侧 -->
+      <div class="modal-left">
+        <div class="info-row"><span class="lbl">工单号：</span><span class="val" id="mi-no" style="color:#1677ff;font-size:12px"></span> <span class="copy-icon">⧉</span></div>
+        <div class="info-row"><span class="lbl">工单类型：</span><span class="val"><span class="tag tag-blue">一对一客服</span></span></div>
+        <div class="info-row"><span class="lbl">提交时间：</span><span class="val" id="mi-submit"></span></div>
+        <div class="info-row"><span class="lbl">工单状态：</span><span id="mi-status"></span></div>
+        <div class="info-row"><span class="lbl">操作时间：</span><span class="val" id="mi-optime"></span></div>
+        <div class="info-row"><span class="lbl">操作人：</span><span class="val" id="mi-op"></span></div>
+        <div class="info-row"><span class="lbl">会员id：</span><span class="val" id="mi-uid" style="color:#1677ff"></span></div>
+        <div class="info-row"><span class="lbl">ip：</span><span class="val" id="mi-ip"></span></div>
+        <textarea class="remark-box" placeholder="这是测试数据" id="mi-remark" maxlength="1024"></textarea>
+        <div class="char-count"><span id="remarkLen">0</span> / 1024</div>
+        <div class="quick-btns">
+          <button class="qbtn">MORE 5 MINUTE</button>
+          <button class="qbtn" style="background:#1677ff;color:#fff;border-color:#1677ff">2</button>
+          <button class="qbtn" style="background:#1677ff;color:#fff;border-color:#1677ff">3</button>
+          <button class="qbtn" style="background:#1677ff;color:#fff;border-color:#1677ff">4</button>
+          <button class="qbtn" style="background:#1677ff;color:#fff;border-color:#1677ff">5</button>
+          <button class="qbtn" style="background:#1677ff;color:#fff;border-color:#1677ff">上传图片</button>
+        </div>
+        <div class="history-title">历史一对一工单：</div>
+        <div class="history-item">
+          <span class="hi-type">One-to-one customer service</span>
+          <span class="hi-time">2026-04-06 11:24:00</span>
+          <span class="hi-no">2604060553388452975</span>
+        </div>
+        <div class="history-item">
+          <span class="hi-type">One-to-one customer service</span>
+          <span class="hi-time">2026-04-06 11:21:00</span>
+          <span class="hi-no">2604060550003211175</span>
+        </div>
+        <div class="history-item">
+          <span class="hi-type">One-to-one customer service</span>
+          <span class="hi-time">2026-03-27 15:53:00</span>
+          <span class="hi-no">2603271022062793606</span>
+        </div>
+      </div>
+
+      <!-- 右侧消息 -->
+      <div class="modal-right">
+        <div class="msg-area" id="msgArea">
+
+          <!-- 用户消息 -->
+          <div class="msg-bubble user">
+            <div class="bubble-meta">会员 1665979 &nbsp; 2026-04-06 11:23:38</div>
+            <div class="bubble-body">
+              Explain the issue happen to you inside the game clear and detail：<br>
+              Withdrawal rejected due system detected doing abnormal bet, so turnover increased by 3 times. Once conditions are met, you can withdraw again<br><br>
+              Attach clear screenshot photo/video of the problem (optional)：<br>
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='110' viewBox='0 0 160 110'%3E%3Crect width='160' height='110' fill='%23667eea' rx='6'/%3E%3Ccircle cx='80' cy='45' r='28' fill='%23a78bfa'/%3E%3Crect x='20' y='80' width='120' height='18' rx='4' fill='rgba(255,255,255,0.3)'/%3E%3Ctext x='80' y='93' text-anchor='middle' fill='white' font-size='9' font-family='sans-serif'%3EGame Screenshot%3C/text%3E%3C/svg%3E" class="bubble-img">
+            </div>
+          </div>
+
+          <!-- 客服消息1（可编辑） -->
+          <div class="msg-bubble agent" id="agentMsg1">
+            <div class="bubble-meta">
+              <div class="bubble-actions">
+                <button class="bact" onclick="copyMsg('agentMsg1')">⧉ 复制</button>
+                <button class="bact bact-edit" onclick="openEditModal('agentMsg1')">✏ 编辑</button>
+              </div>
+              客服 admin &nbsp; 2026-04-06 11:24:00
+            </div>
+            <div class="bubble-body" id="agentMsg1Text">
+              We have reviewed your case. Your withdrawal has been rejected because our system detected abnormal betting behavior, which requires your turnover to be increased by 3 times. Once you meet the wagering requirements, you will be able to withdraw again. Please continue playing to complete the requirements.
+            </div>
+          </div>
+
+          <!-- 用户消息2 -->
+          <div class="msg-bubble user">
+            <div class="bubble-meta">会员 1665979 &nbsp; 2026-04-06 11:25:10</div>
+            <div class="bubble-body">How long will it take to complete the requirements?</div>
+          </div>
+
+          <!-- 客服消息2（可编辑，带附件） -->
+          <div class="msg-bubble agent" id="agentMsg2">
+            <div class="bubble-meta">
+              <div class="bubble-actions">
+                <button class="bact" onclick="copyMsg('agentMsg2')">⧉ 复制</button>
+                <button class="bact bact-edit" onclick="openEditModal('agentMsg2')">✏ 编辑</button>
+              </div>
+              客服 admin &nbsp; 2026-04-06 11:26:00
+            </div>
+            <div class="bubble-body" id="agentMsg2Text">
+              It depends on your wagering activity. Based on your current balance, you need to wager approximately ₹36,000 more. Please refer to the attached guide for details.
+              <br>
+              <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='90' viewBox='0 0 140 90'%3E%3Crect width='140' height='90' fill='%2352c41a' rx='4'/%3E%3Ctext x='70' y='30' text-anchor='middle' fill='white' font-size='10' font-family='sans-serif'%3EWagering Guide%3C/text%3E%3Crect x='15' y='40' width='110' height='8' rx='2' fill='rgba(255,255,255,0.5)'/%3E%3Crect x='15' y='54' width='80' height='8' rx='2' fill='rgba(255,255,255,0.4)'/%3E%3Crect x='15' y='68' width='95' height='8' rx='2' fill='rgba(255,255,255,0.4)'/%3E%3C/svg%3E" class="bubble-img" id="agentMsg2Img">
+              <div class="edited-badge hidden" id="agentMsg2EditBadge">✎ 已编辑</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 关闭按钮 -->
+        <div style="padding:12px 16px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end">
+          <button class="btn btn-default" onclick="closeTicket()">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 编辑客服消息弹窗 ── -->
+<div class="edit-overlay hidden" id="editModal">
+  <div class="edit-modal">
+    <div class="edit-header">
+      <span class="edit-title">编辑客服消息</span>
+      <button class="modal-close" onclick="closeEditModal()">×</button>
+    </div>
+    <div class="edit-body">
+
+      <!-- 消息内容 -->
+      <div class="form-item">
+        <div class="form-label"><span class="req">*</span> 消息内容</div>
+        <textarea class="form-textarea" id="editContent" maxlength="1024" oninput="onContentInput()" placeholder="请输入消息内容（最多1024字符）"></textarea>
+        <div class="form-char"><span id="editLen">0</span> / 1024</div>
+        <div class="err-tip hidden" id="contentErr">⚠ 消息内容和附件至少填写一项</div>
+      </div>
+
+      <!-- 附件 -->
+      <div class="form-item">
+        <div class="form-label">附件</div>
+        <div class="attach-box">
+          <div class="attach-preview" id="attachPreview">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' fill='%2352c41a' rx='3'/%3E%3Ctext x='16' y='20' text-anchor='middle' fill='white' font-size='8'%3EGUIDE%3C/text%3E%3C/svg%3E" class="attach-icon">
+            <span class="attach-name" id="attachName">wagering_guide.png</span>
+            <div class="attach-acts">
+              <button class="attach-act" onclick="replaceAttach()">替换</button>
+              <button class="attach-act del" onclick="deleteAttach()">删除</button>
+            </div>
+          </div>
+          <div class="upload-btn hidden" id="uploadBtn" onclick="simulateUpload()">
+            <span style="font-size:16px">+</span> 上传附件（jpg/png/gif/PDF/视频）
+          </div>
+        </div>
+      </div>
+
+      <!-- 谷歌验证码 -->
+      <div class="form-item">
+        <div class="form-label"><span class="req">*</span> 谷歌验证码</div>
+        <div class="form-row">
+          <input class="google-input" id="googleCode" type="text" maxlength="6" placeholder="000000" oninput="onGoogleInput(this)">
+          <span class="google-hint">请输入6位谷歌验证码</span>
+        </div>
+        <div class="err-tip hidden" id="googleErr">⚠ 验证码错误，请重新输入</div>
+      </div>
+
+    </div>
+    <div class="edit-footer">
+      <button class="btn-cancel-lg" onclick="closeEditModal()">取消</button>
+      <button class="btn-save" id="saveBtn" onclick="saveEdit()" disabled>
+        <span id="saveBtnText">确认保存</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+const tickets = [
+  { no:"2604071158852320507", submit:"2026-04-07 09:00:00", status:"<span class='tag tag-orange'>处理中</span>", optime:"2026-04-07 09:01:00", op:"admin", uid:"2234891", ip:"8.211.42.100" },
+  { no:"2604060553475833375", submit:"2026-04-06 11:00:00", status:"<span class='tag tag-green'>已处理</span>", optime:"2026-04-06 11:01:00", op:"admin", uid:"1670087", ip:"8.211.42.110" },
+  { no:"2604060553438683175", submit:"2026-04-06 11:10:00", status:"<span class='tag tag-green'>已处理</span>", optime:"2026-04-06 11:11:00", op:"admin", uid:"1668753", ip:"8.211.42.120" },
+  { no:"2604060553388452975", submit:"2026-04-06 11:23:38", status:"<span class='tag tag-green'>已处理</span>", optime:"2026-04-06 11:24:00", op:"admin", uid:"1665979", ip:"8.211.42.128" },
+];
+
+let currentEditTarget = null;
+let hasAttach = true;
+
+function openTicket(idx) {
+  const t = tickets[idx];
+  document.getElementById("mi-no").textContent    = t.no;
+  document.getElementById("mi-submit").textContent = t.submit;
+  document.getElementById("mi-status").innerHTML  = t.status;
+  document.getElementById("mi-optime").textContent = t.optime;
+  document.getElementById("mi-op").textContent    = t.op;
+  document.getElementById("mi-uid").textContent   = t.uid;
+  document.getElementById("mi-ip").textContent    = t.ip;
+  document.getElementById("ticketModal").classList.remove("hidden");
+}
+function closeTicket() {
+  document.getElementById("ticketModal").classList.add("hidden");
+}
+
+// 备注字数
+document.getElementById("mi-remark").addEventListener("input", function(){
+  document.getElementById("remarkLen").textContent = this.value.length;
+});
+
+function openEditModal(targetId) {
+  currentEditTarget = targetId;
+  const origText = document.getElementById(targetId + "Text").innerText.trim();
+  const ta = document.getElementById("editContent");
+  ta.value = origText;
+  document.getElementById("editLen").textContent = origText.length;
+  document.getElementById("googleCode").value = "";
+  document.getElementById("googleErr").classList.add("hidden");
+  document.getElementById("contentErr").classList.add("hidden");
+
+  // 附件显示
+  if(targetId === "agentMsg2") {
+    hasAttach = true;
+    document.getElementById("attachPreview").classList.remove("hidden");
+    document.getElementById("uploadBtn").classList.add("hidden");
+    document.getElementById("attachName").textContent = "wagering_guide.png";
+  } else {
+    hasAttach = false;
+    document.getElementById("attachPreview").classList.add("hidden");
+    document.getElementById("uploadBtn").classList.remove("hidden");
+  }
+
+  checkSaveBtn();
+  document.getElementById("editModal").classList.remove("hidden");
+}
+function closeEditModal() {
+  document.getElementById("editModal").classList.add("hidden");
+  currentEditTarget = null;
+}
+
+function onContentInput() {
+  const val = document.getElementById("editContent").value;
+  document.getElementById("editLen").textContent = val.length;
+  checkSaveBtn();
+}
+function onGoogleInput(el) {
+  el.value = el.value.replace(/\D/g, "").slice(0, 6);
+  document.getElementById("googleErr").classList.add("hidden");
+  checkSaveBtn();
+}
+
+function checkSaveBtn() {
+  const content = document.getElementById("editContent").value.trim();
+  const code    = document.getElementById("googleCode").value;
+  const hasContent = content.length > 0 || hasAttach;
+  const hasCode    = code.length === 6;
+  document.getElementById("saveBtn").disabled = !(hasContent && hasCode);
+}
+
+function deleteAttach() {
+  hasAttach = false;
+  document.getElementById("attachPreview").classList.add("hidden");
+  document.getElementById("uploadBtn").classList.remove("hidden");
+  checkSaveBtn();
+}
+function replaceAttach() {
+  const names = ["new_screenshot.png","updated_guide.pdf","evidence_video.mp4"];
+  document.getElementById("attachName").textContent = names[Math.floor(Math.random()*names.length)];
+  showToast("附件已替换");
+}
+function simulateUpload() {
+  hasAttach = true;
+  document.getElementById("attachPreview").classList.remove("hidden");
+  document.getElementById("uploadBtn").classList.add("hidden");
+  document.getElementById("attachName").textContent = "new_attachment.png";
+  checkSaveBtn();
+  showToast("附件已上传");
+}
+
+function saveEdit() {
+  const code = document.getElementById("googleCode").value;
+  const content = document.getElementById("editContent").value.trim();
+  const btn = document.getElementById("saveBtn");
+
+  // 内容为空且无附件
+  if(!content && !hasAttach) {
+    document.getElementById("contentErr").classList.remove("hidden");
+    return;
+  }
+
+  // 谷歌验证码模拟：仅 123456 正确
+  if(code !== "123456") {
+    document.getElementById("googleErr").classList.remove("hidden");
+    document.getElementById("googleCode").value = "";
+    checkSaveBtn();
+    return;
+  }
+
+  // loading
+  btn.disabled = true;
+  document.getElementById("saveBtnText").innerHTML = '<span class="spinner"></span> 保存中...';
+
+  setTimeout(() => {
+    // 更新消息
+    if(currentEditTarget) {
+      const textEl = document.getElementById(currentEditTarget + "Text");
+      // 保留图片部分
+      const imgEl = document.getElementById(currentEditTarget + "Img");
+      const badgeEl = document.getElementById(currentEditTarget + "EditBadge");
+
+      // 清除文字节点，保留img
+      Array.from(textEl.childNodes).forEach(n => {
+        if(n.nodeType === Node.TEXT_NODE || n.nodeName === "BR") n.remove();
+      });
+      textEl.insertAdjacentHTML("afterbegin", content.replace(/\n/g,"<br>") + "<br>");
+
+      if(badgeEl) badgeEl.classList.remove("hidden");
+
+      // 若删除附件
+      if(!hasAttach && imgEl) imgEl.style.display = "none";
+    }
+
+    btn.disabled = false;
+    document.getElementById("saveBtnText").textContent = "确认保存";
+    closeEditModal();
+    showToast("✓ 编辑成功");
+  }, 1200);
+}
+
+function copyMsg(id) {
+  const text = document.getElementById(id + "Text").innerText;
+  navigator.clipboard.writeText(text).catch(()=>{});
+  showToast("已复制到剪贴板");
+}
+
+function showToast(msg) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.innerHTML = `<span style="font-size:16px">✓</span> ${msg}`;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// 点击遮罩关闭工单弹窗
+document.getElementById("ticketModal").addEventListener("click", function(e){
+  if(e.target === this) closeTicket();
+});
+document.getElementById("editModal").addEventListener("click", function(e){
+  if(e.target === this) closeEditModal();
+});
+</script>
+</body>
+</html>
