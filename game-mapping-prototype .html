@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>游戏映射管理 — 完整原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;background:#f0f2f5;color:#333;min-width:1100px}
+
+
+/* ── 顶部导航 ── */
+.nav{background:#2c3a6b;color:#fff;height:44px;display:flex;align-items:center;padding:0 20px;gap:0}
+.nav-logo{font-size:14px;font-weight:600;color:#fff;margin-right:20px;white-space:nowrap}
+.nav-item{padding:0 14px;height:44px;display:flex;align-items:center;font-size:12.5px;color:rgba(255,255,255,.65);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.nav-item:hover,.nav-item.active{color:#fff;border-bottom-color:#7b8fff}
+
+/* ── 页签 ── */
+.page-tabs{background:#fff;border-bottom:1px solid #e8e8e8;padding:0 20px;display:flex;align-items:center;height:40px}
+.ptab{padding:0 18px;height:40px;display:flex;align-items:center;font-size:13px;color:#666;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;gap:5px}
+.ptab.active{color:#4b5de4;border-bottom-color:#4b5de4;font-weight:500}
+.ptab:hover{color:#4b5de4}
+.ptab-cnt{background:#4b5de4;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px}
+.new-bdg{font-size:9px;background:#ff7a00;color:#fff;padding:1px 4px;border-radius:8px;margin-left:2px}
+
+/* ── 通用 ── */
+.page-content{display:none}.page-content.active{display:block}
+.btn{height:28px;padding:0 14px;border-radius:4px;font-size:12px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.btn-p{background:#4b5de4;color:#fff}.btn-p:hover{background:#3a4bc8}
+.btn-d{background:#fff;color:#333;border:1px solid #d9d9d9}.btn-d:hover{border-color:#4b5de4;color:#4b5de4}
+.btn-sm{height:24px;padding:0 10px;font-size:11.5px}
+.tag{display:inline-flex;align-items:center;padding:1px 7px;border-radius:3px;font-size:11px;white-space:nowrap}
+.t-blue{background:#eff1ff;color:#4b5de4;border:1px solid #c7cbf8}
+.t-green{background:#f0faf4;color:#28a745;border:1px solid #a8ddb8}
+.t-orange{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.t-gray{background:#f5f5f5;color:#888;border:1px solid #ddd}
+.t-purple{background:#f5f0ff;color:#7c3aed;border:1px solid #d8b8f8}
+.t-red{background:#fff1f0;color:#e53935;border:1px solid #f8bbb8}
+.toggle{display:inline-flex;align-items:center;background:#d9d9d9;border-radius:12px;width:36px;height:20px;padding:2px;cursor:pointer;transition:background .2s}
+.toggle.on{background:#52c41a}
+.toggle .thumb{width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on .thumb{transform:translateX(16px)}
+.op-btn{color:#4b5de4;cursor:pointer;font-size:12px}.op-btn:hover{text-decoration:underline}
+.op-sep{color:#e0e0e0;margin:0 3px}
+
+/* ── 列表通用 ── */
+.list-card{background:#fff;border:1px solid #e8e8e8;border-radius:6px;overflow:hidden}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:#f7f8ff;padding:8px 10px;text-align:left;font-weight:500;color:#555;border-bottom:1px solid #e8e8e8;white-space:nowrap}
+.tbl td{padding:8px 10px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#f8f9ff}
+
+/* ── 搜索区 ── */
+.search-bar{background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:10px}
+.sf{display:flex;align-items:center;gap:5px}
+.sf label{font-size:12px;color:#666;white-space:nowrap}
+.sf select,.sf input{height:28px;border:1px solid #d9d9d9;border-radius:4px;padding:0 8px;font-size:12px;outline:none;font-family:inherit;background:#fff;min-width:110px}
+.sf select:focus,.sf input:focus{border-color:#4b5de4}
+
+/* ── P1 子游戏管理 ── */
+.p-wrap{padding:14px 18px}
+
+/* 映射标签 */
+.map-sub{background:#e6f4ff;color:#1677ff;border:1px solid #91caff}
+.map-vdr{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.map-none{background:#f5f5f5;color:#888;border:1px solid #ddd}
+
+/* ── P2 游戏映射管理 ── */
+.mapping-layout{display:grid;grid-template-columns:190px 200px 1fr;border:1px solid #e8e8e8;border-radius:6px;overflow:hidden;background:#fff;min-height:500px}
+.map-panel{border-right:1px solid #e8e8e8;display:flex;flex-direction:column}
+.map-panel:last-child{border-right:none}
+.map-ph{padding:10px 12px;background:#f7f8ff;border-bottom:1px solid #e8e8e8;font-size:12.5px;font-weight:600;color:#333;display:flex;align-items:center;justify-content:space-between}
+.map-pb{flex:1;padding:10px 12px;overflow-y:auto}
+.site-inp{height:26px;border:1px solid #d9d9d9;border-radius:4px;padding:0 8px;font-size:12px;outline:none;font-family:inherit;width:100%;margin-bottom:6px}
+.site-inp:focus{border-color:#4b5de4}
+.s-item{padding:6px 8px;border-radius:4px;cursor:pointer;font-size:12px;color:#333;margin-bottom:1px;display:flex;align-items:center;justify-content:space-between}
+.s-item:hover{background:#f0f2ff}
+.s-item.active{background:#eff1ff;color:#4b5de4;font-weight:500}
+.s-meta{font-size:10.5px;color:#aaa;margin-top:1px}
+.v-item{padding:7px 8px;border-radius:4px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:7px;margin-bottom:1px}
+.v-item:hover{background:#f0f2ff}
+.v-item.active{background:#eff1ff;color:#4b5de4;font-weight:500}
+.v-icon{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+
+.map-right{display:flex;flex-direction:column}
+.map-rh{padding:10px 14px;background:#f7f8ff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between}
+.map-rb{flex:1;padding:12px 14px;overflow-y:auto}
+.grp-block{margin-bottom:14px}
+.grp-hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f5f5f5;border-radius:5px;margin-bottom:7px;cursor:pointer}
+.grp-hdr:hover{background:#eef0ff}
+.grp-name{font-size:12.5px;font-weight:500;color:#333;display:flex;align-items:center;gap:5px}
+.g-badge{font-size:10px;padding:1px 5px;border-radius:8px;font-weight:400}
+.gb-exist{background:#e6f4ff;color:#1677ff}
+.gb-new{background:#fff7e6;color:#d46b08}
+.check-all-btn{font-size:11.5px;color:#4b5de4;cursor:pointer}.check-all-btn:hover{text-decoration:underline}
+.games-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.g-item{display:flex;align-items:flex-start;gap:5px;padding:5px 7px;border-radius:4px;cursor:pointer;border:1px solid transparent;transition:all .1s;font-size:12px}
+.g-item:hover{background:#f5f6ff;border-color:#c7cbf8}
+.g-item.chk{background:#eff1ff;border-color:#c7cbf8}
+.g-item input{cursor:pointer;accent-color:#4b5de4;flex-shrink:0;margin-top:2px}
+.g-src{font-size:10px;color:#d46b08;margin-top:1px}
+.g-item.direct{border-color:#fde3b0;background:#fffbf0}
+.g-item.direct.chk{background:#fff3d6;border-color:#ffa940}
+.map-save-bar{padding:10px 14px;border-top:1px solid #e8e8e8;background:#fafafa;display:flex;justify-content:flex-end;gap:8px}
+.hint-box{padding:10px;background:#f5f7ff;border:1px dashed #c7cbf8;border-radius:5px;font-size:11.5px;color:#555;line-height:1.7;margin-top:10px}
+
+/* ── 弹窗通用 ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.2);animation:slideUp .2s;display:flex;flex-direction:column}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-hdr{padding:12px 18px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;flex-shrink:0}
+.m-title{font-size:14px;font-weight:600;color:#222}
+.m-close{width:26px;height:26px;border:none;background:none;cursor:pointer;font-size:17px;color:#aaa;border-radius:4px;display:flex;align-items:center;justify-content:center}.m-close:hover{background:#f0f0f0;color:#333}
+.m-body{padding:18px;overflow-y:auto;flex:1}
+.m-footer{padding:12px 18px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+.btn-cancel{height:30px;padding:0 16px;border:1px solid #d9d9d9;background:#fff;border-radius:4px;font-size:12.5px;cursor:pointer;font-family:inherit;color:#555}.btn-cancel:hover{border-color:#4b5de4;color:#4b5de4}
+.btn-save{height:30px;padding:0 18px;background:#4b5de4;color:#fff;border:none;border-radius:4px;font-size:12.5px;cursor:pointer;font-family:inherit}.btn-save:hover{background:#3a4bc8}
+
+/* ── 编辑弹窗内表单 ── */
+.sec-title{font-size:12px;font-weight:600;color:#555;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:5px}
+.sec-title::before{content:"";width:3px;height:12px;background:#4b5de4;border-radius:2px;display:inline-block}
+.f-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 14px;margin-bottom:12px}
+.f-grid-2{grid-template-columns:1fr 1fr}
+.f-item{display:flex;flex-direction:column;gap:4px}
+.f-item.sp2{grid-column:span 2}
+.f-item.sp3{grid-column:span 3}
+.f-lbl{font-size:11.5px;color:#555;display:flex;align-items:center;gap:2px}
+.f-lbl .req{color:#e53935}
+.f-inp,.f-sel{height:30px;border:1px solid #d9d9d9;border-radius:4px;padding:0 9px;font-size:12px;outline:none;font-family:inherit;background:#fff;width:100%;transition:border .15s}
+.f-inp:focus,.f-sel:focus{border-color:#4b5de4;box-shadow:0 0 0 2px rgba(75,93,228,.1)}
+.f-inp:disabled,.f-sel:disabled{background:#f5f5f5;color:#aaa;cursor:not-allowed}
+.stepper{display:flex;align-items:center;border:1px solid #d9d9d9;border-radius:4px;overflow:hidden;height:30px}
+.stepper input{border:none;outline:none;text-align:center;width:54px;font-size:12px;font-family:inherit}
+.stbtn{width:26px;height:30px;background:#f5f5f5;border:none;cursor:pointer;font-size:13px;color:#666;display:flex;align-items:center;justify-content:center}.stbtn:hover{background:#e8e8e8}
+
+/* 映射配置区 */
+.map-cfg-box{border:1px solid #e8e8e8;border-radius:6px;padding:12px;background:#fafafa}
+/* 厂商选择行 */
+.vendor-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.vendor-row label{font-size:11.5px;color:#555;white-space:nowrap}
+.vendor-sel{height:30px;border:1px solid #d9d9d9;border-radius:4px;padding:0 9px;font-size:12px;outline:none;font-family:inherit;background:#fff;min-width:140px}
+.vendor-sel:focus{border-color:#4b5de4}
+.map-mode-tip{font-size:11.5px;padding:7px 10px;border-radius:4px;margin-top:8px;line-height:1.6}
+.tip-sub{background:#e6f4ff;color:#1565C0;border:1px solid #91caff}
+.tip-vdr{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.tip-none{background:#f5f5f5;color:#666;border:1px solid #e0e0e0}
+/* 查询行 */
+.qrow{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px}
+.qrow-btns{display:flex;gap:6px}
+.q-result{display:flex;flex-direction:column;gap:5px;max-height:130px;overflow-y:auto}
+.qr-item{display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid #e8e8e8;border-radius:4px;background:#fff;cursor:pointer;transition:all .1s;font-size:12px}
+.qr-item:hover{border-color:#c7cbf8;background:#f5f6ff}
+.qr-item.sel{border-color:#4b5de4;background:#eff1ff}
+.qr-item input{accent-color:#4b5de4;flex-shrink:0}
+.qr-name{flex:1;color:#333}
+.qr-code{color:#aaa;font-size:11px}
+.q-count{font-size:11.5px;color:#aaa;margin-top:4px}
+/* 无映射提示 */
+.no-map-panel{text-align:center;padding:18px;color:#888}
+.no-map-panel .nm-icon{font-size:26px;margin-bottom:6px}
+.no-map-panel .nm-text{font-size:12.5px;color:#555;font-weight:500;margin-bottom:4px}
+.no-map-panel .nm-sub{font-size:11.5px;color:#aaa;line-height:1.7}
+
+/* 多选标签 */
+.ms-box{border:1px solid #d9d9d9;border-radius:4px;padding:3px 7px;min-height:30px;background:#fff;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.ms-tag{background:#eff1ff;color:#4b5de4;border:1px solid #c7cbf8;border-radius:3px;padding:1px 5px;font-size:11px;display:flex;align-items:center;gap:2px}
+.ms-x{cursor:pointer;color:#aaa;font-size:12px}.ms-x:hover{color:#e53935}
+
+/* ── 站点后台弹窗 ── */
+/* 只读表格 */
+.ro-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.ro-tbl th{background:#f7f8ff;padding:7px 10px;text-align:left;font-weight:500;color:#555;border:1px solid #e8e8e8}
+.ro-tbl td{padding:7px 10px;border:1px solid #e8e8e8;color:#444;vertical-align:middle}
+.ro-tbl tr:nth-child(even) td{background:#fafafa}
+.sec-divider{border-top:2px solid #e8e8e8;margin:14px 0;position:relative}
+.sec-divider span{position:absolute;top:-10px;left:0;background:#fff;padding-right:10px;font-size:11.5px;font-weight:600;color:#555}
+/* 来源标注 */
+.src-note{font-size:10.5px;color:#d46b08;margin-top:2px;display:flex;align-items:center;gap:3px}
+
+/* toast */
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid #b7eb8f;border-radius:6px;padding:8px 16px;font-size:13px;color:#389e0d;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:999;display:flex;align-items:center;gap:5px;pointer-events:none;animation:toastIn .2s}
+@keyframes toastIn{from{top:4px;opacity:0}to{top:18px;opacity:1}}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════ SAAS后台 ════════════════════════ -->
+<div id="sys-saas">
+  <div class="nav">
+    <div class="nav-logo">三方游戏管理</div>
+    <div class="nav-item">游戏厂商</div>
+    <div class="nav-item active" id="saas-nav-sub" onclick="saasNav('sub')">子游戏管理</div>
+    <div class="nav-item" id="saas-nav-map" onclick="saasNav('map')">游戏映射管理</div>
+  </div>
+  <div class="page-tabs">
+    <div class="ptab active" id="saas-tab-0" onclick="saasTab(0)">子游戏管理 <span class="ptab-cnt">444</span></div>
+    <div class="ptab" id="saas-tab-1" onclick="saasTab(1)">游戏映射管理 <span class="new-bdg">NEW</span></div>
+  </div>
+
+  <!-- PAGE 0: 子游戏管理 -->
+  <div class="page-content active p-wrap" id="saas-p0">
+    <!-- 搜索栏：按截图还原 -->
+    <div class="search-bar" style="margin-bottom:8px">
+      <div class="sf"><label>游戏名称</label><input placeholder="游戏名称" style="min-width:140px"></div>
+      <div class="sf"><label>游戏ID/Code</label><input placeholder="游戏ID或游戏编码" style="min-width:150px"></div>
+      <div class="sf"><label>游戏大类</label><select><option>请选择</option><option>电子游戏</option><option>体育竞技</option></select></div>
+      <div class="sf"><label>游戏厂商</label><select style="min-width:100px"><option>UP电子</option><option>MG电子</option></select></div>
+    </div>
+    <div class="search-bar" style="margin-bottom:8px">
+      <div class="sf"><label>游戏子类</label><select><option>请选择游戏分类</option><option>Slot</option><option>Table</option></select></div>
+      <div class="sf"><label>自定义分类</label><input placeholder="自定义分类" style="min-width:120px"></div>
+      <div class="sf"><label>支持币种</label><select><option>请选择支持币种</option><option>INR</option><option>PKR</option></select></div>
+      <div class="sf"><label>游戏状态</label><select><option>请选择</option><option>启用</option><option>禁用</option></select></div>
+    </div>
+    <div class="search-bar" style="margin-bottom:8px">
+      <div class="sf"><label>创建时间</label><input placeholder="开始日期" style="min-width:120px"><span style="color:#aaa;margin:0 4px">→</span><input placeholder="结束日期" style="min-width:120px"></div>
+      <div class="sf"><label>更新时间</label><input placeholder="开始日期" style="min-width:120px"><span style="color:#aaa;margin:0 4px">→</span><input placeholder="结束日期" style="min-width:120px"></div>
+    </div>
+    <div class="search-bar" style="margin-bottom:12px">
+      <div class="sf"><label>是否映射</label><select style="min-width:110px"><option>请选择</option><option>已映射</option><option>未映射</option></select></div>
+      <button class="btn btn-p" style="margin-left:auto">查询</button>
+      <button class="btn btn-d">重置</button>
+      <span style="font-size:12px;color:#4b5de4;cursor:pointer">收起 ∧</span>
+    </div>
+
+    <div class="list-card">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>游戏ID</th>
+            <th>游戏名称</th>
+            <th>游戏编码</th>
+            <th>游戏厂商</th>
+            <th>游戏大类</th>
+            <th>游戏子类</th>
+            <th>自定义分类</th>
+            <th>支持币种</th>
+            <th>最大倍数</th>
+            <th>最大投注率</th>
+            <th>映射配置</th>
+            <th>状态</th>
+            <th>更新日期</th>
+            <th>创建时间</th>
+            <th>操作人</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:#888;font-size:12px">106290</td>
+            <td style="font-size:12px;line-height:1.6">CN: Fortune Ox<br><span style="color:#aaa">EN: Fortune Ox</span></td>
+            <td><span class="tag t-gray" style="font-family:monospace;font-size:11px">pg_98</span></td>
+            <td><span class="tag t-blue">UP电子</span></td>
+            <td><span class="tag t-blue" style="font-size:11px">电子游戏</span></td>
+            <td><span class="tag t-gray" style="font-size:11px">Slot</span></td>
+            <td style="color:#aaa;font-size:12px">0</td>
+            <td><span class="tag t-blue" style="font-size:11px">PKR,BDT,INR</span></td>
+            <td>0</td><td>0</td>
+            <td><span class="tag t-blue" style="font-size:11px">PG电子-98</span></td>
+            <td><span class="tag t-green">启用</span></td>
+            <td style="font-size:11px;color:#888;white-space:nowrap">2026-04-07 11:16:13</td>
+            <td style="font-size:11px;color:#888;white-space:nowrap">2026-03-31 18:32:38</td>
+            <td style="font-size:12px;color:#888">admin</td>
+            <td><span class="op-btn" onclick="openSaasEdit('A1')">编辑</span></td>
+          </tr>
+          <tr>
+            <td style="color:#888;font-size:12px">106289</td>
+            <td style="font-size:12px;line-height:1.6">CN: Dragon Tiger<br><span style="color:#aaa">EN: Dragon Tiger</span></td>
+            <td><span class="tag t-gray" style="font-family:monospace;font-size:11px">pg_201</span></td>
+            <td><span class="tag t-blue">UP电子</span></td>
+            <td><span class="tag t-blue" style="font-size:11px">电子游戏</span></td>
+            <td><span class="tag t-gray" style="font-size:11px">Table</span></td>
+            <td style="color:#aaa;font-size:12px">0</td>
+            <td><span class="tag t-blue" style="font-size:11px">PKR,BDT,INR</span></td>
+            <td>0</td><td>0</td>
+            <td><span class="tag t-orange" style="font-size:11px">PG电子-厂商映射</span></td>
+            <td><span class="tag t-green">启用</span></td>
+            <td style="font-size:11px;color:#888;white-space:nowrap">2026-04-07 11:28:17</td>
+            <td style="font-size:11px;color:#888;white-space:nowrap">2026-03-31 18:32:38</td>
+            <td style="font-size:12px;color:#888">admin</td>
+            <td><span class="op-btn" onclick="openSaasEdit('A2')">编辑</span></td>
+          </tr>
+          <tr>
+            <td style="color:#888;font-size:12px">106288</td>
+            <td style="font-size:12px;line-height:1.6">CN: Lucky Wheel<br><span style="color:#aaa">EN: Lucky Wheel</span></td>
+            <td><span class="tag t-gray" style="font-family:monospace;font-size:11px">pg_202</span></td>
+            <td><span class="tag t-blue">UP电子</span></td>
+            <td><span class="tag t-blue" style="font-size:11px">电子游戏</span></td>
+            <td><span class="tag t-gray" style="font-size:11px">Slot</span></td>
+            <td style="color:#aaa;font-size:12px">0</td>
+            <td><span class="tag t-blue" style="font-size:11px">PKR,BDT,INR</span></td>
+            <td>0</td><td>0</td>
+            <td><span style="color:#ccc;font-size:12px">--</span></td>
+            <td><span class="tag t-green">启用</span></td>
+            <td style="font-size:11px;color:#888;white-space:nowrap">2026-04-07 11:35:55</td>
+            <td style="font-size:11px;color:#888;white-space:nowrap">2026-03-31 18:32:38</td>
+            <td style="font-size:12px;color:#888">admin</td>
+            <td><span class="op-btn" onclick="openSaasEdit('A3')">编辑</span></td>
+          </tr>
+          <tr>
+            <td style="color:#888;font-size:12px">106204</td>
+            <td style="font-size:12px;line-height:1.6">CN: Mahjong Ways 2<br><span style="color:#aaa">EN: Mahjong Ways 2</span></td>
+            <td><span class="tag t-gray" style="font-family:monospace;font-size:11px">pg_74</span></td>
+            <td><span class="tag t-blue">UP电子</span></td>
+            <td><span class="tag t-blue" style="font-size:11px">电子游戏</span></td>
+            <td><span class="tag t-gray" style="font-size:11px">Slot</span></td>
+            <td style="color:#aaa;font-size:12px">0</td>
+            <td><span class="tag t-blue" style="font-size:11px">PKR,INR,BDT</span></td>
+            <td>0</td><td>0</td>
+            <td><span class="tag t-blue" style="font-size:11px">PG电子-74</span></td>
+            <td><span class="tag t-green">启用</span></td>
+            <td style="font-size:11px;color:#888;white-space:nowrap">2026-03-31 18:32:38</td>
+            <td style="font-size:11px;color:#888;white-space:nowrap">2026-03-24 11:22:15</td>
+            <td style="font-size:12px;color:#888">techadmin</td>
+            <td><span class="op-btn" onclick="openSaasEdit('A1')">编辑</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+    <!-- PAGE 1: 游戏映射管理 -->
+  <div class="page-content p-wrap" id="saas-p1">
+    <div class="mapping-layout">
+      <!-- 左1 站点 -->
+      <div class="map-panel">
+        <div class="map-ph">商户站点 <span class="tag t-blue" style="font-size:10px">1</span></div>
+        <div class="map-pb">
+          <input class="site-inp" placeholder="搜索站点...">
+          <div class="s-item active" onclick="selSite(this)">
+            <div><div>sitINR--2001</div><div class="s-meta">印度 · INR</div></div>
+            <span class="tag t-blue" style="font-size:9px">选中</span>
+          </div>
+          <div class="s-item" onclick="selSite(this)">
+            <div><div>sitPKR--2003</div><div class="s-meta">巴基斯坦 · PKR</div></div>
+          </div>
+          <div class="s-item" onclick="selSite(this)">
+            <div><div>sitBDT--2005</div><div class="s-meta">孟加拉 · BDT</div></div>
+          </div>
+          <div style="border-top:1px solid #f0f0f0;margin-top:8px;padding-top:8px">
+            <div style="font-size:11px;color:#aaa;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
+              已选站点 (1) <span style="color:#e53935;cursor:pointer">清空</span>
+            </div>
+            <div class="s-item active" style="padding:3px 6px;font-size:11.5px">
+              sitINR--2001 <span style="color:#e53935;cursor:pointer;margin-left:auto;font-size:10px">删除</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 左2 厂商 -->
+      <div class="map-panel">
+        <div class="map-ph">三方厂商</div>
+        <div class="map-pb">
+          <div class="v-item active" onclick="selVendor(this)">
+            <div class="v-icon" style="background:#fff3e0;color:#e65100">PG</div>PG电子
+          </div>
+          <div class="v-item" onclick="selVendor(this)">
+            <div class="v-icon" style="background:#e8f5e9;color:#2e7d32">JL</div>JILI
+          </div>
+          <div class="v-item" onclick="selVendor(this)">
+            <div class="v-icon" style="background:#e3f2fd;color:#1565c0">EV</div>Evolution
+          </div>
+        </div>
+      </div>
+      <!-- 右侧 映射区 -->
+      <div class="map-right">
+        <div class="map-rh">
+          <span style="font-size:13px;font-weight:600;color:#222">映射子游戏
+            <span style="font-size:11.5px;color:#888;font-weight:400">· sitINR--2001 · PG电子</span>
+          </span>
+        </div>
+        <div class="map-rb">
+          <!-- 分组1 -->
+          <div class="grp-block">
+            <div class="grp-hdr" onclick="toggleGrp(this)">
+              <div class="grp-name">HeiBao_PG电子 <span class="g-badge gb-exist">子游戏映射</span></div>
+              <span class="check-all-btn" onclick="event.stopPropagation();chkAll(this,'mg1')">全选</span>
+            </div>
+            <div class="games-grid" id="mg1">
+              <div class="g-item" onclick="togGame(this)"><input type="checkbox" class="gc"><div><div>89</div><div style="font-size:10px;color:#aaa">(11014)</div></div></div>
+              <div class="g-item" onclick="togGame(this)"><input type="checkbox" class="gc"><div><div>1879752</div><div style="font-size:10px;color:#aaa">(11155)</div></div></div>
+            </div>
+          </div>
+          <!-- 分组2：UP电子（含厂商映射游戏，合并为一组） -->
+          <div class="grp-block">
+            <div class="grp-hdr" onclick="toggleGrp(this)">
+              <div class="grp-name">
+                UP电子
+                <span class="g-badge gb-exist">子游戏映射</span>
+                <span style="font-size:11px;color:#888;font-weight:400">含厂商映射游戏</span>
+              </div>
+              <span class="check-all-btn" onclick="event.stopPropagation();chkAll(this,'mg2')">取消全选</span>
+            </div>
+            <div class="games-grid" id="mg2">
+              <!-- 普通子游戏映射 -->
+              <div class="g-item chk" onclick="togGame(this)"><input type="checkbox" class="gc" checked>
+                <div><div>135</div><div style="font-size:10px;color:#aaa">(pg_135)</div></div>
+              </div>
+              <div class="g-item chk" onclick="togGame(this)"><input type="checkbox" class="gc" checked>
+                <div><div>Fortune Ox</div><div style="font-size:10px;color:#aaa">(pg_98)</div></div>
+              </div>
+              <div class="g-item chk" onclick="togGame(this)"><input type="checkbox" class="gc" checked>
+                <div><div>40</div><div style="font-size:10px;color:#aaa">(pg_40)</div></div>
+              </div>
+              <div class="g-item chk" onclick="togGame(this)"><input type="checkbox" class="gc" checked>
+                <div><div>74</div><div style="font-size:10px;color:#aaa">(pg_74)</div></div>
+              </div>
+              <!-- 厂商映射游戏：B厂商无此子游戏，保存成功+标识 -->
+              <div class="g-item direct chk" onclick="togGame(this)" title="厂商映射：PG电子下无对应子游戏，以独立条目展示">
+                <input type="checkbox" class="gc" checked>
+                <div>
+                  <div style="display:flex;align-items:center;gap:4px">
+                    Dragon Tiger
+                    <span style="font-size:9px;background:#fff7e6;color:#d46b08;border:1px solid #ffd591;border-radius:3px;padding:0 4px;white-space:nowrap">厂商映射</span>
+                  </div>
+                  <div style="font-size:10px;color:#aaa">(pg_201)</div>
+                  <div class="g-src">PG电子无此游戏</div>
+                </div>
+              </div>
+              <div class="g-item direct" onclick="togGame(this)" title="厂商映射：PG电子下无对应子游戏，以独立条目展示">
+                <input type="checkbox" class="gc">
+                <div>
+                  <div style="display:flex;align-items:center;gap:4px">
+                    Baccarat Pro
+                    <span style="font-size:9px;background:#fff7e6;color:#d46b08;border:1px solid #ffd591;border-radius:3px;padding:0 4px;white-space:nowrap">厂商映射</span>
+                  </div>
+                  <div style="font-size:10px;color:#aaa">(pg_205)</div>
+                  <div class="g-src">PG电子无此游戏</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hint-box">
+            <b>逻辑说明：</b><br>
+            · <span style="color:#1677ff">■</span> 普通条目 — 厂商有对应子游戏，1对1映射，正常展示<br>
+            · <span style="color:#d46b08">■ 厂商映射</span> 标识 — 厂商<b>无</b>此子游戏，原本保存会报错；
+            <b>优化后</b>：保存成功，该游戏作为独立条目出现在该厂商入口，标识区分来源<br>
+            · 「不映射」子游戏不在此管理，由本厂商入口统一控制
+          </div>
+        </div>
+        <div class="map-save-bar">
+          <button class="btn btn-d">取消</button>
+          <button class="btn btn-p" onclick="showToast('✓ 映射配置已保存')">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════ SAAS后台 子游戏编辑弹窗 ════════ -->
+<div class="overlay hidden" id="saasEditModal">
+  <div class="modal" style="width:820px;max-height:90vh">
+    <div class="m-hdr">
+      <span class="m-title" id="saasEditTitle">游戏编辑-(编码-pg_98)</span>
+      <button class="m-close" onclick="closeModal('saasEditModal')">×</button>
+    </div>
+    <div class="m-body">
+
+      <!-- 基础信息 -->
+      <div style="margin-bottom:14px">
+        <div class="f-grid">
+          <div class="f-item"><div class="f-lbl"><span class="req">*</span>游戏中文名称</div><input class="f-inp" id="se-cn"></div>
+          <div class="f-item"><div class="f-lbl"><span class="req">*</span>游戏英文名称</div><input class="f-inp" id="se-en"></div>
+          <div class="f-item"><div class="f-lbl">自定义分类</div><input class="f-inp" value="0"></div>
+          <div class="f-item"><div class="f-lbl"><span class="req">*</span>游戏子类</div><select class="f-sel"><option>Slot</option><option>Table</option><option>Live</option></select></div>
+        </div>
+        <div class="f-grid" style="margin-top:10px">
+          <div class="f-item"><div class="f-lbl">最大倍数</div><div class="stepper"><button class="stbtn" onclick="sv('se-mul',-1)">−</button><input id="se-mul" value="0"><button class="stbtn" onclick="sv('se-mul',1)">+</button></div></div>
+          <div class="f-item"><div class="f-lbl">最大倍数投注额</div><div class="stepper"><button class="stbtn" onclick="sv('se-bet',-1)">−</button><input id="se-bet" value="0"><button class="stbtn" onclick="sv('se-bet',1)">+</button></div></div>
+          <div class="f-item"><div class="f-lbl">RTP</div><div class="stepper"><button class="stbtn" onclick="sv('se-rtp',-1)">−</button><input id="se-rtp" value="0"><button class="stbtn" onclick="sv('se-rtp',1)">+</button></div></div>
+        </div>
+      </div>
+
+      <!-- 映射配置 -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:12.5px;color:#333;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-weight:500">映射配置</span>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#555">
+            是否开启映射
+            <div class="toggle on" id="mapSwitch" onclick="toggleMapSwitch()" style="flex-shrink:0"><div class="thumb"></div></div>
+            <span id="mapSwitchLabel" style="font-size:11.5px;color:#52c41a;font-weight:500">已开启</span>
+          </div>
+        </div>
+
+        <!-- 关闭时 -->
+        <div id="mapOffTip" class="hidden" style="padding:14px;background:#f7f7f7;border:1px solid #e8e8e8;border-radius:6px;text-align:center;color:#aaa;font-size:12px">
+          映射未开启，该子游戏将在所属厂商独立入口展示
+        </div>
+
+        <!-- 开启时 -->
+        <div id="mapOnContent" style="border:1px solid #e8e8e8;border-radius:6px;padding:12px 14px;background:#fafafa">
+          <!-- 厂商必填行 -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap">
+            <span style="font-size:12px;color:#555;white-space:nowrap"><span style="color:#e53935">* </span>官方游戏厂商</span>
+            <select class="vendor-sel" id="se-vendor" onchange="updateMapTip()" style="min-width:150px">
+              <option value="">— 请选择厂商 —</option>
+              <option value="PG电子">PG电子</option>
+              <option value="JILI">JILI</option>
+              <option value="Evolution">Evolution</option>
+            </select>
+            <span id="vendorRequired" class="hidden" style="font-size:11.5px;color:#e53935">⚠ 请先选择官方游戏厂商</span>
+            <span style="font-size:11.5px;color:#aaa">选择厂商后可直接保存（厂商映射）；也可查询并选择子游戏（子游戏映射）</span>
+          </div>
+
+          <!-- 动态提示 -->
+          <div class="map-mode-tip hidden" id="mapTip"></div>
+
+          <!-- 未选厂商提示 -->
+          <div id="noVendorTip" style="text-align:center;padding:14px;color:#bbb;font-size:12px">↑ 请先选择官方游戏厂商</div>
+
+          <!-- 查询区（选厂商后显示） -->
+          <div id="queryArea" class="hidden" style="margin-top:10px">
+            <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px">
+              <div class="f-item"><div class="f-lbl">官方游戏ID/Code</div><input class="f-inp" id="se-qcode"></div>
+              <div class="f-item"><div class="f-lbl">官方游戏名称</div><input class="f-inp" placeholder="游戏名称（选填）"></div>
+              <div style="display:flex;gap:6px;padding-bottom:1px">
+                <button class="btn btn-d btn-sm" onclick="clearSel()">清除</button>
+                <button class="btn btn-p btn-sm" onclick="doQ()">查询</button>
+              </div>
+            </div>
+            <div class="q-result" id="qResult">
+              <div class="qr-item" onclick="selQr(this)"><input type="radio"><span class="qr-name">Fortune Ox</span><span class="qr-code">(98)</span><span class="tag t-blue" style="margin-left:auto;font-size:10px">PG电子</span></div>
+              <div class="qr-item" onclick="selQr(this)"><input type="radio"><span class="qr-name">Forbidden Alchemy</span><span class="qr-code">(1981965)</span><span class="tag t-blue" style="margin-left:auto;font-size:10px">PG电子</span></div>
+              <div class="qr-item" onclick="selQr(this)"><input type="radio"><span class="qr-name">Ninja Raccoon Frenzy</span><span class="qr-code">(1529867)</span><span class="tag t-blue" style="margin-left:auto;font-size:10px">PG电子</span></div>
+            </div>
+            <div style="font-size:11px;color:#aaa;margin-top:4px">总数：3 &nbsp;<span style="color:#4b5de4;cursor:pointer">← 1 →</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 其他配置 -->
+      <div>
+        <div class="f-grid">
+          <div class="f-item sp2">
+            <div class="f-lbl"><span class="req">*</span>币种</div>
+            <div class="ms-box">
+              <div class="ms-tag">PKR(巴基斯坦卢比)<span class="ms-x" onclick="this.closest('.ms-tag').remove()">×</span></div>
+              <div class="ms-tag">BDT(塔卡)<span class="ms-x" onclick="this.closest('.ms-tag').remove()">×</span></div>
+              <div class="ms-tag">INR(印度卢比)<span class="ms-x" onclick="this.closest('.ms-tag').remove()">×</span></div>
+            </div>
+          </div>
+          <div class="f-item"><div class="f-lbl">排序</div><div class="stepper"><button class="stbtn" onclick="sv('se-sort',-1)">−</button><input id="se-sort" value="0"><button class="stbtn" onclick="sv('se-sort',1)">+</button></div></div>
+          <div class="f-item"><div class="f-lbl">状态</div><select class="f-sel"><option>启用</option><option>禁用</option></select></div>
+          <div class="f-item sp3"><div class="f-lbl">备注</div><input class="f-inp" placeholder="请输入备注"></div>
+        </div>
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="btn-cancel" onclick="closeModal('saasEditModal')">取消</button>
+      <button class="btn-save" onclick="doSave()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ── SAAS页签 ──
+function saasTab(i){
+  document.querySelectorAll('#sys-saas .page-content').forEach((p,j)=>p.classList.toggle('active',i===j));
+  document.querySelectorAll('#sys-saas .ptab').forEach((t,j)=>t.classList.toggle('active',i===j));
+}
+function saasNav(t){
+  saasTab(t==='sub'?0:1);
+  document.querySelectorAll('.nav-item').forEach(n=>{n.classList.remove('active')});
+  event.target.classList.add('active');
+}
+
+// ── SAAS编辑弹窗 ──
+const gameData={
+  A1:{code:'pg_98',  cn:'Fortune Ox',  en:'Fortune Ox',  vendor:'PG电子',hasSel:true},
+  A2:{code:'pg_201', cn:'Dragon Tiger', en:'Dragon Tiger', vendor:'PG电子',hasSel:false},
+  A3:{code:'pg_202', cn:'Lucky Wheel',  en:'Lucky Wheel',  vendor:'',     hasSel:false},
+};
+function openSaasEdit(k){
+  const d=gameData[k];
+  document.getElementById('saasEditTitle').textContent='游戏编辑-(编码-'+d.code+')';
+  document.getElementById('se-cn').value=d.cn;
+  document.getElementById('se-en').value=d.en;
+  document.getElementById('se-vendor').value=d.vendor;
+  document.getElementById('se-vendor').style.borderColor='';
+  document.getElementById('se-qcode').value=d.hasSel?d.code:'';
+  if(document.getElementById('vendorRequired')) document.getElementById('vendorRequired').classList.add('hidden');
+
+  // 开关状态
+  const isOn=!!d.vendor;
+  const sw=document.getElementById('mapSwitch');
+  const lbl=document.getElementById('mapSwitchLabel');
+  const off=document.getElementById('mapOffTip');
+  const on=document.getElementById('mapOnContent');
+
+  if(isOn){ sw.classList.add('on'); } else { sw.classList.remove('on'); }
+  lbl.textContent=isOn?'已开启':'已关闭';
+  lbl.style.color=isOn?'#52c41a':'#aaa';
+  if(isOn){ off.classList.add('hidden'); on.classList.remove('hidden'); }
+  else    { off.classList.remove('hidden'); on.classList.add('hidden'); }
+
+  // 子游戏选中
+  document.querySelectorAll('#qResult .qr-item').forEach((el,i)=>{
+    el.classList.toggle('sel',i===0&&d.hasSel);
+    el.querySelector('input').checked=(i===0&&d.hasSel);
+  });
+
+  if(isOn) updateMapTip();
+  document.getElementById('saasEditModal').classList.remove('hidden');
+}
+
+// ── 映射开关 ──
+function toggleMapSwitch(){
+  const sw=document.getElementById('mapSwitch');
+  const lbl=document.getElementById('mapSwitchLabel');
+  const off=document.getElementById('mapOffTip');
+  const on=document.getElementById('mapOnContent');
+  const isOn=sw.classList.contains('on'); // 点击前的状态
+  const willBeOn=!isOn;                   // 点击后的状态
+  sw.classList.toggle('on',willBeOn);
+  lbl.textContent=willBeOn?'已开启':'已关闭';
+  lbl.style.color=willBeOn?'#52c41a':'#aaa';
+  off.classList.toggle('hidden',willBeOn);  // 开启时隐藏off提示
+  on.classList.toggle('hidden',!willBeOn);  // 开启时显示on内容
+}
+
+function updateMapTip(){
+  const v=document.getElementById('se-vendor').value;
+  const tip=document.getElementById('mapTip');
+  const qa=document.getElementById('queryArea');
+  const nvt=document.getElementById('noVendorTip');
+  const req=document.getElementById('vendorRequired');
+  if(req) req.classList.add('hidden');
+  const hasSel=[...document.querySelectorAll('#qResult .qr-item')].some(i=>i.classList.contains('sel'));
+  if(!v){
+    tip.classList.add('hidden');
+    qa.classList.add('hidden');
+    nvt.classList.remove('hidden');
+  } else {
+    nvt.classList.add('hidden');
+    qa.classList.remove('hidden');
+    tip.classList.remove('hidden');
+    if(hasSel){
+      tip.className='map-mode-tip tip-sub';
+      tip.innerHTML='🔗 已选厂商 + 已选子游戏 → <b>子游戏映射</b>（1对1），游戏以 '+v+' 子游戏身份展示';
+    } else {
+      tip.className='map-mode-tip tip-vdr';
+      tip.innerHTML='🏢 已选厂商，未选子游戏 → <b>厂商映射</b>，游戏作为独立条目出现在 '+v+' 入口，可直接保存';
+    }
+  }
+}
+
+// 保存：开启映射时必须选厂商
+function doSave(){
+  const isOn=document.getElementById('mapSwitch').classList.contains('on');
+  if(isOn){
+    const v=document.getElementById('se-vendor').value;
+    if(!v){
+      const req=document.getElementById('vendorRequired');
+      req.classList.remove('hidden');
+      document.getElementById('se-vendor').style.borderColor='#e53935';
+      setTimeout(()=>{
+        req.classList.add('hidden');
+        document.getElementById('se-vendor').style.borderColor='';
+      },2500);
+      return;
+    }
+    const hasSel=[...document.querySelectorAll('#qResult .qr-item')].some(i=>i.classList.contains('sel'));
+    const mapType=hasSel?'子游戏映射':'厂商映射';
+    closeModal('saasEditModal');
+    showToast('✓ 保存成功（'+mapType+'）');
+  } else {
+    closeModal('saasEditModal');
+    showToast('✓ 保存成功（不映射）');
+  }
+}
+
+function selVendor(el){
+  el.closest('.map-pb').querySelectorAll('.v-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  // 取最后一个 span（厂商名称），排除 v-icon div
+  const spans = el.querySelectorAll('span');
+  const name = spans.length > 0 ? spans[spans.length-1].textContent.trim() : el.textContent.trim();
+  // 更新右侧标题
+  const rh = document.querySelector('.map-rh span');
+  if(rh) rh.innerHTML = `映射子游戏 <span style="font-size:11.5px;color:#888;font-weight:400">· sitINR--2001 · ${name}</span>`;
+  // 更新 g-src 文案（厂商映射标识）
+  document.querySelectorAll('.g-src').forEach(s=>{ s.textContent = `${name}无此游戏`; });
+  // 更新 title tooltip
+  document.querySelectorAll('.g-item.direct').forEach(g=>{
+    g.title = `厂商映射：${name}下无对应子游戏，以独立条目展示`;
+  });
+}
+function togGame(el){el.classList.toggle('chk');el.querySelector('input').checked=el.classList.contains('chk')}
+function toggleGrp(hdr){const g=hdr.nextElementSibling;g.style.display=g.style.display==='none'?'grid':'none'}
+function chkAll(btn,gid){
+  const g=document.getElementById(gid);const items=g.querySelectorAll('.g-item');
+  const all=[...items].every(i=>i.classList.contains('chk'));
+  items.forEach(i=>{i.classList.toggle('chk',!all);i.querySelector('input').checked=!all});
+  btn.textContent=all?'全选':'取消全选';
+}
+
+
+// ── 通用 ──
+function closeModal(id){document.getElementById(id).classList.add('hidden')}
+function sv(id,d){const e=document.getElementById(id);e.value=Math.max(0,(parseInt(e.value)||0)+d)}
+function showToast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2400)}
+
+// 点遮罩关闭
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden')}));
+</script>
+</body>
+</html>
