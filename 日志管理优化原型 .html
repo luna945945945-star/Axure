@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统日志管理 - 优化原型</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #333; font-size: 13px; }
+  .tab-bar { background: #fff; border-bottom: 1px solid #e8e8e8; padding: 0 16px; height: 40px; display: flex; align-items: center; }
+  .tab-item { background: #1890ff; color: #fff; padding: 5px 14px; border-radius: 4px 4px 0 0; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .tab-close { font-size: 11px; cursor: pointer; opacity: .7; }
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .page-title { font-size: 17px; font-weight: 700; color: #1a1a1a; }
+  .view-toggle { display: flex; gap: 2px; background: #f0f0f0; border-radius: 4px; padding: 2px; }
+  .view-btn { padding: 4px 16px; font-size: 12px; border: none; border-radius: 3px; cursor: pointer; background: transparent; color: #666; transition: all .2s; }
+  .view-btn.active { background: #fff; color: #1890ff; box-shadow: 0 1px 3px rgba(0,0,0,.1); font-weight: 600; }
+  .filter-card { background: #fff; border-radius: 6px; padding: 16px 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .filter-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .filter-row + .filter-row { margin-top: 12px; }
+  .filter-group { display: flex; align-items: center; gap: 6px; }
+  .filter-label { font-size: 13px; color: #666; white-space: nowrap; }
+  .filter-input { height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; padding: 0 10px; font-size: 13px; outline: none; transition: border-color .2s; }
+  .filter-input:focus { border-color: #1890ff; }
+  .filter-input.warn { background: #fff7e6; border-color: #ffd591; }
+  .filter-input.error { background: #fff1f0; border-color: #ffa39e; }
+  .filter-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; align-items: center; }
+  .btn-primary { height: 32px; padding: 0 20px; background: #1890ff; color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: 500; }
+  .btn-primary:hover { background: #40a9ff; }
+  .btn-default { height: 32px; padding: 0 20px; background: #fff; color: #333; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; cursor: pointer; }
+  .btn-default:hover { border-color: #1890ff; color: #1890ff; }
+  .toggle-link { font-size: 12px; color: #1890ff; cursor: pointer; display: flex; align-items: center; gap: 2px; margin-left: 4px; user-select: none; }
+  .toggle-arrow { display: inline-block; transition: transform .2s; }
+  .toggle-arrow.up { transform: rotate(180deg); }
+  .dropdown { position: relative; display: inline-block; }
+  .dropdown-trigger { height: 32px; border: 1px solid #d9d9d9; border-radius: 4px; display: flex; align-items: center; padding: 0 28px 0 10px; font-size: 13px; cursor: pointer; background: #fff; transition: border-color .2s; position: relative; min-width: 160px; }
+  .dropdown-trigger:hover { border-color: #1890ff; }
+  .dropdown-trigger.open { border-color: #1890ff; }
+  .dropdown-placeholder { color: #bbb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dropdown-value { color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dropdown-arrow { position: absolute; right: 8px; font-size: 10px; color: #bbb; transition: transform .2s; }
+  .dropdown-arrow.open { transform: rotate(180deg); }
+  .dropdown-clear { position: absolute; right: 22px; font-size: 12px; color: #bbb; cursor: pointer; z-index: 1; }
+  .dropdown-clear:hover { color: #666; }
+  .dropdown-panel { position: absolute; top: 36px; left: 0; width: 100%; background: #fff; border: 1px solid #d9d9d9; border-radius: 4px; box-shadow: 0 3px 12px rgba(0,0,0,.12); z-index: 100; max-height: 240px; overflow: auto; display: none; }
+  .dropdown-panel.show { display: block; }
+  .dropdown-search { width: calc(100% - 16px); margin: 6px; padding: 4px 8px; border: 1px solid #e8e8e8; border-radius: 3px; font-size: 12px; outline: none; }
+  .dropdown-option { padding: 6px 12px; font-size: 13px; cursor: pointer; transition: background .15s; }
+  .dropdown-option:hover { background: #f5f5f5; }
+  .dropdown-option.selected { background: #e6f7ff; }
+  .dropdown-empty { padding: 8px 12px; color: #bbb; font-size: 12px; }
+  .tag { display: inline-block; padding: 1px 8px; font-size: 12px; border-radius: 3px; border: 1px solid; white-space: nowrap; line-height: 20px; }
+  .tag-blue { background: #e6f7ff; border-color: #91d5ff; color: #1890ff; }
+  .tag-orange { background: #fff7e6; border-color: #ffd591; color: #fa8c16; }
+  .tag-green { background: #f6ffed; border-color: #b7eb8f; color: #52c41a; }
+  .tag-purple { background: #f9f0ff; border-color: #d3adf7; color: #722ed1; }
+  .tag-cyan { background: #e6fffb; border-color: #87e8de; color: #13c2c2; }
+  .tag-red { background: #fff1f0; border-color: #ffa39e; color: #f5222d; }
+  .tag-gray { background: #f5f5f5; border-color: #d9d9d9; color: #8c8c8c; }
+  .table-card { background: #fff; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow: hidden; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e8e8e8; color: #666; font-weight: 600; white-space: nowrap; background: #fafafa; }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
+  .data-table tbody tr:hover { background: #fafafa; }
+  .link { color: #1890ff; cursor: pointer; font-size: 12px; }
+  .link:hover { color: #40a9ff; }
+  .mono-sm { font-family: "SF Mono", Monaco, Consolas, monospace; font-size: 11px; color: #999; }
+  .ellipsis { max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .text-muted { color: #999; font-size: 12px; }
+  .pagination { display: flex; justify-content: flex-end; align-items: center; padding: 12px 16px; gap: 8px; font-size: 13px; color: #666; }
+  .page-btn { width: 28px; height: 28px; border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; cursor: pointer; color: #666; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .page-btn.active { border-color: #1890ff; background: #1890ff; color: #fff; font-weight: 600; }
+  .page-btn:disabled { color: #ccc; cursor: not-allowed; }
+  .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .25s; }
+  .modal-mask.show { opacity: 1; pointer-events: auto; }
+  .modal { background: #fff; border-radius: 8px; width: 740px; max-height: 80vh; overflow: auto; padding: 24px 28px; transform: translateY(20px); transition: transform .25s; }
+  .modal-mask.show .modal { transform: translateY(0); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-title { font-size: 17px; font-weight: 700; color: #1a1a1a; }
+  .modal-close { cursor: pointer; font-size: 20px; color: #999; line-height: 1; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+  .modal-close:hover { background: #f5f5f5; color: #333; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 32px; font-size: 13px; color: #333; margin-bottom: 20px; }
+  .modal-grid .label { color: #999; }
+  .loginfo-box { background: #f8f9fb; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; }
+  .loginfo-box .label { color: #999; margin-bottom: 6px; }
+  .loginfo-box .content { white-space: pre-wrap; line-height: 1.7; color: #333; }
+  .tab-label { font-size: 13px; color: #1890ff; border-bottom: 2px solid #1890ff; padding-bottom: 6px; margin-bottom: 12px; display: inline-block; }
+  .change-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  .change-table th { padding: 8px 12px; text-align: left; border-bottom: 1px solid #e8e8e8; color: #666; font-weight: 600; background: #fafafa; }
+  .change-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; }
+  .val-new { background: #e6f7ff; padding: 1px 6px; border-radius: 3px; color: #1890ff; font-size: 12px; }
+  .val-old { background: #fff7e6; padding: 1px 6px; border-radius: 3px; color: #fa8c16; font-size: 12px; }
+  .no-change-tip { padding: 20px; text-align: center; color: #999; font-size: 13px; background: #fafafa; border-radius: 6px; margin-top: 8px; }
+  .bug-tag { font-size: 11px; color: #f5222d; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="tab-bar"><div class="tab-item">日志管理 <span class="tab-close">✕</span></div></div>
+
+<div style="padding: 16px 20px;">
+  <div class="page-header">
+    <span class="page-title">系统日志管理</span>
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="switchView('optimized')" id="btn-optimized">优化后</button>
+      <button class="view-btn" onclick="switchView('original')" id="btn-original">优化前</button>
+    </div>
+  </div>
+
+  <!-- ═══ Filter: Optimized ═══ -->
+  <div class="filter-card" id="filter-optimized">
+    <div class="filter-row">
+      <div class="filter-group">
+        <span class="filter-label">操作模块</span>
+        <div class="dropdown" id="dd-type1">
+          <div class="dropdown-trigger" onclick="toggleDropdown('dd-type1')">
+            <span class="dropdown-placeholder" id="dd-type1-display">请选择操作模块</span>
+            <span class="dropdown-clear" id="dd-type1-clear" onclick="clearDropdown(event,'dd-type1')" style="display:none">✕</span>
+            <span class="dropdown-arrow" id="dd-type1-arrow">▼</span>
+          </div>
+          <div class="dropdown-panel" id="dd-type1-panel">
+            <input class="dropdown-search" placeholder="搜索..." oninput="filterDropdown('dd-type1', this.value)">
+            <div id="dd-type1-options"></div>
+          </div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">操作页面</span>
+        <div class="dropdown" id="dd-type2">
+          <div class="dropdown-trigger" onclick="toggleDropdown('dd-type2')">
+            <span class="dropdown-placeholder" id="dd-type2-display">请选择操作页面</span>
+            <span class="dropdown-clear" id="dd-type2-clear" onclick="clearDropdown(event,'dd-type2')" style="display:none">✕</span>
+            <span class="dropdown-arrow" id="dd-type2-arrow">▼</span>
+          </div>
+          <div class="dropdown-panel" id="dd-type2-panel">
+            <input class="dropdown-search" placeholder="搜索..." oninput="filterDropdown('dd-type2', this.value)">
+            <div id="dd-type2-options"></div>
+          </div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">操作详情</span>
+        <input class="filter-input" placeholder="请输入关键字" style="width:160px" id="input-loginfo">
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">操作人</span>
+        <input class="filter-input" placeholder="请输入操作人" style="width:130px" id="input-operator">
+      </div>
+    </div>
+    <div class="filter-row" id="filter-time-optimized">
+      <div class="filter-group">
+        <span class="filter-label">操作时间</span>
+        <input type="date" class="filter-input" id="input-start">
+        <span style="color:#ccc">→</span>
+        <input type="date" class="filter-input" id="input-end">
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" onclick="doSearch()">查询</button>
+      <button class="btn-default" onclick="doReset()">重置</button>
+      <span class="toggle-link" onclick="toggleTimeRow('optimized')"><span id="toggle-text-opt">收起</span> <span class="toggle-arrow up" id="toggle-arrow-opt">▼</span></span>
+    </div>
+  </div>
+
+  <!-- ═══ Filter: Original ═══ -->
+  <div class="filter-card" id="filter-original" style="display:none">
+    <div class="filter-row">
+      <div class="filter-group"><span class="filter-label">关键字</span><input class="filter-input" placeholder="请输入关键字" style="width:160px"></div>
+      <div class="filter-group"><span class="filter-label">操作人</span><input class="filter-input" placeholder="请输入操作人" style="width:130px"></div>
+      <div class="filter-group"><span class="filter-label">操作目录</span><input class="filter-input warn" placeholder="请输入操作目录" style="width:160px"></div>
+      <div class="filter-group"><span class="filter-label">操作页面</span><input class="filter-input error" placeholder="请输入操作页面" style="width:160px"><span class="bug-tag">⚠ Bug：筛选不生效</span></div>
+    </div>
+    <div class="filter-row" id="filter-time-original">
+      <div class="filter-group"><span class="filter-label">操作时间</span><input type="date" class="filter-input"><span style="color:#ccc">→</span><input type="date" class="filter-input"></div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary">查询</button><button class="btn-default">重置</button>
+      <span class="toggle-link" onclick="toggleTimeRow('original')"><span id="toggle-text-orig">收起</span> <span class="toggle-arrow up" id="toggle-arrow-orig">▼</span></span>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table"><thead id="table-head"></thead><tbody id="table-body"></tbody></table>
+    <div class="pagination">
+      <span id="total-text">共 10 条</span>
+      <button class="page-btn" disabled>‹</button><button class="page-btn active">1</button><button class="page-btn">2</button><button class="page-btn">›</button>
+      <span class="text-muted">20 / 页</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Detail Modal ═══ -->
+<div class="modal-mask" id="modal" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><span class="modal-title">日志详情</span><span class="modal-close" onclick="closeModal()">✕</span></div>
+    <div class="modal-grid" id="modal-grid"></div>
+    <div class="loginfo-box"><div class="label">操作详情：</div><div class="content" id="modal-loginfo"></div></div>
+    <div id="modal-changes"></div>
+  </div>
+</div>
+
+<script>
+const LOG_TREE = {
+  "登录系统":{pages:["登录系统"]}, "工单管理":{pages:["工单列表","工单配置","统计报表"]},
+  "内容管理":{pages:["首页配置","教程配置"]}, "Faq":{pages:["FAQ 子类型","FAQ 类型管理"]},
+  "代收转发":{pages:["代收转发记录","代收转发配置"]}, "系统管理":{pages:["系统用户","角色管理","角色权限","菜单管理","系统设置"]},
+  "商户管理":{pages:["商户列表","商户表单"]}, "Telegram":{pages:["Telegram 配置"]},
+  "PWA 管理":{pages:["域名列表"]}, "KYC 管理":{pages:["KYC"]}, "消息管理":{pages:["消息配置"]}, "网站管理":{pages:["网站设置"]},
+};
+const TC = {"工单管理":"blue","登录系统":"orange","系统管理":"green","Faq":"purple","商户管理":"cyan","Telegram":"red","内容管理":"gray","代收转发":"blue","PWA 管理":"orange","KYC 管理":"green","消息管理":"purple","网站管理":"cyan"};
+
+const DATA = [
+  {id:"019d8fd629d872dca7e0d477fb5000b5",type1:"工单管理",type2:"工单列表",operator:"luna002",logInfo:'[提交] 工单号:WO2026041501，回复内容:"您好，已为您处理删除银行卡申请，预计24小时内生效"',ip:"150.228.53.148",os:"Mac",browser:"Chrome 124",time:"2026-04-15 10:31:10",pageUrl:"/api/WorkOrder/Submit",
+    changes:{table:"tab_WorkOrder",fields:[{name:"状态",newVal:"3 (已处理)",oldVal:"1 (处理中)"},{name:"处理人",newVal:"luna002",oldVal:"null"},{name:"处理时间",newVal:"2026-04-15 10:31:10",oldVal:"null"},{name:"备注",newVal:"已为您处理删除银行卡申请，预计24小时内生效",oldVal:"null"}]}},
+  {id:"019d8fd558197244a48dc7e0b3a20015",type1:"工单管理",type2:"工单列表",operator:"luna002",logInfo:'[驳回] 工单号:WO2026041502，账号:user789，驳回备注:"信息不完整，请补充身份证照片"',ip:"150.228.53.148",os:"Mac",browser:"Chrome 124",time:"2026-04-15 10:30:16",pageUrl:"/api/WorkOrder/Submit",
+    changes:{table:"tab_WorkOrder",fields:[{name:"状态",newVal:"4 (已驳回)",oldVal:"1 (处理中)"},{name:"驳回备注",newVal:"信息不完整，请补充身份证照片",oldVal:"null"},{name:"处理人",newVal:"luna002",oldVal:"null"}]}},
+  {id:"019d8fd50cb6779b8f412b3e7a900022",type1:"Faq",type2:"FAQ 类型管理",operator:"luna002",logInfo:"[更新状态] FAQ模块:存款问题，状态:启用→禁用",ip:"150.228.53.148",os:"Mac",browser:"Chrome 124",time:"2026-04-15 10:29:57",pageUrl:"/api/FaqModule/UpdateState",
+    changes:{table:"tab_FaqModule",fields:[{name:"状态",newVal:"0 (禁用)",oldVal:"1 (启用)"},{name:"上次修改时间",newVal:"2026-04-15 10:29:57",oldVal:"2026-04-15 10:15:33"}]}},
+  {id:"019d8fd4d50775b5bb05a1c2d8e00033",type1:"工单管理",type2:"工单列表",operator:"luna002",logInfo:'[编辑客服消息] 工单号:WO2026041503，消息ID:8821，原:"请提供截图" → 新:"请提供转账截图及订单号"',ip:"150.228.53.148",os:"Mac",browser:"Chrome 124",time:"2026-04-15 10:29:43",pageUrl:"/api/WorkOrder/EditComment",changes:null},
+  {id:"019d8fd4174e7769a19304b5c6f00044",type1:"登录系统",type2:"登录系统",operator:"luna002",logInfo:"[登录系统] 账号:luna002，登录IP:150.228.53.148",ip:"150.228.53.148",os:"Mac",browser:"Chrome 124",time:"2026-04-15 10:28:54",pageUrl:"/api/Login/Login",changes:null},
+  {id:"019d8fd3f01f70e6b9382a5d4e700055",type1:"系统管理",type2:"系统用户",operator:"admin",logInfo:"[更新状态] 账号:staff03，状态:启用→禁用",ip:"192.168.1.1",os:"Windows 10",browser:"Chrome 124",time:"2026-04-15 10:28:44",pageUrl:"/api/SysUser/UpdateSysUserState",
+    changes:{table:"tab_SysUser",fields:[{name:"状态",newVal:"0 (禁用)",oldVal:"1 (启用)"},{name:"修改时间",newVal:"2026-04-15 10:28:44",oldVal:"2026-04-14 09:12:00"}]}},
+  {id:"019d8fd3dda27505a86d08e1b3c00066",type1:"系统管理",type2:"系统用户",operator:"admin",logInfo:"[重置密码] 账号:staff01，操作人:admin",ip:"192.168.1.1",os:"Windows 10",browser:"Chrome 124",time:"2026-04-15 10:28:39",pageUrl:"/api/SysUser/ResetPassword",
+    changes:{table:"tab_SysUser",fields:[{name:"密码",newVal:"******(已脱敏)",oldVal:"******(已脱敏)"},{name:"修改时间",newVal:"2026-04-15 10:28:39",oldVal:"2026-04-10 16:30:00"}]}},
+  {id:"019d8fd3c9d3735aad1eb6f2a1d00077",type1:"商户管理",type2:"商户列表",operator:"admin",logInfo:"[编辑] 商户名称:TestMerchant，修改字段:API密钥更新",ip:"192.168.1.1",os:"Windows 10",browser:"Chrome 124",time:"2026-04-15 10:28:34",pageUrl:"/api/Tenant/Update",
+    changes:{table:"tab_Tenant",fields:[{name:"API密钥",newVal:"sk_live_****(已脱敏)",oldVal:"sk_live_****(已脱敏)"},{name:"修改时间",newVal:"2026-04-15 10:28:34",oldVal:"2026-04-12 11:20:00"}]}},
+  {id:"019d8fd2a8c1e34b90f5d2c7e0a00088",type1:"工单管理",type2:"工单配置",operator:"admin",logInfo:"[启用/禁用] 工单类型:会员账号解冻，状态:启用→禁用",ip:"192.168.1.1",os:"Windows 10",browser:"Chrome 124",time:"2026-04-15 10:27:20",pageUrl:"/api/FormConfig/SwitchState",
+    changes:{table:"tab_FormConfig",fields:[{name:"状态",newVal:"0 (禁用)",oldVal:"1 (启用)"},{name:"修改时间",newVal:"2026-04-15 10:27:20",oldVal:"2026-04-08 14:00:00"}]}},
+  {id:"019d8fd17b2f456c81d3a9e4f2b00099",type1:"Telegram",type2:"Telegram 配置",operator:"admin",logInfo:"[编辑] Bot名称:CS_NotifyBot，修改字段:通知群组ID",ip:"192.168.1.1",os:"Windows 10",browser:"Chrome 124",time:"2026-04-15 10:26:05",pageUrl:"/api/Telegram/Update",
+    changes:{table:"tab_Telegram",fields:[{name:"通知群组ID",newVal:"-100299887766",oldVal:"-100112233445"},{name:"修改时间",newVal:"2026-04-15 10:26:05",oldVal:"2026-04-01 08:30:00"}]}},
+];
+
+let currentView='optimized', selectedType1='', selectedType2='', filteredData=[...DATA];
+
+function switchView(v){
+  currentView=v;
+  document.getElementById('btn-optimized').classList.toggle('active',v==='optimized');
+  document.getElementById('btn-original').classList.toggle('active',v==='original');
+  document.getElementById('filter-optimized').style.display=v==='optimized'?'':'none';
+  document.getElementById('filter-original').style.display=v==='original'?'':'none';
+  renderTable();
+}
+function toggleTimeRow(w){
+  const r=document.getElementById('filter-time-'+w),s=w==='optimized'?'opt':'orig';
+  const t=document.getElementById('toggle-text-'+s),a=document.getElementById('toggle-arrow-'+s);
+  if(r.style.display==='none'){r.style.display='';t.textContent='收起';a.classList.add('up');}
+  else{r.style.display='none';t.textContent='展开';a.classList.remove('up');}
+}
+
+let openDD=null;
+document.addEventListener('click',e=>{if(openDD&&!e.target.closest('#'+openDD)){closeDD(openDD);openDD=null;}});
+function toggleDropdown(id){
+  const t=document.querySelector('#'+id+' .dropdown-trigger'),p=document.getElementById(id+'-panel');
+  if(openDD&&openDD!==id)closeDD(openDD);
+  if(p.classList.contains('show')){closeDD(id);openDD=null;}
+  else{p.classList.add('show');t.classList.add('open');document.getElementById(id+'-arrow').classList.add('open');
+    const s=p.querySelector('.dropdown-search');if(s){s.value='';s.focus();}filterDropdown(id,'');openDD=id;}
+}
+function closeDD(id){
+  const p=document.getElementById(id+'-panel'),t=document.querySelector('#'+id+' .dropdown-trigger'),a=document.getElementById(id+'-arrow');
+  if(p)p.classList.remove('show');if(t)t.classList.remove('open');if(a)a.classList.remove('open');
+}
+function selectOption(id,v){
+  if(id==='dd-type1'){selectedType1=v;selectedType2='';updDD('dd-type2','','请选择操作页面');popType2();}
+  else if(id==='dd-type2'){selectedType2=v;}
+  updDD(id,v,'');closeDD(id);openDD=null;
+}
+function clearDropdown(e,id){
+  e.stopPropagation();
+  if(id==='dd-type1'){selectedType1='';selectedType2='';updDD('dd-type1','','请选择操作模块');updDD('dd-type2','','请选择操作页面');popType2();}
+  else if(id==='dd-type2'){selectedType2='';updDD('dd-type2','','请选择操作页面');}
+}
+function updDD(id,v,ph){
+  const d=document.getElementById(id+'-display'),c=document.getElementById(id+'-clear');
+  if(v){d.textContent=v;d.className='dropdown-value';c.style.display='';}
+  else{d.textContent=ph;d.className='dropdown-placeholder';c.style.display='none';}
+}
+function filterDropdown(id,kw){
+  const opts=document.getElementById(id+'-options').querySelectorAll('.dropdown-option');
+  let has=false;kw=kw.toLowerCase();
+  opts.forEach(o=>{const m=o.textContent.toLowerCase().includes(kw);o.style.display=m?'':'none';if(m)has=true;});
+  let em=document.getElementById(id+'-options').querySelector('.dropdown-empty');
+  if(!has){if(!em){em=document.createElement('div');em.className='dropdown-empty';em.textContent='无匹配项';document.getElementById(id+'-options').appendChild(em);}em.style.display='';}
+  else if(em)em.style.display='none';
+}
+function popOpts(cid,opts,did,sel){
+  const c=document.getElementById(cid);c.innerHTML='';
+  opts.forEach(o=>{const d=document.createElement('div');d.className='dropdown-option'+(o===sel?' selected':'');d.textContent=o;d.onclick=()=>selectOption(did,o);c.appendChild(d);});
+}
+function popType1(){popOpts('dd-type1-options',Object.keys(LOG_TREE),'dd-type1',selectedType1);}
+function popType2(){
+  let p=[];if(selectedType1&&LOG_TREE[selectedType1])p=LOG_TREE[selectedType1].pages;
+  else Object.values(LOG_TREE).forEach(v=>p.push(...v.pages));
+  popOpts('dd-type2-options',p,'dd-type2',selectedType2);
+}
+
+function doSearch(){
+  const lk=document.getElementById('input-loginfo').value.trim().toLowerCase();
+  const ok=document.getElementById('input-operator').value.trim().toLowerCase();
+  filteredData=DATA.filter(r=>{
+    if(selectedType1&&r.type1!==selectedType1)return false;
+    if(selectedType2&&r.type2!==selectedType2)return false;
+    if(lk&&!r.logInfo.toLowerCase().includes(lk))return false;
+    if(ok&&!r.operator.toLowerCase().includes(ok))return false;
+    return true;
+  });renderTable();
+}
+function doReset(){
+  selectedType1='';selectedType2='';updDD('dd-type1','','请选择操作模块');updDD('dd-type2','','请选择操作页面');
+  document.getElementById('input-loginfo').value='';document.getElementById('input-operator').value='';
+  document.getElementById('input-start').value='';document.getElementById('input-end').value='';
+  filteredData=[...DATA];popType2();renderTable();
+}
+
+function tag(t,c){return'<span class="tag tag-'+(c||'blue')+'">'+t+'</span>';}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function renderTable(){
+  const h=document.getElementById('table-head'),b=document.getElementById('table-body');
+  document.getElementById('total-text').textContent='共 '+filteredData.length+' 条';
+  if(currentView==='optimized'){
+    h.innerHTML='<tr>'+['操作模块','操作页面','操作人','操作详情','操作IP','操作时间','操作'].map(x=>'<th>'+x+'</th>').join('')+'</tr>';
+    b.innerHTML=filteredData.map((r,i)=>'<tr>'+
+      '<td>'+tag(r.type1,TC[r.type1]||'gray')+'</td>'+
+      '<td>'+tag(r.type2,'blue')+'</td>'+
+      '<td><span class="link" style="cursor:default">'+r.operator+'</span></td>'+
+      '<td class="ellipsis" title="'+esc(r.logInfo)+'">'+esc(r.logInfo)+'</td>'+
+      '<td class="mono-sm">'+r.ip+'</td>'+
+      '<td class="text-muted" style="white-space:nowrap">'+r.time+'</td>'+
+      '<td><span class="link" onclick="openModal('+i+')">详情</span></td></tr>').join('');
+  }else{
+    h.innerHTML='<tr>'+['日志ID','操作页面','路由地址','操作人','操作IP','操作系统','浏览器类型','操作详情','操作时间','操作'].map(x=>'<th>'+x+'</th>').join('')+'</tr>';
+    b.innerHTML=filteredData.map((r,i)=>{const s=r.logInfo.split(']')[0]+']';return'<tr>'+
+      '<td class="mono-sm" style="max-width:140px;overflow:hidden;text-overflow:ellipsis">'+r.id.substring(0,16)+'...</td>'+
+      '<td>'+tag(r.type1,TC[r.type1]||'gray')+'</td>'+
+      '<td class="mono-sm">'+r.pageUrl+'</td>'+
+      '<td><span class="link" style="cursor:default">'+r.operator+'</span></td>'+
+      '<td class="mono-sm">'+r.ip+'</td>'+
+      '<td class="text-muted">'+r.os+'</td>'+
+      '<td class="text-muted">'+r.browser+'</td>'+
+      '<td>'+esc(s)+'</td>'+
+      '<td class="text-muted" style="white-space:nowrap">'+r.time+'</td>'+
+      '<td><span class="link" onclick="openModal('+i+')">详情</span></td></tr>';}).join('');
+  }
+}
+
+function openModal(i){
+  const r=filteredData[i];if(!r)return;
+  document.getElementById('modal-grid').innerHTML=
+    '<div><span class="label">日志编号：</span>'+r.id+'</div>'+
+    '<div><span class="label">操作模块：</span>'+tag(r.type1,TC[r.type1]||'gray')+'</div>'+
+    '<div><span class="label">操作页面：</span>'+tag(r.type2,'blue')+'</div>'+
+    '<div><span class="label">请求地址：</span>'+r.pageUrl+' '+tag(r.type2,'gray')+'</div>'+
+    '<div><span class="label">操作IP：</span>'+r.ip+'</div>'+
+    '<div><span class="label">操作系统：</span>'+r.os+' / '+r.browser+'</div>'+
+    '<div><span class="label">操作人：</span>'+r.operator+'</div>'+
+    '<div><span class="label">创建时间：</span>'+r.time+'</div>';
+  document.getElementById('modal-loginfo').textContent=r.logInfo;
+  const cd=document.getElementById('modal-changes');
+  if(r.changes&&r.changes.fields&&r.changes.fields.length>0){
+    cd.innerHTML='<div><span class="tab-label">'+r.changes.table+'</span></div>'+
+      '<table class="change-table"><thead><tr><th>字段</th><th>新值</th><th>旧值</th></tr></thead><tbody>'+
+      r.changes.fields.map(f=>'<tr><td style="font-weight:500">'+f.name+'</td><td><span class="val-new">'+esc(f.newVal)+'</span></td><td><span class="val-old">'+esc(f.oldVal)+'</span></td></tr>').join('')+'</tbody></table>';
+  }else{
+    cd.innerHTML='<div class="no-change-tip">本次操作未涉及数据表变更，详细信息请查看上方操作详情字段</div>';
+  }
+  document.getElementById('modal').classList.add('show');document.body.style.overflow='hidden';
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');document.body.style.overflow='';}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+popType1();popType2();renderTable();
+</script>
+</body>
+</html>
