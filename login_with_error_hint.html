@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SitINR 超级管理系统 - 登录</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #6b4dd4 0%, #8367e0 50%, #5a3fc4 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.stars::before,
+.stars::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 60px 150px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 250px 200px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 350px 50px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 450px 250px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 550px 120px, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 650px 300px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 750px 80px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 100px 400px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 300px 500px, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 600px 450px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 850px 350px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(2px 2px at 400px 180px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(2px 2px at 180px 280px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(2px 2px at 720px 420px, rgba(255,255,255,0.9), transparent);
+  background-size: 900px 600px;
+  top: 0; left: 0;
+  pointer-events: none;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 40px 36px 36px;
+  width: 400px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 1;
+}
+
+.login-title {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 28px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: #f0eeff;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #333;
+  outline: none;
+  transition: all 0.2s;
+  height: 42px;
+}
+
+.form-input:focus {
+  background: #fff;
+  border-color: #6b4dd4;
+}
+
+.form-input.captcha {
+  background: #fff;
+  border-color: #e74c3c;
+}
+
+.form-input.captcha:focus {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1);
+}
+
+.error-hint {
+  font-size: 12px;
+  color: #e74c3c;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.4;
+}
+
+.error-hint.critical {
+  color: #d4380d;
+  font-weight: 500;
+}
+
+.error-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  background: #e74c3c;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  font-style: normal;
+  flex-shrink: 0;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: #6b4dd4;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.2s;
+  font-weight: 500;
+}
+
+.login-btn:hover {
+  background: #5a3fc4;
+}
+
+.login-btn:active {
+  background: #4e36a8;
+}
+
+.demo-controls {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255,255,255,0.95);
+  padding: 14px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #333;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 10;
+}
+
+.demo-controls-title {
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #6b4dd4;
+}
+
+.demo-btn {
+  display: block;
+  width: 100%;
+  padding: 5px 10px;
+  margin-bottom: 4px;
+  background: #f5f6fa;
+  border: 1px solid #dcdfe6;
+  border-radius: 3px;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.demo-btn:hover {
+  background: #6b4dd4;
+  color: #fff;
+  border-color: #6b4dd4;
+}
+
+.demo-btn.active {
+  background: #6b4dd4;
+  color: #fff;
+  border-color: #6b4dd4;
+}
+
+</style>
+</head>
+<body>
+
+<div class="stars"></div>
+
+<div class="demo-controls">
+  <div class="demo-controls-title">演示:切换剩余次数</div>
+  <button class="demo-btn" onclick="setHint(5)">输错 0 次(无提示)</button>
+  <button class="demo-btn" onclick="setHint(4)">剩 4 次 · 普通错误</button>
+  <button class="demo-btn" onclick="setHint(3)">剩 3 次 · 开始提示</button>
+  <button class="demo-btn active" onclick="setHint(2)">剩 2 次 · 橙色警告</button>
+  <button class="demo-btn" onclick="setHint(1)">剩 1 次 · 强警告</button>
+  <button class="demo-btn" onclick="setHint(0)">账号已锁定</button>
+</div>
+
+<div class="login-card">
+  <div class="login-title">SitINR 超级管理系统</div>
+
+  <div class="form-group">
+    <label class="form-label">Select Language</label>
+  </div>
+
+  <div class="form-group">
+    <input type="text" class="form-input" value="luna" placeholder="用户名">
+  </div>
+
+  <div class="form-group">
+    <input type="password" class="form-input" value="••••••••" placeholder="密码">
+    <div class="error-hint" id="password-error">
+      <i class="error-icon">!</i>
+      <span id="error-text">密码错误,还可尝试 3 次</span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">谷歌验证码</label>
+    <input type="text" class="form-input captcha" placeholder="">
+  </div>
+
+  <button class="login-btn">登录</button>
+</div>
+
+<script>
+function setHint(remaining) {
+  const hint = document.getElementById('password-error');
+  const text = document.getElementById('error-text');
+
+  document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if (remaining >= 5) {
+    hint.style.display = 'none';
+  } else if (remaining === 4) {
+    hint.style.display = 'flex';
+    hint.classList.remove('critical');
+    text.textContent = '密码错误';
+  } else if (remaining === 3) {
+    hint.style.display = 'flex';
+    hint.classList.remove('critical');
+    text.textContent = '密码错误,还可尝试 3 次';
+  } else if (remaining === 2) {
+    hint.style.display = 'flex';
+    hint.classList.remove('critical');
+    text.textContent = '密码错误,还可尝试 2 次';
+  } else if (remaining === 1) {
+    hint.style.display = 'flex';
+    hint.classList.add('critical');
+    text.textContent = '密码错误,再输错 1 次账号将被禁用';
+  } else {
+    hint.style.display = 'flex';
+    hint.classList.add('critical');
+    text.textContent = '账号已被禁用,请联系管理员启用';
+  }
+}
+</script>
+
+</body>
+</html>
