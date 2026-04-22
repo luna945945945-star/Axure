@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440, initial-scale=1.0">
+<title>极光推送 · 兼容原型</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  color: #333;
+  background: #f5f6fa;
+  min-height: 100vh;
+}
+
+/* 顶部导航 */
+.proto-nav {
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.proto-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b4dd4;
+  margin-right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.proto-title::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  background: #6b4dd4;
+  border-radius: 3px;
+  display: inline-block;
+}
+.nav-tabs { display: flex; gap: 2px; }
+.nav-tab {
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #606266;
+  font-size: 13px;
+}
+.nav-tab:hover { background: #f5f6fa; color: #6b4dd4; }
+.nav-tab.active { background: #6b4dd4; color: #fff; }
+.proto-hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: #d46b08;
+  background: #fff7e6;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid #ffd591;
+}
+
+/* 页面 */
+.screen { display: none; padding: 14px 18px; }
+.screen.active { display: block; }
+
+.breadcrumb {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 2px;
+}
+.breadcrumb .title {
+  color: #6b4dd4;
+  font-size: 14px;
+  font-weight: 500;
+}
+.breadcrumb .path {
+  font-size: 12px;
+  color: #999;
+}
+.breadcrumb .path span { margin: 0 4px; }
+
+.card {
+  background: #fff;
+  border-radius: 4px;
+  padding: 16px 18px;
+}
+
+.demo-note {
+  background: #e6f4ff;
+  border-left: 3px solid #1d4ed8;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #0958d9;
+  margin-bottom: 12px;
+  border-radius: 2px;
+  line-height: 1.7;
+}
+.demo-note strong { color: #0349b3; }
+
+/* 筛选/工具栏 */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.filter-label {
+  font-size: 13px;
+  color: #606266;
+  white-space: nowrap;
+}
+.filter-input, .filter-select {
+  padding: 5px 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 3px;
+  font-size: 13px;
+  outline: none;
+  height: 30px;
+  width: 160px;
+  background: #fff;
+}
+
+.btn {
+  padding: 5px 14px;
+  border: 1px solid #dcdfe6;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  color: #606266;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+.btn:hover { border-color: #6b4dd4; color: #6b4dd4; }
+.btn-primary { background: #6b4dd4; border-color: #6b4dd4; color: #fff; }
+.btn-primary:hover { background: #5a3fc4; color: #fff; border-color: #5a3fc4; }
+.btn-sm { padding: 3px 10px; font-size: 11px; height: 24px; }
+.btn-info { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.btn-info:hover { background: #133db3; color: #fff; border-color: #133db3; }
+
+/* 表格 */
+.table-wrap { overflow-x: auto; background: #fff; border-radius: 4px; }
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+table.data-table th {
+  background: #fafafa;
+  padding: 10px 10px;
+  text-align: left;
+  font-weight: 500;
+  color: #555;
+  border-bottom: 1px solid #e8e8e8;
+  white-space: nowrap;
+}
+table.data-table td {
+  padding: 10px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+table.data-table tr:hover { background: #fafbfc; }
+
+/* 图片占位 */
+.img-placeholder {
+  width: 48px; height: 38px;
+  background: #f5f5f5;
+  border-radius: 3px;
+  display: inline-block;
+}
+.img-placeholder.yellow { background: #f5e8c0; }
+.img-placeholder.brown { background: linear-gradient(135deg, #d4b89a 0%, #a88862 100%); }
+
+/* 状态标签 */
+.status {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 11px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.status-success { background: #52c41a; color: #fff; }
+.status-fail { background: #f5222d; color: #fff; }
+.status-pending { background: #fa8c16; color: #fff; }
+.status-partial { background: #faad14; color: #fff; }
+
+/* 通道标签 */
+.channel-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.channel-firebase {
+  background: #e6f4ff;
+  color: #0958d9;
+  border: 1px solid #91caff;
+}
+.channel-jpush {
+  background: #fff7e6;
+  color: #d46b08;
+  border: 1px solid #ffd591;
+}
+.channel-all {
+  background: #f3f0ff;
+  color: #6b4dd4;
+  border: 1px solid #c4b5fd;
+}
+
+/* NEW 标记 */
+.badge-new {
+  background: #fff3e0;
+  color: #fa8c16;
+  padding: 1px 6px;
+  font-size: 10px;
+  border: 1px dashed #fa8c16;
+  border-radius: 3px;
+  margin-left: 6px;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+/* 分页 */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px;
+  font-size: 12px;
+  color: #606266;
+  flex-wrap: wrap;
+}
+.pagination-btn {
+  padding: 4px 10px;
+  border: 1px solid #dcdfe6;
+  background: #fff;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  min-width: 28px;
+  text-align: center;
+}
+.pagination-btn.active { background: #6b4dd4; border-color: #6b4dd4; color: #fff; }
+
+/* 弹窗 */
+.modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: #fff;
+  border-radius: 4px;
+  width: 560px;
+  max-width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.modal-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  background: #fafafa;
+}
+.modal-title {
+  font-size: 13px;
+  color: #333;
+}
+.modal-close {
+  cursor: pointer;
+  color: #999;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 4px;
+}
+.modal-close:hover { color: #666; }
+.modal-body { padding: 18px 22px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+.modal-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+/* 表单 */
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.form-label {
+  width: 90px;
+  font-size: 13px;
+  color: #555;
+  text-align: right;
+  padding-right: 10px;
+  padding-top: 6px;
+  flex-shrink: 0;
+}
+.form-label .required { color: #f5222d; margin-right: 2px; }
+.form-control { flex: 1; }
+.form-input, .form-textarea {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 3px;
+  font-size: 12px;
+  outline: none;
+  background: #fff;
+}
+.form-input { height: 30px; }
+.form-textarea { min-height: 130px; resize: vertical; line-height: 1.5; }
+.form-input:focus, .form-textarea:focus { border-color: #6b4dd4; }
+.form-hint { font-size: 11px; color: #999; margin-top: 4px; line-height: 1.6; }
+.form-hint.warn { color: #d46b08; }
+
+/* 单选组 */
+.radio-group { display: flex; gap: 20px; padding-top: 6px; }
+.radio-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #555;
+  cursor: pointer;
+  user-select: none;
+}
+.radio-item input[type="radio"] {
+  accent-color: #6b4dd4;
+  cursor: pointer;
+}
+
+/* Firebase/接口配置 */
+.config-section {
+  background: #fff;
+  padding: 18px 22px;
+  margin-bottom: 14px;
+  border-radius: 4px;
+}
+.config-title {
+  color: #6b4dd4;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.config-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.config-label {
+  width: 170px;
+  text-align: right;
+  padding-right: 14px;
+  font-size: 13px;
+  color: #555;
+  flex-shrink: 0;
+}
+.config-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.config-input {
+  flex: 1;
+  max-width: 680px;
+  padding: 5px 9px;
+  height: 30px;
+  border: 1px solid #dcdfe6;
+  border-radius: 3px;
+  font-size: 12px;
+  outline: none;
+  font-family: monospace;
+}
+.config-input:focus { border-color: #6b4dd4; }
+.config-hint {
+  font-size: 11px;
+  color: #f5222d;
+  white-space: nowrap;
+}
+.save-bar { text-align: center; padding: 16px 0; }
+
+/* 详情卡片 */
+.detail-section { margin-bottom: 12px; }
+.detail-section-title {
+  font-size: 12px;
+  color: #6b4dd4;
+  font-weight: 500;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 6px 10px;
+  font-size: 12px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border-radius: 3px;
+}
+.detail-grid .k { color: #888; }
+.detail-grid .v { color: #333; word-break: break-all; }
+
+.channel-result {
+  border: 1px solid #f0f0f0;
+  border-radius: 3px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.channel-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.channel-result-stats {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: #666;
+}
+.channel-result-stats .num-ok { color: #389e0d; font-weight: 500; }
+.channel-result-stats .num-fail { color: #d4380d; font-weight: 500; }
+
+/* 三方信息弹窗 */
+.token-box {
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 3px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: #333;
+  word-break: break-all;
+  line-height: 1.6;
+  font-family: monospace;
+  max-height: 90px;
+  overflow-y: auto;
+}
+.token-box.empty {
+  color: #bbb;
+  font-style: italic;
+  font-family: inherit;
+}
+
+.section-with-label {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 10px 12px;
+  align-items: start;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.section-with-label > .sl-label {
+  color: #555;
+  text-align: right;
+  padding-top: 8px;
+}
+.section-with-label > .sl-content { min-width: 0; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 4px;
+  font-size: 13px;
+  z-index: 2000;
+  display: none;
+  max-width: 400px;
+}
+.toast.show { display: block; }
+.toast.success { background: #389e0d; }
+.toast.error { background: #f5222d; }
+
+.dot-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+.dot-count .ok { color: #389e0d; }
+.dot-count .slash { color: #ccc; }
+.dot-count .total { color: #999; }
+
+</style>
+</head>
+<body>
+
+<div class="proto-nav">
+  <div class="proto-title">极光推送 · 兼容原型</div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-screen="list">① 推送消息列表</div>
+    <div class="nav-tab" data-screen="config">② 接口配置</div>
+    <div class="nav-tab" data-screen="member">③ 会员三方信息</div>
+  </div>
+  <div class="proto-hint">新增字段标注 <strong>NEW</strong> · 点「新增」或「详情」查看弹窗改动</div>
+</div>
+
+<!-- ============ Screen 1: 推送消息列表 ============ -->
+<div class="screen active" id="screen-list">
+  <div class="breadcrumb">
+    <div class="title">推送消息</div>
+    <div class="path">消息管理 <span>&gt;</span> 推送消息</div>
+  </div>
+
+  <div class="demo-note">
+    💡 推送消息列表新增「推送通道」列和筛选;点击<kbd>新增</kbd>看复选框形式的通道选择(可勾 Firebase、极光或两者);点击<kbd>详情</kbd>看按通道分段的发送结果。<br>
+    <strong>通道规则</strong>:两个都勾选 = 系统按用户 Token 自动分发,每人只推一次;只勾一个 = 只推给有该通道 Token 的用户。
+  </div>
+
+  <div class="card">
+    <div class="filter-bar">
+      <div class="filter-item">
+        <div class="filter-label">标题:</div>
+        <input class="filter-input" placeholder="请输入标题">
+      </div>
+      <div class="filter-item">
+        <div class="filter-label">状态:</div>
+        <select class="filter-select">
+          <option>-- 全部 --</option>
+          <option>待发送</option>
+          <option>发送成功</option>
+          <option>部分成功</option>
+          <option>发送失败</option>
+        </select>
+      </div>
+      <div class="filter-item">
+        <div class="filter-label">推送通道: <span class="badge-new">NEW</span></div>
+        <select class="filter-select">
+          <option>-- 全部 --</option>
+          <option>仅 Firebase</option>
+          <option>仅 极光</option>
+          <option>双通道(自动分发)</option>
+        </select>
+      </div>
+      <button class="btn btn-primary">🔍 查询</button>
+      <button class="btn btn-primary" onclick="openAddModal()">+ 新增</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>标题</th>
+            <th>文字</th>
+            <th>图片</th>
+            <th>名称</th>
+            <th>推送通道 <span class="badge-new">NEW</span></th>
+            <th>接收对象</th>
+            <th>有效用户 <span class="badge-new">NEW</span></th>
+            <th>发送时间</th>
+            <th>状态</th>
+            <th>操作人</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="list-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <span>到第</span>
+      <input style="width:38px;padding:2px 4px;border:1px solid #dcdfe6;border-radius:2px;text-align:center;" value="1">
+      <span>页</span>
+      <button class="pagination-btn">确定</button>
+      <span style="margin-left:18px;">上一页</span>
+      <button class="pagination-btn active">1</button>
+      <button class="pagination-btn">2</button>
+      <button class="pagination-btn">3</button>
+      <span>...</span>
+      <button class="pagination-btn">尾页</button>
+      <span>下一页</span>
+      <span style="margin-left:18px;">15 条/页 ▾</span>
+      <span>共 327 条</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Screen 2: 接口配置 ============ -->
+<div class="screen" id="screen-config">
+  <div class="breadcrumb">
+    <div class="title">接口配置</div>
+    <div class="path">系统管理 <span>&gt;</span> API 接口配置</div>
+  </div>
+
+  <div class="demo-note">
+    💡 现有 Firebase 配置保持不变,下方新增「极光推送配置」区域(仅 AppKey 和 MasterSecret 两个字段)。
+  </div>
+
+  <div class="config-section">
+    <div class="config-title">Firebase 配置</div>
+
+    <div class="config-row">
+      <div class="config-label">ApiKey</div>
+      <div class="config-input-wrap">
+        <input class="config-input" value="AIzaSyDUFG1TxU1SKSEMcRiY3_xvhO1udotR7hE">
+        <span class="config-hint">*(提示:使用 Firebase 消息推送时必填)</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-label">AuthDomain</div>
+      <div class="config-input-wrap">
+        <input class="config-input" value="qr123456-86766.firebaseapp.com">
+        <span class="config-hint">*(提示:使用 Firebase 消息推送时必填)</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-label">ProjectId</div>
+      <div class="config-input-wrap">
+        <input class="config-input" value="qr123456-86766">
+        <span class="config-hint">*(提示:使用 Firebase 消息推送时必填)</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-label">StorageBucket</div>
+      <div class="config-input-wrap">
+        <input class="config-input" value="qr123456-86766.firebasestorage.app">
+        <span class="config-hint">*(提示:使用 Firebase 消息推送时必填)</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-label">MessagingSenderId</div>
+      <div class="config-input-wrap">
+        <input class="config-input" value="78984461071">
+        <span class="config-hint">*(提示:使用 Firebase 消息推送时必填)</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-label">AppId</div>
+      <div class="config-input-wrap">
+        <input class="config-input" value="1:78984461071:web:2b38534a5de85173c15c7a">
+        <span class="config-hint">*(提示:使用 Firebase 消息推送时必填)</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-label">MeasurementId</div>
+      <div class="config-input-wrap">
+        <input class="config-input" value="G-EX9Q266MHT">
+        <span class="config-hint">*(提示:使用 Firebase 消息推送时必填)</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-label">FCM 发送 URL 地址</div>
+      <div class="config-input-wrap">
+        <input class="config-input" value="https://fcm.googleapis.com/v1/projects/qr123456-86766/messages:send">
+        <span class="config-hint">*(提示:使用 Firebase 消息推送时必填)</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-label">FCM 秘钥对</div>
+      <div class="config-input-wrap">
+        <input class="config-input" value="BExRRrVCnZ6kllycTHBIc2X52uQOL0x229OWE2d3ESqDt1w20TRVG2KGAZ-KU-RDGby3PVP0SZEohGv3xnU1PLQ">
+        <span class="config-hint">*(提示:使用 Firebase 消息推送时必填)</span>
+      </div>
+    </div>
+    <div class="config-row">
+      <div class="config-label">Google 授权秘钥配置</div>
+      <div class="config-input-wrap">
+        <textarea class="config-input" rows="3" style="height: auto; min-height: 54px; font-size: 10px;">{ "type": "service_account", "project_id": "qr123456-86766", "private_key_id": "c20a36b69c6b297f1a4b1c14e9fa050efc5d8f42", ... }</textarea>
+        <span class="config-hint">*(提示:FCM 消息必填)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 极光配置 -->
+  <div class="config-section" style="border: 2px dashed #fa8c16;">
+    <div class="config-title" style="color: #fa8c16;">
+      极光推送配置 <span class="badge-new">NEW</span>
+    </div>
+
+    <div class="config-row">
+      <div class="config-label">AppKey</div>
+      <div class="config-input-wrap">
+        <input class="config-input" placeholder="请输入极光 AppKey">
+        <span class="config-hint">*(提示:使用极光推送时必填)</span>
+      </div>
+    </div>
+
+    <div class="config-row">
+      <div class="config-label">MasterSecret</div>
+      <div class="config-input-wrap">
+        <input class="config-input" placeholder="请输入极光 MasterSecret" type="password">
+        <span class="config-hint">*(提示:使用极光推送时必填)</span>
+      </div>
+    </div>
+
+    <div style="margin-left: 170px; padding-left: 14px; font-size: 11px; color: #999; line-height: 1.7;">
+      💡 极光推送账号申请地址:<a href="https://www.jiguang.cn" style="color:#6b4dd4;">https://www.jiguang.cn</a><br>
+      💡 在极光后台「应用管理 → 应用信息」中获取 AppKey 和 MasterSecret
+    </div>
+  </div>
+
+  <div class="save-bar">
+    <button class="btn btn-primary">✔ 保存</button>
+  </div>
+</div>
+
+<!-- ============ Screen 3: 会员三方信息 ============ -->
+<div class="screen" id="screen-member">
+  <div class="breadcrumb">
+    <div class="title">会员列表</div>
+    <div class="path">会员管理 <span>&gt;</span> 会员列表 <span>&gt;</span> 会员列表</div>
+  </div>
+
+  <div class="demo-note">
+    💡 会员列表操作栏点击「三方信息」,弹窗改为按通道分组展示:Firebase Token + 极光 Registration ID。
+  </div>
+
+  <div class="card">
+    <div class="filter-bar">
+      <div class="filter-item"><div class="filter-label">会员ID:</div><input class="filter-input" placeholder="会员ID"></div>
+      <div class="filter-item"><div class="filter-label">代理ID:</div><input class="filter-input" placeholder="代理ID"></div>
+      <div class="filter-item"><div class="filter-label">会员账号:</div><input class="filter-input" placeholder="会员账号"></div>
+      <div class="filter-item"><div class="filter-label">注册IP:</div><input class="filter-input" placeholder="注册IP"></div>
+      <button class="btn btn-primary">🔍 查询</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>邀请码</th>
+            <th>渠道号</th>
+            <th>注册IP</th>
+            <th>注册设备</th>
+            <th>打码量</th>
+            <th>分组</th>
+            <th>类型</th>
+            <th>状态</th>
+            <th>在线状态</th>
+            <th>最后在线</th>
+            <th>VIP等级</th>
+            <th>操作</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>317722247617</td>
+            <td>20001</td>
+            <td>8.211.42.128</td>
+            <td>PC</td>
+            <td>8281.60</td>
+            <td>默认</td>
+            <td><span class="status status-success">真实用户</span></td>
+            <td><span style="color:#52c41a;">正常</span></td>
+            <td><span style="color:#52c41a;">启用</span></td>
+            <td><span style="color:#d4380d;">离线</span></td>
+            <td>L0</td>
+            <td>
+              <button class="btn btn-sm" style="color:#6b4dd4;">修改密码</button>
+              <button class="btn btn-sm" style="color:#f5222d;">删除</button>
+              <button class="btn btn-sm btn-info" onclick="openTokenModal(1)">三方信息</button>
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>246442247616</td>
+            <td>0</td>
+            <td>8.211.42.128</td>
+            <td>PC</td>
+            <td>0.00</td>
+            <td>测试aaa</td>
+            <td><span class="status status-success">真实用户</span></td>
+            <td><span style="color:#52c41a;">正常</span></td>
+            <td><span style="color:#52c41a;">启用</span></td>
+            <td><span style="color:#d4380d;">离线</span></td>
+            <td>L0</td>
+            <td>
+              <button class="btn btn-sm" style="color:#6b4dd4;">修改密码</button>
+              <button class="btn btn-sm" style="color:#f5222d;">删除</button>
+              <button class="btn btn-sm btn-info" onclick="openTokenModal(2)">三方信息</button>
+            </td>
+            <td>micheal test 彩金</td>
+          </tr>
+          <tr>
+            <td>134521158823</td>
+            <td>20001</td>
+            <td>103.52.111.7</td>
+            <td>Android</td>
+            <td>1280.00</td>
+            <td>默认</td>
+            <td><span class="status status-success">真实用户</span></td>
+            <td><span style="color:#52c41a;">正常</span></td>
+            <td><span style="color:#52c41a;">启用</span></td>
+            <td><span style="color:#52c41a;">在线</span></td>
+            <td>L2</td>
+            <td>
+              <button class="btn btn-sm" style="color:#6b4dd4;">修改密码</button>
+              <button class="btn btn-sm" style="color:#f5222d;">删除</button>
+              <button class="btn btn-sm btn-info" onclick="openTokenModal(3)">三方信息</button>
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>987611554412</td>
+            <td>20001</td>
+            <td>58.29.13.55</td>
+            <td>iOS</td>
+            <td>560.00</td>
+            <td>默认</td>
+            <td><span class="status status-success">真实用户</span></td>
+            <td><span style="color:#52c41a;">正常</span></td>
+            <td><span style="color:#52c41a;">启用</span></td>
+            <td><span style="color:#d4380d;">离线</span></td>
+            <td>L1</td>
+            <td>
+              <button class="btn btn-sm" style="color:#6b4dd4;">修改密码</button>
+              <button class="btn btn-sm" style="color:#f5222d;">删除</button>
+              <button class="btn btn-sm btn-info" onclick="openTokenModal(4)">三方信息</button>
+            </td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 新增/编辑推送弹窗 ============ -->
+<div class="modal-bg" id="add-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">添加推送消息</div>
+      <div class="modal-close" onclick="closeModal('add-modal')">— ⊡ ×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-label"><span class="required">*</span>通知标题:</div>
+        <div class="form-control">
+          <input class="form-input" placeholder="通知标题不要超过100个字符">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label"><span class="required">*</span>通知文字:</div>
+        <div class="form-control">
+          <input class="form-input" placeholder="通知文字不要超过500个字符">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">图片连接:</div>
+        <div class="form-control">
+          <input class="form-input" placeholder="图片连接不要超过500个字符">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label"><span class="required">*</span>通知名称:</div>
+        <div class="form-control">
+          <input class="form-input" placeholder="通知名称不要超过200个字符">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label"><span class="required">*</span>发送时间:</div>
+        <div class="form-control">
+          <input class="form-input" placeholder="yyyy-MM-dd HH:mm:ss">
+        </div>
+      </div>
+
+      <!-- 新增:推送通道 -->
+      <div class="form-row" style="background: #fffbe6; padding: 10px 10px 10px 0; border-radius: 3px; border: 1px dashed #fa8c16;">
+        <div class="form-label" style="padding-top: 9px;"><span class="required">*</span>推送通道: <span class="badge-new">NEW</span></div>
+        <div class="form-control">
+          <div class="radio-group" id="channel-checkbox-group">
+            <label class="radio-item"><input type="checkbox" name="channel" value="firebase" checked onchange="updateChannelHint()">Firebase(海外)</label>
+            <label class="radio-item"><input type="checkbox" name="channel" value="jpush" onchange="updateChannelHint()">极光(国内)</label>
+          </div>
+          <div class="form-hint" id="channel-hint-default">默认 Firebase,保持现有推送行为不变</div>
+          <div class="form-hint" id="channel-hint-both" style="display:none; color:#6b4dd4;">💡 两个通道均勾选:系统根据用户 Token 自动分发,<strong>每个用户只推一次,不会重复</strong></div>
+          <div class="form-hint" id="channel-hint-none" style="display:none; color:#f5222d;">⚠ 请至少选择一个推送通道</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label"><span class="required">*</span>用户选择:</div>
+        <div class="form-control">
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="receiver" value="all">全体</label>
+            <label class="radio-item"><input type="radio" name="receiver" value="users" checked>指定用户</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label"><span class="required">*</span>用户ID:</div>
+        <div class="form-control">
+          <textarea class="form-textarea" placeholder="请输入用户Id,用逗号分隔或者换行分隔"></textarea>
+          <div class="form-hint warn">💡 保存时将按所选通道自动过滤无 Token 的用户 <span class="badge-new">NEW</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="saveMsg()">确认</button>
+      <button class="btn" onclick="closeModal('add-modal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 详情弹窗 ============ -->
+<div class="modal-bg" id="detail-modal">
+  <div class="modal" style="width: 620px;">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-title">推送消息详情</div>
+      <div class="modal-close" onclick="closeModal('detail-modal')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="detail-section">
+        <div class="detail-section-title">基础信息</div>
+        <div class="detail-grid" id="detail-basic"></div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">发送结果 <span class="badge-new">NEW</span></div>
+        <div id="detail-results"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('detail-modal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 三方信息弹窗 ============ -->
+<div class="modal-bg" id="token-modal">
+  <div class="modal" style="width: 540px;">
+    <div class="modal-header">
+      <div class="modal-title">三方信息</div>
+      <div class="modal-close" onclick="closeModal('token-modal')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="section-with-label">
+        <div class="sl-label"><span class="channel-tag channel-firebase">Firebase</span></div>
+        <div class="sl-content">
+          <div style="font-size:11px; color: #888; margin-bottom: 4px;">FireBase Token:</div>
+          <div class="token-box" id="firebase-token-content"></div>
+        </div>
+      </div>
+
+      <div class="section-with-label">
+        <div class="sl-label">
+          <span class="channel-tag channel-jpush">极光</span>
+          <span class="badge-new">NEW</span>
+        </div>
+        <div class="sl-content">
+          <div style="font-size:11px; color: #888; margin-bottom: 4px;">Registration ID:</div>
+          <div class="token-box" id="jpush-token-content"></div>
+        </div>
+      </div>
+
+      <div style="background: #fff7e6; border-radius: 3px; padding: 8px 12px; font-size: 11px; color: #ad6800; line-height: 1.7; margin-top: 14px;">
+        💡 Token 由 App 端在启动/登录时自动上报。若某通道 Token 为空,该用户将无法通过此通道接收推送。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('token-modal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// 导航切换
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('screen-' + tab.dataset.screen).classList.add('active');
+  });
+});
+
+// 消息列表数据
+const msgList = [
+  { id: 330, title: '点点滴滴', text: '点点滴滴', img: 'brown', name: '点点滴滴', channel: 'firebase', receiver: '指定用户', userStat: '8/10', time: '2026-04-14 11:39:39', editTime: '2026-04-14 13:09:45', status: 'success', op: 'june' },
+  { id: 329, title: '大帅哥风格', text: '大帅哥的分公司', img: 'brown', name: '大股东放...', channel: 'jpush', receiver: '指定用户', userStat: '0/5', time: '2026-04-14 11:37:41', editTime: '2026-04-14 13:07:44', status: 'fail', op: 'june' },
+  { id: 328, title: '的范德萨个', text: '大哥哥回复', img: 'brown', name: '额卅个', channel: 'auto', receiver: '指定用户', userStat: '7/10', time: '2026-04-14 11:32:29', editTime: '2026-04-14 13:02:47', status: 'success', op: 'june' },
+  { id: 327, title: '600853', text: '600853', img: null, name: '600853', channel: 'firebase', receiver: '指定用户', userStat: '12/20', time: '2025-12-27 22:27:07', editTime: '2025-12-27 22:26:41', status: 'success', op: 'qiushui' },
+  { id: 326, title: '1111', text: '1111', img: 'yellow', name: '11111', channel: 'jpush', receiver: '指定用户', userStat: '3/8', time: '2025-12-27 22:25:07', editTime: '2025-12-27 22:24:44', status: 'success', op: 'qiushui' },
+  { id: 325, title: '1111', text: '1111', img: 'yellow', name: '1111', channel: 'firebase', receiver: '指定用户', userStat: '0/10', time: '2025-12-27 22:01:07', editTime: '2025-12-27 22:00:11', status: 'fail', op: 'qiushui' },
+  { id: 324, title: '11111', text: '111111', img: null, name: '11111', channel: 'auto', receiver: '指定用户', userStat: '4/10', time: '2025-12-27 21:57:07', editTime: '2025-12-27 21:56:38', status: 'partial', op: 'qiushui' },
+  { id: 323, title: '11111', text: '11111', img: 'yellow', name: '11111', channel: 'firebase', receiver: '全体', userStat: '-', time: '2025-12-27 21:33:07', editTime: '2025-12-27 21:33:06', status: 'success', op: 'qiushui' },
+  { id: 322, title: '11111', text: '11111', img: 'yellow', name: '111111', channel: 'jpush', receiver: '全体', userStat: '-', time: '2025-12-18 09:55:49', editTime: '2025-12-18 11:25:51', status: 'success', op: 'figo' },
+  { id: 321, title: '12124', text: '123124', img: null, name: '', channel: 'auto', receiver: '全体', userStat: '-', time: '2025-12-18 09:53:02', editTime: '2025-12-18 11:23:04', status: 'success', op: 'figo' },
+  { id: 320, title: '234234', text: '234234', img: 'yellow', name: '', channel: 'firebase', receiver: '全体', userStat: '-', time: '2025-12-18 09:50:59', editTime: '2025-12-18 11:21:11', status: 'success', op: 'figo' },
+  { id: 319, title: '11233', text: '123123', img: null, name: '', channel: 'firebase', receiver: '全体', userStat: '-', time: '2025-12-18 09:46:54', editTime: '2025-12-18 11:16:56', status: 'success', op: 'figo' },
+  { id: 318, title: '1232413', text: '124214234', img: null, name: '', channel: 'firebase', receiver: '全体', userStat: '-', time: '2025-12-18 09:43:57', editTime: '2025-12-18 11:13:59', status: 'success', op: 'figo' }
+];
+
+const channelMap = {
+  firebase: { label: 'Firebase', cls: 'channel-firebase' },
+  jpush: { label: '极光', cls: 'channel-jpush' },
+  auto: { label: '双通道', cls: 'channel-all' }
+};
+
+const statusMap = {
+  success: { text: '发送成功', cls: 'status-success' },
+  fail: { text: '发送失败', cls: 'status-fail' },
+  pending: { text: '待发送', cls: 'status-pending' },
+  partial: { text: '部分成功', cls: 'status-partial' }
+};
+
+function renderList() {
+  const tbody = document.getElementById('list-tbody');
+  tbody.innerHTML = msgList.map(m => {
+    const ch = channelMap[m.channel];
+    const st = statusMap[m.status];
+    const imgCell = m.img
+      ? `<span class="img-placeholder ${m.img}"></span>`
+      : '';
+    const userStatCell = m.userStat === '-' ? '-' : `
+      <span class="dot-count">
+        <span class="ok">${m.userStat.split('/')[0]}</span>
+        <span class="slash">/</span>
+        <span class="total">${m.userStat.split('/')[1]}</span>
+      </span>`;
+    return `
+      <tr>
+        <td>${m.id}</td>
+        <td>${m.title}</td>
+        <td>${m.text}</td>
+        <td>${imgCell}</td>
+        <td>${m.name}</td>
+        <td><span class="channel-tag ${ch.cls}">${ch.label}</span></td>
+        <td>${m.receiver}</td>
+        <td>${userStatCell}</td>
+        <td>${m.time}</td>
+        <td><span class="status ${st.cls}">${st.text}</span></td>
+        <td>${m.op}</td>
+        <td><button class="btn btn-sm btn-info" onclick="openDetail(${m.id})">详情</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openAddModal() {
+  document.getElementById('add-modal').classList.add('show');
+  updateChannelHint();
+}
+
+function updateChannelHint() {
+  const checkboxes = document.querySelectorAll('input[name="channel"]');
+  const fb = document.querySelector('input[name="channel"][value="firebase"]').checked;
+  const jp = document.querySelector('input[name="channel"][value="jpush"]').checked;
+
+  const hintDefault = document.getElementById('channel-hint-default');
+  const hintBoth = document.getElementById('channel-hint-both');
+  const hintNone = document.getElementById('channel-hint-none');
+
+  hintDefault.style.display = 'none';
+  hintBoth.style.display = 'none';
+  hintNone.style.display = 'none';
+
+  if (!fb && !jp) {
+    hintNone.style.display = 'block';
+  } else if (fb && jp) {
+    hintBoth.style.display = 'block';
+  } else {
+    hintDefault.style.display = 'block';
+    if (fb) {
+      hintDefault.textContent = '✓ 已选 Firebase,将推送给有 Firebase Token 的用户';
+    } else {
+      hintDefault.textContent = '✓ 已选 极光,将推送给有极光 Token 的用户';
+    }
+  }
+}
+
+function saveMsg() {
+  showToast('保存成功(演示)', 'success');
+  closeModal('add-modal');
+}
+
+function openDetail(id) {
+  const m = msgList.find(x => x.id === id);
+  if (!m) return;
+
+  const ch = channelMap[m.channel];
+  const st = statusMap[m.status];
+
+  document.getElementById('detail-title').textContent = `推送消息详情 · ID ${m.id}`;
+
+  // 基础信息
+  document.getElementById('detail-basic').innerHTML = `
+    <div class="k">标题:</div><div class="v">${m.title}</div>
+    <div class="k">文字:</div><div class="v">${m.text}</div>
+    <div class="k">通知名称:</div><div class="v">${m.name || '-'}</div>
+    <div class="k">推送通道:</div><div class="v"><span class="channel-tag ${ch.cls}">${ch.label}</span></div>
+    <div class="k">接收对象:</div><div class="v">${m.receiver} ${m.userStat !== '-' ? '(有效用户 ' + m.userStat.split('/')[0] + ' / 原始 ' + m.userStat.split('/')[1] + ')' : ''}</div>
+    <div class="k">发送时间:</div><div class="v">${m.time}</div>
+    <div class="k">操作人:</div><div class="v">${m.op}</div>
+    <div class="k">总状态:</div><div class="v"><span class="status ${st.cls}">${st.text}</span></div>
+  `;
+
+  // 发送结果
+  const results = document.getElementById('detail-results');
+  let html = '';
+
+  if (m.channel === 'firebase' || m.channel === 'auto') {
+    const ok = m.status === 'success' || m.status === 'partial' ? Math.floor(Math.random() * 50) + 10 : 0;
+    const fail = m.status === 'fail' ? Math.floor(Math.random() * 10) + 1 : (m.status === 'partial' ? Math.floor(Math.random() * 5) : 0);
+    const curStatus = fail === 0 ? 'success' : (ok === 0 ? 'fail' : 'partial');
+    const curSt = statusMap[curStatus];
+    html += `
+      <div class="channel-result">
+        <div class="channel-result-head">
+          <span class="channel-tag channel-firebase">Firebase (FCM)</span>
+          <span class="status ${curSt.cls}">${curSt.text}</span>
+        </div>
+        <div class="channel-result-stats">
+          <span>成功:<span class="num-ok">${ok}</span></span>
+          <span>失败:<span class="num-fail">${fail}</span></span>
+        </div>
+        ${fail > 0 ? '<div style="font-size:11px;color:#888;margin-top:6px;">失败原因:InvalidRegistration (Token 已失效)</div>' : ''}
+      </div>`;
+  }
+
+  if (m.channel === 'jpush' || m.channel === 'auto') {
+    const ok = m.status === 'success' || m.status === 'partial' ? Math.floor(Math.random() * 40) + 5 : 0;
+    const fail = m.status === 'fail' ? Math.floor(Math.random() * 8) + 1 : (m.status === 'partial' ? Math.floor(Math.random() * 3) : 0);
+    const curStatus = fail === 0 ? (ok === 0 ? 'fail' : 'success') : (ok === 0 ? 'fail' : 'partial');
+    const curSt = statusMap[curStatus];
+    html += `
+      <div class="channel-result">
+        <div class="channel-result-head">
+          <span class="channel-tag channel-jpush">极光 (JPush)</span>
+          <span class="status ${curSt.cls}">${curSt.text}</span>
+        </div>
+        <div class="channel-result-stats">
+          <span>成功:<span class="num-ok">${ok}</span></span>
+          <span>失败:<span class="num-fail">${fail}</span></span>
+        </div>
+        ${fail > 0 ? '<div style="font-size:11px;color:#888;margin-top:6px;">失败原因:Registration ID 不存在或已过期</div>' : ''}
+        ${m.channel === 'jpush' && m.status === 'fail' ? '<div style="font-size:11px;color:#d4380d;margin-top:6px;">⚠ 指定用户均无极光 Token</div>' : ''}
+      </div>`;
+  }
+
+  if (m.channel === 'auto') {
+    html += '<div style="font-size:11px;color:#6b4dd4;background:#f3f0ff;padding:6px 10px;border-radius:3px;margin-top:4px;">💡 自动分发模式:每个用户只走其对应的通道,不会重复推送</div>';
+  }
+
+  results.innerHTML = html;
+  document.getElementById('detail-modal').classList.add('show');
+}
+
+function openTokenModal(userId) {
+  const tokens = {
+    1: {
+      firebase: 'dedTSt-Oee1pXI7dDl-g_D:APA91bG3wuepoEuz3uVZvgmOCXFfXm1ISBzOwAlmfXAcid1PBoOQMPQO7X0ul0WWEz6-K_maWEOT1XRock3oQKg67DVl-1M53NiPheDR3NMkMul5BBunFA',
+      jpush: '171876a8ecb8b5b6d32'
+    },
+    2: {
+      firebase: 'fGYbCRHASyS6TQnuJBtmGC:APA91bGnAaZs8xkYvBqK4mXlPNz...',
+      jpush: ''
+    },
+    3: {
+      firebase: '',
+      jpush: '191e35f7e0a4b5c7f88'
+    },
+    4: {
+      firebase: '',
+      jpush: ''
+    }
+  };
+  const t = tokens[userId] || { firebase: '', jpush: '' };
+
+  const fbEl = document.getElementById('firebase-token-content');
+  if (t.firebase) {
+    fbEl.textContent = t.firebase;
+    fbEl.classList.remove('empty');
+  } else {
+    fbEl.textContent = '暂无(App 端未上报 Token)';
+    fbEl.classList.add('empty');
+  }
+
+  const jpEl = document.getElementById('jpush-token-content');
+  if (t.jpush) {
+    jpEl.textContent = t.jpush;
+    jpEl.classList.remove('empty');
+  } else {
+    jpEl.textContent = '暂无(App 端未上报 Token)';
+    jpEl.classList.add('empty');
+  }
+
+  document.getElementById('token-modal').classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => {
+    if (e.target === bg) bg.classList.remove('show');
+  });
+});
+
+renderList();
+</script>
+
+</body>
+</html>
