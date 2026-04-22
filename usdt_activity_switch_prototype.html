@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440, initial-scale=1.0">
+<title>配置开关 · USDT 充值参与活动</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  color: #333;
+  background: #f5f6fa;
+  min-height: 100vh;
+  padding: 16px 20px;
+}
+
+.toolbar {
+  margin-bottom: 12px;
+}
+.btn {
+  padding: 5px 14px;
+  border: 1px solid #dcdfe6;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  color: #606266;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+}
+.btn:hover { border-color: #6b4dd4; color: #6b4dd4; }
+.btn-primary { background: #6b4dd4; border-color: #6b4dd4; color: #fff; }
+.btn-primary:hover { background: #5a3fc4; color: #fff; border-color: #5a3fc4; }
+.btn-danger { background: #f5222d; border-color: #f5222d; color: #fff; }
+.btn-danger:hover { background: #d9363e; color: #fff; border-color: #d9363e; }
+
+.table-wrap {
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.data-table th {
+  background: #fafafa;
+  padding: 11px 14px;
+  text-align: left;
+  font-weight: 500;
+  color: #555;
+  border-bottom: 1px solid #e8e8e8;
+  white-space: nowrap;
+}
+table.data-table th.th-right { text-align: right; padding-right: 40px; }
+table.data-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+  color: #333;
+}
+table.data-table td.td-right { text-align: right; padding-right: 40px; }
+table.data-table tr:hover { background: #fafbfc; }
+table.data-table tr.highlight {
+  background: #fff9e6;
+}
+table.data-table tr.highlight:hover { background: #fff3c4; }
+table.data-table tr.highlight td:first-child {
+  position: relative;
+}
+table.data-table tr.highlight td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #fa8c16;
+}
+
+.switch-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+.switch-label {
+  font-size: 12px;
+  color: #389e0d;
+  min-width: 24px;
+}
+.switch-label.off { color: #999; }
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+}
+.switch input { display: none; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #ccc;
+  border-radius: 20px;
+  transition: 0.25s;
+}
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.25s;
+}
+.switch input:checked + .slider { background: #52c41a; }
+.switch input:checked + .slider:before { transform: translateX(18px); }
+
+.badge-new {
+  background: #fff3e0;
+  color: #fa8c16;
+  padding: 1px 6px;
+  font-size: 10px;
+  border: 1px dashed #fa8c16;
+  border-radius: 3px;
+  margin-left: 6px;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+/* 弹窗 */
+.modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: #fff;
+  border-radius: 6px;
+  width: 520px;
+  max-width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.modal-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-title .warn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff7e6;
+  color: #fa8c16;
+  font-size: 13px;
+  font-weight: bold;
+}
+.modal-close {
+  cursor: pointer;
+  color: #999;
+  font-size: 20px;
+  line-height: 1;
+}
+.modal-close:hover { color: #666; }
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.modal-body p {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 10px;
+}
+.modal-body .warn-text {
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #ad6800;
+  line-height: 1.7;
+  margin-top: 8px;
+}
+.modal-body .warn-text strong { color: #874d00; }
+.modal-body ul {
+  margin: 8px 0 0 18px;
+  color: #ad6800;
+  font-size: 12px;
+  line-height: 1.9;
+}
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+/* 详情弹窗 */
+.detail-modal { width: 640px; }
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.detail-table th, .detail-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+}
+.detail-table th {
+  background: #fafafa;
+  color: #666;
+  font-weight: 500;
+}
+.detail-table td {
+  color: #555;
+}
+.detail-table td.enum-col {
+  color: #999;
+  font-family: monospace;
+  width: 70px;
+  text-align: center;
+}
+.detail-table td.act-col {
+  width: 140px;
+  color: #333;
+  font-weight: 500;
+}
+
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 4px;
+  font-size: 13px;
+  z-index: 2000;
+  display: none;
+}
+.toast.show { display: block; }
+.toast.success { background: #389e0d; }
+.toast.error { background: #f5222d; }
+
+.view-detail-link {
+  color: #6b4dd4;
+  font-size: 11px;
+  cursor: pointer;
+  margin-left: 6px;
+  text-decoration: underline;
+}
+.view-detail-link:hover { color: #5a3fc4; }
+
+.demo-note {
+  background: #e6f4ff;
+  border-left: 3px solid #1d4ed8;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #0958d9;
+  margin-bottom: 14px;
+  border-radius: 2px;
+  line-height: 1.7;
+}
+.demo-note strong { color: #0349b3; }
+
+</style>
+</head>
+<body>
+
+<div class="demo-note">
+  💡 新增一条 ID=135 的开关(橙色高亮行)。点开关切换体验「关闭时强提醒、开启时无提醒」的交互;点「查看详情」查看 16 个受影响的活动清单。
+</div>
+
+<div class="toolbar">
+  <button class="btn btn-primary">🔍 查询</button>
+</div>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:60px;">Id</th>
+        <th style="width:260px;">名称</th>
+        <th>描述</th>
+        <th class="th-right" style="width:180px;">开关</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>8</td>
+        <td>邀请码是否必填</td>
+        <td>开启后注册页面的邀请码为必填内容</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label off">禁用</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>16</td>
+        <td>理财开关</td>
+        <td>开启后正常使用保险箱</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>19</td>
+        <td>开启邀请人任务</td>
+        <td>关闭后不显示邀请人任务</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>31</td>
+        <td>自动入款</td>
+        <td>开启后银行卡充值将会通过短信内容自动入款</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>34</td>
+        <td>是否开启推广链接配置</td>
+        <td>开启后推广链接可配置(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>46</td>
+        <td>积分商城开关</td>
+        <td>开启后可正常使用积分商城</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label off">禁用</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>58</td>
+        <td>开启图片验证码</td>
+        <td>开启后登录将需要图形验证码</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label off">禁用</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>59</td>
+        <td>提现是否需要打码量 0:不需要 1:需要</td>
+        <td>提现是否需要打码量 0:不需要 1:需要</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>69</td>
+        <td>是否开启洗码量</td>
+        <td>是否开启洗码量(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>70</td>
+        <td>彩票长龙显示开关(0:关闭 1:开启)</td>
+        <td>彩票长龙显示开关(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>71</td>
+        <td>充值等级开关</td>
+        <td>是否开启充值等级开关(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>72</td>
+        <td>大奖奖励开关</td>
+        <td>开启后可正常启用大奖奖励(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>108</td>
+        <td>是否开启官方充值,下单填入付款人信息弹框</td>
+        <td>是否开启官方充值(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>111</td>
+        <td>是否开启前台谷歌验证</td>
+        <td>是否开启前台谷歌验证(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label off">禁用</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>112</td>
+        <td>前台绑定谷歌是否开启短信验证</td>
+        <td>前台绑定谷歌是否开启短信验证(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label off">禁用</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>116</td>
+        <td>前端是否允许会员添加USDT地址</td>
+        <td>前端是否允许会员添加USDT地址(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>117</td>
+        <td>前端钱包页面是否显示总充/提金额字段 0关 1开</td>
+        <td>前端钱包页面是否显示总充/提金额字段(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label off">禁用</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>124</td>
+        <td>是否展示本地充值银行卡列表</td>
+        <td>是否展示本地充值银行卡列表(0:关闭, 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label off">禁用</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>125</td>
+        <td>出入款去除小数点及后面的位数开关(0:关闭, 1:开启)</td>
+        <td>出入款去除小数点及后面的位数开关(0:关闭, 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label off">禁用</span><label class="switch"><input type="checkbox"><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>129</td>
+        <td>邮箱注册 0:关闭 1:开启</td>
+        <td>邮箱注册(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+      <tr>
+        <td>130</td>
+        <td>手机注册 0:关闭 1:开启</td>
+        <td>手机号注册(0:关闭 1:开启)</td>
+        <td class="td-right"><div class="switch-wrap"><span class="switch-label">启用</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div></td>
+      </tr>
+
+      <tr class="highlight">
+        <td>135 <span class="badge-new">NEW</span></td>
+        <td>USDT 充值是否参与活动</td>
+        <td>
+          开启后 USDT 充值正常参与活动;关闭后 USDT 充值不参与任何活动(0:关闭 1:开启)
+          <span class="view-detail-link" onclick="showDetail()">查看关联的活动</span>
+        </td>
+        <td class="td-right">
+          <div class="switch-wrap">
+            <span class="switch-label" id="usdt-label">启用</span>
+            <label class="switch">
+              <input type="checkbox" id="usdt-switch" checked onchange="handleUsdtSwitch(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 关闭开关二次确认弹窗 -->
+<div class="modal-bg" id="confirm-modal">
+  <div class="modal" style="width: 420px;">
+    <div class="modal-header">
+      <div class="modal-title">提示</div>
+      <div class="modal-close" onclick="cancelSwitch()">×</div>
+    </div>
+    <div class="modal-body" style="display: flex; gap: 12px; align-items: flex-start; padding: 24px;">
+      <div style="width: 22px; height: 22px; border-radius: 50%; background: #faad14; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0;">?</div>
+      <div style="font-size: 13px; color: #333; line-height: 1.7; padding-top: 1px;">
+        确认关闭后,USDT 新充值订单将不参与活动?
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="confirmClose()">确定</button>
+      <button class="btn" onclick="cancelSwitch()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 活动详情弹窗 -->
+<div class="modal-bg" id="detail-modal">
+  <div class="modal detail-modal">
+    <div class="modal-header">
+      <div class="modal-title">关闭后不触发的活动(16 个)</div>
+      <div class="modal-close" onclick="closeDetail()">×</div>
+    </div>
+    <div class="modal-body">
+      <p style="color:#888;font-size:12px;margin-bottom:6px;">开关关闭时,以下活动在判断充值订单时将排除 USDT 币种订单:</p>
+      <table class="detail-table">
+        <thead>
+          <tr>
+            <th style="width:30px;">#</th>
+            <th style="width:160px;">活动</th>
+            <th>充值关联点</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td class="act-col">每日签到</td><td>当天充值 ≥ 配置金额才能签到领奖</td></tr>
+          <tr><td>2</td><td class="act-col">合伙人奖励</td><td>下级充值达到配置金额,上级获奖</td></tr>
+          <tr><td>3</td><td class="act-col">邀请奖励</td><td>下级完成充值,上级获得邀请奖励</td></tr>
+          <tr><td>4</td><td class="act-col">大转盘</td><td>任务含"单次存入/累计存入"</td></tr>
+          <tr><td>5</td><td class="act-col">锦标赛</td><td>参与条件含充值金额门槛</td></tr>
+          <tr><td>6</td><td class="act-col">新手礼包</td><td>首充金额达标触发礼包</td></tr>
+          <tr><td>7</td><td class="act-col">新会员负盈利彩金</td><td>首充后在时效内亏损,按比例赠送</td></tr>
+          <tr><td>8</td><td class="act-col">新会员玩游戏送彩金</td><td>首充后玩游戏达标送彩金</td></tr>
+          <tr><td>9</td><td class="act-col">邀请转盘</td><td>下级充值达到指定金额,上级获转盘次数</td></tr>
+          <tr><td>10</td><td class="act-col">App 下载充值奖励</td><td>下载 APP 后首次充值触发</td></tr>
+          <tr><td>11</td><td class="act-col">每日奖励</td><td>任务目标配成充值类时</td></tr>
+          <tr><td>12</td><td class="act-col">每周奖励</td><td>任务目标配成充值类时</td></tr>
+          <tr><td>13</td><td class="act-col">首充奖励</td><td>首次充值根据配置条件获得奖励</td></tr>
+          <tr><td>14</td><td class="act-col">充值等级奖励</td><td>累计充值达到等级门槛触发</td></tr>
+          <tr><td>15</td><td class="act-col">VIP 充值等级奖励</td><td>VIP 用户充值达到等级门槛触发</td></tr>
+          <tr><td>16</td><td class="act-col">回归新充值奖励</td><td>老用户回归后新充值触发奖励</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeDetail()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let pendingSwitch = null;
+
+function handleUsdtSwitch(el) {
+  if (!el.checked) {
+    pendingSwitch = el;
+    el.checked = true;
+    document.getElementById('confirm-modal').classList.add('show');
+  } else {
+    document.getElementById('usdt-label').textContent = '启用';
+    document.getElementById('usdt-label').classList.remove('off');
+    showToast('已开启,USDT 充值恢复参与活动', 'success');
+  }
+}
+
+function confirmClose() {
+  if (pendingSwitch) {
+    pendingSwitch.checked = false;
+    pendingSwitch = null;
+  }
+  document.getElementById('usdt-label').textContent = '禁用';
+  document.getElementById('usdt-label').classList.add('off');
+  document.getElementById('confirm-modal').classList.remove('show');
+  showToast('已关闭,USDT 新充值订单不再参与活动', 'success');
+}
+
+function cancelSwitch() {
+  pendingSwitch = null;
+  document.getElementById('confirm-modal').classList.remove('show');
+}
+
+function showDetail() {
+  document.getElementById('detail-modal').classList.add('show');
+}
+
+function closeDetail() {
+  document.getElementById('detail-modal').classList.remove('show');
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => {
+    if (e.target === bg) {
+      if (bg.id === 'confirm-modal') cancelSwitch();
+      else bg.classList.remove('show');
+    }
+  });
+});
+
+// 其他开关的本地交互(纯展示)
+document.querySelectorAll('.switch input').forEach(el => {
+  if (el.id === 'usdt-switch') return;
+  el.addEventListener('change', function() {
+    const label = this.closest('.switch-wrap').querySelector('.switch-label');
+    if (this.checked) {
+      label.textContent = '启用';
+      label.classList.remove('off');
+    } else {
+      label.textContent = '禁用';
+      label.classList.add('off');
+    }
+  });
+});
+
+</script>
+
+</body>
+</html>
