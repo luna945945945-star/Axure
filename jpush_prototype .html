@@ -461,6 +461,106 @@ table.data-table tr:hover { background: #fafbfc; }
 .channel-result-stats .num-ok { color: #389e0d; font-weight: 500; }
 .channel-result-stats .num-fail { color: #d4380d; font-weight: 500; }
 
+/* 详情弹窗字段行(参照新增表单样式,只读) */
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.detail-row-label {
+  width: 90px;
+  font-size: 13px;
+  color: #555;
+  text-align: right;
+  padding-right: 10px;
+  padding-top: 7px;
+  flex-shrink: 0;
+}
+.detail-row-label .required { color: #f5222d; margin-right: 2px; }
+.detail-row-value {
+  flex: 1;
+  padding: 6px 9px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #333;
+  min-height: 30px;
+  word-break: break-all;
+  line-height: 1.6;
+}
+.detail-row-value.ta {
+  min-height: 70px;
+  white-space: pre-wrap;
+}
+.detail-row-value .tag-inline {
+  margin-right: 6px;
+}
+
+/* 发送结果块(放在字段下方,样式区分) */
+.result-block {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed #e8e8e8;
+}
+.result-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #555;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.result-block-title::before {
+  content: '';
+  width: 3px;
+  height: 12px;
+  background: #6b4dd4;
+  border-radius: 1px;
+}
+.result-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 3px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+.result-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.result-card-stats {
+  display: flex;
+  gap: 18px;
+  font-size: 11px;
+  color: #888;
+}
+.result-card-stats .num {
+  font-size: 13px;
+  font-weight: 500;
+  margin-left: 3px;
+}
+.result-card-stats .num.ok { color: #389e0d; }
+.result-card-stats .num.fail { color: #d4380d; }
+.result-card-reason {
+  font-size: 11px;
+  color: #888;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #f0f0f0;
+}
+.result-tip {
+  font-size: 11px;
+  color: #6b4dd4;
+  background: #f3f0ff;
+  padding: 6px 10px;
+  border-radius: 3px;
+  margin-top: 4px;
+}
+
 /* 三方信息弹窗 */
 .token-box {
   background: #fafafa;
@@ -905,8 +1005,8 @@ table.data-table tr:hover { background: #fafbfc; }
         <div class="form-label" style="padding-top: 9px;"><span class="required">*</span>推送通道: <span class="badge-new">NEW</span></div>
         <div class="form-control">
           <div class="radio-group" id="channel-checkbox-group">
-            <label class="radio-item"><input type="checkbox" name="channel" value="firebase" checked onchange="updateChannelHint()">Firebase(海外)</label>
-            <label class="radio-item"><input type="checkbox" name="channel" value="jpush" onchange="updateChannelHint()">极光(国内)</label>
+            <label class="radio-item"><input type="checkbox" name="channel" value="firebase" checked onchange="updateChannelHint()">Firebase</label>
+            <label class="radio-item"><input type="checkbox" name="channel" value="jpush" onchange="updateChannelHint()">极光</label>
           </div>
           <div class="form-hint" id="channel-hint-default">默认 Firebase,保持现有推送行为不变</div>
           <div class="form-hint" id="channel-hint-both" style="display:none; color:#6b4dd4;">💡 两个通道均勾选:系统根据用户 Token 自动分发,<strong>每个用户只推一次,不会重复</strong></div>
@@ -941,21 +1041,13 @@ table.data-table tr:hover { background: #fafbfc; }
 
 <!-- ============ 详情弹窗 ============ -->
 <div class="modal-bg" id="detail-modal">
-  <div class="modal" style="width: 620px;">
+  <div class="modal" style="width: 600px;">
     <div class="modal-header">
       <div class="modal-title" id="detail-title">推送消息详情</div>
-      <div class="modal-close" onclick="closeModal('detail-modal')">×</div>
+      <div class="modal-close" onclick="closeModal('detail-modal')">— ⊡ ×</div>
     </div>
-    <div class="modal-body">
-      <div class="detail-section">
-        <div class="detail-section-title">基础信息</div>
-        <div class="detail-grid" id="detail-basic"></div>
-      </div>
-
-      <div class="detail-section">
-        <div class="detail-section-title">发送结果 <span class="badge-new">NEW</span></div>
-        <div id="detail-results"></div>
-      </div>
+    <div class="modal-body" id="detail-body">
+      <!-- 动态填充 -->
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeModal('detail-modal')">关闭</button>
@@ -1122,66 +1214,125 @@ function openDetail(id) {
 
   document.getElementById('detail-title').textContent = `推送消息详情 · ID ${m.id}`;
 
-  // 基础信息
-  document.getElementById('detail-basic').innerHTML = `
-    <div class="k">标题:</div><div class="v">${m.title}</div>
-    <div class="k">文字:</div><div class="v">${m.text}</div>
-    <div class="k">通知名称:</div><div class="v">${m.name || '-'}</div>
-    <div class="k">推送通道:</div><div class="v"><span class="channel-tag ${ch.cls}">${ch.label}</span></div>
-    <div class="k">接收对象:</div><div class="v">${m.receiver} ${m.userStat !== '-' ? '(有效用户 ' + m.userStat.split('/')[0] + ' / 原始 ' + m.userStat.split('/')[1] + ')' : ''}</div>
-    <div class="k">发送时间:</div><div class="v">${m.time}</div>
-    <div class="k">操作人:</div><div class="v">${m.op}</div>
-    <div class="k">总状态:</div><div class="v"><span class="status ${st.cls}">${st.text}</span></div>
-  `;
+  // 渲染通道标签
+  let channelTagsHtml = '';
+  if (m.channel === 'firebase') {
+    channelTagsHtml = '<span class="channel-tag channel-firebase">Firebase</span>';
+  } else if (m.channel === 'jpush') {
+    channelTagsHtml = '<span class="channel-tag channel-jpush">极光</span>';
+  } else {
+    channelTagsHtml = '<span class="channel-tag channel-firebase tag-inline">Firebase</span><span class="channel-tag channel-jpush">极光</span> <span style="color:#6b4dd4;font-size:11px;margin-left:6px;">(按用户 Token 自动分发,每人只推一次)</span>';
+  }
 
-  // 发送结果
-  const results = document.getElementById('detail-results');
-  let html = '';
+  // 用户 ID 展示
+  let userIdContent = '';
+  if (m.receiver === '全体') {
+    userIdContent = '-';
+  } else {
+    const mockUids = Array.from({ length: parseInt(m.userStat.split('/')[1]) || 0 }, (_, i) => (100000 + i * 7 + m.id * 11).toString());
+    userIdContent = mockUids.slice(0, 10).join(', ') + (mockUids.length > 10 ? ` ... (共 ${mockUids.length} 个)` : '');
+  }
 
-  if (m.channel === 'firebase' || m.channel === 'auto') {
+  // 构建发送结果
+  let resultsHtml = '';
+  const showFirebase = m.channel === 'firebase' || m.channel === 'auto';
+  const showJpush = m.channel === 'jpush' || m.channel === 'auto';
+
+  if (showFirebase) {
     const ok = m.status === 'success' || m.status === 'partial' ? Math.floor(Math.random() * 50) + 10 : 0;
     const fail = m.status === 'fail' ? Math.floor(Math.random() * 10) + 1 : (m.status === 'partial' ? Math.floor(Math.random() * 5) : 0);
     const curStatus = fail === 0 ? 'success' : (ok === 0 ? 'fail' : 'partial');
     const curSt = statusMap[curStatus];
-    html += `
-      <div class="channel-result">
-        <div class="channel-result-head">
+    resultsHtml += `
+      <div class="result-card">
+        <div class="result-card-head">
           <span class="channel-tag channel-firebase">Firebase (FCM)</span>
           <span class="status ${curSt.cls}">${curSt.text}</span>
         </div>
-        <div class="channel-result-stats">
-          <span>成功:<span class="num-ok">${ok}</span></span>
-          <span>失败:<span class="num-fail">${fail}</span></span>
+        <div class="result-card-stats">
+          <span>成功<span class="num ok">${ok}</span></span>
+          <span>失败<span class="num fail">${fail}</span></span>
         </div>
-        ${fail > 0 ? '<div style="font-size:11px;color:#888;margin-top:6px;">失败原因:InvalidRegistration (Token 已失效)</div>' : ''}
+        ${fail > 0 ? '<div class="result-card-reason">失败原因:InvalidRegistration (Token 已失效)</div>' : ''}
       </div>`;
   }
 
-  if (m.channel === 'jpush' || m.channel === 'auto') {
+  if (showJpush) {
     const ok = m.status === 'success' || m.status === 'partial' ? Math.floor(Math.random() * 40) + 5 : 0;
     const fail = m.status === 'fail' ? Math.floor(Math.random() * 8) + 1 : (m.status === 'partial' ? Math.floor(Math.random() * 3) : 0);
     const curStatus = fail === 0 ? (ok === 0 ? 'fail' : 'success') : (ok === 0 ? 'fail' : 'partial');
     const curSt = statusMap[curStatus];
-    html += `
-      <div class="channel-result">
-        <div class="channel-result-head">
+    resultsHtml += `
+      <div class="result-card">
+        <div class="result-card-head">
           <span class="channel-tag channel-jpush">极光 (JPush)</span>
           <span class="status ${curSt.cls}">${curSt.text}</span>
         </div>
-        <div class="channel-result-stats">
-          <span>成功:<span class="num-ok">${ok}</span></span>
-          <span>失败:<span class="num-fail">${fail}</span></span>
+        <div class="result-card-stats">
+          <span>成功<span class="num ok">${ok}</span></span>
+          <span>失败<span class="num fail">${fail}</span></span>
         </div>
-        ${fail > 0 ? '<div style="font-size:11px;color:#888;margin-top:6px;">失败原因:Registration ID 不存在或已过期</div>' : ''}
-        ${m.channel === 'jpush' && m.status === 'fail' ? '<div style="font-size:11px;color:#d4380d;margin-top:6px;">⚠ 指定用户均无极光 Token</div>' : ''}
+        ${fail > 0 ? '<div class="result-card-reason">失败原因:Registration ID 不存在或已过期</div>' : ''}
       </div>`;
   }
 
   if (m.channel === 'auto') {
-    html += '<div style="font-size:11px;color:#6b4dd4;background:#f3f0ff;padding:6px 10px;border-radius:3px;margin-top:4px;">💡 自动分发模式:每个用户只走其对应的通道,不会重复推送</div>';
+    resultsHtml += '<div class="result-tip">💡 双通道勾选:系统按用户 Token 自动分发,每个用户只收到一条推送,不会重复</div>';
   }
 
-  results.innerHTML = html;
+  // 发送统计
+  const sendStat = m.receiver === '全体'
+    ? '-'
+    : `原始 ${m.userStat.split('/')[1]} 个 → 有效 ${m.userStat.split('/')[0]} 个`;
+
+  // 渲染整体
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-row">
+      <div class="detail-row-label">通知标题:</div>
+      <div class="detail-row-value">${m.title}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-row-label">通知文字:</div>
+      <div class="detail-row-value">${m.text}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-row-label">图片连接:</div>
+      <div class="detail-row-value">${m.img ? 'https://cdn.pixabay.com/photo/2026/03/31/10/37/10-37-51-592_1280.jpg' : '-'}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-row-label">通知名称:</div>
+      <div class="detail-row-value">${m.name || '-'}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-row-label">发送时间:</div>
+      <div class="detail-row-value">${m.time}</div>
+    </div>
+    <div class="detail-row" style="background: #fffbe6; padding: 8px 8px 8px 0; border-radius: 3px; border: 1px dashed #fa8c16;">
+      <div class="detail-row-label" style="padding-top:7px;">推送通道: <span class="badge-new">NEW</span></div>
+      <div class="detail-row-value" style="background:#fff; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+        ${channelTagsHtml}
+      </div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-row-label">用户选择:</div>
+      <div class="detail-row-value" style="background:#fff; border:none; padding-top: 7px;">
+        <div class="radio-group" style="padding-top:0;">
+          <label class="radio-item" style="cursor:default;"><input type="radio" ${m.receiver === '全体' ? 'checked' : ''} disabled>全体</label>
+          <label class="radio-item" style="cursor:default;"><input type="radio" ${m.receiver === '指定用户' ? 'checked' : ''} disabled>指定用户</label>
+        </div>
+      </div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-row-label">用户ID:</div>
+      <div class="detail-row-value ta">${userIdContent}</div>
+    </div>
+
+    <div class="result-block">
+      <div class="result-block-title">发送结果 <span class="badge-new">NEW</span></div>
+      ${resultsHtml}
+    </div>
+  `;
+
   document.getElementById('detail-modal').classList.add('show');
 }
 
