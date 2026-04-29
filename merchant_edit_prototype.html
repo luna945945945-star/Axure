@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>修改商户 - AI智能客服改造原型</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f0f2f5;
+    color: #303133;
+    font-size: 14px;
+  }
+
+  /* ===== 顶部导航 ===== */
+  .top-nav {
+    height: 50px;
+    background: #fff;
+    border-bottom: 1px solid #e4e7ed;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 20px;
+  }
+  .logo {
+    width: 28px; height: 28px;
+    background: #f56c6c;
+    border-radius: 4px;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 12px;
+  }
+  .nav-title { font-size: 14px; color: #303133; }
+  .nav-time { color: #909399; font-size: 13px; margin-left: 8px;}
+  .nav-right { margin-left: auto; display: flex; gap: 16px; align-items: center; color: #606266;}
+
+  /* ===== Tab ===== */
+  .tabs {
+    background: #fff; padding: 0 20px;
+    display: flex; gap: 4px; border-bottom: 1px solid #e4e7ed;
+    height: 40px; align-items: center;
+  }
+  .tab {
+    padding: 6px 14px;
+    background: #f4f4f5;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #606266;
+    cursor: pointer;
+  }
+  .tab.active { background: #ecf5ff; color: #409eff; }
+  .tab .close { margin-left: 6px; color: #c0c4cc; }
+
+  /* ===== 主内容 ===== */
+  .main { padding: 20px; }
+  .page-title { font-size: 18px; font-weight: 500; margin-bottom: 16px; color: #303133;}
+  .filter-bar {
+    background: #fff;
+    padding: 16px 20px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    display: flex; gap: 24px; align-items: center;
+  }
+  .filter-item { display: flex; align-items: center; gap: 8px; }
+  .filter-item label { color: #606266; font-size: 13px; }
+  .filter-item input {
+    padding: 6px 10px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    width: 200px;
+    font-size: 13px;
+    outline: none;
+  }
+  .filter-item input:focus { border-color: #409eff; }
+
+  .content-card { background: #fff; padding: 20px; border-radius: 4px; }
+  .btn-primary {
+    background: #409eff; color: #fff; border: none;
+    padding: 8px 16px; border-radius: 4px; cursor: pointer;
+    font-size: 13px;
+  }
+  .btn-primary:hover { background: #66b1ff; }
+  .btn-default {
+    background: #fff; color: #606266;
+    border: 1px solid #dcdfe6;
+    padding: 8px 16px; border-radius: 4px; cursor: pointer;
+    font-size: 13px;
+  }
+  .btn-default:hover { color: #409eff; border-color: #c6e2ff; background: #ecf5ff;}
+
+  /* ===== 商户列表 ===== */
+  table {
+    width: 100%; border-collapse: collapse; margin-top: 16px;
+    font-size: 13px;
+  }
+  table th, table td {
+    border: 1px solid #ebeef5;
+    padding: 12px; text-align: left;
+  }
+  table th { background: #fafafa; color: #606266; font-weight: 500; }
+  .merchant-code {
+    background: #ecf5ff; color: #409eff;
+    padding: 2px 8px; border-radius: 3px; font-size: 12px;
+  }
+  .secret {
+    background: #fdf6ec; color: #e6a23c;
+    padding: 2px 8px; border-radius: 3px; font-size: 12px;
+  }
+  .row-action { color: #409eff; cursor: pointer; margin-right: 12px; }
+
+  /* ===== 抽屉 Drawer ===== */
+  .drawer-mask {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    display: none;
+  }
+  .drawer-mask.show { display: block; }
+  .drawer {
+    position: fixed; top: 0; right: 0;
+    width: 600px; height: 100vh;
+    background: #fff;
+    box-shadow: -4px 0 12px rgba(0,0,0,0.08);
+    z-index: 101;
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+  }
+  .drawer.show { transform: translateX(0); }
+  .drawer-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #ebeef5;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .drawer-header h3 { font-size: 16px; font-weight: 500; color: #303133; }
+  .drawer-close {
+    background: none; border: none; cursor: pointer;
+    color: #909399; font-size: 20px;
+  }
+  .drawer-body {
+    flex: 1; overflow-y: auto;
+    padding: 24px;
+  }
+  .drawer-footer {
+    padding: 14px 24px;
+    border-top: 1px solid #ebeef5;
+    text-align: right;
+  }
+
+  /* ===== 表单 ===== */
+  .form-row {
+    display: flex; align-items: flex-start; margin-bottom: 18px;
+  }
+  .form-label {
+    width: 120px; text-align: right;
+    padding-right: 12px; padding-top: 8px;
+    color: #606266; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .form-label .required { color: #f56c6c; margin-right: 2px; }
+  .form-control { flex: 1; }
+  .form-control input,
+  .form-control textarea,
+  .form-control select {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+  }
+  .form-control input:focus,
+  .form-control textarea:focus { border-color: #409eff; }
+  .form-control input:disabled,
+  .form-control select:disabled {
+    background: #f5f7fa; color: #909399; cursor: not-allowed;
+  }
+  .form-control textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: monospace;
+    font-size: 12px;
+  }
+  .form-control .error-text {
+    color: #f56c6c; font-size: 12px; margin-top: 4px;
+    display: none;
+  }
+  .form-control.has-error input { border-color: #f56c6c; }
+  .form-control.has-error .error-text { display: block; }
+
+  /* 数字输入 */
+  .number-input { display: flex; align-items: center; }
+  .number-input input { text-align: center; }
+  .number-input button {
+    width: 32px; height: 32px;
+    border: 1px solid #dcdfe6;
+    background: #f5f7fa;
+    cursor: pointer;
+    font-size: 16px;
+    color: #606266;
+  }
+  .number-input button:first-child { border-radius: 4px 0 0 4px; border-right: none; }
+  .number-input button:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+  .number-input input { border-radius: 0; }
+
+  /* 语言多选 */
+  .lang-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 16px;
+  }
+  .lang-item {
+    display: flex; align-items: center; gap: 6px;
+    color: #606266;
+  }
+  .lang-item input { width: auto; }
+
+  /* 开关 Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 40px; height: 20px;
+    cursor: pointer;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute; inset: 0;
+    background-color: #dcdfe6;
+    border-radius: 20px;
+    transition: 0.2s;
+  }
+  .switch .slider::before {
+    content: "";
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 2px; top: 2px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .switch input:checked + .slider { background: #409eff; }
+  .switch input:checked + .slider::before { transform: translateX(20px); }
+
+  /* 新增字段高亮提示 */
+  .form-row.highlight {
+    background: #fffbe6;
+    border: 1px dashed #faad14;
+    border-radius: 4px;
+    padding: 10px 0;
+    margin-left: -10px; margin-right: -10px;
+    padding-left: 10px; padding-right: 10px;
+    position: relative;
+  }
+  .form-row.highlight::after {
+    content: "改动";
+    position: absolute;
+    top: -1px; right: -1px;
+    background: #faad14;
+    color: #fff;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 0 4px 0 4px;
+  }
+
+  .info-tip {
+    background: #ecf5ff;
+    border-left: 3px solid #409eff;
+    padding: 8px 12px;
+    color: #606266;
+    font-size: 12px;
+    margin-bottom: 16px;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div class="top-nav">
+  <div class="logo">AR</div>
+  <div class="nav-title">AR</div>
+  <div class="nav-time" id="nowTime">2026-04-29 17:22</div>
+  <div class="nav-right">
+    <span>⊕ PWA管理</span>
+    <span>👤</span>
+  </div>
+</div>
+
+<!-- Tab栏 -->
+<div class="tabs">
+  <div class="tab">Welcome <span class="close">×</span></div>
+  <div class="tab">系统用户管理 <span class="close">×</span></div>
+  <div class="tab">角色权限管理 <span class="close">×</span></div>
+  <div class="tab">日志管理 <span class="close">×</span></div>
+  <div class="tab active">商户管理 <span class="close">×</span></div>
+</div>
+
+<!-- 主内容 -->
+<div class="main">
+  <div class="page-title">商户管理</div>
+
+  <div class="filter-bar">
+    <div class="filter-item">
+      <label>商户名称</label>
+      <input value="ar062" />
+    </div>
+    <div class="filter-item">
+      <label>商户编码</label>
+      <input placeholder="商户编码" />
+    </div>
+    <button class="btn-primary">查询</button>
+    <button class="btn-default">重置</button>
+  </div>
+
+  <div class="content-card">
+    <button class="btn-primary" onclick="openDrawer()">+ 新增商户</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>商户名称</th>
+          <th>商户编码</th>
+          <th>三方代收</th>
+          <th>所属国家</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AR062-diuwin</td>
+          <td><span class="merchant-code">1062</span></td>
+          <td>
+            代收单号: <span class="secret">--</span><br>
+            密钥: <span class="secret">ec160bd426e2324386...</span>
+          </td>
+          <td>印度</td>
+          <td>
+            <span class="row-action" onclick="openDrawer()">修改</span>
+            <span class="row-action">删除</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== 修改商户抽屉 ===== -->
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h3>修改商户</h3>
+    <button class="drawer-close" onclick="closeDrawer()">×</button>
+  </div>
+
+  <div class="drawer-body">
+
+    <div class="info-tip">
+      💡 本次改动：① 客服链接 → AI智能客服链接 ② 新增"是否跳转AI智能客服"开关（标黄区域）
+    </div>
+
+    <!-- 商户编码 -->
+    <div class="form-row">
+      <div class="form-label"><span class="required">*</span>商户编码</div>
+      <div class="form-control"><input value="1062" disabled /></div>
+    </div>
+
+    <!-- 所属国家 -->
+    <div class="form-row">
+      <div class="form-label">所属国家</div>
+      <div class="form-control">
+        <select disabled><option>印度</option></select>
+      </div>
+    </div>
+
+    <!-- 按钮主题颜色 -->
+    <div class="form-row">
+      <div class="form-label"><span class="required">*</span>按钮主题颜色</div>
+      <div class="form-control"><input value="3F3F3F" /></div>
+    </div>
+
+    <!-- 彩票api地址 -->
+    <div class="form-row">
+      <div class="form-label"><span class="required">*</span>彩票api地址</div>
+      <div class="form-control"><input value="https://sitlotteryapi.22889.club/" /></div>
+    </div>
+
+    <!-- KYC通道编码 -->
+    <div class="form-row">
+      <div class="form-label">KYC通道编码</div>
+      <div class="form-control"><input value="EC003" /></div>
+    </div>
+
+    <!-- KYC私钥 -->
+    <div class="form-row">
+      <div class="form-label">KYC私钥</div>
+      <div class="form-control">
+        <textarea>XSI4LU5N4HNXJULyuCC1Sg3yb3pGQRBgQDWUA+nKomBleKwt5GXnfOvAEPyLicvTLIGKieJrfdPzKgQp0Wuq05+sFH7aldd6NHAD6Q/d1CqLb8ELiFRyU7Eoixop4FUFVaXUkciQNiTMhcswm4hZRZV60fHSQziwqiAls57hJWIJCwGsoBO</textarea>
+      </div>
+    </div>
+
+    <!-- ✅ 改动一：客服链接 → AI智能客服链接 -->
+    <div class="form-row highlight">
+      <div class="form-label"><span class="required">*</span>AI智能客服链接</div>
+      <div class="form-control" id="aiUrlField">
+        <input id="aiUrlInput" value="https://tommy-aichat.ar-ai-cloud-test.com/51game.html" placeholder="请输入AI智能客服链接（http:// 或 https:// 开头）" />
+        <div class="error-text" id="aiUrlError">请输入有效的AI智能客服链接</div>
+      </div>
+    </div>
+
+    <!-- 支持语言 -->
+    <div class="form-row">
+      <div class="form-label"><span class="required">*</span>支持语言</div>
+      <div class="form-control">
+        <div class="lang-grid">
+          <label class="lang-item"><input type="checkbox" checked> 英文</label>
+          <label class="lang-item"><input type="checkbox" checked> 印尼语</label>
+          <label class="lang-item"><input type="checkbox" checked> 越南语</label>
+          <label class="lang-item"><input type="checkbox" checked> 葡萄牙语</label>
+          <label class="lang-item"><input type="checkbox" checked> 缅甸语</label>
+          <label class="lang-item"><input type="checkbox" checked> 印地语</label>
+          <label class="lang-item"><input type="checkbox" checked> 马来西亚</label>
+          <label class="lang-item"><input type="checkbox" checked> 阿拉伯语</label>
+          <label class="lang-item"><input type="checkbox" checked> 柬埔寨</label>
+          <label class="lang-item"><input type="checkbox" checked> 巴基斯坦</label>
+          <label class="lang-item"><input type="checkbox" checked> 孟加拉语</label>
+          <label class="lang-item"><input type="checkbox" checked> 西班牙语</label>
+          <label class="lang-item"><input type="checkbox" checked> 菲律宾语</label>
+          <label class="lang-item"><input type="checkbox" checked> 中文</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 人工客服状态 -->
+    <div class="form-row">
+      <div class="form-label">人工客服状态</div>
+      <div class="form-control">
+        <label class="switch">
+          <input type="checkbox" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ✅ 改动二：新增"是否跳转AI智能客服"开关 -->
+    <div class="form-row highlight">
+      <div class="form-label">是否跳转AI智能客服</div>
+      <div class="form-control">
+        <label class="switch">
+          <input type="checkbox" id="aiSwitch" onchange="onAiSwitchChange()" />
+          <span class="slider"></span>
+        </label>
+        <div style="font-size:12px; color:#909399; margin-top:6px;" id="aiSwitchHint">
+          关闭：不跳转，AI客服链接不做校验<br>
+          开启：前台点击客服入口跳转至上方"AI智能客服链接"
+        </div>
+      </div>
+    </div>
+
+    <!-- 锁单时间 -->
+    <div class="form-row">
+      <div class="form-label"><span class="required">*</span>锁单时间</div>
+      <div class="form-control">
+        <div class="number-input" style="width: 140px;">
+          <button>−</button>
+          <input value="20" />
+          <button>+</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="drawer-footer">
+    <button class="btn-default" onclick="closeDrawer()">取消</button>
+    <button class="btn-primary" onclick="onSubmit()" style="margin-left:8px;">保存</button>
+  </div>
+</div>
+
+<script>
+// 默认打开抽屉以便演示
+window.addEventListener('load', () => {
+  setTimeout(openDrawer, 300);
+});
+
+function openDrawer() {
+  document.getElementById('drawerMask').classList.add('show');
+  document.getElementById('drawer').classList.add('show');
+}
+function closeDrawer() {
+  document.getElementById('drawerMask').classList.remove('show');
+  document.getElementById('drawer').classList.remove('show');
+}
+
+// 开关变化时联动校验逻辑
+function onAiSwitchChange() {
+  const checked = document.getElementById('aiSwitch').checked;
+  const field = document.getElementById('aiUrlField');
+  const hint = document.getElementById('aiSwitchHint');
+
+  // 切换状态时清空错误态
+  field.classList.remove('has-error');
+
+  if (checked) {
+    hint.style.color = '#67c23a';
+    hint.innerHTML = '✅ 已开启：保存时将校验AI智能客服链接非空且格式正确';
+  } else {
+    hint.style.color = '#909399';
+    hint.innerHTML = '关闭：不跳转，AI客服链接不做校验<br>开启：前台点击客服入口跳转至上方"AI智能客服链接"';
+  }
+}
+
+// URL格式校验
+function isValidUrl(str) {
+  return /^https?:\/\/.+/i.test(str.trim());
+}
+
+// 保存提交
+function onSubmit() {
+  const aiSwitchOn = document.getElementById('aiSwitch').checked;
+  const aiUrl = document.getElementById('aiUrlInput').value;
+  const field = document.getElementById('aiUrlField');
+  const errorEl = document.getElementById('aiUrlError');
+
+  field.classList.remove('has-error');
+
+  // 联动校验：仅在开关开启时校验链接
+  if (aiSwitchOn) {
+    if (!aiUrl.trim()) {
+      errorEl.textContent = '开关开启时，AI智能客服链接不能为空';
+      field.classList.add('has-error');
+      return;
+    }
+    if (!isValidUrl(aiUrl)) {
+      errorEl.textContent = '请输入有效的URL（http:// 或 https:// 开头）';
+      field.classList.add('has-error');
+      return;
+    }
+  }
+
+  alert(
+    '保存成功！\n\n' +
+    '提交参数：\n' +
+    'aiCustomerServiceUrl: ' + (aiUrl || '(空)') + '\n' +
+    'jumpAiCustomerService: ' + aiSwitchOn + '\n\n' +
+    '前台行为：' + (aiSwitchOn ? '点击客服入口将跳转至AI智能客服链接' : '不跳转AI客服')
+  );
+}
+</script>
+</body>
+</html>
