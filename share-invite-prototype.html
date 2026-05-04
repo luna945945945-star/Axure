@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Invite Page - Interactive Prototype</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #1a0008; min-height: 100vh; color: #fff; }
+
+    .app {
+      max-width: 430px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #2a0610 0%, #1a0008 100%);
+      min-height: 100vh;
+      position: relative;
+      padding-bottom: 60px;
+    }
+
+    .demo-banner {
+      background: linear-gradient(90deg, #ffd97a, #ffb347);
+      color: #5a3a00;
+      padding: 6px 12px;
+      font-size: 12px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .header {
+      background: #fff;
+      color: #333;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .header .back { font-size: 22px; color: #333; cursor: pointer; }
+    .header .title { flex: 1; text-align: center; font-size: 17px; font-weight: 600; }
+
+    .hint {
+      color: #aaa;
+      text-align: center;
+      padding: 18px 16px 14px;
+      font-size: 13px;
+    }
+
+    .carousel-wrap { position: relative; }
+    .carousel {
+      padding: 0 30px 8px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      display: flex;
+      gap: 14px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .carousel::-webkit-scrollbar { display: none; }
+
+    .poster {
+      flex: 0 0 calc(100% - 60px);
+      scroll-snap-align: center;
+      border-radius: 18px;
+      background: linear-gradient(160deg, #ff8a72 0%, #ff6b6b 30%, #ffa15c 100%);
+      padding: 18px 16px 18px;
+      position: relative;
+      aspect-ratio: 0.7;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+    }
+
+    .poster.alt { background: linear-gradient(160deg, #ff8a5b 0%, #ff7043 30%, #ffb347 100%); }
+
+    .poster .tags { display: flex; gap: 8px; }
+    .poster .tag {
+      background: linear-gradient(135deg, #fff3a8, #ffe07a);
+      color: #d63031;
+      padding: 5px 10px;
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .poster .title {
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      text-align: center;
+      margin: 18px 0 14px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      line-height: 1.2;
+    }
+    .poster .features {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 8px 0;
+    }
+    .poster .feature {
+      background: rgba(255,255,255,0.2);
+      padding: 10px 8px;
+      border-radius: 10px;
+      text-align: center;
+      flex: 1;
+      backdrop-filter: blur(4px);
+    }
+    .poster .feature .icon {
+      font-size: 22px;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+    .poster .feature .label { font-size: 10px; color: #fff; font-weight: 500; }
+    .poster .commission {
+      text-align: center;
+      color: #fff;
+      font-size: 14px;
+      margin: 14px 0 8px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .poster .commission .pct { color: #ffd97a; font-size: 17px; }
+    .poster .gift {
+      text-align: center;
+      font-size: 56px;
+      margin: 6px 0;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+    }
+    .poster .qrbox {
+      background: #fff;
+      padding: 5px;
+      border-radius: 6px;
+      align-self: center;
+      margin-top: auto;
+    }
+    .poster .qrbox img {
+      display: block;
+      width: 70px;
+      height: 70px;
+    }
+
+    .invite-text {
+      text-align: center;
+      padding: 18px 16px 4px;
+      font-size: 14px;
+      color: #fff;
+    }
+    .invite-text .billion { color: #ff6b6b; font-weight: 800; }
+
+    .actions {
+      padding: 14px 30px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn {
+      padding: 13px;
+      border-radius: 999px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn:active { opacity: 0.8; transform: scale(0.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, #ff8a96 0%, #ff5566 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(255, 85, 102, 0.3);
+    }
+    .btn-outline {
+      border: 1.5px solid #ff5566;
+      color: #ff5566;
+      background: transparent;
+    }
+
+    /* === NEW: Share section === */
+    .share-section {
+      padding: 22px 30px 0;
+      animation: highlight 2s ease-in-out;
+    }
+    @keyframes highlight {
+      0%, 100% { background: transparent; }
+      30% { background: rgba(255, 217, 122, 0.05); }
+    }
+    .share-title {
+      text-align: center;
+      color: #fff;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .share-title::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ff5566;
+    }
+
+    .social-icons {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+    .social-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      flex: 1;
+      transition: transform 0.1s;
+    }
+    .social-item:active { transform: scale(0.92); }
+    .social-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff7a8a 0%, #ff3850 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 22px;
+      box-shadow: 0 4px 10px rgba(255, 56, 80, 0.35);
+    }
+    .social-label { font-size: 11px; color: #fff; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      backdrop-filter: blur(6px);
+    }
+    .toast.show { opacity: 1; }
+
+    /* Carousel dots */
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 0 0;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transition: all 0.3s;
+    }
+    .dot.active {
+      width: 18px;
+      border-radius: 3px;
+      background: #ff5566;
+    }
+
+    /* Inline SVG (X / Twitter) inside circular icon */
+    .social-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: #fff;
+    }
+
+    /* Action sheet (deep-link feedback) */
+    .sheet-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1500;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .sheet-mask.active { display: flex; animation: fade 0.2s; }
+    @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+    .sheet {
+      width: 100%;
+      max-width: 430px;
+      background: #1a1a1f;
+      border-radius: 18px 18px 0 0;
+      padding: 18px 20px 28px;
+      animation: slideUp 0.25s ease-out;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .sheet .sheet-title {
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .sheet .sheet-sub {
+      color: #999;
+      font-size: 12px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .sheet .sheet-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      color: #ddd;
+      font-size: 13px;
+    }
+    .sheet .sheet-step .dot-step {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(255,217,122,0.2);
+      color: #ffd97a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex: 0 0 18px;
+    }
+    .sheet .sheet-step.done .dot-step {
+      background: #2ecc71;
+      color: #fff;
+    }
+    .sheet .sheet-step.done { color: #fff; }
+    .sheet .sheet-cancel {
+      margin-top: 10px;
+      padding: 12px;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+      cursor: pointer;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="demo-banner">📱 交互原型 · 点击各按钮体验完整流程（5 个社交分享 / Copy invitation link）</div>
+
+    <div class="header">
+      <span class="back">‹</span>
+      <span class="title">Invite</span>
+      <span style="width: 22px;"></span>
+    </div>
+
+    <div class="hint">Please swipe left - right to choose your favorite poster</div>
+
+    <div class="carousel-wrap">
+      <div class="carousel" id="carousel">
+        <div class="poster">
+          <div class="tags">
+            <div class="tag">Fair and justice</div>
+            <div class="tag">Open and transparent</div>
+          </div>
+          <div class="title">Full Odds Bonus Rate</div>
+          <div class="features">
+            <div class="feature">
+              <div class="icon">🏛️</div>
+              <div class="label">Financial security</div>
+            </div>
+            <div class="feature">
+              <div class="icon">🚚</div>
+              <div class="label">Quick withdrawal</div>
+            </div>
+          </div>
+          <div class="commission">Permanent commission up to <span class="pct">85%</span></div>
+          <div class="gift">🎁</div>
+          <div class="qrbox"><img class="qr-img" alt="QR"></div>
+        </div>
+
+        <div class="poster alt">
+          <div class="tags">
+            <div class="tag">Fair and justice</div>
+            <div class="tag">Open and transparent</div>
+          </div>
+          <div class="title">Get 500 USDT Free!</div>
+          <div class="features">
+            <div class="feature">
+              <div class="icon">💎</div>
+              <div class="label">Premium VIP</div>
+            </div>
+            <div class="feature">
+              <div class="icon">⚡</div>
+              <div class="label">Instant Bonus</div>
+            </div>
+          </div>
+          <div class="commission">First deposit bonus up to <span class="pct">200%</span></div>
+          <div class="gift">💰</div>
+          <div class="qrbox"><img class="qr-img" alt="QR"></div>
+        </div>
+      </div>
+
+      <div class="dots" id="dots">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+
+    <div class="invite-text">Invite friends &nbsp;&nbsp;&nbsp; Income <span class="billion">10 billion</span> Commission</div>
+
+    <div class="actions">
+      <div class="btn btn-primary" id="downloadQRBtn">Download QR Code</div>
+      <div class="btn btn-outline" id="copyLinkBtn1">Copy invitation link</div>
+    </div>
+
+    <!-- =========== NEW: Share section =========== -->
+    <div class="share-section">
+      <div class="share-title">Share to other apps to invite friend</div>
+
+      <div class="social-icons">
+        <div class="social-item" data-platform="whatsapp">
+          <div class="social-icon"><i class="fab fa-whatsapp"></i></div>
+          <div class="social-label">Whatsapp</div>
+        </div>
+        <div class="social-item" data-platform="telegram">
+          <div class="social-icon"><i class="fab fa-telegram-plane"></i></div>
+          <div class="social-label">Telegram</div>
+        </div>
+        <div class="social-item" data-platform="facebook">
+          <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
+          <div class="social-label">Facebook</div>
+        </div>
+        <div class="social-item" data-platform="twitter">
+          <div class="social-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <div class="social-label">Twitter</div>
+        </div>
+        <div class="social-item" data-platform="instagram">
+          <div class="social-icon"><i class="fab fa-instagram"></i></div>
+          <div class="social-label">Instagram</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action sheet (shows what's happening when invoking deep link) -->
+  <div class="sheet-mask" id="sheetMask">
+    <div class="sheet">
+      <div class="sheet-title" id="sheetTitle">Sharing to WhatsApp</div>
+      <div class="sheet-sub" id="sheetSub">Detecting app status…</div>
+      <div id="sheetSteps"></div>
+      <div class="sheet-cancel" id="sheetCancel">Close</div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script>
+    // === Mock data (would come from POST /api/webapi/GetUrlAddress) ===
+    const inviteCode = 'DRYVNJN';
+    const inviteUrl = 'https://13l.game/?invitationCode=' + inviteCode;
+
+    // Hardcoded share text template (frontend i18n key: invite.shareText)
+    const shareTextTemplate =
+      '🎰 Get 500 FREE coins on signup!\n' +
+      'Use my invite code: {inviteCode}\n' +
+      'Join now: {url}';
+
+    function buildShareText() {
+      return shareTextTemplate
+        .replace(/\{inviteCode\}/g, inviteCode)
+        .replace(/\{url\}/g, inviteUrl);
+    }
+
+    // === Generate QR codes (mock the existing logic) ===
+    QRCode.toDataURL(inviteUrl, { width: 160, margin: 1 }, (err, url) => {
+      if (!err) {
+        document.querySelectorAll('.qr-img').forEach(img => img.src = url);
+      }
+    });
+
+    // === Toast helper ===
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 1800);
+    }
+
+    // === Carousel dots sync ===
+    const carousel = document.getElementById('carousel');
+    const dots = document.querySelectorAll('.dot');
+    carousel.addEventListener('scroll', () => {
+      const posters = carousel.querySelectorAll('.poster');
+      const carouselRect = carousel.getBoundingClientRect();
+      const carouselCenter = carouselRect.left + carouselRect.width / 2;
+      let nearestIdx = 0;
+      let minDist = Infinity;
+      posters.forEach((p, i) => {
+        const r = p.getBoundingClientRect();
+        const c = r.left + r.width / 2;
+        const dist = Math.abs(c - carouselCenter);
+        if (dist < minDist) { minDist = dist; nearestIdx = i; }
+      });
+      dots.forEach((d, i) => d.classList.toggle('active', i === nearestIdx));
+    }, { passive: true });
+
+    // === Copy helpers (clipboard API + execCommand fallback) ===
+    async function copyText(str) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(str);
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = str;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+        }
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function copyLink() {
+      const ok = await copyText(inviteUrl);
+      toast(ok ? 'Copied to clipboard' : 'Copy failed');
+    }
+
+    async function copyShareText() {
+      await copyText(buildShareText());
+    }
+
+    document.getElementById('copyLinkBtn1').addEventListener('click', copyLink);
+
+    document.getElementById('downloadQRBtn').addEventListener('click', () => {
+      toast('Download QR Code (existing function)');
+    });
+
+    // === Platform deep-link / web fallback config ===
+    function getPlatformConfig(platform) {
+      const text = buildShareText();
+      const encodedText = encodeURIComponent(text);
+      const encodedUrl = encodeURIComponent(inviteUrl);
+
+      const cfg = {
+        whatsapp: {
+          name: 'WhatsApp',
+          appUrl: `whatsapp://send?text=${encodedText}`,
+          webUrl: `https://wa.me/?text=${encodedText}`,
+          storeIos: 'https://apps.apple.com/app/whatsapp-messenger/id310633997',
+          storeAndroid: 'https://play.google.com/store/apps/details?id=com.whatsapp'
+        },
+        telegram: {
+          name: 'Telegram',
+          appUrl: `tg://msg_url?url=${encodedUrl}&text=${encodedText}`,
+          webUrl: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
+          storeIos: 'https://apps.apple.com/app/telegram-messenger/id686449807',
+          storeAndroid: 'https://play.google.com/store/apps/details?id=org.telegram.messenger'
+        },
+        facebook: {
+          name: 'Facebook',
+          appUrl: `fb://facewebmodal/f?href=${encodedUrl}`,
+          webUrl: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+          storeIos: 'https://apps.apple.com/app/facebook/id284882215',
+          storeAndroid: 'https://play.google.com/store/apps/details?id=com.facebook.katana'
+        },
+        twitter: {
+          name: 'Twitter (X)',
+          appUrl: `twitter://post?message=${encodedText}`,
+          webUrl: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+          storeIos: 'https://apps.apple.com/app/x/id333903271',
+          storeAndroid: 'https://play.google.com/store/apps/details?id=com.twitter.android'
+        },
+        instagram: {
+          name: 'Instagram',
+          // Instagram has no public share-with-text scheme; we open the app or store
+          appUrl: 'instagram://app',
+          webUrl: 'https://www.instagram.com/',
+          storeIos: 'https://apps.apple.com/app/instagram/id389801252',
+          storeAndroid: 'https://play.google.com/store/apps/details?id=com.instagram.android',
+          needsManualPaste: true
+        }
+      };
+      return cfg[platform];
+    }
+
+    // === Action sheet helpers ===
+    const sheetMask = document.getElementById('sheetMask');
+    const sheetTitle = document.getElementById('sheetTitle');
+    const sheetSub = document.getElementById('sheetSub');
+    const sheetSteps = document.getElementById('sheetSteps');
+    document.getElementById('sheetCancel').addEventListener('click', closeSheet);
+    sheetMask.addEventListener('click', (e) => { if (e.target === sheetMask) closeSheet(); });
+
+    function openSheet(title, sub) {
+      sheetTitle.textContent = title;
+      sheetSub.textContent = sub;
+      sheetSteps.innerHTML = '';
+      sheetMask.classList.add('active');
+    }
+    function closeSheet() { sheetMask.classList.remove('active'); }
+    function pushStep(text) {
+      const div = document.createElement('div');
+      div.className = 'sheet-step';
+      div.innerHTML = `<span class="dot-step">●</span><span>${text}</span>`;
+      sheetSteps.appendChild(div);
+      return div;
+    }
+    function markStepDone(step) { step.classList.add('done'); }
+
+    // === Deep-link try-then-fallback (real auto-detection) ===
+    // Strategy: hit the App URL scheme; if the page is still visible after
+    // ~1.8s, assume the App isn't installed and fallback to the Web URL.
+    // Built-in to all real-world H5 share flows (WeChat, TikTok, etc.).
+    function runDeepLinkDetection(cfg) {
+      const stepTry = pushStep(`Trying to open ${cfg.name} App…`);
+      let appOpened = false;
+      let timer;
+
+      const onVisibilityChange = () => {
+        if (document.hidden) {
+          appOpened = true;
+          markStepDone(stepTry);
+          sheetSub.textContent = `${cfg.name} App opened ✅`;
+          pushStep(`Switched to ${cfg.name} App`).classList.add('done');
+          clearTimeout(timer);
+          setTimeout(closeSheet, 800);
+        }
+      };
+      document.addEventListener('visibilitychange', onVisibilityChange);
+
+      // Trigger app scheme via hidden iframe (more reliable than location.href on iOS)
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = cfg.appUrl;
+      document.body.appendChild(iframe);
+      setTimeout(() => iframe.remove(), 100);
+
+      timer = setTimeout(() => {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        if (appOpened || document.hidden) return;
+
+        // App not detected — fallback to web
+        markStepDone(stepTry);
+        sheetSub.textContent = `${cfg.name} App not installed`;
+        pushStep('App not detected, opening Web version…');
+        setTimeout(() => {
+          window.open(cfg.webUrl, '_blank');
+          closeSheet();
+        }, 700);
+      }, 1800);
+    }
+
+    function tryOpenAppOrFallback(cfg) {
+      openSheet(`Sharing to ${cfg.name}`, 'Detecting if App is installed…');
+      runDeepLinkDetection(cfg);
+    }
+
+    // === Social share button click handler ===
+    document.querySelectorAll('.social-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const platform = item.dataset.platform;
+        const cfg = getPlatformConfig(platform);
+        if (!cfg) return;
+
+        // Instagram special: clipboard-first, since IG has no share-with-text URL
+        if (cfg.needsManualPaste) {
+          copyShareText();
+          openSheet('Sharing to Instagram', 'Instagram does not support direct text share');
+          pushStep('Share text copied to clipboard ✅').classList.add('done');
+          runDeepLinkDetection(cfg);
+          return;
+        }
+
+        tryOpenAppOrFallback(cfg);
+      });
+    });
+  </script>
+</body>
+</html>
