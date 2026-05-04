@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1440, initial-scale=1.0">
+<title>邀请转盘配置 · 规则多语言</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;color:#333;background:#f0f2f5}
+
+/* 顶部 */
+.top-bar{background:#001529;height:48px;display:flex;align-items:center;padding:0 20px;color:#fff;font-size:14px;font-weight:600}
+.top-bar .hint{margin-left:auto;font-size:11px;color:#faad14;background:#fff7e6;padding:3px 10px;border-radius:12px;border:1px solid #ffd591}
+
+/* 侧边栏 */
+.layout{display:flex;min-height:calc(100vh - 48px)}
+.sidebar{width:200px;background:#001529;padding-top:12px;flex-shrink:0}
+.menu-group{padding:8px 0}
+.menu-title{color:#ffffff60;font-size:11px;padding:6px 20px;text-transform:uppercase}
+.menu-item{color:#ffffffa6;padding:9px 20px;cursor:pointer;font-size:13px}
+.menu-item:hover{color:#fff;background:#ffffff10}
+.menu-item.active{color:#fff;background:#1890ff}
+
+/* 主内容 */
+.main{flex:1;padding:16px 20px}
+.breadcrumb{font-size:12px;color:#888;margin-bottom:12px}
+.breadcrumb b{color:#1890ff}
+
+/* 卡片 */
+.card{background:#fff;border-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.06);margin-bottom:16px}
+.card-header{padding:12px 16px;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:16px}
+
+/* 表单 */
+.form-row{display:flex;align-items:flex-start;margin-bottom:14px}
+.form-label{width:140px;text-align:right;padding-right:12px;color:#666;padding-top:6px;flex-shrink:0;font-size:13px}
+.form-control{height:32px;border:1px solid #d9d9d9;border-radius:4px;padding:0 10px;font-size:13px;outline:none;width:300px}
+.form-control:focus{border-color:#1890ff;box-shadow:0 0 0 2px rgba(24,144,255,.1)}
+.form-hint{font-size:11px;color:#999;margin-left:8px;padding-top:6px}
+
+/* 开关 */
+.sw{position:relative;display:inline-block;width:40px;height:22px;vertical-align:middle}
+.sw input{display:none}
+.sw .sl{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:22px;transition:.2s}
+.sw .sl:before{content:"";position:absolute;height:16px;width:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+.sl{background:#1890ff}
+.sw input:checked+.sl:before{transform:translateX(18px)}
+
+/* 语言Tab */
+.lang-tabs{display:flex;gap:0;border-bottom:2px solid #f0f0f0;margin-bottom:14px}
+.lang-tab{padding:8px 18px;cursor:pointer;color:#666;font-size:13px;border-bottom:2px solid transparent;margin-bottom:-2px;display:flex;align-items:center;gap:6px}
+.lang-tab:hover{color:#1890ff}
+.lang-tab.active{color:#1890ff;border-bottom-color:#1890ff;font-weight:600}
+.lang-tab .dot{width:6px;height:6px;border-radius:50%;background:#d9d9d9}
+.lang-tab.has-content .dot{background:#52c41a}
+.lang-tab.active .dot{background:#1890ff}
+
+/* 富文本编辑器模拟 */
+.editor-toolbar{display:flex;gap:4px;padding:6px 8px;border:1px solid #d9d9d9;border-bottom:none;border-radius:4px 4px 0 0;background:#fafafa;flex-wrap:wrap}
+.editor-btn{width:28px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid #e8e8e8;border-radius:3px;cursor:pointer;font-size:12px;color:#555;background:#fff}
+.editor-btn:hover{background:#e6f7ff;border-color:#1890ff;color:#1890ff}
+.editor-body{border:1px solid #d9d9d9;border-radius:0 0 4px 4px;min-height:220px;padding:12px;font-size:13px;line-height:1.8;outline:none;color:#333}
+.editor-body:focus{border-color:#1890ff}
+.editor-body p{margin-bottom:6px}
+
+/* 语言内容区 */
+.lang-content{display:none}
+.lang-content.active{display:block}
+
+/* 按钮 */
+.btn{padding:6px 20px;border:1px solid #d9d9d9;border-radius:4px;cursor:pointer;font-size:13px;background:#fff;color:#666}
+.btn:hover{border-color:#1890ff;color:#1890ff}
+.btn-primary{background:#1890ff;border-color:#1890ff;color:#fff}
+.btn-primary:hover{background:#40a9ff;border-color:#40a9ff;color:#fff}
+.save-bar{text-align:center;padding:16px 0;display:flex;justify-content:center;gap:10px}
+
+/* 新增标记 */
+.badge-new{background:#fff7e6;color:#fa8c16;padding:1px 5px;font-size:9px;border:1px dashed #fa8c16;border-radius:2px;margin-left:6px;vertical-align:middle}
+
+/* 提示 */
+.info-tip{background:#e6f7ff;border:1px solid #91d5ff;border-radius:4px;padding:8px 12px;font-size:12px;color:#096dd9;line-height:1.7;margin-bottom:14px}
+
+/* 已有配置区域（简略） */
+.existing-config{background:#fafafa;border:1px solid #f0f0f0;border-radius:4px;padding:12px 16px;margin-bottom:16px}
+.existing-config .title{font-size:13px;font-weight:600;color:#555;margin-bottom:8px}
+.existing-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px}
+.existing-row .label{color:#888;width:140px;text-align:right}
+.existing-row .value{color:#333}
+
+/* Toast */
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#52c41a;color:#fff;padding:10px 24px;border-radius:4px;font-size:14px;z-index:300;display:none;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.toast.show{display:block;animation:fadeio 2.5s}
+@keyframes fadeio{0%{opacity:0;transform:translateX(-50%) translateY(-10px)}10%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1}100%{opacity:0}}
+
+/* 金额输入行 */
+.amount-row{display:flex;gap:8px;flex-wrap:wrap}
+.amount-item{display:flex;align-items:center;gap:4px}
+.amount-item span{font-size:12px;color:#888}
+.amount-item input{width:70px;height:28px;border:1px solid #d9d9d9;border-radius:4px;padding:0 6px;font-size:12px;text-align:center;outline:none}
+.amount-item input:focus{border-color:#1890ff}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  Ar_V1_Admin 后台管理系统
+  <div class="hint">邀请转盘规则多语言配置 · 交互原型</div>
+</div>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <div class="sidebar">
+    <div class="menu-group">
+      <div class="menu-title">活动管理</div>
+      <div class="menu-item">大转盘配置</div>
+      <div class="menu-item active">邀请转盘配置</div>
+      <div class="menu-item">每周任务</div>
+      <div class="menu-item">每日任务</div>
+      <div class="menu-item">新手礼包</div>
+    </div>
+    <div class="menu-group">
+      <div class="menu-title">系统管理</div>
+      <div class="menu-item">参数配置</div>
+      <div class="menu-item">H5配置</div>
+    </div>
+  </div>
+
+  <!-- 主内容 -->
+  <div class="main">
+    <div class="breadcrumb">活动管理 > <b>邀请转盘配置</b></div>
+
+    <!-- 现有配置区域（简略展示） -->
+    <div class="card">
+      <div class="card-header">邀请转盘基础配置</div>
+      <div class="card-body">
+        <div class="existing-config">
+          <div class="existing-row"><span class="label">转盘活动开关：</span><span class="value"><label class="sw"><input type="checkbox" checked><span class="sl"></span></label> 已开启</span></div>
+          <div class="existing-row"><span class="label">邀请有效充值金额：</span><span class="value">100</span></div>
+          <div class="existing-row"><span class="label">免费旋转次数：</span><span class="value">1</span></div>
+          <div class="existing-row"><span class="label">邀请中奖金额：</span>
+            <span class="value">
+              <div class="amount-row">
+                <div class="amount-item"><span>金额1</span><input value="5"></div>
+                <div class="amount-item"><span>金额2</span><input value="10"></div>
+                <div class="amount-item"><span>金额3</span><input value="20"></div>
+                <div class="amount-item"><span>金额4</span><input value="50"></div>
+                <div class="amount-item"><span>金额5</span><input value="100"></div>
+                <div class="amount-item"><span>金额6</span><input value="200"></div>
+                <div class="amount-item"><span>金额7</span><input value="500"></div>
+              </div>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 规则说明多语言配置（改动部分） -->
+    <div class="card">
+      <div class="card-header">
+        转盘活动规则说明 <span class="badge-new">多语言</span>
+      </div>
+      <div class="card-body">
+        <div class="info-tip">
+          按语言分别配置规则说明内容。未配置的语言将显示默认语言（第一个Tab）的内容作为兜底。
+          语言列表来源于 H5配置 中的「前台语言配置」。
+        </div>
+
+        <!-- 语言Tab -->
+        <div class="lang-tabs" id="langTabs">
+          <div class="lang-tab active has-content" onclick="switchLang(0)"><span class="dot"></span>English</div>
+          <div class="lang-tab has-content" onclick="switchLang(1)"><span class="dot"></span>हिन्दी (Hindi)</div>
+          <div class="lang-tab" onclick="switchLang(2)"><span class="dot"></span>বাংলা (Bengali)</div>
+          <div class="lang-tab" onclick="switchLang(3)"><span class="dot"></span>اردو (Urdu)</div>
+        </div>
+
+        <!-- English -->
+        <div class="lang-content active" id="lang-0">
+          <div class="editor-toolbar">
+            <div class="editor-btn" title="字体大小">A<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn" title="加粗"><b>B</b></div>
+            <div class="editor-btn" title="下划线"><u>U</u></div>
+            <div class="editor-btn" title="斜体"><i>I</i></div>
+            <div class="editor-btn" title="字体">Arial<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn" title="字体颜色"><span style="color:#ff4d4f;">A</span><span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn" title="无序列表">☰</div>
+            <div class="editor-btn" title="有序列表">1.</div>
+            <div class="editor-btn" title="对齐">≡<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn" title="表格">⊞</div>
+            <div class="editor-btn" title="链接">🔗</div>
+            <div class="editor-btn" title="图片">🖼</div>
+            <div class="editor-btn" title="视频">▶</div>
+            <div class="editor-btn" title="清除格式">✕</div>
+            <div class="editor-btn" title="源码">&lt;/&gt;</div>
+            <div class="editor-btn" title="帮助">?</div>
+          </div>
+          <div class="editor-body" contenteditable="true">
+            <p><u>1.When the cumulative amount reaches ₹500, you can cashout apply for withdrawal.</u></p>
+            <p><u>2.Invite a friend to join as your downline and have them make a deposit to receive 1 free spin and invite more friend will get more many free spin.</u></p>
+            <p><u>3.The activity lasts for 3 days. After the activity period ends, accumulated rewards will be reset, and the activity will start new.</u></p>
+            <p><u>4.Each user can enjoy 1 free spin opportunity per day. The spin count resets at 24:00 each day.</u></p>
+            <p><u>5.After approval of the application, the bonus will be directly credited into your wallet.</u></p>
+            <p><u>6.The bonus requires a turnover of one time before withdrawal.</u></p>
+            <p><br></p>
+            <p><u>NOTE:</u></p>
+            <p><u>The interpretation of the activity is reserved by BDGGAME. After the activity period ends, accumulated rewards will be reset, and the activity will start new.</u></p>
+          </div>
+        </div>
+
+        <!-- Hindi -->
+        <div class="lang-content" id="lang-1">
+          <div class="editor-toolbar">
+            <div class="editor-btn">A<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn"><b>B</b></div>
+            <div class="editor-btn"><u>U</u></div>
+            <div class="editor-btn"><i>I</i></div>
+            <div class="editor-btn">Arial<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn"><span style="color:#ff4d4f;">A</span><span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn">☰</div>
+            <div class="editor-btn">1.</div>
+            <div class="editor-btn">≡<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn">⊞</div>
+            <div class="editor-btn">🔗</div>
+            <div class="editor-btn">🖼</div>
+            <div class="editor-btn">▶</div>
+            <div class="editor-btn">✕</div>
+            <div class="editor-btn">&lt;/&gt;</div>
+            <div class="editor-btn">?</div>
+          </div>
+          <div class="editor-body" contenteditable="true">
+            <p><u>1.जब संचयी राशि ₹500 तक पहुँच जाती है, तो आप निकासी के लिए आवेदन कर सकते हैं।</u></p>
+            <p><u>2.अपने मित्र को अपने डाउनलाइन के रूप में शामिल होने के लिए आमंत्रित करें और उन्हें जमा करवाएं, 1 मुफ्त स्पिन प्राप्त करें।</u></p>
+            <p><u>3.गतिविधि 3 दिनों तक चलती है। गतिविधि अवधि समाप्त होने के बाद, संचित पुरस्कार रीसेट हो जाएंगे।</u></p>
+            <p><u>4.प्रत्येक उपयोगकर्ता प्रति दिन 1 मुफ्त स्पिन का आनंद ले सकता है। स्पिन काउंट हर दिन 24:00 बजे रीसेट होता है।</u></p>
+            <p><u>5.आवेदन की स्वीकृति के बाद, बोनस सीधे आपके वॉलेट में जमा हो जाएगा।</u></p>
+            <p><u>6.बोनस को निकासी से पहले एक बार टर्नओवर की आवश्यकता होती है।</u></p>
+            <p><br></p>
+            <p><u>नोट: गतिविधि की व्याख्या BDGGAME द्वारा सुरक्षित है।</u></p>
+          </div>
+        </div>
+
+        <!-- Bengali（未配置） -->
+        <div class="lang-content" id="lang-2">
+          <div class="editor-toolbar">
+            <div class="editor-btn">A<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn"><b>B</b></div>
+            <div class="editor-btn"><u>U</u></div>
+            <div class="editor-btn"><i>I</i></div>
+            <div class="editor-btn">Arial<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn"><span style="color:#ff4d4f;">A</span><span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn">☰</div>
+            <div class="editor-btn">1.</div>
+            <div class="editor-btn">≡<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn">⊞</div>
+            <div class="editor-btn">🔗</div>
+            <div class="editor-btn">🖼</div>
+            <div class="editor-btn">▶</div>
+            <div class="editor-btn">✕</div>
+            <div class="editor-btn">&lt;/&gt;</div>
+            <div class="editor-btn">?</div>
+          </div>
+          <div class="editor-body" contenteditable="true" style="color:#bbb;">
+            <p>（未配置，将显示默认语言内容作为兜底）</p>
+            <p><br></p>
+            <p>请在此输入孟加拉语版本的规则说明...</p>
+          </div>
+        </div>
+
+        <!-- Urdu（未配置） -->
+        <div class="lang-content" id="lang-3">
+          <div class="editor-toolbar">
+            <div class="editor-btn">A<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn"><b>B</b></div>
+            <div class="editor-btn"><u>U</u></div>
+            <div class="editor-btn"><i>I</i></div>
+            <div class="editor-btn">Arial<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn"><span style="color:#ff4d4f;">A</span><span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn">☰</div>
+            <div class="editor-btn">1.</div>
+            <div class="editor-btn">≡<span style="font-size:9px;">▼</span></div>
+            <div class="editor-btn">⊞</div>
+            <div class="editor-btn">🔗</div>
+            <div class="editor-btn">🖼</div>
+            <div class="editor-btn">▶</div>
+            <div class="editor-btn">✕</div>
+            <div class="editor-btn">&lt;/&gt;</div>
+            <div class="editor-btn">?</div>
+          </div>
+          <div class="editor-body" contenteditable="true" style="color:#bbb;" dir="rtl">
+            <p>（未配置，将显示默认语言内容作为兜底）</p>
+            <p><br></p>
+            <p>...براہ کرم یہاں اردو ورژن درج کریں</p>
+          </div>
+        </div>
+
+        <div class="save-bar">
+          <button class="btn btn-primary" onclick="saveContent()">保 存</button>
+          <button class="btn" onclick="showToast('已返回列表')">返 回</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function switchLang(idx) {
+  document.querySelectorAll('.lang-tab').forEach((t,i)=>{
+    t.classList.toggle('active', i===idx);
+  });
+  document.querySelectorAll('.lang-content').forEach((c,i)=>{
+    c.classList.toggle('active', i===idx);
+  });
+}
+
+function saveContent() {
+  // 检查哪些语言有内容，更新绿点
+  document.querySelectorAll('.lang-content').forEach((c,i)=>{
+    const text = c.querySelector('.editor-body').innerText.trim();
+    const tab = document.querySelectorAll('.lang-tab')[i];
+    if (text && !text.includes('未配置')) {
+      tab.classList.add('has-content');
+    }
+  });
+  showToast('保存成功！各语言规则说明已更新');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('show');
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
