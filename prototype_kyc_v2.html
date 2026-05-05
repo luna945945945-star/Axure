@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KYC 优化需求原型 V2</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'Microsoft YaHei', sans-serif; background: #f0f2f5; color: #333; font-size: 14px; }
+
+  .nav-tabs { display: flex; background: #fff; border-bottom: 2px solid #e8e8e8; padding: 0 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+  .nav-tab { padding: 14px 28px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; color: #666; font-size: 14px; white-space: nowrap; transition: all .2s; }
+  .nav-tab.active { color: #2080f0; border-bottom-color: #2080f0; font-weight: 600; }
+  .nav-tab:hover { color: #2080f0; background: #f8faff; }
+
+  .page { display: none; padding: 20px; max-width: 1600px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
+  .card-subtitle { font-size: 14px; font-weight: 600; margin: 16px 0 10px; color: #555; }
+
+  .search-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+  .form-item { display: flex; flex-direction: column; gap: 4px; }
+  .form-item label { font-size: 13px; color: #666; white-space: nowrap; }
+  .form-item input, .form-item select { height: 32px; padding: 0 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 13px; min-width: 140px; outline: none; transition: border .2s; }
+  .form-item input:focus, .form-item select:focus { border-color: #2080f0; box-shadow: 0 0 0 2px rgba(32,128,240,.1); }
+  .btn { height: 32px; padding: 0 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; transition: opacity .2s; }
+  .btn:hover { opacity: .85; }
+  .btn-primary { background: #2080f0; color: #fff; }
+  .btn-default { background: #fff; color: #666; border: 1px solid #d9d9d9; }
+  .btn-success { background: #18a058; color: #fff; }
+  .btn-warning { background: #f0a020; color: #fff; }
+  .btn-error { background: #d03050; color: #fff; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #fafafa; font-weight: 600; text-align: left; padding: 10px 12px; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
+  tr:hover td { background: #fafafa; }
+
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 12px; line-height: 20px; }
+  .tag-success { background: #e8f5e9; color: #18a058; border: 1px solid #b7eb8f; }
+  .tag-error { background: #ffeef0; color: #d03050; border: 1px solid #fcc; }
+  .tag-warning { background: #fff7e6; color: #d48806; border: 1px solid #ffe7ba; }
+  .tag-info { background: #e6f7ff; color: #2080f0; border: 1px solid #91d5ff; }
+  .tag-default { background: #f5f5f5; color: #999; border: 1px solid #e8e8e8; }
+
+  .link { color: #2080f0; cursor: pointer; text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+
+  .highlight { border: 2px dashed #d03050; border-radius: 6px; padding: 3px; position: relative; }
+  .highlight-tag { position: absolute; top: -10px; right: 8px; background: #d03050; color: #fff; font-size: 11px; padding: 1px 8px; border-radius: 3px; z-index: 1; }
+
+  .note { background: #fff8e1; border-left: 3px solid #ffc107; padding: 10px 14px; margin: 12px 0; font-size: 13px; color: #555; border-radius: 0 4px 4px 0; line-height: 1.8; }
+  .note strong { color: #333; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .detail-row { display: flex; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+  .detail-label { width: 130px; color: #999; flex-shrink: 0; text-align: right; padding-right: 12px; font-size: 13px; }
+  .detail-value { flex: 1; color: #333; font-size: 13px; }
+
+  .pagination { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 0; font-size: 13px; color: #666; }
+  .page-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .page-btn.active { background: #2080f0; color: #fff; border-color: #2080f0; }
+
+  .divider { border: none; border-top: 1px solid #f0f0f0; margin: 16px 0; }
+
+  .quick-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .quick-btn { padding: 4px 12px; background: #e6f7ff; color: #2080f0; border: 1px solid #91d5ff; border-radius: 4px; font-size: 12px; cursor: pointer; }
+
+  .auto-fill { background: #fffbe6 !important; border-color: #ffe58f !important; }
+
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.45); z-index: 200; justify-content: center; align-items: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 8px; width: 90%; max-width: 1100px; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 40px rgba(0,0,0,.15); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; }
+  .modal-header h3 { font-size: 16px; font-weight: 600; }
+  .modal-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; font-size: 18px; color: #999; }
+  .modal-close:hover { background: #f5f5f5; color: #333; }
+  .modal-body { padding: 20px; }
+
+  .req-card { border: 1px solid #e8e8e8; border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; transition: box-shadow .2s; }
+  .req-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .req-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .req-num { width: 28px; height: 28px; background: #2080f0; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .req-title { font-size: 15px; font-weight: 600; }
+  .req-pages { display: flex; gap: 6px; margin: 8px 0; }
+  .req-page-tag { padding: 2px 8px; background: #f0f5ff; color: #2080f0; border: 1px solid #d6e4ff; border-radius: 3px; font-size: 11px; }
+  .req-desc { color: #555; font-size: 13px; line-height: 1.8; }
+</style>
+</head>
+<body>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="switchTab('tab1')">需求说明</div>
+  <div class="nav-tab" onclick="switchTab('tab2')">待处理工单</div>
+  <div class="nav-tab" onclick="switchTab('tab3')">工单列表</div>
+  <div class="nav-tab" onclick="switchTab('tab4')">KYC 交易流水</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 需求说明 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="tab1" class="page active">
+  <div class="card">
+    <div class="card-title">KYC 优化需求说明（共 6 项）</div>
+    <p style="color:#555;line-height:1.8;margin-bottom:16px;">
+      客服处理「存款未到账」和「取款未到账」工单时，需要通过 KYC 系统核实会员的银行流水来判断资金是否真实到账或转出。当前 KYC 相关信息分散在多个页面，客服需要反复切换页面、手动搜索。本次优化将 KYC 信息整合到工单流程中，减少操作步骤。
+    </p>
+
+    <div class="req-card">
+      <div class="req-header">
+        <div class="req-num">1</div>
+        <div class="req-title">KYC 连接状态改为「曾经连接过」常亮</div>
+      </div>
+      <div class="req-pages">
+        <span class="req-page-tag">工单详情</span>
+      </div>
+      <div class="req-desc">
+        当前 KYC 连接状态是实时的，会员断连后状态变回「未连接」，客服无法判断 KYC 是否曾经拉取过数据。<br>
+        改为：只要该工单对应的 KYC 曾经连接过，就永远显示「已连接」（常亮不可逆）。按工单维度独立判断，工单之间互不影响。不补刷历史数据，仅对新工单生效。
+      </div>
+    </div>
+
+    <div class="req-card">
+      <div class="req-header">
+        <div class="req-num">2</div>
+        <div class="req-title">KYC 连接状态增加超链接跳转至 KYC 交易流水</div>
+      </div>
+      <div class="req-pages">
+        <span class="req-page-tag">工单详情</span>
+        <span class="req-page-tag">工单列表</span>
+        <span class="req-page-tag">待处理工单</span>
+        <span class="req-page-tag">KYC 交易流水</span>
+      </div>
+      <div class="req-desc">
+        KYC 连接状态标签（已连接/未连接）改为可点击超链接，点击后新开 Tab 页跳转到 KYC 交易流水页面。<br>
+        存款未到账工单自动带入完整手机号 + UTR 作为搜索条件，取款工单仅带入手机号。跳转后自动填充搜索框并执行搜索。<br>
+        已连接和未连接都支持跳转，不适用（--）不可点击。
+      </div>
+    </div>
+
+    <div class="req-card">
+      <div class="req-header">
+        <div class="req-num">3</div>
+        <div class="req-title">工单列表和待处理工单新增 KYC 连接筛选框和列</div>
+      </div>
+      <div class="req-pages">
+        <span class="req-page-tag">工单列表</span>
+        <span class="req-page-tag">待处理工单</span>
+      </div>
+      <div class="req-desc">
+        搜索区新增「KYC 连接」下拉筛选（全部/已连接/未连接）。表格新增「KYC 连接」列，展示绿色「已连接」/ 红色「未连接」/ 灰色「--」标签。<br>
+        标签可点击跳转到 KYC 交易流水（同需求 2）。仅存款未到账和取款未到账类型显示状态，其他类型显示「--」。
+      </div>
+    </div>
+
+    <div class="req-card">
+      <div class="req-header">
+        <div class="req-num">4</div>
+        <div class="req-title">存款未到账工单展示匹配的收款账号</div>
+      </div>
+      <div class="req-pages">
+        <span class="req-page-tag">工单详情</span>
+        <span class="req-page-tag">工单列表</span>
+        <span class="req-page-tag">待处理工单</span>
+      </div>
+      <div class="req-desc">
+        当存款未到账工单的 UTR 与 KYC 交易流水的 UTR 匹配一致时，展示该笔流水的平台收款账号（Recipient / UPI ID）。<br>
+        仅存款未到账（Type=6）展示，其他类型不展示。收款账号是三方的 UPI ID，不脱敏。未匹配到显示「--」。<br>
+        正常流水和异常流水都参与匹配。
+      </div>
+    </div>
+
+    <div class="req-card">
+      <div class="req-header">
+        <div class="req-num">5</div>
+        <div class="req-title">KYC 交易流水增加付款账号搜索条件</div>
+      </div>
+      <div class="req-pages">
+        <span class="req-page-tag">KYC 交易流水（正常 + 异常）</span>
+      </div>
+      <div class="req-desc">
+        KYC 交易流水列表搜索区新增「付款账号」输入框，支持模糊搜索。该字段（Payer）已在列表表格中展示，仅缺少搜索条件。
+      </div>
+    </div>
+
+    <div class="req-card">
+      <div class="req-header">
+        <div class="req-num">6</div>
+        <div class="req-title">工单列表和待处理工单新增「是否匹配收款人 UPI ID」筛选</div>
+      </div>
+      <div class="req-pages">
+        <span class="req-page-tag">工单列表</span>
+        <span class="req-page-tag">待处理工单</span>
+      </div>
+      <div class="req-desc">
+        搜索区新增「是否匹配收款人 UPI ID」下拉筛选（全部/是/否）。<br>
+        「是」= 工单 UTR 在 KYC 交易流水中有匹配记录，「否」= 无匹配。<br>
+        帮助客服快速区分哪些工单有 KYC 流水可核实、哪些没有，优先处理有据可查的工单。
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">确认结论</div>
+    <table>
+      <thead>
+        <tr><th style="width:280px;">确认项</th><th>结论</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>取款未到账是否展示收款账号</td><td>不需要，仅存款未到账（Type=6）</td></tr>
+        <tr><td>历史工单是否补刷</td><td>不补刷，仅对新工单生效。历史工单已基本处理完成，如有需要再按需补刷</td></tr>
+        <tr><td>收款账号是否脱敏</td><td>不脱敏，展示的是三方收款 UPI ID，非会员隐私</td></tr>
+        <tr><td>UTR 匹配是否包含异常流水</td><td>包含，不过滤 TransactionStatus</td></tr>
+        <tr><td>未连接状态是否可跳转</td><td>可跳转，会员可能有历史 KYC 流水</td></tr>
+        <tr><td>KYC 筛选是否联动工单类型</td><td>不联动，始终显示</td></tr>
+        <tr><td>常亮维度</td><td>按工单维度，非会员维度</td></tr>
+        <tr><td>跳转搜索框显示完整手机号</td><td>是，完整手机号可见（客服有业务权限）</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 待处理工单 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="tab2" class="page">
+  <div class="card">
+    <div class="card-title">待处理工单</div>
+
+    <div class="search-form">
+      <div class="form-item">
+        <label>会员账号</label>
+        <input type="text" placeholder="请输入会员账号">
+      </div>
+      <div class="form-item">
+        <label>工单类型</label>
+        <select><option>全部</option><option selected>存款未到账</option><option>取款未到账</option><option>一对一客服</option></select>
+      </div>
+      <div class="form-item">
+        <label>UTR</label>
+        <input type="text" placeholder="请输入UTR">
+      </div>
+      <div class="form-item">
+        <label>三方名称</label>
+        <input type="text" placeholder="请输入三方名称">
+      </div>
+      <div class="form-item">
+        <label>VIP等级</label>
+        <select><option>全部</option></select>
+      </div>
+      <div class="form-item">
+        <div class="highlight">
+          <div class="highlight-tag">需求3 新增</div>
+          <label>KYC连接</label>
+          <select><option selected>全部</option><option>已连接</option><option>未连接</option></select>
+        </div>
+      </div>
+      <div class="form-item">
+        <div class="highlight">
+          <div class="highlight-tag">需求6 新增</div>
+          <label>是否匹配收款人UPI ID</label>
+          <select><option selected>全部</option><option>是</option><option>否</option></select>
+        </div>
+      </div>
+      <div class="form-item">
+        <label>提交时间</label>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <input type="text" value="2026-05-04 00:00:00" style="min-width:135px;font-size:12px;">
+          <span>→</span>
+          <input type="text" value="2026-05-05 23:59:59" style="min-width:135px;font-size:12px;">
+        </div>
+      </div>
+      <div class="form-item" style="flex-direction:row;gap:8px;align-items:flex-end;">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn btn-default">重置</button>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>VIP</th>
+            <th>会员id</th>
+            <th>状态</th>
+            <th>三方名称</th>
+            <th>订单金额</th>
+            <th>附件类型</th>
+            <th>
+              <div class="highlight" style="display:inline-block;">
+                <div class="highlight-tag">需求3</div>
+                KYC连接
+              </div>
+            </th>
+            <th>
+              <div class="highlight" style="display:inline-block;">
+                <div class="highlight-tag">需求4</div>
+                收款账号
+              </div>
+            </th>
+            <th>提交时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>VIP 3</td>
+            <td>会员id: 19115423<br><span style="color:#2080f0;font-size:12px;">917****812</span></td>
+            <td><span class="tag tag-warning">待处理</span></td>
+            <td>PAYTM-Super</td>
+            <td>1,000</td>
+            <td><span class="tag tag-warning" style="font-size:11px;">图片</span> <span class="tag tag-info" style="font-size:11px;">视频</span></td>
+            <td><a class="link" onclick="showJumpAlert('917xxxx812','240455696677')"><span class="tag tag-success" style="cursor:pointer;">已连接 ↗</span></a></td>
+            <td>9350xxxx@ybl</td>
+            <td style="font-size:12px;">2026-05-05 14:08:36</td>
+            <td><a class="link" onclick="openDetail('connected','9350xxxx@ybl')">查看</a></td>
+          </tr>
+          <tr>
+            <td>VIP 2</td>
+            <td>会员id: 4297893<br><span style="color:#2080f0;font-size:12px;">918****044</span></td>
+            <td><span class="tag tag-warning">待处理</span></td>
+            <td>Paile-QR</td>
+            <td>500</td>
+            <td><span class="tag tag-warning" style="font-size:11px;">图片</span> <span class="tag tag-info" style="font-size:11px;">视频</span> <span class="tag tag-success" style="font-size:11px;">PDF</span></td>
+            <td><a class="link" onclick="showJumpAlert('918xxxx044','')"><span class="tag tag-error" style="cursor:pointer;">未连接 ↗</span></a></td>
+            <td style="color:#999;">--</td>
+            <td style="font-size:12px;">2026-05-05 14:08:16</td>
+            <td><a class="link" onclick="openDetail('disconnected','--')">查看</a></td>
+          </tr>
+          <tr>
+            <td>VIP 2</td>
+            <td>会员id: 21795131<br><span style="color:#2080f0;font-size:12px;">919****600</span></td>
+            <td><span class="tag tag-warning">待处理</span></td>
+            <td>QR-WePay</td>
+            <td>100</td>
+            <td><span class="tag tag-warning" style="font-size:11px;">图片</span></td>
+            <td><a class="link" onclick="showJumpAlert('919xxxx600','027719931025')"><span class="tag tag-success" style="cursor:pointer;">已连接 ↗</span></a></td>
+            <td>musixxxx@tyes</td>
+            <td style="font-size:12px;">2026-05-05 14:08:16</td>
+            <td><a class="link" onclick="openDetail('connected','musixxxx@tyes')">查看</a></td>
+          </tr>
+          <tr>
+            <td>VIP 0</td>
+            <td>会员id: 22890598<br><span style="color:#2080f0;font-size:12px;">918****485</span></td>
+            <td><span class="tag tag-warning">待处理</span></td>
+            <td>QR-YayaPay</td>
+            <td>100</td>
+            <td><span class="tag tag-warning" style="font-size:11px;">图片</span></td>
+            <td><span class="tag tag-default">--</span></td>
+            <td style="color:#999;">--</td>
+            <td style="font-size:12px;">2026-05-05 14:08:11</td>
+            <td><a class="link">查看</a></td>
+          </tr>
+          <tr>
+            <td>VIP 1</td>
+            <td>会员id: 23243853<br><span style="color:#2080f0;font-size:12px;">919****630</span></td>
+            <td><span class="tag tag-warning">待处理</span></td>
+            <td>PAYTM-Super</td>
+            <td>300</td>
+            <td><span class="tag tag-warning" style="font-size:11px;">图片</span></td>
+            <td><a class="link" onclick="showJumpAlert('919xxxx630','903193211365')"><span class="tag tag-success" style="cursor:pointer;">已连接 ↗</span></a></td>
+            <td>7879xxxx@bkns</td>
+            <td style="font-size:12px;">2026-05-05 14:08:08</td>
+            <td><a class="link" onclick="openDetail('connected','7879xxxx@bkns')">查看</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <strong>需求3：</strong>新增「KYC连接」筛选框 + 表格列。绿色「已连接」= 曾经连接过（常亮不可逆，需求1），红色「未连接」= 从未连接，灰色「--」= 不适用。标签可点击跳转至 KYC 交易流水（需求2）。<br>
+      <strong>需求4：</strong>新增「收款账号」列。仅存款未到账工单展示，UTR 匹配 KYC 流水后取 Recipient 值，不脱敏。<br>
+      <strong>需求6：</strong>新增「是否匹配收款人UPI ID」筛选。帮助客服快速区分可核实/不可核实的工单。
+    </div>
+    <div class="pagination">
+      <span>共 156 条</span>
+      <div class="page-btn">&lt;</div>
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">3</div>
+      <div class="page-btn">...</div>
+      <div class="page-btn">8</div>
+      <div class="page-btn">&gt;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 工单列表 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="tab3" class="page">
+  <div class="card">
+    <div class="card-title">工单管理</div>
+
+    <div class="search-form">
+      <div class="form-item">
+        <label>会员账号</label>
+        <input type="text" placeholder="请输入会员账号">
+      </div>
+      <div class="form-item">
+        <label>工单号</label>
+        <input type="text" placeholder="请输入工单号">
+      </div>
+      <div class="form-item">
+        <label>三方名称</label>
+        <input type="text" placeholder="请输入三方名称">
+      </div>
+      <div class="form-item">
+        <label>订单号</label>
+        <input type="text" placeholder="请输入订单号">
+      </div>
+      <div class="form-item">
+        <label>查询结果</label>
+        <input type="text" placeholder="请输入查询结果">
+      </div>
+      <div class="form-item">
+        <label>UTR</label>
+        <input type="text" placeholder="请输入UTR">
+      </div>
+      <div class="form-item">
+        <label>状态</label>
+        <select><option>全部</option><option selected>系统处理中</option><option>待处理</option><option>处理中</option><option>已驳回</option><option>已处理</option></select>
+      </div>
+      <div class="form-item">
+        <label>工单类型</label>
+        <select><option>全部</option><option selected>存款未到账</option></select>
+      </div>
+      <div class="form-item">
+        <label>VIP等级</label>
+        <select><option>全部</option></select>
+      </div>
+      <div class="form-item">
+        <label>附件类型</label>
+        <select><option>全部</option></select>
+      </div>
+      <div class="form-item">
+        <div class="highlight">
+          <div class="highlight-tag">需求3 新增</div>
+          <label>KYC连接</label>
+          <select><option selected>全部</option><option>已连接</option><option>未连接</option></select>
+        </div>
+      </div>
+      <div class="form-item">
+        <div class="highlight">
+          <div class="highlight-tag">需求6 新增</div>
+          <label>是否匹配收款人UPI ID</label>
+          <select><option selected>全部</option><option>是</option><option>否</option></select>
+        </div>
+      </div>
+      <div class="form-item">
+        <label>操作人</label>
+        <input type="text" placeholder="请输入操作人">
+      </div>
+      <div class="form-item">
+        <label>操作时间</label>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <input type="text" placeholder="开始时间" style="min-width:130px;font-size:12px;">
+          <span>→</span>
+          <input type="text" placeholder="结束时间" style="min-width:130px;font-size:12px;">
+        </div>
+      </div>
+      <div class="form-item">
+        <label>提交时间</label>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <input type="text" value="2026-05-04 00:00:00" style="min-width:130px;font-size:12px;">
+          <span>→</span>
+          <input type="text" value="2026-05-05 23:59:59" style="min-width:130px;font-size:12px;">
+        </div>
+      </div>
+      <div class="form-item" style="flex-direction:row;gap:8px;align-items:flex-end;">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn btn-default">重置</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn btn-success" style="font-size:12px;">导出</button>
+      <button class="btn btn-info" style="font-size:12px;background:#2080f0;color:#fff;">批量三方查询</button>
+      <button class="btn btn-error" style="font-size:12px;">批量驳回</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th><input type="checkbox"></th>
+            <th>VIP</th>
+            <th>会员id</th>
+            <th>状态</th>
+            <th>三方名称</th>
+            <th>三方映射码</th>
+            <th>订单金额</th>
+            <th>催单次数</th>
+            <th>附件类型</th>
+            <th>
+              <div class="highlight" style="display:inline-block;">
+                <div class="highlight-tag">需求3</div>
+                KYC连接
+              </div>
+            </th>
+            <th>
+              <div class="highlight" style="display:inline-block;">
+                <div class="highlight-tag">需求4</div>
+                收款账号
+              </div>
+            </th>
+            <th>提交时间</th>
+            <th>操作时间</th>
+            <th>操作人</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td>VIP 3</td>
+            <td>会员id: 19115423<br><span style="color:#2080f0;font-size:12px;">917****812</span></td>
+            <td><span class="tag tag-info">系统处理中</span></td>
+            <td>PAYTM-Super</td>
+            <td>10317</td>
+            <td>1,000</td>
+            <td>0</td>
+            <td><span class="tag tag-warning" style="font-size:11px;">图片</span> <span class="tag tag-info" style="font-size:11px;">视频</span></td>
+            <td><a class="link" onclick="showJumpAlert('917xxxx812','240455696677')"><span class="tag tag-success" style="cursor:pointer;">已连接 ↗</span></a></td>
+            <td>9350xxxx@ybl</td>
+            <td style="font-size:12px;">2026-05-05 14:08:36</td>
+            <td style="font-size:12px;">2026-05-05 14:08:40</td>
+            <td>admin</td>
+            <td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">--</td>
+            <td><a class="link" onclick="openDetail('connected','9350xxxx@ybl')">查看</a> <a class="link" style="margin-left:4px;">编辑</a></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td>VIP 2</td>
+            <td>会员id: 4297893<br><span style="color:#2080f0;font-size:12px;">918****044</span></td>
+            <td><span class="tag tag-info">系统处理中</span></td>
+            <td>Paile-QR</td>
+            <td>10262</td>
+            <td>500</td>
+            <td>0</td>
+            <td><span class="tag tag-warning" style="font-size:11px;">图片</span> <span class="tag tag-info" style="font-size:11px;">视频</span> <span class="tag tag-success" style="font-size:11px;">PDF</span></td>
+            <td><a class="link" onclick="showJumpAlert('918xxxx044','')"><span class="tag tag-error" style="cursor:pointer;">未连接 ↗</span></a></td>
+            <td style="color:#999;">--</td>
+            <td style="font-size:12px;">2026-05-05 14:08:16</td>
+            <td style="font-size:12px;">2026-05-05 14:08:20</td>
+            <td>admin</td>
+            <td>--</td>
+            <td><a class="link" onclick="openDetail('disconnected','--')">查看</a> <a class="link" style="margin-left:4px;">编辑</a></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td>VIP 3</td>
+            <td>会员id: 22329854<br><span style="color:#2080f0;font-size:12px;">919****495</span></td>
+            <td><span class="tag tag-info">系统处理中</span></td>
+            <td>PAYTM-Super</td>
+            <td>10317</td>
+            <td>500</td>
+            <td>0</td>
+            <td><span class="tag tag-warning" style="font-size:11px;">图片</span></td>
+            <td><a class="link" onclick="showJumpAlert('919xxxx495','654163157306')"><span class="tag tag-success" style="cursor:pointer;">已连接 ↗</span></a></td>
+            <td>9154xxxx@bkns</td>
+            <td style="font-size:12px;">2026-05-05 14:08:09</td>
+            <td style="font-size:12px;">2026-05-05 14:08:11</td>
+            <td>admin</td>
+            <td>--</td>
+            <td><a class="link" onclick="openDetail('connected','9154xxxx@bkns')">查看</a> <a class="link" style="margin-left:4px;">编辑</a></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td>VIP 1</td>
+            <td>会员id: 23243853<br><span style="color:#2080f0;font-size:12px;">919****630</span></td>
+            <td><span class="tag tag-info">系统处理中</span></td>
+            <td>PAYTM-Super</td>
+            <td>10317</td>
+            <td>300</td>
+            <td>1</td>
+            <td><span class="tag tag-warning" style="font-size:11px;">图片</span></td>
+            <td><span class="tag tag-default">--</span></td>
+            <td style="color:#999;">--</td>
+            <td style="font-size:12px;">2026-05-05 14:08:08</td>
+            <td style="font-size:12px;">2026-05-05 14:08:11</td>
+            <td>admin</td>
+            <td>--</td>
+            <td><a class="link">查看</a> <a class="link" style="margin-left:4px;">编辑</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      工单列表与待处理工单共用相同的 KYC 新增列和筛选条件。工单列表额外保留原有的「订单号」「查询结果」「状态」等筛选条件。
+    </div>
+    <div class="pagination">
+      <span>共 805 条</span>
+      <div class="page-btn">&lt;</div>
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">3</div>
+      <div class="page-btn">...</div>
+      <div class="page-btn">41</div>
+      <div class="page-btn">&gt;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- KYC 交易流水 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="tab4" class="page">
+  <div class="card">
+    <div class="card-title">KYC 交易流水列表</div>
+
+    <div style="display:flex;gap:0;margin-bottom:16px;">
+      <div style="padding:8px 20px;background:#2080f0;color:#fff;border-radius:4px 4px 0 0;font-size:13px;cursor:pointer;">KYC交易流水</div>
+      <div style="padding:8px 20px;background:#f5f5f5;color:#666;border-radius:4px 4px 0 0;font-size:13px;cursor:pointer;margin-left:2px;">KYC异常流水</div>
+    </div>
+
+    <div class="note" id="jumpNote" style="display:none;">
+      <strong>从工单跳转过来：</strong>手机号和 UTR 已自动填入（黄色高亮），页面已自动执行搜索。
+    </div>
+
+    <div class="search-form">
+      <div class="form-item">
+        <label>手机号</label>
+        <input type="text" id="kycPhone" placeholder="请输入手机号">
+      </div>
+      <div class="form-item">
+        <label>银行名称</label>
+        <select><option>请选择银行名称</option><option>Phonepe</option></select>
+      </div>
+      <div class="form-item">
+        <div class="highlight">
+          <div class="highlight-tag">需求5 新增</div>
+          <label>付款账号</label>
+          <input type="text" placeholder="请输入付款账号">
+        </div>
+      </div>
+      <div class="form-item">
+        <label>UTR</label>
+        <input type="text" id="kycUtr" placeholder="请输入UTR">
+      </div>
+      <div class="form-item">
+        <label>收款账号</label>
+        <input type="text" placeholder="请输入收款账号">
+      </div>
+      <div class="form-item">
+        <label>IFSC</label>
+        <input type="text" placeholder="请输入IFSC">
+      </div>
+      <div class="form-item">
+        <label>收款人姓名</label>
+        <input type="text" placeholder="请输入收款人姓名">
+      </div>
+      <div class="form-item">
+        <label>交易类型</label>
+        <select><option>请选择交易类型</option><option>收入</option><option>支出</option></select>
+      </div>
+      <div class="form-item">
+        <label>交易时间</label>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <input type="text" placeholder="开始时间" style="min-width:120px;font-size:12px;">
+          <span>→</span>
+          <input type="text" placeholder="结束时间" style="min-width:120px;font-size:12px;">
+        </div>
+      </div>
+      <div class="form-item" style="flex-direction:row;gap:8px;align-items:flex-end;">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn btn-default" onclick="clearAutoFill()">重置</button>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>手机号</th>
+            <th>银行名称</th>
+            <th>
+              <div class="highlight" style="display:inline-block;">
+                <div class="highlight-tag">需求5 可搜索</div>
+                付款账号
+              </div>
+            </th>
+            <th>流水金额</th>
+            <th>UTR</th>
+            <th>收款账号</th>
+            <th>IFSC</th>
+            <th>收款人姓名</th>
+            <th>交易类型</th>
+            <th>流水状态</th>
+            <th>交易时间</th>
+          </tr>
+        </thead>
+        <tbody id="kycTableBody">
+          <tr>
+            <td>9199****9325</td>
+            <td>Phonepe</td>
+            <td>62993256@a...</td>
+            <td>200</td>
+            <td style="font-weight:600;color:#2080f0;">240455696677</td>
+            <td>7761xxxx@idbi</td>
+            <td></td>
+            <td>FRESHBASKETS DISTRIB...</td>
+            <td><span class="tag tag-error" style="font-size:11px;">支出</span></td>
+            <td>COMPLETED</td>
+            <td style="font-size:12px;">2026-04-18 14:37:01</td>
+          </tr>
+          <tr>
+            <td>9199****9325</td>
+            <td>Phonepe</td>
+            <td>62993256@a...</td>
+            <td>100</td>
+            <td>208402474117</td>
+            <td>9263xxxx@bkns</td>
+            <td></td>
+            <td>AYUSHI KUMARI</td>
+            <td><span class="tag tag-error" style="font-size:11px;">支出</span></td>
+            <td>COMPLETED</td>
+            <td style="font-size:12px;">2026-04-19 13:42:46</td>
+          </tr>
+          <tr>
+            <td>9199****9325</td>
+            <td>Phonepe</td>
+            <td>62993256@y...</td>
+            <td>200</td>
+            <td>027719931025</td>
+            <td>singxxxx@idbi</td>
+            <td></td>
+            <td>SINGROUL CONSTRUCTI...</td>
+            <td><span class="tag tag-error" style="font-size:11px;">支出</span></td>
+            <td>COMPLETED</td>
+            <td style="font-size:12px;">2026-04-21 14:33:10</td>
+          </tr>
+          <tr>
+            <td>9199****9325</td>
+            <td>Phonepe</td>
+            <td>62993256@y...</td>
+            <td>200</td>
+            <td>400870246313</td>
+            <td>9350xxxx@ybl</td>
+            <td></td>
+            <td>ARJUN</td>
+            <td><span class="tag tag-error" style="font-size:11px;">支出</span></td>
+            <td>COMPLETED</td>
+            <td style="font-size:12px;">2026-04-21 15:57:41</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <span>共 9 条</span>
+      <div class="page-btn">&lt;</div>
+      <div class="page-btn active">1</div>
+      <div class="page-btn">&gt;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 工单详情弹窗 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>工单详情</h3>
+      <div class="modal-close" onclick="closeDetail()">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid">
+        <div>
+          <div class="detail-row">
+            <div class="detail-label">工单号：</div>
+            <div class="detail-value">26050508392053780​74 📋</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">提交时间：</div>
+            <div class="detail-value">2026-05-05 14:09:20</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">操作时间：</div>
+            <div class="detail-value">2026-05-05 14:24:40</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">会员id：</div>
+            <div class="detail-value">17021886</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">ip：</div>
+            <div class="detail-value" style="font-size:12px;word-break:break-all;">2401:4900:4df0:a418:75f7:3e46:bb7f:5559</div>
+          </div>
+        </div>
+        <div>
+          <div class="detail-row">
+            <div class="detail-label">工单类型：</div>
+            <div class="detail-value"><span class="tag tag-info">存款未到账</span></div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">工单状态：</div>
+            <div class="detail-value"><span class="tag tag-info">系统处理中</span></div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">操作人：</div>
+            <div class="detail-value">admin</div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-label">三方转发状态：</div>
+            <div class="detail-value">--</div>
+          </div>
+          <!-- KYC 连接状态 需求1+2 -->
+          <div class="detail-row">
+            <div class="detail-label">KYC连接状态：</div>
+            <div class="detail-value">
+              <div class="highlight" style="display:inline-block;">
+                <div class="highlight-tag">需求1+2</div>
+                <a class="link" id="detailKycLink" onclick="showJumpAlert('919199xxxx9325','240455696677')" style="text-decoration:none;">
+                  <span class="tag tag-success" style="cursor:pointer;" id="detailKycTag">已连接 ↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <!-- 收款账号 需求4 -->
+          <div class="detail-row">
+            <div class="detail-label">
+              <div class="highlight" style="display:inline-block;">
+                <div class="highlight-tag">需求4</div>
+                收款账号：
+              </div>
+            </div>
+            <div class="detail-value" style="font-weight:600;" id="detailRecipient">9350xxxx@ybl</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div style="margin-top:12px;">
+        <div style="color:#999;margin-bottom:8px;">请输入备注信息 <span style="color:#ccc;font-size:12px;">0 / 1024</span></div>
+        <textarea style="width:100%;height:60px;border:1px solid #d9d9d9;border-radius:4px;padding:8px;font-size:13px;resize:none;outline:none;" placeholder="请输入备注信息"></textarea>
+        <div class="quick-btns" style="margin-top:8px;">
+          <div class="quick-btn">SUCCESS DEPOSIT</div>
+          <div class="quick-btn">NOT YET RECEIVED</div>
+          <div class="quick-btn">PROOF INCORRECT</div>
+          <div class="quick-btn">PROOF INCOMPLETE</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="detail-row">
+        <div class="detail-label">三方查询结果：</div>
+        <div class="detail-value" style="background:#fafafa;padding:8px;border-radius:4px;font-size:12px;font-family:monospace;">
+          [Succeed;Message:utr not found;Raw Data:{"code":1,"message":"utr not found"}]
+        </div>
+      </div>
+
+      <div class="note" style="margin-top:16px;">
+        <strong>需求1：</strong>KYC连接状态改为「曾经连接过」常亮（CreateTimestamp > 0 即为已连接），断连后不变回「未连接」。<br>
+        <strong>需求2：</strong>标签可点击，新开 Tab 跳转到 KYC 交易流水页面，自动带入完整手机号 + UTR。<br>
+        <strong>需求4：</strong>新增收款账号字段，UTR 匹配 KYC 流水后展示三方收款 UPI ID，不脱敏。
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tabId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  const tabs = ['tab1','tab2','tab3','tab4'];
+  const idx = tabs.indexOf(tabId);
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  // 切到KYC页面时清除自动填充
+  if (tabId === 'tab4') {
+    clearAutoFill();
+  }
+}
+
+function showJumpAlert(phone, utr) {
+  var msg = '新开浏览器 Tab 跳转到 KYC 交易流水\n\n自动填入搜索条件：\n  手机号：' + phone;
+  if (utr) msg += '\n  UTR：' + utr;
+  msg += '\n\n页面自动执行搜索';
+
+  if (confirm(msg + '\n\n点击「确定」模拟跳转效果')) {
+    // 模拟跳转到KYC页面并自动填充
+    switchTab('tab4');
+    document.getElementById('kycPhone').value = phone;
+    document.getElementById('kycPhone').classList.add('auto-fill');
+    if (utr) {
+      document.getElementById('kycUtr').value = utr;
+      document.getElementById('kycUtr').classList.add('auto-fill');
+    }
+    document.getElementById('jumpNote').style.display = 'block';
+  }
+}
+
+function clearAutoFill() {
+  document.getElementById('kycPhone').value = '';
+  document.getElementById('kycPhone').classList.remove('auto-fill');
+  document.getElementById('kycUtr').value = '';
+  document.getElementById('kycUtr').classList.remove('auto-fill');
+  document.getElementById('jumpNote').style.display = 'none';
+}
+
+function openDetail(status, recipient) {
+  document.getElementById('detailModal').classList.add('show');
+  var kycTag = document.getElementById('detailKycTag');
+  var kycLink = document.getElementById('detailKycLink');
+  if (status === 'connected') {
+    kycTag.className = 'tag tag-success';
+    kycTag.style.cursor = 'pointer';
+    kycTag.innerHTML = '已连接 ↗';
+    kycLink.style.pointerEvents = 'auto';
+  } else {
+    kycTag.className = 'tag tag-error';
+    kycTag.style.cursor = 'pointer';
+    kycTag.innerHTML = '未连接 ↗';
+    kycLink.style.pointerEvents = 'auto';
+  }
+  document.getElementById('detailRecipient').textContent = recipient;
+  if (recipient === '--') {
+    document.getElementById('detailRecipient').style.color = '#999';
+    document.getElementById('detailRecipient').style.fontWeight = 'normal';
+  } else {
+    document.getElementById('detailRecipient').style.color = '#333';
+    document.getElementById('detailRecipient').style.fontWeight = '600';
+  }
+}
+
+function closeDetail() {
+  document.getElementById('detailModal').classList.remove('show');
+}
+
+// ESC关闭弹窗
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeDetail();
+});
+</script>
+
+</body>
+</html>
