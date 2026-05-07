@@ -491,7 +491,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
           <!-- 查询行：厂商 + ID/Code + 名称 + 按钮（参考截图布局） -->
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px">
             <div class="f-item">
-              <div class="f-lbl"><span class="req">*</span> 官方游戏厂商 <span class="new-bdg">NEW</span></div>
+              <div class="f-lbl">官方游戏厂商 <span class="new-bdg">NEW</span></div>
               <select class="f-sel" id="se-vendor" onchange="updateMapTip()">
                 <option value="">请选择</option>
                 <option value="PG电子">PG电子</option>
@@ -626,17 +626,12 @@ function updateMapTip(){
   }
 }
 
-// 保存：厂商必填
+// 保存：厂商非必填
 function doSave(){
   const v=document.getElementById('se-vendor').value;
   if(!v){
-    const req=document.getElementById('vendorRequired');
-    req.classList.remove('hidden');
-    document.getElementById('se-vendor').style.borderColor='#e53935';
-    setTimeout(()=>{
-      req.classList.add('hidden');
-      document.getElementById('se-vendor').style.borderColor='';
-    },2500);
+    closeModal('saasEditModal');
+    showToast('✓ 保存成功（未配置映射）');
     return;
   }
   const hasSel=[...document.querySelectorAll('#qResult .qr-radio input')].some(i=>i.checked);
