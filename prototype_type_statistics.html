@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工单类型统计 — 新增商户名称</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;font-size:14px}
+
+  .nav-tabs{display:flex;background:#fff;border-bottom:2px solid #e8e8e8;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .nav-tab{padding:14px 24px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:#666;font-size:14px;white-space:nowrap;transition:all .2s}
+  .nav-tab.active{color:#2080f0;border-bottom-color:#2080f0;font-weight:600}
+  .nav-tab:hover{color:#2080f0;background:#f8faff}
+
+  .page{display:none;padding:20px;max-width:1500px;margin:0 auto}
+  .page.active{display:block}
+
+  .card{background:#fff;border-radius:8px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .card-title{font-size:16px;font-weight:600;margin-bottom:16px}
+
+  .tab-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid #e8e8e8}
+  .tab-item{padding:10px 20px;font-size:14px;cursor:pointer;color:#666;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tab-item.active{color:#2080f0;border-bottom-color:#2080f0;font-weight:600}
+
+  .search-form{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:20px}
+  .form-item{display:flex;flex-direction:column;gap:4px}
+  .form-item label{font-size:13px;color:#666;white-space:nowrap}
+  .form-item input,.form-item select{height:32px;padding:0 10px;border:1px solid #d9d9d9;border-radius:4px;font-size:13px;min-width:140px;outline:none;transition:border .2s}
+  .form-item input:focus,.form-item select:focus{border-color:#2080f0;box-shadow:0 0 0 2px rgba(32,128,240,.1)}
+  .form-item input:read-only{background:#f5f5f5;color:#666;cursor:default}
+
+  .btn{height:32px;padding:0 16px;border:none;border-radius:4px;cursor:pointer;font-size:13px;transition:opacity .2s}
+  .btn:hover{opacity:.85}
+  .btn-primary{background:#2080f0;color:#fff}
+  .btn-default{background:#fff;color:#666;border:1px solid #d9d9d9}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:#fafafa;font-weight:600;text-align:center;padding:12px 14px;border-bottom:1px solid #e8e8e8;white-space:nowrap}
+  td{padding:12px 14px;border-bottom:1px solid #f0f0f0;text-align:center}
+  tr:hover td{background:#fafafa}
+
+  .hl{border:2px dashed #d03050;border-radius:6px;padding:3px;position:relative;display:inline-block}
+  .hl-tag{position:absolute;top:-10px;right:8px;background:#d03050;color:#fff;font-size:11px;padding:1px 8px;border-radius:3px;z-index:1}
+
+  .note{background:#fff8e1;border-left:3px solid #ffc107;padding:10px 14px;margin:12px 0;font-size:13px;color:#555;border-radius:0 4px 4px 0;line-height:1.8}
+  .note strong{color:#333}
+
+  .pagination{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:12px 0;font-size:13px;color:#666}
+  .page-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid #d9d9d9;border-radius:4px;cursor:pointer;font-size:12px}
+  .page-btn.active{background:#2080f0;color:#fff;border-color:#2080f0}
+
+  .switch-bar{display:flex;gap:12px;margin-bottom:16px;align-items:center}
+  .switch-label{font-size:13px;color:#666}
+  .switch-btn{padding:6px 16px;border-radius:4px;font-size:13px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#666;transition:all .2s}
+  .switch-btn.active{background:#2080f0;color:#fff;border-color:#2080f0}
+
+  .req-card{border:1px solid #e8e8e8;border-radius:8px;padding:16px 20px;margin-bottom:12px}
+  .req-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .req-title{font-size:15px;font-weight:600}
+  .req-desc{color:#555;font-size:13px;line-height:1.8}
+</style>
+</head>
+<body>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="switchPage('p1')">需求说明</div>
+  <div class="nav-tab" onclick="switchPage('p2')">总控端视角</div>
+  <div class="nav-tab" onclick="switchPage('p3')">商户端视角</div>
+</div>
+
+<!-- ════════════ 需求说明 ════════════ -->
+<div id="p1" class="page active">
+  <div class="card">
+    <div class="card-title">需求说明：工单类型统计增加商户名称</div>
+    <p style="color:#555;line-height:1.8;margin-bottom:16px;">
+      工单管理 → 工单日报 → 工单类型统计页面，当前列表按「日期 + 商户 + 工单类型」三级维度存储统计数据，但查询结果不返回商户信息。总控账号查看时，同一个工单类型（如「存款未到账」）出现多行重复数据，每行实际是不同商户的统计，但无法区分。
+    </p>
+
+    <div class="req-card">
+      <div class="req-header"><div class="req-title">涉及页面</div></div>
+      <div class="req-desc">工单管理 → 工单日报 → 工单类型统计</div>
+    </div>
+
+    <div class="req-card">
+      <div class="req-header"><div class="req-title">前端改动</div></div>
+      <div class="req-desc">
+        <strong>总控端：</strong><br>
+        1. 搜索区新增「商户名称」下拉筛选框（可搜索），支持按商户筛选<br>
+        2. 列表在「工单类型」列前新增「商户名称」列<br><br>
+        <strong>商户端：</strong><br>
+        1. 搜索区「商户名称」显示为只读输入框，自动展示当前登录商户名称，不可修改<br>
+        2. 列表不显示「商户名称」列（商户端只有自己的数据，无需区分）
+      </div>
+    </div>
+
+    <div class="req-card">
+      <div class="req-header"><div class="req-title">后端改动</div></div>
+      <div class="req-desc">
+        1. 响应模型 `WorkOrderTypeReportRsp` 新增 `TenantId` 和 `TenantName` 字段<br>
+        2. `GetTypeReport()` 查询时 Select 增加 `TenantId = p.TenantId`，查出结果后关联 Tenant 缓存取商户名称回填 `TenantName`<br>
+        3. 请求模型 `WorkOrderTypeReportReq` 新增 `TenantId` 筛选参数（可选），查询增加 `WhereIF`
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 总控端视角 ════════════ -->
+<div id="p2" class="page">
+  <div class="card">
+    <div class="tab-bar">
+      <div class="tab-item">工单员工统计</div>
+      <div class="tab-item active">工单类型统计</div>
+    </div>
+
+    <div class="card-title">工单类型统计</div>
+
+    <div class="search-form">
+      <div class="form-item">
+        <label>日期</label>
+        <div style="display:flex;gap:4px;align-items:center">
+          <input type="text" value="2026-05-04" style="min-width:120px">
+          <span>→</span>
+          <input type="text" value="2026-05-04" style="min-width:120px">
+        </div>
+      </div>
+      <div class="form-item">
+        <div class="hl">
+          <div class="hl-tag">新增</div>
+          <label>商户名称</label>
+          <select id="tenantSelect" style="min-width:180px">
+            <option value="">全部商户</option>
+            <option value="ar048">ar048-91club</option>
+            <option value="ar052">ar052-betwin</option>
+            <option value="ar061">ar061-luckyx</option>
+            <option value="ar073">ar073-winstar</option>
+            <option value="ar081">ar081-goldbet</option>
+            <option value="ar093">ar093-royalx</option>
+            <option value="ar105">ar105-megawin</option>
+            <option value="ar112">ar112-funplay</option>
+            <option value="ar128">ar128-elitebet</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-item" style="flex-direction:row;gap:8px;align-items:flex-end">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn btn-default">重置</button>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>
+              <div class="hl" style="display:inline-block">
+                <div class="hl-tag">新增</div>
+                商户名称
+              </div>
+            </th>
+            <th>工单类型</th>
+            <th>总计</th>
+            <th>系统处理中</th>
+            <th>待处理</th>
+            <th>处理中</th>
+            <th>已处理</th>
+            <th>已驳回</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="color:#2080f0;font-weight:500">ar048-91club</td><td>存款未到账</td><td>25614</td><td>0</td><td>0</td><td>0</td><td>6101</td><td>19513</td></tr>
+          <tr><td style="color:#2080f0;font-weight:500">ar052-betwin</td><td>存款未到账</td><td>17063</td><td>0</td><td>0</td><td>0</td><td>7364</td><td>9699</td></tr>
+          <tr><td style="color:#2080f0;font-weight:500">ar061-luckyx</td><td>存款未到账</td><td>16347</td><td>0</td><td>0</td><td>0</td><td>3595</td><td>12752</td></tr>
+          <tr><td style="color:#2080f0;font-weight:500">ar073-winstar</td><td>存款未到账</td><td>14756</td><td>0</td><td>0</td><td>0</td><td>14751</td><td>5</td></tr>
+          <tr><td style="color:#2080f0;font-weight:500">ar081-goldbet</td><td>存款未到账</td><td>10277</td><td>0</td><td>0</td><td>0</td><td>10277</td><td>0</td></tr>
+          <tr><td style="color:#2080f0;font-weight:500">ar093-royalx</td><td>存款未到账</td><td>6398</td><td>0</td><td>0</td><td>0</td><td>1940</td><td>4458</td></tr>
+          <tr><td style="color:#2080f0;font-weight:500">ar105-megawin</td><td>存款未到账</td><td>4261</td><td>0</td><td>0</td><td>0</td><td>1639</td><td>2622</td></tr>
+          <tr><td style="color:#2080f0;font-weight:500">ar112-funplay</td><td>存款未到账</td><td>4101</td><td>0</td><td>0</td><td>0</td><td>1372</td><td>2729</td></tr>
+          <tr><td style="color:#2080f0;font-weight:500">ar128-elitebet</td><td>取款未到账</td><td>3891</td><td>0</td><td>0</td><td>0</td><td>3652</td><td>239</td></tr>
+          <tr><td style="color:#2080f0;font-weight:500">ar048-91club</td><td>取款未到账</td><td>2156</td><td>0</td><td>0</td><td>0</td><td>1890</td><td>266</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <strong>总控端：</strong>商户名称为下拉筛选框（可搜索），默认「全部商户」展示所有商户数据。选择某个商户后只展示该商户的统计数据。列表第一列为新增的「商户名称」，每行对应一个商户的一种工单类型统计。
+    </div>
+
+    <div class="pagination">
+      <span>共 461 条</span>
+      <div class="page-btn">&lt;</div>
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">3</div>
+      <div class="page-btn">...</div>
+      <div class="page-btn">24</div>
+      <div class="page-btn">&gt;</div>
+      <span>20 / 页</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 商户端视角 ════════════ -->
+<div id="p3" class="page">
+  <div class="card">
+    <div class="tab-bar">
+      <div class="tab-item">工单员工统计</div>
+      <div class="tab-item active">工单类型统计</div>
+    </div>
+
+    <div class="card-title">工单类型统计</div>
+
+    <div class="search-form">
+      <div class="form-item">
+        <label>日期</label>
+        <div style="display:flex;gap:4px;align-items:center">
+          <input type="text" value="2026-05-04" style="min-width:120px">
+          <span>→</span>
+          <input type="text" value="2026-05-04" style="min-width:120px">
+        </div>
+      </div>
+      <div class="form-item">
+        <div class="hl">
+          <div class="hl-tag">新增</div>
+          <label>商户名称</label>
+          <input type="text" value="ar048-91club" readonly style="min-width:180px;background:#f5f5f5;color:#666">
+        </div>
+      </div>
+      <div class="form-item" style="flex-direction:row;gap:8px;align-items:flex-end">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn btn-default">重置</button>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>工单类型</th>
+            <th>总计</th>
+            <th>系统处理中</th>
+            <th>待处理</th>
+            <th>处理中</th>
+            <th>已处理</th>
+            <th>已驳回</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>存款未到账</td><td>25614</td><td>0</td><td>0</td><td>0</td><td>6101</td><td>19513</td></tr>
+          <tr><td>取款未到账</td><td>2156</td><td>0</td><td>0</td><td>0</td><td>1890</td><td>266</td></tr>
+          <tr><td>一对一客服</td><td>1823</td><td>0</td><td>12</td><td>3</td><td>1750</td><td>58</td></tr>
+          <tr><td>修改登录密码</td><td>542</td><td>0</td><td>0</td><td>0</td><td>540</td><td>2</td></tr>
+          <tr><td>删除银行卡</td><td>321</td><td>0</td><td>0</td><td>0</td><td>318</td><td>3</td></tr>
+          <tr><td>会员账号解冻</td><td>189</td><td>0</td><td>0</td><td>0</td><td>185</td><td>4</td></tr>
+          <tr><td>其他问题</td><td>97</td><td>0</td><td>2</td><td>0</td><td>88</td><td>7</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <strong>商户端：</strong>商户名称为只读输入框，自动显示当前登录商户名称（如 ar048-91club），不可修改、不可切换。列表不显示商户名称列（只有当前商户数据，无需区分），每个工单类型只有一行。
+    </div>
+
+    <div class="pagination">
+      <span>共 7 条</span>
+      <div class="page-btn">&lt;</div>
+      <div class="page-btn active">1</div>
+      <div class="page-btn">&gt;</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  var pages=['p1','p2','p3'];
+  document.querySelectorAll('.nav-tab')[pages.indexOf(id)].classList.add('active');
+}
+</script>
+</body>
+</html>
