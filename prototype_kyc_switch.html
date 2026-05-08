@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商户管理 — KYC 模块开关</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;font-size:14px}
+
+  .nav-tabs{display:flex;background:#fff;border-bottom:2px solid #e8e8e8;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .nav-tab{padding:14px 24px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:#666;font-size:14px;white-space:nowrap;transition:all .2s}
+  .nav-tab.active{color:#2080f0;border-bottom-color:#2080f0;font-weight:600}
+  .nav-tab:hover{color:#2080f0;background:#f8faff}
+
+  .page{display:none;padding:20px;max-width:1300px;margin:0 auto}
+  .page.active{display:block}
+
+  .card{background:#fff;border-radius:8px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .card-title{font-size:16px;font-weight:600;margin-bottom:16px}
+
+  .modal-demo{background:#fff;border:1px solid #e8e8e8;border-radius:8px;width:680px;margin:0 auto;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+  .modal-header{padding:14px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+  .modal-title{font-size:16px;font-weight:600}
+  .modal-close{font-size:18px;color:#999;cursor:pointer}
+  .modal-body{padding:20px;max-height:600px;overflow-y:auto}
+  .modal-footer{padding:14px 20px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:8px}
+
+  .form-row{display:flex;align-items:flex-start;margin-bottom:18px;gap:12px}
+  .form-label{width:120px;flex-shrink:0;text-align:right;color:#555;font-size:13px;padding-top:6px}
+  .form-label .req{color:#e53935}
+  .form-control{flex:1}
+  .form-input,.form-select,.form-textarea{width:100%;padding:6px 10px;border:1px solid #d9d9d9;border-radius:4px;font-size:13px;outline:none;height:32px;transition:border .2s}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:#2080f0;box-shadow:0 0 0 2px rgba(32,128,240,.1)}
+  .form-textarea{height:auto;min-height:60px;resize:vertical;font-family:inherit}
+  .form-tip{font-size:12px;color:#999;margin-top:4px}
+
+  .btn{height:32px;padding:0 16px;border:none;border-radius:4px;cursor:pointer;font-size:13px;transition:opacity .2s}
+  .btn:hover{opacity:.85}
+  .btn-primary{background:#2080f0;color:#fff}
+  .btn-default{background:#fff;color:#666;border:1px solid #d9d9d9}
+
+  .switch{position:relative;display:inline-block;width:44px;height:22px;cursor:pointer}
+  .switch input{opacity:0;width:0;height:0}
+  .switch-slider{position:absolute;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:22px;transition:.2s}
+  .switch-slider::before{content:'';position:absolute;height:18px;width:18px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s}
+  .switch input:checked + .switch-slider{background:#2080f0}
+  .switch input:checked + .switch-slider::before{transform:translateX(22px)}
+
+  .hl{border:2px dashed #d03050;border-radius:6px;padding:6px 10px;position:relative;display:inline-block;background:rgba(208,48,80,.03)}
+  .hl-tag{position:absolute;top:-10px;right:8px;background:#d03050;color:#fff;font-size:11px;padding:1px 8px;border-radius:3px;z-index:1}
+  .hl-row{border:2px dashed #d03050;border-radius:6px;padding:6px 10px;position:relative;background:rgba(208,48,80,.03);margin-bottom:18px}
+
+  .note{background:#fff8e1;border-left:3px solid #ffc107;padding:10px 14px;margin:12px 0;font-size:13px;color:#555;border-radius:0 4px 4px 0;line-height:1.8}
+  .note strong{color:#333}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px}
+  th{background:#fafafa;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid #e8e8e8}
+  td{padding:10px 12px;border-bottom:1px solid #f0f0f0}
+
+  .req-card{border:1px solid #e8e8e8;border-radius:8px;padding:16px 20px;margin-bottom:12px}
+  .req-title{font-size:15px;font-weight:600;margin-bottom:8px}
+  .req-desc{color:#555;font-size:13px;line-height:1.8}
+
+  .demo-toggle{display:flex;gap:12px;margin-bottom:16px;align-items:center}
+  .demo-btn{padding:6px 16px;border-radius:4px;font-size:13px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#666}
+  .demo-btn.active{background:#2080f0;color:#fff;border-color:#2080f0}
+
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ════════════ 商户编辑弹窗 ════════════ -->
+<div id="p2" class="page active">
+  <div class="card">
+    <div class="card-title">商户编辑弹窗效果（开关交互演示）</div>
+
+    <div class="demo-toggle">
+      <span style="color:#666;font-size:13px;margin-right:8px;">演示场景：</span>
+      <div class="demo-btn active" onclick="setDemo('off')">默认（开关关闭）</div>
+      <div class="demo-btn" onclick="setDemo('on')">开关开启</div>
+    </div>
+
+    <div class="modal-demo">
+      <div class="modal-header">
+        <div class="modal-title">编辑商户</div>
+        <div class="modal-close">×</div>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-label"><span class="req">*</span> 商户编码</div>
+          <div class="form-control"><input class="form-input" value="1030" placeholder="商户编码为4位数正整数"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">所属国家</div>
+          <div class="form-control">
+            <select class="form-select">
+              <option>印度</option>
+              <option>巴基斯坦</option>
+              <option>越南</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label"><span class="req">*</span> 按钮主题颜色</div>
+          <div class="form-control"><input class="form-input" value="#2080f0"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label"><span class="req">*</span> 彩票api地址</div>
+          <div class="form-control"><input class="form-input" value="https://api.example.com"></div>
+        </div>
+
+        <!-- 新增 KYC 模块开关 -->
+        <div class="hl-row">
+          <div class="hl-tag">新增</div>
+          <div class="form-row" style="margin-bottom:0">
+            <div class="form-label">KYC 模块开关</div>
+            <div class="form-control" style="display:flex;align-items:center;gap:10px;padding-top:5px">
+              <label class="switch">
+                <input type="checkbox" id="kycSwitch" onchange="toggleKyc()">
+                <span class="switch-slider"></span>
+              </label>
+              <span id="kycSwitchLabel" style="color:#999;font-size:13px">已关闭</span>
+            </div>
+          </div>
+          <div style="margin-left:132px;font-size:12px;color:#999;margin-top:4px">关闭时隐藏 KYC 通道编码和私钥字段，开启后显示。商户登录后是否显示 KYC 模块菜单也由此开关控制。</div>
+        </div>
+
+        <!-- KYC 通道编码（受开关控制） -->
+        <div class="form-row hidden" id="kycChannelRow">
+          <div class="form-label">KYC 通道编码</div>
+          <div class="form-control"><input class="form-input" placeholder="请输入KYC 通道编码"></div>
+        </div>
+
+        <!-- KYC 私钥（受开关控制） -->
+        <div class="form-row hidden" id="kycKeyRow">
+          <div class="form-label">KYC 私钥</div>
+          <div class="form-control">
+            <textarea class="form-textarea" placeholder="请输入KYC 私钥" maxlength="2048"></textarea>
+            <div class="form-tip" style="text-align:right">0 / 2048</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">AI智能客服链接</div>
+          <div class="form-control"><textarea class="form-textarea" placeholder="请输入AI智能客服链接"></textarea></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label"><span class="req">*</span> 支持语言</div>
+          <div class="form-control">
+            <label style="margin-right:14px;font-size:13px"><input type="checkbox" checked> 英文</label>
+            <label style="margin-right:14px;font-size:13px"><input type="checkbox"> 印尼语</label>
+            <label style="margin-right:14px;font-size:13px"><input type="checkbox"> 越南语</label>
+            <label style="margin-right:14px;font-size:13px"><input type="checkbox"> 葡萄牙语</label>
+            <label style="margin-right:14px;font-size:13px"><input type="checkbox" checked> 印地语</label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">人工客服状态</div>
+          <div class="form-control" style="padding-top:5px">
+            <label class="switch"><input type="checkbox" checked><span class="switch-slider"></span></label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-label">AI智能客服跳转</div>
+          <div class="form-control" style="padding-top:5px">
+            <label class="switch"><input type="checkbox"><span class="switch-slider"></span></label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default">取消</button>
+        <button class="btn btn-primary">保存</button>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>交互逻辑：</strong><br>
+      • 开关默认关闭，KYC 通道编码 和 KYC 私钥 字段隐藏<br>
+      • 开关开启后，两个字段显示并可编辑，需要填入 KYC 服务商提供的参数<br>
+      • 点击上方「演示场景」按钮可切换查看不同状态的效果<br>
+      • 业务说明：非印度站不会使用 KYC，开关默认关即可，无需做国家限制
+    </div>
+  </div>
+</div>
+
+<script>
+function setDemo(state){
+  var sw=document.getElementById('kycSwitch');
+  sw.checked=(state==='on');
+  toggleKyc();
+  document.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function toggleKyc(){
+  var on=document.getElementById('kycSwitch').checked;
+  var label=document.getElementById('kycSwitchLabel');
+  var ch=document.getElementById('kycChannelRow');
+  var key=document.getElementById('kycKeyRow');
+  if(on){
+    label.textContent='已开启';
+    label.style.color='#2080f0';
+    ch.classList.remove('hidden');
+    key.classList.remove('hidden');
+  }else{
+    label.textContent='已关闭';
+    label.style.color='#999';
+    ch.classList.add('hidden');
+    key.classList.add('hidden');
+  }
+}
+</script>
+</body>
+</html>
