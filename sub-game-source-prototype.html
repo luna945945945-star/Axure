@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>子游戏管理 / 游戏映射管理 — 来源标识优化原型 v4（精简）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;background:#f0f2f5;color:#333;min-width:1280px}
+
+/* ── 顶部演示横幅 ── */
+.demo-banner{background:linear-gradient(90deg,#fff3e0,#ffe0b2);color:#5a3a00;padding:6px 14px;font-size:12px;text-align:center;border-bottom:1px solid #ffd591;line-height:1.6}
+.demo-banner b{color:#d46b08}
+
+/* ── 整体布局 ── */
+.layout{display:flex;min-height:calc(100vh - 30px)}
+.sider{width:160px;background:#001529;color:#fff;flex-shrink:0;padding-top:6px}
+.sider .menu-item{padding:11px 18px;font-size:13px;color:rgba(255,255,255,.65);cursor:pointer;border-left:3px solid transparent}
+.sider .menu-item:hover{color:#fff;background:rgba(255,255,255,.04)}
+.sider .menu-item.active{color:#fff;background:#1677ff;border-left-color:#69b1ff}
+.sider .menu-group{padding:11px 18px;font-size:13px;color:rgba(255,255,255,.55);cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.sider .menu-group:hover{color:#fff}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.crumb{background:#fff;padding:10px 18px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:8px;font-size:13px}
+.crumb .pg-title{font-weight:600;color:#222}
+.crumb .pg-tabs{margin-left:24px;display:flex;gap:0;align-items:center}
+.ptab{padding:0 14px;height:28px;display:flex;align-items:center;font-size:12.5px;color:#666;cursor:pointer;border-radius:4px;gap:5px}
+.ptab.active{color:#1677ff;background:#e6f4ff;font-weight:500}
+.ptab:hover{color:#1677ff}
+.ptab .new-bdg{font-size:9px;background:#ff7a00;color:#fff;padding:1px 4px;border-radius:8px}
+
+.content{flex:1;padding:14px 18px;overflow:auto}
+
+/* ── 通用 ── */
+.btn{height:30px;padding:0 14px;border-radius:4px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.btn-p{background:#1677ff;color:#fff}.btn-p:hover{background:#0958d9}
+.btn-d{background:#fff;color:#333;border:1px solid #d9d9d9}.btn-d:hover{border-color:#1677ff;color:#1677ff}
+.btn-link{color:#1677ff;cursor:pointer;font-size:12px;background:none;border:none;font-family:inherit}.btn-link:hover{text-decoration:underline}
+
+.tag{display:inline-flex;align-items:center;padding:1px 7px;border-radius:3px;font-size:11px;white-space:nowrap;line-height:18px}
+.t-blue{background:#e6f4ff;color:#1677ff;border:1px solid #91caff}
+.t-green{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.t-orange{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.t-red{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+.t-gray{background:#fafafa;color:#888;border:1px solid #e0e0e0}
+.t-purple{background:#f9f0ff;color:#722ed1;border:1px solid #d3adf7}
+
+/* ════ 标识系统（精简后） ════ */
+
+/* 厂商类型（仅映射 pair 卡片） */
+.vt-tag{display:inline-flex;align-items:center;font-size:10.5px;padding:1px 6px;border-radius:3px;font-weight:700;line-height:16px;letter-spacing:.5px;color:#fff;flex-shrink:0}
+.vt-official{background:#1677ff}
+.vt-selfop{background:#52c41a}
+
+/* 手动标识（唯一保留的来源标签） */
+.src-manual{display:inline-flex;align-items:center;font-size:10.5px;padding:1px 7px;border-radius:3px;font-weight:600;line-height:16px;gap:3px;background:#fff7e6;color:#d46b08;border:1px solid #ffc069;flex-shrink:0}
+.src-manual .dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* 列表 */
+.list-card{background:#fff;border:1px solid #e8e8e8;border-radius:6px;overflow:hidden}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:#fafafa;padding:9px 10px;text-align:left;font-weight:500;color:#555;border-bottom:1px solid #e8e8e8;white-space:nowrap;font-size:12px}
+.tbl td{padding:9px 10px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#f8fbff}
+.tbl tr.row-manual td:first-child{border-left:3px solid #ffa940;padding-left:7px}
+.tbl tr.row-manual{background:#fffaf0}
+.tbl tr.row-manual:hover td{background:#fff5e0}
+
+/* 搜索区 */
+.search-bar{background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:14px 16px;margin-bottom:10px}
+.sf-row{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;margin-bottom:12px}
+.sf-row:last-child{margin-bottom:0}
+.sf{display:flex;align-items:center;gap:6px}
+.sf label{font-size:12px;color:#666;white-space:nowrap;min-width:62px;text-align:right}
+.sf select,.sf input{height:30px;border:1px solid #d9d9d9;border-radius:4px;padding:0 8px;font-size:12px;outline:none;font-family:inherit;background:#fff;min-width:170px}
+.sf select:focus,.sf input:focus{border-color:#1677ff}
+.sf-row .actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.collapse-btn{font-size:12px;color:#1677ff;cursor:pointer}
+
+.sf-source{background:#fff7e6;border:1px solid #ffe0b2;padding:3px 8px 3px 5px;border-radius:4px;position:relative}
+.sf-source label{color:#d46b08;font-weight:500;min-width:auto}
+.sf-source::before{content:"NEW";position:absolute;top:-7px;right:-7px;background:#ff4d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;font-weight:600}
+
+/* 编码单元格 */
+.code-cell{display:inline-flex;flex-direction:column;gap:3px;line-height:1.4}
+.code-line{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap}
+.code-pill{font-family:'SF Mono',Monaco,monospace;font-size:11.5px;padding:2px 8px;border-radius:3px;background:#f5f5f5;color:#333;border:1px solid #e0e0e0}
+.code-meta{font-size:10.5px;color:#d46b08;display:inline-flex;align-items:center;gap:3px;line-height:1.3}
+.code-meta-icon{font-size:9px;color:#bbb}
+
+.gname{font-size:12px;line-height:1.5}
+.gname .en{color:#888;font-size:11px}
+
+/* ── 游戏映射管理布局 ── */
+.mapping-card{background:#fff;border:1px solid #e8e8e8;border-radius:6px;overflow:hidden;display:flex;min-height:680px}
+.mp-col{border-right:1px solid #e8e8e8;display:flex;flex-direction:column;flex-shrink:0}
+.mp-col:last-child{border-right:none;flex:1;min-width:0}
+.mp-col-site{width:230px}
+.mp-col-vendor{width:200px}
+
+.mp-head{padding:11px 14px;background:#fafafa;border-bottom:1px solid #e8e8e8;font-size:13px;font-weight:600;color:#222;display:flex;align-items:center;justify-content:space-between}
+.mp-body{flex:1;padding:12px 14px;overflow-y:auto}
+
+.site-input{height:30px;border:1px solid #d9d9d9;border-radius:4px;padding:0 8px;font-size:12px;outline:none;font-family:inherit;width:100%;margin-bottom:8px}
+.s-item{padding:8px 10px;border-radius:4px;cursor:pointer;font-size:12px;color:#333;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between}
+.s-item:hover{background:#f0f6ff}
+.s-item.active{background:#e6f4ff;color:#1677ff;font-weight:500}
+.s-meta{font-size:11px;color:#aaa;margin-top:2px}
+
+.v-select{margin-bottom:10px}
+.v-select label{font-size:12px;color:#666;display:block;margin-bottom:5px}
+.v-sel{height:32px;border:1px solid #d9d9d9;border-radius:4px;padding:0 9px;font-size:12.5px;outline:none;font-family:inherit;background:#fff;width:100%}
+.v-sel:focus{border-color:#1677ff}
+
+.selected-block{margin-top:14px;border-top:1px solid #f0f0f0;padding-top:10px}
+.sb-title{font-size:11.5px;color:#888;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.sb-title .clear{color:#cf1322;cursor:pointer;font-weight:500}
+.sb-tag{padding:5px 9px;background:#e6f4ff;color:#1677ff;border:1px solid #91caff;border-radius:4px;font-size:12px;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.sb-tag .x{color:#cf1322;cursor:pointer;font-size:11px;margin-left:8px}
+
+/* 右侧映射区 */
+.mp-right{display:flex;flex-direction:column;min-width:0}
+.mp-right-head{padding:10px 14px;background:#fafafa;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.mrh-title{font-size:13px;font-weight:600;color:#222}
+.mrh-title .ctx{font-size:11.5px;color:#888;font-weight:400;margin-left:6px}
+
+.toolbar{padding:8px 14px;border-bottom:1px solid #f0f0f0;background:#fcfcfc;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.legend{display:inline-flex;align-items:center;gap:8px;padding:3px 8px;background:#fff;border:1px solid #f0f0f0;border-radius:4px;font-size:11.5px;color:#666}
+.legend-item{display:inline-flex;align-items:center;gap:3px}
+.tb-search{flex:1;min-width:160px;max-width:240px;display:flex;align-items:center;height:26px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;padding:0 4px 0 8px}
+.tb-search input{flex:1;border:none;outline:none;font-size:12px;font-family:inherit;height:100%}
+.tb-search .icon{color:#aaa;font-size:13px}
+.tb-filter{display:flex;border:1px solid #d9d9d9;border-radius:4px;background:#fff;overflow:hidden}
+.tb-filter button{height:26px;padding:0 10px;font-size:12px;background:#fff;color:#666;border:none;cursor:pointer;font-family:inherit;border-right:1px solid #f0f0f0;display:inline-flex;align-items:center;gap:4px}
+.tb-filter button:last-child{border-right:none}
+.tb-filter button.on{background:#1677ff;color:#fff}
+.tb-toggle{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#666;cursor:pointer}
+.toggle{display:inline-flex;align-items:center;background:#d9d9d9;border-radius:11px;width:32px;height:18px;padding:2px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#1677ff}
+.toggle .thumb{width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on .thumb{transform:translateX(14px)}
+
+.sel-bar{padding:6px 14px;background:#e6f4ff;border-bottom:1px solid #bae0ff;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#0958d9;flex-wrap:wrap;gap:6px}
+.sel-bar .nums{font-weight:500}
+.sel-bar .nums b{color:#1677ff;font-weight:700;font-size:13px}
+.sel-bar .nums b.bm{color:#d46b08}
+
+.mp-right-body{flex:1;padding:10px 14px;overflow-y:auto}
+
+/* 自营厂商分组 */
+.vgroup{margin-bottom:14px;background:#fff;border:1px solid #f0f0f0;border-radius:5px;overflow:hidden}
+.vgroup-head{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;background:#fafbff;border-bottom:1px solid #f0f0f0;cursor:pointer}
+.vgroup-head:hover{background:#f0f6ff}
+.vgroup-name{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:#222}
+.vgroup-name .v-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600}
+.vgroup-stat{display:flex;align-items:center;gap:6px;font-size:11.5px;color:#666;flex-wrap:wrap}
+.stat-pill{padding:1px 7px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;display:inline-flex;align-items:center;gap:3px;font-size:11px}
+.stat-pill.has-manual{border-color:#ffd591;background:#fffaf0;color:#d46b08}
+.stat-sel{color:#1677ff;font-weight:500}
+.chk-all{font-size:11.5px;color:#1677ff;cursor:pointer;background:none;border:none;font-family:inherit;padding:0 4px}
+.chk-all:hover{text-decoration:underline}
+.vgroup-body{padding:7px 10px}
+
+/* ── 紧凑 pair 卡片（核心：宽度按内容自适应） ── */
+.pair-grid{display:flex;flex-wrap:wrap;gap:5px}
+
+.pair-card{display:inline-flex;align-items:center;gap:8px;padding:5px 9px;border:1px solid #e8e8e8;border-radius:4px;background:#fff;cursor:pointer;transition:all .12s;font-size:12px;min-height:36px;flex:0 0 auto;max-width:100%}
+.pair-card:hover{border-color:#1677ff;background:#f8fbff}
+.pair-card.checked{border-color:#1677ff;background:#f0f7ff}
+.pair-card.has-manual{border-left:3px solid #ffa940;padding-left:6px}
+.pair-card.has-manual:hover{border-color:#ffa940;background:#fffaf0}
+.pair-card.has-manual.checked{border-color:#ffa940;background:#fff7e6}
+
+.pair-card input[type=checkbox]{cursor:pointer;width:14px;height:14px;flex-shrink:0;accent-color:#1677ff}
+.pair-card.has-manual input[type=checkbox]{accent-color:#fa8c16}
+
+.pc-body{display:flex;flex-direction:column;gap:1px;min-width:0}
+.pc-line1{display:flex;align-items:center;gap:5px;line-height:1.35;white-space:nowrap}
+.pc-code{font-family:'SF Mono',Monaco,monospace;font-size:11.5px;font-weight:600;color:#222}
+.pc-arrow{color:#bbb;font-weight:600;font-size:11px;letter-spacing:-1px;margin:0 2px}
+.pc-name{font-size:11px;color:#888;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-manual-mark{margin-left:6px;flex-shrink:0}
+
+/* 切换页签 */
+.page-content{display:none}
+.page-content.active{display:block}
+
+.op-link{color:#1677ff;cursor:pointer;font-size:12px}
+.op-link:hover{text-decoration:underline}
+
+[data-tip]{position:relative}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:11px;padding:5px 9px;border-radius:4px;white-space:nowrap;z-index:10;margin-bottom:5px;font-weight:400}
+[data-tip]:hover::before{content:"";position:absolute;bottom:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#333;z-index:10}
+
+.muted{color:#aaa}
+
+/* ── 编辑弹窗 ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.2);width:780px;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .2s}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-hdr{padding:13px 18px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.m-title{font-size:14px;font-weight:600;color:#222;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.m-close{width:26px;height:26px;border:none;background:none;cursor:pointer;font-size:17px;color:#aaa;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.m-close:hover{background:#f0f0f0;color:#333}
+.m-body{padding:18px 22px;overflow-y:auto;flex:1}
+.m-footer{padding:12px 18px;border-top:1px solid #e8e8e8;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;background:#fafafa}
+
+.src-banner{margin-bottom:14px;padding:11px 14px;border-radius:5px;display:flex;align-items:flex-start;gap:10px;font-size:12.5px;line-height:1.55;background:#fff7e6;border:1px solid #ffd591;color:#874d00}
+.src-banner-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;font-weight:700;background:#fa8c16;color:#fff}
+.src-banner-content{flex:1}
+.src-banner-content .t1{font-weight:600;margin-bottom:4px;font-size:13px}
+.src-banner-content .t2{font-size:11.5px;opacity:.9;line-height:1.65}
+.src-banner-content .t2 b{background:rgba(255,255,255,.55);padding:0 4px;border-radius:2px;color:inherit}
+
+.sec-title{font-size:12.5px;font-weight:600;color:#444;margin:14px 0 10px;padding-bottom:5px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:5px}
+.sec-title:first-child{margin-top:0}
+.sec-title::before{content:"";width:3px;height:12px;background:#1677ff;border-radius:2px;display:inline-block}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-bottom:6px}
+.f-grid-3{grid-template-columns:1fr 1fr 1fr}
+.f-item{display:flex;flex-direction:column;gap:5px}
+.f-item.sp2{grid-column:span 2}
+.f-lbl{font-size:11.5px;color:#666;display:flex;align-items:center;gap:3px}
+.f-lbl .req{color:#cf1322}
+.f-inp,.f-sel{height:32px;border:1px solid #d9d9d9;border-radius:4px;padding:0 9px;font-size:12.5px;outline:none;font-family:inherit;background:#fff;width:100%}
+.f-inp:focus,.f-sel:focus{border-color:#1677ff;box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.f-inp:disabled,.f-sel:disabled{background:#f5f5f5;color:#666;cursor:not-allowed}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;padding:10px 12px;background:#fafafa;border:1px solid #f0f0f0;border-radius:4px;font-size:11.5px;color:#555;line-height:1.7}
+.info-grid .ig-row{display:flex;gap:6px}
+.info-grid .ig-row b{color:#222;font-weight:500;flex-shrink:0}
+.info-grid .ig-row.sp2{grid-column:span 2}
+.info-grid .ig-row.note{background:#fff7e6;border-radius:3px;padding:6px 8px;color:#874d00}
+
+/* 设计说明 */
+.design-note{margin-top:14px;padding:12px 16px;background:#e6f4ff;border:1px dashed #91caff;border-radius:5px;font-size:12px;color:#0958d9;line-height:1.85}
+.design-note b{color:#0958d9}
+.design-note code{background:rgba(255,255,255,.6);padding:1px 5px;border-radius:3px;font-size:11px;font-family:monospace}
+
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  <b>原型终稿</b> · 数据来源两类：<b>API拉取</b>（默认，无标识） / <span class="src-manual"><span class="dot"></span>手动</span>（厂商接口漏返、技术补录）
+</div>
+
+<div class="layout">
+  <!-- ── 侧边导航 ── -->
+  <div class="sider">
+    <div class="menu-item">游戏厂商管理</div>
+    <div class="menu-item">商户游戏管理</div>
+    <div class="menu-item active" id="m-sub" onclick="switchPage(0)">子游戏管理</div>
+    <div class="menu-item">游戏通道管理</div>
+    <div class="menu-item">游戏维护管理</div>
+    <div class="menu-item" id="m-map" onclick="switchPage(1)">游戏映射管理</div>
+    <div class="menu-item">三方辅助功能</div>
+    <div class="menu-group">彩票管理 <span>›</span></div>
+    <div class="menu-group">商户管理 <span>›</span></div>
+    <div class="menu-group">代理管理 <span>›</span></div>
+    <div class="menu-group">会员管理 <span>›</span></div>
+    <div class="menu-group">报表管理 <span>›</span></div>
+    <div class="menu-group">系统设置 <span>›</span></div>
+  </div>
+
+  <!-- ── 主区域 ── -->
+  <div class="main">
+    <div class="crumb">
+      <span class="pg-title" id="pg-title">子游戏管理</span>
+      <div class="pg-tabs">
+        <div class="ptab active" id="t0" onclick="switchPage(0)">子游戏管理</div>
+        <div class="ptab" id="t1" onclick="switchPage(1)">游戏映射管理 <span class="new-bdg">优化</span></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ════════════════════════════════════════ -->
+      <!-- 页面 0: 子游戏管理                          -->
+      <!-- ════════════════════════════════════════ -->
+      <div class="page-content active" id="page0">
+
+        <div class="search-bar">
+          <div class="sf-row">
+            <div class="sf"><label>游戏名称</label><input placeholder="游戏名称"></div>
+            <div class="sf"><label>游戏ID/Code</label><input placeholder="游戏ID或游戏编码"></div>
+            <div class="sf"><label>游戏大类</label><select><option>请选择</option></select></div>
+            <div class="sf"><label>游戏厂商</label><select><option>JILI电子</option></select></div>
+          </div>
+          <div class="sf-row">
+            <div class="sf"><label>游戏子类</label><select><option>请选择游戏分类</option></select></div>
+            <div class="sf"><label>自定义分类</label><input placeholder="自定义分类"></div>
+            <div class="sf"><label>支持币种</label><select><option>请选择支持币种</option></select></div>
+            <div class="sf"><label>游戏状态</label><select><option>请选择</option></select></div>
+          </div>
+          <div class="sf-row">
+            <div class="sf"><label>创建时间</label><input placeholder="开始日期" style="min-width:130px"><span class="muted">→</span><input placeholder="结束日期" style="min-width:130px"></div>
+            <div class="sf"><label>更新时间</label><input placeholder="开始日期" style="min-width:130px"><span class="muted">→</span><input placeholder="结束日期" style="min-width:130px"></div>
+          </div>
+          <div class="sf-row">
+            <div class="sf"><label>是否映射</label><select><option>请选择</option></select></div>
+            <div class="sf sf-source">
+              <label>数据来源</label>
+              <select style="min-width:150px">
+                <option>全部</option>
+                <option selected>手动添加</option>
+              </select>
+            </div>
+            <div class="actions">
+              <button class="btn btn-p">查询</button>
+              <button class="btn btn-d">重置</button>
+              <span class="collapse-btn">收起 ∧</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="list-card">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th style="width:80px">游戏ID</th>
+                <th style="min-width:200px">游戏名称</th>
+                <th style="min-width:240px">游戏编码</th>
+                <th style="width:90px">游戏厂商</th>
+                <th style="width:80px">游戏大类</th>
+                <th style="width:70px">游戏子类</th>
+                <th style="width:80px">自定义分类</th>
+                <th style="width:130px">支持币种</th>
+                <th style="width:65px">最大倍数</th>
+                <th style="width:70px">状态</th>
+                <th style="width:140px">更新日期</th>
+                <th style="width:60px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- 拉取（无标识） -->
+              <tr>
+                <td class="muted">106988</td>
+                <td class="gname">CN: In and Out_R96_F1 D<br><span class="en">EN: In and Out_R96_F1 D</span></td>
+                <td>
+                  <div class="code-cell">
+                    <div class="code-line">
+                      <span class="code-pill">jili_988_iao</span>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="tag t-purple">JILI电子</span></td>
+                <td><span class="tag t-blue">电子游戏</span></td>
+                <td><span class="tag t-gray">Slot</span></td>
+                <td class="muted">netent</td>
+                <td><span class="tag t-blue">INR,VND,BRL,BD</span></td>
+                <td>0</td>
+                <td><span class="tag t-green">启用</span></td>
+                <td class="muted" style="font-size:11px">2026-05-07 20:10:48</td>
+                <td><span class="op-link" onclick="openModal('pull')">编辑</span></td>
+              </tr>
+
+              <!-- ⭐ 用户重点：Clover Coins 4x4 — 手动 -->
+              <tr class="row-manual">
+                <td class="muted">106987</td>
+                <td class="gname">
+                  CN: 幸运四叶草 4x4 无限财富<br>
+                  <span class="en">EN: Clover Coins 4x4 Unlimited Fortune</span>
+                </td>
+                <td>
+                  <div class="code-cell">
+                    <div class="code-line">
+                      <span class="src-manual" data-tip="厂商API漏返，技术手动补录"><span class="dot"></span>手动</span>
+                      <span class="code-pill">jili_987_cc4x4</span>
+                    </div>
+                    <div class="code-meta">
+                      <span class="code-meta-icon">●</span>由 <b>techadmin</b> 添加 · 2026-04-15
+                    </div>
+                  </div>
+                </td>
+                <td><span class="tag t-purple">JILI电子</span></td>
+                <td><span class="tag t-blue">电子游戏</span></td>
+                <td><span class="tag t-gray">Slot</span></td>
+                <td class="muted">cc4x4</td>
+                <td><span class="tag t-blue">INR,VND,BRL,BD</span></td>
+                <td>0</td>
+                <td><span class="tag t-green">启用</span></td>
+                <td class="muted" style="font-size:11px">2026-05-08 11:22:30</td>
+                <td><span class="op-link" onclick="openModal('manual')">编辑</span></td>
+              </tr>
+
+              <!-- 拉取 -->
+              <tr>
+                <td class="muted">106986</td>
+                <td class="gname">CN: Football Golden Cup<br><span class="en">EN: Football Golden Cup</span></td>
+                <td>
+                  <div class="code-cell">
+                    <div class="code-line">
+                      <span class="code-pill">jili_786_fgc</span>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="tag t-purple">JILI电子</span></td>
+                <td><span class="tag t-blue">电子游戏</span></td>
+                <td><span class="tag t-gray">Slot</span></td>
+                <td>8</td>
+                <td><span class="tag t-blue">MXN,THB</span></td>
+                <td>0</td>
+                <td><span class="tag t-green">启用</span></td>
+                <td class="muted" style="font-size:11px">2026-05-07 14:21:43</td>
+                <td><span class="op-link" onclick="openModal('pull')">编辑</span></td>
+              </tr>
+
+              <!-- 手动 -->
+              <tr class="row-manual">
+                <td class="muted">106985</td>
+                <td class="gname">
+                  CN: 冲锋野牛 Ascent<br>
+                  <span class="en">EN: Charge Bison Ascent</span>
+                </td>
+                <td>
+                  <div class="code-cell">
+                    <div class="code-line">
+                      <span class="src-manual"><span class="dot"></span>手动</span>
+                      <span class="code-pill">jili_771_cba</span>
+                    </div>
+                    <div class="code-meta">
+                      <span class="code-meta-icon">●</span>由 <b>techadmin</b> 添加 · 2026-04-22
+                    </div>
+                  </div>
+                </td>
+                <td><span class="tag t-purple">JILI电子</span></td>
+                <td><span class="tag t-blue">电子游戏</span></td>
+                <td><span class="tag t-gray">Slot</span></td>
+                <td>1</td>
+                <td><span class="tag t-blue">MXN,THB</span></td>
+                <td>0</td>
+                <td><span class="tag t-green">启用</span></td>
+                <td class="muted" style="font-size:11px">2026-05-07 14:21:43</td>
+                <td><span class="op-link" onclick="openModal('manual')">编辑</span></td>
+              </tr>
+
+              <!-- 拉取 -->
+              <tr>
+                <td class="muted">106984</td>
+                <td class="gname">CN: 3 守墓者<br><span class="en">EN: 3 Tomb Keepers</span></td>
+                <td>
+                  <div class="code-cell">
+                    <div class="code-line">
+                      <span class="code-pill">jili_769_3tk</span>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="tag t-purple">JILI电子</span></td>
+                <td><span class="tag t-blue">电子游戏</span></td>
+                <td><span class="tag t-gray">Slot</span></td>
+                <td>1</td>
+                <td><span class="tag t-blue">MXN,THB</span></td>
+                <td>0</td>
+                <td><span class="tag t-green">启用</span></td>
+                <td class="muted" style="font-size:11px">2026-05-07 14:21:43</td>
+                <td><span class="op-link" onclick="openModal('pull')">编辑</span></td>
+              </tr>
+
+              <!-- 手动 -->
+              <tr class="row-manual">
+                <td class="muted">106983</td>
+                <td class="gname">
+                  CN: Frog Dash 10000<br>
+                  <span class="en">EN: Frog Dash 10000</span>
+                </td>
+                <td>
+                  <div class="code-cell">
+                    <div class="code-line">
+                      <span class="src-manual"><span class="dot"></span>手动</span>
+                      <span class="code-pill">jili_715_fd10</span>
+                    </div>
+                    <div class="code-meta">
+                      <span class="code-meta-icon">●</span>由 <b>admin</b> 添加 · 2026-04-30
+                    </div>
+                  </div>
+                </td>
+                <td><span class="tag t-purple">JILI电子</span></td>
+                <td><span class="tag t-blue">电子游戏</span></td>
+                <td><span class="tag t-gray">Slot</span></td>
+                <td>8</td>
+                <td><span class="tag t-blue">MXN,THB</span></td>
+                <td>0</td>
+                <td><span class="tag t-green">启用</span></td>
+                <td class="muted" style="font-size:11px">2026-05-07 14:21:43</td>
+                <td><span class="op-link" onclick="openModal('manual')">编辑</span></td>
+              </tr>
+
+              <!-- 拉取 -->
+              <tr>
+                <td class="muted">106981</td>
+                <td class="gname">CN: 幸运金币 Unlimited Fc<br><span class="en">EN: Fortune Coins Unlimit</span></td>
+                <td>
+                  <div class="code-cell">
+                    <div class="code-line">
+                      <span class="code-pill">jili_686_fcu</span>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="tag t-purple">JILI电子</span></td>
+                <td><span class="tag t-blue">电子游戏</span></td>
+                <td><span class="tag t-gray">Slot</span></td>
+                <td>1</td>
+                <td><span class="tag t-blue">MXN,THB</span></td>
+                <td>0</td>
+                <td><span class="tag t-green">启用</span></td>
+                <td class="muted" style="font-size:11px">2026-05-07 14:21:43</td>
+                <td><span class="op-link" onclick="openModal('pull')">编辑</span></td>
+              </tr>
+              <tr>
+                <td class="muted">106980</td>
+                <td class="gname">CN: 幸運金獅<br><span class="en">EN: Lucky Tamarin</span></td>
+                <td>
+                  <div class="code-cell">
+                    <div class="code-line">
+                      <span class="code-pill">jili_678_lt</span>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="tag t-purple">JILI电子</span></td>
+                <td><span class="tag t-blue">电子游戏</span></td>
+                <td><span class="tag t-gray">Slot</span></td>
+                <td>1</td>
+                <td><span class="tag t-blue">MXN,THB</span></td>
+                <td>0</td>
+                <td><span class="tag t-green">启用</span></td>
+                <td class="muted" style="font-size:11px">2026-05-08 14:30:14</td>
+                <td><span class="op-link" onclick="openModal('pull')">编辑</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="design-note">
+          <b>📌 子游戏管理 — 设计要点：</b><br>
+          ① 仅在<b>手动添加</b>的游戏前显示 <span class="src-manual"><span class="dot"></span>手动</span> 标签 — API 拉取是默认状态，无需标识<br>
+          ② 手动行整行<b>浅橙底色 + 左侧橙色色条</b>，编码下方一行小字「由 X 添加 · 日期」<br>
+          ③ <b>动态行为</b>：未来厂商接口拉到 <code>jili_987_cc4x4</code> 时，同步任务自动清除"手动"标识，转为 API 拉取<br>
+          ④ 顶部「数据来源」筛选两档：<b>全部 / 手动添加</b>
+        </div>
+
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <button class="btn btn-d" onclick="openModal('pull')">演示：编辑 API 拉取游戏</button>
+          <button class="btn btn-d" onclick="openModal('manual')">演示：编辑手动游戏</button>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════ -->
+      <!-- 页面 1: 游戏映射管理（紧凑版）              -->
+      <!-- ════════════════════════════════════════ -->
+      <div class="page-content" id="page1">
+
+        <div class="mapping-card">
+          <!-- 第一列：商户站点 -->
+          <div class="mp-col mp-col-site">
+            <div class="mp-head">
+              商户站点
+              <span class="tag t-blue" style="font-size:10px">已选 1</span>
+            </div>
+            <div class="mp-body">
+              <div class="v-select">
+                <label>选择站点</label>
+                <input class="site-input" placeholder="搜索站点...">
+              </div>
+              <div class="s-item active">
+                <div>
+                  <div>sitINR--2001</div>
+                  <div class="s-meta">印度 · INR</div>
+                </div>
+                <span class="tag t-blue" style="font-size:9px">选中</span>
+              </div>
+              <div class="s-item">
+                <div>
+                  <div>sitPKR--2003</div>
+                  <div class="s-meta">巴基斯坦 · PKR</div>
+                </div>
+              </div>
+              <div class="s-item">
+                <div>
+                  <div>sitBDT--2005</div>
+                  <div class="s-meta">孟加拉 · BDT</div>
+                </div>
+              </div>
+
+              <div class="selected-block">
+                <div class="sb-title">
+                  已选站点 (1) <span class="clear">清空</span>
+                </div>
+                <div class="sb-tag">
+                  sitINR--2001
+                  <span class="x">删除</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第二列：三方厂商 -->
+          <div class="mp-col mp-col-vendor">
+            <div class="mp-head">三方厂商（官方）</div>
+            <div class="mp-body">
+              <div class="v-select">
+                <label>选择官方厂商</label>
+                <select class="v-sel">
+                  <option>JILI电子</option>
+                  <option>PG电子</option>
+                  <option>EVO电子</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第三列：紧凑 pair 列表 -->
+          <div class="mp-col mp-right">
+            <div class="mp-right-head">
+              <div class="mrh-title">
+                映射子游戏
+                <span class="ctx">· sitINR--2001 · <span class="vt-tag vt-official">官</span> JILI电子 → 自营</span>
+              </div>
+              <button class="btn btn-p" style="height:28px">保存</button>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="toolbar">
+              <div class="tb-search">
+                <span class="icon">🔍</span>
+                <input placeholder="搜索游戏ID/名称/编码">
+              </div>
+              <div class="tb-filter">
+                <button class="on">全部</button>
+                <button>仅手动</button>
+              </div>
+            </div>
+
+            <div class="mp-right-body">
+
+              <!-- 自营厂商分组：UP电子 -->
+              <div class="vgroup">
+                <div class="vgroup-head">
+                  <div class="vgroup-name">
+                    <div class="v-icon" style="background:#e8f5e9;color:#2e7d32">UP</div>
+                    <span class="vt-tag vt-selfop">营</span> UP电子
+                  </div>
+                  <div class="vgroup-stat">
+                    <span class="stat-pill">共 7</span>
+                    <span class="stat-pill has-manual"><span class="src-manual" style="padding:0 4px;border:none;background:transparent"><span class="dot"></span>手动</span>2</span>
+                    <span class="stat-pill stat-sel">已选 5/7</span>
+                    <button class="chk-all">全选</button>
+                  </div>
+                </div>
+                <div class="vgroup-body">
+                  <div class="pair-grid">
+
+                    <!-- ⭐ Clover Coins 4x4 - 手动 -->
+                    <label class="pair-card has-manual checked" onclick="togCard(this)">
+                      <input type="checkbox" checked>
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_987_cc4x4</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">up_2001_cc4x4</span>
+                          <span class="src-manual pc-manual-mark"><span class="dot"></span>手动</span>
+                        </div>
+                        <div class="pc-name">Clover Coins 4x4 Unlimited Fortune</div>
+                      </div>
+                    </label>
+
+                    <label class="pair-card checked" onclick="togCard(this)">
+                      <input type="checkbox" checked>
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_988_iao</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">up_2002_iao</span>
+                        </div>
+                        <div class="pc-name">In and Out R96 F1 D</div>
+                      </div>
+                    </label>
+
+                    <label class="pair-card has-manual checked" onclick="togCard(this)">
+                      <input type="checkbox" checked>
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_771_cba</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">up_2003_cba</span>
+                          <span class="src-manual pc-manual-mark"><span class="dot"></span>手动</span>
+                        </div>
+                        <div class="pc-name">Charge Bison Ascent</div>
+                      </div>
+                    </label>
+
+                    <label class="pair-card checked" onclick="togCard(this)">
+                      <input type="checkbox" checked>
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_786_fgc</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">up_2004_fgc</span>
+                        </div>
+                        <div class="pc-name">Football Golden Cup</div>
+                      </div>
+                    </label>
+
+                    <label class="pair-card checked" onclick="togCard(this)">
+                      <input type="checkbox" checked>
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_769_3tk</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">up_2005_3tk</span>
+                        </div>
+                        <div class="pc-name">3 Tomb Keepers</div>
+                      </div>
+                    </label>
+
+                    <label class="pair-card" onclick="togCard(this)">
+                      <input type="checkbox">
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_737_jpf</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">up_2006_jpf</span>
+                        </div>
+                        <div class="pc-name">Jackpot Football</div>
+                      </div>
+                    </label>
+
+                    <label class="pair-card" onclick="togCard(this)">
+                      <input type="checkbox">
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_686_fcu</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">up_2007_fcu</span>
+                        </div>
+                        <div class="pc-name">Fortune Coins Unlimited</div>
+                      </div>
+                    </label>
+
+                  </div>
+                </div>
+              </div>
+
+              <!-- 自营厂商分组：KB电子 -->
+              <div class="vgroup">
+                <div class="vgroup-head">
+                  <div class="vgroup-name">
+                    <div class="v-icon" style="background:#fff3e0;color:#e65100">KB</div>
+                    <span class="vt-tag vt-selfop">营</span> KB电子
+                  </div>
+                  <div class="vgroup-stat">
+                    <span class="stat-pill">共 3</span>
+                    <span class="stat-pill has-manual"><span class="src-manual" style="padding:0 4px;border:none;background:transparent"><span class="dot"></span>手动</span>1</span>
+                    <span class="stat-pill stat-sel">已选 2/3</span>
+                    <button class="chk-all">全选</button>
+                  </div>
+                </div>
+                <div class="vgroup-body">
+                  <div class="pair-grid">
+                    <label class="pair-card has-manual checked" onclick="togCard(this)">
+                      <input type="checkbox" checked>
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_715_fd10</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">kb_5001_fd10</span>
+                          <span class="src-manual pc-manual-mark"><span class="dot"></span>手动</span>
+                        </div>
+                        <div class="pc-name">Frog Dash 10000</div>
+                      </div>
+                    </label>
+
+                    <label class="pair-card checked" onclick="togCard(this)">
+                      <input type="checkbox" checked>
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_678_lt</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">kb_5002_lt</span>
+                        </div>
+                        <div class="pc-name">Lucky Tamarin</div>
+                      </div>
+                    </label>
+
+                    <label class="pair-card" onclick="togCard(this)">
+                      <input type="checkbox">
+                      <div class="pc-body">
+                        <div class="pc-line1">
+                          <span class="vt-tag vt-official">官</span>
+                          <span class="pc-code">jili_645_ma</span>
+                          <span class="pc-arrow">⇄</span>
+                          <span class="vt-tag vt-selfop">营</span>
+                          <span class="pc-code">kb_5003_ma</span>
+                        </div>
+                        <div class="pc-name">Mega Ace</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 设计说明 -->
+              <div class="design-note">
+                <b>📌 游戏映射管理 — 设计要点：</b><br>
+                ① <b>双行卡片</b>：第一行 <code>官 {官方编码} ⇄ 营 {自营编码} ● 手动</code>；第二行游戏 EN 名称（灰色，溢出省略）<br>
+                ② <b>手动 pair</b> 跟子游戏管理保持一致 — 浅橙底色 + 左侧橙色色条；API 拉取 pair 保持原默认样式<br>
+                ③ <b>区分标识</b>：<span class="vt-tag vt-official">官</span>/<span class="vt-tag vt-selfop">营</span> 实心标签紧贴编码前<br>
+                ④ <b>卡片宽度按内容自适应</b>，一行容纳多张，自动换行 — 多厂商上百条数据浏览顺畅<br>
+                ⑤ <b>分组头</b>：自营厂商图标 + 名称 + 统计（共 N / 手动 M / 已选 X/N）+ 全选按钮<br>
+                ⑥ <b>例</b>：<code>[官] jili_987_cc4x4 ⇄ [营] up_2001_cc4x4 [手动]</code> 第二行 <i>Clover Coins 4x4 Unlimited Fortune</i>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── 编辑子游戏弹窗 ── -->
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div class="m-hdr">
+      <div class="m-title" id="m-title">
+        编辑子游戏
+        <span id="m-badge"></span>
+      </div>
+      <button class="m-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="m-body">
+
+      <div id="m-banner"></div>
+
+      <div class="sec-title">基础信息</div>
+      <div class="f-grid">
+        <div class="f-item">
+          <label class="f-lbl">游戏ID</label>
+          <input class="f-inp" value="106987" disabled>
+        </div>
+        <div class="f-item">
+          <label class="f-lbl">游戏厂商</label>
+          <input class="f-inp" value="JILI电子（官方）" disabled>
+        </div>
+        <div class="f-item">
+          <label class="f-lbl">游戏编码 <span class="req">*</span></label>
+          <input class="f-inp" id="m-code" value="jili_987_cc4x4">
+        </div>
+        <div class="f-item">
+          <label class="f-lbl">游戏状态</label>
+          <select class="f-sel"><option>启用</option><option>禁用</option><option>维护中</option></select>
+        </div>
+        <div class="f-item">
+          <label class="f-lbl">游戏名称（CN）<span class="req">*</span></label>
+          <input class="f-inp" id="m-name-cn" value="幸运四叶草 4x4 无限财富">
+        </div>
+        <div class="f-item">
+          <label class="f-lbl">游戏名称（EN）<span class="req">*</span></label>
+          <input class="f-inp" id="m-name-en" value="Clover Coins 4x4 Unlimited Fortune">
+        </div>
+      </div>
+
+      <div class="sec-title">游戏分类</div>
+      <div class="f-grid f-grid-3">
+        <div class="f-item">
+          <label class="f-lbl">游戏大类</label>
+          <select class="f-sel"><option>电子游戏</option></select>
+        </div>
+        <div class="f-item">
+          <label class="f-lbl">游戏子类</label>
+          <select class="f-sel"><option>Slot</option></select>
+        </div>
+        <div class="f-item">
+          <label class="f-lbl">自定义分类</label>
+          <input class="f-inp" value="cc4x4">
+        </div>
+      </div>
+
+      <div class="sec-title">投注与币种</div>
+      <div class="f-grid f-grid-3">
+        <div class="f-item">
+          <label class="f-lbl">最大倍数</label>
+          <input class="f-inp" value="0">
+        </div>
+        <div class="f-item">
+          <label class="f-lbl">最大投注率</label>
+          <input class="f-inp" value="0">
+        </div>
+        <div class="f-item">
+          <label class="f-lbl">RTP</label>
+          <input class="f-inp" value="96">
+        </div>
+        <div class="f-item sp2">
+          <label class="f-lbl">支持币种</label>
+          <input class="f-inp" value="INR, VND, BRL, BDT">
+        </div>
+      </div>
+
+      <div class="sec-title">系统信息</div>
+      <div id="m-sysinfo"></div>
+
+    </div>
+    <div class="m-footer">
+      <button class="btn btn-d" onclick="closeModal()">取消</button>
+      <button class="btn btn-p">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPage(idx){
+  document.querySelectorAll('.page-content').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  document.querySelectorAll('.ptab').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  document.getElementById('m-sub').classList.toggle('active',idx===0);
+  document.getElementById('m-map').classList.toggle('active',idx===1);
+  document.getElementById('pg-title').textContent = idx===0?'子游戏管理':'游戏映射管理';
+  window.scrollTo(0,0);
+}
+function togCard(el){
+  const cb = el.querySelector('input[type=checkbox]');
+  setTimeout(()=>{
+    el.classList.toggle('checked', cb.checked);
+  },0);
+}
+function toggleSwitch(wrap){
+  wrap.querySelector('.toggle').classList.toggle('on');
+}
+document.querySelectorAll('.tb-filter button').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    this.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+    this.classList.add('on');
+  });
+});
+
+// 编辑弹窗
+function openModal(type){
+  const modal = document.getElementById('modal');
+  const badge = document.getElementById('m-badge');
+  const banner = document.getElementById('m-banner');
+  const sysinfo = document.getElementById('m-sysinfo');
+  const code = document.getElementById('m-code');
+  const nameCn = document.getElementById('m-name-cn');
+  const nameEn = document.getElementById('m-name-en');
+
+  if(type==='manual'){
+    badge.innerHTML = '<span class="src-manual"><span class="dot"></span>手动</span>';
+    banner.innerHTML = `
+      <div class="src-banner">
+        <div class="src-banner-icon">!</div>
+        <div class="src-banner-content">
+          <div class="t1">本游戏为「手动添加」</div>
+          <div class="t2">
+            原因：<b>JILI 厂商接口未返回此游戏</b>，由技术手动补录以支持自营映射使用。<br>
+            ⓘ <b>动态行为</b>：当厂商接口后续返回此游戏时，系统将自动转为「API 拉取」状态并覆盖基础字段，无需运营手工干预。
+          </div>
+        </div>
+      </div>
+    `;
+    code.value = 'jili_987_cc4x4';
+    nameCn.value = '幸运四叶草 4x4 无限财富';
+    nameEn.value = 'Clover Coins 4x4 Unlimited Fortune';
+    sysinfo.innerHTML = `
+      <div class="info-grid">
+        <div class="ig-row"><b>数据来源：</b><span class="src-manual"><span class="dot"></span>手动</span></div>
+        <div class="ig-row"><b>添加人：</b>techadmin</div>
+        <div class="ig-row"><b>添加时间：</b>2026-04-15 16:08:20</div>
+        <div class="ig-row"><b>最后修改：</b>admin · 2026-05-08 11:22:30</div>
+        <div class="ig-row note sp2"><b>⚠ 同步保护：</b>下次同步若厂商接口返回此游戏，将自动转为"API 拉取"状态</div>
+      </div>
+    `;
+  } else {
+    badge.innerHTML = '';
+    banner.innerHTML = '';
+    code.value = 'jili_988_iao';
+    nameCn.value = 'In and Out R96 F1 D';
+    nameEn.value = 'In and Out R96 F1 D';
+    sysinfo.innerHTML = `
+      <div class="info-grid">
+        <div class="ig-row"><b>数据来源：</b>API 拉取</div>
+        <div class="ig-row"><b>同步状态：</b>正常</div>
+        <div class="ig-row"><b>创建时间：</b>2026-05-07 14:36:04</div>
+        <div class="ig-row"><b>最后同步：</b>2026-05-07 20:10:48</div>
+      </div>
+    `;
+  }
+  modal.classList.add('show');
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+}
+document.getElementById('modal').addEventListener('click', e=>{
+  if(e.target.id==='modal') closeModal();
+});
+</script>
+</body>
+</html>
