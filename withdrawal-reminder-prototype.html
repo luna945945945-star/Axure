@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>提现记录 · 催单按钮 可交互原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:14px;background:#1e2530;color:#333;min-height:100vh;padding:20px}
+
+/* 演示控制台 */
+.demo-bar{max-width:980px;margin:0 auto 20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:12px 16px;color:#ddd;font-size:12.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.demo-bar b{color:#fff}
+.demo-bar .ctrl{display:flex;align-items:center;gap:6px}
+.demo-bar select,.demo-bar button{height:28px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:4px;padding:0 10px;font-family:inherit;font-size:12px;cursor:pointer}
+.demo-bar button:hover,.demo-bar select:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.35)}
+.demo-bar .badge{background:#ff7a00;color:#fff;padding:2px 7px;border-radius:3px;font-size:10.5px;font-weight:500;letter-spacing:.3px}
+
+/* 双屏布局 */
+.stage{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+
+/* 手机外壳 */
+.phone{width:390px;height:780px;background:#fff;border-radius:32px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 8px #2a3140,0 0 0 9px #4a5260;position:relative}
+.phone::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:90px;height:22px;background:#000;border-radius:0 0 14px 14px;z-index:50}
+
+/* 顶部标题栏 */
+.h-bar{padding:28px 16px 14px;background:#fff;display:flex;align-items:center;position:relative;flex-shrink:0;border-bottom:1px solid #f0f0f0}
+.h-bar .back{font-size:22px;color:#333;cursor:pointer;padding:4px 8px;line-height:1;font-weight:300}
+.h-bar .title{flex:1;text-align:center;font-size:17px;font-weight:600;color:#222;margin-right:30px}
+
+/* 筛选 pills */
+.pill-bar{padding:12px 14px;background:#fff;display:flex;gap:10px;align-items:center;flex-shrink:0;overflow-x:auto;border-bottom:1px solid #f5f5f7}
+.pill{height:42px;min-width:78px;border-radius:8px;background:#fff;border:1px solid #ebebeb;display:flex;align-items:center;justify-content:center;gap:5px;padding:0 12px;font-size:13px;color:#222;flex-shrink:0;cursor:pointer;font-weight:500}
+.pill.active{background:linear-gradient(135deg,#ff8c8c,#f5365c);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(245,54,92,.3)}
+.pill .ico{width:18px;height:18px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0}
+.pill.active .ico{background:rgba(255,255,255,.3)}
+.pill .ico-bank{background:#2378f7}
+.pill .ico-usdt{background:#2378f7}
+.pill.icon-only{min-width:42px;padding:0;background:#000;border-color:#000}
+
+/* 下拉筛选 */
+.dropdown-bar{padding:0 14px 12px;background:#fff;display:flex;gap:10px;flex-shrink:0;border-bottom:1px solid #f0f0f0}
+.dropdown{flex:1;height:42px;border:1px solid #ebebeb;border-radius:8px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#333;background:#fff;cursor:pointer}
+.dropdown .arrow{color:#999;font-size:10px}
+
+/* 内容区 */
+.content{flex:1;overflow-y:auto;padding:12px 14px 24px;background:#f5f5f7;position:relative}
+
+/* 订单卡片 */
+.order-card{background:#fff;border-radius:10px;margin-bottom:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px}
+.head-tag{background:#f5365c;color:#fff;font-size:13px;font-weight:600;padding:5px 14px;border-radius:6px}
+.head-status{font-size:14px;font-weight:600}
+.st-pending{color:#fa8c16}
+.st-processing{color:#f5365c}
+.st-success{color:#52c41a}
+.st-rejected{color:#999}
+
+.card-body{padding:6px 14px 14px}
+.card-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;font-size:13px}
+.card-row .lbl{color:#888}
+.card-row .val{color:#333;text-align:right;display:flex;align-items:center;gap:6px;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-row .val.amount{color:#fa8c16;font-weight:600}
+.card-row .val .copy{cursor:pointer;flex-shrink:0;color:#1677ff}
+
+/* 催单按钮 */
+.reminder-btn{display:block;width:100%;height:44px;border:none;font-family:inherit;font-size:14.5px;font-weight:500;color:#fff;letter-spacing:.5px;cursor:pointer;transition:opacity .15s;border-top:1px solid rgba(0,0,0,.04)}
+.reminder-btn.active{background:linear-gradient(135deg,#0f5d4e,#1ba87e)}
+.reminder-btn.active:active{opacity:.85}
+.reminder-btn.disabled{background:#c8c8c8;cursor:not-allowed;pointer-events:none}
+
+/* 客服浮窗 */
+.cs-fab{position:absolute;right:16px;bottom:24px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#ff8c8c,#f5365c);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(245,54,92,.4);font-size:20px;color:#fff;z-index:80;border:3px solid #fff;cursor:pointer}
+
+/* 模态弹窗 */
+.modal-mask{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:0 30px}
+.modal-mask.show{display:flex;animation:fadein .15s}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.modal-box{background:#fff;border-radius:14px;width:100%;max-width:300px;overflow:hidden;animation:scalein .2s}
+@keyframes scalein{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.modal-content{padding:24px 22px 18px;text-align:center;font-size:13px;line-height:1.55;color:#7a8db8}
+.modal-btn{display:block;width:100%;padding:13px 0;border:none;border-top:1px solid #f0f0f0;background:#fff;color:#1677ff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit}
+.modal-btn:active{background:#f7f7f7}
+
+/* Toast */
+.toast{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;padding:9px 18px;border-radius:20px;font-size:12.5px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* 右侧说明面板 */
+.side-panel{width:360px;background:#fff;border-radius:10px;padding:18px 20px;max-height:780px;overflow-y:auto;color:#333;font-size:13px;line-height:1.7}
+.side-panel h3{font-size:14.5px;color:#222;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #f5365c;font-weight:600}
+.side-panel h4{font-size:13px;color:#222;margin:14px 0 6px;font-weight:600;display:flex;align-items:center;gap:6px}
+.side-panel h4::before{content:"";width:3px;height:13px;background:#f5365c;border-radius:2px}
+.side-panel .item{margin-bottom:8px;padding-left:6px}
+.side-panel .item code{background:#f5f5f5;padding:1px 6px;border-radius:3px;font-size:11.5px;color:#d4380d;font-family:'SF Mono',Monaco,monospace}
+.side-panel .ok{color:#52c41a}
+.side-panel .no{color:#f5222d}
+.side-panel .tip{background:#fff7e6;border:1px solid #ffd591;border-radius:5px;padding:8px 11px;font-size:12px;color:#874d00;margin-top:8px}
+.side-panel .demo-step{background:#e6f4ff;border:1px solid #91caff;border-radius:5px;padding:10px 12px;font-size:12px;color:#0958d9;margin-top:8px;line-height:1.6}
+.side-panel .demo-step ol{margin-left:18px;margin-top:4px}
+.side-panel .demo-step b{color:#003eb3}
+
+</style>
+</head>
+<body>
+
+<!-- 演示控制台 -->
+<div class="demo-bar">
+  <span class="badge">DEMO</span>
+  <b>提现记录·催单按钮 可交互原型</b>
+  <span style="opacity:.7">|</span>
+  <span style="opacity:.85">state=0 / state=3 显示催单，10 分钟冷却</span>
+
+  <div style="margin-left:auto;display:flex;gap:10px;flex-wrap:wrap">
+    <div class="ctrl">
+      <span style="opacity:.7">语言</span>
+      <select id="langSelect">
+        <option value="en" selected>English</option>
+        <option value="zh-CN">简体中文</option>
+        <option value="zh-TW">繁體中文</option>
+        <option value="hi">हिन्दी</option>
+        <option value="pt">Português</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <span style="opacity:.7">冷却</span>
+      <select id="cooldownSelect">
+        <option value="10">10 分钟（正式）</option>
+        <option value="0.1" selected>6 秒（演示用）</option>
+        <option value="1">1 分钟</option>
+      </select>
+    </div>
+    <button id="resetBtn">🔄 重置冷却</button>
+  </div>
+</div>
+
+<div class="stage">
+  <!-- 手机模拟 -->
+  <div class="phone">
+    <!-- 顶部标题栏 -->
+    <div class="h-bar">
+      <span class="back">‹</span>
+      <span class="title" data-i18n="pageTitle">Withdrawal history</span>
+    </div>
+
+    <!-- 货币 pills -->
+    <div class="pill-bar">
+      <div class="pill active">
+        <span class="ico" style="background:rgba(255,255,255,.3)">▦</span>
+        <span data-i18n="filterAll">All</span>
+      </div>
+      <div class="pill">
+        <span class="ico ico-usdt">▢</span>
+        USDT
+      </div>
+      <div class="pill">
+        <span class="ico ico-bank">▢</span>
+        BANK CADE
+      </div>
+      <div class="pill icon-only">
+        <span style="color:#ff7a00;font-size:14px">◉</span>
+      </div>
+    </div>
+
+    <!-- 下拉筛选 -->
+    <div class="dropdown-bar">
+      <div class="dropdown">
+        <span data-i18n="filterAll">All</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="dropdown">
+        <span data-i18n="chooseDate">Choose a date</span>
+        <span class="arrow">▼</span>
+      </div>
+    </div>
+
+    <!-- 内容 -->
+    <div class="content">
+      <div id="orderList"></div>
+
+      <!-- 客服浮窗 -->
+      <div class="cs-fab">💬</div>
+    </div>
+
+    <!-- 弹窗 -->
+    <div class="modal-mask" id="modalMask">
+      <div class="modal-box">
+        <div class="modal-content" id="modalText"></div>
+        <button class="modal-btn" id="modalBtn" data-i18n="confirm">Confirm</button>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <!-- 右侧说明 -->
+  <div class="side-panel">
+    <h3>🎯 原型说明</h3>
+
+    <h4>显示规则</h4>
+    <div class="item"><code>state=0</code> 待审核 / Pending <span class="ok">✅ 显示催单</span></div>
+    <div class="item"><code>state=1</code> 已完成 / Completed <span class="no">❌ 不显示</span></div>
+    <div class="item"><code>state=2</code> 已拒绝 / Rejected <span class="no">❌ 不显示</span></div>
+    <div class="item"><code>state=3</code> 出款中 / Processing <span class="ok">✅ 显示催单</span></div>
+
+    <h4>催单交互</h4>
+    <div class="item">• 点按钮 → 弹多语言提示</div>
+    <div class="item">• 按钮立即置灰为「已催单」</div>
+    <div class="item">• 同订单 10 分钟内不可重复催单</div>
+    <div class="item">• 单订单催单次数<b>无上限</b></div>
+    <div class="item">• 不同订单冷却<b>互相独立</b></div>
+    <div class="item">• 整个流程<b>不调用任何后端接口</b></div>
+
+    <h4>演示步骤</h4>
+    <div class="demo-step">
+      <ol>
+        <li>点 <b>Processing</b> 订单的绿色按钮</li>
+        <li>看弹窗 → 点 <b>Confirm</b> 关闭</li>
+        <li>按钮立即变成"已催单"灰色态</li>
+        <li>等 6 秒（演示用冷却）→ 按钮恢复</li>
+        <li>切换<b>语言</b>下拉 → 文案瞬间切换</li>
+        <li>看 <b>Completed</b> / <b>Rejected</b> 订单没催单按钮</li>
+        <li><b>Pending</b> 订单也有催单按钮（独立冷却）</li>
+      </ol>
+    </div>
+
+    <h4>异常场景</h4>
+    <div class="item">• 高速双击 → 第二下被前端拦截</div>
+    <div class="item">• 切语言 → 按钮和弹窗文案同步</div>
+    <div class="item">• 关闭/重开页面 → 冷却仍生效（持久化）</div>
+    <div class="item">• 弹窗点遮罩层 <b>不关闭</b>（强制点确认）</div>
+
+    <div class="tip">⚠️ 正式环境冷却 = 10 分钟，演示用默认改成 6 秒，方便查看交互</div>
+  </div>
+</div>
+
+<script>
+// ════════════════════ 多语言文案 ════════════════════
+const I18N = {
+  'zh-CN': {
+    pageTitle: '提现记录',
+    filterAll: '全部', chooseDate: '选择时间',
+    tagWithdraw: '提现',
+    statusPending: '待审核', statusProcessing: '出款中',
+    statusSuccess: '已完成', statusRejected: '已拒绝',
+    rowBalance: '金额', rowType: '类型', rowTime: '时间',
+    rowOrderNo: '订单号', rowRemark: '备注内容',
+    btnReminder: '催单', btnReminded: '已催单',
+    confirm: '确认',
+    modalText: '您的催单请求已提交至专员处理，我们将尽快为您处理，请耐心等待。感谢您的理解与支持。',
+    toastCooldown: '请稍后再催单'
+  },
+  'en': {
+    pageTitle: 'Withdrawal history',
+    filterAll: 'All', chooseDate: 'Choose a date',
+    tagWithdraw: 'Withdraw',
+    statusPending: 'Pending', statusProcessing: 'Processing',
+    statusSuccess: 'Completed', statusRejected: 'Rejected',
+    rowBalance: 'Balance', rowType: 'Type', rowTime: 'Time',
+    rowOrderNo: 'Order number', rowRemark: 'Remarks',
+    btnReminder: 'Reminder', btnReminded: 'Reminded',
+    confirm: 'Confirm',
+    modalText: 'Your request has been submitted to the responsible specialist. We will process your issue as soon as possible. Please wait patiently. Thank you for your understanding and support.',
+    toastCooldown: 'Please wait a moment'
+  },
+  'zh-TW': {
+    pageTitle: '提現記錄',
+    filterAll: '全部', chooseDate: '選擇時間',
+    tagWithdraw: '提現',
+    statusPending: '待審核', statusProcessing: '出款中',
+    statusSuccess: '已完成', statusRejected: '已拒絕',
+    rowBalance: '金額', rowType: '類型', rowTime: '時間',
+    rowOrderNo: '訂單號', rowRemark: '備註內容',
+    btnReminder: '催單', btnReminded: '已催單',
+    confirm: '確認',
+    modalText: '您的催單請求已提交至專員處理，我們將盡快為您處理，請耐心等待。感謝您的理解與支持。',
+    toastCooldown: '請稍後再催單'
+  },
+  'hi': {
+    pageTitle: 'निकासी इतिहास',
+    filterAll: 'सभी', chooseDate: 'दिनांक चुनें',
+    tagWithdraw: 'निकासी',
+    statusPending: 'समीक्षाधीन', statusProcessing: 'भुगतान हो रहा',
+    statusSuccess: 'पूर्ण', statusRejected: 'अस्वीकृत',
+    rowBalance: 'राशि', rowType: 'प्रकार', rowTime: 'समय',
+    rowOrderNo: 'ऑर्डर नंबर', rowRemark: 'टिप्पणी',
+    btnReminder: 'अनुस्मारक', btnReminded: 'याद दिलाया',
+    confirm: 'पुष्टि करें',
+    modalText: 'आपका अनुरोध संबंधित विशेषज्ञ को सबमिट किया गया है। हम आपकी समस्या को जल्द से जल्द संसाधित करेंगे। कृपया धैर्यपूर्वक प्रतीक्षा करें।',
+    toastCooldown: 'कृपया प्रतीक्षा करें'
+  },
+  'pt': {
+    pageTitle: 'Histórico de saques',
+    filterAll: 'Tudo', chooseDate: 'Escolher data',
+    tagWithdraw: 'Saque',
+    statusPending: 'Pendente', statusProcessing: 'Processando',
+    statusSuccess: 'Concluído', statusRejected: 'Rejeitado',
+    rowBalance: 'Valor', rowType: 'Tipo', rowTime: 'Hora',
+    rowOrderNo: 'Nº do pedido', rowRemark: 'Observações',
+    btnReminder: 'Lembrete', btnReminded: 'Lembrado',
+    confirm: 'Confirmar',
+    modalText: 'Sua solicitação foi enviada ao especialista responsável. Iremos processar seu problema o mais rápido possível. Por favor, aguarde pacientemente. Obrigado pela sua compreensão e apoio.',
+    toastCooldown: 'Por favor aguarde'
+  }
+};
+
+// ════════════════════ 模拟订单数据 ════════════════════
+const ORDERS = [
+  // 顶部：一个空状态卡（演示截图里那个奇怪的卡片，可省略）—— 这里直接放有数据的
+  { id: 'WD20260511124519092001797a', time: '2026-05-11 12:45:19', amount: '₹50.00',  type: 'BANK CADE', state: 0, remark: '' },
+  { id: 'WD20260511111340672001011a', time: '2026-05-11 11:13:40', amount: '₹100.00', type: 'BANK CADE', state: 3, remark: '' },
+  { id: 'WD20260310193609989000058a', time: '2026-03-10 19:36:10', amount: '₹300.00', type: 'E-Wallet',  state: 1, remark: '' },
+  { id: 'WD20260309081255374000022a', time: '2026-03-09 08:12:55', amount: '₹250.00', type: 'BANK CADE', state: 2, remark: '' },
+  { id: 'WD20260308223811645000019a', time: '2026-03-08 22:38:11', amount: '₹800.00', type: 'USDT',     state: 1, remark: '' },
+  { id: 'WD20260307101952718000007a', time: '2026-03-07 10:19:52', amount: '₹500.00', type: 'BANK CADE', state: 1, remark: '' }
+];
+
+// ════════════════════ 状态 ════════════════════
+let currentLang = 'en';
+let cooldownMinutes = 0.1;
+const COOLDOWN_KEY_PREFIX = 'wdReminder_';
+
+// ════════════════════ 渲染 ════════════════════
+function t(key) {
+  return I18N[currentLang]?.[key] || I18N['en'][key] || key;
+}
+
+function getStatusLabel(state) {
+  const map = {
+    0: ['statusPending', 'st-pending'],
+    1: ['statusSuccess', 'st-success'],
+    2: ['statusRejected', 'st-rejected'],
+    3: ['statusProcessing', 'st-processing']
+  };
+  return map[state] || ['', ''];
+}
+
+function shouldShowReminder(state) {
+  return state === 0 || state === 3;
+}
+
+function getReminderTime(orderId) {
+  try {
+    const v = localStorage.getItem(COOLDOWN_KEY_PREFIX + orderId);
+    return v ? parseInt(v, 10) : 0;
+  } catch(e) { return 0; }
+}
+
+function setReminderTime(orderId) {
+  try {
+    localStorage.setItem(COOLDOWN_KEY_PREFIX + orderId, Date.now());
+  } catch(e) {}
+}
+
+function isInCooldown(orderId) {
+  const last = getReminderTime(orderId);
+  if (!last) return false;
+  const elapsedMs = Date.now() - last;
+  return elapsedMs < cooldownMinutes * 60 * 1000;
+}
+
+function truncateOrderId(id) {
+  if (id.length > 28) return id;
+  return id;
+}
+
+function renderOrders() {
+  const list = document.getElementById('orderList');
+  list.innerHTML = ORDERS.map(o => {
+    const [stKey, stClass] = getStatusLabel(o.state);
+    const showReminder = shouldShowReminder(o.state);
+    const inCool = isInCooldown(o.id);
+
+    return `
+      <div class="order-card">
+        <div class="card-head">
+          <div class="head-tag">${t('tagWithdraw')}</div>
+          <div class="head-status ${stClass}">${t(stKey)}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-row">
+            <span class="lbl">${t('rowBalance')}</span>
+            <span class="val amount">${o.amount}</span>
+          </div>
+          <div class="card-row">
+            <span class="lbl">${t('rowType')}</span>
+            <span class="val">${o.type}</span>
+          </div>
+          <div class="card-row">
+            <span class="lbl">${t('rowTime')}</span>
+            <span class="val">${o.time}</span>
+          </div>
+          <div class="card-row">
+            <span class="lbl">${t('rowOrderNo')}</span>
+            <span class="val">${o.id} <span class="copy" onclick="onCopy('${o.id}')">📋</span></span>
+          </div>
+          <div class="card-row">
+            <span class="lbl">${t('rowRemark')}</span>
+            <span class="val">${o.remark || ''}</span>
+          </div>
+        </div>
+        ${showReminder ? `
+          <button class="reminder-btn ${inCool ? 'disabled' : 'active'}"
+                  ${inCool ? 'disabled' : ''}
+                  onclick="onReminderClick('${o.id}')">
+            ${inCool ? t('btnReminded') : t('btnReminder')}
+          </button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// ════════════════════ 交互 ════════════════════
+function onReminderClick(orderId) {
+  if (isInCooldown(orderId)) {
+    showToast(t('toastCooldown'));
+    return;
+  }
+  setReminderTime(orderId);
+  showModal();
+  renderOrders();
+}
+
+function showModal() {
+  document.getElementById('modalText').textContent = t('modalText');
+  document.getElementById('modalBtn').textContent = t('confirm');
+  document.getElementById('modalMask').classList.add('show');
+}
+
+function hideModal() {
+  document.getElementById('modalMask').classList.remove('show');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1500);
+}
+
+function onCopy(orderId) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(orderId).catch(()=>{});
+  }
+  showToast('Copied!');
+}
+
+function updateAllI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  renderOrders();
+}
+
+// ════════════════════ 事件 ════════════════════
+document.getElementById('langSelect').addEventListener('change', e => {
+  currentLang = e.target.value;
+  updateAllI18n();
+});
+
+document.getElementById('cooldownSelect').addEventListener('change', e => {
+  cooldownMinutes = parseFloat(e.target.value);
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  ORDERS.forEach(o => localStorage.removeItem(COOLDOWN_KEY_PREFIX + o.id));
+  renderOrders();
+  showToast('Cooldown cleared');
+});
+
+document.getElementById('modalBtn').addEventListener('click', hideModal);
+
+// 弹窗遮罩点击不关闭
+
+// 定时刷新冷却态
+setInterval(renderOrders, 1000);
+
+// 初始化
+updateAllI18n();
+</script>
+
+</body>
+</html>
