@@ -188,7 +188,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
 
 /* ── 无权限 tooltip ── */
 .no-perm-tip{position:relative}
-.no-perm-tip:hover::after{content:"无权操作，请联系 tech admin";position:absolute;top:-30px;left:0;background:#262626;color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;white-space:nowrap;z-index:50}
+.no-perm-tip:hover::after{content:"无权操作，请联系 Aceproduct";position:absolute;top:-30px;left:0;background:#262626;color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;white-space:nowrap;z-index:50}
 
 </style>
 </head>
@@ -203,7 +203,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
 
   <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
     <span style="opacity:.7;font-weight:600">切换账号：</span>
-    <button class="acct-btn active" id="acctTech"><span class="dot"></span>tech admin</button>
+    <button class="acct-btn active" id="acctTech"><span class="dot"></span>Aceproduct</button>
     <button class="acct-btn viewer" id="acctViewer"><span class="dot"></span>其他账号（只读）</button>
   </div>
 </div>
@@ -265,7 +265,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
       <!-- 演示账号提示 -->
       <div class="acct-info">
         <span>💼 当前账号：</span>
-        <span class="tag" id="crumbAcct">tech admin（可完整操作）</span>
+        <span class="tag" id="crumbAcct">Aceproduct（可完整操作）</span>
         <span style="margin-left:auto;color:#666">提示：切换顶部账号开关查看权限差异</span>
       </div>
 
@@ -368,7 +368,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
         <div class="title">
           📦 APP 版本管理 <span class="new-badge">NEW</span>
         </div>
-        <div style="font-size:11.5px;color:#874d00">替换原"是否强制更新"模块，仅 tech admin 可操作</div>
+        <div style="font-size:11.5px;color:#874d00">替换原"是否强制更新"模块，仅 Aceproduct 可操作</div>
       </div>
 
       <!-- 规则说明 -->
@@ -512,7 +512,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
     </div>
     <div class="modal-f">
       <button class="btn btn-d" onclick="closeModal('addModal')">取消</button>
-      <button class="btn btn-p" onclick="saveVersion()">保存</button>
+      <button class="btn btn-p" id="saveVersionBtn" onclick="saveVersion()">保存</button>
     </div>
   </div>
 </div>
@@ -560,9 +560,9 @@ let versions = [
 ];
 
 let logs = [
-  { time: '2026-05-13 11:30:22', who: 'tech admin', what: '新增版本记录 <code>Android 1.0.02 强制更新</code>，启用状态：关闭' },
-  { time: '2026-05-13 11:32:15', who: 'tech admin', what: '修改记录 #1：启用状态 <code>关闭 → 开启</code>' },
-  { time: '2026-05-13 10:18:09', who: 'tech admin', what: '修改全局配置：最低兼容版本号 <code>1.0.03 → 1.0.05</code>' },
+  { time: '2026-05-13 11:30:22', who: 'Aceproduct', what: '新增版本记录 <code>Android 1.0.02 强制更新</code>，启用状态：关闭' },
+  { time: '2026-05-13 11:32:15', who: 'Aceproduct', what: '修改记录 #1：启用状态 <code>关闭 → 开启</code>' },
+  { time: '2026-05-13 10:18:09', who: 'Aceproduct', what: '修改全局配置：最低兼容版本号 <code>1.0.03 → 1.0.05</code>' },
 ];
 
 function getTypeTag(type) {
@@ -631,7 +631,7 @@ function renderVersions() {
         </span>
       </td>
       <td>
-        <button class="btn-link perm-link" ${!isAdmin ? 'disabled' : ''} onclick="showEditModal(${v.id})">编辑</button>
+        <button class="btn-link" onclick="showEditModal(${v.id})">${isAdmin ? '编辑' : '查看'}</button>
       </td>
     </tr>
   `;
@@ -665,7 +665,7 @@ function updatePermissions() {
   document.getElementById('acctViewer').classList.toggle('active', !isAdmin);
 
   const crumb = document.getElementById('crumbAcct');
-  crumb.textContent = isAdmin ? 'tech admin（可完整操作）' : '其他账号（只读）';
+  crumb.textContent = isAdmin ? 'Aceproduct（可完整操作）' : '其他账号（只读）';
   crumb.classList.toggle('viewer', !isAdmin);
 }
 
@@ -693,11 +693,13 @@ function showAddModal() {
 }
 
 function showEditModal(id) {
-  if (!isAdmin) return showToast('⛔ 无权操作', 'red');
+  // 其他账号也可以打开，但是只读
   const v = versions.find(x => x.id === id);
   if (!v) return;
   currentEditId = id;
-  document.getElementById('formTitle').textContent = `✏️ ${v.version} 版本编辑`;
+  const titlePrefix = isAdmin ? '✏️' : '👁️';
+  const titleSuffix = isAdmin ? '版本编辑' : '版本详情（只读）';
+  document.getElementById('formTitle').textContent = `${titlePrefix} ${v.version} ${titleSuffix}`;
   document.querySelectorAll('.f-app-type').forEach(cb => {
     cb.checked = (cb.value === v.appType);
   });
@@ -706,7 +708,49 @@ function showEditModal(id) {
   document.getElementById('fDate').value = v.date.replace(' ', 'T');
   document.getElementById('fContent').value = v.content;
   document.getElementById('fEnabled').classList.toggle('on', v.enabled);
+  setModalReadOnly(!isAdmin);
   document.getElementById('addModal').classList.add('show');
+}
+
+function setModalReadOnly(readOnly) {
+  const modal = document.getElementById('addModal');
+  // 输入框 / 下拉 / textarea
+  modal.querySelectorAll('input, select, textarea').forEach(el => {
+    if (readOnly) {
+      el.setAttribute('disabled', '');
+    } else {
+      el.removeAttribute('disabled');
+    }
+  });
+  // 表单内的开关
+  const enableToggle = document.getElementById('fEnabled');
+  if (readOnly) {
+    enableToggle.classList.add('disabled');
+  } else {
+    enableToggle.classList.remove('disabled');
+  }
+  // 保存按钮
+  const saveBtn = document.getElementById('saveVersionBtn');
+  if (saveBtn) {
+    if (readOnly) {
+      saveBtn.style.display = 'none';
+    } else {
+      saveBtn.style.display = '';
+    }
+  }
+  // 只读提示
+  let banner = document.getElementById('readOnlyBanner');
+  if (readOnly) {
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'readOnlyBanner';
+      banner.style.cssText = 'background:#fff7e6;border:1px solid #ffd591;color:#874d00;padding:8px 12px;border-radius:4px;margin-bottom:14px;font-size:12.5px';
+      banner.innerHTML = '🔒 当前为其他账号，仅可查看，<b>不可修改和保存</b>。需要修改请切换 Aceproduct 账号。';
+      modal.querySelector('.modal-b').prepend(banner);
+    }
+  } else {
+    if (banner) banner.remove();
+  }
 }
 
 function getNowDatetime() {
@@ -745,7 +789,7 @@ function saveVersion() {
     const oldVer = `${v.appType} ${v.version}`;
     Object.assign(v, baseData, { appType: appTypes[0] });
     logs.unshift({
-      time: getNow(), who: 'tech admin',
+      time: getNow(), who: 'Aceproduct',
       what: `编辑记录 #${v.id}：<code>${oldVer}</code> → 类型 ${getTypeText(baseData.updateType)}，启用 ${baseData.enabled ? '开启' : '关闭'}`
     });
     showToast('保存成功', 'green');
@@ -759,7 +803,7 @@ function saveVersion() {
       newRecords.push(rec);
     });
     logs.unshift({
-      time: getNow(), who: 'tech admin',
+      time: getNow(), who: 'Aceproduct',
       what: `新增 ${newRecords.length} 条版本记录：<code>${appTypes.join(' / ')} v${baseData.version}</code> ${getTypeText(baseData.updateType)}，启用 ${baseData.enabled ? '开启' : '关闭'}`
     });
     showToast(`新增 ${newRecords.length} 条记录成功`, 'green');
@@ -782,7 +826,7 @@ function toggleEnabled(id) {
     () => {
       v.enabled = newState;
       logs.unshift({
-        time: getNow(), who: 'tech admin',
+        time: getNow(), who: 'Aceproduct',
         what: `切换记录 #${v.id} (${v.appType} ${v.version}) 启用状态：<code>${newState ? '关闭 → 开启' : '开启 → 关闭'}</code>`
       });
       renderVersions();
@@ -818,14 +862,14 @@ document.querySelectorAll('.perm-toggle').forEach(t => {
 
 function saveAll() {
   if (!isAdmin) return showToast('⛔ 无权操作', 'red');
-  logs.unshift({ time: getNow(), who: 'tech admin', what: `保存全局配置（包含原有字段 + 版本管理配置）` });
+  logs.unshift({ time: getNow(), who: 'Aceproduct', what: `保存全局配置（包含原有字段 + 版本管理配置）` });
   showToast('修改成功', 'green');
 }
 
 document.getElementById('acctTech').addEventListener('click', () => {
   isAdmin = true;
   renderVersions();
-  showToast('已切换到 tech admin，操作权限已开启', 'green');
+  showToast('已切换到 Aceproduct，操作权限已开启', 'green');
 });
 
 document.getElementById('acctViewer').addEventListener('click', () => {
