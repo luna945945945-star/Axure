@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>APP 下载地址 · 版本管理 可交互原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;background:#fafafa;color:#333;min-height:100vh}
+
+/* ── 顶部演示栏 ── */
+.demo-bar{background:#2c3e50;padding:9px 16px;font-size:12px;display:flex;align-items:center;gap:12px;color:#fff;flex-wrap:wrap}
+.demo-bar .badge{background:#ff7a00;color:#fff;padding:2px 8px;border-radius:3px;font-size:10.5px;font-weight:600;letter-spacing:.3px}
+.demo-bar b{color:#fff}
+.demo-bar .ctrl{display:flex;align-items:center;gap:6px}
+.demo-bar select{height:26px;background:#3a4a5c;border:1px solid #4a5a6c;color:#fff;border-radius:3px;padding:0 8px;font-family:inherit;font-size:11.5px;cursor:pointer}
+.demo-bar .acct-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:#3a4a5c;border:1px solid #4a5a6c;color:#fff;border-radius:3px;font-family:inherit;font-size:11.5px;cursor:pointer}
+.demo-bar .acct-btn.active{background:#1677ff;border-color:#1677ff;font-weight:600}
+.demo-bar .acct-btn .dot{width:7px;height:7px;border-radius:50%;background:#52c41a}
+.demo-bar .acct-btn.viewer .dot{background:#999}
+
+/* ── 整体布局 ── */
+.app{display:flex;min-height:calc(100vh - 38px)}
+
+/* ── 侧边栏（参考截图样式：浅色背景）── */
+.sider{width:185px;background:#fff;color:#333;flex-shrink:0;border-right:1px solid #e8e8e8;overflow-y:auto;max-height:calc(100vh - 38px)}
+.sider .user-card{padding:14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px}
+.sider .user-card .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a0c4ff,#7895cb);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600}
+.sider .user-card .info{font-size:11.5px;line-height:1.4}
+.sider .user-card .info .name{color:#333;font-weight:600;font-size:12px}
+.sider .user-card .info .role{color:#999}
+.sider .menu-item{padding:10px 16px 10px 14px;font-size:12.5px;color:#666;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.sider .menu-item .ico{margin-right:8px;color:#999;font-size:13px}
+.sider .menu-item:hover{background:#f5f8ff;color:#1677ff}
+.sider .menu-item.expanded{color:#7c4dff;font-weight:600;background:#f9f5ff}
+.sider .menu-item.expanded .ico{color:#7c4dff}
+.sider .menu-sub{padding:7px 16px 7px 38px;font-size:12px;color:#777;cursor:pointer}
+.sider .menu-sub:hover{background:#f5f8ff;color:#1677ff}
+.sider .menu-sub.active{background:#f0f5ff;color:#1677ff;font-weight:500;border-right:2px solid #1677ff}
+
+/* ── 主体 ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;background:#fafafa;overflow-x:hidden}
+.top-bar{background:#f5e8c5;padding:10px 18px;border-bottom:1px solid #e0d0a0;display:flex;align-items:center;font-size:13px}
+.top-bar .pg-title{font-weight:500;color:#5a4a00}
+.top-bar .crumb{margin-left:auto;color:#7a6a3a;font-size:12px}
+.top-bar .crumb .sep{margin:0 4px;color:#bba}
+
+.content{flex:1;padding:18px;overflow-y:auto;overflow-x:hidden;background:#fff}
+
+/* ── 演示账号栏 ── */
+.acct-info{padding:8px 12px;background:#f0f5ff;border-radius:4px;font-size:12px;color:#0958d9;margin-bottom:14px;display:flex;align-items:center;gap:10px;border-left:3px solid #1677ff}
+.acct-info b{color:#0958d9}
+.acct-info .tag{padding:1px 8px;border-radius:3px;background:#f6ffed;color:#389e0d;font-size:11px;font-weight:500}
+.acct-info .tag.viewer{background:#fff7e6;color:#d46b08}
+
+/* ── 表单区域（保留原样）── */
+.form-group{margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.form-group label{min-width:180px;text-align:right;color:#666;font-size:12.5px}
+.form-group input[type=text]{flex:1;height:32px;padding:0 10px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:12.5px;max-width:920px}
+.form-group input[type=checkbox]{width:14px;height:14px;cursor:pointer}
+.form-group .radio-group{display:flex;align-items:center;gap:18px}
+.form-group .radio-group label{min-width:auto;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:#333}
+.form-group .radio-dot{width:14px;height:14px;border:1.5px solid #d9d9d9;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.form-group .radio-dot.checked{border-color:#1677ff}
+.form-group .radio-dot.checked::after{content:"";width:7px;height:7px;background:#1677ff;border-radius:50%}
+.form-group .sub-fields{flex:1;padding-left:20px}
+.form-group .img-preview{width:48px;height:48px;border-radius:4px;background:#f0f0f0;overflow:hidden;border:1px solid #ddd;display:flex;align-items:center;justify-content:center;font-size:18px}
+
+/* VIP 等级 */
+.vip-row{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center}
+.vip-row label{min-width:auto;cursor:pointer;display:inline-flex;align-items:center;gap:4px;color:#333;font-size:12.5px}
+
+/* ── 分隔线 ── */
+.section-divider{margin:24px 0 18px;padding:10px 16px;background:linear-gradient(90deg,#fff7e6,#ffe7ba);border-left:4px solid #fa8c16;border-radius:0 6px 6px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.section-divider .title{font-size:14px;font-weight:600;color:#874d00;display:flex;align-items:center;gap:8px}
+.section-divider .new-badge{background:#fa541c;color:#fff;font-size:10px;padding:1px 7px;border-radius:8px;font-weight:600}
+
+/* ── 全局配置（V2 新增）── */
+.global-config{background:#f0f5ff;border:1px solid #adc6ff;border-radius:6px;padding:14px;margin-bottom:18px}
+.global-config .gc-title{font-size:13px;font-weight:600;color:#0958d9;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.global-config .gc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.global-config .gc-item{display:flex;align-items:center;gap:8px}
+.global-config .gc-item label{color:#555;font-size:12px;min-width:120px;text-align:right}
+.global-config .gc-item input{width:140px;height:30px;padding:0 9px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:12.5px}
+
+/* ── 通用 ── */
+.btn{height:30px;padding:0 13px;border-radius:3px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.btn-p{background:#7c4dff;color:#fff}.btn-p:hover{background:#6230f0}
+.btn-pp{background:#1677ff;color:#fff}.btn-pp:hover{background:#0958d9}
+.btn-success{background:#52c41a;color:#fff}.btn-success:hover{background:#389e0d}
+.btn-danger{background:#cf1322;color:#fff}.btn-danger:hover{background:#a8071a}
+.btn-d{background:#fff;color:#333;border:1px solid #d9d9d9}.btn-d:hover{border-color:#1677ff;color:#1677ff}
+.btn-link{background:transparent;color:#1677ff;padding:0 6px;cursor:pointer;border:none;font-family:inherit;font-size:12.5px}
+.btn-link:hover{text-decoration:underline}
+.btn-link.danger{color:#cf1322}
+.btn[disabled],.btn-link[disabled]{background:#f5f5f5!important;color:#bbb!important;cursor:not-allowed;border-color:#e8e8e8!important;pointer-events:none}
+.btn-link[disabled]{background:transparent!important}
+
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:11.5px;line-height:18px;white-space:nowrap;font-weight:500}
+.t-red{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+.t-orange{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.t-green{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.t-gray{background:#fafafa;color:#888;border:1px solid #e0e0e0}
+
+/* ── 表格 ── */
+.tbl-wrap{border:1px solid #e8e8e8;border-radius:4px;overflow:hidden;margin-bottom:14px}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{background:#fafafa;padding:11px 10px;text-align:left;font-weight:500;color:#555;border-bottom:1px solid #e8e8e8;white-space:nowrap}
+.tbl td{padding:10px;border-bottom:1px solid #f5f5f5;vertical-align:middle;color:#333}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafcff}
+.tbl tr.disabled td{background:#fafafa;color:#aaa}
+.tbl tr.disabled td .tag{opacity:.5}
+
+.tbl-actions{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fafafa;border-bottom:1px solid #e8e8e8}
+.tbl-actions .filter-input{height:28px;padding:0 9px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:12px;width:150px}
+.tbl-actions select{height:28px;padding:0 9px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:12px}
+.tbl-actions .grow{flex:1}
+
+/* ── 开关 ── */
+.toggle{display:inline-flex;align-items:center;background:#d9d9d9;border-radius:11px;width:34px;height:19px;padding:2px;cursor:pointer;flex-shrink:0;transition:background .2s}
+.toggle.on{background:#52c41a}
+.toggle .thumb{width:15px;height:15px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on .thumb{transform:translateX(15px)}
+.toggle.disabled{opacity:.5;cursor:not-allowed;pointer-events:none}
+
+/* ── 底部修改按钮区 ── */
+.form-footer{text-align:center;padding:20px 0;margin-top:18px;border-top:1px solid #f0f0f0}
+.form-footer .btn{height:36px;padding:0 28px;font-size:13px}
+
+/* ── 模态 ── */
+.mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center}
+.mask.show{display:flex;animation:fadein .15s}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.modal{background:#fff;border-radius:6px;width:580px;max-width:90%;max-height:90vh;display:flex;flex-direction:column;animation:scalein .2s}
+@keyframes scalein{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.modal.confirm{width:440px}
+.modal.large{width:780px}
+.modal-h{padding:14px 18px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+.modal-h .title{font-size:14px;font-weight:600;color:#222}
+.modal-h .close{font-size:18px;color:#999;cursor:pointer;padding:2px 8px}
+.modal-h .close:hover{color:#333}
+.modal-b{flex:1;overflow-y:auto;padding:18px}
+.modal-f{padding:11px 18px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:8px}
+
+/* ── 表单 ── */
+.form-item{margin-bottom:13px;display:flex;align-items:flex-start;gap:10px}
+.form-item>label{min-width:120px;text-align:right;color:#666;font-size:12.5px;padding-top:8px}
+.form-item>label .required{color:#cf1322;margin-right:2px}
+.form-item .control{flex:1}
+.form-item .control input,.form-item .control select,.form-item .control textarea{width:100%;padding:8px 10px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:13px}
+.form-item .control textarea{resize:vertical;min-height:80px}
+.form-item .hint{color:#999;font-size:11px;margin-top:4px}
+
+/* ── 客户端弹窗预览 ── */
+.preview-tabs{display:flex;gap:6px;margin-bottom:14px;justify-content:center}
+.preview-tabs .tab{padding:6px 14px;background:#fff;border:1px solid #d9d9d9;border-radius:3px;cursor:pointer;font-size:12px;color:#666}
+.preview-tabs .tab.active{background:#1677ff;color:#fff;border-color:#1677ff}
+
+.phone-frame{width:300px;height:540px;background:#fff;border-radius:28px;overflow:hidden;position:relative;box-shadow:0 0 0 6px #2a3140,0 0 0 7px #4a5260,0 16px 40px rgba(0,0,0,.4);margin:0 auto}
+.phone-frame::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:80px;height:18px;background:#000;border-radius:0 0 12px 12px;z-index:5}
+.phone-content{padding:40px 0 0;height:100%;position:relative;background:#000}
+.phone-content.normal{background:#fff}
+.phone-bg-content{padding:20px;color:#999;text-align:center;font-size:11px}
+
+.app-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:12px;width:240px;padding:20px 16px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.app-popup .ico{font-size:26px;margin-bottom:6px}
+.app-popup .title{font-size:13.5px;font-weight:600;margin-bottom:5px}
+.app-popup .text{font-size:11.5px;color:#7a8db8;line-height:1.5;margin-bottom:7px}
+.app-popup .content{font-size:10.5px;color:#666;margin-bottom:12px;text-align:left;background:#f9f9f9;padding:7px;border-radius:4px}
+.app-popup .content h5{font-size:10.5px;color:#888;margin-bottom:3px;font-weight:600}
+.app-popup .btn-row{display:flex;gap:7px;margin-top:8px}
+.app-popup button{flex:1;padding:7px 0;border:none;border-radius:5px;font-family:inherit;font-size:12px;cursor:pointer;font-weight:500}
+.app-popup .btn-force{background:#cf1322;color:#fff;width:100%}
+.app-popup .btn-ignore{background:#f0f0f0;color:#666}
+.app-popup .btn-update{background:#d46b08;color:#fff}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* ── 操作日志 ── */
+.log-row{padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:12.5px;display:flex;gap:12px}
+.log-row .time{color:#999;width:130px;flex-shrink:0}
+.log-row .who{color:#1677ff;width:80px;flex-shrink:0;font-weight:500}
+.log-row .what{color:#333;flex:1}
+.log-row .what code{background:#f5f5f5;padding:1px 6px;border-radius:3px;font-size:11px;color:#d4380d;font-family:'SF Mono',monospace}
+
+/* ── 无权限 tooltip ── */
+.no-perm-tip{position:relative}
+.no-perm-tip:hover::after{content:"无权操作，请联系 tech admin";position:absolute;top:-30px;left:0;background:#262626;color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;white-space:nowrap;z-index:50}
+
+</style>
+</head>
+<body>
+
+<!-- 顶部演示栏 -->
+<div class="demo-bar">
+  <span class="badge">DEMO</span>
+  <b>APP 版本管理改造 · 可交互原型</b>
+  <span style="opacity:.7">|</span>
+  <span style="opacity:.7;font-size:11.5px">支持账号切换 / CRUD / 开关 / 客户端弹窗预览</span>
+
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <span style="opacity:.7;font-weight:600">切换账号：</span>
+    <button class="acct-btn active" id="acctTech"><span class="dot"></span>tech admin</button>
+    <button class="acct-btn viewer" id="acctViewer"><span class="dot"></span>其他账号（只读）</button>
+  </div>
+</div>
+
+<div class="app">
+  <!-- 侧边菜单 -->
+  <div class="sider">
+    <div class="user-card">
+      <div class="avatar">L</div>
+      <div class="info">
+        <div class="name">luna</div>
+        <div class="role">luna</div>
+      </div>
+    </div>
+    <div class="menu-item"><span><span class="ico">⚙</span>K3</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">🎯</span>新彩种</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">🎮</span>三方游戏管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">📊</span>运营管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">💰</span>财务管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">🎁</span>活动管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">📈</span>报表管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">⚙</span>配置管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">🛒</span>积分商城</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">💳</span>VISA支付管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">📉</span>数据分析</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">💬</span>消息管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">☎</span>客服管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">📜</span>协议管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">🧪</span>测试管理</span><span>›</span></div>
+    <div class="menu-item expanded"><span><span class="ico">🌐</span>网站管理</span><span>⌄</span></div>
+    <div class="menu-sub">邮箱配置</div>
+    <div class="menu-sub">短信商配置</div>
+    <div class="menu-sub">消息模板</div>
+    <div class="menu-sub active">APP下载地址</div>
+    <div class="menu-sub">意见反馈</div>
+    <div class="menu-sub">事件设置</div>
+    <div class="menu-sub">Facebook域名像素配置</div>
+    <div class="menu-sub">维护管理</div>
+    <div class="menu-sub">推送消息配置</div>
+    <div class="menu-item"><span><span class="ico">⚙</span>系统管理</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">🎡</span>邀请转盘</span><span>›</span></div>
+    <div class="menu-item"><span><span class="ico">💼</span>远程工作</span><span>›</span></div>
+  </div>
+
+  <!-- 主体 -->
+  <div class="main">
+    <!-- 顶部 -->
+    <div class="top-bar">
+      <span class="pg-title">APP下载地址</span>
+      <div class="crumb">
+        <span>APP下载地址</span><span class="sep">›</span>
+        <span>APP下载地址</span><span class="sep">›</span>
+        <span>APP下载地址</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- 演示账号提示 -->
+      <div class="acct-info">
+        <span>💼 当前账号：</span>
+        <span class="tag" id="crumbAcct">tech admin（可完整操作）</span>
+        <span style="margin-left:auto;color:#666">提示：切换顶部账号开关查看权限差异</span>
+      </div>
+
+      <!-- ════ 保留原有字段（无改动） ════ -->
+      <div class="form-group">
+        <label>首页右上角APP下载开关：</label>
+        <input type="checkbox">
+        <label style="margin-left:60px;min-width:180px">首页App Icon下载链接开关：</label>
+        <input type="checkbox" checked>
+      </div>
+
+      <div class="form-group">
+        <label>苹果下载地址：</label>
+        <input type="text" value="https://sitweb.22889.club/">
+      </div>
+
+      <div class="form-group">
+        <label>安卓下载地址：</label>
+        <input type="text" value="https://sitweb.22889.club/downloadCenter1">
+      </div>
+
+      <div class="form-group">
+        <label>是否开启隐私APP下载：</label>
+        <div class="radio-group">
+          <label><span class="radio-dot"></span>关闭</label>
+          <label><span class="radio-dot checked"></span>开启</label>
+        </div>
+      </div>
+
+      <div class="form-group" style="align-items:flex-start">
+        <label style="padding-top:0">下载中心隐私APP下载地址：</label>
+        <div class="sub-fields">
+          <div style="margin-bottom:14px">
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="min-width:80px">下载地址1：</label>
+              <input type="text" value="http://www.123.com">
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding-left:90px">
+              <label style="min-width:auto;color:#666">名称</label>
+              <input type="text" value="下载地址1" style="flex:0 0 200px;height:30px;padding:0 9px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit">
+              <label style="min-width:auto;color:#666;margin-left:14px">下载图标</label>
+              <div class="img-preview">🐱</div>
+            </div>
+          </div>
+          <div>
+            <div class="form-group" style="margin-bottom:8px">
+              <label style="min-width:80px">下载地址1：</label>
+              <input type="text" value="http://www.11111111.com">
+              <button class="btn btn-danger" style="height:30px">−</button>
+              <button class="btn btn-success" style="height:30px">+</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding-left:90px">
+              <label style="min-width:auto;color:#666">名称</label>
+              <input type="text" value="qqqqqq" style="flex:0 0 200px;height:30px;padding:0 9px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit">
+              <label style="min-width:auto;color:#666;margin-left:14px">下载图标</label>
+              <div class="img-preview">🟢</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="align-items:flex-start">
+        <label style="padding-top:0">下载中心隐私APP可见等级：</label>
+        <div class="sub-fields">
+          <div style="margin-bottom:14px">
+            <div style="font-size:12px;color:#666;margin-bottom:6px">VIP等级：</div>
+            <div class="vip-row">
+              <label><input type="checkbox">全部等级</label>
+              <label><input type="checkbox">VIP0</label>
+              <label><input type="checkbox">VIP1</label>
+              <label><input type="checkbox">VIP2</label>
+              <label><input type="checkbox">VIP3</label>
+              <label><input type="checkbox">VIP4</label>
+              <label><input type="checkbox">VIP5</label>
+              <label><input type="checkbox">VIP6</label>
+              <label><input type="checkbox">VIP7</label>
+              <label><input type="checkbox">VIP8</label>
+              <label><input type="checkbox">VIP9</label>
+              <label><input type="checkbox">VIP10</label>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;color:#666;margin-bottom:6px">代理等级：</div>
+            <div class="vip-row">
+              <label><input type="checkbox">全部等级</label>
+              <label><input type="checkbox">VIP0</label>
+              <label><input type="checkbox">VIP1</label>
+              <label><input type="checkbox">VIP2</label>
+              <label><input type="checkbox">VIP3</label>
+              <label><input type="checkbox">VIP4</label>
+              <label><input type="checkbox">VIP5</label>
+              <label><input type="checkbox">VIP6</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ 核心改造区（NEW）════ -->
+      <div class="section-divider">
+        <div class="title">
+          📦 APP 版本管理 <span class="new-badge">NEW</span>
+        </div>
+        <div style="font-size:11.5px;color:#874d00">替换原"是否强制更新"模块，仅 tech admin 可操作</div>
+      </div>
+
+      <!-- 规则说明 -->
+      <div style="background:#fff7e6;border:1px solid #ffd591;border-radius:4px;padding:9px 14px;margin-bottom:14px;font-size:12.5px;color:#874d00;display:flex;align-items:center;gap:8px">
+        <span style="font-size:14px">🔒</span>
+        <span><b>启用状态规则：</b>同一 App 类型下，<b>仅最新版本</b>可切换启用状态；历史版本仅可查看，开关锁定不可操作。</span>
+      </div>
+
+      <!-- 全局配置 -->
+      <div class="global-config">
+        <div class="gc-title">⚙️ 全局配置</div>
+        <div class="gc-grid" style="grid-template-columns:1fr">
+          <div class="gc-item">
+            <label>最低兼容版本号：</label>
+            <input type="text" value="1.0.05" class="perm-input">
+            <span style="margin-left:8px;color:#888;font-size:11.5px">客户端版本低于此版本号将强制更新</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 版本记录表 -->
+      <div class="tbl-wrap">
+        <div class="tbl-actions">
+          <select>
+            <option>App 类型：全部</option>
+            <option>APK 套壳包</option>
+            <option>APK 原生包</option>
+          </select>
+          <select>
+            <option>更新类型：全部</option>
+            <option>强制更新</option>
+            <option>建议更新</option>
+            <option>无需更新</option>
+          </select>
+          <select>
+            <option>启用状态：全部</option>
+            <option>已启用</option>
+            <option>已关闭</option>
+          </select>
+          <input type="text" class="filter-input" placeholder="搜索版本号">
+          <span class="grow"></span>
+          <button class="btn btn-d" onclick="showLogModal()">📋 操作日志</button>
+          <button class="btn btn-p perm-btn" onclick="showAddModal()">➕ 新增版本</button>
+        </div>
+
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>App 类型</th>
+              <th>版本号</th>
+              <th>更新类型</th>
+              <th>版本更新时间</th>
+              <th>更新内容</th>
+              <th>启用状态</th>
+              <th>跳转 URL</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="versionTableBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 修改按钮（放在客户端预览上方）-->
+      <div class="form-footer" style="padding:18px 0">
+        <button class="btn btn-p perm-btn" onclick="saveAll()">
+          ✓ 修改
+        </button>
+      </div>
+
+      <!-- 客户端弹窗预览 -->
+      <div class="section-divider" style="background:linear-gradient(90deg,#e6f4ff,#bae0ff);border-color:#1677ff">
+        <div class="title" style="color:#0958d9">
+          📱 客户端弹窗预览（参考）
+        </div>
+      </div>
+
+      <div class="preview-tabs">
+        <span class="tab active" onclick="switchPopup('force', this)">🚨 强制更新</span>
+        <span class="tab" onclick="switchPopup('suggest', this)">💡 建议更新</span>
+        <span class="tab" onclick="switchPopup('none', this)">⚪ 无需更新</span>
+      </div>
+
+      <div style="display:flex;justify-content:center;padding:14px 0">
+        <div class="phone-frame">
+          <div class="phone-content" id="phoneContent">
+            <div class="phone-bg-content">APP 启动中...</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 新增/编辑 模态 -->
+<div class="mask" id="addModal">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="title" id="formTitle">➕ 新增版本记录</span>
+      <span class="close" onclick="closeModal('addModal')">✕</span>
+    </div>
+    <div class="modal-b">
+      <div class="form-item">
+        <label><span class="required">*</span>App 类型</label>
+        <div class="control">
+          <div style="display:flex;gap:18px;padding:7px 0">
+            <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;min-width:auto;text-align:left;padding-top:0">
+              <input type="checkbox" class="f-app-type" value="APK 套壳包" style="width:14px;height:14px"> APK 套壳包
+            </label>
+            <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;min-width:auto;text-align:left;padding-top:0">
+              <input type="checkbox" class="f-app-type" value="APK 原生包" style="width:14px;height:14px"> APK 原生包
+            </label>
+          </div>
+          <div class="hint">支持多选，将为每种 App 类型分别生成版本记录</div>
+        </div>
+      </div>
+      <div class="form-item">
+        <label><span class="required">*</span>版本号</label>
+        <div class="control">
+          <input type="text" id="fVersion" placeholder="格式：x.x.xx，如 1.0.10">
+          <div class="hint">必须符合 x.x.xx 格式，按段比较数字</div>
+        </div>
+      </div>
+      <div class="form-item">
+        <label><span class="required">*</span>更新类型</label>
+        <div class="control">
+          <select id="fUpdateType">
+            <option value="force">🚨 强制更新</option>
+            <option value="suggest" selected>💡 建议更新</option>
+            <option value="none">⚪ 无需更新</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-item">
+        <label><span class="required">*</span>版本更新时间</label>
+        <div class="control">
+          <input type="datetime-local" id="fDate" value="2026-05-13T10:30:00" step="1">
+          <div class="hint">精确到秒（YYYY-MM-DD HH:MM:SS）</div>
+        </div>
+      </div>
+      <div class="form-item">
+        <label>更新内容</label>
+        <div class="control">
+          <textarea id="fContent" placeholder="例如：&#10;1. 修复重大问题&#10;2. 优化用户体验"></textarea>
+          <div class="hint">强制更新时必填，支持多语言配置</div>
+        </div>
+      </div>
+      <div class="form-item">
+        <label><span class="required">*</span>更新跳转 URL</label>
+        <div class="control"><input type="text" id="fUrl" value="https://download.xx.com/" placeholder="下载页地址"></div>
+      </div>
+      <div class="form-item">
+        <label>包文件 Hash</label>
+        <div class="control"><input type="text" id="fHash" placeholder="MD5 / SHA256（可选）"></div>
+      </div>
+      <div class="form-item">
+        <label>启用状态</label>
+        <div class="control">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="toggle" id="fEnabled" data-name="启用状态"><span class="thumb"></span></span>
+            <span style="color:#cf1322;font-size:11.5px">⚠️ 新增默认关闭，确认无误再开启</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-d" onclick="closeModal('addModal')">取消</button>
+      <button class="btn btn-p" onclick="saveVersion()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 二次确认 -->
+<div class="mask" id="confirmModal">
+  <div class="modal confirm">
+    <div class="modal-h">
+      <span class="title" id="confirmTitle">⚠️ 确认操作</span>
+      <span class="close" onclick="closeModal('confirmModal')">✕</span>
+    </div>
+    <div class="modal-b"><p id="confirmText" style="line-height:1.7;color:#333"></p></div>
+    <div class="modal-f">
+      <button class="btn btn-d" onclick="closeModal('confirmModal')">取消</button>
+      <button class="btn btn-danger" onclick="confirmAction()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 操作日志 -->
+<div class="mask" id="logModal">
+  <div class="modal large">
+    <div class="modal-h">
+      <span class="title">📋 操作日志</span>
+      <span class="close" onclick="closeModal('logModal')">✕</span>
+    </div>
+    <div class="modal-b" id="logList"></div>
+    <div class="modal-f"><button class="btn btn-d" onclick="closeModal('logModal')">关闭</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let isAdmin = true;
+let currentEditId = null;
+let pendingConfirm = null;
+
+let versions = [
+  { id: 1, appType: 'APK 套壳包', version: '1.0.02', updateType: 'force', date: '2026-02-02 10:30:00', content: '1. 中台上线\n2. 修复重大问题', url: 'https://download.xx.com/', hash: '', enabled: true },
+  { id: 2, appType: 'APK 原生包', version: '1.0.01', updateType: 'suggest', date: '2026-02-02 14:20:00', content: '优化用户体验', url: 'https://download.xx.com/', hash: '', enabled: true },
+  { id: 3, appType: 'APK 套壳包', version: '1.0.00', updateType: 'none', date: '2026-01-01 09:00:00', content: '', url: 'https://download.xx.com/', hash: '', enabled: false },
+  { id: 4, appType: 'APK 原生包', version: '1.0.05', updateType: 'force', date: '2026-03-01 15:45:30', content: '修复重大 bug', url: 'https://download.xx.com/', hash: 'a3f5...', enabled: false },
+  { id: 5, appType: 'APK 套壳包', version: '1.0.03', updateType: 'suggest', date: '2026-03-01 11:00:00', content: '新增功能', url: 'https://download.xx.com/', hash: '', enabled: true },
+];
+
+let logs = [
+  { time: '2026-05-13 11:30:22', who: 'tech admin', what: '新增版本记录 <code>Android 1.0.02 强制更新</code>，启用状态：关闭' },
+  { time: '2026-05-13 11:32:15', who: 'tech admin', what: '修改记录 #1：启用状态 <code>关闭 → 开启</code>' },
+  { time: '2026-05-13 10:18:09', who: 'tech admin', what: '修改全局配置：最低兼容版本号 <code>1.0.03 → 1.0.05</code>' },
+];
+
+function getTypeTag(type) {
+  const map = {
+    force: ['t-red', '🚨 强制更新'],
+    suggest: ['t-orange', '💡 建议更新'],
+    none: ['t-green', '⚪ 无需更新']
+  };
+  const [cls, label] = map[type];
+  return `<span class="tag ${cls}">${label}</span>`;
+}
+
+// 版本号比较（数字段）
+function compareVersion(a, b) {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const x = pa[i] || 0, y = pb[i] || 0;
+    if (x !== y) return x - y;
+  }
+  return 0;
+}
+
+// 判断某条记录是否为该 App 类型下的最新版本
+function isLatestVersion(record) {
+  const sameType = versions.filter(v => v.appType === record.appType);
+  if (sameType.length === 0) return true;
+  const latest = sameType.reduce((max, v) =>
+    compareVersion(v.version, max.version) > 0 ? v : max
+  );
+  return latest.id === record.id;
+}
+
+function renderVersions() {
+  const tbody = document.getElementById('versionTableBody');
+
+  // 倒序排序：先按 App 类型分组、组内按版本号降序，最新版本排最前
+  const sorted = [...versions].sort((a, b) => {
+    if (a.appType !== b.appType) return a.appType.localeCompare(b.appType);
+    return compareVersion(b.version, a.version); // 降序
+  });
+
+  tbody.innerHTML = sorted.map(v => {
+    const isLatest = isLatestVersion(v);
+    const toggleDisabled = !isAdmin || !isLatest;
+    const toggleTitle = !isLatest ? '历史版本不可切换启用状态，仅最新版本可操作' : '';
+    // 历史版本视觉上始终显示开启
+    const showOn = isLatest ? v.enabled : true;
+    return `
+    <tr class="${!showOn ? 'disabled' : ''}">
+      <td>${v.id}</td>
+      <td>
+        ${v.appType}
+        ${isLatest ? '<span class="tag t-blue" style="margin-left:4px;font-size:10px;padding:1px 5px">最新</span>' : ''}
+      </td>
+      <td><b>${v.version}</b></td>
+      <td>${getTypeTag(v.updateType)}</td>
+      <td style="color:#888;white-space:nowrap">${v.date}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${v.content}">${v.content || '—'}</td>
+      <td>
+        <span class="toggle ${showOn ? 'on' : ''} ${toggleDisabled ? 'disabled' : ''}"
+              title="${toggleTitle}"
+              onclick="${!toggleDisabled ? `toggleEnabled(${v.id})` : `showHistoryHint()`}">
+          <span class="thumb"></span>
+        </span>
+      </td>
+      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${showOn ? '#1677ff' : '#aaa'}">${v.url}</td>
+      <td>
+        <button class="btn-link perm-link" ${!isAdmin ? 'disabled' : ''} onclick="showEditModal(${v.id})">编辑</button>
+      </td>
+    </tr>
+  `;
+  }).join('');
+  updatePermissions();
+}
+
+function showHistoryHint() {
+  showToast('🔒 历史版本不可切换启用状态，仅最新版本可操作', 'red');
+}
+
+function updatePermissions() {
+  document.querySelectorAll('.perm-btn').forEach(b => {
+    if (!isAdmin) b.setAttribute('disabled', '');
+    else b.removeAttribute('disabled');
+  });
+  document.querySelectorAll('.perm-link').forEach(b => {
+    if (!isAdmin) b.setAttribute('disabled', '');
+    else b.removeAttribute('disabled');
+  });
+  document.querySelectorAll('.perm-input').forEach(b => {
+    if (!isAdmin) b.setAttribute('disabled', '');
+    else b.removeAttribute('disabled');
+  });
+  document.querySelectorAll('.perm-toggle').forEach(b => {
+    if (!isAdmin) b.classList.add('disabled');
+    else b.classList.remove('disabled');
+  });
+
+  document.getElementById('acctTech').classList.toggle('active', isAdmin);
+  document.getElementById('acctViewer').classList.toggle('active', !isAdmin);
+
+  const crumb = document.getElementById('crumbAcct');
+  crumb.textContent = isAdmin ? 'tech admin（可完整操作）' : '其他账号（只读）';
+  crumb.classList.toggle('viewer', !isAdmin);
+}
+
+function showToast(msg, color = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  if (color === 'red') t.style.background = 'rgba(207,19,34,.9)';
+  else if (color === 'green') t.style.background = 'rgba(82,196,26,.9)';
+  else t.style.background = 'rgba(0,0,0,.85)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function showAddModal() {
+  if (!isAdmin) return showToast('⛔ 无权操作', 'red');
+  currentEditId = null;
+  document.getElementById('formTitle').textContent = '➕ 新增版本记录';
+  document.querySelectorAll('.f-app-type').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.f-app-type-row').forEach(r => r.style.display = 'flex');
+  document.getElementById('fVersion').value = '';
+  document.getElementById('fUpdateType').value = 'suggest';
+  document.getElementById('fDate').value = getNowDatetime();
+  document.getElementById('fContent').value = '';
+  document.getElementById('fUrl').value = 'https://download.xx.com/';
+  document.getElementById('fHash').value = '';
+  document.getElementById('fEnabled').classList.remove('on');
+  document.getElementById('addModal').classList.add('show');
+}
+
+function showEditModal(id) {
+  if (!isAdmin) return showToast('⛔ 无权操作', 'red');
+  const v = versions.find(x => x.id === id);
+  if (!v) return;
+  currentEditId = id;
+  document.getElementById('formTitle').textContent = `✏️ ${v.version} 版本编辑`;
+  // 编辑时只勾选当前 App 类型
+  document.querySelectorAll('.f-app-type').forEach(cb => {
+    cb.checked = (cb.value === v.appType);
+  });
+  document.getElementById('fVersion').value = v.version;
+  document.getElementById('fUpdateType').value = v.updateType;
+  document.getElementById('fDate').value = v.date.replace(' ', 'T');
+  document.getElementById('fContent').value = v.content;
+  document.getElementById('fUrl').value = v.url;
+  document.getElementById('fHash').value = v.hash;
+  document.getElementById('fEnabled').classList.toggle('on', v.enabled);
+  document.getElementById('addModal').classList.add('show');
+}
+
+function getNowDatetime() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function formatDateDisplay(dt) {
+  return dt.replace('T', ' ');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function saveVersion() {
+  // 收集勾选的 App 类型（多选）
+  const appTypes = Array.from(document.querySelectorAll('.f-app-type:checked')).map(cb => cb.value);
+
+  const baseData = {
+    version: document.getElementById('fVersion').value.trim(),
+    updateType: document.getElementById('fUpdateType').value,
+    date: formatDateDisplay(document.getElementById('fDate').value),
+    content: document.getElementById('fContent').value.trim(),
+    url: document.getElementById('fUrl').value.trim(),
+    hash: document.getElementById('fHash').value.trim(),
+    enabled: document.getElementById('fEnabled').classList.contains('on')
+  };
+
+  // 校验
+  if (appTypes.length === 0) return showToast('请至少选择一个 App 类型', 'red');
+  if (!baseData.version) return showToast('请填写版本号', 'red');
+  if (!/^\d+\.\d+\.\d+$/.test(baseData.version)) return showToast('版本号格式错误，应为 x.x.xx', 'red');
+  if (baseData.updateType === 'force' && !baseData.content) return showToast('强制更新时更新内容必填', 'red');
+  if (!baseData.url) return showToast('请填写跳转 URL', 'red');
+  if (!baseData.date) return showToast('请填写版本更新时间', 'red');
+
+  if (baseData.enabled && baseData.updateType === 'force') {
+    if (!confirm(`🛡️ 双向校验：系统将向下载页 API 校验版本 ${baseData.version} 是否已上架。\n\n模拟：校验通过 ✓`)) return;
+  }
+
+  if (currentEditId) {
+    // 编辑：只更新当前记录（一对一）
+    const v = versions.find(x => x.id === currentEditId);
+    const oldVer = `${v.appType} ${v.version}`;
+    Object.assign(v, baseData, { appType: appTypes[0] });
+    logs.unshift({
+      time: getNow(), who: 'tech admin',
+      what: `编辑记录 #${v.id}：<code>${oldVer}</code> → 类型 ${getTypeText(baseData.updateType)}，启用 ${baseData.enabled ? '开启' : '关闭'}`
+    });
+    showToast('保存成功', 'green');
+  } else {
+    // 新增：每个 App 类型生成一条独立记录
+    let maxId = Math.max(0, ...versions.map(x => x.id));
+    const newRecords = [];
+    appTypes.forEach(type => {
+      maxId++;
+      const rec = { id: maxId, appType: type, ...baseData };
+      versions.push(rec);
+      newRecords.push(rec);
+    });
+    logs.unshift({
+      time: getNow(), who: 'tech admin',
+      what: `新增 ${newRecords.length} 条版本记录：<code>${appTypes.join(' / ')} v${baseData.version}</code> ${getTypeText(baseData.updateType)}，启用 ${baseData.enabled ? '开启' : '关闭'}`
+    });
+    showToast(`新增 ${newRecords.length} 条记录成功`, 'green');
+  }
+
+  closeModal('addModal');
+  renderVersions();
+}
+
+function getTypeText(t) { return { force: '🚨 强制', suggest: '💡 建议', none: '⚪ 无需' }[t]; }
+
+function toggleEnabled(id) {
+  if (!isAdmin) return showToast('⛔ 无权操作', 'red');
+  const v = versions.find(x => x.id === id);
+  if (!isLatestVersion(v)) return showHistoryHint();
+  const newState = !v.enabled;
+  showConfirm(
+    `${newState ? '开启' : '关闭'}启用状态`,
+    `确认${newState ? '<b style="color:#52c41a">开启</b>' : '<b style="color:#cf1322">关闭</b>'} <code>${v.appType} ${v.version}</code> 的<b>${getTypeText(v.updateType)}</b>配置？<br><br>${newState ? '开启后符合条件的用户将立即收到更新提示。' : '关闭后该规则将不再生效。'}`,
+    () => {
+      v.enabled = newState;
+      logs.unshift({
+        time: getNow(), who: 'tech admin',
+        what: `切换记录 #${v.id} (${v.appType} ${v.version}) 启用状态：<code>${newState ? '关闭 → 开启' : '开启 → 关闭'}</code>`
+      });
+      renderVersions();
+      showToast(`已${newState ? '开启' : '关闭'}`, 'green');
+    }
+  );
+}
+
+function showConfirm(title, text, action) {
+  document.getElementById('confirmTitle').textContent = '⚠️ ' + title;
+  document.getElementById('confirmText').innerHTML = text;
+  pendingConfirm = action;
+  document.getElementById('confirmModal').classList.add('show');
+}
+
+function confirmAction() {
+  if (pendingConfirm) pendingConfirm();
+  pendingConfirm = null;
+  closeModal('confirmModal');
+}
+
+document.getElementById('fEnabled').addEventListener('click', e => {
+  e.currentTarget.classList.toggle('on');
+});
+
+document.querySelectorAll('.perm-toggle').forEach(t => {
+  t.addEventListener('click', e => {
+    if (!isAdmin) return;
+    e.currentTarget.classList.toggle('on');
+    showToast(`${e.currentTarget.dataset.name} 已切换`, 'green');
+  });
+});
+
+function saveAll() {
+  if (!isAdmin) return showToast('⛔ 无权操作', 'red');
+  logs.unshift({ time: getNow(), who: 'tech admin', what: `保存全局配置（包含原有字段 + 版本管理配置）` });
+  showToast('修改成功', 'green');
+}
+
+document.getElementById('acctTech').addEventListener('click', () => {
+  isAdmin = true;
+  renderVersions();
+  showToast('已切换到 tech admin，操作权限已开启', 'green');
+});
+
+document.getElementById('acctViewer').addEventListener('click', () => {
+  isAdmin = false;
+  renderVersions();
+  showToast('已切换到其他账号，所有操作按钮置灰');
+});
+
+function showLogModal() {
+  const list = document.getElementById('logList');
+  list.innerHTML = logs.map(l => `
+    <div class="log-row">
+      <span class="time">${l.time}</span>
+      <span class="who">${l.who}</span>
+      <span class="what">${l.what}</span>
+    </div>
+  `).join('');
+  document.getElementById('logModal').classList.add('show');
+}
+
+function getNow() {
+  const d = new Date();
+  return d.toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-');
+}
+
+// ════ 客户端弹窗预览 ════
+const POPUPS = {
+  force: {
+    bg: '#000',
+    bgContent: 'APP 启动 → 检测到版本过低',
+    html: `
+      <div class="app-popup">
+        <div class="ico">🚨</div>
+        <div class="title" style="color:#cf1322">版本过低</div>
+        <div class="text">当前版本过低，请卸载重装最新版本</div>
+        <div class="content">
+          <h5>【更新内容】</h5>
+          1. 中台上线<br>2. 修复重大问题
+        </div>
+        <div class="btn-row"><button class="btn-force">立即更新</button></div>
+        <div style="color:#cf1322;font-size:9.5px;margin-top:8px;font-weight:bold">⛔ 不可关闭，物理返回键无效</div>
+      </div>`
+  },
+  suggest: {
+    bg: '#444',
+    bgContent: 'APP 启动 → 检测到新版本',
+    html: `
+      <div class="app-popup">
+        <div class="ico">💡</div>
+        <div class="title" style="color:#d46b08">发现新版本</div>
+        <div class="text">版本过低，建议更新</div>
+        <div class="content">
+          <h5>【更新内容】</h5>
+          优化用户体验
+        </div>
+        <div class="btn-row">
+          <button class="btn-ignore">忽略</button>
+          <button class="btn-update">去更新</button>
+        </div>
+        <div style="color:#389e0d;font-size:9.5px;margin-top:8px;font-weight:bold">✅ 可关闭，用户自主选择</div>
+      </div>`
+  },
+  none: {
+    bg: '#fff',
+    bgContent: '✨ 正常使用 APP（无弹窗）',
+    html: ''
+  }
+};
+
+function switchPopup(type, el) {
+  document.querySelectorAll('.preview-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+
+  const content = document.getElementById('phoneContent');
+  content.className = 'phone-content' + (type === 'none' ? ' normal' : '');
+  content.style.background = POPUPS[type].bg;
+  content.innerHTML = `
+    <div class="phone-bg-content" style="color:${type === 'none' ? '#52c41a' : '#999'};font-size:${type === 'none' ? '12px' : '10.5px'};font-weight:${type === 'none' ? '600' : 'normal'};margin-top:180px">
+      ${POPUPS[type].bgContent}
+    </div>
+    ${POPUPS[type].html}
+  `;
+}
+
+renderVersions();
+switchPopup('force', document.querySelector('.preview-tabs .tab'));
+
+console.log('✅ APP 版本管理原型加载完成 · 真实后台风格');
+</script>
+
+</body>
+</html>
