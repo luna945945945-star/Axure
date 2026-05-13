@@ -377,25 +377,12 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
         <span><b>启用状态规则：</b>同一 App 类型下，<b>仅最新版本</b>可切换启用状态；历史版本仅可查看，开关锁定不可操作。</span>
       </div>
 
-      <!-- 全局配置 -->
-      <div class="global-config">
-        <div class="gc-title">⚙️ 全局配置</div>
-        <div class="gc-grid" style="grid-template-columns:1fr">
-          <div class="gc-item">
-            <label>最低兼容版本号：</label>
-            <input type="text" value="1.0.05" class="perm-input">
-            <span style="margin-left:8px;color:#888;font-size:11.5px">客户端版本低于此版本号将强制更新</span>
-          </div>
-        </div>
-      </div>
-
       <!-- 版本记录表 -->
       <div class="tbl-wrap">
         <div class="tbl-actions">
           <select>
             <option>App 类型：全部</option>
-            <option>APK 套壳包</option>
-            <option>APK 原生包</option>
+            <option>Android</option>
           </select>
           <select>
             <option>更新类型：全部</option>
@@ -424,7 +411,6 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
               <th>版本更新时间</th>
               <th>更新内容</th>
               <th>启用状态</th>
-              <th>跳转 URL</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -477,13 +463,10 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
         <div class="control">
           <div style="display:flex;gap:18px;padding:7px 0">
             <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;min-width:auto;text-align:left;padding-top:0">
-              <input type="checkbox" class="f-app-type" value="APK 套壳包" style="width:14px;height:14px"> APK 套壳包
-            </label>
-            <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;min-width:auto;text-align:left;padding-top:0">
-              <input type="checkbox" class="f-app-type" value="APK 原生包" style="width:14px;height:14px"> APK 原生包
+              <input type="checkbox" class="f-app-type" value="Android" checked style="width:14px;height:14px"> Android
             </label>
           </div>
-          <div class="hint">支持多选，将为每种 App 类型分别生成版本记录</div>
+          <div class="hint">当前仅支持 Android</div>
         </div>
       </div>
       <div class="form-item">
@@ -516,14 +499,6 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
           <textarea id="fContent" placeholder="例如：&#10;1. 修复重大问题&#10;2. 优化用户体验"></textarea>
           <div class="hint">强制更新时必填，支持多语言配置</div>
         </div>
-      </div>
-      <div class="form-item">
-        <label><span class="required">*</span>更新跳转 URL</label>
-        <div class="control"><input type="text" id="fUrl" value="https://download.xx.com/" placeholder="下载页地址"></div>
-      </div>
-      <div class="form-item">
-        <label>包文件 Hash</label>
-        <div class="control"><input type="text" id="fHash" placeholder="MD5 / SHA256（可选）"></div>
       </div>
       <div class="form-item">
         <label>启用状态</label>
@@ -577,11 +552,11 @@ let currentEditId = null;
 let pendingConfirm = null;
 
 let versions = [
-  { id: 1, appType: 'APK 套壳包', version: '1.0.02', updateType: 'force', date: '2026-02-02 10:30:00', content: '1. 中台上线\n2. 修复重大问题', url: 'https://download.xx.com/', hash: '', enabled: true },
-  { id: 2, appType: 'APK 原生包', version: '1.0.01', updateType: 'suggest', date: '2026-02-02 14:20:00', content: '优化用户体验', url: 'https://download.xx.com/', hash: '', enabled: true },
-  { id: 3, appType: 'APK 套壳包', version: '1.0.00', updateType: 'none', date: '2026-01-01 09:00:00', content: '', url: 'https://download.xx.com/', hash: '', enabled: false },
-  { id: 4, appType: 'APK 原生包', version: '1.0.05', updateType: 'force', date: '2026-03-01 15:45:30', content: '修复重大 bug', url: 'https://download.xx.com/', hash: 'a3f5...', enabled: false },
-  { id: 5, appType: 'APK 套壳包', version: '1.0.03', updateType: 'suggest', date: '2026-03-01 11:00:00', content: '新增功能', url: 'https://download.xx.com/', hash: '', enabled: true },
+  { id: 1, appType: 'Android', version: '1.0.05', updateType: 'force', date: '2026-03-01 15:45:30', content: '1. 中台上线\n2. 修复重大问题', enabled: true },
+  { id: 2, appType: 'Android', version: '1.0.03', updateType: 'suggest', date: '2026-03-01 11:00:00', content: '新增功能', enabled: true },
+  { id: 3, appType: 'Android', version: '1.0.02', updateType: 'force', date: '2026-02-02 10:30:00', content: '修复重大问题', enabled: true },
+  { id: 4, appType: 'Android', version: '1.0.01', updateType: 'suggest', date: '2026-02-02 14:20:00', content: '优化用户体验', enabled: true },
+  { id: 5, appType: 'Android', version: '1.0.00', updateType: 'none', date: '2026-01-01 09:00:00', content: '', enabled: true },
 ];
 
 let logs = [
@@ -647,7 +622,7 @@ function renderVersions() {
       <td><b>${v.version}</b></td>
       <td>${getTypeTag(v.updateType)}</td>
       <td style="color:#888;white-space:nowrap">${v.date}</td>
-      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${v.content}">${v.content || '—'}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${v.content}">${v.content || '—'}</td>
       <td>
         <span class="toggle ${showOn ? 'on' : ''} ${toggleDisabled ? 'disabled' : ''}"
               title="${toggleTitle}"
@@ -655,7 +630,6 @@ function renderVersions() {
           <span class="thumb"></span>
         </span>
       </td>
-      <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${showOn ? '#1677ff' : '#aaa'}">${v.url}</td>
       <td>
         <button class="btn-link perm-link" ${!isAdmin ? 'disabled' : ''} onclick="showEditModal(${v.id})">编辑</button>
       </td>
@@ -709,14 +683,11 @@ function showAddModal() {
   if (!isAdmin) return showToast('⛔ 无权操作', 'red');
   currentEditId = null;
   document.getElementById('formTitle').textContent = '➕ 新增版本记录';
-  document.querySelectorAll('.f-app-type').forEach(cb => cb.checked = false);
-  document.querySelectorAll('.f-app-type-row').forEach(r => r.style.display = 'flex');
+  document.querySelectorAll('.f-app-type').forEach(cb => cb.checked = true); // 默认勾选 Android
   document.getElementById('fVersion').value = '';
   document.getElementById('fUpdateType').value = 'suggest';
   document.getElementById('fDate').value = getNowDatetime();
   document.getElementById('fContent').value = '';
-  document.getElementById('fUrl').value = 'https://download.xx.com/';
-  document.getElementById('fHash').value = '';
   document.getElementById('fEnabled').classList.remove('on');
   document.getElementById('addModal').classList.add('show');
 }
@@ -727,7 +698,6 @@ function showEditModal(id) {
   if (!v) return;
   currentEditId = id;
   document.getElementById('formTitle').textContent = `✏️ ${v.version} 版本编辑`;
-  // 编辑时只勾选当前 App 类型
   document.querySelectorAll('.f-app-type').forEach(cb => {
     cb.checked = (cb.value === v.appType);
   });
@@ -735,8 +705,6 @@ function showEditModal(id) {
   document.getElementById('fUpdateType').value = v.updateType;
   document.getElementById('fDate').value = v.date.replace(' ', 'T');
   document.getElementById('fContent').value = v.content;
-  document.getElementById('fUrl').value = v.url;
-  document.getElementById('fHash').value = v.hash;
   document.getElementById('fEnabled').classList.toggle('on', v.enabled);
   document.getElementById('addModal').classList.add('show');
 }
@@ -756,7 +724,6 @@ function closeModal(id) {
 }
 
 function saveVersion() {
-  // 收集勾选的 App 类型（多选）
   const appTypes = Array.from(document.querySelectorAll('.f-app-type:checked')).map(cb => cb.value);
 
   const baseData = {
@@ -764,25 +731,16 @@ function saveVersion() {
     updateType: document.getElementById('fUpdateType').value,
     date: formatDateDisplay(document.getElementById('fDate').value),
     content: document.getElementById('fContent').value.trim(),
-    url: document.getElementById('fUrl').value.trim(),
-    hash: document.getElementById('fHash').value.trim(),
     enabled: document.getElementById('fEnabled').classList.contains('on')
   };
 
-  // 校验
   if (appTypes.length === 0) return showToast('请至少选择一个 App 类型', 'red');
   if (!baseData.version) return showToast('请填写版本号', 'red');
   if (!/^\d+\.\d+\.\d+$/.test(baseData.version)) return showToast('版本号格式错误，应为 x.x.xx', 'red');
   if (baseData.updateType === 'force' && !baseData.content) return showToast('强制更新时更新内容必填', 'red');
-  if (!baseData.url) return showToast('请填写跳转 URL', 'red');
   if (!baseData.date) return showToast('请填写版本更新时间', 'red');
 
-  if (baseData.enabled && baseData.updateType === 'force') {
-    if (!confirm(`🛡️ 双向校验：系统将向下载页 API 校验版本 ${baseData.version} 是否已上架。\n\n模拟：校验通过 ✓`)) return;
-  }
-
   if (currentEditId) {
-    // 编辑：只更新当前记录（一对一）
     const v = versions.find(x => x.id === currentEditId);
     const oldVer = `${v.appType} ${v.version}`;
     Object.assign(v, baseData, { appType: appTypes[0] });
@@ -792,7 +750,6 @@ function saveVersion() {
     });
     showToast('保存成功', 'green');
   } else {
-    // 新增：每个 App 类型生成一条独立记录
     let maxId = Math.max(0, ...versions.map(x => x.id));
     const newRecords = [];
     appTypes.forEach(type => {
