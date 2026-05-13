@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工单提交限制优化 — 原型</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;font-size:14px}
+
+  .nav-tabs{display:flex;background:#fff;border-bottom:2px solid #e8e8e8;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.05);flex-wrap:wrap}
+  .nav-tab{padding:14px 20px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:#666;font-size:13px;white-space:nowrap;transition:all .2s}
+  .nav-tab.active{color:#2080f0;border-bottom-color:#2080f0;font-weight:600}
+  .nav-tab:hover{color:#2080f0;background:#f8faff}
+
+  .page{display:none;padding:20px;max-width:1500px;margin:0 auto}
+  .page.active{display:block}
+
+  .card{background:#fff;border-radius:8px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .card-title{font-size:16px;font-weight:600;margin-bottom:16px}
+
+  .search-form{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:16px}
+  .form-item{display:flex;flex-direction:column;gap:4px}
+  .form-item label{font-size:13px;color:#666;white-space:nowrap}
+  .form-item input,.form-item select{height:32px;padding:0 10px;border:1px solid #d9d9d9;border-radius:4px;font-size:13px;min-width:140px;outline:none}
+  .form-item input:focus,.form-item select:focus{border-color:#2080f0;box-shadow:0 0 0 2px rgba(32,128,240,.1)}
+  .btn{height:32px;padding:0 16px;border:none;border-radius:4px;cursor:pointer;font-size:13px}
+  .btn:hover{opacity:.85}
+  .btn-primary{background:#2080f0;color:#fff}
+  .btn-default{background:#fff;color:#666;border:1px solid #d9d9d9}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:#fafafa;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid #e8e8e8;white-space:nowrap}
+  td{padding:10px 12px;border-bottom:1px solid #f0f0f0}
+  tr:hover td{background:#fafafa}
+
+  .tag{display:inline-block;padding:2px 10px;border-radius:3px;font-size:12px}
+  .tag-success{background:#e8f5e9;color:#18a058;border:1px solid #b7eb8f}
+  .tag-error{background:#ffeef0;color:#d03050;border:1px solid #fcc}
+  .tag-warning{background:#fff7e6;color:#d48806;border:1px solid #ffe7ba}
+  .tag-info{background:#e6f7ff;color:#2080f0;border:1px solid #91d5ff}
+
+  .hl{border:2px dashed #d03050;border-radius:6px;padding:3px;position:relative;display:inline-block}
+  .hl-tag{position:absolute;top:-10px;right:6px;background:#d03050;color:#fff;font-size:11px;padding:1px 7px;border-radius:3px;z-index:1;white-space:nowrap}
+
+  .hl-block{border:2px dashed #d03050;border-radius:6px;padding:6px 10px;position:relative;background:rgba(208,48,80,.03);margin-bottom:18px}
+
+  .note{background:#fff8e1;border-left:3px solid #ffc107;padding:10px 14px;margin:12px 0;font-size:13px;color:#555;border-radius:0 4px 4px 0;line-height:1.8}
+  .note strong{color:#333}
+
+  .req-card{border:1px solid #e8e8e8;border-radius:8px;padding:16px 20px;margin-bottom:12px}
+  .req-card.bug{border-left:4px solid #d03050;background:#fff5f5}
+  .req-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .req-num{width:28px;height:28px;background:#2080f0;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+  .req-num.bug{background:#d03050}
+  .req-title{font-size:15px;font-weight:600}
+  .req-desc{color:#555;font-size:13px;line-height:1.8}
+
+  .pagination{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:12px 0;font-size:13px;color:#666}
+  .page-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:1px solid #d9d9d9;border-radius:4px;cursor:pointer;font-size:12px}
+  .page-btn.active{background:#2080f0;color:#fff;border-color:#2080f0}
+
+  .form-id{font-family:Consolas,Monaco,monospace;color:#2080f0;font-weight:500;background:#f0f5ff;padding:2px 6px;border-radius:3px}
+
+  .lt-tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500}
+  .lt-login{background:#e8f5e9;color:#18a058;border:1px solid #b7eb8f}
+  .lt-nologin{background:#fff7e6;color:#d48806;border:1px solid #ffe7ba}
+</style>
+</head>
+<body>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="switchPage('p1')">需求说明</div>
+  <div class="nav-tab" onclick="switchPage('p2')">工单配置</div>
+  <div class="nav-tab" onclick="switchPage('p3')">工单列表</div>
+  <div class="nav-tab" onclick="switchPage('p4')">待处理工单</div>
+</div>
+
+<!-- ════════════ 需求说明 ════════════ -->
+<div id="p1" class="page active">
+  <div class="card">
+    <div class="card-title">工单提交限制 & 配置展示优化（共 4 项）</div>
+    <p style="color:#555;line-height:1.8;margin-bottom:16px;">
+      工单管理模块在以下几方面存在问题，需统一优化：未登录工单 VIP 限制次数失效、同一工单类型有多套表单时列表难以区分、已登录 VIP 配置限制 Bug。
+    </p>
+
+    <div class="req-card">
+      <div class="req-header"><div class="req-num">1</div><div class="req-title">未登录工单按 UserID / Username 独立计数</div></div>
+      <div class="req-desc">
+        <strong>计数规则：</strong>
+        <table style="margin:8px 0">
+          <thead><tr><th>表单字段类型</th><th>计数维度</th></tr></thead>
+          <tbody>
+            <tr><td>表单包含 UserId 类型字段</td><td>按填写的 UserId 值独立计数</td></tr>
+            <tr><td>表单包含 UserName 类型字段</td><td>按填写的 Username 值独立计数</td></tr>
+            <tr><td>同时包含两者</td><td>UserId 和 Username 分别独立计数（互不影响）</td></tr>
+            <tr><td>都不包含</td><td>退化为现有逻辑（按 userId=0 共用计数器）</td></tr>
+          </tbody>
+        </table>
+        <strong>限制规则：</strong>
+        <table style="margin:8px 0">
+          <thead><tr><th>VIP 配置 LimitCount</th><th>限制效果</th></tr></thead>
+          <tbody>
+            <tr><td>&gt; 0</td><td>同一个 UserId 或 Username 每天最多提交 LimitCount 次</td></tr>
+            <tr><td>= 0</td><td>不限制（视为不启用次数限制）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="req-card">
+      <div class="req-header"><div class="req-num">2</div><div class="req-title">工单配置 & 工单列表新增「工单限制类型」筛选</div></div>
+      <div class="req-desc">
+        <strong>涉及页面：</strong>工单配置、工单列表、待处理工单<br>
+        <strong>搜索区新增筛选框：</strong>下拉选择，选项：全部（默认）/ 已登录 / 未登录<br>
+        <strong>对应后端字段：</strong>TenantFormListEntity.Type（0=未登录可见，1=已登录可见）
+      </div>
+    </div>
+
+    <div class="req-card">
+      <div class="req-header"><div class="req-num">3</div><div class="req-title">工单配置 & 工单列表新增「表单ID」列</div></div>
+      <div class="req-desc">
+        <strong>涉及页面：</strong>工单配置、工单列表、待处理工单<br>
+        <strong>位置：</strong>放在「工单类型名称」列前面<br>
+        <strong>数据来源：</strong>FormId（直接展示数字 ID，如 2370、2378）<br>
+        <strong>目的：</strong>同名工单类型对应不同 FormId 时，运营可直观区分
+      </div>
+    </div>
+
+    <div class="req-card bug">
+      <div class="req-header"><div class="req-num bug">4</div><div class="req-title" style="color:#d03050">修复已登录 VIP 配置限制 Bug</div></div>
+      <div class="req-desc">
+        <strong>Bug 描述：</strong>已登录状态会员提交工单时，没有根据 VIP 配置正确限制次数。<br>
+        例如：VIP1 配置限制次数 = 2，实际同一会员可以提交 3 次。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 工单配置 ════════════ -->
+<div id="p2" class="page">
+  <div class="card">
+    <div class="card-title">工单管理 → 工单配置</div>
+
+    <div class="search-form">
+      <div class="form-item">
+        <label>工单类型</label>
+        <select><option>全部</option><option>存款未到账</option><option selected>修改登录密码</option><option>一对一客服</option></select>
+      </div>
+      <div class="form-item">
+        <label>工单名称</label>
+        <input type="text" placeholder="请输入工单名称">
+      </div>
+      <div class="form-item">
+        <div class="hl">
+          <div class="hl-tag">需求2 新增</div>
+          <label>工单限制类型</label>
+          <select><option selected>全部</option><option>已登录</option><option>未登录</option></select>
+        </div>
+      </div>
+      <div class="form-item">
+        <label>状态</label>
+        <select><option>全部</option><option>启用</option><option>禁用</option></select>
+      </div>
+      <div class="form-item" style="flex-direction:row;gap:8px;align-items:flex-end">
+        <button class="btn btn-primary">查询</button>
+        <button class="btn btn-default">重置</button>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>
+            <div class="hl" style="display:inline-block">
+              <div class="hl-tag">需求3 新增</div>
+              表单ID
+            </div>
+          </th>
+          <th>工单类型</th>
+          <th>显示名称</th>
+          <th>
+            <div class="hl" style="display:inline-block">
+              <div class="hl-tag">需求2 新增</div>
+              工单限制类型
+            </div>
+          </th>
+          <th>排序</th>
+          <th>状态</th>
+          <th>VIP配置</th>
+          <th>更新时间</th>
+          <th>操作</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="form-id">2370</span></td>
+            <td>修改登录密码</td>
+            <td>修改登录密码</td>
+            <td><span class="lt-tag lt-login">已登录</span></td>
+            <td>1</td>
+            <td><span class="tag tag-success">启用</span></td>
+            <td>VIP0: 10, VIP1: 20, VIP3: 50</td>
+            <td style="font-size:12px">2026-05-12 14:30</td>
+            <td><a style="color:#2080f0;cursor:pointer">编辑</a> <a style="color:#2080f0;cursor:pointer;margin-left:8px">VIP配置</a></td>
+          </tr>
+          <tr>
+            <td><span class="form-id">2378</span></td>
+            <td>修改登录密码</td>
+            <td>Retrieve Login Password</td>
+            <td><span class="lt-tag lt-nologin">未登录</span></td>
+            <td>2</td>
+            <td><span class="tag tag-success">启用</span></td>
+            <td>VIP0: 10</td>
+            <td style="font-size:12px">2026-05-12 14:25</td>
+            <td><a style="color:#2080f0;cursor:pointer">编辑</a> <a style="color:#2080f0;cursor:pointer;margin-left:8px">VIP配置</a></td>
+          </tr>
+          <tr>
+            <td><span class="form-id">2391</span></td>
+            <td>忘记会员账号</td>
+            <td>Retrieve Login ID Account</td>
+            <td><span class="lt-tag lt-nologin">未登录</span></td>
+            <td>1</td>
+            <td><span class="tag tag-success">启用</span></td>
+            <td>VIP0: 10</td>
+            <td style="font-size:12px">2026-05-12 10:15</td>
+            <td><a style="color:#2080f0;cursor:pointer">编辑</a> <a style="color:#2080f0;cursor:pointer;margin-left:8px">VIP配置</a></td>
+          </tr>
+          <tr>
+            <td><span class="form-id">2425</span></td>
+            <td>存款未到账</td>
+            <td>充值未到账</td>
+            <td><span class="lt-tag lt-login">已登录</span></td>
+            <td>1</td>
+            <td><span class="tag tag-success">启用</span></td>
+            <td>VIP0: 5, VIP3: 20</td>
+            <td style="font-size:12px">2026-05-11 09:30</td>
+            <td><a style="color:#2080f0;cursor:pointer">编辑</a> <a style="color:#2080f0;cursor:pointer;margin-left:8px">VIP配置</a></td>
+          </tr>
+          <tr>
+            <td><span class="form-id">2456</span></td>
+            <td>一对一客服</td>
+            <td>1对1客服</td>
+            <td><span class="lt-tag lt-login">已登录</span></td>
+            <td>1</td>
+            <td><span class="tag tag-success">启用</span></td>
+            <td>VIP0: 0（不限）</td>
+            <td style="font-size:12px">2026-05-10 16:45</td>
+            <td><a style="color:#2080f0;cursor:pointer">编辑</a> <a style="color:#2080f0;cursor:pointer;margin-left:8px">VIP配置</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <strong>红框标注的为本次新增内容：</strong>表单 ID 列（需求 3）+ 工单限制类型列与筛选条件（需求 2）。表单 ID 是后端 FormId，区分同一工单类型下的不同表单（如「修改登录密码」有 2370 已登录版和 2378 未登录版）。
+    </div>
+
+    <div class="pagination">
+      <span>共 28 条</span>
+      <div class="page-btn">&lt;</div>
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">&gt;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 工单列表 ════════════ -->
+<div id="p3" class="page">
+  <div class="card">
+    <div class="card-title">工单管理 → 工单列表</div>
+
+    <div class="search-form">
+      <div class="form-item"><label>会员账号</label><input placeholder="请输入会员账号"></div>
+      <div class="form-item"><label>工单号</label><input placeholder="请输入工单号"></div>
+      <div class="form-item"><label>工单类型</label><select><option>全部</option><option selected>修改登录密码</option></select></div>
+      <div class="form-item">
+        <div class="hl">
+          <div class="hl-tag">需求2 新增</div>
+          <label>工单限制类型</label>
+          <select><option selected>全部</option><option>已登录</option><option>未登录</option></select>
+        </div>
+      </div>
+      <div class="form-item"><label>状态</label><select><option>全部</option><option selected>系统处理中</option><option>已处理</option><option>已驳回</option></select></div>
+      <div class="form-item"><label>UTR</label><input placeholder="请输入UTR"></div>
+      <div class="form-item">
+        <label>提交时间</label>
+        <div style="display:flex;gap:4px;align-items:center">
+          <input value="2026-05-12 00:00:00" style="min-width:130px;font-size:12px">
+          <span>→</span>
+          <input value="2026-05-13 23:59:59" style="min-width:130px;font-size:12px">
+        </div>
+      </div>
+      <div class="form-item" style="flex-direction:row;gap:8px;align-items:flex-end"><button class="btn btn-primary">查询</button><button class="btn btn-default">重置</button></div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th><input type="checkbox"></th>
+          <th>
+            <div class="hl" style="display:inline-block">
+              <div class="hl-tag">需求3 新增</div>
+              表单ID
+            </div>
+          </th>
+          <th>工单类型</th>
+          <th>
+            <div class="hl" style="display:inline-block">
+              <div class="hl-tag">需求2 新增</div>
+              工单限制类型
+            </div>
+          </th>
+          <th>会员ID</th>
+          <th>账号</th>
+          <th>状态</th>
+          <th>提交时间</th>
+          <th>操作人</th>
+          <th>操作</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="form-id">2370</span></td>
+            <td>修改登录密码</td>
+            <td><span class="lt-tag lt-login">已登录</span></td>
+            <td>19115423</td>
+            <td>917****812</td>
+            <td><span class="tag tag-info">系统处理中</span></td>
+            <td style="font-size:12px">2026-05-13 14:08</td>
+            <td>admin</td>
+            <td><a style="color:#2080f0;cursor:pointer">查看</a></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="form-id">2378</span></td>
+            <td>修改登录密码</td>
+            <td><span class="lt-tag lt-nologin">未登录</span></td>
+            <td>0</td>
+            <td>2823074</td>
+            <td><span class="tag tag-error">已驳回</span></td>
+            <td style="font-size:12px">2026-05-13 13:42</td>
+            <td>admin</td>
+            <td><a style="color:#2080f0;cursor:pointer">查看</a></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="form-id">2378</span></td>
+            <td>修改登录密码</td>
+            <td><span class="lt-tag lt-nologin">未登录</span></td>
+            <td>0</td>
+            <td>4567892</td>
+            <td><span class="tag tag-error">已驳回</span></td>
+            <td style="font-size:12px">2026-05-13 12:15</td>
+            <td>admin</td>
+            <td><a style="color:#2080f0;cursor:pointer">查看</a></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="form-id">2370</span></td>
+            <td>修改登录密码</td>
+            <td><span class="lt-tag lt-login">已登录</span></td>
+            <td>22329854</td>
+            <td>919****495</td>
+            <td><span class="tag tag-success">已处理</span></td>
+            <td style="font-size:12px">2026-05-13 10:30</td>
+            <td>admin</td>
+            <td><a style="color:#2080f0;cursor:pointer">查看</a></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="form-id">2378</span></td>
+            <td>修改登录密码</td>
+            <td><span class="lt-tag lt-nologin">未登录</span></td>
+            <td>0</td>
+            <td>1234567</td>
+            <td><span class="tag tag-error">已驳回</span></td>
+            <td style="font-size:12px">2026-05-13 09:45</td>
+            <td>admin</td>
+            <td><a style="color:#2080f0;cursor:pointer">查看</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <strong>新增展示：</strong>
+      <ul style="margin-top:6px;margin-left:20px">
+        <li><strong>表单ID 列</strong>：同样是「修改登录密码」工单，FormId=2370 是已登录提交，FormId=2378 是未登录提交</li>
+        <li><strong>工单限制类型 列</strong>：绿色「已登录」/ 橙色「未登录」，一眼能区分</li>
+        <li><strong>工单限制类型筛选</strong>：可以快速筛出所有"已登录"或"未登录"的工单</li>
+      </ul>
+    </div>
+
+    <div class="pagination">
+      <span>共 275 条</span>
+      <div class="page-btn">&lt;</div>
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">...</div>
+      <div class="page-btn">14</div>
+      <div class="page-btn">&gt;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 待处理工单 ════════════ -->
+<div id="p4" class="page">
+  <div class="card">
+    <div class="card-title">工单管理 → 待处理工单</div>
+
+    <div class="search-form">
+      <div class="form-item"><label>会员账号</label><input placeholder="请输入会员账号"></div>
+      <div class="form-item"><label>工单类型</label><select><option>全部</option><option selected>修改登录密码</option></select></div>
+      <div class="form-item">
+        <div class="hl">
+          <div class="hl-tag">需求2 新增</div>
+          <label>工单限制类型</label>
+          <select><option selected>全部</option><option>已登录</option><option>未登录</option></select>
+        </div>
+      </div>
+      <div class="form-item"><label>三方名称</label><input placeholder="请输入三方名称"></div>
+      <div class="form-item"><label>VIP等级</label><select><option>全部</option></select></div>
+      <div class="form-item">
+        <label>提交时间</label>
+        <div style="display:flex;gap:4px;align-items:center">
+          <input value="2026-05-12 00:00:00" style="min-width:130px;font-size:12px">
+          <span>→</span>
+          <input value="2026-05-13 23:59:59" style="min-width:130px;font-size:12px">
+        </div>
+      </div>
+      <div class="form-item" style="flex-direction:row;gap:8px;align-items:flex-end"><button class="btn btn-primary">查询</button><button class="btn btn-default">重置</button></div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>
+            <div class="hl" style="display:inline-block">
+              <div class="hl-tag">需求3 新增</div>
+              表单ID
+            </div>
+          </th>
+          <th>工单类型</th>
+          <th>
+            <div class="hl" style="display:inline-block">
+              <div class="hl-tag">需求2 新增</div>
+              工单限制类型
+            </div>
+          </th>
+          <th>VIP</th>
+          <th>会员ID</th>
+          <th>账号</th>
+          <th>状态</th>
+          <th>三方名称</th>
+          <th>订单金额</th>
+          <th>提交时间</th>
+          <th>操作</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="form-id">2378</span></td>
+            <td>修改登录密码</td>
+            <td><span class="lt-tag lt-nologin">未登录</span></td>
+            <td>VIP 0</td>
+            <td>0</td>
+            <td>2823074</td>
+            <td><span class="tag tag-warning">待处理</span></td>
+            <td>--</td>
+            <td>--</td>
+            <td style="font-size:12px">2026-05-13 14:08</td>
+            <td><a style="color:#2080f0;cursor:pointer">查看</a></td>
+          </tr>
+          <tr>
+            <td><span class="form-id">2370</span></td>
+            <td>修改登录密码</td>
+            <td><span class="lt-tag lt-login">已登录</span></td>
+            <td>VIP 3</td>
+            <td>22329854</td>
+            <td>919****495</td>
+            <td><span class="tag tag-warning">待处理</span></td>
+            <td>--</td>
+            <td>--</td>
+            <td style="font-size:12px">2026-05-13 13:30</td>
+            <td><a style="color:#2080f0;cursor:pointer">查看</a></td>
+          </tr>
+          <tr>
+            <td><span class="form-id">2391</span></td>
+            <td>忘记会员账号</td>
+            <td><span class="lt-tag lt-nologin">未登录</span></td>
+            <td>VIP 0</td>
+            <td>0</td>
+            <td>5678901</td>
+            <td><span class="tag tag-warning">待处理</span></td>
+            <td>--</td>
+            <td>--</td>
+            <td style="font-size:12px">2026-05-13 12:45</td>
+            <td><a style="color:#2080f0;cursor:pointer">查看</a></td>
+          </tr>
+          <tr>
+            <td><span class="form-id">2425</span></td>
+            <td>存款未到账</td>
+            <td><span class="lt-tag lt-login">已登录</span></td>
+            <td>VIP 2</td>
+            <td>4297893</td>
+            <td>918****044</td>
+            <td><span class="tag tag-warning">待处理</span></td>
+            <td>PAYTM-Super</td>
+            <td>500</td>
+            <td style="font-size:12px">2026-05-13 11:15</td>
+            <td><a style="color:#2080f0;cursor:pointer">查看</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      待处理工单页面与工单列表共用相同的「表单ID」「工单限制类型」展示和筛选规则，方便客服在挑单时直观区分不同表单来源。
+    </div>
+
+    <div class="pagination">
+      <span>共 89 条</span>
+      <div class="page-btn">&lt;</div>
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">&gt;</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  var pages=['p1','p2','p3','p4'];
+  document.querySelectorAll('.nav-tab')[pages.indexOf(id)].classList.add('active');
+}
+</script>
+</body>
+</html>
