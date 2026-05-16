@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>返佣等级配置 · 直属下级条件 原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;background:#f0f2f5;color:#333;min-height:100vh}
+
+/* 演示栏 */
+.demo-bar{background:#2c3e50;padding:9px 16px;font-size:12px;display:flex;align-items:center;gap:12px;color:#fff;flex-wrap:wrap}
+.demo-bar .badge{background:#ff7a00;color:#fff;padding:2px 8px;border-radius:3px;font-size:10.5px;font-weight:600}
+.demo-bar b{color:#fff}
+.demo-bar .hint{font-size:11px;opacity:.7}
+
+/* 整体布局 */
+.app{display:flex;min-height:calc(100vh - 38px)}
+
+/* 侧边栏 */
+.sider{width:180px;background:#fff;color:#333;flex-shrink:0;border-right:1px solid #e8e8e8;overflow-y:auto;max-height:calc(100vh - 38px)}
+.sider .menu-group{padding:10px 14px;font-size:12.5px;color:#666;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.sider .menu-group:hover{background:#f5f8ff;color:#1677ff}
+.sider .menu-group.expanded{color:#7c4dff;font-weight:600;background:#f9f5ff}
+.sider .menu-sub{padding:8px 16px 8px 30px;font-size:12px;color:#777;cursor:pointer}
+.sider .menu-sub:hover{background:#f5f8ff;color:#1677ff}
+.sider .menu-sub.active{background:#f0f5ff;color:#1677ff;font-weight:500;border-right:2px solid #1677ff}
+
+/* 主体 */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;background:#fafafa}
+.crumb{background:#fff;padding:11px 18px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:8px;font-size:13px}
+.crumb .pg-title{font-weight:600;color:#7c4dff;font-size:14px;display:flex;align-items:center;gap:6px}
+.crumb-right{margin-left:auto;color:#999;font-size:12px}
+.crumb-right .sep{margin:0 4px;color:#ccc}
+
+.content{flex:1;padding:18px;overflow:auto}
+
+/* 顶部按钮 */
+.top-tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab-btn{height:34px;padding:0 16px;background:#7c4dff;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.tab-btn:hover{background:#6230f0}
+.tab-btn.outline{background:#fff;color:#7c4dff;border:1px solid #d0c4f5}
+.tab-btn.outline:hover{background:#f9f5ff}
+
+.add-row{margin-bottom:14px}
+
+/* 通用按钮 */
+.btn{height:30px;padding:0 13px;border-radius:4px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.btn-p{background:#7c4dff;color:#fff}.btn-p:hover{background:#6230f0}
+.btn-pp{background:#1677ff;color:#fff}.btn-pp:hover{background:#0958d9}
+.btn-success{background:#52c41a;color:#fff}.btn-success:hover{background:#389e0d}
+.btn-danger{background:#cf1322;color:#fff}.btn-danger:hover{background:#a8071a}
+.btn-d{background:#fff;color:#333;border:1px solid #d9d9d9}.btn-d:hover{border-color:#1677ff;color:#1677ff}
+.btn-link{background:transparent;color:#1677ff;cursor:pointer;border:none;font-family:inherit;font-size:12.5px;padding:0 4px}
+.btn-link:hover{text-decoration:underline}
+.btn-link.danger{color:#cf1322}
+
+/* 表格 */
+.tbl-wrap{background:#fff;border:1px solid #e8e8e8;border-radius:6px;overflow:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:1500px}
+.tbl thead tr.group-row th{background:#fafafa;padding:8px 10px;text-align:center;font-weight:600;color:#555;border-bottom:2px solid #e8e8e8;white-space:nowrap;font-size:12px}
+.tbl thead tr.group-row th.team-group{background:#e6f4ff;color:#0958d9}
+.tbl thead tr.group-row th.direct-group{background:#fff7e6;color:#d46b08;position:relative}
+.tbl thead tr.group-row th.direct-group::after{content:"NEW";position:absolute;top:3px;right:4px;background:#cf1322;color:#fff;font-size:8px;padding:1px 4px;border-radius:6px;font-weight:700;letter-spacing:.3px}
+
+.tbl thead tr.col-row th{background:#fafafa;padding:9px 10px;text-align:left;font-weight:500;color:#555;border-bottom:1px solid #e8e8e8;white-space:nowrap;font-size:11.5px}
+.tbl thead tr.col-row th.team-col{background:#f0f9ff;color:#0958d9}
+.tbl thead tr.col-row th.direct-col{background:#fffbf0;color:#d46b08}
+
+.tbl td{padding:9px 10px;border-bottom:1px solid #f5f5f5;vertical-align:middle;color:#333;white-space:nowrap}
+.tbl td.team-col{background:#fafcff}
+.tbl td.direct-col{background:#fffdf5}
+.tbl tr:hover td{background:#fafcff !important}
+.tbl tr:hover td.direct-col{background:#fff7e6 !important}
+.tbl td .count-link{color:#1677ff;cursor:pointer;text-decoration:underline}
+.tbl td .count-link.zero{color:#999;text-decoration:none;cursor:default}
+
+/* 行内编辑 */
+.tbl td .inline-input{width:100%;max-width:100px;padding:5px 7px;border:1.5px solid #7c4dff;border-radius:3px;font-family:inherit;font-size:12px;background:#fff;outline:none;box-shadow:0 0 0 2px rgba(124,77,255,.1)}
+.tbl td .inline-input:focus{border-color:#5a32d6}
+.tbl tr.editing{background:#f9f5ff !important}
+.tbl tr.editing td{background:#f9f5ff !important;animation:editPulse .6s}
+.tbl tr.editing td.direct-col{background:#fff7e6 !important}
+@keyframes editPulse{0%{background:#f9f5ff}50%{background:#efe6ff}100%{background:#f9f5ff}}
+.btn-link.save{color:#52c41a;font-weight:600}
+.btn-link.cancel{color:#999}
+
+/* 整列右边框 */
+.tbl th.col-end,.tbl td.col-end{border-right:2px solid #ddd}
+
+/* 模态 */
+.mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:8px;width:620px;max-width:92%;max-height:90vh;display:flex;flex-direction:column}
+.modal-h{padding:14px 18px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+.modal-h .title{font-size:15px;font-weight:600}
+.modal-h .close{font-size:20px;color:#999;cursor:pointer;padding:2px 8px}
+.modal-b{flex:1;overflow-y:auto;padding:18px}
+.modal-f{padding:12px 18px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:8px}
+
+/* 分组卡片 */
+.group-card{border:1px solid #e8e8e8;border-radius:6px;padding:14px;margin-bottom:14px}
+.group-card.team{border-color:#91caff;background:#f0f9ff}
+.group-card.direct{border-color:#ffd591;background:#fffbf0;position:relative}
+.group-card.direct::after{content:"NEW";position:absolute;top:10px;right:10px;background:#cf1322;color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700;letter-spacing:.3px}
+.group-card .gc-title{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.group-card.team .gc-title{color:#0958d9}
+.group-card.direct .gc-title{color:#d46b08}
+
+.form-item{margin-bottom:12px;display:flex;align-items:center;gap:14px}
+.form-item:last-child{margin-bottom:0}
+.form-item>label{min-width:160px;text-align:right;color:#666;font-size:13px}
+.form-item>label .req{color:#cf1322;margin-right:2px}
+.form-item .ctrl{flex:1;display:flex;align-items:center;gap:8px}
+.form-item .ctrl input{flex:1;padding:7px 10px;border:1px solid #d9d9d9;border-radius:4px;font-family:inherit;font-size:13px;background:#fff}
+.form-item .ctrl .unit{color:#999;font-size:12px;white-space:nowrap}
+.form-item .ctrl .qtip{width:14px;height:14px;border-radius:50%;background:#bfbfbf;color:#fff;font-size:9px;display:inline-flex;align-items:center;justify-content:center;cursor:help;font-family:Arial}
+.form-item .ctrl .qtip:hover{background:#1677ff}
+
+/* 提示横幅 */
+.hint-tip{background:#fff7e6;border:1px solid #ffd591;border-radius:5px;padding:9px 12px;font-size:12px;color:#874d00;display:flex;align-items:flex-start;gap:8px;margin-bottom:14px}
+.hint-tip.info{background:#e6f4ff;border-color:#91caff;color:#0958d9}
+.hint-tip .ico{flex-shrink:0;font-size:14px}
+
+/* tooltip */
+.q-tip-pop{position:fixed;background:#262626;color:#fff;padding:9px 13px;border-radius:4px;font-size:12px;line-height:1.65;width:260px;z-index:9999;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.q-tip-pop.show{opacity:1}
+
+/* Toast */
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:9px 18px;border-radius:20px;font-size:12.5px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+</style>
+</head>
+<body>
+
+<!-- 演示栏 -->
+<div class="demo-bar">
+  <span class="badge">DEMO</span>
+  <b>返佣等级配置 · 直属下级条件原型</b>
+  <span class="hint">| 团队 + 直属双重判定 · 默认值 0 不限制 · 防"吃空层"套利</span>
+</div>
+
+<div class="app">
+  <!-- 侧边栏 -->
+  <div class="sider">
+    <div class="menu-group">VIP等级</div>
+    <div class="menu-group expanded">新版返佣管理</div>
+    <div class="menu-sub">昨日返佣等级-新</div>
+    <div class="menu-sub active">返佣等级配置</div>
+    <div class="menu-sub">代理报表-新</div>
+    <div class="menu-group">会员管理</div>
+    <div class="menu-group">会员洗码管理</div>
+    <div class="menu-group">锦标赛</div>
+    <div class="menu-group">活动奖励</div>
+    <div class="menu-group">新会员礼包</div>
+    <div class="menu-group">保险箱管理</div>
+    <div class="menu-group">会员VIP管理</div>
+    <div class="menu-group">TrxHash</div>
+    <div class="menu-group">WinGo</div>
+    <div class="menu-group">5DNEW</div>
+    <div class="menu-group">K3</div>
+    <div class="menu-group">三方游戏管理</div>
+  </div>
+
+  <!-- 主体 -->
+  <div class="main">
+    <div class="crumb">
+      <span class="pg-title" id="crumbTitle">返佣等级配置</span>
+      <div class="crumb-right" id="crumbRight">
+        <span>新版返佣管理</span><span class="sep">›</span>
+        <span>返佣等级配置</span>
+      </div>
+    </div>
+
+    <div class="content" id="mainContent">
+
+      <!-- 顶部 Tab -->
+      <div class="top-tabs">
+        <button class="tab-btn">返佣等级管理</button>
+        <button class="tab-btn outline">返佣费率配置</button>
+      </div>
+
+      <div class="add-row">
+        <button class="tab-btn outline" onclick="showAddModal()">新增返佣等级</button>
+      </div>
+
+      <!-- 表格 -->
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr class="group-row">
+              <th rowspan="2">返佣等级</th>
+              <th class="team-group col-end" colspan="6">🔵 团队下级条件</th>
+              <th class="direct-group col-end" colspan="6">🟠 直属下级条件 (新增)</th>
+              <th rowspan="2">备注</th>
+              <th rowspan="2">编辑</th>
+            </tr>
+            <tr class="col-row">
+              <th class="team-col">(满足人数)</th>
+              <th class="team-col">团队当日充值人数条件</th>
+              <th class="team-col">(满足人数)</th>
+              <th class="team-col">团队当日充值金额条件</th>
+              <th class="team-col">(满足人数)</th>
+              <th class="team-col col-end">团队当日游戏金额条件</th>
+              <th class="direct-col">(满足人数)</th>
+              <th class="direct-col">直属当日充值人数</th>
+              <th class="direct-col">(满足人数)</th>
+              <th class="direct-col">直属当日充值金额</th>
+              <th class="direct-col">(满足人数)</th>
+              <th class="direct-col col-end">直属当日游戏金额</th>
+            </tr>
+          </thead>
+          <tbody id="levelTableBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- ════════ 昨日返佣等级页（点击满足人数跳转过来）════════ -->
+    <div class="content" id="yesterdayContent" style="display:none">
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px">
+        <button class="btn btn-d" onclick="backToConfig()">‹ 返回返佣等级配置</button>
+        <div id="filterTag" style="background:#f0f5ff;color:#1677ff;padding:5px 12px;border-radius:4px;font-size:12.5px;border:1px solid #adc6ff;"></div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:14px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <input style="height:30px;padding:0 9px;border:1px solid #d9d9d9;border-radius:3px;width:160px" placeholder="搜索会员ID">
+          <input style="height:30px;padding:0 9px;border:1px solid #d9d9d9;border-radius:3px;width:160px" placeholder="搜索代理ID">
+          <select style="height:30px;padding:0 9px;border:1px solid #d9d9d9;border-radius:3px">
+            <option>等级筛选：全部</option>
+          </select>
+          <button class="btn btn-pp">🔍 查询</button>
+          <button class="btn btn-d">🔄 重置</button>
+          <button class="btn btn-d" style="margin-left:auto">📥 导出</button>
+        </div>
+
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>会员ID</th>
+              <th>昵称</th>
+              <th>等级</th>
+              <th>团队当日充值人数</th>
+              <th>团队当日充值金额</th>
+              <th>团队当日游戏金额</th>
+              <th>直属当日充值人数</th>
+              <th>直属当日充值金额</th>
+              <th>直属当日游戏金额</th>
+              <th>命中条件</th>
+              <th>统计日期</th>
+            </tr>
+          </thead>
+          <tbody id="yesterdayTableBody"></tbody>
+        </table>
+
+        <div style="padding:12px;text-align:right;color:#666;font-size:12px">
+          共 <b id="ydCount">0</b> 条记录
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 新增 / 编辑等级模态 -->
+<div class="mask" id="editModal">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="title" id="modalTitle">编辑返佣等级</span>
+      <span class="close" onclick="closeModal('editModal')">✕</span>
+    </div>
+    <div class="modal-b">
+
+      <div class="form-item">
+        <label><span class="req">*</span>返佣等级</label>
+        <div class="ctrl">
+          <input type="number" id="fLevel" readonly style="background:#f5f5f5;color:#666;cursor:not-allowed">
+        </div>
+      </div>
+
+      <!-- 团队条件 -->
+      <div class="group-card team">
+        <div class="gc-title">🔵 团队下级条件 <span style="font-size:11px;color:#cf1322;font-weight:normal;margin-left:6px">必填</span></div>
+
+        <div class="form-item">
+          <label><span class="req">*</span>团队当日充值人数</label>
+          <div class="ctrl">
+            <input type="number" id="fTeamPeople" min="0" placeholder="请输入">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label><span class="req">*</span>团队当日充值金额</label>
+          <div class="ctrl">
+            <input type="number" id="fTeamRecharge" min="0" placeholder="请输入">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label><span class="req">*</span>团队当日游戏金额</label>
+          <div class="ctrl">
+            <input type="number" id="fTeamGame" min="0" placeholder="请输入">
+          </div>
+        </div>
+      </div>
+
+      <!-- 直属条件 -->
+      <div class="group-card direct">
+        <div class="gc-title">🟠 直属下级条件 <span style="font-size:11px;color:#999;font-weight:normal;margin-left:6px">选填</span></div>
+
+        <div class="form-item">
+          <label>直属当日充值人数</label>
+          <div class="ctrl">
+            <input type="number" id="fDirectPeople" value="0" min="0">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label>直属当日充值金额</label>
+          <div class="ctrl">
+            <input type="number" id="fDirectRecharge" value="0" min="0">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label>直属当日游戏金额</label>
+          <div class="ctrl">
+            <input type="number" id="fDirectGame" value="0" min="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-item">
+        <label>备注</label>
+        <div class="ctrl">
+          <input type="text" id="fRemark" placeholder="如：返佣利率等级 5">
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-d" onclick="closeModal('editModal')">取消</button>
+      <button class="btn btn-p" onclick="saveLevel()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// 数据：现有等级配置（团队 3 条件 + 新增直属 3 条件，默认 0）
+// c1-c3: 满足团队条件 1/2/3 的人数
+// c4: 满足所有团队条件（合计）
+// c5-c7: 满足直属条件 1/2/3 的人数（新增字段默认 0）
+// c8: 满足所有 6 个条件的最终人数
+const levels = [
+  { lv: 10, tp: 5000, tr: 300000000, tg: 1500000000, dp: 0, dr: 0, dg: 0, c1: 0, c2: 8, c3: 0, c4: 0, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级10' },
+  { lv: 9,  tp: 1000, tr: 200000000, tg: 1000000000, dp: 0, dr: 0, dg: 0, c1: 0, c2: 36, c3: 0, c4: 0, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级9' },
+  { lv: 8,  tp: 500,  tr: 100000000, tg: 500000000,  dp: 0, dr: 0, dg: 0, c1: 0, c2: 61, c3: 0, c4: 0, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级8' },
+  { lv: 7,  tp: 100,  tr: 20000000,  tg: 100000000,  dp: 0, dr: 0, dg: 0, c1: 0, c2: 258, c3: 0, c4: 0, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级7' },
+  { lv: 6,  tp: 60,   tr: 2000000,   tg: 10000000,   dp: 0, dr: 0, dg: 0, c1: 17, c2: 104, c3: 17, c4: 26, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级6' },
+  { lv: 5,  tp: 50,   tr: 1000000,   tg: 5000000,    dp: 0, dr: 0, dg: 0, c1: 16, c2: 69, c3: 16, c4: 44, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级5' },
+  { lv: 4,  tp: 45,   tr: 700000,    tg: 3500000,    dp: 0, dr: 0, dg: 0, c1: 25, c2: 28, c3: 25, c4: 26, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级4' },
+  { lv: 3,  tp: 30,   tr: 500000,    tg: 2500000,    dp: 0, dr: 0, dg: 0, c1: 24, c2: 145, c3: 24, c4: 35, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级3' },
+  { lv: 2,  tp: 15,   tr: 200000,    tg: 1000000,    dp: 0, dr: 0, dg: 0, c1: 90, c2: 256, c3: 91, c4: 140, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级2' },
+  { lv: 1,  tp: 10,   tr: 100000,    tg: 500000,     dp: 0, dr: 0, dg: 0, c1: 140, c2: 259, c3: 149, c4: 168, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级1' },
+  { lv: 0,  tp: 0,    tr: 0,         tg: 0,          dp: 0, dr: 0, dg: 0, c1: 17813, c2: 16901, c3: 17803, c4: 17686, c5: 0, c6: 0, c7: 0, c8: 0, remark: '返佣利率等级0（默认）' },
+];
+
+let currentEditId = null;
+let editingRowIdx = null; // 行内编辑中的行索引
+
+function fmtCount(n, levelIdx, type) {
+  if (n === 0) return `<span class="count-link zero">0</span>`;
+  return `<span class="count-link" onclick="goYesterday(${levelIdx},'${type}',${n})">${n}</span>`;
+}
+
+// 跳转到「昨日返佣等级」页
+function goYesterday(levelIdx, condType, count) {
+  const l = levels[levelIdx];
+  const labelMap = {
+    'c1': '团队当日充值人数 ≥ ' + l.tp,
+    'c2': '团队当日充值金额 ≥ ' + l.tr,
+    'c3': '团队当日游戏金额 ≥ ' + l.tg,
+    'c4': '满足全部 6 个条件',
+    'c5': '直属当日充值人数 ≥ ' + l.dp,
+    'c6': '直属当日充值金额 ≥ ' + l.dr,
+    'c7': '直属当日游戏金额 ≥ ' + l.dg,
+  };
+  const conditionText = labelMap[condType] || '满足条件';
+
+  document.getElementById('mainContent').style.display = 'none';
+  document.getElementById('yesterdayContent').style.display = 'block';
+  document.getElementById('crumbTitle').textContent = '昨日返佣等级';
+  document.getElementById('crumbRight').innerHTML = '<span>新版返佣管理</span><span class="sep">›</span><span>昨日返佣等级</span>';
+  document.getElementById('filterTag').innerHTML = `🔖 筛选条件：返佣等级 <b>${l.lv}</b> · ${conditionText} · 命中 ${count} 人`;
+
+  renderYesterdayList(l.lv, condType, count);
+}
+
+function backToConfig() {
+  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('yesterdayContent').style.display = 'none';
+  document.getElementById('crumbTitle').textContent = '返佣等级配置';
+  document.getElementById('crumbRight').innerHTML = '<span>新版返佣管理</span><span class="sep">›</span><span>返佣等级配置</span>';
+}
+
+function renderYesterdayList(level, condType, count) {
+  // 模拟会员数据
+  const names = ['MemberA8K', 'MemberB7L', 'MemberC9M', 'MemberD2N', 'MemberE6P', 'MemberF3Q', 'MemberG1R', 'MemberH5S', 'MemberI4T'];
+  const showCount = Math.min(count, 20);
+  const data = [];
+  for (let i = 0; i < showCount; i++) {
+    data.push({
+      id: 2247600 + i,
+      name: names[i % names.length] + (i + 1),
+      level: level,
+      tp: Math.floor(Math.random() * 5000),
+      tr: Math.floor(Math.random() * 100000),
+      tg: Math.floor(Math.random() * 500000),
+      dp: Math.floor(Math.random() * 20),
+      dr: Math.floor(Math.random() * 20000),
+      dg: Math.floor(Math.random() * 100000),
+    });
+  }
+
+  const tbody = document.getElementById('yesterdayTableBody');
+  tbody.innerHTML = data.map(m => `
+    <tr>
+      <td style="color:#1677ff;cursor:pointer">${m.id}</td>
+      <td>${m.name}</td>
+      <td><span class="tag" style="background:#f0f5ff;color:#1677ff;padding:1px 8px;border-radius:3px;font-size:11px">${m.level}</span></td>
+      <td>${m.tp}</td>
+      <td>${m.tr.toLocaleString()}</td>
+      <td>${m.tg.toLocaleString()}</td>
+      <td class="direct-col">${m.dp}</td>
+      <td class="direct-col">${m.dr.toLocaleString()}</td>
+      <td class="direct-col">${m.dg.toLocaleString()}</td>
+      <td><span style="color:#52c41a">✓ ${condType === 'c4' ? '全部条件' : '该条件'}</span></td>
+      <td style="color:#888">2026-05-15</td>
+    </tr>
+  `).join('');
+  document.getElementById('ydCount').textContent = count;
+}
+
+function renderTable() {
+  const tbody = document.getElementById('levelTableBody');
+  tbody.innerHTML = levels.map((l, idx) => {
+    const isEditing = editingRowIdx === idx;
+    const isDefault = l.lv === 0; // 等级 0 为默认，不可编辑/删除
+
+    if (isEditing) {
+      // 行内编辑模式
+      return `
+      <tr class="editing">
+        <td>${l.lv}</td>
+        <td class="team-col">${fmtCount(l.c1, idx, 'c1')}</td>
+        <td class="team-col"><input class="inline-input" type="number" value="${l.tp}" min="0" data-field="tp"></td>
+        <td class="team-col">${fmtCount(l.c2, idx, 'c2')}</td>
+        <td class="team-col"><input class="inline-input" type="number" value="${l.tr}" min="0" data-field="tr"></td>
+        <td class="team-col">${fmtCount(l.c3, idx, 'c3')}</td>
+        <td class="team-col col-end"><input class="inline-input" type="number" value="${l.tg}" min="0" data-field="tg"></td>
+        <td class="direct-col">${fmtCount(l.c4, idx, 'c5')}</td>
+        <td class="direct-col"><input class="inline-input" type="number" value="${l.dp}" min="0" data-field="dp"></td>
+        <td class="direct-col">${fmtCount(l.c5, idx, 'c6')}</td>
+        <td class="direct-col"><input class="inline-input" type="number" value="${l.dr}" min="0" data-field="dr"></td>
+        <td class="direct-col">${fmtCount(l.c6, idx, 'c7')}</td>
+        <td class="direct-col col-end"><input class="inline-input" type="number" value="${l.dg}" min="0" data-field="dg"></td>
+        <td><input class="inline-input" type="text" value="${l.remark}" data-field="remark" style="max-width:none;width:100%"></td>
+        <td>
+          <button class="btn-link save" onclick="saveInlineEdit(${idx})">保存</button>
+          <button class="btn-link cancel" onclick="cancelInlineEdit()">取消</button>
+        </td>
+      </tr>`;
+    }
+    // 普通模式
+    return `
+    <tr${isDefault ? ' style="background:#fafafa"' : ''}>
+      <td>${l.lv}${isDefault ? ' <span style="font-size:10px;color:#999;background:#f0f0f0;padding:1px 6px;border-radius:8px;margin-left:3px">默认</span>' : ''}</td>
+      <td class="team-col">${fmtCount(l.c1, idx, 'c1')}</td>
+      <td class="team-col">${l.tp}</td>
+      <td class="team-col">${fmtCount(l.c2, idx, 'c2')}</td>
+      <td class="team-col">${l.tr}</td>
+      <td class="team-col">${fmtCount(l.c3, idx, 'c3')}</td>
+      <td class="team-col col-end">${l.tg}</td>
+      <td class="direct-col">${fmtCount(l.c4, idx, 'c5')}</td>
+      <td class="direct-col">${l.dp}</td>
+      <td class="direct-col">${fmtCount(l.c5, idx, 'c6')}</td>
+      <td class="direct-col">${l.dr}</td>
+      <td class="direct-col">${fmtCount(l.c6, idx, 'c7')}</td>
+      <td class="direct-col col-end">${l.dg}</td>
+      <td>${l.remark}</td>
+      <td>
+        ${isDefault
+          ? '<span style="color:#bbb;font-size:11.5px">默认等级<br>不可操作</span>'
+          : `<button class="btn-link" onclick="enterInlineEdit(${idx})">编辑</button>
+             <button class="btn-link danger" onclick="deleteLevel(${idx})">删除</button>`
+        }
+      </td>
+    </tr>
+  `;
+  }).join('');
+}
+
+// 进入行内编辑
+function enterInlineEdit(idx) {
+  if (levels[idx].lv === 0) {
+    showToast('⛔ 默认等级（0）不可编辑', 'red');
+    return;
+  }
+  if (editingRowIdx !== null && editingRowIdx !== idx) {
+    if (!confirm('当前有未保存的编辑，是否放弃并切换？')) return;
+  }
+  editingRowIdx = idx;
+  renderTable();
+}
+
+// 保存行内编辑
+function saveInlineEdit(idx) {
+  const inputs = document.querySelectorAll('tr.editing .inline-input');
+  const updates = {};
+  inputs.forEach(input => {
+    const field = input.dataset.field;
+    if (field === 'remark') {
+      // 备注是文本字段
+      updates[field] = input.value.trim();
+    } else {
+      // 数字字段
+      const val = parseInt(input.value) || 0;
+      if (val < 0) {
+        showToast(`${field} 不能为负数`, 'red');
+        return;
+      }
+      updates[field] = val;
+    }
+  });
+  Object.assign(levels[idx], updates);
+  editingRowIdx = null;
+  renderTable();
+  showToast(`已保存返佣等级 ${levels[idx].lv} 配置`, 'green');
+}
+
+// 取消行内编辑
+function cancelInlineEdit() {
+  editingRowIdx = null;
+  renderTable();
+}
+
+function showAddModal() {
+  currentEditId = null;
+  // 自动计算下一个等级 = 当前最大等级 + 1
+  const maxLv = levels.length > 0 ? Math.max(...levels.map(l => l.lv)) : -1;
+  const nextLv = maxLv + 1;
+  document.getElementById('modalTitle').textContent = '➕ 新增返佣等级';
+  document.getElementById('fLevel').value = nextLv;
+  // 团队字段必填 → 不预填 0，让运营主动填
+  document.getElementById('fTeamPeople').value = '';
+  document.getElementById('fTeamRecharge').value = '';
+  document.getElementById('fTeamGame').value = '';
+  // 直属字段选填 → 默认 0
+  document.getElementById('fDirectPeople').value = 0;
+  document.getElementById('fDirectRecharge').value = 0;
+  document.getElementById('fDirectGame').value = 0;
+  document.getElementById('fRemark').value = `返佣利率等级${nextLv}`;
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function saveLevel() {
+  // 校验团队 3 字段必填
+  const tpRaw = document.getElementById('fTeamPeople').value.trim();
+  const trRaw = document.getElementById('fTeamRecharge').value.trim();
+  const tgRaw = document.getElementById('fTeamGame').value.trim();
+  if (tpRaw === '' || trRaw === '' || tgRaw === '') {
+    return showToast('⛔ 团队下级条件为必填，请补全', 'red');
+  }
+
+  const data = {
+    lv: parseInt(document.getElementById('fLevel').value),
+    tp: parseInt(tpRaw) || 0,
+    tr: parseInt(trRaw) || 0,
+    tg: parseInt(tgRaw) || 0,
+    dp: parseInt(document.getElementById('fDirectPeople').value) || 0,
+    dr: parseInt(document.getElementById('fDirectRecharge').value) || 0,
+    dg: parseInt(document.getElementById('fDirectGame').value) || 0,
+    remark: document.getElementById('fRemark').value,
+  };
+
+  if (isNaN(data.lv) || data.lv < 0) {
+    return showToast('返佣等级数据异常', 'red');
+  }
+
+  if (currentEditId !== null) {
+    Object.assign(levels[currentEditId], data);
+    showToast(`已保存返佣等级 ${data.lv} 配置`, 'green');
+  } else {
+    levels.unshift({ ...data, c1: 0, c2: 0, c3: 0, c4: 0, c5: 0, c6: 0, c7: 0, c8: 0 });
+    showToast(`已新增返佣等级 ${data.lv}`, 'green');
+  }
+
+  closeModal('editModal');
+  renderTable();
+}
+
+function deleteLevel(idx) {
+  const l = levels[idx];
+  if (l.lv === 0) {
+    showToast('⛔ 默认等级（0）不可删除', 'red');
+    return;
+  }
+  if (!confirm(`确认删除返佣等级 ${l.lv}（${l.remark}）？`)) return;
+  levels.splice(idx, 1);
+  renderTable();
+  showToast('已删除', 'green');
+}
+
+function showToast(msg, color = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color === 'red' ? 'rgba(207,19,34,.9)' : color === 'green' ? 'rgba(82,196,26,.9)' : 'rgba(0,0,0,.85)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ════════ Tooltip 系统 ════════
+let tooltipEl = null;
+function showQTip(target) {
+  const tip = target.dataset.tip;
+  if (!tip) return;
+  if (!tooltipEl) {
+    tooltipEl = document.createElement('div');
+    tooltipEl.className = 'q-tip-pop';
+    document.body.appendChild(tooltipEl);
+  }
+  tooltipEl.textContent = tip;
+  const rect = target.getBoundingClientRect();
+  let left = rect.left + rect.width / 2 - 130;
+  left = Math.max(10, Math.min(window.innerWidth - 270, left));
+  tooltipEl.style.left = left + 'px';
+  tooltipEl.style.top = (rect.bottom + 10) + 'px';
+  tooltipEl.classList.add('show');
+}
+
+function hideQTip() {
+  if (tooltipEl) tooltipEl.classList.remove('show');
+}
+
+document.addEventListener('mouseover', e => {
+  if (e.target.classList && e.target.classList.contains('qtip')) showQTip(e.target);
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.classList && e.target.classList.contains('qtip')) hideQTip();
+});
+
+// 初始化
+renderTable();
+
+console.log('✅ 返佣等级配置 · 直属下级条件原型加载完成');
+console.log('💡 点击「编辑」按钮看完整表单（团队 + 直属两组条件）');
+</script>
+
+</body>
+</html>
