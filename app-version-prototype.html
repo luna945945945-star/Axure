@@ -363,6 +363,14 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
         </div>
       </div>
 
+      <!-- 修改按钮（放在 APP 版本管理上方，针对上方表单的保存）-->
+      <div class="form-footer" style="padding:18px 0;margin-top:8px">
+        <button class="btn btn-p perm-btn" onclick="saveAll()">
+          ✓ 修改
+        </button>
+        <div style="font-size:11.5px;color:#999;margin-top:6px">保存以上 APP 下载相关配置</div>
+      </div>
+
       <!-- ════ 核心改造区（NEW）════ -->
       <div class="section-divider">
         <div class="title">
@@ -418,13 +426,6 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
         </table>
       </div>
 
-      <!-- 修改按钮（放在客户端预览上方）-->
-      <div class="form-footer" style="padding:18px 0">
-        <button class="btn btn-p perm-btn" onclick="saveAll()">
-          ✓ 修改
-        </button>
-      </div>
-
       <!-- 客户端弹窗预览 -->
       <div class="section-divider" style="background:linear-gradient(90deg,#e6f4ff,#bae0ff);border-color:#1677ff">
         <div class="title" style="color:#0958d9">
@@ -472,8 +473,8 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
       <div class="form-item">
         <label><span class="required">*</span>版本号</label>
         <div class="control">
-          <input type="text" id="fVersion" placeholder="格式：x.x.xx，如 1.0.10">
-          <div class="hint">必须符合 x.x.xx 格式，按段比较数字</div>
+          <input type="text" id="fVersion" placeholder="格式：x.x.x，如 1.0.5">
+          <div class="hint">必须符合 x.x.x 格式，按段比较数字</div>
         </div>
       </div>
       <div class="form-item">
@@ -552,17 +553,17 @@ let currentEditId = null;
 let pendingConfirm = null;
 
 let versions = [
-  { id: 1, appType: 'Android', version: '1.0.05', updateType: 'force', date: '2026-03-01 15:45:30', content: '1. 中台上线\n2. 修复重大问题', enabled: true },
-  { id: 2, appType: 'Android', version: '1.0.03', updateType: 'suggest', date: '2026-03-01 11:00:00', content: '新增功能', enabled: true },
-  { id: 3, appType: 'Android', version: '1.0.02', updateType: 'force', date: '2026-02-02 10:30:00', content: '修复重大问题', enabled: true },
-  { id: 4, appType: 'Android', version: '1.0.01', updateType: 'suggest', date: '2026-02-02 14:20:00', content: '优化用户体验', enabled: true },
-  { id: 5, appType: 'Android', version: '1.0.00', updateType: 'none', date: '2026-01-01 09:00:00', content: '', enabled: true },
+  { id: 1, appType: 'Android', version: '1.0.4', updateType: 'force', date: '2026-05-18 15:45:30', content: '1. 中台上线\n2. 修复重大问题', enabled: true },
+  { id: 2, appType: 'Android', version: '1.0.3', updateType: 'suggest', date: '2026-05-10 11:00:00', content: '新增功能', enabled: true },
+  { id: 3, appType: 'Android', version: '1.0.2', updateType: 'force', date: '2026-04-22 10:30:00', content: '修复重大问题', enabled: true },
+  { id: 4, appType: 'Android', version: '1.0.1', updateType: 'suggest', date: '2026-04-08 14:20:00', content: '优化用户体验', enabled: true },
+  { id: 5, appType: 'Android', version: '1.0.0', updateType: 'none', date: '2026-03-01 09:00:00', content: '', enabled: true },
 ];
 
 let logs = [
-  { time: '2026-05-13 11:30:22', who: 'Aceproduct', what: '新增版本记录 <code>Android 1.0.02 强制更新</code>，启用状态：关闭' },
-  { time: '2026-05-13 11:32:15', who: 'Aceproduct', what: '修改记录 #1：启用状态 <code>关闭 → 开启</code>' },
-  { time: '2026-05-13 10:18:09', who: 'Aceproduct', what: '修改全局配置：最低兼容版本号 <code>1.0.03 → 1.0.05</code>' },
+  { time: '2026-05-18 11:30:22', who: 'Aceproduct', what: '新增版本记录 <code>Android 1.0.4 强制更新</code>，启用状态：关闭' },
+  { time: '2026-05-18 11:32:15', who: 'Aceproduct', what: '修改记录 #1：启用状态 <code>关闭 → 开启</code>' },
+  { time: '2026-05-17 10:18:09', who: 'Aceproduct', what: '保存 APP 下载相关配置（顶部表单）' },
 ];
 
 function getTypeTag(type) {
@@ -780,7 +781,7 @@ function saveVersion() {
 
   if (appTypes.length === 0) return showToast('请至少选择一个 App 类型', 'red');
   if (!baseData.version) return showToast('请填写版本号', 'red');
-  if (!/^\d+\.\d+\.\d+$/.test(baseData.version)) return showToast('版本号格式错误，应为 x.x.xx', 'red');
+  if (!/^\d+\.\d+\.\d+$/.test(baseData.version)) return showToast('版本号格式错误，应为 x.x.x', 'red');
   if (baseData.updateType === 'force' && !baseData.content) return showToast('强制更新时更新内容必填', 'red');
   if (!baseData.date) return showToast('请填写版本更新时间', 'red');
 
