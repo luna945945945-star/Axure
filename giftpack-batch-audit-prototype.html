@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>新会员礼包·申请记录·批量审核 原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;background:#fafafa;color:#333;min-height:100vh}
+
+/* 演示栏 */
+.demo-bar{background:#2c3e50;padding:9px 16px;font-size:12px;display:flex;align-items:center;gap:12px;color:#fff;flex-wrap:wrap}
+.demo-bar .badge{background:#ff7a00;color:#fff;padding:2px 8px;border-radius:3px;font-size:10.5px;font-weight:600}
+.demo-bar b{color:#fff}
+
+/* 整体 */
+.app{display:flex;min-height:calc(100vh - 38px)}
+
+/* 侧栏 */
+.sider{width:180px;background:#fff;color:#333;flex-shrink:0;border-right:1px solid #e8e8e8;overflow-y:auto;max-height:calc(100vh - 38px)}
+.sider .user-card{padding:14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:10px}
+.sider .user-card .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#a0c4ff,#7895cb);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600}
+.sider .user-card .info .name{color:#333;font-weight:600;font-size:12px}
+.sider .user-card .info .role{color:#999;font-size:11px}
+.sider .menu-item{padding:10px 14px;font-size:12.5px;color:#666;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.sider .menu-item:hover{background:#f5f8ff;color:#1677ff}
+.sider .menu-item.expanded{color:#7c4dff;font-weight:600;background:#f9f5ff}
+.sider .menu-sub{padding:8px 16px 8px 30px;font-size:12px;color:#777;cursor:pointer}
+.sider .menu-sub:hover{background:#f5f8ff;color:#1677ff}
+.sider .menu-sub.active{background:#f0f5ff;color:#1677ff;font-weight:500;border-right:2px solid #1677ff}
+
+/* 主体 */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;background:#fafafa}
+.top-bar{background:#f5e8c5;padding:10px 18px;border-bottom:1px solid #e0d0a0;display:flex;align-items:center;font-size:13px}
+.top-bar .pg-title{font-weight:500;color:#5a4a00}
+.top-bar .right-info{margin-left:auto;color:#7a6a3a;font-size:12px;display:flex;align-items:center;gap:14px}
+
+.crumb{padding:11px 18px;background:#fff;border-bottom:1px solid #e8e8e8}
+.crumb .pg-title{color:#1677ff;font-weight:500;font-size:14px}
+
+.content{flex:1;padding:18px;overflow:auto;background:#fff}
+
+/* 搜索区 */
+.search-bar{display:flex;align-items:center;gap:18px;margin-bottom:14px;flex-wrap:wrap}
+.search-bar label{color:#666;font-size:12.5px}
+.search-bar input,.search-bar select{height:30px;padding:0 10px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:12px;min-width:180px}
+.search-bar .date{min-width:230px}
+
+.btn-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+
+/* 按钮 */
+.btn{height:30px;padding:0 14px;border-radius:3px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
+.btn-p{background:#7c4dff;color:#fff}
+.btn-p:hover{background:#6230f0}
+.btn-success{background:#52c41a;color:#fff}
+.btn-success:hover{background:#389e0d}
+.btn-danger{background:#ff4d4f;color:#fff}
+.btn-danger:hover{background:#cf1322}
+.btn-d{background:#fff;color:#333;border:1px solid #d9d9d9}
+.btn-d:hover{border-color:#1677ff;color:#1677ff}
+.btn[disabled]{background:#f5f5f5;color:#bbb;border:1px solid #e8e8e8;cursor:not-allowed}
+.btn[disabled]:hover{background:#f5f5f5;color:#bbb;border-color:#e8e8e8}
+.btn-new::after{content:"NEW";background:#ff4d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:7px;font-weight:600;margin-left:5px}
+
+/* Tab */
+.tabs{display:flex;border-bottom:1px solid #e8e8e8;margin-bottom:14px}
+.tabs .tab{padding:9px 22px;background:#fff;border:1px solid #e8e8e8;border-bottom:none;cursor:pointer;font-size:13px;color:#666;margin-right:-1px}
+.tabs .tab.active{background:#7c4dff;color:#fff;border-color:#7c4dff;font-weight:500}
+
+/* 已选数提示 */
+.selection-bar{display:none;align-items:center;gap:14px;padding:9px 14px;background:#e6f4ff;border:1px solid #91caff;border-radius:4px;margin-bottom:12px;font-size:12.5px}
+.selection-bar.show{display:flex}
+.selection-bar .count{color:#0958d9}
+.selection-bar .count b{color:#1677ff;font-size:14px}
+.selection-bar .actions{margin-left:auto;display:flex;gap:8px}
+.selection-bar .clear{color:#0958d9;cursor:pointer;font-size:12px}
+.selection-bar .clear:hover{text-decoration:underline}
+
+/* 表格 */
+.tbl-wrap{border:1px solid #e8e8e8;border-radius:4px;overflow:hidden}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{background:#f5f5f5;padding:11px 10px;text-align:left;font-weight:600;color:#333;border-bottom:1px solid #e8e8e8;white-space:nowrap;font-size:13px}
+.tbl td{padding:11px 10px;border-bottom:1px solid #f5f5f5;vertical-align:middle;color:#333}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafcff}
+.tbl tr.selected td{background:#f0f5ff}
+.tbl tr.selected:hover td{background:#e6f4ff}
+.tbl .col-cb{width:42px;text-align:center}
+
+/* 复选框 */
+.check{width:16px;height:16px;border:1.5px solid #d9d9d9;border-radius:2px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;background:#fff;vertical-align:middle;transition:all .15s}
+.check:hover{border-color:#1677ff}
+.check.checked{background:#1677ff;border-color:#1677ff;color:#fff;font-size:12px}
+.check.checked::after{content:"✓"}
+.check.indeterminate{background:#1677ff;border-color:#1677ff}
+.check.indeterminate::after{content:"";width:8px;height:2px;background:#fff;display:block}
+
+/* 行内按钮 */
+.row-btn{display:inline-block;padding:3px 12px;font-size:11.5px;color:#fff;border-radius:3px;cursor:pointer;font-family:inherit;border:none;margin-right:4px}
+.row-btn.reject{background:#1677ff}
+.row-btn.reject:hover{background:#0958d9}
+.row-btn.approve{background:#1677ff}
+.row-btn.approve:hover{background:#0958d9}
+
+/* 分页 */
+.pagination{display:flex;align-items:center;gap:8px;padding:14px 8px 4px;font-size:12.5px;color:#666;flex-wrap:wrap}
+.pagination input{width:50px;height:26px;padding:0 8px;border:1px solid #d9d9d9;border-radius:3px;text-align:center}
+.pagination select{height:26px;padding:0 6px;border:1px solid #d9d9d9;border-radius:3px}
+.pg-num{min-width:28px;height:26px;padding:0 7px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #d9d9d9;border-radius:3px;cursor:pointer;background:#fff;font-size:12px}
+.pg-num.active{background:#7c4dff;color:#fff;border-color:#7c4dff}
+
+/* 模态 */
+.mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:480px;max-width:92%;max-height:90vh;display:flex;flex-direction:column;animation:scaleIn .2s}
+@keyframes scaleIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.modal.wide{width:600px}
+.modal-h{padding:14px 18px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+.modal-h .title{font-size:15px;font-weight:600}
+.modal-h .close{font-size:20px;color:#999;cursor:pointer;padding:2px 8px}
+.modal-b{flex:1;overflow-y:auto;padding:20px}
+.modal-f{padding:12px 18px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:8px}
+
+/* 确认弹窗内容 */
+.confirm-content{display:flex;align-items:flex-start;gap:12px}
+.confirm-content .icon{flex-shrink:0;font-size:24px}
+.confirm-content .text{line-height:1.7;color:#333;flex:1}
+.confirm-content .text b{font-size:15px}
+.confirm-content .text .num{color:#cf1322;font-size:18px;font-weight:700;margin:0 4px}
+
+/* 结果弹窗 */
+.result-summary{padding:14px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:4px;margin-bottom:14px}
+.result-summary.has-fail{background:#fff7e6;border-color:#ffd591}
+.result-summary .row{display:flex;gap:18px;font-size:13px;color:#333}
+.result-summary .row span b{color:#52c41a;font-size:16px}
+.result-summary .row .fail b{color:#cf1322}
+
+.result-list{max-height:280px;overflow-y:auto;border:1px solid #f0f0f0;border-radius:4px}
+.result-item{padding:9px 12px;border-bottom:1px solid #f5f5f5;font-size:12px;display:flex;align-items:center;gap:10px}
+.result-item:last-child{border-bottom:none}
+.result-item .status{padding:1px 7px;border-radius:3px;font-size:11px;font-weight:600;flex-shrink:0}
+.result-item .status.ok{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.result-item .status.fail{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+.result-item .info{flex:1;color:#666}
+.result-item .info b{color:#333}
+
+/* Toast */
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:9px 18px;border-radius:20px;font-size:12.5px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+</style>
+</head>
+<body>
+
+<!-- 演示栏 -->
+<div class="demo-bar">
+  <span class="badge">DEMO</span>
+  <b>新会员礼包·申请记录·批量审核 原型</b>
+  <span style="opacity:.7">| 多选 + 批量通过/拒绝 + 部分失败明细</span>
+</div>
+
+<div class="app">
+  <!-- 侧边栏 -->
+  <div class="sider">
+    <div class="user-card">
+      <div class="avatar">L</div>
+      <div class="info">
+        <div class="name">luna</div>
+        <div class="role">luna</div>
+      </div>
+    </div>
+    <div class="menu-item">🎰 大转盘</div>
+    <div class="menu-item">🏠 后台首页</div>
+    <div class="menu-item">👥 会员管理</div>
+    <div class="menu-item">⭐ 会员VIP管理</div>
+    <div class="menu-item">🧮 会员洗码管理</div>
+    <div class="menu-item">🔍 XOSO极速</div>
+    <div class="menu-item">💰 新版返佣管理</div>
+    <div class="menu-item">🇻🇳 越南XOSO</div>
+    <div class="menu-item">🎱 BinGo18</div>
+    <div class="menu-item">4D 4D</div>
+    <div class="menu-item">🏆 锦标赛</div>
+    <div class="menu-item">🎁 活动奖励</div>
+    <div class="menu-item expanded">🎀 新会员礼包 ⌃</div>
+    <div class="menu-sub">新会员礼包配置</div>
+    <div class="menu-sub active">申请记录</div>
+    <div class="menu-sub">首存负盈利奖励</div>
+    <div class="menu-item">🔐 保险箱管理</div>
+    <div class="menu-item">TrxHash</div>
+    <div class="menu-item">WinGo</div>
+    <div class="menu-item">5DNEW</div>
+    <div class="menu-item">K3</div>
+    <div class="menu-item">🆕 新彩种</div>
+    <div class="menu-item">🎮 三方游戏管理</div>
+  </div>
+
+  <!-- 主体 -->
+  <div class="main">
+    <div class="top-bar">
+      <span class="pg-title">当前站点：SitINR</span>
+      <div class="right-info">
+        <span>2026年05月19日 13:16 星期二</span>
+        <span>当前币种：<b style="color:#cf1322">INR</b></span>
+        <span>在线人数：<b>0</b></span>
+      </div>
+    </div>
+
+    <div class="crumb">
+      <span class="pg-title">新会员礼包</span>
+    </div>
+
+    <div class="content">
+
+      <!-- 搜索区 -->
+      <div class="search-bar">
+        <div><label>会员ID</label></div>
+        <input type="text" placeholder="请输入会员ID">
+        <div><label>会员账号</label></div>
+        <input type="text" placeholder="请输入会员账号">
+        <div><label>申请时间</label></div>
+        <input type="text" class="date" value="2026-05-12 ~ 2026-05-19">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-p">🔍 查询</button>
+        <button class="btn btn-p" onclick="resetAll()">🔄 重置</button>
+        <button class="btn btn-success" onclick="askBatch('approve')">✅ 批量通过</button>
+        <button class="btn btn-danger" onclick="askBatch('reject')">⛔ 批量拒绝</button>
+      </div>
+
+      <!-- Tab -->
+      <div class="tabs">
+        <div class="tab active">申请记录</div>
+        <div class="tab">领取记录</div>
+      </div>
+
+      <!-- 已选数提示（保留作为状态显示，按钮已移至顶部）-->
+      <div class="selection-bar" id="selectionBar">
+        <span class="count">已选 <b id="selectedCount">0</b> 条记录</span>
+      </div>
+
+      <!-- 表格 -->
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th class="col-cb">
+                <span class="check" id="checkAll" onclick="toggleAll()"></span>
+              </th>
+              <th>会员ID</th>
+              <th>会员账号</th>
+              <th>申请活动</th>
+              <th>累计存款</th>
+              <th>总有效投注</th>
+              <th>实际累计存款</th>
+              <th>实际总有效投注</th>
+              <th>赠送彩金</th>
+              <th>申请时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="pagination">
+        <span>到第</span><input value="1"><span>页</span>
+        <button class="pg-num">确定</button>
+        <span style="margin:0 20px">|</span>
+        <button class="pg-num">上一页</button>
+        <button class="pg-num active">1</button>
+        <button class="pg-num">下一页</button>
+        <select><option>15条/页</option></select>
+        <span>共 <b>5</b> 条</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 二次确认弹窗 -->
+<div class="mask" id="confirmModal">
+  <div class="modal">
+    <div class="modal-h">
+      <span class="title" id="confirmTitle">⚠️ 确认批量操作</span>
+      <span class="close" onclick="closeModal('confirmModal')">✕</span>
+    </div>
+    <div class="modal-b">
+      <div class="confirm-content">
+        <span class="icon" id="confirmIcon">⚠️</span>
+        <div class="text" id="confirmText"></div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-d" onclick="closeModal('confirmModal')">取消</button>
+      <button class="btn" id="confirmBtn" onclick="executeBatch()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 处理结果弹窗 -->
+<div class="mask" id="resultModal">
+  <div class="modal wide">
+    <div class="modal-h">
+      <span class="title">📊 批量审核结果</span>
+      <span class="close" onclick="closeResult()">✕</span>
+    </div>
+    <div class="modal-b">
+      <div class="result-summary" id="resultSummary">
+        <div class="row">
+          <span>共处理：<b id="rTotal">0</b> 条</span>
+          <span>成功：<b id="rOk">0</b> 条</span>
+          <span class="fail">失败：<b id="rFail">0</b> 条</span>
+        </div>
+      </div>
+      <div class="result-list" id="resultList"></div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-p" onclick="closeResult()">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// 模拟数据
+const data = [
+  { id: 1, userId: 2247186, account: '669527000032', activity: '注册满3天', deposit: 299, validBet: 1500, actualDeposit: 5000, actualValidBet: 5000, bonus: 38, applyTime: '2025-10-06 10:21:25', state: 1 },
+  { id: 2, userId: 2247185, account: '669527000033', activity: '注册满3天', deposit: 299, validBet: 900, actualDeposit: 1000, actualValidBet: 1000, bonus: 18, applyTime: '2025-10-06 10:24:53', state: 1 },
+  { id: 3, userId: 2243987, account: '9122222222015', activity: '注册满7天', deposit: 2000, validBet: 0, actualDeposit: 10000, actualValidBet: 1545.9, bonus: 0, applyTime: '2025-10-18 09:37:02', state: 1 },
+  { id: 4, userId: 100017, account: '6695270002', activity: '注册满1天', deposit: 298, validBet: 1500, actualDeposit: 10000000, actualValidBet: 2200, bonus: 38, applyTime: '2025-12-18 17:03:19', state: 1 },
+  { id: 5, userId: 2247491, account: '6688888888', activity: '注册满3天', deposit: 298, validBet: 1500, actualDeposit: 70000, actualValidBet: 4000, bonus: 38, applyTime: '2026-03-19 11:19:12', state: 1 },
+];
+
+let selectedIds = new Set();
+let pendingAction = null;
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = data.map(d => `
+    <tr class="${selectedIds.has(d.id) ? 'selected' : ''}" data-id="${d.id}">
+      <td class="col-cb">
+        <span class="check ${selectedIds.has(d.id) ? 'checked' : ''}" onclick="toggleRow(${d.id})"></span>
+      </td>
+      <td>${d.userId}</td>
+      <td>${d.account}</td>
+      <td>${d.activity}</td>
+      <td>${d.deposit}</td>
+      <td>${d.validBet}</td>
+      <td>${d.actualDeposit.toLocaleString()}</td>
+      <td>${d.actualValidBet.toLocaleString()}</td>
+      <td>${d.bonus}</td>
+      <td style="color:#666">${d.applyTime}</td>
+      <td>
+        <button class="row-btn reject" onclick="singleAction(${d.id},'reject')">拒绝</button>
+        <button class="row-btn approve" onclick="singleAction(${d.id},'approve')">通过</button>
+      </td>
+    </tr>
+  `).join('');
+  updateSelection();
+}
+
+function updateSelection() {
+  const count = selectedIds.size;
+  document.getElementById('selectedCount').textContent = count;
+  const bar = document.getElementById('selectionBar');
+  bar.classList.toggle('show', count > 0);
+
+  const allCheck = document.getElementById('checkAll');
+  if (count === data.length && count > 0) {
+    allCheck.classList.add('checked');
+    allCheck.classList.remove('indeterminate');
+  } else if (count > 0) {
+    allCheck.classList.remove('checked');
+    allCheck.classList.add('indeterminate');
+  } else {
+    allCheck.classList.remove('checked');
+    allCheck.classList.remove('indeterminate');
+  }
+}
+
+function toggleRow(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  renderTable();
+}
+
+function toggleAll() {
+  if (selectedIds.size === data.length) {
+    selectedIds.clear();
+  } else {
+    data.forEach(d => selectedIds.add(d.id));
+  }
+  renderTable();
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  renderTable();
+}
+
+function resetAll() {
+  // 重置筛选 + 清空已选
+  selectedIds.clear();
+  renderTable();
+  showToast('已重置筛选并清空选择');
+}
+
+function singleAction(id, action) {
+  selectedIds = new Set([id]);
+  askBatch(action);
+}
+
+function askBatch(action) {
+  if (selectedIds.size === 0) {
+    return showToast('请先勾选要审核的记录', 'red');
+  }
+  pendingAction = action;
+  const isApprove = action === 'approve';
+  document.getElementById('confirmTitle').textContent = isApprove ? '✅ 确认批量通过' : '⛔ 确认批量拒绝';
+  document.getElementById('confirmIcon').textContent = isApprove ? '✅' : '⛔';
+  document.getElementById('confirmText').innerHTML = `
+    确认<b style="color:${isApprove ? '#52c41a' : '#cf1322'}">${isApprove ? '批量通过' : '批量拒绝'}</b>
+    选中的 <span class="num">${selectedIds.size}</span> 条申请记录？
+    <br><br>
+    <span style="font-size:11.5px;color:#999">
+      ${isApprove
+        ? '· 通过后，状态将变为「未领取」，用户可在前台领取彩金'
+        : '· 拒绝后，状态将变为「已拒绝」，无法恢复'}
+      <br>· 若部分记录已被他人审核，将自动跳过并在结果中显示
+    </span>
+  `;
+  const btn = document.getElementById('confirmBtn');
+  btn.className = 'btn ' + (isApprove ? 'btn-success' : 'btn-danger');
+  btn.textContent = isApprove ? '✅ 确认通过' : '⛔ 确认拒绝';
+  document.getElementById('confirmModal').classList.add('show');
+}
+
+function executeBatch() {
+  closeModal('confirmModal');
+  // 模拟执行：90% 成功，10% 失败
+  const ids = Array.from(selectedIds);
+  const results = ids.map(id => {
+    const d = data.find(x => x.id === id);
+    const isOk = Math.random() > 0.15;
+    return {
+      ...d,
+      success: isOk,
+      msg: isOk ? '处理成功' : '该记录已被他人审核（状态非"审核中"）'
+    };
+  });
+
+  // 更新成功的状态
+  results.filter(r => r.success).forEach(r => {
+    const item = data.find(d => d.id === r.id);
+    if (item) item.state = pendingAction === 'approve' ? 3 : 2;
+  });
+
+  // 显示结果
+  showResult(results);
+
+  // 移除已成功的记录
+  results.filter(r => r.success).forEach(r => {
+    const idx = data.findIndex(d => d.id === r.id);
+    if (idx >= 0) data.splice(idx, 1);
+  });
+  selectedIds.clear();
+  renderTable();
+}
+
+function showResult(results) {
+  const ok = results.filter(r => r.success).length;
+  const fail = results.length - ok;
+  document.getElementById('rTotal').textContent = results.length;
+  document.getElementById('rOk').textContent = ok;
+  document.getElementById('rFail').textContent = fail;
+  document.getElementById('resultSummary').classList.toggle('has-fail', fail > 0);
+
+  document.getElementById('resultList').innerHTML = results.map(r => `
+    <div class="result-item">
+      <span class="status ${r.success ? 'ok' : 'fail'}">${r.success ? '✓ 成功' : '✗ 失败'}</span>
+      <span class="info">
+        <b>会员 ${r.userId}</b>（${r.account}）· ${r.activity}
+        <br>
+        <span style="color:${r.success ? '#52c41a' : '#cf1322'};font-size:11.5px">${r.msg}</span>
+      </span>
+    </div>
+  `).join('');
+  document.getElementById('resultModal').classList.add('show');
+}
+
+function closeResult() {
+  closeModal('resultModal');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function showToast(msg, color = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color === 'red' ? 'rgba(207,19,34,.9)' : color === 'green' ? 'rgba(82,196,26,.9)' : 'rgba(0,0,0,.85)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+renderTable();
+console.log('✅ 新会员礼包·批量审核 原型加载完成');
+</script>
+
+</body>
+</html>
