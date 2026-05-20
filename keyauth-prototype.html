@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>游戏通道管理 — KeyAuth 授权按钮原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;background:#f0f2f5;color:#333;min-width:1400px}
+
+.demo-banner{background:linear-gradient(90deg,#fff7e6,#ffe7c2);color:#874d00;padding:7px 14px;font-size:12px;text-align:center;border-bottom:1px solid #ffd591;display:flex;align-items:center;justify-content:center;gap:14px}
+.demo-banner b{color:#d46b08}
+.demo-user-switch{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;background:#fff;border:1px solid #ffd591;border-radius:14px}
+.demo-user-switch select{height:24px;border:1px solid #ffd591;border-radius:3px;font-size:11px;padding:0 6px;outline:none;font-family:inherit;background:#fff}
+.demo-user-switch label{font-size:11px;color:#874d00;font-weight:600}
+
+.layout{display:flex;min-height:calc(100vh - 36px)}
+.sider{width:160px;background:#001529;color:#fff;flex-shrink:0;padding-top:6px}
+.sider .menu-item{padding:11px 18px;font-size:13px;color:rgba(255,255,255,.65);cursor:pointer;border-left:3px solid transparent}
+.sider .menu-item:hover{color:#fff;background:rgba(255,255,255,.04)}
+.sider .menu-item.active{color:#fff;background:#1677ff;border-left-color:#69b1ff}
+.sider .menu-group{padding:11px 18px;font-size:13px;color:rgba(255,255,255,.55);cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.sider .menu-group:hover{color:#fff}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.crumb{background:#fff;padding:12px 18px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:8px;font-size:13px}
+.crumb .pg-title{font-weight:600;color:#222;font-size:14px}
+.crumb .pg-tabs{margin-left:24px;display:flex;gap:0;align-items:center}
+.ptab{padding:0 14px;height:28px;display:flex;align-items:center;font-size:12.5px;color:#666;border-radius:4px;gap:5px}
+.ptab.active{color:#1677ff;background:#e6f4ff;font-weight:500}
+.content{flex:1;padding:14px 18px;overflow:auto}
+
+/* 筛选区 */
+.filter-bar{background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:14px 16px;margin-bottom:10px}
+.fb-row{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;margin-bottom:10px}
+.fb-row:last-child{margin-bottom:0}
+.fb-item{display:flex;align-items:center;gap:6px}
+.fb-item label{font-size:12px;color:#666;white-space:nowrap;min-width:62px;text-align:right}
+.fb-item select,.fb-item input{height:30px;border:1px solid #d9d9d9;border-radius:4px;padding:0 8px;font-size:12px;outline:none;font-family:inherit;background:#fff;min-width:140px}
+.fb-actions{margin-left:auto;display:flex;gap:8px}
+
+.btn{height:30px;padding:0 14px;border-radius:4px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.btn-p{background:#1677ff;color:#fff}.btn-p:hover{background:#0958d9}
+.btn-d{background:#fff;color:#333;border:1px solid #d9d9d9}.btn-d:hover{border-color:#1677ff;color:#1677ff}
+.btn-add{background:#1677ff;color:#fff;height:34px;padding:0 16px;border-radius:4px;border:none;font-family:inherit;cursor:pointer;font-size:12.5px;display:inline-flex;align-items:center;gap:5px}
+.btn-add:hover{background:#0958d9}
+
+/* 列表 */
+.list-card{background:#fff;border:1px solid #e8e8e8;border-radius:6px;overflow:hidden}
+.list-top{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0}
+.list-actions{display:flex;gap:8px;align-items:center}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:#fafafa;padding:9px 10px;text-align:left;font-weight:500;color:#555;border-bottom:1px solid #e8e8e8;white-space:nowrap;font-size:11.5px}
+.tbl td{padding:11px 10px;border-bottom:1px solid #f5f5f5;vertical-align:middle;font-size:12px}
+.tbl tr:hover td{background:#fafcff}
+
+.tag{display:inline-flex;align-items:center;padding:1px 7px;border-radius:3px;font-size:11px;white-space:nowrap}
+.t-blue{background:#e6f4ff;color:#1677ff;border:1px solid #91caff}
+.t-green{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.t-gray{background:#fafafa;color:#888;border:1px solid #e0e0e0}
+.t-orange{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.muted{color:#888}
+
+/* 操作列按钮 */
+.op-btn{color:#1677ff;cursor:pointer;font-size:12px;background:none;border:none;font-family:inherit;padding:0;white-space:nowrap}
+.op-btn:hover{text-decoration:underline}
+.op-btn.keyauth{color:#fa8c16;font-weight:600;display:inline-flex;align-items:center;gap:2px}
+.op-btn.keyauth::before{content:"🔑";font-size:11px}
+.op-btn.keyauth:hover{color:#d46b08}
+.op-sep{color:#e0e0e0;margin:0 3px}
+.op-cell{display:flex;flex-direction:column;gap:4px;line-height:1.4}
+.op-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+
+/* 弹窗 */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center}
+.overlay.show{display:flex;animation:fadeIn .15s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.2);width:440px;animation:slideUp .2s}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.m-hdr{padding:14px 20px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:8px}
+.m-hdr-icon{width:28px;height:28px;border-radius:50%;background:#fff7e6;color:#fa8c16;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.m-title{font-size:14px;font-weight:600;color:#222}
+.m-body{padding:18px 20px}
+.m-msg{font-size:13.5px;color:#333;line-height:1.7}
+.m-msg b{color:#fa8c16}
+.m-context{margin-top:12px;padding:10px 12px;background:#fafafa;border-radius:4px;font-size:12px;color:#555;display:flex;flex-direction:column;gap:4px}
+.m-context .row{display:flex;gap:8px}
+.m-context .row b{flex:0 0 70px;color:#888;font-weight:500}
+.m-context .row code{font-family:'SF Mono',Monaco,monospace;font-size:11.5px;background:#fff;padding:1px 6px;border-radius:3px;border:1px solid #e0e0e0;color:#1677ff}
+.m-warn{margin-top:12px;padding:8px 12px;background:#fff1f0;border-left:3px solid #cf1322;border-radius:0 4px 4px 0;font-size:11.5px;color:#874d00;line-height:1.6}
+.m-warn b{color:#cf1322}
+.m-footer{padding:12px 20px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:8px}
+.btn-cancel{height:32px;padding:0 18px;border:1px solid #d9d9d9;background:#fff;border-radius:4px;font-size:12.5px;cursor:pointer;color:#555;font-family:inherit}
+.btn-cancel:hover{border-color:#1677ff;color:#1677ff}
+.btn-confirm{height:32px;padding:0 20px;background:#fa8c16;color:#fff;border:none;border-radius:4px;font-size:12.5px;cursor:pointer;font-family:inherit;font-weight:500}
+.btn-confirm:hover{background:#d46b08}
+
+/* Toast */
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:6px;font-size:13.5px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:300;display:flex;align-items:center;gap:8px;animation:toastIn .25s}
+.toast.success{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.toast.error{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+@keyframes toastIn{from{top:30px;opacity:0}to{top:60px;opacity:1}}
+.toast-icon{font-size:18px}
+
+/* 演示提示 */
+.demo-tip{margin-bottom:10px;padding:9px 14px;background:#e6f4ff;border:1px dashed #91caff;border-radius:5px;font-size:12px;color:#0958d9;line-height:1.6}
+.demo-tip b{color:#0958d9}
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  <b>原型 · KeyAuth 授权按钮</b> · 演示按钮的可见条件与点击交互
+  <span class="demo-user-switch">
+    <label>当前登录账号：</label>
+    <select id="user-switcher" onchange="onUserChange()">
+      <option value="techadmin" selected>techadmin（有权限）</option>
+      <option value="admin">admin（无权限）</option>
+      <option value="operator">operator（无权限）</option>
+    </select>
+  </span>
+</div>
+
+<div class="layout">
+  <div class="sider">
+    <div class="menu-group">游戏厂商管理 ›</div>
+    <div class="menu-item active">游戏通道管理</div>
+    <div class="menu-item">子游戏管理</div>
+    <div class="menu-item">游戏映射管理</div>
+    <div class="menu-group">商户管理 ›</div>
+    <div class="menu-group">代理管理 ›</div>
+    <div class="menu-group">会员管理 ›</div>
+    <div class="menu-group">报表管理 ›</div>
+    <div class="menu-group">系统设置 ›</div>
+  </div>
+
+  <div class="main">
+    <div class="crumb">
+      <span class="pg-title">游戏通道管理</span>
+    </div>
+
+    <div class="content">
+
+      <div class="demo-tip">
+        💡 <b>可见性规则</b>：「KeyAuth」按钮只有同时满足 <b>厂商 = IM 体育</b> + <b>登录账号 = techadmin</b> 时才显示。可切换右上角"当前登录账号"查看按钮的显示/隐藏。
+      </div>
+
+      <!-- 筛选区 -->
+      <div class="filter-bar">
+        <div class="fb-row">
+          <div class="fb-item"><label>通道ID</label><input placeholder="通道ID"></div>
+          <div class="fb-item"><label>商户号</label><input placeholder="商户号"></div>
+          <div class="fb-item"><label>厂商名称</label>
+            <select id="vendor-filter" onchange="renderTable()">
+              <option value="all">全部</option>
+              <option value="IM">IM 体育</option>
+              <option value="PG">PG 电子</option>
+              <option value="EVO">EVO 视讯</option>
+            </select>
+          </div>
+          <div class="fb-item"><label>系统货币</label><select><option>全部</option><option>BDT</option><option>BRL</option><option>INR</option></select></div>
+          <div class="fb-item"><label>状态</label><select><option>全部</option><option>启用</option><option>禁用</option></select></div>
+          <div class="fb-actions">
+            <button class="btn btn-p">查询</button>
+            <button class="btn btn-d">重置</button>
+            <span style="color:#1677ff;font-size:12px;cursor:pointer">收起 ∧</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 列表 -->
+      <div class="list-card">
+        <div class="list-top">
+          <button class="btn-add">+ 添加通道</button>
+          <div class="list-actions">
+            <span style="color:#888;font-size:12px">共 10 条</span>
+          </div>
+        </div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:65px">通道ID</th>
+              <th style="width:75px">供应商</th>
+              <th style="width:130px">商户号</th>
+              <th style="width:75px">通道类型</th>
+              <th style="width:90px">厂商名称</th>
+              <th>Api 域名</th>
+              <th style="width:70px">系统货币</th>
+              <th style="width:70px">通道货币</th>
+              <th style="width:65px">是否弃用</th>
+              <th style="width:60px">转化比</th>
+              <th style="width:80px">注册人数</th>
+              <th style="width:90px">备注</th>
+              <th style="width:55px">状态</th>
+              <th style="width:80px">修改人</th>
+              <th style="width:140px">最后修改时间</th>
+              <th style="width:140px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <!-- 由 JS 渲染 -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 二次确认弹窗 -->
+<div class="overlay" id="modal-confirm">
+  <div class="modal">
+    <div class="m-hdr">
+      <span class="m-hdr-icon">🔑</span>
+      <span class="m-title">授权更换密钥</span>
+    </div>
+    <div class="m-body">
+      <div class="m-msg">
+        确定要授权更换<b>密钥</b>吗？
+      </div>
+      <div class="m-context" id="modal-context">
+        <!-- 由 JS 填充 -->
+      </div>
+      <div class="m-warn">
+        ⚠ <b>此操作不可撤销</b>：更换后旧密钥将立即失效，请确保已通知厂商对接同步密钥。
+      </div>
+    </div>
+    <div class="m-footer">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-confirm" onclick="doConfirm()">确认授权</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 通道数据
+const channels = [
+  {id:13448,sup:'ZhiFeng',mid:'mengjiala001prod',type:'正式通道',vendor:'IM',vendorLabel:'IM体育',api:'https://hkapi.argames.me/im-bdt',sysCur:'BDT',chCur:'BDT',deprecated:false,rate:1,users:34651,remark:'孟加拉-001',status:'启用',modifier:'techadmin',time:'2026-04-01 18:49:21'},
+  {id:13346,sup:'ZhiFeng',mid:'popltprod',type:'正式通道',vendor:'IM',vendorLabel:'IM体育',api:'https://hkapi.argames.me/im-brl',sysCur:'BRL',chCur:'BRL',deprecated:false,rate:1,users:671,remark:'巴西-001',status:'启用',modifier:'techadmin',time:'2026-04-01 18:48:20'},
+  {id:13344,sup:'ZhiFeng',mid:'55ltprod',type:'正式通道',vendor:'IM',vendorLabel:'IM体育',api:'https://hkapi.argames.me/im-idr',sysCur:'IDR',chCur:'IDR',deprecated:false,rate:1000,users:5,remark:'印尼-001',status:'启用',modifier:'techadmin',time:'2026-04-01 18:47:13'},
+  {id:13348,sup:'ZhiFeng',mid:'176tcprod',type:'正式通道',vendor:'IM',vendorLabel:'IM体育',api:'https://hkapi.argames.me/im-inr',sysCur:'INR',chCur:'INR',deprecated:false,rate:1,users:239549,remark:'印度-001',status:'启用',modifier:'techadmin',time:'2026-04-01 18:48:50'},
+  {id:13345,sup:'ZhiFeng',mid:'6ltprod',type:'正式通道',vendor:'IM',vendorLabel:'IM体育',api:'https://hkapi.argames.me/im-mmk',sysCur:'MMK',chCur:'MMK',deprecated:false,rate:1000,users:16747,remark:'缅甸-001',status:'启用',modifier:'techadmin',time:'2026-04-01 18:48:03'},
+  {id:13589,sup:'ZhiFeng',mid:'armoxige001prod',type:'正式通道',vendor:'IM',vendorLabel:'IM体育',api:'https://hkapi.argames.me/im',sysCur:'MXN',chCur:'MXN',deprecated:false,rate:1,users:2,remark:'墨西哥-001',status:'启用',modifier:'techadmin',time:'2026-03-18 14:46:48'},
+  {id:13447,sup:'ZhiFeng',mid:'bajisitan001prod',type:'正式通道',vendor:'IM',vendorLabel:'IM体育',api:'https://hkapi.argames.me/im-pkr',sysCur:'PKR',chCur:'PKR',deprecated:false,rate:1,users:43150,remark:'巴基斯坦-001',status:'启用',modifier:'techadmin',time:'2026-04-01 18:49:07'},
+  {id:13347,sup:'ZhiFeng',mid:'vxthprod',type:'正式通道',vendor:'IM',vendorLabel:'IM体育',api:'https://hkapi.argames.me/im-thb',sysCur:'THB',chCur:'THB',deprecated:false,rate:1,users:105,remark:'泰国-001',status:'启用',modifier:'techadmin',time:'2026-04-01 18:48:35'},
+  // 对比组：非 IM 厂商，KeyAuth 按钮不应显示
+  {id:13201,sup:'ZhiFeng',mid:'pgInd01prod',type:'正式通道',vendor:'PG',vendorLabel:'PG电子',api:'https://api.pgsoft.com/inr',sysCur:'INR',chCur:'INR',deprecated:false,rate:1,users:18242,remark:'印度-PG-001',status:'启用',modifier:'techadmin',time:'2026-04-01 17:30:00'},
+  {id:13150,sup:'ZhiFeng',mid:'evoBR01prod',type:'正式通道',vendor:'EVO',vendorLabel:'EVO视讯',api:'https://api.evo.com/brl',sysCur:'BRL',chCur:'BRL',deprecated:false,rate:1,users:5821,remark:'巴西-EVO-001',status:'启用',modifier:'techadmin',time:'2026-03-28 12:00:00'},
+];
+
+let currentUser = 'techadmin';
+let currentChannel = null;
+
+function renderTable(){
+  const filterVendor = document.getElementById('vendor-filter').value;
+  const tbody = document.getElementById('tbody');
+  const list = filterVendor === 'all' ? channels : channels.filter(c => c.vendor === filterVendor);
+
+  tbody.innerHTML = list.map(c => {
+    const showKeyAuth = c.vendor === 'IM' && currentUser === 'techadmin';
+    const apiShort = c.api.length > 36 ? c.api.substring(0,33)+'...' : c.api;
+    return `
+      <tr>
+        <td class="muted">${c.id}</td>
+        <td>${c.sup}</td>
+        <td>${c.mid}</td>
+        <td><span class="tag t-green">${c.type}</span></td>
+        <td><span class="tag t-blue">${c.vendorLabel}</span></td>
+        <td title="${c.api}" style="color:#666;font-family:'SF Mono',Monaco,monospace;font-size:11px">${apiShort}</td>
+        <td><span class="tag t-blue">${c.sysCur}</span></td>
+        <td><span class="tag t-blue">${c.chCur}</span></td>
+        <td><span class="tag t-gray">${c.deprecated?'弃用':'未弃用'}</span></td>
+        <td>${c.rate}</td>
+        <td>${c.users.toLocaleString()}</td>
+        <td>${c.remark}</td>
+        <td><span class="tag t-green">${c.status}</span></td>
+        <td class="muted">${c.modifier}</td>
+        <td class="muted" style="font-size:11px">${c.time}</td>
+        <td>
+          <div class="op-cell">
+            <div class="op-row">
+              <button class="op-btn">编辑</button>
+              <span class="op-sep">·</span>
+              <button class="op-btn">设置状态</button>
+            </div>
+            <div class="op-row">
+              <button class="op-btn">通道复制</button>
+              ${showKeyAuth ? '<span class="op-sep">·</span><button class="op-btn keyauth" onclick="openModal('+c.id+')">KeyAuth</button>' : ''}
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function onUserChange(){
+  currentUser = document.getElementById('user-switcher').value;
+  renderTable();
+}
+
+function openModal(id){
+  currentChannel = channels.find(c => c.id === id);
+  document.getElementById('modal-context').innerHTML = `
+    <div class="row"><b>通道 ID</b><code>${currentChannel.id}</code></div>
+    <div class="row"><b>商户号</b><code>${currentChannel.mid}</code></div>
+    <div class="row"><b>厂商</b><span style="color:#1677ff;font-weight:600">${currentChannel.vendorLabel}</span></div>
+    <div class="row"><b>币种</b><span>${currentChannel.sysCur}</span></div>
+    <div class="row"><b>备注</b><span>${currentChannel.remark}</span></div>
+    <div class="row"><b>操作人</b><span style="color:#fa8c16;font-weight:600">${currentUser}</span></div>
+  `;
+  document.getElementById('modal-confirm').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('modal-confirm').classList.remove('show');
+}
+
+function doConfirm(){
+  // 模拟接口调用：70% 成功，30% 失败
+  closeModal();
+  const success = Math.random() > 0.3;
+  showToast(success);
+}
+
+function showToast(success){
+  const existing = document.querySelector('.toast');
+  if(existing) existing.remove();
+  const t = document.createElement('div');
+  t.className = 'toast ' + (success ? 'success' : 'error');
+  t.innerHTML = success
+    ? '<span class="toast-icon">✓</span><span>授权成功！密钥已更换</span>'
+    : '<span class="toast-icon">✕</span><span>授权失败：厂商接口超时（错误码 ERR_TIMEOUT_5001）</span>';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// 点击遮罩关闭
+document.getElementById('modal-confirm').addEventListener('click', e => {
+  if(e.target.id === 'modal-confirm') closeModal();
+});
+
+// 初始渲染
+renderTable();
+</script>
+</body>
+</html>
