@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V3 商户端中台操作手册</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:14px;line-height:1.7;color:#1f2937;background:#f9fafb}
+.wrap{max-width:1100px;margin:0 auto;background:#fff;padding:0;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+
+/* 顶部封面 */
+.cover{background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#ec4899 100%);color:#fff;padding:48px 40px;text-align:center;position:relative;overflow:hidden}
+.cover::before{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,.1) 1px,transparent 1px);background-size:20px 20px;opacity:.5}
+.cover h1{font-size:36px;font-weight:900;margin-bottom:12px;letter-spacing:1px;position:relative}
+.cover .sub{font-size:15px;opacity:.95;position:relative}
+.cover .meta{margin-top:18px;display:inline-flex;gap:12px;font-size:12px;position:relative}
+.cover .meta span{background:rgba(255,255,255,.18);padding:5px 14px;border-radius:14px;backdrop-filter:blur(4px)}
+
+/* 目录 */
+.toc{padding:30px 40px;background:#fafbfc;border-bottom:1px solid #e5e7eb}
+.toc h3{font-size:13px;font-weight:700;color:#6b7280;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase}
+.toc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.toc-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border-radius:6px;border:1px solid #e5e7eb;font-size:13px;color:#374151;text-decoration:none;transition:all .15s}
+.toc-item:hover{border-color:#6366f1;color:#6366f1;transform:translateX(2px)}
+.toc-item .num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:#6366f1;color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;flex-shrink:0}
+
+/* 章节 */
+.chapter{padding:36px 40px;border-bottom:1px solid #e5e7eb}
+.ch-head{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:3px solid currentColor}
+.ch-head .ch-num{font-size:36px;font-weight:900;line-height:1;font-family:'SF Mono',monospace}
+.ch-head .ch-info h2{font-size:22px;font-weight:800;color:#111827;margin-bottom:4px}
+.ch-head .ch-info .ch-desc{font-size:12.5px;color:#6b7280}
+.ch-head .ch-star{font-size:18px;color:#fbbf24;margin-left:auto}
+
+/* 章节配色 */
+.ch1{color:#8b5cf6}
+.ch2{color:#3b82f6}
+.ch3{color:#06b6d4}
+.ch4{color:#f59e0b}
+.ch5{color:#ef4444}
+.ch6{color:#10b981}
+.ch7{color:#ec4899}
+.ch8{color:#f97316}
+.ch9{color:#14b8a6}
+.ch10{color:#dc2626}
+.ch11{color:#6b7280}
+.app{color:#64748b}
+
+/* 子标题 */
+h3.sec{font-size:16px;font-weight:700;color:#111827;margin:24px 0 12px;padding-left:12px;border-left:4px solid currentColor}
+h4.sub{font-size:14px;font-weight:700;color:#374151;margin:18px 0 8px}
+.chapter p{color:#4b5563;margin-bottom:10px}
+.chapter ul,.chapter ol{margin:10px 0 14px 22px;color:#4b5563}
+.chapter li{margin:4px 0}
+
+/* 表格 */
+table{width:100%;border-collapse:separate;border-spacing:0;margin:14px 0;font-size:13px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}
+th{background:#f3f4f6;padding:10px 12px;text-align:left;font-weight:700;color:#374151;border-bottom:1px solid #e5e7eb;font-size:12.5px}
+td{padding:10px 12px;border-bottom:1px solid #f3f4f6;color:#4b5563}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfc}
+td.center,th.center{text-align:center}
+.req{color:#ef4444;font-weight:700}
+.opt{color:#94a3b8}
+
+/* 盒图（替代 ASCII 流程图） */
+.flow{margin:18px 0;padding:20px;background:#fafbfc;border-radius:10px;border:1px solid #e5e7eb}
+.flow-box{background:#fff;border:2px solid #e5e7eb;border-radius:8px;padding:12px 16px;margin:0 auto;max-width:420px;text-align:center;font-size:13px;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.flow-box.purple{border-color:#8b5cf6;background:linear-gradient(135deg,#faf5ff,#fff)}
+.flow-box.blue{border-color:#3b82f6;background:linear-gradient(135deg,#eff6ff,#fff)}
+.flow-box.cyan{border-color:#06b6d4;background:linear-gradient(135deg,#ecfeff,#fff)}
+.flow-box.orange{border-color:#f59e0b;background:linear-gradient(135deg,#fffbeb,#fff)}
+.flow-box.red{border-color:#ef4444;background:linear-gradient(135deg,#fef2f2,#fff)}
+.flow-box.green{border-color:#10b981;background:linear-gradient(135deg,#ecfdf5,#fff)}
+.flow-box.pink{border-color:#ec4899;background:linear-gradient(135deg,#fdf2f8,#fff)}
+.flow-box.gray{border-color:#9ca3af;background:linear-gradient(135deg,#f9fafb,#fff)}
+.flow-box .b-title{font-weight:700;color:#111827;margin-bottom:4px}
+.flow-box .b-desc{font-size:11.5px;color:#6b7280;line-height:1.5}
+.flow-arrow{text-align:center;color:#9ca3af;font-size:22px;line-height:1;padding:6px 0}
+.flow-row{display:flex;gap:12px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+.flow-row .flow-box{flex:1;min-width:140px;max-width:200px}
+
+/* 树形结构 */
+.tree{margin:14px 0;font-family:'SF Mono','Monaco',monospace;font-size:13px;background:#f9fafb;padding:14px 18px;border-radius:8px;border-left:4px solid currentColor;color:#374151;line-height:2}
+.tree b{color:#111827}
+
+/* 提示框 */
+.tip{margin:14px 0;padding:12px 16px;border-radius:8px;display:flex;gap:10px;align-items:flex-start;font-size:13px}
+.tip.warn{background:#fff7ed;border-left:4px solid #f97316;color:#9a3412}
+.tip.danger{background:#fef2f2;border-left:4px solid #ef4444;color:#7f1d1d}
+.tip.info{background:#eff6ff;border-left:4px solid #3b82f6;color:#1e40af}
+.tip.success{background:#ecfdf5;border-left:4px solid #10b981;color:#065f46}
+.tip .icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.tip b{font-weight:700}
+
+/* 徽章 */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;line-height:1.5}
+.b-req{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.b-opt{background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb}
+.b-yes{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0}
+.b-no{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+
+/* 公式 */
+.formula{margin:12px 0;padding:14px 18px;background:#f9fafb;border-radius:8px;font-family:'SF Mono',monospace;font-size:13px;color:#1f2937;border-left:4px solid #6366f1}
+
+/* 路径 */
+.path{display:inline-block;background:#f3f4f6;padding:2px 8px;border-radius:4px;font-family:'SF Mono',monospace;font-size:12px;color:#1f2937;border:1px solid #e5e7eb}
+
+/* 列对照 */
+.compare{display:grid;grid-template-columns:1fr 30px 1fr;gap:14px;align-items:center;margin:14px 0}
+.compare > div:first-child,.compare > div:last-child{background:#fafbfc;padding:14px;border-radius:8px;border:1px solid #e5e7eb}
+.compare .cross{text-align:center;font-size:22px;color:#9ca3af;font-weight:700}
+.compare h5{font-size:13px;color:#6b7280;margin-bottom:8px;font-weight:700}
+.compare ul{margin:0;padding-left:18px;font-size:12.5px}
+
+/* 列表样式 */
+.steps{counter-reset:step;margin:14px 0}
+.steps .step{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px dashed #e5e7eb}
+.steps .step:last-child{border-bottom:none}
+.steps .step::before{counter-increment:step;content:counter(step);width:26px;height:26px;border-radius:50%;background:currentColor;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.steps .step-content{flex:1;color:#374151;font-size:13px;line-height:1.6;padding-top:3px}
+.steps .step-content b{color:#111827}
+
+/* 关键事实 */
+.facts{margin:14px 0;background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px}
+.facts h5{font-size:13px;font-weight:700;color:#92400e;margin-bottom:6px}
+.facts ul{margin:0;padding-left:20px;font-size:12.5px;color:#78350f}
+.facts li{margin:3px 0}
+
+/* 结尾 */
+.end{padding:30px 40px;text-align:center;color:#9ca3af;font-size:13px;border-top:2px solid #e5e7eb}
+
+@media print {
+  body{background:#fff}
+  .wrap{box-shadow:none;max-width:100%}
+  .chapter{break-inside:avoid;page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- 封面 -->
+<div class="cover">
+  <h1>V3 商户端中台操作手册</h1>
+  <div class="sub">适用对象：集团管理员 · 多商户运营账号</div>
+  <div class="meta">
+    <span>📘 11 章</span>
+    <span>📎 3 篇附录</span>
+    <span>🎯 角色 / 用户 / 通道 / 监控</span>
+  </div>
+</div>
+
+<!-- 目录 -->
+<div class="toc">
+  <h3>📋 目录导航</h3>
+  <div class="toc-grid">
+    <a class="toc-item" href="#ch1"><span class="num">1</span>组织架构 ⭐</a>
+    <a class="toc-item" href="#ch2"><span class="num">2</span>创建角色 ⭐</a>
+    <a class="toc-item" href="#ch3"><span class="num">3</span>创建用户 ⭐</a>
+    <a class="toc-item" href="#ch4"><span class="num">4</span>权限补充配置 ⭐⭐</a>
+    <a class="toc-item" href="#ch5"><span class="num">5</span>出款组别配置</a>
+    <a class="toc-item" href="#ch6"><span class="num">6</span>通道基础设施</a>
+    <a class="toc-item" href="#ch7"><span class="num">7</span>充值/提现配置</a>
+    <a class="toc-item" href="#ch8"><span class="num">8</span>预警规则</a>
+    <a class="toc-item" href="#ch9"><span class="num">9</span>日常监控</a>
+    <a class="toc-item" href="#ch10"><span class="num">10</span>紧急情况处理</a>
+    <a class="toc-item" href="#ch11"><span class="num">11</span>其他配置</a>
+    <a class="toc-item" href="#appA"><span class="num" style="background:#64748b">A</span>3 种用户能力对照</a>
+    <a class="toc-item" href="#appB"><span class="num" style="background:#64748b">B</span>配置项速查</a>
+    <a class="toc-item" href="#appC"><span class="num" style="background:#64748b">C</span>状态枚举</a>
+  </div>
+</div>
+
+<!-- 第 1 章 -->
+<div class="chapter" id="ch1">
+  <div class="ch-head ch1">
+    <div class="ch-num">01</div>
+    <div class="ch-info">
+      <h2>组织架构（集团/商户/角色/用户）</h2>
+      <div class="ch-desc">四者关系总图 · 核心概念 · 集团管理员特征 · 用户类型</div>
+    </div>
+    <div class="ch-star">⭐</div>
+  </div>
+
+  <h3 class="sec ch1">1.1 四者关系总图</h3>
+  <div class="flow">
+    <div class="flow-box gray"><div class="b-title">总控端（运营看不到）</div><div class="b-desc">建集团 + 建商户（归属集团）</div></div>
+    <div class="flow-arrow">↓ 自动生成</div>
+    <div class="flow-box purple"><div class="b-title">集团管理员账号</div><div class="b-desc">拥有商户端所有菜单和按钮权限<br><b style="color:#8b5cf6">手册起点 = 你</b></div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box blue"><div class="b-title">建角色</div><div class="b-desc">（集团全局）</div></div>
+      <div class="flow-box cyan"><div class="b-title">建用户</div><div class="b-desc">绑角色 + 选商户</div></div>
+      <div class="flow-box orange"><div class="b-title">业务配置</div><div class="b-desc">通道 / 大类 / 组别等</div></div>
+    </div>
+  </div>
+
+  <div class="tree" style="color:#8b5cf6">
+<b>集团 A</b><br>
+├─ 商户 1<br>
+├─ 商户 2  ───→ 共用同一套集团角色<br>
+└─ 商户 3
+  </div>
+
+  <h3 class="sec ch1">1.2 四个核心概念</h3>
+  <table>
+    <tr><th>概念</th><th>是什么</th><th>由谁建</th></tr>
+    <tr><td><b>集团</b></td><td>业务品牌方，运营的最大单位</td><td>总控端</td></tr>
+    <tr><td><b>商户</b></td><td>集团下的站点，每个商户独立时区/币种</td><td>总控端（建时选归属集团）</td></tr>
+    <tr><td><b>角色</b></td><td>一组菜单 + 按钮权限的打包</td><td>集团管理员（集团全局）</td></tr>
+    <tr><td><b>用户</b></td><td>实际登录系统的账号</td><td>集团管理员</td></tr>
+  </table>
+
+  <h3 class="sec ch1">1.3 集团管理员账号特征</h3>
+  <div class="tip success">
+    <div class="icon">✓</div>
+    <div>
+      <b>你的账号 = 集团管理员</b><br>
+      ✓ 拥有商户端<b>全部菜单 + 全部按钮</b>权限（无需绑角色）<br>
+      ✓ 顶部商户下拉默认显示一个商户，可切换到本集团<b>任意商户</b><br>
+      ✓ 可以建立<b>集团下所有角色</b><br>
+      ✓ 可以建立<b>集团下所有用户</b><br>
+      <span style="color:#dc2626">✗ 不能建集团，不能建商户（总控端的事）</span>
+    </div>
+  </div>
+
+  <h3 class="sec ch1">1.4 用户类型（3 种）</h3>
+  <div class="tip warn">
+    <div class="icon">⚠️</div>
+    <div>系统没有"账号类型"下拉框，类型由<b>勾选几个商户</b>决定。</div>
+  </div>
+  <table>
+    <tr><th>用户类型</th><th>怎么区分</th><th>谁建</th><th>典型场景</th></tr>
+    <tr><td><b>集团管理员</b></td><td>总控端建集团时自动生成</td><td>总控端</td><td>整个集团的运营负责人（你）</td></tr>
+    <tr><td><b>多商户用户</b></td><td>集团管理员建，ManageTenantIds 勾多个</td><td>集团管理员</td><td>跨商户的财务/运营/审核</td></tr>
+    <tr><td><b>单商户用户</b></td><td>集团管理员建，ManageTenantIds 勾 1 个</td><td>集团管理员</td><td>商户内具体岗位（客服/出款组员/审核员）</td></tr>
+  </table>
+
+  <h3 class="sec ch1">1.5 用户的"职责身份" = 角色决定</h3>
+  <div class="compare">
+    <div>
+      <h5>账号类型（单/多商户）</h5>
+      <ul><li>单商户</li><li>多商户</li></ul>
+    </div>
+    <div class="cross">×</div>
+    <div>
+      <h5>角色（具体职责）</h5>
+      <ul><li>财务主管</li><li>出款组长</li><li>出款组员</li><li>充值审核员</li><li>客服</li><li>运营</li></ul>
+    </div>
+  </div>
+  <p><b>举例：</b></p>
+  <ul>
+    <li>单商户 + 客服角色 = 某个商户的客服</li>
+    <li>多商户 + 财务主管角色 = 跨多商户的财务主管</li>
+    <li>单商户 + 出款组员角色 = 某商户的出款审核员工</li>
+  </ul>
+
+  <h3 class="sec ch1">1.6 角色作用域：集团全局</h3>
+  <div class="tree" style="color:#8b5cf6">
+<b>集团 A 的角色（集团管理员维护）</b><br>
+├─ 财务主管<br>
+├─ 出款组长<br>
+├─ 出款组员<br>
+├─ 充值审核员<br>
+└─ 客服<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#9ca3af">↓ 同一套角色</span><br>
+&nbsp;&nbsp;商户1 / 商户2 / 商户3 都绑同一套集团角色
+  </div>
+  <div class="facts">
+    <h5>核心事实</h5>
+    <ul>
+      <li>没有系统内置角色，全部由集团管理员自建</li>
+      <li>不同集团的角色不互通（每集团独立维护）</li>
+      <li>同集团内多商户共用一套角色</li>
+      <li>建角色不需选商户，自动归属当前集团</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 第 2 章 -->
+<div class="chapter" id="ch2">
+  <div class="ch-head ch2">
+    <div class="ch-num">02</div>
+    <div class="ch-info">
+      <h2>创建角色流程</h2>
+      <div class="ch-desc">系统管理 → 角色管理 · 推荐建 7 个常用角色</div>
+    </div>
+    <div class="ch-star">⭐</div>
+  </div>
+
+  <h3 class="sec ch2">2.1 总流程图</h3>
+  <div class="flow">
+    <div class="flow-box blue"><div class="b-title">① 系统管理 → 角色管理</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box blue"><div class="b-title">② 点【新增】</div><div class="b-desc">填：角色名 + 角色代码 + 描述 → 保存</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box blue"><div class="b-title">③ 列表找到该角色</div><div class="b-desc">点【权限分配】→ 打开权限树</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box blue"><div class="b-title">④ 权限树勾选</div><div class="b-desc">菜单层级（决定能进哪些页面）<br>按钮层级（新增/编辑/删除/导出/审核等）</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box green"><div class="b-title">⑤ 保存 → 角色立即生效</div><div class="b-desc">已绑此角色的用户下次刷新即同步</div></div>
+  </div>
+
+  <h3 class="sec ch2">2.2 推荐建角色清单</h3>
+  <p style="color:#6b7280;font-size:13px">拿到集团先建以下 7 个常用角色（建议）：</p>
+  <table>
+    <tr><th>#</th><th>角色名</th><th>关键权限</th><th>用途</th></tr>
+    <tr><td>1</td><td><b>超级运营</b></td><td>商户端全部菜单 + 全部按钮（不包括集团管理员特权）</td><td>副手 / 备用</td></tr>
+    <tr><td>2</td><td><b>财务主管</b></td><td>财务管理（全）+ 报表查看</td><td>财务负责人</td></tr>
+    <tr><td>3</td><td><b>出款组长</b></td><td>提现订单（看板/操作台/记录/组别配置）+ 审核权</td><td>各组组长</td></tr>
+    <tr><td>4</td><td><b>出款组员</b></td><td>提现订单 → 出款员工操作台 + 自己审核</td><td>出款员工</td></tr>
+    <tr><td>5</td><td><b>充值审核员</b></td><td>充值订单 + 人工充值审核</td><td>充值审核员</td></tr>
+    <tr><td>6</td><td><b>客服</b></td><td>财务/会员/游戏"查看"权限，无修改/审核</td><td>客服</td></tr>
+    <tr><td>7</td><td><b>运营</b></td><td>报表全部 + 通道预警 + 看板（无配置）</td><td>运营人员</td></tr>
+  </table>
+
+  <h3 class="sec ch2">2.3 角色权限的修改与删除</h3>
+  <div class="tip info">
+    <div class="icon">ℹ️</div>
+    <div><b>修改角色权限</b> → 绑此角色的所有用户 → <b>下次页面刷新即生效</b>（无需重新登录）</div>
+  </div>
+  <div class="tip danger">
+    <div class="icon">🚫</div>
+    <div><b>删除角色</b> → 已绑用户 → <b>无法删除</b>，需先解绑用户再删角色</div>
+  </div>
+</div>
+
+<!-- 第 3 章 -->
+<div class="chapter" id="ch3">
+  <div class="ch-head ch3">
+    <div class="ch-num">03</div>
+    <div class="ch-info">
+      <h2>创建用户流程</h2>
+      <div class="ch-desc">系统管理 → 系统用户管理 · 单/多商户区分 · 批量建用户</div>
+    </div>
+    <div class="ch-star">⭐</div>
+  </div>
+
+  <h3 class="sec ch3">3.1 总流程图</h3>
+  <div class="flow">
+    <div class="flow-box cyan"><div class="b-title">① 系统管理 → 系统用户管理 → 点【新增】</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box cyan">
+      <div class="b-title">② 填写基础信息</div>
+      <div class="b-desc" style="text-align:left">
+        ├─ 账号（全局唯一）<br>
+        ├─ 姓名<br>
+        ├─ 密码（可勾"使用统一密码"批量同密）<br>
+        ├─ 角色（多选，第 2 章建的）<br>
+        ├─ 归属商户 ◄ 决定单/多商户用户<br>
+        └─ 邮箱（用于重置密码）
+      </div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box green"><div class="b-title">③ 保存 → 用户可登录</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box gray"><div class="b-title">普通用户</div><div class="b-desc">到此结束</div></div>
+      <div class="flow-box orange"><div class="b-title">出款 / 审核 / 充值岗位</div><div class="b-desc"><b>需做第 4 章</b><br>补充权限配置</div></div>
+    </div>
+  </div>
+
+  <h3 class="sec ch3">3.2 单/多商户用户怎么建（关键区分）</h3>
+  <table>
+    <tr><th>归属商户字段勾选规则</th><th>结果</th></tr>
+    <tr><td>勾 1 个商户</td><td><span class="badge b-yes">单商户用户</span> 登录后顶部商户不可切换</td></tr>
+    <tr><td>勾多个商户</td><td><span class="badge b-yes">多商户用户</span> 登录后顶部商户下拉可选这几个（不允许"全部商户"选项）</td></tr>
+    <tr><td>勾全部商户</td><td><span class="badge b-yes">仍是多商户用户</span> 不会变成集团管理员（集团管理员只能由总控端建）</td></tr>
+  </table>
+
+  <h3 class="sec ch3">3.3 批量建多个用户</h3>
+  <div class="steps ch3">
+    <div class="step"><div class="step-content">新增弹窗内点 <b>【+ 添加一行】</b></div></div>
+    <div class="step"><div class="step-content">每行填一个账号</div></div>
+    <div class="step"><div class="step-content">勾"使用统一密码" → 所有行用同一初始密码</div></div>
+    <div class="step"><div class="step-content">各行账号必须 <b>全局唯一 + 弹窗内多行也不能重复</b></div></div>
+    <div class="step"><div class="step-content">保存 → 一次性创建多个用户</div></div>
+  </div>
+
+  <h3 class="sec ch3">3.4 用户的其他常用操作</h3>
+  <table>
+    <tr><th>按钮</th><th>作用</th><th>影响</th></tr>
+    <tr><td>【编辑】</td><td>改基本信息 / 改角色 / 改归属商户</td><td>立即生效</td></tr>
+    <tr><td>【删除】</td><td>删除用户</td><td>弹窗确认；快速双击防重复</td></tr>
+    <tr><td>【启用】/【禁用】</td><td>控制能否登录</td><td>禁用后立即无法登录</td></tr>
+    <tr><td>【谷歌验证】</td><td>启用/禁用 Google Authenticator</td><td>—</td></tr>
+    <tr><td>【密码重置】</td><td>生成新密码或发邮件</td><td>—</td></tr>
+    <tr><td>【批量赋权】</td><td>多选用户后一次性改归属商户/角色</td><td>—</td></tr>
+    <tr><td>【批量变更状态】</td><td>多选后批量启用/禁用 用户/出款/充值权限</td><td>—</td></tr>
+    <tr><td>【批量调整出款权限】</td><td>多选后批量改金额区间/处理上限</td><td>—</td></tr>
+  </table>
+</div>
+
+<!-- 第 4 章 -->
+<div class="chapter" id="ch4">
+  <div class="ch-head ch4">
+    <div class="ch-num">04</div>
+    <div class="ch-info">
+      <h2>建用户后的权限补充配置</h2>
+      <div class="ch-desc">出款审核 / 充值审核 / 发起人工充值的员工必做</div>
+    </div>
+    <div class="ch-star">⭐⭐</div>
+  </div>
+
+  <div class="tip warn">
+    <div class="icon">📌</div>
+    <div><b>谁需要做这一章</b>：负责出款审核 / 充值审核 / 发起人工充值的员工。<br>普通员工（如客服、运营）建完用户即可，无需补充。</div>
+  </div>
+
+  <h3 class="sec ch4">4.0 决策流程图</h3>
+  <div class="flow">
+    <div class="flow-box gray"><div class="b-title">已建好用户</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box orange"><div class="b-title">是出款岗位？</div><div class="b-desc">→ 4.1 出款权限配置</div></div>
+      <div class="flow-box orange"><div class="b-title">是审核岗位？</div><div class="b-desc">→ 4.2 审核权限配置<br>（出款审核 + 人工充值审核两个独立开关）</div></div>
+      <div class="flow-box orange"><div class="b-title">发起人工充值？</div><div class="b-desc">→ 4.3 人工充值权限配置<br>（三大限额）</div></div>
+    </div>
+  </div>
+  <p style="color:#6b7280;font-size:13px"><b>所有 3 个权限配置入口</b>：<span class="path">系统管理 → 系统用户管理 → 编辑用户</span>（同一弹窗里不同 Tab）</p>
+
+  <h3 class="sec ch4">4.1 出款权限配置（出款审核员必做）</h3>
+  <h4 class="sub">前置依赖：必须先建出款组别</h4>
+  <div class="tip warn">
+    <div class="icon">⚠️</div>
+    <div>派单组别是必填项，必须先建好。</div>
+  </div>
+  <div class="flow">
+    <div class="flow-box orange"><div class="b-title">财务管理 → 提现订单管理 → 出款组别配置</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box orange"><div class="b-title">【新增组别】</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box orange"><div class="b-title">填字段</div><div class="b-desc">组别名 + 单员工并发上限 + 待审核超时 + 已审核超时 + 暂停时长上限</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box green"><div class="b-title">保存</div><div class="b-desc">组别出现在出款权限的"派单组别"下拉里</div></div>
+  </div>
+
+  <h4 class="sub">配置流程</h4>
+  <div class="steps ch4">
+    <div class="step"><div class="step-content"><b>系统管理 → 系统用户管理</b>，找到该员工 → 点【编辑】</div></div>
+    <div class="step"><div class="step-content">弹窗切到 <b>【出款权限配置】</b> Tab</div></div>
+    <div class="step"><div class="step-content">填写字段（见下方表格）</div></div>
+    <div class="step"><div class="step-content">点【保存】→ 立即生效，员工下次刷新或登录后能接到符合范围的单</div></div>
+  </div>
+
+  <h4 class="sub">字段说明</h4>
+  <table>
+    <tr><th>字段</th><th class="center">必填</th><th>业务影响</th></tr>
+    <tr><td>派单组别</td><td class="center"><span class="badge b-req">必填</span></td><td>该员工归属哪个出款组，继承组的超时规则</td></tr>
+    <tr><td>金额区间-最小/最大</td><td class="center"><span class="badge b-req">必填</span></td><td>仅能审核金额在此区间内的订单</td></tr>
+    <tr><td>处理上限</td><td class="center"><span class="badge b-opt">可选</span></td><td>同时持有订单上限；覆盖组别默认值</td></tr>
+    <tr><td>授权商户</td><td class="center"><span class="badge b-opt">可选</span></td><td>仅看这些商户的订单；为空 = 用户归属商户范围</td></tr>
+    <tr><td>币种模式</td><td class="center"><span class="badge b-opt">可选</span></td><td>法币模式下，同一法币只能选同币种商户</td></tr>
+    <tr><td>出款权限状态</td><td class="center"><span class="badge b-opt">可选</span></td><td>关闭 = 无法接单</td></tr>
+    <tr><td>单笔/每日/每周/每月 提现额度</td><td class="center"><span class="badge b-opt">可选</span></td><td>该员工可审批的累计金额上限</td></tr>
+    <tr><td>单日提现笔数</td><td class="center"><span class="badge b-opt">可选</span></td><td>该员工每天可审批笔数上限</td></tr>
+  </table>
+
+  <h3 class="sec ch4">4.2 审核权限配置（含两个独立开关）</h3>
+  <div class="tip info">
+    <div class="icon">🔑</div>
+    <div><b>重点</b>：出款审核 vs 人工充值审核是 <b>两个独立开关</b></div>
+  </div>
+
+  <h4 class="sub">审核权限 Tab 结构</h4>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="flow-box orange"><div class="b-title">① 出款审核权</div><div class="b-desc">开关（独立）<br>控制：能否审核提现订单</div></div>
+      <div class="flow-box orange"><div class="b-title">② 人工充值审核权</div><div class="b-desc">开关（独立）<br>控制：能否审核人工充值申请</div></div>
+    </div>
+    <div class="flow-row" style="margin-top:12px">
+      <div class="flow-box gray"><div class="b-title">单笔审核额度上限</div></div>
+      <div class="flow-box gray"><div class="b-title">每日审核额度上限</div></div>
+    </div>
+  </div>
+
+  <h4 class="sub">两个开关的组合策略</h4>
+  <table>
+    <tr><th class="center">出款审核权</th><th class="center">人工充值审核权</th><th>适用岗位</th></tr>
+    <tr><td class="center"><span class="badge b-yes">开</span></td><td class="center"><span class="badge b-no">关</span></td><td>纯出款审核员</td></tr>
+    <tr><td class="center"><span class="badge b-no">关</span></td><td class="center"><span class="badge b-yes">开</span></td><td>纯充值审核员</td></tr>
+    <tr><td class="center"><span class="badge b-yes">开</span></td><td class="center"><span class="badge b-yes">开</span></td><td>全能财务审核</td></tr>
+    <tr><td class="center"><span class="badge b-no">关</span></td><td class="center"><span class="badge b-no">关</span></td><td>非审核岗位</td></tr>
+  </table>
+
+  <h3 class="sec ch4">4.3 人工充值权限配置（三大限额）</h3>
+  <div class="tip info">
+    <div class="icon">💡</div>
+    <div>给"需要发起人工充值"的员工配（如线下打款补单的财务）。<br>与 4.2 的"人工充值审核权"是两回事——<b>前者是发起人，后者是审核人</b>。</div>
+  </div>
+
+  <h4 class="sub">三大限额</h4>
+  <table>
+    <tr><th>限额项</th><th class="center">含义</th></tr>
+    <tr><td><b>单日发起上限-总次数</b></td><td>0 = 不限制 / &gt;0 = 每天最多发起几次</td></tr>
+    <tr><td><b>单日金额发起上限</b></td><td>0 = 不限制 / &gt;0 = 每天累计金额上限</td></tr>
+    <tr><td><b>单笔充值金额上限</b></td><td>0 = 不限制 / &gt;0 = 单次金额上限</td></tr>
+  </table>
+
+  <div class="tip warn">
+    <div class="icon">⚠️</div>
+    <div><b>校验规则</b>：达到任一上限 → 再次发起被拒绝 / 清零（0） → 视为不限制（需二次确认）</div>
+  </div>
+
+  <h4 class="sub">生效与使用</h4>
+  <div class="flow">
+    <div class="flow-box orange"><div class="b-title">保存后</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box orange"><div class="b-title">财务管理 → 人工充值（发起页）</div><div class="b-desc">填：商户 + 会员 + 充值金额 + 充值方式</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box orange"><div class="b-title">提交 → 系统校验三大限额</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box green"><div class="b-title">通过 → 进入审核流程</div><div class="b-desc">由"人工充值审核权"的员工审</div></div>
+  </div>
+</div>
+
+<!-- 第 5 章 -->
+<div class="chapter" id="ch5">
+  <div class="ch-head ch5">
+    <div class="ch-num">05</div>
+    <div class="ch-info">
+      <h2>出款组别配置</h2>
+      <div class="ch-desc">4.1 的前置依赖 · 财务管理 → 提现订单管理 → 出款组别配置</div>
+    </div>
+  </div>
+
+  <h3 class="sec ch5">5.1 必填字段（5 个）</h3>
+  <table>
+    <tr><th>字段</th><th class="center">取值范围</th><th>推荐值</th><th>业务含义</th></tr>
+    <tr><td><b>组别名称</b></td><td class="center">唯一</td><td>—</td><td>—</td></tr>
+    <tr><td><b>单员工并发上限</b></td><td class="center">[1-100]</td><td>3 ~ 10</td><td>该组员工同时持有的订单数</td></tr>
+    <tr><td><b>待审核超时</b></td><td class="center">[1-9999 分]</td><td>5 ~ 15 分</td><td>派单后未审核 → 自动转下一员工</td></tr>
+    <tr><td><b>已审核超时</b></td><td class="center">[1-9999 分]</td><td>10 ~ 30 分</td><td>审核通过未提交 → 回流待审核池</td></tr>
+    <tr><td><b>暂停时长上限</b></td><td class="center">[1-9999 分]</td><td>15 ~ 30 分</td><td>主动暂停最长时间 → 自动恢复</td></tr>
+  </table>
+
+  <h3 class="sec ch5">5.2 业务流转</h3>
+  <div class="flow">
+    <div class="flow-box red"><div class="b-title">员工接单</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box red"><div class="b-title">待审核</div><div class="b-desc">超过"待审核超时" → 自动转下一员工</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box red"><div class="b-title">员工开始审核</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box red"><div class="b-title">已审核</div><div class="b-desc">超过"已审核超时" → 回流待审核池</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box red"><div class="b-title">员工提交三方</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box green"><div class="b-title">订单走完</div></div>
+  </div>
+
+  <div class="tip warn">
+    <div class="icon">⚠️</div>
+    <div><b>员工主动暂停</b> → 暂停中 → 超过"暂停时长上限" → <b>异常暂停超时</b>（需管理员恢复）</div>
+  </div>
+</div>
+
+<!-- 第 6 章 -->
+<div class="chapter" id="ch6">
+  <div class="ch-head ch6">
+    <div class="ch-num">06</div>
+    <div class="ch-info">
+      <h2>通道基础设施</h2>
+      <div class="ch-desc">一次性配齐 · 第三方商户号 / 充值/提现通道字典 / 本地支付账户 / 银行映射</div>
+    </div>
+  </div>
+
+  <h3 class="sec ch6">6.1 整体架构</h3>
+  <div class="flow">
+    <div class="flow-box green"><div class="b-title">财务管理 → 第三方商户号管理</div><div class="b-desc">接入第三方支付商户号</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box green"><div class="b-title">充值通道字典</div><div class="b-desc">（平台模板）</div></div>
+      <div class="flow-box green"><div class="b-title">提现通道字典</div><div class="b-desc">（平台模板）</div></div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box green"><div class="b-title">本地支付账户（4 子 Tab）</div><div class="b-desc">银行卡 / UPI / USDT / 电子钱包</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box green"><div class="b-title">银行字典 + 银行映射</div><div class="b-desc">平台银行码 ↔ 三方银行码</div></div>
+  </div>
+
+  <h3 class="sec ch6">6.2 入口速查</h3>
+  <table>
+    <tr><th>入口</th><th>用途</th></tr>
+    <tr><td class="path">财务管理 → 第三方商户号管理</td><td>接入支付商户号、设额度、配预警阈值</td></tr>
+    <tr><td class="path">财务管理 → 充值通道字典</td><td>平台级"通道库"模板</td></tr>
+    <tr><td class="path">财务管理 → 提现配置 → 提现通道字典</td><td>同上</td></tr>
+    <tr><td class="path">财务管理 → 本地支付账户</td><td>平台自有收款账户</td></tr>
+    <tr><td class="path">财务管理 → 银行字典</td><td>银行代码 ↔ 银行名</td></tr>
+    <tr><td class="path">财务管理 → 提现配置 → 银行映射</td><td>平台银行码 ↔ 三方银行码（可批量导入）</td></tr>
+  </table>
+
+  <div class="tip danger">
+    <div class="icon">🚫</div>
+    <div>关闭账户/通道 = <b>该方式立即从用户端消失</b>。</div>
+  </div>
+</div>
+
+<!-- 第 7 章 -->
+<div class="chapter" id="ch7">
+  <div class="ch-head ch7">
+    <div class="ch-num">07</div>
+    <div class="ch-info">
+      <h2>充值 / 提现配置（按商户）</h2>
+      <div class="ch-desc">大类 ↔ 通道 · 用户可见性筛选 · 改动影响</div>
+    </div>
+  </div>
+
+  <h3 class="sec ch7">7.1 配置结构</h3>
+  <div class="flow">
+    <div class="flow-box pink"><div class="b-title">充值/提现 大类</div><div class="b-desc">用户看到的"分类"，如 IMPS</div></div>
+    <div class="flow-arrow">↓ 一对多</div>
+    <div class="flow-box pink"><div class="b-title">充值/提现 通道</div><div class="b-desc">路由到哪个第三方商户号</div></div>
+  </div>
+
+  <h3 class="sec ch7">7.2 充值大类</h3>
+  <p style="color:#6b7280;font-size:13px">入口：<span class="path">财务管理 → 充值配置 → 充值大类</span></p>
+  <div class="formula">
+    <b>到手金额 = 充值金额 + 赠送金额 − 手续费</b><br><br>
+    · 百分比赠送：到手 = 充值 + 充值 × 比例<br>
+    · 固定金额赠送：到手 = 充值 + 固定值
+  </div>
+  <p><b>关键字段</b>：自定义名 / 状态 / 最小/最大金额 / 赠送类型 / 赠送值 / 手续费类型 / 手续费值 / 时间窗口 / VIP 等级列表</p>
+
+  <h3 class="sec ch7">7.3 充值通道（5 条筛选条件）</h3>
+  <div class="tip info">
+    <div class="icon">🎯</div>
+    <div>通道必须 <b>同时满足以下 5 条</b> 才出现在用户充值列表：</div>
+  </div>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="flow-box pink"><div class="b-title">① 三端状态启用</div><div class="b-desc">总控/商户端/三方</div></div>
+      <div class="flow-box pink"><div class="b-title">② 金额在区间内</div><div class="b-desc">充值金额 ∈ 通道金额区间</div></div>
+      <div class="flow-box pink"><div class="b-title">③ 在时间窗口</div><div class="b-desc">当前时间 ∈ 通道时间窗口</div></div>
+    </div>
+    <div class="flow-row" style="margin-top:10px">
+      <div class="flow-box pink"><div class="b-title">④ VIP 等级匹配</div><div class="b-desc">用户 VIP ∈ 通道 VIP 列表</div></div>
+      <div class="flow-box pink"><div class="b-title">⑤ 权重 &gt; 0</div></div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box green"><div class="b-title">参与轮询，按权重随机分配</div></div>
+  </div>
+
+  <h3 class="sec ch7">7.4 提现大类</h3>
+  <p style="color:#6b7280;font-size:13px">入口：<span class="path">财务管理 → 提现配置 → 提现大类</span></p>
+  <table>
+    <tr><th>字段</th><th class="center">必填</th><th>范围</th><th>业务影响</th></tr>
+    <tr><td>自定义大类名</td><td class="center"><span class="badge b-req">必填</span></td><td>文本</td><td>显示给用户</td></tr>
+    <tr><td>状态</td><td class="center"><span class="badge b-req">必填</span></td><td>开/关</td><td>关 = 用户立即看不到</td></tr>
+    <tr><td>最小提现金额</td><td class="center"><span class="badge b-opt">可选</span></td><td>≥ 0</td><td>—</td></tr>
+    <tr><td>最大提现金额</td><td class="center"><span class="badge b-opt">可选</span></td><td>≥ 最小</td><td>—</td></tr>
+    <tr><td>每日提现次数</td><td class="center"><span class="badge b-opt">可选</span></td><td>≥ 0</td><td>0 = 不限</td></tr>
+    <tr><td>手续费率</td><td class="center"><span class="badge b-opt">可选</span></td><td>0~1</td><td>0.02 = 2%</td></tr>
+    <tr><td>时间窗口</td><td class="center"><span class="badge b-opt">可选</span></td><td>HH:mm</td><td>—</td></tr>
+    <tr><td>USDT 最小/最大</td><td class="center"><span class="badge b-opt">可选</span></td><td>数字</td><td>USDT 大类专用</td></tr>
+  </table>
+
+  <h4 class="sub">改动后果</h4>
+  <table>
+    <tr><th>改动</th><th>影响</th></tr>
+    <tr><td>状态改"关"</td><td><b style="color:#dc2626">用户立即看不到 + 旧页面提交被拒</b></td></tr>
+    <tr><td>缩窄金额范围</td><td>旧页面输入超范围被拒</td></tr>
+    <tr><td>改费率</td><td>下一笔订单按新费率扣</td></tr>
+    <tr><td>改名/排序</td><td>用户下拉刷新即同步</td></tr>
+  </table>
+
+  <h3 class="sec ch7">7.5 提现通道（8 条筛选条件）</h3>
+  <div class="tip info">
+    <div class="icon">🎯</div>
+    <div>通道必须 <b>同时满足以下 8 条</b> 才出现：</div>
+  </div>
+  <table>
+    <tr><th class="center">#</th><th>条件</th></tr>
+    <tr><td class="center">①</td><td>三端状态全启用</td></tr>
+    <tr><td class="center">②</td><td>通道自身未关闭</td></tr>
+    <tr><td class="center">③</td><td>订单金额 ∈ 通道金额区间</td></tr>
+    <tr><td class="center">④</td><td>整百开关启用 → 金额需是 100 倍数</td></tr>
+    <tr><td class="center">⑤</td><td>商户绑定匹配</td></tr>
+    <tr><td class="center">⑥</td><td>大类归属正确</td></tr>
+    <tr><td class="center">⑦</td><td>时间窗口匹配</td></tr>
+    <tr><td class="center">⑧</td><td>权重 &gt; 0（自动出款；人工审核可选 0 权重）</td></tr>
+  </table>
+  <div class="tip warn"><div class="icon">⚠️</div><div>任一不满足 → 通道从可选列表消失</div></div>
+</div>
+
+<!-- 第 8 章 -->
+<div class="chapter" id="ch8">
+  <div class="ch-head ch8">
+    <div class="ch-num">08</div>
+    <div class="ch-info">
+      <h2>预警规则</h2>
+      <div class="ch-desc">报表管理 → 支代付通道预警 → 规则配置</div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>预警类型</th><th>配置阈值</th><th>触发后果</th></tr>
+    <tr><td>失败率超阈值</td><td>百分比（如 20%）</td><td>消息 Badge +1</td></tr>
+    <tr><td>余额不足</td><td>金额（如 1万）</td><td>消息 Badge +1</td></tr>
+    <tr><td>响应超时</td><td>秒数（如 30s）</td><td>消息 Badge +1</td></tr>
+    <tr><td>通道异常</td><td>次数（如 5 次/分）</td><td>消息 Badge +1</td></tr>
+  </table>
+
+  <div class="flow">
+    <div class="flow-box orange"><div class="b-title">触发预警</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box orange"><div class="b-title">运营收到通知</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box orange"><div class="b-title">点击跳转预警详情</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box green"><div class="b-title">处理预警</div></div>
+      <div class="flow-box gray"><div class="b-title">忽略</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 第 9 章 -->
+<div class="chapter" id="ch9">
+  <div class="ch-head ch9">
+    <div class="ch-num">09</div>
+    <div class="ch-info">
+      <h2>日常监控（每天 15 分钟）</h2>
+      <div class="ch-desc">5 步早间常规巡检</div>
+    </div>
+  </div>
+
+  <div class="steps ch9">
+    <div class="step"><div class="step-content"><b>顶部商户选对</b>（多商户账号要选对当下处理的商户）</div></div>
+    <div class="step"><div class="step-content"><b>出款看板 → 远程出款数据看板</b><br>· 审核订单超时卡片 &gt; 0 ?<br>· 员工暂停超时卡片 &gt; 0 ?</div></div>
+    <div class="step"><div class="step-content"><b>出款看板 → 员工实时状态 → 顶部 Tab"上班-异常暂停"</b><br>· 有 → 批量【异常恢复】</div></div>
+    <div class="step"><div class="step-content"><b>报表管理 → 支代付通道预警 → 顶部 Tab"未处理"</b><br>· 有 → 逐个处理或转技术</div></div>
+    <div class="step"><div class="step-content"><b>数据统计 → 24 小时实时</b><br>· 充提差是否异常（连续负值 = 异常）<br>· 通道余额是否接近"自动关闭阈值"</div></div>
+  </div>
+</div>
+
+<!-- 第 10 章 -->
+<div class="chapter" id="ch10">
+  <div class="ch-head ch10">
+    <div class="ch-num">10</div>
+    <div class="ch-info">
+      <h2>紧急情况处理</h2>
+      <div class="ch-desc">异常分类 · 速查表 · 配置变更前必读</div>
+    </div>
+  </div>
+
+  <h3 class="sec ch10">10.1 异常分类决策</h3>
+  <div class="flow">
+    <div class="flow-box red"><div class="b-title">收到异常信号</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box red"><div class="b-title">员工类问题</div><div class="b-desc">大量异常暂停<br>→ 批量【异常恢复】</div></div>
+      <div class="flow-box red"><div class="b-title">通道类问题</div><div class="b-desc">某通道大量失败<br>→ 临时禁用，转其他通道</div></div>
+      <div class="flow-box red"><div class="b-title">数据类问题</div><div class="b-desc">充提差异常<br>→ 资金变动记录逐条核对，异常转技术</div></div>
+    </div>
+  </div>
+
+  <h3 class="sec ch10">10.2 速查表</h3>
+  <table>
+    <tr><th>情况</th><th>立即动作</th><th>入口</th></tr>
+    <tr><td>员工大量异常暂停</td><td>批量【异常恢复】</td><td class="path">出款看板 → 员工实时状态</td></tr>
+    <tr><td>某通道大量失败</td><td>该通道【禁用】</td><td class="path">提现配置 → 提现通道</td></tr>
+    <tr><td>通道余额耗尽</td><td>禁用 → 启用备用通道 → 通知补款</td><td>同上</td></tr>
+    <tr><td>大量审核超时</td><td>调高超时阈值 / 加临时审核员</td><td class="path">出款组别配置 / 编辑用户</td></tr>
+    <tr><td>配置改错了</td><td>系统日志找变更记录 → 改回</td><td class="path">系统管理 → 系统日志</td></tr>
+    <tr><td>自身被锁 IP</td><td>联系另一管理员解 IP</td><td class="path">系统管理 → IP 白名单</td></tr>
+  </table>
+
+  <h3 class="sec ch10">10.3 配置变更前必读</h3>
+  <div class="tip danger">
+    <div class="icon">📋</div>
+    <div>
+      ☐ 测试环境先验证<br>
+      ☐ 看"当前提现订单"该范围是否有处理中订单<br>
+      ☐ 缩窄范围/关闭通道前评估影响用户数<br>
+      ☐ 改动后通知客服："让用户下拉刷新"<br>
+      ☐ 自动审核开关切换前后观察 5 分钟订单流转
+    </div>
+  </div>
+</div>
+
+<!-- 第 11 章 -->
+<div class="chapter" id="ch11">
+  <div class="ch-head ch11">
+    <div class="ch-num">11</div>
+    <div class="ch-info">
+      <h2>其他配置（按需）</h2>
+      <div class="ch-desc">菜单 / IP / 缓存 / 日志 / App 发布等</div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>功能</th><th>入口</th><th>备注</th></tr>
+    <tr><td>菜单管理</td><td class="path">系统管理 → 菜单管理</td><td>极少改；新增菜单需开发配合</td></tr>
+    <tr><td>IP 白名单</td><td class="path">系统管理 → IP 白名单</td><td><b style="color:#dc2626">慎用，错配会锁住自己</b></td></tr>
+    <tr><td>缓存管理</td><td class="path">系统管理 → 缓存管理</td><td>清单个 OK，清全部慎用</td></tr>
+    <tr><td>系统日志</td><td class="path">系统管理 → 系统日志</td><td>审计追溯"谁改了什么"</td></tr>
+    <tr><td>App 版本发布</td><td class="path">运营管理 → App 版本发布</td><td>移动端发版</td></tr>
+    <tr><td>App 包管理</td><td class="path">运营管理 → App 包管理</td><td>渠道分发</td></tr>
+    <tr><td>图片裁剪</td><td class="path">运营管理 → 图片裁剪</td><td>Banner / 头像加工</td></tr>
+  </table>
+</div>
+
+<!-- 附录 A -->
+<div class="chapter" id="appA">
+  <div class="ch-head app">
+    <div class="ch-num">A</div>
+    <div class="ch-info">
+      <h2>附录 · 3 种用户能力对照</h2>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>操作</th><th class="center">集团管理员</th><th class="center">多商户用户</th><th class="center">单商户用户</th></tr>
+    <tr><td>建商户</td><td class="center"><span class="badge b-no">❌（总控管）</span></td><td class="center"><span class="badge b-no">❌</span></td><td class="center"><span class="badge b-no">❌</span></td></tr>
+    <tr><td>建角色</td><td class="center"><span class="badge b-yes">✅（集团内）</span></td><td class="center"><span class="badge b-no">❌</span></td><td class="center"><span class="badge b-no">❌</span></td></tr>
+    <tr><td>改角色权限</td><td class="center"><span class="badge b-yes">✅</span></td><td class="center"><span class="badge b-no">❌</span></td><td class="center"><span class="badge b-no">❌</span></td></tr>
+    <tr><td>建用户</td><td class="center"><span class="badge b-yes">✅（集团内）</span></td><td class="center"><span class="badge b-opt">看权限*</span></td><td class="center"><span class="badge b-no">❌</span></td></tr>
+    <tr><td>改通道/大类</td><td class="center"><span class="badge b-yes">✅</span></td><td class="center"><span class="badge b-opt">看权限*</span></td><td class="center"><span class="badge b-no">❌</span></td></tr>
+    <tr><td>出款组别配置</td><td class="center"><span class="badge b-yes">✅</span></td><td class="center"><span class="badge b-opt">看权限</span></td><td class="center"><span class="badge b-no">❌</span></td></tr>
+    <tr><td>出款权限配置</td><td class="center"><span class="badge b-yes">✅（给员工）</span></td><td class="center"><span class="badge b-opt">看权限</span></td><td class="center"><span class="badge b-no">❌</span></td></tr>
+    <tr><td>审核权限配置</td><td class="center"><span class="badge b-yes">✅（给员工）</span></td><td class="center"><span class="badge b-opt">看权限</span></td><td class="center"><span class="badge b-no">❌</span></td></tr>
+    <tr><td>审核提现订单</td><td class="center"><span class="badge b-yes">默认有</span></td><td class="center"><span class="badge b-opt">看权限</span></td><td class="center"><span class="badge b-opt">看权限</span></td></tr>
+    <tr><td>审核人工充值</td><td class="center"><span class="badge b-yes">默认有</span></td><td class="center"><span class="badge b-opt">看权限</span></td><td class="center"><span class="badge b-opt">看权限</span></td></tr>
+    <tr><td>发起人工充值</td><td class="center"><span class="badge b-opt">看权限</span></td><td class="center"><span class="badge b-opt">看权限</span></td><td class="center"><span class="badge b-opt">看权限</span></td></tr>
+    <tr><td>查看报表</td><td class="center">全集团</td><td class="center">授权商户</td><td class="center">本商户</td></tr>
+    <tr><td>处理通道预警</td><td class="center"><span class="badge b-yes">✅</span></td><td class="center"><span class="badge b-yes">✅</span></td><td class="center"><span class="badge b-no">❌</span></td></tr>
+  </table>
+  <p style="font-size:12px;color:#6b7280;margin-top:10px"><i>* 多商户/单商户用户的具体能力完全取决于绑定的角色。建议把"建用户/改通道/出款组别"这类敏感权限只给特定运营角色，普通员工角色不要勾。</i></p>
+</div>
+
+<!-- 附录 B -->
+<div class="chapter" id="appB">
+  <div class="ch-head app">
+    <div class="ch-num">B</div>
+    <div class="ch-info">
+      <h2>附录 · 配置项速查</h2>
+    </div>
+  </div>
+
+  <h3 class="sec app">B.1 角色</h3>
+  <p>角色名（必填）+ 角色代码（必填，唯一）+ 描述 + 权限树勾选</p>
+
+  <h3 class="sec app">B.2 用户基础</h3>
+  <p>账号（必填，全局唯一）+ 姓名（必填）+ 密码（必填）+ 角色（多选）+ 归属商户/ManageTenantIds（多选，决定单/多商户）+ 邮箱</p>
+
+  <h3 class="sec app">B.3 出款权限配置（编辑用户 → 出款权限 Tab）</h3>
+  <p>派单组别（必填）+ 金额区间 [最小,最大]（必填，最大≥最小）+ 处理上限 + 授权商户 + 币种模式 + 出款权限状态 + 单笔/每日/每周/每月 提现额度上限 + 单日提现笔数上限</p>
+
+  <h3 class="sec app">B.4 审核权限配置（编辑用户 → 审核权限 Tab）</h3>
+  <p>出款审核权（开关）+ 人工充值审核权（开关）+ 单笔审核额度上限 + 每日审核额度上限</p>
+
+  <h3 class="sec app">B.5 人工充值权限配置（编辑用户 → 人工充值权限 Tab）</h3>
+  <p>单日发起上限-总次数（0=不限）+ 单日金额发起上限（0=不限）+ 单笔充值金额上限（0=不限）</p>
+
+  <h3 class="sec app">B.6 出款组别</h3>
+  <p>组名（必填，唯一）+ 并发上限[1-100] + 待审核超时[1-9999min] + 已审核超时[1-9999min] + 暂停时长上限[1-9999min]</p>
+
+  <h3 class="sec app">B.7 提现大类</h3>
+  <p>图标 + 商户 + 系统大类（编辑禁用）+ 自定义名（必填）+ 状态（必填）+ 每日次数(0=不限) + 手续费率(0~1) + 排序 + 最小金额 + 最大金额(≥最小) + USDT 最小/最大</p>
+
+  <h3 class="sec app">B.8 提现通道</h3>
+  <p>商户（必填）+ 第三方通道映射码（必填）+ 通道名（必填）+ 提现大类（必填）+ 显示名称(≤20，必填) + 商户通道代码(≤32) + 权重(0-9999) + 自动关闭余额 + 状态（必填）+ 每日额度 + 失败重试次数(0-10)</p>
+
+  <h3 class="sec app">B.9 充值大类</h3>
+  <p>自定义名 + 系统大类 + 状态 + 最小/最大金额 + 赠送类型 + 赠送值 + 手续费类型 + 手续费值 + 时间窗口 + VIP 等级列表 + 商户</p>
+
+  <h3 class="sec app">B.10 充值通道</h3>
+  <p>状态（三端）+ 金额区间 + 时间窗口 + VIP 等级 + 权重 + 商户绑定 + 自动关闭余额 + 整百开关 + 排序</p>
+
+  <h3 class="sec app">B.11 通道预警规则</h3>
+  <p>失败率阈值（百分比）+ 余额不足阈值（金额）+ 响应超时（秒）+ 异常次数</p>
+
+  <h3 class="sec app">B.12 银行映射</h3>
+  <p>第三方银行代码(≤32) + 本地银行代码(≤32) + 银行名（自动）</p>
+</div>
+
+<!-- 附录 C -->
+<div class="chapter" id="appC">
+  <div class="ch-head app">
+    <div class="ch-num">C</div>
+    <div class="ch-info">
+      <h2>附录 · 状态枚举</h2>
+    </div>
+  </div>
+
+  <h3 class="sec app">C.1 提现订单生命周期</h3>
+  <div class="flow">
+    <div class="flow-box gray"><div class="b-title">待派发</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box blue"><div class="b-title">待审核</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-box blue"><div class="b-title">审核中</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box red"><div class="b-title">审核超时</div><div class="b-desc">标红，回流</div></div>
+      <div class="flow-box orange"><div class="b-title">已提交</div></div>
+    </div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box green"><div class="b-title">通过</div></div>
+      <div class="flow-box red"><div class="b-title">拒绝</div></div>
+    </div>
+  </div>
+
+  <h3 class="sec app">C.2 员工工作状态流转</h3>
+  <div class="flow">
+    <div class="flow-box gray"><div class="b-title">未上班</div></div>
+    <div class="flow-arrow">↓ 打卡</div>
+    <div class="flow-box blue"><div class="b-title">上班-未派单</div></div>
+    <div class="flow-arrow">↓ 开始派单</div>
+    <div class="flow-box green"><div class="b-title">上班-派单中</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box orange"><div class="b-title">上班-主动暂停</div><div class="b-desc">自动恢复</div></div>
+      <div class="flow-box red"><div class="b-title">异常暂停</div><div class="b-desc">需管理员【异常恢复】</div></div>
+      <div class="flow-box red"><div class="b-title">停止派单（管理员）</div><div class="b-desc">管理员【开始派单】</div></div>
+    </div>
+    <div class="flow-arrow">↓ 任意状态 → 打卡下班</div>
+    <div class="flow-box gray"><div class="b-title">下班</div></div>
+  </div>
+
+  <h3 class="sec app">C.3 充值订单</h3>
+  <div class="flow">
+    <div class="flow-box blue"><div class="b-title">Wait（待支付）</div></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-row">
+      <div class="flow-box green"><div class="b-title">Payed（已支付）</div></div>
+      <div class="flow-box red"><div class="b-title">Failed（已取消/失败）</div></div>
+    </div>
+  </div>
+
+  <h3 class="sec app">C.4 人工充值</h3>
+  <div class="flow">
+    <div class="flow-box blue"><div class="b-title">员工发起</div></div>
+    <div class="flow-arrow">↓ 受三大限额校验</div>
+    <div class="flow-box orange"><div class="b-title">审核中</div></div>
+    <div class="flow-arrow">↓ 人工充值审核员审核</div>
+    <div class="flow-row">
+      <div class="flow-box green"><div class="b-title">通过 Pass</div></div>
+      <div class="flow-box red"><div class="b-title">拒绝 Reject</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 结尾 -->
+<div class="end">— 运营管理手册结束 —</div>
+
+</div>
+</body>
+</html>
