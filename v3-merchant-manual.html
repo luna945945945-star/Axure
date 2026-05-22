@@ -162,6 +162,17 @@ a.d-box::after{content:" ↗";font-size:11px;opacity:.6;margin-left:4px}
   .wrap{box-shadow:none;max-width:100%}
   .chapter{break-inside:avoid;page-break-inside:avoid}
 }
+
+/* 折叠详情（默认收起） */
+details.detail-block{margin:10px 0;border:1px dashed #d1d5db;border-radius:8px;background:#fafbfc;overflow:hidden}
+details.detail-block > summary{padding:10px 14px;cursor:pointer;font-size:13px;color:#4b5563;font-weight:600;user-select:none;list-style:none;display:flex;align-items:center;gap:8px;background:#f9fafb;transition:background .15s}
+details.detail-block > summary::-webkit-details-marker{display:none}
+details.detail-block > summary::before{content:"▶";font-size:10px;color:#9ca3af;transition:transform .2s;display:inline-block}
+details.detail-block[open] > summary::before{transform:rotate(90deg)}
+details.detail-block > summary:hover{color:#111827;background:#f3f4f6}
+details.detail-block[open] > summary{border-bottom:1px dashed #d1d5db}
+details.detail-block .detail-body{padding:12px 16px 4px}
+details.detail-block .detail-body > *:last-child{margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -659,17 +670,21 @@ a.d-box::after{content:" ↗";font-size:11px;opacity:.6;margin-left:4px}
     <div class="config-step end"><div class="cs-num">Done</div><div class="cs-title">✓ 保存</div></div>
   </div>
 
-  <h4 class="sub">完整字段说明（对照 UI）</h4>
-  <table class="field-tbl">
-    <tr><th>字段</th><th class="center">必填</th><th>说明</th></tr>
-    <tr><td><b>选中前图标 / 选中后图标</b></td><td class="center"><span class="req-mark">*</span></td><td>70×70 像素，jpg / png / webp 格式</td></tr>
-    <tr><td><b>商户</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择，如 (2007)vnd</td></tr>
-    <tr><td><b>内置充值大类</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择系统预设类型（见下表）</td></tr>
-    <tr><td><b>充值大类</b>（前台名称）</td><td class="center"><span class="req-mark">*</span></td><td>用户在前台看到的名字</td></tr>
-    <tr><td><b>排序</b></td><td class="center"><span class="req-mark">*</span></td><td>数字越<b>小</b>越靠前；默认 0</td></tr>
-    <tr><td><b>会员最大待支付单数</b></td><td class="center"><span class="req-mark">*</span></td><td><code>0</code> = 不限制；正整数 = 每个会员最多同时挂起几笔未支付订单</td></tr>
-    <tr><td><b>快捷金额配置</b></td><td class="center">—</td><td>动态行；每行配：金额 + 赠送比率（下拉）+ 数值；可【新增】/【删除】</td></tr>
-  </table>
+  <details class="detail-block">
+    <summary>📖 展开：完整字段说明（对照 UI）</summary>
+    <div class="detail-body">
+      <table class="field-tbl">
+        <tr><th>字段</th><th class="center">必填</th><th>说明</th></tr>
+        <tr><td><b>选中前图标 / 选中后图标</b></td><td class="center"><span class="req-mark">*</span></td><td>70×70 像素，jpg / png / webp 格式</td></tr>
+        <tr><td><b>商户</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择，如 (2007)vnd</td></tr>
+        <tr><td><b>内置充值大类</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择系统预设类型（见下表）</td></tr>
+        <tr><td><b>充值大类</b>（前台名称）</td><td class="center"><span class="req-mark">*</span></td><td>用户在前台看到的名字</td></tr>
+        <tr><td><b>排序</b></td><td class="center"><span class="req-mark">*</span></td><td>数字越<b>小</b>越靠前；默认 0</td></tr>
+        <tr><td><b>会员最大待支付单数</b></td><td class="center"><span class="req-mark">*</span></td><td><code>0</code> = 不限制；正整数 = 每个会员最多同时挂起几笔未支付订单</td></tr>
+        <tr><td><b>快捷金额配置</b></td><td class="center">—</td><td>动态行；每行配：金额 + 赠送比率（下拉）+ 数值；可【新增】/【删除】</td></tr>
+      </table>
+    </div>
+  </details>
 
   <h4 class="sub">内置充值大类类型（系统预设）</h4>
   <table class="field-tbl">
@@ -705,24 +720,28 @@ a.d-box::after{content:" ↗";font-size:11px;opacity:.6;margin-left:4px}
     <div class="config-step end"><div class="cs-num">Done</div><div class="cs-title">✓ 保存</div></div>
   </div>
 
-  <h4 class="sub">完整字段说明（对照 UI）</h4>
-  <table class="field-tbl">
-    <tr><th>字段</th><th class="center">必填</th><th>说明</th></tr>
-    <tr><td><b>商户</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择，如 (2007)vnd</td></tr>
-    <tr><td><b>三方映射码</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择；选完后控制下方"通道名称""通道币种"</td></tr>
-    <tr><td><b>通道名称</b></td><td class="center"><span style="color:#9ca3af;font-style:italic">条件</span></td><td>必须先选三方映射码；之后下拉可选</td></tr>
-    <tr><td><b>通道币种</b></td><td class="center">—</td><td>选完三方映射码<b>自动带出</b>（禁用，不可改）</td></tr>
-    <tr><td><b>充值大类</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择该商户已建好的充值大类</td></tr>
-    <tr><td><b>前台显示名称</b></td><td class="center"><span class="req-mark">*</span></td><td>用户在前台看到的通道名</td></tr>
-    <tr><td><b>三方通道编码</b></td><td class="center">—</td><td>提交给三方的编码标识，<b>≤200 字符</b></td></tr>
-    <tr><td><b>轮询权重</b></td><td class="center"><span class="req-mark">*</span></td><td>系统按权重轮询分配；<code>0</code> = 该通道不参与轮询；默认 0</td></tr>
-    <tr><td><b>实时权重</b></td><td class="center">—</td><td>仅显示，不可编辑；展示当前生效的权重值</td></tr>
-    <tr><td><b>可见等级</b></td><td class="center">—</td><td>下拉选择<b>充值等级</b>（按会员的充值等级过滤通道可见性）；空 = 全等级可见</td></tr>
-    <tr><td><b>可用时间段</b></td><td class="center">—</td><td>HH:mm 格式；默认 <code>00:00 ~ 23:59</code></td></tr>
-    <tr><td><b>充值金额区间</b></td><td class="center">—</td><td>最小金额 ~ 最大金额；超出区间用户不可使用此通道</td></tr>
-    <tr><td><b>备注</b></td><td class="center">—</td><td>内部备注，<b>≤300 字</b></td></tr>
-    <tr><td><b>状态</b></td><td class="center"><span class="req-mark">*</span></td><td>启用 / 禁用 单选</td></tr>
-  </table>
+  <details class="detail-block">
+    <summary>📖 展开：完整字段说明（对照 UI）</summary>
+    <div class="detail-body">
+      <table class="field-tbl">
+        <tr><th>字段</th><th class="center">必填</th><th>说明</th></tr>
+        <tr><td><b>商户</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择，如 (2007)vnd</td></tr>
+        <tr><td><b>三方映射码</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择；选完后控制下方"通道名称""通道币种"</td></tr>
+        <tr><td><b>通道名称</b></td><td class="center"><span style="color:#9ca3af;font-style:italic">条件</span></td><td>必须先选三方映射码；之后下拉可选</td></tr>
+        <tr><td><b>通道币种</b></td><td class="center">—</td><td>选完三方映射码<b>自动带出</b>（禁用，不可改）</td></tr>
+        <tr><td><b>充值大类</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择该商户已建好的充值大类</td></tr>
+        <tr><td><b>前台显示名称</b></td><td class="center"><span class="req-mark">*</span></td><td>用户在前台看到的通道名</td></tr>
+        <tr><td><b>三方通道编码</b></td><td class="center">—</td><td>提交给三方的编码标识，<b>≤200 字符</b></td></tr>
+        <tr><td><b>轮询权重</b></td><td class="center"><span class="req-mark">*</span></td><td>系统按权重轮询分配；<code>0</code> = 该通道不参与轮询；默认 0</td></tr>
+        <tr><td><b>实时权重</b></td><td class="center">—</td><td>仅显示，不可编辑；展示当前生效的权重值</td></tr>
+        <tr><td><b>可见等级</b></td><td class="center">—</td><td>下拉选择<b>充值等级</b>（按会员的充值等级过滤通道可见性）；空 = 全等级可见</td></tr>
+        <tr><td><b>可用时间段</b></td><td class="center">—</td><td>HH:mm 格式；默认 <code>00:00 ~ 23:59</code></td></tr>
+        <tr><td><b>充值金额区间</b></td><td class="center">—</td><td>最小金额 ~ 最大金额；超出区间用户不可使用此通道</td></tr>
+        <tr><td><b>备注</b></td><td class="center">—</td><td>内部备注，<b>≤300 字</b></td></tr>
+        <tr><td><b>状态</b></td><td class="center"><span class="req-mark">*</span></td><td>启用 / 禁用 单选</td></tr>
+      </table>
+    </div>
+  </details>
 
   <h4 class="sub">三端状态（需全部启用通道才生效）</h4>
   <table class="field-tbl">
@@ -765,23 +784,27 @@ a.d-box::after{content:" ↗";font-size:11px;opacity:.6;margin-left:4px}
     <div class="config-step end"><div class="cs-num">Done</div><div class="cs-title">✓ 保存</div></div>
   </div>
 
-  <h4 class="sub">完整字段说明（对照 UI）</h4>
-  <table class="field-tbl">
-    <tr><th>字段</th><th class="center">必填</th><th>说明</th></tr>
-    <tr><td><b>选中前图标 / 选中后图标</b></td><td class="center"><span class="req-mark">*</span></td><td>70×70 像素，jpg / png / webp 格式</td></tr>
-    <tr><td><b>商户</b></td><td class="center"><span class="req-mark">*</span></td><td>编辑模式下<b>禁用</b>，不可改</td></tr>
-    <tr><td><b>内置提现大类</b></td><td class="center"><span class="req-mark">*</span></td><td>编辑模式下<b>禁用</b>；系统预设类型（见下表）</td></tr>
-    <tr><td><b>提现大类</b>（前台名称）</td><td class="center">—</td><td>用户在前台看到的名字</td></tr>
-    <tr><td><b>每日提现次数</b></td><td class="center">—</td><td>该会员每天可提现笔数上限</td></tr>
-    <tr><td><b>提现费率（%）</b></td><td class="center">—</td><td>按百分比收取手续费，如 <code>0.10</code> = 0.1%</td></tr>
-    <tr><td><b>排序</b></td><td class="center"><span class="req-mark">*</span></td><td>显示顺序</td></tr>
-    <tr><td><b>状态</b></td><td class="center">—</td><td>启用 / 禁用 单选；关 = 用户立即看不到</td></tr>
-    <tr><td><b>最小提现金额 / 最大提现金额</b></td><td class="center">—</td><td>单笔提现金额范围</td></tr>
-    <tr><td><b>快捷提现金额</b></td><td class="center">—</td><td>动态行；用户在前台一键选择的金额按钮；【新增】/【删除】</td></tr>
-    <tr><td><b>收取费率金额范围</b></td><td class="center">—</td><td>单笔提现金额在此范围内才收手续费；<b>空 = 不限制（全部收费）</b></td></tr>
-    <tr><td><b>提现提示</b></td><td class="center">—</td><td>前台展示给用户的提示文案，如"今天你提现了吗"</td></tr>
-    <tr><td><b>可用时间段</b></td><td class="center">—</td><td>HH:mm 格式；默认 <code>00:00 ~ 23:59</code></td></tr>
-  </table>
+  <details class="detail-block">
+    <summary>📖 展开：完整字段说明（对照 UI）</summary>
+    <div class="detail-body">
+      <table class="field-tbl">
+        <tr><th>字段</th><th class="center">必填</th><th>说明</th></tr>
+        <tr><td><b>选中前图标 / 选中后图标</b></td><td class="center"><span class="req-mark">*</span></td><td>70×70 像素，jpg / png / webp 格式</td></tr>
+        <tr><td><b>商户</b></td><td class="center"><span class="req-mark">*</span></td><td>编辑模式下<b>禁用</b>，不可改</td></tr>
+        <tr><td><b>内置提现大类</b></td><td class="center"><span class="req-mark">*</span></td><td>编辑模式下<b>禁用</b>；系统预设类型（见下表）</td></tr>
+        <tr><td><b>提现大类</b>（前台名称）</td><td class="center">—</td><td>用户在前台看到的名字</td></tr>
+        <tr><td><b>每日提现次数</b></td><td class="center">—</td><td>该会员每天可提现笔数上限</td></tr>
+        <tr><td><b>提现费率（%）</b></td><td class="center">—</td><td>按百分比收取手续费，如 <code>0.10</code> = 0.1%</td></tr>
+        <tr><td><b>排序</b></td><td class="center"><span class="req-mark">*</span></td><td>显示顺序</td></tr>
+        <tr><td><b>状态</b></td><td class="center">—</td><td>启用 / 禁用 单选；关 = 用户立即看不到</td></tr>
+        <tr><td><b>最小提现金额 / 最大提现金额</b></td><td class="center">—</td><td>单笔提现金额范围</td></tr>
+        <tr><td><b>快捷提现金额</b></td><td class="center">—</td><td>动态行；用户在前台一键选择的金额按钮；【新增】/【删除】</td></tr>
+        <tr><td><b>收取费率金额范围</b></td><td class="center">—</td><td>单笔提现金额在此范围内才收手续费；<b>空 = 不限制（全部收费）</b></td></tr>
+        <tr><td><b>提现提示</b></td><td class="center">—</td><td>前台展示给用户的提示文案，如"今天你提现了吗"</td></tr>
+        <tr><td><b>可用时间段</b></td><td class="center">—</td><td>HH:mm 格式；默认 <code>00:00 ~ 23:59</code></td></tr>
+      </table>
+    </div>
+  </details>
 
   <h4 class="sub">内置提现大类类型（系统预设）</h4>
   <table class="field-tbl">
@@ -821,41 +844,49 @@ a.d-box::after{content:" ↗";font-size:11px;opacity:.6;margin-left:4px}
     <div class="config-step end"><div class="cs-num">Done</div><div class="cs-title">✓ 保存</div></div>
   </div>
 
-  <h4 class="sub">完整字段说明（对照 UI）</h4>
-  <table class="field-tbl">
-    <tr><th>字段</th><th class="center">必填</th><th>说明</th></tr>
-    <tr><td><b>商户</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择，如 (2001)sit-inr</td></tr>
-    <tr><td><b>三方映射码</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择；选完后控制下方"通道名称""通道币种"</td></tr>
-    <tr><td><b>通道名称</b></td><td class="center"><span style="color:#9ca3af;font-style:italic">条件</span></td><td>必须先选三方映射码；之后下拉可选</td></tr>
-    <tr><td><b>通道币种</b></td><td class="center">—</td><td>选完三方映射码<b>自动带出</b>（禁用，不可改）</td></tr>
-    <tr><td><b>提现大类</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择该商户已建好的提现大类</td></tr>
-    <tr><td><b>出款显示名称</b></td><td class="center"><span class="req-mark">*</span></td><td>前台用户看到的通道名，<b>≤20 字</b></td></tr>
-    <tr><td><b>三方通道编码</b></td><td class="center">—</td><td>提交给三方的编码标识，<b>≤64 字</b></td></tr>
-    <tr><td><b>自动出款权重</b></td><td class="center"><span class="req-mark">*</span></td><td>系统按权重轮询分配；<code>0</code> = 该通道不参与自动出款（人工审核仍可选）；默认 0</td></tr>
-    <tr><td><b>自动关闭阈值</b></td><td class="center">—</td><td>第三方账户余额低于此值时通道<b>自动关闭</b></td></tr>
-    <tr><td><b>提现金额区间</b></td><td class="center">—</td><td>最小 ~ 最大金额；<b>留空表示不限制</b></td></tr>
-    <tr><td><b>是否整百提现</b></td><td class="center">—</td><td>是 / 否 切换；默认"否"。<b>是 = 提现金额必须是 100 的倍数</b></td></tr>
-    <tr><td><b>状态</b></td><td class="center"><span class="req-mark">*</span></td><td>开启 / 关闭 单选</td></tr>
-    <tr><td><b>备注</b></td><td class="center">—</td><td>内部备注，<b>≤300 字</b></td></tr>
-  </table>
+  <details class="detail-block">
+    <summary>📖 展开：完整字段说明（对照 UI）</summary>
+    <div class="detail-body">
+      <table class="field-tbl">
+        <tr><th>字段</th><th class="center">必填</th><th>说明</th></tr>
+        <tr><td><b>商户</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择，如 (2001)sit-inr</td></tr>
+        <tr><td><b>三方映射码</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择；选完后控制下方"通道名称""通道币种"</td></tr>
+        <tr><td><b>通道名称</b></td><td class="center"><span style="color:#9ca3af;font-style:italic">条件</span></td><td>必须先选三方映射码；之后下拉可选</td></tr>
+        <tr><td><b>通道币种</b></td><td class="center">—</td><td>选完三方映射码<b>自动带出</b>（禁用，不可改）</td></tr>
+        <tr><td><b>提现大类</b></td><td class="center"><span class="req-mark">*</span></td><td>下拉选择该商户已建好的提现大类</td></tr>
+        <tr><td><b>出款显示名称</b></td><td class="center"><span class="req-mark">*</span></td><td>前台用户看到的通道名，<b>≤20 字</b></td></tr>
+        <tr><td><b>三方通道编码</b></td><td class="center">—</td><td>提交给三方的编码标识，<b>≤64 字</b></td></tr>
+        <tr><td><b>自动出款权重</b></td><td class="center"><span class="req-mark">*</span></td><td>系统按权重轮询分配；<code>0</code> = 该通道不参与自动出款（人工审核仍可选）；默认 0</td></tr>
+        <tr><td><b>自动关闭阈值</b></td><td class="center">—</td><td>第三方账户余额低于此值时通道<b>自动关闭</b></td></tr>
+        <tr><td><b>提现金额区间</b></td><td class="center">—</td><td>最小 ~ 最大金额；<b>留空表示不限制</b></td></tr>
+        <tr><td><b>是否整百提现</b></td><td class="center">—</td><td>是 / 否 切换；默认"否"。<b>是 = 提现金额必须是 100 的倍数</b></td></tr>
+        <tr><td><b>状态</b></td><td class="center"><span class="req-mark">*</span></td><td>开启 / 关闭 单选</td></tr>
+        <tr><td><b>备注</b></td><td class="center">—</td><td>内部备注，<b>≤300 字</b></td></tr>
+      </table>
+    </div>
+  </details>
 
   <div class="tip warn"><div class="icon">🔒</div><div>
     <b>编辑模式下不可改的字段</b>：商户、三方映射码、通道名称（防止改后通道挂错）<br>
     每条通道行有<b>【测试支付】</b>按钮，进行真实出款测试
   </div></div>
 
-  <h4 class="sub">提现通道筛选 8 条规则（同时满足）</h4>
-  <table class="field-tbl">
-    <tr><th class="center">#</th><th>条件</th></tr>
-    <tr><td class="center">①</td><td>三端状态全启用</td></tr>
-    <tr><td class="center">②</td><td>通道自身未关闭（"状态" = 开启）</td></tr>
-    <tr><td class="center">③</td><td>订单金额 ∈ 通道金额区间</td></tr>
-    <tr><td class="center">④</td><td>"是否整百提现" = 是 → 金额需是 100 倍数</td></tr>
-    <tr><td class="center">⑤</td><td>商户绑定匹配</td></tr>
-    <tr><td class="center">⑥</td><td>大类归属正确（属于用户选的提现大类）</td></tr>
-    <tr><td class="center">⑦</td><td>大类的"可用时间段"匹配（时间窗口在大类层，通道继承）</td></tr>
-    <tr><td class="center">⑧</td><td>自动出款权重 &gt; 0（自动出款；人工审核可选 0 权重）</td></tr>
-  </table>
+  <details class="detail-block">
+    <summary>📖 展开：提现通道筛选 8 条规则（同时满足）</summary>
+    <div class="detail-body">
+      <table class="field-tbl">
+        <tr><th class="center">#</th><th>条件</th></tr>
+        <tr><td class="center">①</td><td>三端状态全启用</td></tr>
+        <tr><td class="center">②</td><td>通道自身未关闭（"状态" = 开启）</td></tr>
+        <tr><td class="center">③</td><td>订单金额 ∈ 通道金额区间</td></tr>
+        <tr><td class="center">④</td><td>"是否整百提现" = 是 → 金额需是 100 倍数</td></tr>
+        <tr><td class="center">⑤</td><td>商户绑定匹配</td></tr>
+        <tr><td class="center">⑥</td><td>大类归属正确（属于用户选的提现大类）</td></tr>
+        <tr><td class="center">⑦</td><td>大类的"可用时间段"匹配（时间窗口在大类层，通道继承）</td></tr>
+        <tr><td class="center">⑧</td><td>自动出款权重 &gt; 0（自动出款；人工审核可选 0 权重）</td></tr>
+      </table>
+    </div>
+  </details>
 
   <h3 class="sec ch5">5.7 通用业务规则</h3>
   <table class="field-tbl">
