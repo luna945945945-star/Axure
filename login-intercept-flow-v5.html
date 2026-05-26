@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>未登录访问扩展 · PRD V3.2 + 流程图</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;background:#f5f4f8;color:#222;line-height:1.7;font-size:14px}
+
+/* 顶部 Tab */
+.top-tabs{position:sticky;top:0;z-index:100;background:#1d1f3a;display:flex;padding:0 24px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.top-tabs .tab{background:transparent;border:none;color:rgba(255,255,255,.6);font-size:14px;padding:14px 22px;cursor:pointer;font-family:inherit;border-bottom:3px solid transparent;display:inline-flex;align-items:center;gap:6px;transition:all .2s}
+.top-tabs .tab:hover{color:#fff}
+.top-tabs .tab.active{color:#fff;border-bottom-color:#ff5566;font-weight:600}
+.top-tabs .meta{margin-left:auto;color:rgba(255,255,255,.5);font-size:12px;align-self:center;padding-right:6px}
+
+.page{display:none;padding:28px 24px;max-width:1280px;margin:0 auto}
+.page.active{display:block}
+
+/* PRD 样式 */
+h1{font-size:26px;margin-bottom:6px;color:#1d1f3a}
+.sub{color:#666;font-size:13px;margin-bottom:24px}
+h2{font-size:20px;margin:30px 0 12px;color:#1d1f3a;padding:6px 0 6px 12px;border-left:4px solid #ff5566;background:linear-gradient(90deg,#fff7e6 0%,transparent 60%)}
+h3{font-size:15px;margin:18px 0 8px;color:#333;font-weight:700}
+h4{font-size:13.5px;margin:14px 0 6px;color:#444;font-weight:700}
+p{margin:8px 0;color:#444}
+ul,ol{margin:8px 0 8px 22px}
+li{margin:4px 0;color:#444}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;background:#fff}
+table th,table td{border:1px solid #eee;padding:7px 10px;text-align:left;vertical-align:top}
+table th{background:#fafafa;font-weight:600;color:#333}
+table tr:hover td{background:#fcfcfc}
+code{background:#fff5e6;padding:1px 6px;border-radius:3px;font-family:'SF Mono',Menlo,monospace;font-size:12px;color:#874d00}
+pre{background:#1d1f3a;color:#e6e6e6;padding:14px 16px;border-radius:8px;margin:10px 0;overflow-x:auto;font-family:'SF Mono',Menlo,monospace;font-size:12.5px;line-height:1.6}
+pre code{background:transparent;color:inherit;padding:0}
+b,strong{color:#1d1f3a}
+.note{background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:10px 14px;color:#874d00;margin:10px 0}
+.danger{background:#fff1f0;border:1px solid #ffa39e;border-radius:6px;padding:10px 14px;color:#a8071a;margin:10px 0}
+.success{background:#f6ffed;border:1px solid #b7eb8f;border-radius:6px;padding:10px 14px;color:#389e0d;margin:10px 0}
+.toc{background:#fff;border-radius:10px;padding:14px 20px;margin:16px 0 24px;border:1px solid #eee;font-size:13px;line-height:2}
+.toc a{color:#1677ff;text-decoration:none;margin-right:18px;display:inline-block}
+.toc a:hover{text-decoration:underline}
+.toc-row{display:flex;flex-wrap:wrap;gap:0 8px}
+
+.tag{display:inline-block;padding:1px 7px;border-radius:3px;font-size:11px;font-weight:600;margin-right:4px}
+.tag.keep{background:#f5f5f5;color:#666;border:1px solid #ddd}
+.tag.change{background:#fff1f0;color:#ff4d4f;border:1px solid #ffa39e}
+.tag.new{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.tag.p0{background:#fff1f0;color:#ff4d4f;border:1px solid #ffa39e}
+.tag.p1{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
+.tag.p2{background:#f0f5ff;color:#1677ff;border:1px solid #adc6ff}
+
+/* 流程图 */
+.legend{background:#fff;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;gap:18px;flex-wrap:wrap;font-size:13px;border:1px solid #eee}
+.legend b{color:#ff5566}
+.flow-section{background:#fff;border-radius:12px;padding:22px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.flow-section h3{font-size:17px;margin:0 0 6px;color:#1d1f3a;display:flex;align-items:center;gap:8px}
+.flow-section h3::before{content:"";width:4px;height:18px;background:#ff5566;border-radius:2px}
+.flow-section .desc{font-size:13px;color:#666;margin-bottom:14px;padding-left:12px;border-left:2px dashed #ddd;line-height:1.7}
+.mermaid{display:flex;justify-content:center;overflow-x:auto;background:#fafafa;border-radius:8px;padding:16px;min-height:120px}
+
+.footer{text-align:center;color:#999;font-size:12px;padding:24px 0}
+
+/* 打印支持 */
+@media print {
+  .top-tabs{display:none}
+  .page{display:block !important;page-break-after:always;max-width:100%}
+  #page-flow{page-break-before:always}
+}
+</style>
+</head>
+<body>
+
+<nav class="top-tabs">
+  <button class="tab active" data-page="prd">📄 需求文档 V3.2</button>
+  <button class="tab" data-page="flow">🌳 流程图</button>
+  <span class="meta">编写日期 2026-05-26 · V1 系统</span>
+</nav>
+
+<!-- ============================================== -->
+<!-- 第一页：PRD V3.2 终稿                          -->
+<!-- ============================================== -->
+<section id="page-prd" class="page active">
+
+  <h1>未登录访问扩展 · 详细需求说明</h1>
+
+  <div class="toc">
+    📑 <b>目录</b>
+    <div class="toc-row">
+      <a href="#s1">1. 背景与目标</a>
+      <a href="#s2">2. 本期范围</a>
+      <a href="#s3">3. 开发关注点分工</a>
+      <a href="#s4">4. Tab 改造详情</a>
+      <a href="#s5">5. 软拦截抽屉规范</a>
+      <a href="#s6">6. 活动咨询 banner 分发规则</a>
+      <a href="#s7">7. 登录回跳逻辑</a>
+      <a href="#s8">8. 横切要求</a>
+      <a href="#s9">9. 名词与易误解数据速查</a>
+    </div>
+  </div>
+
+  <!-- 1. 背景与目标 -->
+  <h2 id="s1">1. 背景与目标</h2>
+  <p>V1 客户端当前对未登录用户采用「<b>橱窗 + 硬拦截</b>」策略：UI 可看，按钮一点就硬跳登录页，没有任何前置提示。Activity / Wheel / Promotion 三个 Tab 内共有 30+ 个硬跳入口，导致访客踩雷、登录漏斗失血，邀请规则等本应公开的内容也被锁在登录后。</p>
+  <p><b>本期目标</b>：用「软拦截抽屉」替代硬跳，让用户在被引导登录前能完整体验橱窗内容；同时把公共内容由 B 升 A，开放给未登录用户访问。</p>
+  <table>
+    <tr><th>核心指标</th><th>目标值</th></tr>
+    <tr><td>未登录用户在三个 Tab 的停留时长</td><td>+15%</td></tr>
+    <tr><td>软拦截抽屉「立即登录参与」点击率</td><td>≥ 25%</td></tr>
+    <tr><td>公共内容开放面</td><td>活动咨询详情 / 邀请规则 / 返佣比例 由 B 升 A</td></tr>
+  </table>
+
+  <!-- 2. 本期范围 -->
+  <h2 id="s2">2. 本期范围</h2>
+  <table>
+    <tr><th>Tab</th><th>本期</th></tr>
+    <tr><td>🏠 Home</td><td><span class="tag keep">保持现状不变</span> 所有点击仍硬跳登录页</td></tr>
+    <tr><td>🎁 Activity</td><td><span class="tag change">本期改造</span></td></tr>
+    <tr><td>🎡 Wheel</td><td><span class="tag change">本期改造</span></td></tr>
+    <tr><td>💰 Promotion</td><td><span class="tag change">本期改造</span></td></tr>
+    <tr><td>👤 Mine</td><td><span class="tag keep">保持现状不变</span> 整 Tab 继续拦截</td></tr>
+  </table>
+  <p><b>不在本期范围：</b></p>
+  <ul>
+    <li>Home / Mine 内任何交互（沿用线上硬跳）</li>
+    <li>在线客服 / 工单系统（沿用现有逻辑，本期不动）</li>
+    <li>用户行为埋点 / 数据看板（V1 暂无埋点基建，核心 KPI 用现有服务端日志覆盖）</li>
+    <li>技术实现方案（接口设计、组件架构等由开发自行评估）</li>
+  </ul>
+
+  <!-- 3. 开发关注点分工 -->
+  <h2 id="s3">3. 开发关注点分工</h2>
+  <p>按角色分别列出本期改造的核心关注项，详细业务规则见后续章节。</p>
+
+  <h3>3.1 后端关注</h3>
+  <table>
+    <tr><th>关注点</th><th>说明</th></tr>
+    <tr><td>接口由「需登录」改为「未登录可访问」</td><td>邀请规则 / 返佣比例 / 活动咨询详情 / 活动咨询列表 — 需返回数据但不强制要求登录态</td></tr>
+    <tr><td>活动咨询配置新增「访问权限」字段</td><td>详见 §6 后台配置要求，控制 banner 未登录态是否可见</td></tr>
+    <tr><td>Wheel Tab 判定依据</td><td>复用现有「邀请转盘活动开关」（IsOpenInvitedWheel），本期不新增任何配置项 / 接口</td></tr>
+    <tr><td>B 类接口的 401 响应规范</td><td>三个 Tab 范围内未登录访问 B 类接口时，需返回足够的错误信息供前端识别并触发软拦截抽屉（不再强制前端硬跳）</td></tr>
+    <tr><td>Home / Mine 路径下的接口</td><td>保持现状，不参与改造</td></tr>
+  </table>
+
+  <h3>3.2 客户端（H5）关注</h3>
+  <table>
+    <tr><th>关注点</th><th>说明</th></tr>
+    <tr><td>软拦截抽屉组件</td><td>全局通用组件，title / desc / redirect 动态传入。详见 §5</td></tr>
+    <tr><td>Activity 价值钩子 hero</td><td>未登录态替换原数据 hero，<b>不展示金额数字</b>。详见 §4.1</td></tr>
+    <tr><td>Wheel Tab 入口分流</td><td>按活动开关判定 A/B 类。详见 §4.2</td></tr>
+    <tr><td>Promotion 入口分流</td><td>2 项公共内容直接放行，其他软拦截。详见 §4.3</td></tr>
+    <tr><td>活动咨询 banner 分发</td><td>按 JumpLinkType / Visibility / JumpType 优先级判定。详见 §6</td></tr>
+    <tr><td>登录回跳</td><td>沿用 V1 已有能力 + 缓存原入口 30 分钟。详见 §7</td></tr>
+    <tr><td>多语言文案</td><td>所有新增文案需提供多语言。详见 §8.1</td></tr>
+    <tr><td>异常降级</td><td>接口失败 / 配置缺失时的默认行为。详见 §8.2</td></tr>
+  </table>
+
+  <h3>3.3 运营 / 后台关注</h3>
+  <table>
+    <tr><th>关注点</th><th>说明</th></tr>
+    <tr><td>活动咨询配置表单</td><td>新增「访问权限」单选项（公开 / 需登录）。详见 §6 后台配置要求</td></tr>
+    <tr><td>JumpType=4 内链配置校验</td><td>选择目标路由属于 B 类时弹提示，避免运营误配</td></tr>
+    <tr><td>存量数据迁移</td><td>按规则智能迁移（非全部默认公开），保证列表展示与实际行为一致。详见 §6.4</td></tr>
+  </table>
+
+  <!-- 4. Tab 改造详情 -->
+  <h2 id="s4">4. Tab 改造详情</h2>
+
+  <h3>4.1 Activity Tab</h3>
+  <p><b>未登录态顶部 hero 替换为价值钩子 hero：</b></p>
+  <ul>
+    <li>标题：<code>🎁 登录解锁全部奖励</code></li>
+    <li>副文：<code>8 项专属奖励等你解锁</code></li>
+    <li>CTA：<code>立即登录解锁 ›</code>（点击 → 软拦截抽屉）</li>
+    <li><b>设计约束</b>：不展示具体金额数字，避免未登录用户产生预期落差</li>
+    <li>已登录态保留原版 hero（Today's bonus / Total bonus / Bonus details）</li>
+  </ul>
+  <p><b>入口点击行为（外观与线上完全一致，不加锁标 / 不加灰度）：</b></p>
+  <table>
+    <tr><th>入口</th><th>未登录行为</th></tr>
+    <tr><td>6 个活动图标：Activity Award / Invitation bonus / Betting rebate / Super Jackpot / First gift / Invite Wheel</td><td>软拦截抽屉</td></tr>
+    <tr><td>2 个 feature 卡片：Gifts / Attendance bonus</td><td>软拦截抽屉</td></tr>
+    <tr><td>活动咨询列表 → banner 点击</td><td>按 §6 分发规则处理</td></tr>
+  </table>
+
+  <h3>4.2 Wheel Tab</h3>
+  <p><b>核心规则</b>：Wheel Tab 中间按钮的访问类按后台已有的「邀请转盘活动开关（<code>IsOpenInvitedWheel</code>）」判定，<b>不引入任何新配置</b>。</p>
+  <table>
+    <tr><th>活动开关</th><th>未登录点击</th><th>已登录点击</th></tr>
+    <tr><td>开启</td><td>进二级页（橱窗模式）</td><td>进二级页（真实数据）</td></tr>
+    <tr><td>关闭</td><td><b>软拦截抽屉</b>「邀请转盘」需登录后参与</td><td>进二级页（按线上现状展示）</td></tr>
+  </table>
+  <p><b>活动开启时的二级页内三个按钮：</b></p>
+  <ul>
+    <li>CASH OUT、X1 FREE SPIN、INVITE FRIENDS FOR REWARDS</li>
+    <li>未登录点击均触发软拦截抽屉</li>
+    <li>二级页 <code>my amount</code> 数据来自后台「活动总奖金额」配置，<b>不是个人余额</b>，仅营销展示</li>
+  </ul>
+
+  <h3>4.3 Promotion Tab</h3>
+  <p><b>页面 UI 完全保留线上原版</b>——不加价值钩子 hero、不加锁标、不加灰度。</p>
+  <table>
+    <tr><th>入口</th><th>未登录行为</th></tr>
+    <tr><td><b>Invitation rules</b>（邀请规则）</td><td><b>升 A 类</b>，直接进富文本详情页</td></tr>
+    <tr><td><b>Rebate ratio</b>（返佣比例）</td><td><b>升 A 类</b>，直接进富文本详情页</td></tr>
+    <tr><td>Download QR Code</td><td>软拦截抽屉</td></tr>
+    <tr><td>Partner rewards</td><td>软拦截抽屉</td></tr>
+    <tr><td>Copy invitation code</td><td>软拦截抽屉</td></tr>
+    <tr><td>Subordinate data</td><td>软拦截抽屉</td></tr>
+    <tr><td>Commission detail</td><td>软拦截抽屉</td></tr>
+    <tr><td>Agent line customer service</td><td>软拦截抽屉</td></tr>
+  </table>
+
+  <!-- 5. 软拦截抽屉 -->
+  <h2 id="s5">5. 软拦截抽屉规范</h2>
+
+  <h3>5.1 视觉与交互</h3>
+  <p>从底部 slide-up 弹出（250ms ease-out），抽屉内含：</p>
+  <ul>
+    <li>🔒 圆形图标</li>
+    <li>标题：「[功能名]」需登录后参与</li>
+    <li>描述文案（场景化）</li>
+    <li>主按钮：🎁 立即登录参与（点击跳登录页，登录成功后按 §7 自动回跳）</li>
+    <li>次按钮：暂不登录，继续浏览</li>
+  </ul>
+  <p><b>关闭方式</b>：点蒙层 / 次按钮 / Android 物理返回键</p>
+
+  <h3>5.2 文案对照表（按入口）</h3>
+  <table>
+    <tr><th>入口</th><th>标题</th><th>描述</th></tr>
+    <tr><td>Activity 6 图标 / 2 卡片</td><td>「[活动名]」需登录后参与</td><td>登录后即可参与「[活动名]」，并解锁全部 8 项专属奖励</td></tr>
+    <tr><td>Activity hero CTA</td><td>🎁 登录解锁全部 8 项奖励</td><td>登录后即可参与全部专属活动</td></tr>
+    <tr><td>活动咨询 Visibility=1</td><td>「[banner 标题]」需登录后查看</td><td>该内容需登录后访问</td></tr>
+    <tr><td>活动咨询 JumpLinkType=1 子游戏</td><td>「[游戏名]」需登录后进入</td><td>登录后即可进入游戏「[游戏名]」</td></tr>
+    <tr><td>Wheel 三按钮（活动开启）</td><td>「[按钮名]」需登录后参与</td><td>登录后即可参与「[按钮名]」，并解锁全部 8 项专属奖励</td></tr>
+    <tr><td>Wheel Tab（活动未开 + 未登录）</td><td>「邀请转盘」需登录后参与</td><td>登录后查看邀请转盘活动开启进度</td></tr>
+    <tr><td>Promotion 6 项 B 类</td><td>「[项目名]」需登录后查看</td><td>登录后即可访问 [项目名]</td></tr>
+  </table>
+
+  <!-- 6. JumpType -->
+  <h2 id="s6">6. 活动咨询 banner 分发规则</h2>
+
+  <h3>6.1 判定优先级</h3>
+  <p>点击 banner 时按以下顺序判定：</p>
+  <ol>
+    <li><b>JumpLinkType = 1</b>（子游戏）→ 未登录软拦截</li>
+    <li><b>Visibility = 1</b>（运营标记需登录）→ 未登录软拦截</li>
+    <li>否则按 <b>JumpType</b> 默认行为</li>
+  </ol>
+  <div class="danger"><b>核心原则</b>：<b>目标页的访问类决定行为，不是入口的访问类</b>。同一活动详情页无论从哪个入口进入，未登录用户体验都保持一致。</div>
+
+  <h3>6.2 JumpType 默认行为</h3>
+  <table>
+    <tr><th>JumpType</th><th>名称</th><th>默认行为</th></tr>
+    <tr><td>1</td><td>富文本</td><td>直接进富文本详情页（A 类）</td></tr>
+    <tr><td>2</td><td>外链</td><td>在 WebView 内打开外链 URL（建议先展示中转页提示用户即将离开）</td></tr>
+    <tr><td>3</td><td>图片</td><td>全屏图片预览</td></tr>
+    <tr><td>4</td><td>内链</td><td>按目标页 A/B 类判定，目标页 B 类则未登录软拦截</td></tr>
+    <tr><td>5</td><td>客服</td><td>沿用现有客服跳转逻辑，本期不改动</td></tr>
+  </table>
+
+  <h3>6.3 运营后台配置要求</h3>
+  <ul>
+    <li>活动咨询配置表单新增「<b>访问权限</b>」单选项：
+      <ul>
+        <li>公开（未登录可见，默认）</li>
+        <li>需登录后访问</li>
+      </ul>
+      对应字段 Visibility = 0 / 1
+    </li>
+    <li>选择 JumpType=4 内链且目标路由属于 B 类时，<b>弹提示</b>告知运营该入口未登录用户会被软拦截</li>
+  </ul>
+
+  <h3>6.4 存量数据迁移规则</h3>
+  <p>本字段新增上线时，需对历史 banner 数据做一次性智能迁移，<b>不允许全部默认设为「公开」</b>，避免出现「列表显示公开但运行时实际被拦截」的语义不一致。</p>
+  <p>迁移规则（按以下顺序判定，命中即设值）：</p>
+  <table>
+    <tr><th>条件</th><th>迁移后 Visibility</th><th>理由</th></tr>
+    <tr><td>JumpLinkType = 1（子游戏）</td><td><b>1 需登录</b></td><td>子游戏必须登录，与运行时规则①保持一致</td></tr>
+    <tr><td>JumpType = 4（内链）且目标路由属于<b>B 类白名单</b></td><td><b>1 需登录</b></td><td>目标页本身需登录，运营后台展示与运行时行为一致</td></tr>
+    <tr><td>其他所有 banner（含 JumpType=1/2/3/5、JumpType=4 跳 A 类等）</td><td>0 公开</td><td>本就属于公开内容</td></tr>
+  </table>
+  <p><b>B 类路由白名单</b>由开发与运营共同确认，初版建议至少包含：</p>
+  <ul>
+    <li><code>/wallet/*</code>（钱包相关，含充值 / 提现 / 交易记录）</li>
+    <li><code>/my/*</code>（我的中心相关）</li>
+    <li><code>/promotion/partner-rewards</code>、<code>/promotion/subordinate-data</code>、<code>/promotion/commission-detail</code> 等 Promotion 内 B 类子页</li>
+    <li><code>/activity/*</code> 中各活动详情页（如 First gift / Invitation bonus 等）</li>
+  </ul>
+  <p class="note">迁移脚本由开发实施，运营仅需提供 B 类路由清单。后续如发现遗漏可手工修正个别 banner 的访问权限。</p>
+
+  <!-- 7. 登录回跳 -->
+  <h2 id="s7">7. 登录回跳逻辑</h2>
+  <p>V1 已具备登录成功回跳能力，沿用现有机制。redirectTarget 由客户端本地缓存，<b>有效期 30 分钟</b>，超时跳首页。多次拦截以最后一次为准。</p>
+  <table>
+    <tr><th>触发场景</th><th>登录后行为</th></tr>
+    <tr><td>Activity 6 图标 / 2 卡片 / hero CTA</td><td>进对应活动详情</td></tr>
+    <tr><td>活动咨询 banner</td><td>重新执行该 banner 的 JumpType 分发</td></tr>
+    <tr><td>活动咨询子游戏</td><td>启动对应游戏</td></tr>
+    <tr><td>Wheel Tab（活动未开 + 未登录登录后）</td><td>进 Wheel 二级页</td></tr>
+    <tr><td>Wheel 三按钮</td><td>重新触发该按钮动作</td></tr>
+    <tr><td>Promotion 6 项 B 类</td><td>进对应详情</td></tr>
+    <tr><td>注册成功</td><td>同上</td></tr>
+  </table>
+
+  <!-- 8. 横切要求 -->
+  <h2 id="s8">8. 横切要求</h2>
+
+  <h3>8.1 多语言</h3>
+  <p>本期所有<b>新增文案</b>必须沿用 V1 现有多语言体系，覆盖站点支持的全部语言（中文 / 英文 / 等）。需翻译的文案集：</p>
+  <ul>
+    <li>Activity 价值钩子 hero 三段（标题 / 副文 / CTA）</li>
+    <li>软拦截抽屉的所有标题与描述（详见 §5.2 全表）</li>
+    <li>Wheel Tab 邀请转盘相关提示文案</li>
+    <li>邀请规则 / 返佣比例富文本内容（如运营录入需要多语言版本）</li>
+  </ul>
+  <p><b>翻译要求</b>：</p>
+  <ul>
+    <li><b>同步上线</b>：避免出现「中文已上但其他语言未上」的体验断层</li>
+    <li><b>缺译 fallback</b>：若某语言文案缺失，前端应 fallback 到英文，<b>不允许直接显示 key</b>（如 <code>intercept.title</code>）</li>
+    <li><b>文案集中管理</b>：建议所有抽屉文案归入同一 i18n namespace（如 <code>intercept</code>），便于运营 / 翻译统一审校</li>
+  </ul>
+
+  <h3>8.2 异常与降级</h3>
+  <table>
+    <tr><th>异常场景</th><th>处理方式</th></tr>
+    <tr><td>A 类接口失败（如邀请规则）</td><td>前端展示「内容加载失败，请稍后重试」，<b>不要硬跳登录</b></td></tr>
+    <tr><td>IsOpenInvitedWheel 配置缺失 / 异常</td><td>默认按「活动未开启」处理（更安全，避免误展示橱窗）</td></tr>
+    <tr><td>banner 配置异常（缺 JumpType 字段）</td><td>点击无响应或提示「该活动暂不可用」</td></tr>
+    <tr><td>redirectTarget 超过 30 分钟</td><td>直接丢弃，登录成功后跳首页，不报错</td></tr>
+    <tr><td>登录页不存在 / 跳转失败</td><td>降级到原硬跳逻辑</td></tr>
+  </table>
+
+  <h3>8.3 运营后台配置汇总</h3>
+  <p>本期改造涉及的所有后台配置项（仅 banner 访问权限为新增，其余均沿用现有）：</p>
+  <table>
+    <tr><th>配置项</th><th>用途</th><th>本期变化</th></tr>
+    <tr><td>活动咨询 banner「访问权限」</td><td>控制未登录用户能否查看 banner 详情</td><td><span class="tag new">新增</span></td></tr>
+    <tr><td>「平台累计派发金额」</td><td>已登录态 Activity hero 显示</td><td>沿用</td></tr>
+    <tr><td>「活动总奖金额」</td><td>Wheel 二级页 my amount 显示</td><td>沿用</td></tr>
+    <tr><td>邀请转盘活动开关（IsOpenInvitedWheel）</td><td>Wheel Tab 入口 A/B 判定依据</td><td>沿用</td></tr>
+  </table>
+
+  <!-- 9. 名词速查 -->
+  <h2 id="s9">9. 名词与易误解数据速查</h2>
+
+  <h3>9.1 名词约定</h3>
+  <table>
+    <tr><th>术语</th><th>含义</th></tr>
+    <tr><td><b>A 类（开放）</b></td><td>未登录可正常访问，无任何拦截</td></tr>
+    <tr><td><b>B 类（需登录）</b></td><td>未登录点击触发软拦截抽屉</td></tr>
+    <tr><td><b>软拦截</b></td><td>底部抽屉，不切换路由，提供「立即登录参与 / 暂不登录」两个动作</td></tr>
+    <tr><td><b>硬拦截</b></td><td>直接跳登录页（本期 Home / Mine 仍保留）</td></tr>
+    <tr><td><b>JumpType</b></td><td>banner 跳转类型（1 富文本 / 2 外链 / 3 图片 / 4 内链 / 5 客服）</td></tr>
+    <tr><td><b>Visibility</b></td><td>banner 访问权限（0 公开 / 1 需登录）</td></tr>
+    <tr><td><b>JumpLinkType</b></td><td>内链子类型，=1 为子游戏（必须登录）</td></tr>
+    <tr><td><b>IsOpenInvitedWheel</b></td><td>后台已有的邀请转盘活动开关，Wheel Tab 入口 A/B 判定唯一依据</td></tr>
+  </table>
+
+  <h3>9.2 容易误解的数据</h3>
+  <table>
+    <tr><th>字段</th><th>真实来源</th><th>说明</th></tr>
+    <tr><td>Activity 顶部 Total bonus</td><td>后台「平台累计派发金额」配置</td><td>线上现状字段。<b>未登录态新方案不展示金额数字</b></td></tr>
+    <tr><td>Wheel 二级页 my amount</td><td>后台「活动总奖金额」配置</td><td><b>不是个人余额</b>，仅营销展示</td></tr>
+    <tr><td>Promotion 顶部 commission / Direct / Team 数据</td><td>个人接口</td><td>未登录态返回 0</td></tr>
+  </table>
+
+</section>
+
+<!-- ============================================== -->
+<!-- 第二页：流程图                                  -->
+<!-- ============================================== -->
+<section id="page-flow" class="page">
+
+  <h1>🌳 未登录访问扩展 · 完整流程图</h1>
+  <div class="sub">配套 PRD V3.2 · 4 张子图覆盖未登录态全部交互路径</div>
+
+  <div class="legend">
+    <span><b>✅</b> 通行（不拦截）</span>
+    <span><b>📋</b> 软拦截抽屉（新机制）</span>
+    <span><b>💥</b> 硬跳 /login（保留现状，仅 Home / Mine）</span>
+    <span><b>🔁</b> 登录成功后自动回跳</span>
+    <span><b>❎</b> 关闭抽屉留原页</span>
+    <span><b>❓</b> 判定节点</span>
+    <span><b>👆</b> 用户操作</span>
+  </div>
+
+  <!-- ① 主图 -->
+  <div class="flow-section">
+    <h3>① 总览主图（5 Tab 路径分流）</h3>
+    <div class="desc">
+      <span class="tag keep">保持现状</span> Home / Mine ── 硬跳 /login，不改造<br>
+      <span class="tag change">本期改造</span> Activity / Wheel / Promotion ── 软拦截 + 部分入口升 A 类
+    </div>
+    <div class="mermaid">
+flowchart TD
+    Start([🚀 未登录用户进入站点]):::start
+
+    Start --> H[🏠 Home Tab<br/>★ 保持现状 ★]:::keep
+    Start --> A[🎁 Activity Tab]:::change
+    Start --> W[🎡 Wheel Tab 中间按钮]:::change
+    Start --> P[💰 Promotion Tab]:::change
+    Start --> M[👤 Mine Tab<br/>★ 保持现状 ★]:::keep
+
+    H -->|点游戏卡 / 公告 / 充值 / 邮件 / Jackpot 等任意| Hard1[💥 硬跳 /login]:::hard
+    M -->|进 Tab| Hard2[💥 硬跳 /login]:::hard
+
+    A --> A_hero[🎁 价值钩子 hero<br/>👆 立即登录解锁]
+    A --> A_6[🏆 6 活动图标<br/>Award/Bonus/Rebate/Jackpot/Gift/Wheel]
+    A --> A_2[🎁 2 卡片<br/>Gifts / Attendance]
+    A --> A_news[📰 活动咨询列表<br/>👉 子图 ②]:::link
+
+    A_hero --> Sheet[(📋 软拦截抽屉<br/>👉 子图 ④)]:::sheet
+    A_6 --> Sheet
+    A_2 --> Sheet
+
+    W --> W_dispatch[🎯 IsOpenInvitedWheel 分流<br/>👉 子图 ③]:::link
+
+    P --> P_rules[👆 Invitation rules]
+    P --> P_rebate[👆 Rebate ratio]
+    P --> P_b[👆 其他 6 项<br/>QR / Partner / Code /<br/>Sub / Comm / Agent]
+    P_rules --> OK_R[✅ 富文本详情页<br/>升级为 A 类]:::ok
+    P_rebate --> OK_RR[✅ 富文本详情页<br/>升级为 A 类]:::ok
+    P_b --> Sheet
+
+    classDef start fill:#1d1f3a,stroke:#1d1f3a,color:#fff
+    classDef keep fill:#f5f5f5,stroke:#999,color:#666
+    classDef change fill:#fff,stroke:#ff5566,color:#222,stroke-width:2px
+    classDef hard fill:#fff1f0,stroke:#ff4d4f,color:#ff4d4f
+    classDef sheet fill:#fff7e6,stroke:#fa8c16,color:#874d00
+    classDef ok fill:#f6ffed,stroke:#52c41a,color:#389e0d
+    classDef link fill:#e6f7ff,stroke:#1677ff,color:#1677ff
+    </div>
+  </div>
+
+  <!-- ② Banner 分发 -->
+  <div class="flow-section">
+    <h3>② 活动咨询 banner 分发（按优先级判定）</h3>
+    <div class="desc">
+      <b>判定优先级</b>：① JumpLinkType=1 子游戏 → ② Visibility=1 需登录 → ③ JumpType 默认分发<br>
+      <b>核心原则</b>：目标页的访问类决定行为，不是入口的访问类
+    </div>
+    <div class="mermaid">
+flowchart TD
+    BannerStart([👆 点击活动咨询 banner]):::start
+
+    BannerStart --> Pri1{① JumpLinkType == 1<br/>子游戏?}
+    Pri1 -->|是| Sheet[(📋 软拦截抽屉<br/>「需登录后进入」)]:::sheet
+    Pri1 -->|否| Pri2{② Visibility == 1<br/>运营标记需登录?}
+    Pri2 -->|是| Sheet
+    Pri2 -->|否| JT{③ 按 JumpType 分发}
+
+    JT -->|1 富文本| OK1[✅ 富文本详情页<br/>渲染 banner 配置正文]:::ok
+    JT -->|2 外链| OK2[✅ 外链中转页<br/>WebView 打开 URL]:::ok
+    JT -->|3 图片| OK3[✅ 全屏图片预览]:::ok
+    JT -->|4 内链| In{目标页 A 或 B?}
+    In -->|A 类目标| OK4[✅ 直接进站内页]:::ok
+    In -->|B 类目标| Sheet
+    JT -->|5 客服| OK5[✅ 跳现有客服页<br/>本期不改动]:::ok
+
+    classDef start fill:#1d1f3a,stroke:#1d1f3a,color:#fff
+    classDef sheet fill:#fff7e6,stroke:#fa8c16,color:#874d00
+    classDef ok fill:#f6ffed,stroke:#52c41a,color:#389e0d
+    </div>
+  </div>
+
+  <!-- ③ Wheel 活动开关分流 -->
+  <div class="flow-section">
+    <h3>③ Wheel Tab 中间按钮 · 活动开关分流</h3>
+    <div class="desc">
+      <b>仅依赖后台已有 Setting <code>IsOpenInvitedWheel</code></b>（无新增接口）<br>
+      <b>关键</b>：按钮的 A/B 判定 = 活动开关状态判定
+    </div>
+    <div class="mermaid">
+flowchart TD
+    WStart([👆 点 Wheel Tab 中间按钮]):::start
+
+    WStart --> WO{后台 IsOpenInvitedWheel}
+
+    WO -->|= 1 活动已开启| WPage[✅ Invitation Wheel 二级页<br/>橱窗模式<br/>my amount ₹500.00<br/>8 格转盘 / Record]:::ok
+    WO -->|= 0 活动未开启 + 未登录| Sheet[(📋 软拦截抽屉<br/>「邀请转盘」需登录后参与)]:::sheet
+    WO -->|= 0 活动未开启 + 已登录| Empty[✅ 进二级页<br/>按线上现状展示]:::ok
+
+    WPage --> Btn1[👆 CASH OUT]
+    WPage --> Btn2[👆 X1 FREE SPIN]
+    WPage --> Btn3[👆 INVITE FRIENDS]
+    Btn1 --> Sheet
+    Btn2 --> Sheet
+    Btn3 --> Sheet
+
+    classDef start fill:#1d1f3a,stroke:#1d1f3a,color:#fff
+    classDef sheet fill:#fff7e6,stroke:#fa8c16,color:#874d00
+    classDef ok fill:#f6ffed,stroke:#52c41a,color:#389e0d
+    </div>
+  </div>
+
+  <!-- ④ 软拦截抽屉子流程 -->
+  <div class="flow-section">
+    <h3>④ 软拦截抽屉子流程（任一 📋 节点触发后进入）</h3>
+    <div class="desc">
+      <b>动画</b>：底部 slide-up 250ms ease-out / 蒙层 rgba(0,0,0,.5)<br>
+      <b>回跳</b>：redirectTarget 缓存 30 分钟，超时跳首页
+    </div>
+    <div class="mermaid">
+flowchart TD
+    Trigger([📋 触发软拦截抽屉]):::start
+    Trigger --> Show[💬 抽屉弹出 slide-up 250ms<br/>🔒 标题 / 描述 /<br/>主按钮 + 次按钮]
+
+    Show --> Action{用户操作}
+    Action -->|点蒙层| Close[❎ 关闭抽屉<br/>留原页 保留 redirectTarget]:::close
+    Action -->|点 暂不登录 继续浏览| Close
+    Action -->|点 🎁 立即登录参与| Save[💾 缓存 redirectTarget<br/>本地存储<br/>30 min 有效期]
+
+    Save --> Goto[🔀 跳转 /login]
+    Goto --> LoginPage{在 /login 页}
+    LoginPage -->|👆 输完账密 登录成功| Redirect[🔁 自动回跳]:::ok
+    LoginPage -->|👆 点立即注册 注册成功| Redirect
+
+    Redirect --> R1[activity-entry/code<br/>→ 进对应活动详情]
+    Redirect --> R2[banner/id<br/>→ 重走 banner JumpType 分发]
+    Redirect --> R3[game/gameCode<br/>→ 启动游戏]
+    Redirect --> R4[wheel-tab / wheel-action<br/>→ 回 Wheel 二级页或动作]
+    Redirect --> R5[promo/itemCode<br/>→ 进推广对应详情]
+    Redirect --> R7[无 / 超时<br/>→ 跳首页]:::fallback
+
+    classDef start fill:#1d1f3a,stroke:#1d1f3a,color:#fff
+    classDef close fill:#f5f5f5,stroke:#999,color:#666
+    classDef ok fill:#f6ffed,stroke:#52c41a,color:#389e0d
+    classDef fallback fill:#fff7e6,stroke:#fa8c16,color:#874d00
+    </div>
+  </div>
+
+  <div class="footer">
+    🖼️ 浏览器打印 → 另存为 PDF 可导出本文档完整版（PRD + 流程图分页）<br>
+    源码：mermaid 10.9.1 · 浏览器直接打开本 HTML 即可渲染
+  </div>
+
+</section>
+
+<script>
+// Tab 切换
+document.querySelectorAll('.top-tabs .tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const pageId = btn.dataset.page;
+    document.querySelectorAll('.top-tabs .tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + pageId).classList.add('active');
+    window.scrollTo({top:0, behavior:'instant'});
+  });
+});
+
+// Mermaid 初始化
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'default',
+  flowchart: {
+    curve: 'basis',
+    htmlLabels: true,
+    nodeSpacing: 50,
+    rankSpacing: 60,
+    padding: 15
+  },
+  themeVariables: {
+    fontFamily: '"PingFang SC","Microsoft YaHei",-apple-system,sans-serif',
+    fontSize: '13px'
+  }
+});
+</script>
+</body>
+</html>
