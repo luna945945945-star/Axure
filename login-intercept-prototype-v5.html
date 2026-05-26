@@ -119,11 +119,8 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 .act-entry .ico.i5{background:linear-gradient(135deg,#06d6a0,#1b9aaa)}
 .act-entry .ico.i6{background:linear-gradient(135deg,#fc6076,#ff9a44)}
 
-/* 未登录态：B类入口灰度处理 */
-.guest-mode .act-entry.b-class .ico{filter:grayscale(.55) brightness(.92);opacity:.82}
-.guest-mode .act-entry.b-class .nm{color:#888}
-.guest-mode .act-entry.b-class .lock-corner{display:flex !important}
-.act-entry .lock-corner{display:none;position:absolute;top:-3px;right:-3px;width:18px;height:18px;background:#ff4d4f;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:10px;border:1.5px solid #fff;z-index:6;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+/* 活动页 B 类入口：不再做视觉差异（去掉锁标 + 灰度），仅点击行为不同 */
+.act-entry .lock-corner{display:none !important}
 
 /* 价值钩子 hero（未登录展示） */
 .act-hero-guest{display:none}
@@ -144,10 +141,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 .act-feat .nm{font-size:12px;font-weight:700;color:#222;margin-bottom:3px}
 .act-feat .desc{font-size:10px;color:#999;line-height:1.4}
 .act-feat .nm{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-.act-feat .b-tag{background:#fff1f0;color:#ff4d4f;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;display:none;align-items:center;gap:2px;border:1px solid #ffa39e;line-height:1.4}
-.guest-mode .act-feat.b-class .b-tag{display:inline-flex}
-.guest-mode .act-feat.b-class .pic{filter:grayscale(.5) brightness(.95)}
-.guest-mode .act-feat.b-class .nm .nm-text{color:#888}
+.act-feat .b-tag{display:none !important}
 
 /* 软拦截：底部抽屉 */
 .intercept-sheet-mask{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;opacity:0;transition:opacity .2s}
@@ -225,6 +219,40 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 .img-preview .close-btn{position:absolute;top:14px;right:14px;color:#fff;font-size:22px;cursor:pointer;background:rgba(255,255,255,.15);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
 .img-preview .pic-title{position:absolute;bottom:30px;left:0;right:0;text-align:center;color:#fff;font-size:13px}
 
+/* 转盘 Wheel 二级活动页 */
+.wheel-page{background:#0a0a1f;background-image:radial-gradient(2px 2px at 20% 30%,rgba(255,255,255,.6),transparent),radial-gradient(2px 2px at 60% 70%,rgba(255,255,255,.5),transparent),radial-gradient(1.5px 1.5px at 30% 80%,rgba(255,255,255,.7),transparent),radial-gradient(1.5px 1.5px at 80% 20%,rgba(255,255,255,.5),transparent),radial-gradient(2px 2px at 50% 50%,rgba(255,255,255,.4),transparent),radial-gradient(1px 1px at 90% 60%,rgba(255,255,255,.6),transparent),linear-gradient(180deg,#0a0a1f 0%,#1a1a3a 100%);background-size:300px 300px,250px 250px,200px 200px,280px 280px,220px 220px,180px 180px,100% 100%;min-height:100%;color:#fff;padding-bottom:20px}
+.wheel-header{display:flex;align-items:center;padding:12px 14px;color:#fff}
+.wheel-header .back{font-size:22px;cursor:pointer;width:28px;color:#fff}
+.wheel-header .title{flex:1;text-align:center;font-size:15px;font-weight:600}
+.wheel-header .icons{display:flex;gap:14px;font-size:18px;color:#4cc9f0}
+.wheel-header .icons span{cursor:pointer}
+.wheel-amount{text-align:center;padding:8px 0 16px}
+.wheel-amount .lbl{font-size:13px;color:rgba(255,255,255,.85);margin-bottom:8px}
+.wheel-amount .amt{font-size:32px;font-weight:900;background:linear-gradient(180deg,#ffd97a 30%,#fa8c16);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 2px 8px rgba(250,140,22,.4);margin-bottom:12px;font-family:'SF Mono',monospace}
+.cash-out-btn{background:linear-gradient(180deg,#4cc9f0,#1677ff);color:#fff;border:none;border-radius:24px;padding:9px 38px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(22,119,255,.5);letter-spacing:1px}
+.wheel-spinner-wrap{display:flex;justify-content:center;padding:14px 20px;position:relative}
+.wheel-spinner{width:260px;height:260px;border-radius:50%;position:relative;background:conic-gradient(from -22.5deg,#ffd97a 0deg 45deg,#fff 45deg 90deg,#ffd97a 90deg 135deg,#fff 135deg 180deg,#ffd97a 180deg 225deg,#fff 225deg 270deg,#ffd97a 270deg 315deg,#fff 315deg 360deg);border:6px solid #f72b2b;box-shadow:0 0 0 4px #ffd97a,0 0 25px rgba(255,217,122,.6),inset 0 0 0 4px #fff}
+.wheel-spinner::before{content:"";position:absolute;inset:6px;border-radius:50%;border:1.5px dashed rgba(247,43,43,.2);pointer-events:none}
+.wheel-pointer{position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:24px solid #ffd97a;z-index:5;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.wheel-prize{position:absolute;font-size:22px;left:50%;top:50%;transform-origin:center}
+.wheel-prize.p1{transform:translate(-50%,-50%) rotate(0deg) translateY(-92px)}
+.wheel-prize.p2{transform:translate(-50%,-50%) rotate(45deg) translateY(-92px)}
+.wheel-prize.p3{transform:translate(-50%,-50%) rotate(90deg) translateY(-92px)}
+.wheel-prize.p4{transform:translate(-50%,-50%) rotate(135deg) translateY(-92px)}
+.wheel-prize.p5{transform:translate(-50%,-50%) rotate(180deg) translateY(-92px)}
+.wheel-prize.p6{transform:translate(-50%,-50%) rotate(225deg) translateY(-92px)}
+.wheel-prize.p7{transform:translate(-50%,-50%) rotate(270deg) translateY(-92px)}
+.wheel-prize.p8{transform:translate(-50%,-50%) rotate(315deg) translateY(-92px)}
+.wheel-prize span{display:block;transform:rotate(var(--counter,0deg))}
+.wheel-spin-btn{position:absolute;width:80px;height:80px;border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#fff 0%,#fff 60%,transparent 65%);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3}
+.wheel-spin-btn .inner{width:64px;height:64px;border-radius:50%;background:linear-gradient(180deg,#ff5566,#c0392b);color:#fff;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;border:3px solid #ffd97a;box-shadow:0 4px 12px rgba(247,43,43,.6),inset 0 -3px 6px rgba(0,0,0,.2)}
+.wheel-spin-btn .inner .x1{font-size:22px;letter-spacing:1px;line-height:1}
+.wheel-spin-btn .inner .lbl{font-size:8px;margin-top:2px;letter-spacing:1px}
+.wheel-spin-btn:active .inner{transform:scale(.95)}
+.invite-btn{display:block;margin:18px auto 6px;background:linear-gradient(180deg,#4cc9f0,#1677ff);color:#fff;border:none;border-radius:24px;padding:11px 30px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(22,119,255,.5);letter-spacing:.5px;min-width:280px}
+.wheel-sub{text-align:center;color:rgba(255,255,255,.75);font-size:11px;margin-bottom:18px}
+.wheel-record{padding:0 16px;color:#fff;font-size:14px;font-weight:700}
+
 /* 在线客服页 */
 .cs-page{background:#f5f4f8;min-height:100%}
 .cs-hero{background:linear-gradient(135deg,#4cc9f0,#4895ef);padding:14px;display:flex;align-items:center;gap:12px;color:#fff}
@@ -274,36 +302,21 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 .promo-row .val{font-size:12px;color:#999;margin-right:6px;font-family:'SF Mono',monospace}
 .promo-row .arrow{color:#bbb;font-size:14px}
 
-/* 推广页 hero（未登录态） */
-.promo-hero-guest{display:none;background:linear-gradient(135deg,#ff8a8a,#ff5566);padding:24px 16px;color:#fff;text-align:center;margin-bottom:10px}
+/* 推广页顶部：Yesterday's total commission（已登录态） */
+.promo-top{background:linear-gradient(135deg,#ff8a8a,#ff5566);padding:20px 16px 24px;color:#fff;text-align:center}
+.promo-top .pt-amt{font-size:30px;font-weight:800;line-height:1;margin-bottom:8px;font-family:'SF Mono',monospace}
+.promo-top .pt-pill{display:inline-block;background:#fff;color:#ff5566;font-size:11.5px;font-weight:700;padding:4px 14px;border-radius:14px;margin-bottom:8px}
+.promo-top .pt-sub{font-size:11px;opacity:.95}
+
+/* 推广页价值钩子 hero（未登录态） */
+.promo-hero-guest{display:none;background:linear-gradient(135deg,#ff8a8a,#ff5566);padding:32px 20px 26px;color:#fff;text-align:center}
 .guest-mode #page-promotion .promo-hero-guest{display:block}
-.guest-mode #page-promotion .promo-data-logged{display:none}
-.promo-hero-guest .ph-icon{font-size:38px;margin-bottom:8px}
-.promo-hero-guest .ph-title{font-size:17px;font-weight:800;margin-bottom:5px}
-.promo-hero-guest .ph-sub{font-size:11.5px;opacity:.92;margin-bottom:13px;line-height:1.5}
-.promo-hero-guest .ph-btn{background:#fff;color:#ff5566;font-size:13px;font-weight:800;padding:8px 24px;border-radius:18px;border:none;font-family:inherit;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.18);margin-bottom:10px}
-.promo-hero-guest .ph-tip{font-size:11px;opacity:.95;background:rgba(255,255,255,.18);border-radius:14px;padding:6px 12px;display:inline-block}
+.guest-mode #page-promotion .promo-top-logged{display:none}
+.promo-hero-guest .ph-title{font-size:20px;font-weight:800;margin-bottom:8px;letter-spacing:.5px}
+.promo-hero-guest .ph-sub{font-size:12px;opacity:.95;margin-bottom:18px;line-height:1.5}
+.promo-hero-guest .ph-btn{background:#fff;color:#ff5566;font-size:13.5px;font-weight:800;padding:9px 32px;border-radius:22px;border:none;font-family:inherit;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.18);margin-bottom:14px}
+.promo-hero-guest .ph-tip{font-size:11px;opacity:.95;background:rgba(255,255,255,.18);border-radius:14px;padding:6px 14px;display:inline-block}
 .promo-hero-guest .ph-tip b{font-weight:700;text-decoration:underline}
-
-/* 分区头 */
-.promo-sec-head{padding:8px 14px 6px;background:#f5f4f8}
-.promo-sec-head .sec-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;display:inline-block}
-.promo-sec-head .sec-tag.a-sec{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
-.promo-sec-head .sec-tag.b-sec{background:#fff1f0;color:#ff4d4f;border:1px solid #ffa39e}
-
-/* 行级 A/B 标识 */
-.promo-row .row-tag{font-size:9.5px;padding:2px 6px;border-radius:3px;font-weight:600;margin-right:8px;line-height:1.4}
-.promo-row .a-tag-mini{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
-.promo-row .b-tag-mini{background:#fff1f0;color:#ff4d4f;border:1px solid #ffa39e}
-.promo-row.a-row .ico-a{background:linear-gradient(135deg,#b7eb8f,#52c41a);color:#fff}
-.promo-row.a-row .name{color:#222;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-/* 未登录态：B 类行灰度 */
-.guest-mode .promo-row.b-row .ico{filter:grayscale(.55);opacity:.7}
-.guest-mode .promo-row.b-row .name{color:#888}
-.guest-mode .promo-row.b-row .val{color:#bbb}
-/* 已登录态：隐藏 mini 行标 */
-.promo-row .b-tag-mini{display:none}
-.guest-mode .promo-row .b-tag-mini{display:inline-block}
 
 /* ===== 钱包/我的 简化 ===== */
 .wallet-page,.my-page{padding:16px;background:#f5f4f8;min-height:100%}
@@ -427,9 +440,9 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
         <div class="sheet-handle"></div>
         <div class="sheet-ico">🔒</div>
         <div class="sheet-title" id="sheet-title">该活动需登录后参与</div>
-        <div class="sheet-desc" id="sheet-desc">登录后即可领取 <b>「活动奖励」</b>，并解锁全部 8 项专属奖励</div>
+        <div class="sheet-desc" id="sheet-desc">登录后即可参与 <b>「活动奖励」</b>，并解锁全部 8 项专属奖励</div>
         <div class="sheet-btns">
-          <button class="btn-login" onclick="confirmGoLogin()">🎁 立即登录领取</button>
+          <button class="btn-login" onclick="confirmGoLogin()">🎁 立即登录参与</button>
           <button class="btn-cancel" onclick="closeInterceptSheet()">暂不登录，继续浏览</button>
         </div>
       </div>
@@ -528,27 +541,27 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           <div class="act-entries">
             <div class="act-grid">
               <div class="act-entry b-class" onclick="onActEntryClick('activity-award')">
-                <div class="ico i1">🏆<span class="lock-corner">🔒</span></div>
+                <div class="ico i1">🏆</div>
                 <div class="nm">Activity Award</div>
               </div>
               <div class="act-entry b-class" onclick="onActEntryClick('invitation-bonus')">
-                <div class="ico i2">👥<span class="lock-corner">🔒</span></div>
+                <div class="ico i2">👥</div>
                 <div class="nm">Invitation bonus</div>
               </div>
               <div class="act-entry b-class" onclick="onActEntryClick('betting-rebate')">
-                <div class="ico i3">💰<span class="lock-corner">🔒</span></div>
+                <div class="ico i3">💰</div>
                 <div class="nm">Betting rebate</div>
               </div>
               <div class="act-entry b-class" onclick="onActEntryClick('super-jackpot')">
-                <div class="ico i4">🏆<span class="badge-num">11</span><span class="lock-corner">🔒</span></div>
+                <div class="ico i4">🏆<span class="badge-num">11</span></div>
                 <div class="nm">Super Jackpot</div>
               </div>
               <div class="act-entry b-class" onclick="onActEntryClick('first-gift')">
-                <div class="ico i5">🎁<span class="lock-corner">🔒</span></div>
+                <div class="ico i5">🎁</div>
                 <div class="nm">First gift</div>
               </div>
               <div class="act-entry b-class" onclick="onActEntryClick('invite-wheel')">
-                <div class="ico i6">🎡<span class="lock-corner">🔒</span></div>
+                <div class="ico i6">🎡</div>
                 <div class="nm">Invite Wheel</div>
               </div>
             </div>
@@ -556,12 +569,12 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
             <div class="act-feat-row">
               <div class="act-feat b-class" onclick="onActEntryClick('gifts')">
                 <div class="pic">🎁</div>
-                <div class="nm"><span class="nm-text">Gifts</span><span class="b-tag">🔒 需登录</span></div>
+                <div class="nm"><span class="nm-text">Gifts</span></div>
                 <div class="desc">Enter the redemption code to receive gift rewards</div>
               </div>
               <div class="act-feat f2 b-class" onclick="onActEntryClick('attendance')">
                 <div class="pic">📅</div>
-                <div class="nm"><span class="nm-text">Attendance bonus</span><span class="b-tag">🔒 需登录</span></div>
+                <div class="nm"><span class="nm-text">Attendance bonus</span></div>
                 <div class="desc">The more consecutive days you sign in, the higher the reward will be.</div>
               </div>
             </div>
@@ -588,24 +601,30 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
         <div class="tab-bar"></div>
       </div>
 
-      <!-- ============= 推广页（整页 B 类） ============= -->
+      <!-- ============= 推广页（原始 UI · 行级 A/B 行为分流） ============= -->
       <div class="pa" id="page-promotion">
         <span class="cls-corner a">混合</span>
         <div class="page-content" style="padding:0">
           <div class="promo-page">
             <div class="promo-title">Agency<span class="ico-right">🧧</span></div>
 
-            <!-- 未登录态：价值钩子 -->
+            <!-- 未登录态：价值钩子 hero -->
             <div class="promo-hero-guest">
-              <div class="ph-icon">🤝</div>
               <div class="ph-title">代理推广中心</div>
               <div class="ph-sub">登录后查看专属邀请码、下级数据、佣金明细</div>
               <button class="ph-btn" onclick="onBClick('promotion-overview')">立即登录查看 ›</button>
               <div class="ph-tip">💡 不想登录？可先查看 <b>邀请规则</b> 与 <b>返佣比例</b></div>
             </div>
 
-            <!-- 已登录态：原数据区 -->
-            <div class="promo-data promo-data-logged">
+            <!-- 已登录态：Yesterday's total commission -->
+            <div class="promo-top promo-top-logged">
+              <div class="pt-amt">0</div>
+              <div class="pt-pill">Yesterday's total commission</div>
+              <div class="pt-sub">Upgrade the level to increase commission income</div>
+            </div>
+
+            <!-- Direct/Team subordinates -->
+            <div class="promo-data">
               <div class="col">
                 <div class="top-tab">Direct subordinates</div>
                 <div class="stat"><div class="val">0</div><div class="lbl">number of register</div></div>
@@ -621,59 +640,31 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
                 <div class="stat"><div class="val">0</div><div class="lbl">Number of people making first deposit</div></div>
               </div>
             </div>
-            <div class="qr-btn promo-data-logged" onclick="onBClick('qrcode')">Download QR Code</div>
 
-            <!-- 公共区（A类）：邀请规则 / 返佣比例 -->
-            <div class="promo-sec-head">
-              <span class="sec-tag a-sec">✅ 公开内容（未登录可查看）</span>
-            </div>
-            <div class="promo-list">
-              <div class="promo-row a-row" onclick="goPage('invitation-rules')">
-                <div class="ico ico-a">📜</div>
-                <div class="name">Invitation rules <span class="row-tag a-tag-mini">公开</span></div>
-                <span class="arrow">›</span>
-              </div>
-              <div class="promo-row a-row" onclick="goPage('rebate-ratio')">
-                <div class="ico ico-a">💵</div>
-                <div class="name">Rebate ratio <span class="row-tag a-tag-mini">公开</span></div>
-                <span class="arrow">›</span>
-              </div>
-            </div>
+            <div class="qr-btn" onclick="onBClick('qrcode')">Download QR Code</div>
 
-            <!-- 私密区（B类）：需登录 -->
-            <div class="promo-sec-head">
-              <span class="sec-tag b-sec">🔒 需登录后查看</span>
-            </div>
+            <!-- 统一列表（外观与原 UI 一致；A/B 仅在点击行为上区分） -->
             <div class="promo-list">
-              <div class="promo-row b-row" onclick="onBClick('partner-rewards')">
-                <div class="ico">👥</div>
-                <div class="name">Partner rewards</div>
-                <span class="row-tag b-tag-mini">🔒 需登录</span>
-                <span class="arrow">›</span>
+              <div class="promo-row" onclick="onBClick('partner-rewards')">
+                <div class="ico">👥</div><div class="name">Partner rewards</div><span class="arrow">›</span>
               </div>
-              <div class="promo-row b-row" onclick="onBClick('invite-code')">
-                <div class="ico">📋</div>
-                <div class="name">Copy invitation code</div>
-                <span class="row-tag b-tag-mini">🔒 需登录</span>
-                <span class="arrow">›</span>
+              <div class="promo-row" onclick="onBClick('invite-code')">
+                <div class="ico">📋</div><div class="name">Copy invitation code</div><span class="val">783622243947</span><span class="arrow">⎘</span>
               </div>
-              <div class="promo-row b-row" onclick="onBClick('subordinate-data')">
-                <div class="ico">📊</div>
-                <div class="name">Subordinate data</div>
-                <span class="row-tag b-tag-mini">🔒 需登录</span>
-                <span class="arrow">›</span>
+              <div class="promo-row" onclick="onBClick('subordinate-data')">
+                <div class="ico">📊</div><div class="name">Subordinate data</div><span class="arrow">›</span>
               </div>
-              <div class="promo-row b-row" onclick="onBClick('commission-detail')">
-                <div class="ico">💰</div>
-                <div class="name">Commission detail</div>
-                <span class="row-tag b-tag-mini">🔒 需登录</span>
-                <span class="arrow">›</span>
+              <div class="promo-row" onclick="onBClick('commission-detail')">
+                <div class="ico">💰</div><div class="name">Commission detail</div><span class="arrow">›</span>
               </div>
-              <div class="promo-row b-row" onclick="onBClick('agent-service')">
-                <div class="ico">🎧</div>
-                <div class="name">Agent line customer service</div>
-                <span class="row-tag b-tag-mini">🔒 需登录</span>
-                <span class="arrow">›</span>
+              <div class="promo-row" onclick="goPage('invitation-rules')">
+                <div class="ico">📜</div><div class="name">Invitation rules</div><span class="arrow">›</span>
+              </div>
+              <div class="promo-row" onclick="onBClick('agent-service')">
+                <div class="ico">🎧</div><div class="name">Agent line customer service</div><span class="arrow">›</span>
+              </div>
+              <div class="promo-row" onclick="goPage('rebate-ratio')">
+                <div class="ico">💵</div><div class="name">Rebate ratio</div><span class="arrow">›</span>
               </div>
             </div>
           </div>
@@ -722,6 +713,49 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- ============= 转盘 Wheel · Invitation Wheel（A 类，二级页可进）============= -->
+      <div class="pa" id="page-wheel">
+        <span class="cls-corner a">A · 开放</span>
+        <div class="page-content" style="padding:0">
+          <div class="wheel-page">
+            <div class="wheel-header">
+              <span class="back" onclick="goPage('home')">‹</span>
+              <span class="title">Invitation Wheel</span>
+              <div class="icons"><span onclick="alert('帮助说明')">⊙</span><span onclick="alert('Record 记录列表')">▤</span></div>
+            </div>
+
+            <div class="wheel-amount">
+              <div class="lbl">my amount</div>
+              <div class="amt">₹500.00</div>
+              <button class="cash-out-btn" onclick="onBClick('wheel-cash-out')">CASH OUT</button>
+            </div>
+
+            <div class="wheel-spinner-wrap">
+              <div class="wheel-spinner">
+                <div class="wheel-pointer"></div>
+                <div class="wheel-prize p1"><span>💵</span></div>
+                <div class="wheel-prize p2"><span>💰</span></div>
+                <div class="wheel-prize p3"><span>💵</span></div>
+                <div class="wheel-prize p4"><span>💰</span></div>
+                <div class="wheel-prize p5"><span>💵</span></div>
+                <div class="wheel-prize p6"><span>💰</span></div>
+                <div class="wheel-prize p7"><span>💵</span></div>
+                <div class="wheel-prize p8"><span>💰</span></div>
+                <div class="wheel-spin-btn" onclick="onBClick('wheel-free-spin')">
+                  <div class="inner"><div class="x1">X1</div><div class="lbl">FREE SPIN</div></div>
+                </div>
+              </div>
+            </div>
+
+            <button class="invite-btn" onclick="onBClick('wheel-invite-friends')">INVITE FRIENDS FOR REWARDS</button>
+            <div class="wheel-sub">Only ₹0.00 left to get prize ₹500.00</div>
+
+            <div class="wheel-record">Record</div>
+          </div>
+        </div>
+        <div class="tab-bar"></div>
       </div>
 
       <!-- ============= 在线客服 · 访客工单（A 类） ============= -->
@@ -1016,6 +1050,7 @@ const PAGE_CLASS = {
   // A类（开放）
   home:'A', activity:'A',
   promotion:'A',  // 改为 A：允许进入，页内行级 A/B 混排
+  wheel:'A',      // 转盘 Tab 可进二级活动页
   login:'A', register:'A',
   'news-detail':'A',
   'banner-detail':'A','external-link':'A','image-preview':'A',
@@ -1085,7 +1120,11 @@ const B_ENTRY_NAMES = {
   'partner-rewards':'合伙人奖励',
   'subordinate-data':'下级数据',
   'commission-detail':'返佣明细',
-  'agent-service':'代理客服'
+  'agent-service':'代理客服',
+  // 转盘 Wheel 二级页 B 类按钮
+  'wheel-cash-out':'提现 CASH OUT',
+  'wheel-free-spin':'免费抽奖',
+  'wheel-invite-friends':'邀请好友'
 };
 
 let state = {
@@ -1125,7 +1164,7 @@ function renderTabBars(){
     <div class="tab-item" data-tab="activity" onclick="switchTab('activity')">
       <span class="tab-ico">🎁</span><span>Activity</span>
     </div>
-    <div class="tab-item center" data-tab="wheel" onclick="onBClick('wheel')">
+    <div class="tab-item center" data-tab="wheel" onclick="switchTab('wheel')">
       <div class="ico-wheel">🎡</div>
     </div>
     <div class="tab-item" data-tab="promotion" onclick="switchTab('promotion')">
@@ -1143,7 +1182,7 @@ function renderTabBars(){
 
 function setActiveTab(page){
   let tabKey = page;
-  if(['home','activity','promotion','my'].indexOf(page)===-1){
+  if(['home','activity','wheel','promotion','my'].indexOf(page)===-1){
     // 不在主 Tab 上时清除高亮
     tabKey = '';
   }
@@ -1223,7 +1262,7 @@ function onActEntryClick(entry){
     } else {
       openInterceptSheet({
         title:`「${name}」需登录后参与`,
-        desc:`登录后即可领取 <b>「${name}」</b>，并解锁全部 8 项专属奖励`,
+        desc:`登录后即可参与 <b>「${name}」</b>，并解锁全部 8 项专属奖励`,
         redirect:entry
       });
     }
@@ -1399,6 +1438,24 @@ function submitGuestTicket(){
 document.querySelector('.phone-screen').classList.add('guest-mode');
 renderTabBars();
 renderNewsList();
+
+// URL hash 支持（用于截图工具，不影响默认演示）
+// 例：#page=activity / #page=promotion&login=true / #page=wheel&sheet=on
+(function(){
+  const hash = window.location.hash;
+  if(!hash) return;
+  const params = {};
+  hash.slice(1).split('&').forEach(p=>{const [k,v]=p.split('=');params[k]=v;});
+  if(params.login==='true') setLogin(true);
+  if(params.page) goPage(params.page);
+  if(params.sheet==='on'){
+    setTimeout(()=>openInterceptSheet({
+      title:`「Activity Award」需登录后参与`,
+      desc:`登录后即可参与 <b>「Activity Award」</b>，并解锁全部 8 项专属奖励`,
+      redirect:'activity-award'
+    }),100);
+  }
+})();
 </script>
 </body>
 </html>
