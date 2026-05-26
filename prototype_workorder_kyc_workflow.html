@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>存款/取款未到账工单 — 核查工作台升级（原型）</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:#f0f2f5;color:#333;font-size:14px}
+
+  .nav-tabs{display:flex;background:#fff;border-bottom:2px solid #e8e8e8;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow-x:auto;white-space:nowrap}
+  .nav-tab{padding:14px 22px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:#666;font-size:14px;white-space:nowrap;transition:all .2s;flex-shrink:0}
+  .nav-tab.active{color:#2080f0;border-bottom-color:#2080f0;font-weight:600}
+  .nav-tab:hover{color:#2080f0;background:#f8faff}
+  .nav-tab .num{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;background:#e8e8e8;border-radius:50%;font-size:11px;margin-right:6px;color:#666}
+  .nav-tab.active .num{background:#2080f0;color:#fff}
+
+  .page{display:none;padding:20px;max-width:1400px;margin:0 auto}
+  .page.active{display:block}
+
+  .card{background:#fff;border-radius:8px;padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .card-title{font-size:15px;font-weight:600;margin-bottom:14px;color:#222;display:flex;align-items:center;gap:8px}
+  .card-title .badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#e3f2fd;color:#1976d2;font-weight:normal}
+
+  /* 工单列表样式 */
+  .filter-row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:14px}
+  .filter-item{display:flex;flex-direction:column;gap:4px}
+  .filter-item label{font-size:12px;color:#666}
+  .filter-item input,.filter-item select{height:30px;padding:0 10px;border:1px solid #d9d9d9;border-radius:4px;font-size:13px;outline:none;min-width:140px}
+  .filter-item input:focus,.filter-item select:focus{border-color:#2080f0}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{background:#fafafa;font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid #e8e8e8;color:#555;white-space:nowrap}
+  td{padding:10px 12px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+  tbody tr:hover{background:#f8faff}
+
+  .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;line-height:18px;white-space:nowrap}
+  .tag-success{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+  .tag-warning{background:#fff8e1;color:#ef6c00;border:1px solid #ffcc80}
+  .tag-error{background:#ffebee;color:#c62828;border:1px solid #ef9a9a}
+  .tag-default{background:#f5f5f5;color:#999;border:1px solid #e0e0e0}
+  .tag-info{background:#e3f2fd;color:#1565c0;border:1px solid #90caf9}
+  .tag-pink{background:#fce4ec;color:#c2185b;border:1px solid #f48fb1}
+
+  /* UTR 匹配 tag */
+  .match-tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:12px;line-height:18px;white-space:nowrap;font-weight:500}
+  .match-yes{background:#e8f5e9;color:#2e7d32;border:1px solid #81c784;cursor:pointer;transition:all .15s}
+  .match-yes:hover{background:#2e7d32;color:#fff;border-color:#2e7d32;box-shadow:0 2px 6px rgba(46,125,50,.3)}
+  .match-no{background:#ffebee;color:#c62828;border:1px solid #ef9a9a}
+  .match-na{background:#f5f5f5;color:#999;border:1px solid #e0e0e0}
+
+  .btn{height:30px;padding:0 14px;border:none;border-radius:4px;cursor:pointer;font-size:13px;transition:opacity .2s}
+  .btn:hover{opacity:.85}
+  .btn-primary{background:#2080f0;color:#fff}
+  .btn-default{background:#fff;color:#666;border:1px solid #d9d9d9}
+  .btn-sm{height:26px;padding:0 10px;font-size:12px}
+
+  /* 详情弹窗 */
+  .modal-demo{background:#fff;border:1px solid #e8e8e8;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+  .modal-header{padding:14px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+  .modal-title{font-size:16px;font-weight:600}
+  .modal-close{font-size:18px;color:#999;cursor:pointer}
+  .modal-body{padding:20px}
+  .modal-body-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+
+  .info-row{display:flex;margin-bottom:11px;line-height:22px;font-size:13px;align-items:center;flex-wrap:wrap}
+  .info-label{color:#666;flex-shrink:0;min-width:88px}
+  .info-value{color:#333;display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .info-value .copy-btn,.info-value .jump-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:3px;cursor:pointer;color:#999;font-size:12px;transition:all .15s;border:1px solid transparent}
+  .info-value .copy-btn:hover{background:#f0f0f0;color:#2080f0}
+  .info-value .jump-btn{color:#2080f0;border-color:#bbdefb;background:#f5fbff}
+  .info-value .jump-btn:hover{background:#2080f0;color:#fff;border-color:#2080f0}
+  .info-value .jump-btn.is-new{box-shadow:0 0 0 2px rgba(208,48,80,.18)}
+
+  /* 取款"原订单"卡片 */
+  .original-order-card{border:1px solid #cce5ff;background:linear-gradient(180deg,#f0f8ff 0%, #fff 100%);border-radius:6px;padding:14px 16px;margin-bottom:14px}
+  .original-order-title{font-size:13px;font-weight:600;color:#1565c0;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .original-order-title .dot{width:6px;height:6px;border-radius:50%;background:#2080f0}
+  .original-order-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
+  .original-order-item{display:flex;font-size:12.5px;line-height:20px}
+  .original-order-item .lbl{color:#999;min-width:72px}
+  .original-order-item .val{color:#333;font-weight:500}
+  .loading-state{padding:30px;text-align:center;color:#999;font-size:13px}
+  .error-state{padding:14px;background:#fff5f5;border:1px dashed #ffcdd2;border-radius:4px;color:#c62828;font-size:13px;text-align:center}
+  .error-state .retry{color:#2080f0;cursor:pointer;text-decoration:underline;margin-left:6px}
+
+  /* 高亮标记 */
+  .hl{position:relative;outline:2px dashed #d03050;outline-offset:2px;border-radius:3px}
+  .hl-tag{position:absolute;top:-12px;left:-2px;background:#d03050;color:#fff;font-size:10px;padding:1px 6px;border-radius:3px 3px 3px 0;z-index:2;line-height:14px;font-weight:600;letter-spacing:.3px}
+  .hl-line{outline:2px dashed #d03050;outline-offset:2px;border-radius:3px;padding:2px 4px;background:rgba(208,48,80,.03);position:relative}
+
+  /* 说明 */
+  .note{background:#fff8e1;border-left:3px solid #ffc107;padding:10px 14px;margin:12px 0;font-size:13px;color:#555;border-radius:0 4px 4px 0;line-height:1.9}
+  .note strong{color:#333}
+  .note-blue{background:#e3f2fd;border-left-color:#2080f0;color:#444}
+  .note-blue strong{color:#1565c0}
+
+  /* 演示切换 */
+  .demo-toggle{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+  .demo-btn{padding:6px 14px;border-radius:4px;font-size:12.5px;cursor:pointer;border:1px solid #d9d9d9;background:#fff;color:#666;transition:all .15s}
+  .demo-btn:hover{border-color:#2080f0;color:#2080f0}
+  .demo-btn.active{background:#2080f0;color:#fff;border-color:#2080f0}
+
+  /* 跳转浮层提示 */
+  .jump-tooltip{position:fixed;background:#333;color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2);display:flex;align-items:center;gap:8px;opacity:0;transform:translate(-50%,-10px);transition:all .25s;pointer-events:none;top:50px;left:50%}
+  .jump-tooltip.show{opacity:1;transform:translate(-50%,0)}
+
+  /* 操作链接 */
+  .op-link{color:#2080f0;cursor:pointer;font-size:13px;margin-right:8px}
+  .op-link:hover{text-decoration:underline}
+
+  /* KYC流水搜索框高亮 */
+  .filter-item.preset input{background:#fff3e0;border-color:#ff9800;font-weight:600}
+  .preset-banner{background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#e65100;display:flex;align-items:center;justify-content:space-between}
+  .preset-banner .back-link{color:#1565c0;cursor:pointer;font-size:12.5px}
+  .preset-banner .back-link:hover{text-decoration:underline}
+
+  /* 工作流图 */
+  .workflow{background:#fafbfc;border:1px solid #e8e8e8;border-radius:6px;padding:18px 22px;font-size:13px;color:#444;line-height:2}
+  .workflow .step{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+  .workflow .step-num{width:22px;height:22px;background:#2080f0;color:#fff;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;margin-top:2px}
+  .workflow .arrow{color:#bbb;margin:0 4px}
+  .workflow .feat{display:inline-block;background:#fff3e0;color:#e65100;padding:0 6px;border-radius:3px;font-size:12px;margin-right:4px}
+
+  /* 文案对比 */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+  .compare-col{border:1px solid #e8e8e8;border-radius:6px;padding:14px}
+  .compare-col h4{font-size:13px;margin-bottom:10px;color:#666;font-weight:600;display:flex;align-items:center;gap:6px}
+  .compare-col h4 .lbl{font-size:11px;padding:1px 6px;border-radius:3px;color:#fff;font-weight:normal}
+  .compare-col h4 .lbl-old{background:#999}
+  .compare-col h4 .lbl-new{background:#2080f0}
+
+  .img-placeholder{width:160px;height:240px;background:linear-gradient(135deg,#4a148c 0%,#7b1fa2 100%);border-radius:8px;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;line-height:1.4}
+
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="switchPage('overview', this)"><span class="num">0</span>方案总览</div>
+  <div class="nav-tab" onclick="switchPage('list', this)"><span class="num">1</span>工单列表 · UTR匹配</div>
+  <div class="nav-tab" onclick="switchPage('detail-deposit', this)"><span class="num">2</span>存款详情 · 三方+跳转</div>
+  <div class="nav-tab" onclick="switchPage('detail-withdraw', this)"><span class="num">3</span>取款详情 · 原订单+三方</div>
+  <div class="nav-tab" onclick="switchPage('kyc-flow', this)"><span class="num">4</span>KYC流水 · 接跳转</div>
+  <div class="nav-tab" onclick="switchPage('compare', this)"><span class="num">5</span>前后对比</div>
+</div>
+
+<!-- ════════════ 页 0：方案总览 ════════════ -->
+<div id="page-overview" class="page active">
+  <div class="card">
+    <div class="card-title">需求合并：存款/取款未到账工单 · 核查工作台升级 <span class="badge">4 个需求 · 1 个迭代</span></div>
+    <div class="note note-blue">
+      <strong>核心目标：</strong>把客服在「工单系统 ↔ 彩票系统 ↔ KYC 系统」之间反复切换查证的工作流，浓缩成"列表筛选 → 详情一目了然 → 一键跳查"的端到端流程，单工单处理耗时预计从 5~10 分钟降至 1~2 分钟。
+    </div>
+
+    <div class="workflow" style="margin-top:14px">
+      <div class="step"><div class="step-num">1</div>
+        <div>客服进入<strong>工单列表</strong> <span class="arrow">→</span> <span class="feat">需求3</span>一眼看到"UTR 匹配"列，筛选未匹配工单优先处理</div>
+      </div>
+      <div class="step"><div class="step-num">2</div>
+        <div>点开<strong>存款未到账详情</strong> <span class="arrow">→</span> <span class="feat">需求1</span>直接看到"三方通道：YayaPay-QR"</div>
+      </div>
+      <div class="step"><div class="step-num">3</div>
+        <div>详情内 <span class="feat">需求4</span> 点击 会员ID / UTR / UPI 旁的 ↗ 按钮 <span class="arrow">→</span> 一键跳转 KYC 流水自动检索</div>
+      </div>
+      <div class="step"><div class="step-num">4</div>
+        <div>点开<strong>取款未到账详情</strong> <span class="arrow">→</span> <span class="feat">需求2</span>"原提款订单"卡片自动加载（金额/通道/状态）</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">4 个需求的关联性</div>
+    <table>
+      <thead>
+        <tr><th style="width:50px">#</th><th>需求</th><th>工单类型</th><th>核心改动</th><th>价值</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td>详情显示「三方名称」</td><td><span class="tag tag-info">存款</span></td><td>后端详情响应加字段</td><td>客服立刻知道是哪个通道挂了</td></tr>
+        <tr><td><strong>2</strong></td><td>详情自动读「原提款信息」+ 三方</td><td><span class="tag tag-pink">取款</span></td><td>详情接口调用彩票 API</td><td>免去去彩票后台查单号</td></tr>
+        <tr><td><strong>3</strong></td><td>列表显示「是否匹配 UTR」（是/否，可点击跳转）</td><td><span class="tag tag-info">存款</span></td><td>列表批量查 KYC 流水 + 复用需求4跳转逻辑</td><td>列表层筛选问题工单 + 一键查证</td></tr>
+        <tr><td><strong>4</strong></td><td>详情 3 个字段加快捷跳转（会员ID / UTR / UPI）</td><td><span class="tag tag-info">存款</span> <span class="tag tag-pink">取款</span></td><td>前端跳转 + KYC 流水接参</td><td>免去复制粘贴去搜</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ════════════ 页 1：工单列表 · UTR 匹配 ════════════ -->
+<div id="page-list" class="page">
+  <div class="card">
+    <div class="card-title">需求 3：工单列表新增「是否匹配 UTR」列 · 可点击跳 KYC 流水自动检索</div>
+
+    <!-- 搜索区 -->
+    <div class="filter-row">
+      <div class="filter-item"><label>会员账号</label><input placeholder="请输入会员账号"></div>
+      <div class="filter-item"><label>工单类型</label><select><option>全部</option><option>存款未到账</option><option>取款未到账</option></select></div>
+      <div class="filter-item"><label>状态</label><select><option>全部</option><option>系统处理中</option></select></div>
+      <div class="filter-item">
+        <label class="hl-line" style="font-weight:600;color:#d03050">
+          <span class="hl-tag" style="top:-14px;left:-2px">新增</span>
+          是否匹配 UTR
+        </label>
+        <select id="utrMatchFilter" onchange="filterByMatch(this.value)">
+          <option value="all">全部</option>
+          <option value="1">是</option>
+          <option value="0">否</option>
+        </select>
+      </div>
+      <div class="filter-item"><label>&nbsp;</label><button class="btn btn-primary">查询</button></div>
+      <div class="filter-item"><label>&nbsp;</label><button class="btn btn-default">重置</button></div>
+    </div>
+
+    <!-- 列表 -->
+    <table>
+      <thead>
+        <tr>
+          <th>工单号</th>
+          <th>工单类型</th>
+          <th>VIP</th>
+          <th>会员id</th>
+          <th>状态</th>
+          <th>三方名称</th>
+          <th class="hl-line" style="position:relative">
+            <span class="hl-tag" style="top:-14px;left:-2px">新增</span>
+            是否匹配 UTR
+          </th>
+          <th>订单金额</th>
+          <th>提交时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="orderList">
+        <tr data-match="0">
+          <td>2605191323405452782</td>
+          <td><span class="tag tag-info">存款未到账</span></td>
+          <td>VIP 3</td>
+          <td>673581</td>
+          <td><span class="tag tag-warning">系统处理中</span></td>
+          <td>YayaPay-QR</td>
+          <td><span class="match-tag match-no" title="该 UTR 在 KYC 流水中未找到">否</span></td>
+          <td>300</td>
+          <td>2026-05-19 18:53</td>
+          <td><span class="op-link" onclick="openDepositDetail()">查看</span><span class="op-link">编辑</span></td>
+        </tr>
+        <tr data-match="1">
+          <td>2605191323405452701</td>
+          <td><span class="tag tag-info">存款未到账</span></td>
+          <td>VIP 5</td>
+          <td>673582</td>
+          <td><span class="tag tag-warning">系统处理中</span></td>
+          <td>WPay-QR</td>
+          <td><span class="match-tag match-yes" title="点击跳 KYC 流水查看匹配记录" onclick="jumpToKyc('utr','925371846623')">是 ↗</span></td>
+          <td>500</td>
+          <td>2026-05-19 18:42</td>
+          <td><span class="op-link">查看</span><span class="op-link">编辑</span></td>
+        </tr>
+        <tr data-match="1">
+          <td>2605191323405452702</td>
+          <td><span class="tag tag-info">存款未到账</span></td>
+          <td>VIP 2</td>
+          <td>673583</td>
+          <td><span class="tag tag-default">待处理</span></td>
+          <td>PhonePe-QR</td>
+          <td><span class="match-tag match-yes" title="点击跳 KYC 流水查看匹配记录" onclick="jumpToKyc('utr','712398456221')">是 ↗</span></td>
+          <td>1000</td>
+          <td>2026-05-19 18:30</td>
+          <td><span class="op-link">查看</span><span class="op-link">编辑</span></td>
+        </tr>
+        <tr data-match="-1">
+          <td>2605191323405452703</td>
+          <td><span class="tag tag-pink">取款未到账</span></td>
+          <td>VIP 4</td>
+          <td>673584</td>
+          <td><span class="tag tag-warning">系统处理中</span></td>
+          <td>--</td>
+          <td><span class="match-tag match-na">--</span></td>
+          <td>10000</td>
+          <td>2026-05-19 18:21</td>
+          <td><span class="op-link" onclick="openWithdrawDetail()">查看</span><span class="op-link">编辑</span></td>
+        </tr>
+        <tr data-match="-1">
+          <td>2605191323405452704</td>
+          <td><span class="tag tag-info">存款未到账</span></td>
+          <td>VIP 1</td>
+          <td>673585</td>
+          <td><span class="tag tag-default">待处理</span></td>
+          <td>YayaPay-Bank</td>
+          <td><span class="match-tag match-na" title="未填 UTR">--</span></td>
+          <td>200</td>
+          <td>2026-05-19 18:10</td>
+          <td><span class="op-link">查看</span><span class="op-link">编辑</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px;font-size:12px;color:#999">共 5 条，可点击表头筛选器选择 UTR 匹配状态查看效果</div>
+
+    <div class="note">
+      <strong>三种状态说明：</strong><br>
+      • <span class="match-tag match-yes" style="cursor:default">是 ↗</span> 该 UTR 在 KYC 流水中已找到 — <strong>可点击 ↗ 跳到 KYC 流水查看匹配记录</strong>（验证金额、收款账号是否一致）<br>
+      • <span class="match-tag match-no">否</span> 已填 UTR，但 KYC 流水中未找到 — <strong>静态标签，不可点击</strong>（跳过去也是空结果，无意义）<br>
+      • <span class="match-tag match-na">--</span> 没填 UTR 或非存款工单 — 不可点击
+    </div>
+    <div class="note note-blue">
+      <strong>设计思路：</strong>判定只看"UTR 是否存在于 KYC 流水"，不做金额/账号的自动比对。<strong>套号判断交给客服</strong>——客服点击「是」跳过去后，肉眼对比工单金额 vs 流水金额，若不一致即为套号嫌疑。
+      <br><br>
+      <strong>性能说明：</strong>列表加载时<strong>一次性</strong>批量查询本页所有 UTR（IN 查询），不会 N+1 拖慢列表。需要确保 <code style="background:#f0f0f0;padding:1px 4px;border-radius:2px">tab_kyc_transactionflowrecords</code> 表的 <code style="background:#f0f0f0;padding:1px 4px;border-radius:2px">(TenantId, Utr)</code> 联合索引已存在。
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 页 2：存款详情 · 三方 + 跳转 ════════════ -->
+<div id="page-detail-deposit" class="page">
+  <div class="card">
+    <div class="card-title">需求 1 + 需求 4：存款未到账详情 · 显示三方 + 3 个快捷跳转按钮</div>
+
+    <div class="modal-demo">
+      <div class="modal-header">
+        <div class="modal-title">工单详情</div>
+        <div class="modal-close">×</div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-body-grid">
+          <!-- 左半 -->
+          <div>
+            <div class="info-row"><div class="info-label">工单号：</div><div class="info-value">2605191323405452782 <span class="copy-btn" title="复制">📋</span></div></div>
+            <div class="info-row"><div class="info-label">工单类型：</div><div class="info-value"><span class="tag tag-info">存款未到账</span></div></div>
+            <div class="info-row"><div class="info-label">提交时间：</div><div class="info-value">2026-05-19 18:53:40</div></div>
+            <div class="info-row"><div class="info-label">工单状态：</div><div class="info-value"><span class="tag tag-warning">系统处理中</span></div></div>
+            <div class="info-row"><div class="info-label">操作时间：</div><div class="info-value">2026-05-19 19:09:00</div></div>
+            <div class="info-row"><div class="info-label">操作人：</div><div class="info-value">admin</div></div>
+
+            <!-- 新增：会员id 旁加跳转 -->
+            <div class="info-row hl-line" style="margin-bottom:18px">
+              <span class="hl-tag">新增 #1 跳转</span>
+              <div class="info-label">会员id：</div>
+              <div class="info-value">
+                673581
+                <span class="copy-btn" title="复制">📋</span>
+                <span class="jump-btn is-new" title="跳转 KYC 流水：按会员ID检索" onclick="jumpToKyc('userId','673581')">↗</span>
+              </div>
+            </div>
+
+            <div class="info-row"><div class="info-label">三方转发：</div><div class="info-value">--</div></div>
+            <div class="info-row"><div class="info-label">收款账号：</div><div class="info-value">--</div></div>
+            <div class="info-row" style="align-items:flex-start"><div class="info-label">ip：</div><div class="info-value" style="display:block;font-size:12px;color:#666;word-break:break-all">2401:4900:b50d:bfe7:162b:7c8a:28bf:8f8b</div></div>
+            <div class="info-row"><div class="info-label">KYC 连接：</div><div class="info-value"><span class="tag tag-success" style="cursor:pointer" onclick="jumpToKyc('userId','673581')">已连接 ↗</span></div></div>
+
+            <!-- 新增：三方名称 -->
+            <div class="info-row hl-line" style="margin-bottom:18px">
+              <span class="hl-tag">需求 1 新增</span>
+              <div class="info-label">三方通道：</div>
+              <div class="info-value">
+                <strong style="color:#2080f0">YayaPay-QR</strong>
+                <span style="font-size:11px;color:#999;margin-left:6px">(客户提交时所选)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右半 -->
+          <div>
+            <div class="info-row"><div class="info-label">PDF 密码：</div><div class="info-value">123 <span class="copy-btn">📋</span></div></div>
+
+            <!-- Order Number 仅保留复制，不加跳转（KYC流水无订单号字段） -->
+            <div class="info-row">
+              <div class="info-label">Order Number：</div>
+              <div class="info-value">
+                RC20260519184711311507013a
+                <span class="copy-btn">📋</span>
+              </div>
+            </div>
+
+            <div class="info-row"><div class="info-label">订单金额：</div><div class="info-value">300 <span class="copy-btn">📋</span></div></div>
+
+            <!-- 新增：UTR 旁跳转 -->
+            <div class="info-row hl-line" style="margin-bottom:18px">
+              <span class="hl-tag">新增 #2 跳转</span>
+              <div class="info-label">UTR number：</div>
+              <div class="info-value">
+                884866452305
+                <span class="copy-btn">📋</span>
+                <span class="jump-btn is-new" title="跳转 KYC 流水：按 UTR 检索" onclick="jumpToKyc('utr','884866452305')">↗</span>
+              </div>
+            </div>
+
+            <!-- 新增：UPI 旁跳转 -->
+            <div class="info-row hl-line" style="margin-bottom:18px">
+              <span class="hl-tag">新增 #3 跳转</span>
+              <div class="info-label">Receiver UPI ID：</div>
+              <div class="info-value">
+                884866452305
+                <span class="copy-btn">📋</span>
+                <span class="jump-btn is-new" title="跳转 KYC 流水：按收款账号检索" onclick="jumpToKyc('recipient','884866452305')">↗</span>
+              </div>
+            </div>
+
+            <div class="info-row" style="align-items:flex-start">
+              <div class="info-label">Deposit 凭证：</div>
+              <div class="info-value">
+                <div class="img-placeholder">PhonePe<br>Transaction<br>Successful<br>₹300<br>UTR: 884866452305</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 备注/三方查询结果（保持原样） -->
+        <div style="border-top:1px solid #f0f0f0;margin-top:14px;padding-top:14px">
+          <div class="info-row" style="align-items:flex-start">
+            <div class="info-label">三方查询结果：</div>
+            <div class="info-value" style="display:block;color:#c62828;font-size:12.5px;line-height:1.7">
+              [Succeed; Message: UTR does not exist or matched by others;<br>
+              Raw Data: {"msg":"UTR does not exist or matched by others","code":-1}]
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>跳转按钮交互说明：</strong>
+      点击 3 个 <span class="jump-btn is-new" style="display:inline-flex">↗</span> 按钮，可跳到 KYC 流水页面，搜索条件自动填入并查询。试试点一下👆
+    </div>
+    <div class="note note-blue">
+      <strong>3 个跳转的字段映射：</strong><br>
+      ① 会员id → KYC 流水（按 会员ID 检索）—— 查这个会员的所有流水<br>
+      ② UTR number → KYC 流水（按 UTR 检索）—— 精准定位这笔交易是否到账<br>
+      ③ Receiver UPI ID → KYC 流水（按 收款账号 检索）—— 查这个收款账号收到的所有钱<br>
+      <br>
+      <strong>为什么不加 Order Number 跳转？</strong>KYC 流水表里没有"订单号"字段（KYC 流水靠 UTR 匹配充值），跳过去搜不到任何东西。UTR 跳转已经能覆盖"这笔交易有没有到账"的核查场景。
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 页 3：取款详情 · 原订单 + 三方 ════════════ -->
+<div id="page-detail-withdraw" class="page">
+  <div class="card">
+    <div class="card-title">需求 2：取款未到账详情 · 自动加载原提款订单信息</div>
+
+    <div class="demo-toggle">
+      <span style="color:#666;font-size:13px">演示场景：</span>
+      <div class="demo-btn active" onclick="setWithdrawDemo('loaded',this)">加载成功（默认）</div>
+      <div class="demo-btn" onclick="setWithdrawDemo('loading',this)">加载中</div>
+      <div class="demo-btn" onclick="setWithdrawDemo('error',this)">彩票 API 失败</div>
+    </div>
+
+    <div class="modal-demo">
+      <div class="modal-header">
+        <div class="modal-title">Work Order Detail</div>
+        <div class="modal-close">×</div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-body-grid">
+          <!-- 左半 -->
+          <div>
+            <div class="info-row"><div class="info-label">WorkOrder No：</div><div class="info-value">2605191323405452703 <span class="copy-btn">📋</span></div></div>
+            <div class="info-row"><div class="info-label">Type：</div><div class="info-value"><span class="tag tag-pink">Withdrawal Not Received</span></div></div>
+            <div class="info-row"><div class="info-label">Submit Time：</div><div class="info-value">2026-05-19 18:53:40</div></div>
+            <div class="info-row"><div class="info-label">Status：</div><div class="info-value"><span class="tag tag-warning">System Processing</span></div></div>
+
+            <div class="info-row hl-line" style="margin-bottom:18px">
+              <span class="hl-tag">新增 #1 跳转</span>
+              <div class="info-label">Member ID：</div>
+              <div class="info-value">
+                673584
+                <span class="copy-btn">📋</span>
+                <span class="jump-btn is-new" title="跳转 KYC 流水：按会员ID检索" onclick="jumpToKyc('userId','673584')">↗</span>
+              </div>
+            </div>
+
+            <div class="info-row"><div class="info-label">Account：</div><div class="info-value">user_in_4584</div></div>
+            <div class="info-row"><div class="info-label">KYC Link：</div><div class="info-value"><span class="tag tag-success" style="cursor:pointer" onclick="jumpToKyc('userId','673584')">Linked ↗</span></div></div>
+
+            <div class="info-row" style="margin-top:14px"><div class="info-label">Withdraw No：</div>
+              <div class="info-value">
+                W20260412142311045
+                <span class="copy-btn">📋</span>
+                <span style="font-size:11px;color:#999;margin-left:6px">(原订单详情见右侧自动加载)</span>
+              </div>
+            </div>
+
+            <div class="info-row" style="align-items:flex-start"><div class="info-label">User Remark：</div>
+              <div class="info-value" style="display:block;color:#444;font-size:12.5px;line-height:1.7;background:#f9f9f9;padding:8px 10px;border-radius:4px;max-width:340px">
+                Hello, I made withdrawal at 14:23 yesterday for ₹10,000, but I still haven't received the money in my bank. Please help check.
+              </div>
+            </div>
+          </div>
+
+          <!-- 右半：新增"原提款订单"卡片 -->
+          <div>
+            <div class="hl-line" style="margin-bottom:16px;padding:8px">
+              <span class="hl-tag">需求 2 新增</span>
+
+              <!-- 加载成功状态 -->
+              <div id="originalLoaded" class="original-order-card">
+                <div class="original-order-title">
+                  <span class="dot"></span>
+                  原提款订单信息（自动加载自彩票系统）
+                </div>
+                <div class="original-order-grid">
+                  <div class="original-order-item"><span class="lbl">订单号：</span><span class="val">W20260412142311045</span></div>
+                  <div class="original-order-item"><span class="lbl">状态：</span><span class="val"><span class="tag tag-success">第三方成功</span></span></div>
+                  <div class="original-order-item"><span class="lbl">申请金额：</span><span class="val">₹10,000.00</span></div>
+                  <div class="original-order-item"><span class="lbl">实到金额：</span><span class="val" style="color:#d03050">₹9,800.00</span></div>
+                  <div class="original-order-item"><span class="lbl">出款通道：</span><span class="val" style="color:#2080f0">PhonePe-Bank</span></div>
+                  <div class="original-order-item"><span class="lbl">申请时间：</span><span class="val">2026-04-12 14:23:11</span></div>
+                  <div class="original-order-item" style="grid-column:span 2"><span class="lbl">系统备注：</span><span class="val" style="font-size:12px;color:#666">Third-party processing complete. Transaction ID: T20260412142311XXX</span></div>
+                </div>
+              </div>
+
+              <!-- 加载中 -->
+              <div id="originalLoading" class="original-order-card" style="display:none">
+                <div class="original-order-title">
+                  <span class="dot"></span>
+                  原提款订单信息
+                </div>
+                <div class="loading-state">⏳ 正在从彩票系统拉取订单信息...</div>
+              </div>
+
+              <!-- 加载失败 -->
+              <div id="originalError" class="original-order-card" style="display:none">
+                <div class="original-order-title">
+                  <span class="dot"></span>
+                  原提款订单信息
+                </div>
+                <div class="error-state">
+                  ⚠️ 拉取失败：彩票系统响应超时
+                  <span class="retry" onclick="setWithdrawDemo('loaded',null)">点击重试</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-row"><div class="info-label">Bank Name：</div><div class="info-value">HDFC Bank</div></div>
+            <div class="info-row"><div class="info-label">Bank A/C：</div><div class="info-value">XXXXXX2349 <span class="copy-btn">📋</span></div></div>
+            <div class="info-row"><div class="info-label">IFSC：</div><div class="info-value">HDFC0001234 <span class="copy-btn">📋</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>"原提款订单"卡片的关键设计：</strong><br>
+      • <strong>异步加载</strong>：详情主体先打开，原订单信息异步从彩票系统拉取，避免详情打不开<br>
+      • <strong>失败降级</strong>：彩票 API 超时/失败 → 显示提示和"重试"按钮，不影响其他功能<br>
+      • <strong>出款通道</strong>是彩票系统真实出款的通道（非客户选择），与存款的"三方通道"概念不同<br>
+      • <strong>实到金额</strong>用红色高亮，便于客服快速发现"申请 vs 实到"差异
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 页 4：KYC 流水 · 接收跳转 ════════════ -->
+<div id="page-kyc-flow" class="page">
+  <div class="card">
+    <div class="card-title">需求 4 配套：KYC 流水页接收 URL 参数 · 自动填入搜索并查询</div>
+
+    <!-- 跳转来源提示横幅 -->
+    <div id="presetBanner" class="preset-banner" style="display:none">
+      <span>📌 已根据工单 <strong id="bannerSrcOrder">2605191323405452782</strong> 自动检索：<strong id="bannerCondition">UTR = 884866452305</strong></span>
+      <span class="back-link" onclick="closePresetBanner()">← 返回工单详情</span>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-item"><label>工单号</label><input placeholder="请输入工单号"></div>
+      <div class="filter-item"><label>商户名称</label><select><option>请选择商户</option></select></div>
+      <div class="filter-item" id="fItemUserId"><label>会员ID</label><input id="fUserId" placeholder="请输入会员ID"></div>
+      <div class="filter-item"><label>付款账号</label><input placeholder="请输入付款账号"></div>
+      <div class="filter-item"><label>手机号</label><input placeholder="请输入手机号"></div>
+      <div class="filter-item"><label>银行名称</label><select><option>请选择银行名称</option></select></div>
+      <div class="filter-item" id="fItemUtr"><label>UTR</label><input id="fUtr" placeholder="请输入UTR"></div>
+      <div class="filter-item" id="fItemRecipient"><label>收款账号</label><input id="fRecipient" placeholder="请输入收款账号"></div>
+      <div class="filter-item"><label>IFSC</label><input placeholder="请输入IFSC"></div>
+      <div class="filter-item"><label>收款人姓名</label><input placeholder="请输入收款人姓名"></div>
+      <div class="filter-item"><label>交易时间</label><input type="text" placeholder="开始时间 → 结束时间" style="min-width:200px"></div>
+      <div class="filter-item"><label>&nbsp;</label><button class="btn btn-primary">查询</button></div>
+      <div class="filter-item"><label>&nbsp;</label><button class="btn btn-default" onclick="resetKycFilter()">重置</button></div>
+    </div>
+
+    <!-- 流水列表 -->
+    <table>
+      <thead>
+        <tr><th>商户名称</th><th>会员ID</th><th>手机号</th><th>银行名称</th><th>付款账号</th><th>流水金额</th><th>UTR</th><th>收款账号</th><th>IFSC</th><th>收款人姓名</th><th>交易类型</th><th>流水状态</th><th>交易时间</th></tr>
+      </thead>
+      <tbody id="kycList">
+        <tr>
+          <td>ar031-in999</td><td>673581</td><td>9170****3050</td><td>Phonepe</td><td>7053773050-3@axl</td><td>300</td>
+          <td><strong style="color:#d03050">884866452305</strong></td>
+          <td>7992****rtel</td>
+          <td>--</td><td>DEEPANSHU KUMAR</td>
+          <td><span class="tag tag-pink">支出</span></td><td>COMPLETED</td><td>2026-05-19 13:17:36</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note note-blue">
+      <strong>跳转交互演示：</strong>请回到「存款详情」或「取款详情」页，点击右上角字段旁的 <span class="jump-btn is-new" style="display:inline-flex">↗</span> 按钮，会自动跳到本页，对应搜索框背景变橙、值预填、并自动执行查询。
+    </div>
+    <div class="note">
+      <strong>设计要点：</strong><br>
+      • 顶部「返回工单」面包屑，避免客服跳过来后回不去<br>
+      • 预填搜索框背景色高亮（橙色），让客服一眼看到"被自动填了什么"<br>
+      • URL 通过 query 参数传递（如 <code style="background:#f0f0f0;padding:1px 4px;border-radius:2px">?utr=xxx&fromOrder=xxx</code>），便于分享和返回<br>
+      • 后端需在 <code style="background:#f0f0f0;padding:1px 4px;border-radius:2px">KycTransactionFlowPageRequest</code> 加 <strong>UserId 字段</strong>支持
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 页 5：前后对比 ════════════ -->
+<div id="page-compare" class="page">
+  <div class="card">
+    <div class="card-title">需求 1：存款详情 · 三方名称对比</div>
+    <div class="compare">
+      <div class="compare-col">
+        <h4>现状 <span class="lbl lbl-old">改造前</span></h4>
+        <div class="info-row"><div class="info-label">工单号：</div><div class="info-value">2605...</div></div>
+        <div class="info-row"><div class="info-label">会员id：</div><div class="info-value">673581</div></div>
+        <div class="info-row"><div class="info-label">KYC 连接：</div><div class="info-value"><span class="tag tag-success">已连接</span></div></div>
+        <div style="color:#999;font-size:12px;margin-top:10px;padding:10px;background:#f5f5f5;border-radius:4px">
+          ❌ 看不到三方名称，客服需要去列表查或问开发
+        </div>
+      </div>
+      <div class="compare-col">
+        <h4>新版 <span class="lbl lbl-new">改造后</span></h4>
+        <div class="info-row"><div class="info-label">工单号：</div><div class="info-value">2605...</div></div>
+        <div class="info-row"><div class="info-label">会员id：</div><div class="info-value">673581 <span class="jump-btn is-new">↗</span></div></div>
+        <div class="info-row"><div class="info-label">KYC 连接：</div><div class="info-value"><span class="tag tag-success">已连接 ↗</span></div></div>
+        <div class="info-row hl-line" style="margin-top:8px"><div class="info-label">三方通道：</div><div class="info-value"><strong style="color:#2080f0">YayaPay-QR</strong></div></div>
+        <div style="color:#2e7d32;font-size:12px;margin-top:10px;padding:10px;background:#e8f5e9;border-radius:4px">
+          ✅ 三方名称直接显示，会员id 旁有跳转
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">需求 3：列表对比</div>
+    <div class="compare">
+      <div class="compare-col">
+        <h4>现状 <span class="lbl lbl-old">改造前</span></h4>
+        <table style="font-size:12px">
+          <thead><tr><th>工单号</th><th>三方名称</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td>2605...782</td><td>YayaPay-QR</td><td>系统处理中</td></tr>
+            <tr><td>2605...701</td><td>WPay-QR</td><td>系统处理中</td></tr>
+            <tr><td>2605...702</td><td>PhonePe-QR</td><td>待处理</td></tr>
+          </tbody>
+        </table>
+        <div style="color:#999;font-size:12px;margin-top:10px;padding:10px;background:#f5f5f5;border-radius:4px">
+          ❌ 不知道哪些工单 UTR 已匹配，要一单一单点开查
+        </div>
+      </div>
+      <div class="compare-col">
+        <h4>新版 <span class="lbl lbl-new">改造后</span></h4>
+        <table style="font-size:12px">
+          <thead><tr><th>工单号</th><th>三方名称</th><th class="hl-line">是否匹配 UTR</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td>2605...782</td><td>YayaPay-QR</td><td><span class="match-tag match-no">否</span></td><td>系统处理中</td></tr>
+            <tr><td>2605...701</td><td>WPay-QR</td><td><span class="match-tag match-yes">是 ↗</span></td><td>系统处理中</td></tr>
+            <tr><td>2605...702</td><td>PhonePe-QR</td><td><span class="match-tag match-yes">是 ↗</span></td><td>待处理</td></tr>
+          </tbody>
+        </table>
+        <div style="color:#2e7d32;font-size:12px;margin-top:10px;padding:10px;background:#e8f5e9;border-radius:4px">
+          ✅ 一眼看出问题工单（否=红），「是」可点击跳 KYC 流水核验
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">客服工作流耗时对比（估算）</div>
+    <table>
+      <thead><tr><th>步骤</th><th>改造前</th><th>改造后</th></tr></thead>
+      <tbody>
+        <tr><td>判断哪些工单 UTR 没匹配</td><td>逐单点开查 · ~5 分钟/单</td><td>列表筛选 · ~10 秒</td></tr>
+        <tr><td>查看三方通道</td><td>列表看 / 问开发 · ~1 分钟</td><td>详情直接看 · 0 秒</td></tr>
+        <tr><td>核查 UTR 是否到 KYC</td><td>复制 UTR → 切到 KYC 流水 → 粘贴 → 查询 · ~1 分钟</td><td>点 ↗ 自动跳转 · ~3 秒</td></tr>
+        <tr><td>取款查原订单信息</td><td>切到彩票后台 → 查单号 · ~2 分钟</td><td>详情自动加载 · 0 秒</td></tr>
+        <tr><td><strong>单工单总耗时</strong></td><td><strong style="color:#c62828">~9 分钟</strong></td><td><strong style="color:#2e7d32">~1.5 分钟</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 跳转提示浮层 -->
+<div id="jumpTooltip" class="jump-tooltip">
+  <span>✓ 已跳转到 KYC 流水，自动检索 <strong id="jumpField"></strong></span>
+</div>
+
+<script>
+function switchPage(name, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function openDepositDetail(){
+  switchPage('detail-deposit', document.querySelectorAll('.nav-tab')[2]);
+}
+function openWithdrawDetail(){
+  switchPage('detail-withdraw', document.querySelectorAll('.nav-tab')[3]);
+}
+
+const fieldLabelMap={
+  utr:'UTR',
+  userId:'会员ID',
+  recipient:'收款账号'
+};
+
+function jumpToKyc(field, value){
+  // 切到 KYC 流水页
+  switchPage('kyc-flow', document.querySelectorAll('.nav-tab')[4]);
+
+  // 清空已预填的高亮
+  ['fItemUtr','fItemUserId','fItemRecipient'].forEach(id=>{
+    document.getElementById(id).classList.remove('preset');
+  });
+  document.getElementById('fUtr').value='';
+  document.getElementById('fUserId').value='';
+  document.getElementById('fRecipient').value='';
+
+  // 根据字段填入并高亮
+  if(field==='utr'){
+    document.getElementById('fUtr').value=value;
+    document.getElementById('fItemUtr').classList.add('preset');
+  } else if(field==='userId'){
+    document.getElementById('fUserId').value=value;
+    document.getElementById('fItemUserId').classList.add('preset');
+  } else if(field==='recipient'){
+    document.getElementById('fRecipient').value=value;
+    document.getElementById('fItemRecipient').classList.add('preset');
+  }
+
+  // 显示预填横幅
+  document.getElementById('presetBanner').style.display='flex';
+  document.getElementById('bannerCondition').textContent=fieldLabelMap[field]+' = '+value;
+
+  // 显示浮层提示
+  document.getElementById('jumpField').textContent=fieldLabelMap[field]+'='+value;
+  showTooltip();
+}
+
+function showTooltip(){
+  const t=document.getElementById('jumpTooltip');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function closePresetBanner(){
+  document.getElementById('presetBanner').style.display='none';
+  resetKycFilter();
+  // 返回工单详情
+  switchPage('detail-deposit', document.querySelectorAll('.nav-tab')[2]);
+}
+
+function resetKycFilter(){
+  ['fItemUtr','fItemUserId','fItemRecipient'].forEach(id=>{
+    document.getElementById(id).classList.remove('preset');
+  });
+  document.getElementById('fUtr').value='';
+  document.getElementById('fUserId').value='';
+  document.getElementById('fRecipient').value='';
+}
+
+function filterByMatch(val){
+  const rows=document.querySelectorAll('#orderList tr');
+  rows.forEach(r=>{
+    if(val==='all'){ r.style.display=''; return; }
+    r.style.display = r.getAttribute('data-match')===val ? '' : 'none';
+  });
+}
+
+function setWithdrawDemo(state, el){
+  document.getElementById('originalLoaded').style.display=(state==='loaded'?'block':'none');
+  document.getElementById('originalLoading').style.display=(state==='loading'?'block':'none');
+  document.getElementById('originalError').style.display=(state==='error'?'block':'none');
+  if(el){
+    document.querySelectorAll('#page-detail-withdraw .demo-btn').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+  }
+}
+</script>
+
+</body>
+</html>
