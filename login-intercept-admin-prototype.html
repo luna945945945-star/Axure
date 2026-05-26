@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>后台原型 · 活动资讯新增「访问权限」字段</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;background:#f0f2f5;color:#333;font-size:13px;line-height:1.6}
+
+/* 顶部说明栏 */
+.demo-bar{background:#1d1f3a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.demo-bar .title{font-size:15px;font-weight:600}
+.demo-bar .badge{background:#ff5566;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600}
+.demo-bar .sub{color:rgba(255,255,255,.65);font-size:12px;margin-left:auto}
+.demo-bar a{color:#4cc9f0;text-decoration:none}
+
+.page-tabs{background:#fff;border-bottom:1px solid #e6e6e6;padding:0 24px;display:flex;gap:0}
+.page-tabs .tab{padding:14px 22px;cursor:pointer;font-size:13px;color:#666;border-bottom:3px solid transparent;font-weight:500;transition:all .2s}
+.page-tabs .tab.active{color:#6c5ce7;border-bottom-color:#6c5ce7;font-weight:600}
+.page-tabs .tab:hover{color:#6c5ce7}
+
+.wrap{padding:20px}
+.page-view{display:none}
+.page-view.active{display:block}
+
+/* 模拟后台顶部黄色 nav */
+.admin-topbar{background:#f8edc4;padding:10px 18px;display:flex;align-items:center;gap:14px;font-size:12px;color:#5a4a1b;border-radius:6px 6px 0 0}
+.admin-topbar .site{font-weight:700;color:#222}
+.admin-topbar .lang{background:#fff;border:1px solid #d4c485;padding:4px 10px;border-radius:3px;font-size:11px;color:#666}
+.admin-topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:11px}
+.admin-topbar .right .currency b{color:#ff7a00}
+.admin-topbar .right .online b{color:#1677ff}
+.admin-topbar .right .on{color:#52c41a;font-weight:600}
+
+/* 面包屑 */
+.breadcrumb{background:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0f0}
+.breadcrumb .title{color:#1677ff;font-size:15px;font-weight:600}
+.breadcrumb .crumbs{color:#999;font-size:12px}
+.breadcrumb .crumbs span{margin:0 6px}
+
+/* 主体卡片 */
+.card{background:#fff;border-radius:0 0 6px 6px;padding:20px}
+
+/* 列表页 - 顶部新增按钮 */
+.btn-add{background:#6c5ce7;color:#fff;border:none;padding:8px 16px;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;font-weight:500;box-shadow:0 2px 4px rgba(108,92,231,.3)}
+.btn-add:hover{background:#5b4ed4}
+
+/* 列表表格 */
+.table-wrap{margin-top:16px;border:1px solid #e8e8e8;border-radius:4px;overflow:hidden}
+table.list{width:100%;border-collapse:collapse;font-size:12.5px}
+table.list th{background:#f0eef9;color:#444;padding:12px 10px;text-align:center;font-weight:600;border-bottom:1px solid #e0d8f0}
+table.list td{padding:14px 10px;text-align:center;border-bottom:1px solid #f0f0f0;color:#333}
+table.list tr:last-child td{border-bottom:none}
+table.list tr:hover td{background:#fafaff}
+
+table.list th.new-col,
+table.list td.new-col{background:#fffae6;position:relative}
+table.list td.new-col{font-weight:600}
+table.list th.new-col::after{content:"NEW";position:absolute;top:2px;right:4px;background:#ff5566;color:#fff;font-size:9px;padding:1px 4px;border-radius:2px;font-weight:600;letter-spacing:.3px}
+
+.pic-thumb{width:40px;height:30px;background:#f0f0f0;border-radius:3px;display:inline-block;overflow:hidden}
+.pic-thumb.demo-luke{background:linear-gradient(135deg,#1d1f3a,#fcc419);display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700}
+.pic-thumb.demo-xmas{background:linear-gradient(135deg,#7e2424,#c0392b)}
+.pic-thumb.demo-poster{background:linear-gradient(135deg,#f72585,#7209b7)}
+
+.type-tag{font-size:11px;padding:2px 8px;border-radius:3px;display:inline-block}
+.type-tag.外链{background:#e6f7ff;color:#1677ff;border:1px solid #91d5ff}
+.type-tag.内链{background:#f9f0ff;color:#722ed1;border:1px solid #d3adf7}
+.type-tag.图片{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
+.type-tag.富文本{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.type-tag.客服{background:#e6fffb;color:#13c2c2;border:1px solid #87e8de}
+
+.state{font-weight:600;font-size:12px}
+.state.on{color:#52c41a}
+.state.off{color:#999}
+
+.vis-tag{font-size:11px;padding:2px 8px;border-radius:3px;display:inline-block;font-weight:600}
+.vis-tag.public{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.vis-tag.private{background:#fff1f0;color:#ff4d4f;border:1px solid #ffa39e}
+
+.op-btn{padding:4px 12px;background:#fff;color:#52c41a;border:1px solid #52c41a;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit;margin:0 2px}
+.op-btn.del{color:#52c41a;border-color:#52c41a}
+.op-btn:hover{background:#f6ffed}
+
+/* 新增页表单 */
+.form-title{color:#1677ff;font-size:15px;font-weight:600;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #f0f0f0}
+
+.form-row{display:flex;align-items:flex-start;margin-bottom:18px;padding:0 6px}
+.form-row .label{width:130px;padding-top:7px;text-align:right;color:#333;font-size:13px;flex-shrink:0;padding-right:12px}
+.form-row .label .req{color:#ff4d4f;margin-right:3px}
+.form-row .field{flex:1;max-width:760px}
+.form-row .hint{margin-top:5px;color:#999;font-size:11.5px;line-height:1.6}
+
+.input,.select{width:100%;height:34px;padding:0 12px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:13px;color:#333;background:#fff}
+.input:focus,.select:focus{outline:none;border-color:#1677ff;box-shadow:0 0 0 2px rgba(22,119,255,.1)}
+.input-counter{position:relative}
+.input-counter .counter{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:#bbb;font-size:11px;pointer-events:none}
+
+.select{appearance:none;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23999' d='M6 8.5L1.5 4h9z'/></svg>") no-repeat right 12px center;background-color:#fff;padding-right:30px;cursor:pointer}
+
+.upload-box{width:130px;height:130px;border:1px dashed #d9d9d9;border-radius:4px;background:#fafafa;display:flex;align-items:center;justify-content:center;color:#bbb;cursor:pointer}
+.upload-box svg{width:42px;height:42px}
+.upload-box:hover{border-color:#1677ff}
+
+.radio-group{display:flex;align-items:center;gap:24px;padding-top:7px}
+.radio-item{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px}
+.radio-item input[type=radio]{margin:0;cursor:pointer;accent-color:#1677ff}
+.radio-item .desc{color:#999;font-size:11.5px;margin-left:2px}
+
+/* 新增字段高亮 */
+.form-row.new-field{background:#fffae6;border:1px dashed #ffa940;border-radius:6px;padding:14px 6px;position:relative;margin:18px 0}
+.form-row.new-field::before{content:"🆕 本期新增字段";position:absolute;top:-10px;left:14px;background:#ff5566;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;line-height:1.4}
+.form-row.new-field .hint{color:#874d00}
+.form-row.new-field .hint b{color:#ad4e00}
+
+/* 内链校验提示气泡 */
+.tip-pop{display:none;background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:10px 12px;color:#874d00;font-size:12px;margin-top:8px;line-height:1.7}
+.tip-pop.show{display:block}
+.tip-pop .icon{margin-right:5px}
+.tip-pop b{color:#ad4e00}
+
+/* 按钮组 */
+.form-actions{display:flex;justify-content:center;gap:12px;padding-top:18px;border-top:1px solid #f0f0f0;margin-top:8px}
+.btn-primary,.btn-default{padding:8px 32px;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500}
+.btn-primary{background:linear-gradient(180deg,#5cc8f0,#1677ff);color:#fff;box-shadow:0 2px 4px rgba(22,119,255,.3)}
+.btn-default{background:#333;color:#fff}
+.btn-primary:hover{opacity:.92}
+
+/* 说明面板 */
+.explainer{background:#fff;border-radius:6px;padding:16px 18px;margin-top:20px;border-left:4px solid #1677ff}
+.explainer h4{color:#1677ff;font-size:13px;margin-bottom:8px}
+.explainer ul{margin-left:18px;color:#555;line-height:1.9;font-size:12.5px}
+.explainer b{color:#222}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <span class="badge">原型</span>
+  <span class="title">后台 · 活动资讯「访问权限」字段</span>
+  <span class="sub">基于现有页面样式 · 切换 Tab 查看 列表页 / 新增页</span>
+</div>
+
+<div class="page-tabs">
+  <div class="tab active" data-page="list">📋 列表页</div>
+  <div class="tab" data-page="form">✏️ 新增 / 编辑页</div>
+</div>
+
+<div class="wrap">
+
+  <!-- ========== 列表页 ========== -->
+  <div class="page-view active" id="page-list">
+
+    <div class="admin-topbar">
+      <span>当前站点：</span><span class="site">SitINR</span>
+      <span class="lang">Select Language ▼</span>
+      <div class="right">
+        <span>2026年05月26日 16:55 星期二</span>
+        <span class="currency">当前币种：<b>INR</b></span>
+        <span class="online">在线人数：<b>3</b> ↻</span>
+        <span>🎁 <span class="on">开启</span></span>
+        <span>🔔 <span class="on">开启</span></span>
+      </div>
+    </div>
+
+    <div class="breadcrumb">
+      <div class="title">活动资讯</div>
+      <div class="crumbs">活动资讯<span>›</span>活动资讯<span>›</span>活动资讯</div>
+    </div>
+
+    <div class="card">
+      <button class="btn-add">+ 新增</button>
+
+      <div class="table-wrap">
+        <table class="list">
+          <thead>
+            <tr>
+              <th style="width:54px">ID</th>
+              <th>标题</th>
+              <th style="width:80px">封面图片</th>
+              <th style="width:80px">类型</th>
+              <th>活动内容</th>
+              <th style="width:60px">排序</th>
+              <th style="width:90px">状态</th>
+              <th class="new-col" style="width:110px">访问权限</th>
+              <th style="width:140px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>110</td><td>测试2</td><td><span class="pic-thumb"></span></td>
+              <td><span class="type-tag 外链">外链</span></td>
+              <td>/wallet/Recharge</td>
+              <td>0</td><td><span class="state on">显示</span></td>
+              <td class="new-col"><span class="vis-tag public">公开</span></td>
+              <td><button class="op-btn">修改</button><button class="op-btn del">删除</button></td>
+            </tr>
+            <tr>
+              <td>108</td><td>1111</td><td><span class="pic-thumb"></span></td>
+              <td><span class="type-tag 内链">内链</span></td>
+              <td>https://sitweb.22889.club/#/promotion</td>
+              <td>0</td><td><span class="state on">显示</span></td>
+              <td class="new-col"><span class="vis-tag private">需登录</span></td>
+              <td><button class="op-btn">修改</button><button class="op-btn del">删除</button></td>
+            </tr>
+            <tr>
+              <td>106</td><td>测试复制</td><td><span class="pic-thumb demo-luke">Luke</span></td>
+              <td><span class="type-tag 内链">内链</span></td>
+              <td>https://sitweb.22889.club/#/promotion</td>
+              <td>19</td><td><span class="state on">显示</span></td>
+              <td class="new-col"><span class="vis-tag public">公开</span></td>
+              <td><button class="op-btn">修改</button><button class="op-btn del">删除</button></td>
+            </tr>
+            <tr>
+              <td>105</td><td>11</td><td><span class="pic-thumb demo-xmas"></span></td>
+              <td><span class="type-tag 图片">图片</span></td>
+              <td>—</td>
+              <td>0</td><td><span class="state on">显示</span></td>
+              <td class="new-col"><span class="vis-tag public">公开</span></td>
+              <td><button class="op-btn">修改</button><button class="op-btn del">删除</button></td>
+            </tr>
+            <tr>
+              <td>104</td><td>圣诞1</td><td><span class="pic-thumb demo-xmas"></span></td>
+              <td><span class="type-tag 图片">图片</span></td>
+              <td>—</td>
+              <td>9</td><td><span class="state on">显示</span></td>
+              <td class="new-col"><span class="vis-tag public">公开</span></td>
+              <td><button class="op-btn">修改</button><button class="op-btn del">删除</button></td>
+            </tr>
+            <tr>
+              <td>102</td><td>圣诞</td><td><span class="pic-thumb demo-poster"></span></td>
+              <td><span class="type-tag 富文本">富文本</span></td>
+              <td>—</td>
+              <td>0</td><td><span class="state on">显示</span></td>
+              <td class="new-col"><span class="vis-tag private">需登录</span></td>
+              <td><button class="op-btn">修改</button><button class="op-btn del">删除</button></td>
+            </tr>
+            <tr>
+              <td>100</td><td>在线客服-亦菲</td><td><span class="pic-thumb"></span></td>
+              <td><span class="type-tag 客服">在线客服</span></td>
+              <td>—</td>
+              <td>0</td><td><span class="state on">显示</span></td>
+              <td class="new-col"><span class="vis-tag public">公开</span></td>
+              <td><button class="op-btn">修改</button><button class="op-btn del">删除</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="explainer">
+      <h4>📌 列表页改动说明</h4>
+      <ul>
+        <li><b>新增「访问权限」列</b>（表头 NEW 标记），位于「状态」与「操作」之间</li>
+        <li>该列展示两种状态：
+          <span class="vis-tag public" style="margin:0 4px">公开</span>（未登录用户可见，默认）/
+          <span class="vis-tag private" style="margin:0 4px">需登录</span>（仅已登录用户可见）
+        </li>
+        <li>存量数据迁移：<b>按规则智能迁移</b>——
+          <ul style="margin-top:5px">
+            <li>JumpLinkType=1（子游戏）→ <span class="vis-tag private">需登录</span></li>
+            <li>JumpType=4 内链 + 目标路由属于 B 类白名单（如 <code style="background:#f5f5f5;padding:1px 5px;border-radius:2px;color:#874d00">/wallet/*</code>、<code style="background:#f5f5f5;padding:1px 5px;border-radius:2px;color:#874d00">/my/*</code>、Promotion 内 B 类子页等）→ <span class="vis-tag private">需登录</span></li>
+            <li>其他所有 banner（含 JumpType=1/2/3/5、内链跳 A 类）→ <span class="vis-tag public">公开</span></li>
+          </ul>
+          保证后台列表展示与前端运行时行为一致，避免运营困惑
+        </li>
+        <li>列表展示规则：状态=显示 + 访问权限=公开 → 未登录用户也能在前端看到；访问权限=需登录 → 未登录点击触发软拦截抽屉</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ========== 新增/编辑页 ========== -->
+  <div class="page-view" id="page-form">
+
+    <div class="admin-topbar">
+      <span>当前站点：</span><span class="site">SitINR</span>
+      <span class="lang">Select Language ▼</span>
+      <div class="right">
+        <span>2026年05月26日 16:55 星期二</span>
+        <span class="currency">当前币种：<b>INR</b></span>
+        <span class="online">在线人数：<b>3</b> ↻</span>
+        <span>🎁 <span class="on">开启</span></span>
+        <span>🔔 <span class="on">开启</span></span>
+      </div>
+    </div>
+
+    <div class="breadcrumb">
+      <div class="title">活动资讯新增</div>
+      <div class="crumbs">活动资讯<span>›</span>活动资讯<span>›</span>活动资讯新增</div>
+    </div>
+
+    <div class="card">
+
+      <div class="form-row">
+        <div class="label"><span class="req">*</span>活动标题：</div>
+        <div class="field">
+          <div class="input-counter">
+            <input class="input" placeholder="">
+            <span class="counter">0/80</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="label">活动跳转方式：</div>
+        <div class="field">
+          <select class="select" id="jumpType-select" onchange="onJumpTypeChange()">
+            <option value="1">富文本</option>
+            <option value="2" selected>外链</option>
+            <option value="3">图片</option>
+            <option value="4">内链</option>
+            <option value="5">在线客服</option>
+          </select>
+          <div class="tip-pop" id="inner-link-tip">
+            <span class="icon">⚠️</span>
+            <b>提示</b>：选择「内链」时，请确认目标路由是否为「需登录」类型。若是，未登录用户点击该 banner 时会被软拦截抽屉拦下。
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="label">活动图片：</div>
+        <div class="field">
+          <div class="upload-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <circle cx="9" cy="9" r="1.5"/>
+              <path d="M21 15l-4-4-10 10"/>
+            </svg>
+          </div>
+          <div class="hint">格式 <span style="color:#ff5566">png</span></div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="label">排序：</div>
+        <div class="field">
+          <input class="input" type="number" value="0" style="max-width:200px">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="label">状态：</div>
+        <div class="field">
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="state" checked> 显示</label>
+            <label class="radio-item"><input type="radio" name="state"> 关闭</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🆕 新增字段 -->
+      <div class="form-row new-field">
+        <div class="label">访问权限：</div>
+        <div class="field">
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="visibility" checked> 公开
+              <span class="desc">（未登录用户可见，默认）</span>
+            </label>
+            <label class="radio-item"><input type="radio" name="visibility"> 需登录后访问
+              <span class="desc">（仅已登录用户可见）</span>
+            </label>
+          </div>
+          <div class="hint">
+            选择「需登录后访问」时，未登录用户点击该活动咨询会触发<b>软拦截抽屉</b>，引导其登录后查看
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="label"><span class="req">*</span>活动链接：</div>
+        <div class="field">
+          <input class="input" placeholder="">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary">+ 新增</button>
+        <button class="btn-default">↶ 返回</button>
+      </div>
+    </div>
+
+    <div class="explainer">
+      <h4>📌 新增/编辑页改动说明</h4>
+      <ul>
+        <li><b>新增「访问权限」单选项</b>（在「状态」与「活动链接」之间）：
+          <ul style="margin-top:5px">
+            <li>● 公开（未登录用户可见，<b>默认选中</b>）</li>
+            <li>○ 需登录后访问（仅已登录用户可见）</li>
+          </ul>
+        </li>
+        <li>对应字段 <code style="background:#f5f5f5;padding:1px 5px;border-radius:2px;color:#874d00">Visibility</code> 取值 <code style="background:#f5f5f5;padding:1px 5px;border-radius:2px;color:#874d00">0</code>（公开）/ <code style="background:#f5f5f5;padding:1px 5px;border-radius:2px;color:#874d00">1</code>（需登录）</li>
+        <li>当「活动跳转方式」选择<b>内链</b>时，下方弹出黄色提示气泡（可在此原型中切换跳转方式查看效果），告知运营该内链目标路由可能是需登录类型</li>
+        <li>编辑现有 banner 时，存量数据已按智能迁移规则赋好初始值（详见列表页说明）。运营可在此基础上手工调整</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Tab 切换
+document.querySelectorAll('.page-tabs .tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.page-tabs .tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.page-view').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('page-'+t.dataset.page).classList.add('active');
+  });
+});
+
+// 跳转方式 = 内链 时显示提示
+function onJumpTypeChange(){
+  const v = document.getElementById('jumpType-select').value;
+  document.getElementById('inner-link-tip').classList.toggle('show', v==='4');
+}
+</script>
+</body>
+</html>
