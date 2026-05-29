@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>后台原型 · 白名单IP 支持给集团加白</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;background:#f0f2f5;color:#333;font-size:13px;line-height:1.6}
+
+/* 顶部说明栏 */
+.demo-bar{background:#1d1f3a;color:#fff;padding:12px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.demo-bar .title{font-size:15px;font-weight:600}
+.demo-bar .badge{background:#ff5566;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600}
+.demo-bar .sub{color:rgba(255,255,255,.7);font-size:12px}
+.demo-bar .ops{margin-left:auto;display:flex;gap:8px}
+.demo-bar .ops button{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);padding:5px 12px;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit}
+.demo-bar .ops button:hover{background:rgba(255,255,255,.22)}
+
+/* SAAS 顶部 */
+.saas-top{background:#1abc9c;color:#fff;padding:0 24px;height:54px;display:flex;align-items:center;gap:18px}
+.saas-top .logo{width:30px;height:30px;background:#fff;color:#1abc9c;font-weight:800;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.saas-top .brand{display:flex;flex-direction:column;line-height:1.2}
+.saas-top .brand b{font-size:14px}
+.saas-top .brand small{font-size:11px;opacity:.85}
+.saas-top .nav{display:flex;gap:24px;margin-left:32px;flex:1;justify-content:center}
+.saas-top .nav a{color:rgba(255,255,255,.9);font-size:13px;cursor:pointer;padding:6px 10px;border-radius:3px}
+.saas-top .nav a.active,.saas-top .nav a:hover{background:rgba(255,255,255,.16);color:#fff}
+.saas-top .user{display:flex;align-items:center;gap:8px;font-size:12px}
+.saas-top .user .avatar{width:28px;height:28px;border-radius:50%;background:#7c5cff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+
+/* 页面 Tab */
+.page-tabs{background:#fff;padding:0 20px;display:flex;gap:0;border-bottom:1px solid #e8e8e8}
+.page-tabs .tab{padding:11px 18px;cursor:pointer;font-size:13px;color:#666;border-bottom:2px solid transparent;display:flex;align-items:center;gap:8px}
+.page-tabs .tab.active{color:#1abc9c;border-bottom-color:#1abc9c;font-weight:600;background:#f3fcf9}
+.page-tabs .tab .close{color:#bbb;font-size:14px;line-height:1}
+.page-tabs .tab.active .close{color:#1abc9c}
+
+.wrap{padding:14px 20px}
+
+/* 筛选区 */
+.filter-bar{background:#eaf6ff;padding:14px 18px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.filter-bar .item{display:flex;align-items:center;gap:8px}
+.filter-bar .item label{color:#333;font-size:13px;white-space:nowrap}
+.filter-bar input,.filter-bar select{height:32px;padding:0 10px;border:1px solid #d9d9d9;border-radius:3px;font-size:12.5px;font-family:inherit;background:#fff;min-width:180px}
+.filter-bar select{cursor:pointer;appearance:none;padding-right:26px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23999' d='M6 8.5L1.5 4h9z'/></svg>") no-repeat right 8px center,#fff}
+.filter-bar .new-filter{background:#fffae6;padding:6px 10px;border:1px dashed #ffd591;border-radius:4px;position:relative}
+.filter-bar .new-filter::before{content:"NEW";position:absolute;top:-8px;left:-4px;background:#ff5566;color:#fff;font-size:9px;padding:1px 4px;border-radius:2px;font-weight:600}
+.filter-bar .btns{margin-left:auto;display:flex;gap:8px}
+.btn{padding:7px 14px;border-radius:3px;cursor:pointer;font-size:12.5px;font-family:inherit;border:none;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:#1abc9c;color:#fff}
+.btn-primary:hover{background:#16a085}
+.btn-default{background:#fff;color:#666;border:1px solid #d9d9d9}
+.btn-default:hover{color:#1abc9c;border-color:#1abc9c}
+
+/* 内容区 */
+.card{background:#fff;border:1px solid #e8e8e8;border-top:none;padding:16px 18px}
+.tool-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.btn-add{background:#1abc9c;color:#fff;border:none;padding:8px 16px;border-radius:3px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500}
+.btn-add:hover{background:#16a085}
+
+/* 表格 */
+table.list{width:100%;border-collapse:collapse;font-size:12.5px}
+table.list thead th{background:linear-gradient(180deg,#f7fafc 0%,#edf2f7 100%);color:#444;padding:11px 8px;text-align:center;font-weight:600;border:1px solid #e2e8f0;font-size:12.5px}
+table.list tbody td{padding:14px 8px;text-align:center;border:1px solid #f0f0f0;color:#333;background:#fff}
+table.list tbody tr:hover td{background:#fafffd}
+table.list th.new-col{background:linear-gradient(180deg,#fffae6 0%,#fff3bf 100%);position:relative}
+table.list th.new-col::after{content:"NEW";position:absolute;top:2px;right:4px;background:#ff5566;color:#fff;font-size:9px;padding:1px 4px;border-radius:2px;font-weight:600}
+table.list td.new-col{background:#fffdf3}
+
+/* 状态开关 */
+.switch{position:relative;display:inline-block;width:38px;height:20px;cursor:pointer}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;inset:0;background:#ccc;border-radius:20px;transition:.2s}
+.switch .slider::before{content:"";position:absolute;height:14px;width:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked + .slider{background:#1abc9c}
+.switch input:checked + .slider::before{transform:translateX(18px)}
+
+/* 类型 Tag */
+.type-tag{font-size:11px;padding:2px 8px;border-radius:3px;display:inline-block;font-weight:600}
+.type-tag.console{background:#e6f4ff;color:#1677ff;border:1px solid #91caff}
+.type-tag.org{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
+
+/* 操作按钮 */
+.op-link{color:#1abc9c;cursor:pointer;margin:0 6px;font-size:12.5px}
+.op-link.del{color:#ff4d4f}
+.op-link:hover{text-decoration:underline}
+
+/* 分页 */
+.pagination{margin-top:14px;display:flex;align-items:center;justify-content:flex-end;gap:8px;font-size:12.5px;color:#666}
+.pagination .pager{display:inline-flex;border:1px solid #d9d9d9;border-radius:3px;overflow:hidden}
+.pagination .pager span{padding:5px 10px;cursor:pointer;border-right:1px solid #e8e8e8;background:#fff;min-width:32px;text-align:center}
+.pagination .pager span:last-child{border-right:none}
+.pagination .pager span.active{background:#1abc9c;color:#fff}
+.pagination select{height:28px;padding:0 8px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit}
+.pagination input{width:44px;height:28px;padding:0 6px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;text-align:center}
+
+/* 模态框 */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:520px;max-width:92vw;box-shadow:0 6px 28px rgba(0,0,0,.18);overflow:hidden}
+.modal-head{padding:14px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center}
+.modal-head .title{font-size:15px;font-weight:600;color:#333;display:flex;align-items:center;gap:8px}
+.modal-head .badge-new{background:#ff5566;color:#fff;font-size:10px;padding:1px 6px;border-radius:3px;font-weight:600}
+.modal-head .close{cursor:pointer;color:#999;font-size:18px;line-height:1}
+.modal-body{padding:22px 22px 8px}
+.modal-foot{padding:12px 20px;display:flex;justify-content:flex-end;gap:8px;background:#fafafa;border-top:1px solid #f0f0f0}
+
+.form-row{display:flex;align-items:flex-start;margin-bottom:18px}
+.form-row .label{width:74px;padding-top:7px;text-align:right;color:#333;font-size:13px;flex-shrink:0;padding-right:10px}
+.form-row .label .req{color:#ff4d4f;margin-right:3px}
+.form-row .field{flex:1;min-width:0}
+.form-row.new-field{background:#fffae6;border:1px dashed #ffd591;border-radius:4px;padding:10px 8px;position:relative;margin-left:-8px;margin-right:-8px}
+.form-row.new-field::before{content:"NEW";position:absolute;top:-8px;left:8px;background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;font-weight:600}
+.form-row .hint{margin-top:5px;color:#999;font-size:11.5px}
+.form-row .err{margin-top:5px;color:#ff4d4f;font-size:11.5px;display:none}
+.form-row .err.show{display:block}
+
+.input,.select,.textarea{width:100%;padding:7px 10px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:13px;color:#333;background:#fff}
+.input:focus,.select:focus,.textarea:focus{outline:none;border-color:#1abc9c;box-shadow:0 0 0 2px rgba(26,188,156,.15)}
+.input[disabled],.select[disabled]{background:#f5f5f5;color:#999;cursor:not-allowed}
+.textarea{height:74px;resize:vertical}
+.select{appearance:none;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%23999' d='M6 8.5L1.5 4h9z'/></svg>") no-repeat right 12px center,#fff;padding-right:30px;cursor:pointer}
+
+.radio-group{display:flex;gap:18px;padding-top:6px}
+.radio-group label{cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:6px 12px;border:1px solid #d9d9d9;border-radius:4px;transition:.15s}
+.radio-group label.checked{border-color:#1abc9c;color:#1abc9c;background:#e6f7f1;font-weight:600}
+.radio-group input{accent-color:#1abc9c}
+
+.disp-text{padding-top:6px;color:#333;font-size:13px}
+.disp-text .lock{color:#bbb;font-size:11.5px;margin-left:6px}
+
+/* 删除确认 */
+.confirm-modal{width:380px}
+.confirm-body{padding:24px 22px;font-size:13.5px;color:#333;display:flex;gap:12px;align-items:flex-start}
+.confirm-body .icon{width:22px;height:22px;border-radius:50%;background:#faad14;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.confirm-body .info b{color:#ff4d4f}
+
+/* Toast */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fff;padding:10px 18px;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.15);display:none;align-items:center;gap:8px;z-index:200;font-size:13px;border:1px solid #e8e8e8}
+.toast.show{display:flex;animation:slideDown .3s ease}
+.toast .ic{width:18px;height:18px;border-radius:50%;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.toast.success .ic{background:#1abc9c}
+.toast.warn .ic{background:#faad14}
+.toast.err .ic{background:#ff4d4f}
+@keyframes slideDown{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+
+/* 高亮提示气泡 */
+.tip{display:inline-block;background:#fffbe6;color:#d4730d;border:1px solid #ffe58f;font-size:11px;padding:1px 6px;border-radius:3px;margin-left:6px}
+</style>
+</head>
+<body>
+
+<!-- 演示说明 -->
+<div class="demo-bar">
+  <span class="badge">原型</span>
+  <span class="title">白名单IP · 支持给集团加白</span>
+  <span class="sub">列表新增 2 列（类型 / 所属集团）+ 2 个筛选器；新增弹窗增加「归属」单选与「集团」下拉</span>
+  <div class="ops">
+    <button onclick="openAdd()">+ 演示新增弹窗</button>
+    <button onclick="openEdit(1)">演示编辑弹窗</button>
+    <button onclick="openDel(2)">演示删除确认</button>
+  </div>
+</div>
+
+<!-- SAAS 顶部 -->
+<div class="saas-top">
+  <div class="logo">A</div>
+  <div class="brand">
+    <b>SAAS总控</b>
+    <small>2026-05-29 17:14:21 (UTC +4)</small>
+  </div>
+  <div class="nav">
+    <a>财务管理</a>
+    <a>报表管理</a>
+    <a>商户管理</a>
+    <a class="active">系统管理</a>
+  </div>
+  <div class="user">
+    <div class="avatar">A</div>
+    <span>sysadmin</span>
+  </div>
+</div>
+
+<!-- 二级 Tab -->
+<div class="page-tabs">
+  <div class="tab">充值配置</div>
+  <div class="tab active">白名单IP <span class="close">×</span></div>
+</div>
+
+<div class="wrap">
+
+  <!-- 筛选 -->
+  <div class="filter-bar">
+    <div class="item">
+      <label>IP地址</label>
+      <input type="text" placeholder="请输入 IP 地址">
+    </div>
+    <div class="item">
+      <label>备注</label>
+      <input type="text" placeholder="请输入备注关键字">
+    </div>
+    <div class="item new-filter">
+      <label>类型</label>
+      <select id="fType" onchange="onFilterType()">
+        <option value="">全部</option>
+        <option value="0">总控</option>
+        <option value="1">集团</option>
+      </select>
+    </div>
+    <div class="item new-filter">
+      <label>所属集团</label>
+      <select id="fOrg" disabled>
+        <option value="">全部</option>
+        <option value="1">AAA游戏集团</option>
+        <option value="2">BBB体育集团</option>
+        <option value="3">CCC彩票集团</option>
+        <option value="4">DDD棋牌集团</option>
+      </select>
+    </div>
+    <div class="btns">
+      <button class="btn btn-primary" onclick="toast('已搜索（演示）','success')">🔍 搜索</button>
+      <button class="btn btn-default" onclick="toast('已重置','success')">↻ 重置</button>
+    </div>
+  </div>
+
+  <!-- 表格 -->
+  <div class="card">
+    <div class="tool-bar">
+      <button class="btn-add" onclick="openAdd()">+ 新增白名单IP</button>
+      <div style="font-size:12px;color:#999">共 <b id="rowCount">5</b> 条</div>
+    </div>
+
+    <table class="list">
+      <thead>
+        <tr>
+          <th style="width:60px">ID</th>
+          <th style="width:160px">IP地址</th>
+          <th style="width:80px">状态</th>
+          <th class="new-col" style="width:80px">类型</th>
+          <th class="new-col" style="width:160px">所属集团</th>
+          <th>备注</th>
+          <th style="width:100px">创建人</th>
+          <th style="width:170px">创建时间 <small style="color:#999">(UTC +5.5)</small></th>
+          <th style="width:100px">最后修改人</th>
+          <th style="width:170px">最后修改时间</th>
+          <th style="width:110px">操作</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <!-- 由 JS 渲染 -->
+      </tbody>
+    </table>
+
+    <div class="pagination">
+      <span>共 <b id="rowCount2">5</b> 条</span>
+      <div class="pager">
+        <span>‹</span><span class="active">1</span><span>›</span>
+      </div>
+      <select><option>10/页</option><option>20/页</option></select>
+      <span>跳至</span>
+      <input value="1">
+    </div>
+  </div>
+</div>
+
+<!-- 新增弹窗 -->
+<div class="modal-mask" id="addModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="title">新增白名单IP <span class="badge-new">含新增字段</span></div>
+      <span class="close" onclick="closeModal('addModal')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div class="form-row new-field">
+        <div class="label"><span class="req">*</span>归属</div>
+        <div class="field">
+          <div class="radio-group" id="scopeRadio">
+            <label class="checked" onclick="selectScope('console',this)">
+              <input type="radio" name="scope" value="console" checked> 总控
+            </label>
+            <label onclick="selectScope('org',this)">
+              <input type="radio" name="scope" value="org"> 集团
+            </label>
+          </div>
+          <div class="hint">总控 = 总控后台自身白名单；集团 = 给指定集团的后台加白</div>
+        </div>
+      </div>
+
+      <div class="form-row new-field" id="orgRow" style="display:none">
+        <div class="label"><span class="req">*</span>集团</div>
+        <div class="field">
+          <select class="select" id="orgSel">
+            <option value="">请选择集团</option>
+            <option value="1">AAA游戏集团</option>
+            <option value="2">BBB体育集团</option>
+            <option value="3">CCC彩票集团</option>
+            <option value="4">DDD棋牌集团</option>
+          </select>
+          <div class="err" id="orgErr">请选择集团</div>
+          <div class="hint">仅展示状态为「启用」的集团；选中后将写入该集团的 OrgId</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="label"><span class="req">*</span>IP地址</div>
+        <div class="field">
+          <input class="input" id="ipInput" placeholder="请输入 IPv4 或 IPv6 地址，如 103.21.244.0">
+          <div class="err" id="ipErr">请输入合法的 IP 地址</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="label">备注</div>
+        <div class="field">
+          <textarea class="textarea" id="remarkInput" maxlength="2000" placeholder="请输入备注信息（最多 2000 字）"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('addModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitAdd()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗 -->
+<div class="modal-mask" id="editModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="title">编辑白名单IP</div>
+      <span class="close" onclick="closeModal('editModal')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="label">归属</div>
+        <div class="field">
+          <div class="disp-text"><span id="editScope">总控</span><span class="lock">🔒 不可修改</span></div>
+        </div>
+      </div>
+      <div class="form-row" id="editOrgRow">
+        <div class="label">集团</div>
+        <div class="field">
+          <div class="disp-text"><span id="editOrg">-</span><span class="lock">🔒 不可修改</span></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="label"><span class="req">*</span>IP地址</div>
+        <div class="field">
+          <input class="input" id="editIp">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="label">备注</div>
+        <div class="field">
+          <textarea class="textarea" id="editRemark" maxlength="2000"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('editModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitEdit()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认 -->
+<div class="modal-mask" id="delModal">
+  <div class="modal confirm-modal">
+    <div class="modal-head">
+      <div class="title">删除确认</div>
+      <span class="close" onclick="closeModal('delModal')">✕</span>
+    </div>
+    <div class="confirm-body">
+      <div class="icon">!</div>
+      <div class="info">
+        确定要删除 IP <b id="delIp">-</b> 吗？<br>
+        <small style="color:#999">删除后，该 IP 将立即失去登录权限</small>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('delModal')">取消</button>
+      <button class="btn btn-primary" style="background:#ff4d4f" onclick="confirmDel()">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="ic" id="toastIc">✓</div><span id="toastMsg"></span></div>
+
+<script>
+// === mock 数据 ===
+const orgMap = {1:'AAA游戏集团',2:'BBB体育集团',3:'CCC彩票集团',4:'DDD棋牌集团'};
+let rows = [
+  {id:1,ip:'103.21.244.0',state:1,orgId:0,remark:'运营VPN出口',creator:'admin001',createTime:'2026-02-15 10:00:00',updater:'admin001',updateTime:'2026-03-08 09:20:00'},
+  {id:2,ip:'182.68.22.91',state:0,orgId:1,remark:'AAA集团 财务办公网络',creator:'finance001',createTime:'2026-01-20 14:30:00',updater:'finance001',updateTime:'2026-03-06 15:10:24'},
+  {id:3,ip:'45.113.192.18',state:1,orgId:0,remark:'客服备用出口',creator:'service007',createTime:'2026-02-01 09:15:00',updater:'service007',updateTime:'2026-03-04 18:45:18'},
+  {id:4,ip:'120.79.45.122',state:1,orgId:2,remark:'BBB集团 运维出口',creator:'sysadmin',createTime:'2026-03-02 11:21:00',updater:'sysadmin',updateTime:'2026-03-02 11:21:00'},
+  {id:5,ip:'2001:db8::1',state:1,orgId:3,remark:'CCC集团 IPv6 测试',creator:'sysadmin',createTime:'2026-04-15 16:08:00',updater:'sysadmin',updateTime:'2026-04-15 16:08:00'},
+];
+let nextId = 6;
+
+function render(){
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = rows.map(r=>{
+    const isConsole = r.orgId === 0;
+    const typeTag = isConsole
+      ? '<span class="type-tag console">总控</span>'
+      : '<span class="type-tag org">集团</span>';
+    const orgName = isConsole ? '<span style="color:#bbb">-</span>' : (orgMap[r.orgId]||'-');
+    return `<tr>
+      <td>${r.id}</td>
+      <td>${r.ip}</td>
+      <td>
+        <label class="switch">
+          <input type="checkbox" ${r.state?'checked':''} onchange="toggleState(${r.id},this.checked)">
+          <span class="slider"></span>
+        </label>
+      </td>
+      <td class="new-col">${typeTag}</td>
+      <td class="new-col">${orgName}</td>
+      <td>${r.remark||''}</td>
+      <td>${r.creator}</td>
+      <td>${r.createTime}</td>
+      <td>${r.updater}</td>
+      <td>${r.updateTime}</td>
+      <td>
+        <span class="op-link" onclick="openEdit(${r.id})">编辑</span>
+        <span class="op-link del" onclick="openDel(${r.id})">删除</span>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('rowCount').textContent = rows.length;
+  document.getElementById('rowCount2').textContent = rows.length;
+}
+
+// === 新增弹窗 ===
+function openAdd(){
+  document.getElementById('scopeRadio').querySelectorAll('label').forEach((l,i)=>l.classList.toggle('checked',i===0));
+  document.querySelector('#scopeRadio input[value=console]').checked = true;
+  document.getElementById('orgRow').style.display = 'none';
+  document.getElementById('orgSel').value = '';
+  document.getElementById('ipInput').value = '';
+  document.getElementById('remarkInput').value = '';
+  document.getElementById('ipErr').classList.remove('show');
+  document.getElementById('orgErr').classList.remove('show');
+  document.getElementById('addModal').classList.add('show');
+}
+
+function selectScope(scope, el){
+  document.querySelectorAll('#scopeRadio label').forEach(l=>l.classList.remove('checked'));
+  el.classList.add('checked');
+  el.querySelector('input').checked = true;
+  document.getElementById('orgRow').style.display = scope === 'org' ? 'flex' : 'none';
+  document.getElementById('orgErr').classList.remove('show');
+}
+
+function submitAdd(){
+  const scope = document.querySelector('#scopeRadio input:checked').value;
+  const orgId = scope === 'org' ? parseInt(document.getElementById('orgSel').value || '0') : 0;
+  const ip = document.getElementById('ipInput').value.trim();
+  const remark = document.getElementById('remarkInput').value.trim();
+  let ok = true;
+  if (scope === 'org' && !orgId){ document.getElementById('orgErr').classList.add('show'); ok = false; }
+  if (!ip){ document.getElementById('ipErr').classList.add('show'); ok = false; }
+  if (!ok) return;
+  // 简易重复校验
+  if (rows.some(r=>r.ip===ip && r.orgId===orgId)){
+    const where = orgId===0 ? '总控' : `「${orgMap[orgId]}」`;
+    toast(`该 IP 已存在于 ${where} 白名单`, 'err');
+    return;
+  }
+  rows.unshift({
+    id: nextId++, ip, state:1, orgId, remark,
+    creator:'sysadmin', createTime:'2026-05-29 17:14:21',
+    updater:'sysadmin', updateTime:'2026-05-29 17:14:21'
+  });
+  render();
+  closeModal('addModal');
+  toast('新增成功', 'success');
+}
+
+// === 编辑弹窗 ===
+let editingId = null;
+function openEdit(id){
+  const r = rows.find(x=>x.id===id);
+  if (!r) return;
+  editingId = id;
+  document.getElementById('editScope').textContent = r.orgId===0 ? '总控' : '集团';
+  document.getElementById('editOrgRow').style.display = r.orgId===0 ? 'none' : 'flex';
+  document.getElementById('editOrg').textContent = orgMap[r.orgId] || '-';
+  document.getElementById('editIp').value = r.ip;
+  document.getElementById('editRemark').value = r.remark;
+  document.getElementById('editModal').classList.add('show');
+}
+function submitEdit(){
+  const r = rows.find(x=>x.id===editingId);
+  if (!r) return;
+  r.ip = document.getElementById('editIp').value.trim();
+  r.remark = document.getElementById('editRemark').value.trim();
+  r.updater = 'sysadmin';
+  r.updateTime = '2026-05-29 17:14:21';
+  render();
+  closeModal('editModal');
+  toast('修改成功', 'success');
+}
+
+// === 删除确认 ===
+let delId = null;
+function openDel(id){
+  const r = rows.find(x=>x.id===id);
+  if (!r) return;
+  delId = id;
+  document.getElementById('delIp').textContent = r.ip;
+  document.getElementById('delModal').classList.add('show');
+}
+function confirmDel(){
+  rows = rows.filter(r=>r.id!==delId);
+  render();
+  closeModal('delModal');
+  toast('已删除', 'success');
+}
+
+// === 状态切换 ===
+function toggleState(id, checked){
+  const r = rows.find(x=>x.id===id);
+  if (!r) return;
+  r.state = checked ? 1 : 0;
+  toast(checked ? '已启用' : '已禁用', 'success');
+}
+
+// === 类型筛选联动 ===
+function onFilterType(){
+  const v = document.getElementById('fType').value;
+  const orgSel = document.getElementById('fOrg');
+  if (v === '0'){
+    orgSel.disabled = true; orgSel.value = '';
+  } else {
+    orgSel.disabled = false;
+  }
+}
+
+// === 通用 ===
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+let tHandle;
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.className = 'toast show ' + (type||'success');
+  document.getElementById('toastMsg').textContent = msg;
+  document.getElementById('toastIc').textContent = type==='err' ? '✕' : (type==='warn' ? '!' : '✓');
+  clearTimeout(tHandle);
+  tHandle = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+render();
+</script>
+</body>
+</html>
