@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>商户端系统用户 · 权限拆分原型 v4（含防错勾选权限树）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;background:#f4f6f9;color:#1f2d3d;font-size:13px;line-height:1.55}
+
+.demo-bar{background:#1d1f3a;color:#fff;padding:10px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12.5px}
+.demo-bar .badge{background:#ff5566;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600}
+.demo-bar .title{font-size:14px;font-weight:600}
+.demo-bar .sub{color:rgba(255,255,255,.7);font-size:11.5px}
+.demo-bar .right{margin-left:auto;display:flex;gap:8px}
+.demo-bar .right button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11.5px;padding:5px 11px;border-radius:3px;cursor:pointer;font-family:inherit}
+.demo-bar .right button:hover{background:rgba(255,255,255,.22)}
+.demo-bar .right button.tree{background:#7c5cff;border-color:#7c5cff}
+
+.saas-top{background:#1abc9c;color:#fff;padding:0 24px;height:50px;display:flex;align-items:center;gap:18px}
+.saas-top .logo{width:28px;height:28px;background:#fff;color:#1abc9c;font-weight:800;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.saas-top .brand{display:flex;flex-direction:column;line-height:1.15;font-size:13px}
+.saas-top .brand small{font-size:10.5px;opacity:.85}
+.saas-top .nav{display:flex;gap:22px;margin-left:32px;flex:1;justify-content:center}
+.saas-top .nav a{color:rgba(255,255,255,.9);font-size:13px;cursor:pointer;padding:5px 10px;border-radius:3px}
+.saas-top .nav a.active,.saas-top .nav a:hover{background:rgba(255,255,255,.16);color:#fff}
+.saas-top .user{display:flex;align-items:center;gap:8px;font-size:12px}
+.saas-top .user .avatar{width:26px;height:26px;border-radius:50%;background:#7c5cff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+
+.role-switcher{background:#fff;padding:10px 22px;border-bottom:1px solid #e6ebf2;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.role-switcher .label{font-weight:600;color:#1f2d3d;font-size:12.5px}
+.role-switcher .roles{display:flex;gap:6px;flex-wrap:wrap}
+.role-chip{padding:6px 12px;border:1px solid #d4dae3;border-radius:16px;cursor:pointer;font-size:12px;background:#fff;color:#5a6779;transition:.15s;display:flex;align-items:center;gap:6px}
+.role-chip:hover{border-color:#1abc9c;color:#1abc9c}
+.role-chip.active{background:#e6f7f1;color:#1abc9c;border-color:#1abc9c;font-weight:600}
+.role-chip .pill{background:#f3f6fa;color:#8693a8;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600}
+.role-chip.active .pill{background:#1abc9c;color:#fff}
+
+.perm-bar{background:#fafbfc;padding:8px 22px;border-bottom:1px solid #e6ebf2;font-size:11.5px;color:#5a6779;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.perm-bar .lbl{font-weight:600;color:#1f2d3d}
+.perm-bar .perm{background:#e8f4ff;color:#0958d9;padding:2px 7px;border-radius:3px;font-size:10.5px;font-family:Menlo,Consolas,monospace;border:1px solid #b3d8ff}
+.perm-bar .perm.special{background:#fff7e6;color:#d46b08;border-color:#ffd591}
+.perm-bar .none{color:#bbb;font-style:italic}
+
+.crumb{background:#fff;padding:11px 22px;border-bottom:1px solid #e6ebf2;font-size:13px;display:flex;align-items:center;justify-content:space-between}
+.crumb .title{color:#1677ff;font-weight:600;font-size:14px}
+.crumb .right{color:#8693a8;font-size:11.5px}
+.crumb .right .sep{margin:0 5px;color:#ccc}
+
+.wrap{padding:14px 22px}
+.card{background:#fff;border-radius:4px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.04);border:1px solid #e6ebf2}
+
+.filter-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 22px;padding:6px 4px}
+.filter-bar .f-item{display:flex;align-items:center;gap:8px}
+.filter-bar .f-item label{font-size:12.5px;color:#5a6779;white-space:nowrap;min-width:50px}
+.filter-bar .f-item .input,.filter-bar .f-item .select{flex:1;height:30px;padding:0 10px;border:1px solid #d4dae3;border-radius:3px;font-size:12px;font-family:inherit;background:#fff;color:#1f2d3d}
+.filter-bar .f-item .select{appearance:none;padding-right:24px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'><path fill='%23999' d='M6 8.5L1.5 4h9z'/></svg>") no-repeat right 8px center,#fff;cursor:pointer}
+.filter-right{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.collapse-btn{background:#e6f7f1;color:#1abc9c;border:1px solid #b8e4d6;font-size:11.5px;padding:3px 12px;border-radius:11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:inherit;margin:8px auto 4px;display:block}
+.collapse-row{text-align:center;padding:2px 0 4px}
+
+.toolbar{display:flex;align-items:center;gap:6px;margin-bottom:12px;padding:8px 0;border-top:1px solid #f0f2f5;flex-wrap:wrap;position:relative}
+.btn{height:28px;padding:0 11px;border-radius:3px;font-size:12px;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:4px;background:#fff;color:#5a6779;border:1px solid #d4dae3;transition:.15s;position:relative}
+.btn:hover:not([disabled]){border-color:#1677ff;color:#1677ff}
+.btn.btn-p{background:#1abc9c;color:#fff;border-color:#1abc9c}
+.btn.btn-p:hover:not([disabled]){background:#16a085;border-color:#16a085}
+.btn.btn-active{background:#fff7e6;color:#d46b08;border-color:#ffd591}
+.btn[disabled]{background:#f4f6f9;color:#c0ccda;border-color:#e6ebf2;cursor:not-allowed}
+.btn[disabled]::after{content:"🔒";font-size:9.5px;margin-left:3px}
+.btn .lock-tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:11px;padding:4px 8px;border-radius:3px;white-space:nowrap;z-index:50}
+.btn[disabled]:hover .lock-tip{display:block}
+.tool-right{margin-left:auto;display:flex;gap:8px}
+
+.btn-dd{position:relative}
+.btn-dd .caret{font-size:9px;margin-left:3px;opacity:.8}
+.dd-menu{position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e6ebf2;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:160px;padding:4px 0;z-index:30;display:none}
+.dd-menu.show{display:block}
+.dd-item{padding:7px 14px;font-size:12.5px;color:#3a4555;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
+.dd-item:hover:not(.disabled){background:#e6f7f1;color:#1abc9c}
+.dd-item.disabled{color:#c0ccda;cursor:not-allowed}
+.dd-item.disabled::after{content:"🔒";font-size:10px;margin-left:auto;color:#c0ccda}
+.dd-divider{height:1px;background:#f0f2f5;margin:4px 0}
+.dd-section{padding:4px 14px;font-size:10.5px;color:#8693a8;text-transform:uppercase;letter-spacing:.5px}
+
+.tbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.tbl th{background:#eef4fb;color:#1f2d3d;padding:9px 8px;text-align:center;font-weight:600;border:1px solid #dde7f1;font-size:12px;white-space:nowrap}
+.tbl td{padding:10px 8px;text-align:center;border:1px solid #eef0f4;color:#3a4555;vertical-align:middle;word-break:break-word;background:#fff}
+.tbl tbody tr:hover td{background:#f8fbff}
+
+.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10.5px;font-weight:600;margin:1px 1.5px;line-height:1.7;vertical-align:middle;white-space:nowrap}
+.tag-merchant{background:#e8f3ff;color:#0958d9;border:1px solid #91caff}
+.tag-currency-vnd{background:#e6fffb;color:#08979c;border:1px solid #87e8de}
+.tag-currency-inr{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.tag-group{background:#e6f4ff;color:#1677ff;border:1px solid #91caff}
+.tag-role{background:#e6f7ff;color:#0958d9;border:1px solid #91caff;padding:2px 10px;border-radius:3px;font-size:11.5px}
+
+.switch{position:relative;display:inline-block;width:34px;height:18px}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;inset:0;background:#c0ccda;border-radius:18px;transition:.2s;cursor:pointer}
+.switch .slider::before{content:"";position:absolute;height:12px;width:12px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked + .slider{background:#1abc9c}
+.switch input:checked + .slider::before{transform:translateX(16px)}
+.switch input:disabled + .slider{opacity:.65;cursor:not-allowed}
+.switch.big{width:40px;height:22px}
+.switch.big .slider{border-radius:22px}
+.switch.big .slider::before{height:16px;width:16px}
+.switch.big input:checked + .slider::before{transform:translateX(18px)}
+
+.cfg-text{text-align:left;font-size:11.5px;color:#3a4555;line-height:1.6}
+.cfg-text .lbl{color:#8693a8}
+.cfg-text b{color:#1f2d3d;font-weight:600}
+.cfg-text .role-hl{color:#d46b08;font-weight:600}
+.not-set{color:#c0ccda;font-style:italic;font-size:11.5px}
+
+.op-link{color:#1677ff;cursor:pointer;margin:0 3px;font-size:12px}
+.op-link.del{color:#ff4d4f}
+.op-link.disabled{color:#c0ccda;cursor:not-allowed;text-decoration:line-through}
+.op-link:hover:not(.disabled){text-decoration:underline}
+
+.pagination{margin-top:12px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#5a6779;flex-wrap:wrap;gap:8px}
+.pagination .left{display:flex;gap:14px;align-items:center}
+.pagination .right{display:flex;gap:5px;align-items:center}
+.pagination .pages{display:inline-flex;gap:3px}
+.pagination .pages span{min-width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #d4dae3;border-radius:3px;cursor:pointer;font-size:12px;background:#fff}
+.pagination .pages span.active{background:#1abc9c;color:#fff;border-color:#1abc9c}
+.pagination input,.pagination select{height:26px;padding:0 8px;border:1px solid #d4dae3;border-radius:3px;font-family:inherit;font-size:12px}
+.pagination input{width:42px;text-align:center}
+
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:200}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:920px;max-width:96vw;max-height:92vh;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;display:flex;flex-direction:column}
+.modal.sm{width:520px}
+.modal.lg{width:1080px}
+.modal.xl{width:1240px}
+.modal-head{padding:14px 22px;border-bottom:1px solid #f0f2f5;display:flex;justify-content:space-between;align-items:center}
+.modal-head .title{font-size:15px;font-weight:600;color:#1f2d3d}
+.modal-head .close{cursor:pointer;color:#8693a8;font-size:18px;line-height:1}
+.modal-head .close:hover{color:#ff4d4f}
+.modal-body{padding:18px 22px;overflow-y:auto;flex:1}
+.modal-foot{padding:11px 22px;display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fafbfc;border-top:1px solid #f0f2f5}
+.modal-foot .right{display:flex;gap:8px}
+.btn-cancel{background:#fff;color:#5a6779;border:1px solid #d4dae3;padding:6px 18px;border-radius:3px;cursor:pointer;font-size:13px;font-family:inherit}
+.btn-cancel:hover{border-color:#1677ff;color:#1677ff}
+.btn-primary{background:#1abc9c;color:#fff;border:1px solid #1abc9c;padding:6px 18px;border-radius:3px;cursor:pointer;font-size:13px;font-family:inherit}
+.btn-primary:hover{background:#16a085}
+.btn-primary:disabled{background:#c0ccda;border-color:#c0ccda;cursor:not-allowed}
+
+.sec-title{font-size:13px;font-weight:600;color:#1f2d3d;margin-bottom:10px;margin-top:14px}
+.sec-title:first-child{margin-top:0}
+
+.acc-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.acc-tbl th{background:#fafbfc;color:#5a6779;padding:8px;text-align:left;font-weight:600;border:1px solid #e6ebf2;font-size:11.5px}
+.acc-tbl td{padding:7px 8px;border:1px solid #f0f2f5;background:#fff}
+.acc-tbl input{padding:5px 8px;border:1px solid #d4dae3;border-radius:3px;font-size:12px;font-family:inherit;width:100%}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 22px;margin-bottom:14px}
+.form-grid.full{grid-template-columns:1fr}
+.form-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:0}
+.form-row .lbl{min-width:90px;text-align:right;color:#5a6779;font-size:12.5px;padding-top:6px;flex-shrink:0}
+.form-row .lbl .req{color:#ff4d4f}
+.form-row .field{flex:1;min-width:0}
+.input,.select,.textarea{padding:5px 10px;border:1px solid #d4dae3;border-radius:3px;font-family:inherit;font-size:12.5px;color:#1f2d3d;width:100%;outline:none;height:30px}
+.input:focus,.select:focus,.textarea:focus{border-color:#1abc9c;box-shadow:0 0 0 2px rgba(26,188,156,.15)}
+.input[disabled],.select[disabled],.textarea[disabled]{background:#f4f6f9;color:#8693a8;cursor:not-allowed}
+.select{appearance:none;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'><path fill='%23999' d='M6 8.5L1.5 4h9z'/></svg>") no-repeat right 8px center,#fff;padding-right:26px;cursor:pointer}
+.input.short{width:130px}
+
+.public-cfg-block{position:relative;transition:.2s;padding:8px;margin:-8px;border-radius:4px}
+.public-cfg-block.locked{background:#fafbfc;border:1px dashed #e6ebf2}
+.public-cfg-block.locked::after{content:"";position:absolute;inset:0;background:rgba(244,246,249,.35);pointer-events:none;border-radius:4px}
+.public-locked-banner{background:#fffbe6;border:1px dashed #ffd591;color:#874d00;font-size:11.5px;padding:6px 10px;border-radius:3px;margin-bottom:12px;display:none;align-items:center;gap:6px;line-height:1.6}
+.public-cfg-block.locked .public-locked-banner{display:flex}
+
+.tenant-box{background:#fafbfc;padding:10px;border:1px solid #e6ebf2;border-radius:3px}
+.tenant-box .head{font-size:11.5px;color:#5a6779;margin-bottom:6px;display:flex;justify-content:space-between}
+.tenant-box .head .opts{color:#1677ff;cursor:pointer}
+.tenant-box .opts-list{display:flex;flex-wrap:wrap;gap:14px}
+.tenant-box label{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;cursor:pointer}
+
+.tpl-row{background:#fafbfc;padding:8px 14px;border:1px solid #e6ebf2;border-radius:3px;margin-bottom:14px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.tpl-row label{font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.tpl-row .lbl{font-size:12.5px;color:#5a6779}
+
+.perm-blocks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+.perm-block{background:#fff;border:1px solid #e6ebf2;border-radius:4px;padding:14px 16px;position:relative;transition:.2s}
+.perm-block .b-head{display:flex;justify-content:space-between;align-items:center;background:#eef4fb;margin:-14px -16px 14px;padding:8px 14px;border-bottom:1px solid #dde7f1;border-radius:4px 4px 0 0}
+.perm-block .b-title{font-size:12.5px;font-weight:600;color:#1f2d3d}
+.perm-block.locked{background:#fafbfc;border-color:#e6ebf2}
+.perm-block.locked .b-head{background:#f4f6f9}
+.perm-block.locked::after{content:"";position:absolute;inset:0;background:rgba(244,246,249,.35);pointer-events:none;border-radius:4px}
+.locked-banner{background:#fffbe6;border:1px dashed #ffd591;color:#874d00;font-size:11.5px;padding:6px 10px;border-radius:3px;margin-bottom:12px;display:none;align-items:center;gap:6px;line-height:1.6}
+.perm-block.locked .locked-banner{display:flex}
+.locked-banner code{background:#fff;padding:1px 4px;border-radius:2px;font-size:10.5px;color:#874d00;border:1px solid #ffd591;font-family:Menlo,Consolas,monospace}
+
+.checkbox-row{display:flex;gap:14px;padding-top:5px;flex-wrap:wrap}
+.checkbox-row label{cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:12.5px}
+.checkbox-row input{accent-color:#1abc9c}
+
+.mtabs{display:flex;border-bottom:1px solid #e6ebf2;margin-bottom:18px;gap:0}
+.mtab{padding:8px 18px;cursor:pointer;font-size:13px;color:#5a6779;border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:500;display:flex;align-items:center;gap:6px}
+.mtab.active{color:#1677ff;border-bottom-color:#1677ff;font-weight:600}
+.mtab .badge-na{background:#f0f2f5;color:#8693a8;font-size:10px;padding:1px 5px;border-radius:2px;font-weight:500;line-height:1.5}
+.mtab .badge-ok{background:#f6ffed;color:#389e0d;font-size:10px;padding:1px 5px;border-radius:2px;font-weight:500;line-height:1.5}
+.mtab.locked{color:#8693a8}
+.mtab.locked .lock-ic{color:#fa8c16}
+.mtab:hover:not(.locked){color:#1677ff}
+.mtab-content{display:none}
+.mtab-content.active{display:block}
+
+.toggle-card-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.toggle-card{background:#fafbfc;border:1px solid #e6ebf2;border-radius:4px;padding:14px;display:flex;justify-content:space-between;align-items:center}
+.toggle-card .left .name{font-size:13px;font-weight:600;color:#1f2d3d}
+.toggle-card .left .desc{font-size:11.5px;color:#8693a8;margin-top:2px}
+
+.user-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fafbfc;padding:10px;border:1px solid #e6ebf2;border-radius:3px}
+.user-chips .lbl{font-size:12px;color:#5a6779;margin-right:4px}
+.user-chip{background:#fff;border:1px solid #d4dae3;border-radius:14px;padding:3px 10px;font-size:12px;color:#3a4555}
+
+.cover-rule{background:#fafbfc;padding:10px 14px;border:1px solid #e6ebf2;border-radius:3px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.cover-rule .lbl{font-size:12.5px;color:#5a6779;display:inline-flex;align-items:center;gap:4px}
+.cover-rule .help{color:#1677ff;cursor:help;font-size:11px;background:#e6f7ff;border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #91caff}
+
+/* === 权限树预览（防错勾选） === */
+.tree-modal .modal-body{padding:0;background:#fff}
+.tree-shell{display:grid;grid-template-columns:240px 1fr 280px;min-height:560px;max-height:72vh}
+.tpl-pane{padding:16px;border-right:1px solid #f0f2f5;background:#fafbfc;overflow-y:auto}
+.tpl-pane .h{font-size:12.5px;font-weight:600;color:#1f2d3d;margin-bottom:8px}
+.tpl-pane .desc{font-size:11px;color:#8693a8;margin-bottom:12px;line-height:1.6}
+.tpl-card{background:#fff;border:1px solid #e6ebf2;border-radius:4px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.tpl-card:hover{border-color:#1abc9c;box-shadow:0 2px 6px rgba(26,188,156,.12)}
+.tpl-card.active{background:#e6f7f1;border-color:#1abc9c}
+.tpl-card .n{font-size:12.5px;font-weight:600;color:#1f2d3d;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.tpl-card .n .count{background:#c0ccda;color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600}
+.tpl-card.active .n .count{background:#1abc9c}
+.tpl-card .d{font-size:11px;color:#8693a8;line-height:1.55}
+
+.tree-pane{padding:16px 22px;overflow-y:auto}
+.tree-pane .h{font-size:12.5px;font-weight:600;color:#1f2d3d;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.tree-pane .tree-tool{display:flex;gap:6px;margin-bottom:10px;font-size:11.5px;align-items:center}
+.tree-pane .tree-tool .link{color:#1677ff;cursor:pointer}
+.tree-pane .tree-tool .link:hover{text-decoration:underline}
+.tree-pane .tree-tool .sep{color:#d4dae3}
+
+.tree-node{padding:0;font-size:12.5px}
+.tree-row{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:3px;cursor:pointer;line-height:1.6;transition:.1s}
+.tree-row:hover{background:#f0f8ff}
+.tree-row .expand{color:#8693a8;font-size:10px;width:12px;display:inline-block;text-align:center;cursor:pointer}
+.tree-row .name{flex:1;color:#3a4555}
+.tree-row.menu .name{font-weight:600;color:#1f2d3d}
+.tree-row .badge-perm{background:#fff7e6;color:#d46b08;font-size:10px;padding:1px 5px;border-radius:2px;border:1px solid #ffd591;font-weight:600;font-family:Menlo,Consolas,monospace}
+.tree-row .badge-perm.shared{background:#f6ffed;color:#389e0d;border-color:#b7eb8f}
+.tree-row .badge-perm.entry{background:#e8f4ff;color:#0958d9;border-color:#91caff}
+.tree-row .badge-mark{background:#7c5cff;color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;font-weight:600;letter-spacing:.3px}
+.tree-children{padding-left:22px;border-left:1px dashed #e6ebf2;margin-left:8px}
+
+/* 共享码节点的"影响范围"小字 */
+.tree-affect{padding:2px 6px 6px 38px;font-size:10.5px;color:#8693a8;line-height:1.7;display:flex;flex-wrap:wrap;gap:4px}
+.tree-affect .tag-aff{background:#f0f8ff;color:#5a6779;border:1px solid #e6ebf2;padding:1px 6px;border-radius:2px;font-size:10px}
+.tree-affect .lbl{color:#c0ccda;font-size:10px;margin-right:3px}
+
+.tri-check{position:relative;width:15px;height:15px;border:1px solid #c0ccda;border-radius:2px;background:#fff;cursor:pointer;flex-shrink:0;transition:.15s;display:inline-block}
+.tri-check.checked{background:#1abc9c;border-color:#1abc9c}
+.tri-check.checked::after{content:"";position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.tri-check.half{background:#1abc9c;border-color:#1abc9c}
+.tri-check.half::after{content:"";position:absolute;left:2px;top:6px;width:9px;height:2px;background:#fff;border-radius:1px}
+
+.summary-pane{padding:16px;border-left:1px solid #f0f2f5;background:#fafbfc;overflow-y:auto}
+.summary-pane .h{font-size:12.5px;font-weight:600;color:#1f2d3d;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.summary-pane .h .n{background:#1abc9c;color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:600}
+.summary-box{background:#fff;border:1px solid #e6ebf2;border-radius:3px;padding:8px 10px;margin-bottom:12px}
+.summary-box .perm-code{display:inline-block;background:#e8f4ff;color:#0958d9;font-size:10.5px;padding:2px 7px;border-radius:3px;margin:2px 3px 2px 0;font-family:Menlo,Consolas,monospace;border:1px solid #91caff;font-weight:600}
+.summary-box .perm-code.shared{background:#f6ffed;color:#389e0d;border-color:#b7eb8f}
+.summary-box .empty{color:#c0ccda;font-style:italic;font-size:11.5px}
+
+.check-box{margin-bottom:8px}
+.check-item{padding:8px 10px;border-radius:3px;font-size:11.5px;margin-bottom:6px;display:flex;gap:6px;line-height:1.55}
+.check-item.ok{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.check-item.warn{background:#fffbe6;color:#874d00;border:1px solid #ffe58f}
+.check-item.err{background:#fff2f0;color:#cf1322;border:1px solid #ffccc7}
+.check-item .ic{font-size:13px;flex-shrink:0}
+.check-item .txt{flex:1}
+.check-item .txt b{font-weight:700}
+.check-item .fix-btn{background:#fff;color:#874d00;border:1px solid #ffd591;padding:2px 7px;border-radius:2px;font-size:10.5px;cursor:pointer;font-family:inherit;margin-top:4px}
+.check-item .fix-btn:hover{background:#fff7e6}
+.check-item.err .fix-btn{color:#cf1322;border-color:#ffccc7}
+
+.foot-stat{font-size:12px;color:#5a6779}
+.foot-stat b{color:#1f2d3d}
+
+/* 联动气泡 */
+.link-tip{position:fixed;background:#7c5cff;color:#fff;font-size:11px;padding:5px 10px;border-radius:3px;z-index:400;pointer-events:none;display:none;top:120px;left:50%;transform:translateX(-50%);animation:fadeIn .3s}
+.link-tip.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translate(-50%,-4px)}to{opacity:1;transform:translate(-50%,0)}}
+
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fff;padding:11px 18px;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.15);display:none;align-items:center;gap:10px;z-index:300;font-size:13px;border:1px solid #e6ebf2;max-width:680px}
+.toast.show{display:flex;animation:slide .3s ease}
+.toast.success{border-left:4px solid #1abc9c}
+.toast.err{border-left:4px solid #ff4d4f;background:#fff2f0}
+.toast .ic{font-size:16px}
+.toast.err .ic{color:#ff4d4f}
+.toast.success .ic{color:#1abc9c}
+@keyframes slide{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <span class="badge">原型 v4</span>
+  <span class="title">商户端系统用户 · 三共享码权限模型</span>
+  <span class="sub">PublicConfig / WithdrawConfig / ApprovalConfig 同时控制 新增·编辑·批量·列表</span>
+  <div class="right">
+    <button class="tree" onclick="openTreeModal()">🌲 权限树预览 · 防错勾选</button>
+    <button onclick="openAdd()">📝 新增用户</button>
+    <button onclick="openEdit('mdckzl05')">✏️ 编辑详情</button>
+    <button onclick="openBatchAuth()">🔑 批量赋权</button>
+  </div>
+</div>
+
+<div class="saas-top">
+  <div class="logo">A</div>
+  <div class="brand"><b>SAAS总控</b><small>2026-05-29 17:14:21 (UTC +4)</small></div>
+  <div class="nav"><a>财务管理</a><a>报表管理</a><a>商户管理</a><a class="active">系统管理</a></div>
+  <div class="user"><div class="avatar">A</div><span>sysadmin</span></div>
+</div>
+
+<div class="role-switcher">
+  <span class="label">🎭 当前登录身份（均为商户端）：</span>
+  <div class="roles">
+    <div class="role-chip active" onclick="setRole('tenant-super',this)">商户超管 <span class="pill">全部权限</span></div>
+    <div class="role-chip" onclick="setRole('tenant-wdraw-lead',this)">出款组长 <span class="pill">公用+出款</span></div>
+    <div class="role-chip" onclick="setRole('tenant-appr-only',this)">财务专员 <span class="pill">公用+充值</span></div>
+    <div class="role-chip" onclick="setRole('tenant-basic',this)">普通客服 <span class="pill">仅公用</span></div>
+  </div>
+</div>
+
+<div class="perm-bar">
+  <span class="lbl">📋 当前持有权限码：</span>
+  <span id="permList"></span>
+</div>
+
+<div class="crumb">
+  <span class="title">系统用户</span>
+  <div class="right"><span>系统管理</span><span class="sep">›</span><span>系统用户</span><span class="sep">›</span><span style="color:#1abc9c">系统用户页面</span></div>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="filter-bar">
+      <div class="f-item"><label>商户</label><select class="select"><option>请选择商户</option></select></div>
+      <div class="f-item"><label>用户账号</label><input class="input" placeholder="用户账号"></div>
+      <div class="f-item"><label>用户状态</label><select class="select"><option>请选择状态</option></select></div>
+      <div class="f-item"><label>角色</label><select class="select"><option>请选择角色</option></select></div>
+    </div>
+    <div class="filter-right">
+      <button class="btn btn-p">🔍 搜索</button>
+      <button class="btn">↻ 重置</button>
+    </div>
+    <div class="collapse-row"><button class="collapse-btn">∧ 收起</button></div>
+
+    <div class="toolbar" id="toolbar">
+      <button class="btn btn-p" id="btnAdd" onclick="openAdd()">+ 新增用户</button>
+
+      <div class="btn-dd">
+        <button class="btn" id="btnBatchWdraw" onclick="toggleDd('ddWdraw',event)">
+          批量调整出款权限 <span class="caret">▼</span>
+          <span class="lock-tip">需 WithdrawConfig 权限</span>
+        </button>
+        <div class="dd-menu" id="ddWdraw">
+          <div class="dd-item" id="ddWdrawA" onclick="ddOp('批量调整金额区间','WithdrawConfig')">批量调整金额区间</div>
+          <div class="dd-item" id="ddWdrawB" onclick="ddOp('批量修改处理上限','WithdrawConfig')">批量修改处理上限</div>
+        </div>
+      </div>
+
+      <button class="btn" id="btnBatchState" onclick="ddOp('批量变更状态','PublicConfig')">
+        批量变更状态<span class="lock-tip">需 PublicConfig 权限</span>
+      </button>
+
+      <div class="btn-dd">
+        <button class="btn btn-active" id="btnBatchAuth" onclick="toggleDd('ddAuth',event)">
+          批量赋权 <span class="caret">▼</span>
+          <span class="lock-tip">需 WithdrawConfig 或 ApprovalConfig</span>
+        </button>
+        <div class="dd-menu" id="ddAuth">
+          <div class="dd-item" onclick="openBatchAuth()">⚙ 打开批量赋权弹窗（完整配置）</div>
+          <div class="dd-divider"></div>
+          <div class="dd-section">快捷操作</div>
+          <div class="dd-item" id="ddAuthWdEnable" onclick="ddOp('批量启用出款权限','WithdrawConfig')">批量启用出款权限</div>
+          <div class="dd-item" id="ddAuthWdDisable" onclick="ddOp('批量禁用出款权限','WithdrawConfig')">批量禁用出款权限</div>
+          <div class="dd-item" id="ddAuthAprEnable" onclick="ddOp('批量启用充值权限','ApprovalConfig')">批量启用充值权限</div>
+          <div class="dd-item" id="ddAuthAprDisable" onclick="ddOp('批量禁用充值权限','ApprovalConfig')">批量禁用充值权限</div>
+        </div>
+      </div>
+
+      <button class="btn" id="btnBatchGoogle" onclick="ddOp('批量google操作','PublicConfig')">
+        批量google操作<span class="lock-tip">需 PublicConfig 权限</span>
+      </button>
+
+      <div class="tool-right">
+        <button class="btn">∨ 充提权限搜索</button>
+        <button class="btn">⚙ 自定义列</button>
+      </div>
+    </div>
+
+    <table class="tbl">
+      <colgroup>
+        <col style="width:36px"><col style="width:108px"><col style="width:82px"><col style="width:96px">
+        <col style="width:200px"><col style="width:64px"><col style="width:240px"><col style="width:64px">
+        <col style="width:72px"><col style="width:160px"><col style="width:140px"><col style="width:130px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th><input type="checkbox"></th><th>用户账号</th><th>用户姓名</th><th>用户角色</th>
+          <th>出款权限配置</th><th>出款状态</th><th>人工充值权限配置</th><th>充值状态</th>
+          <th>归属集团</th><th>归属商户</th><th>最后登录时间 (UTC+5:30)</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="userTbody"></tbody>
+    </table>
+
+    <div class="pagination">
+      <div class="left">
+        <label><input type="checkbox"> 全选当前页</label>
+        <span style="color:#1abc9c;cursor:pointer">∨ 批量操作</span>
+      </div>
+      <div class="right">
+        <span>共 1654 条</span>
+        <div class="pages"><span>‹</span><span>1</span><span>2</span><span>3</span><span class="active">4</span><span>5</span><span>6</span><span>7</span><span>···</span><span>166</span><span>›</span></div>
+        <select><option>10 / 页</option></select>
+        <span>跳至</span><input value="1">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 新增用户 弹窗 ============ -->
+<div class="modal-mask" id="addModal">
+  <div class="modal">
+    <div class="modal-head"><div class="title">新增用户</div><span class="close" onclick="closeModal('addModal')">✕</span></div>
+    <div class="modal-body">
+
+      <div class="sec-title">账号列表</div>
+      <table class="acc-tbl">
+        <thead><tr><th style="width:50px">序号</th><th>用户账号 *</th><th>用户姓名 *</th><th>密码 *</th><th style="width:120px">操作</th></tr></thead>
+        <tbody>
+          <tr><td style="text-align:center">1</td><td><input placeholder="请输入账号"></td><td><input value="org_luna"></td><td><input type="password" value="abcd1234"></td><td style="text-align:center"><span class="op-link del">删除</span> <span class="op-link" style="color:#ff4d4f">+ 新增</span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="sec-title">公用配置</div>
+      <div class="public-cfg-block" id="addPublicBlock">
+        <div class="public-locked-banner">🔒 您无 <code>PublicConfig</code> 权限，公用配置区块不可编辑。</div>
+        <div class="form-grid">
+          <div class="form-row"><div class="lbl"><span class="req">*</span> 角色权限</div><div class="field"><select class="select pcfg"><option>请选择角色</option><option>orgadmin</option></select></div></div>
+          <div class="form-row">
+            <div class="lbl">状态</div><div class="field"><label class="switch big"><input type="checkbox" checked class="pcfg"><span class="slider"></span></label></div>
+            <div class="lbl" style="margin-left:30px">谷歌验证</div><div class="field"><label class="switch big"><input type="checkbox" checked class="pcfg"><span class="slider"></span></label></div>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px">
+          <div class="lbl"><span class="req">*</span> 归属商户</div>
+          <div class="field">
+            <div class="tenant-box">
+              <div class="head"><span>已选 0/3</span><span class="opts">全选 · 清空</span></div>
+              <div class="opts-list">
+                <label><input type="checkbox" class="pcfg"> (2007)vnd <span class="tag tag-currency-vnd">VND</span> <span class="tag tag-group">第一集团</span></label>
+                <label><input type="checkbox" class="pcfg"> (2001)sit-inr <span class="tag tag-currency-inr">INR</span> <span class="tag tag-group">第一集团</span></label>
+                <label><input type="checkbox" class="pcfg"> (2002)sit-inr2002 <span class="tag tag-currency-inr">INR</span> <span class="tag tag-group">第一集团</span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tpl-row">
+        <span class="lbl">权限模板：</span>
+        <label><input type="radio" name="ptpl" checked> 自定义配置</label>
+        <label><input type="radio" name="ptpl"> 复制现有用户</label>
+      </div>
+
+      <div class="perm-blocks">
+        <div class="perm-block" id="addWithdrawBlock">
+          <div class="b-head"><div class="b-title">出款权限配置</div><label class="switch big"><input type="checkbox" id="addWdrawSwitch" onchange="toggleAddBlock('wdraw')"><span class="slider"></span></label></div>
+          <div class="locked-banner">🔒 您无 <code>WithdrawConfig</code> 权限，此区块不可配置。</div>
+          <div id="addWdrawForm" style="display:none">
+            <div class="form-row" style="margin-bottom:12px"><div class="lbl"><span class="req">*</span> 职位</div><div class="field"><select class="select"><option>请选择职位</option><option>主管</option><option>组长</option><option>组员</option></select></div></div>
+          </div>
+          <div id="addWdrawEmpty" style="color:#c0ccda;font-size:12px;text-align:center;padding:14px 0">＋ 打开开关后配置</div>
+        </div>
+
+        <div class="perm-block" id="addApprovalBlock">
+          <div class="b-head"><div class="b-title">人工充值权限配置</div><label class="switch big"><input type="checkbox" id="addApprSwitch" onchange="toggleAddBlock('appr')"><span class="slider"></span></label></div>
+          <div class="locked-banner">🔒 您无 <code>ApprovalConfig</code> 权限，此区块不可配置。</div>
+          <div id="addApprForm" style="display:none">
+            <div class="form-grid" style="margin-bottom:10px">
+              <div class="form-row"><div class="lbl">角色权限</div><div class="field"><div class="checkbox-row" style="padding-top:6px"><label><input type="radio" name="aprRole" checked> 操作</label><label><input type="radio" name="aprRole"> 审核</label></div></div></div>
+              <div class="form-row"><div class="lbl"><span class="req">*</span> 法币</div><div class="field"><select class="select"><option>请选择法币</option><option>INR</option></select></div></div>
+            </div>
+            <div class="form-row" style="margin-bottom:10px"><div class="lbl"><span class="req">*</span> 商户</div><div class="field"><select class="select"><option>请选择商户</option></select></div></div>
+            <div class="form-row"><div class="lbl" style="padding-top:0">操作内容</div><div class="field"><div class="checkbox-row"><label><input type="checkbox"> 人工充值</label><label><input type="checkbox"> 修改银行卡</label><label><input type="checkbox"> 修改会员密码</label></div></div></div>
+          </div>
+          <div id="addApprEmpty" style="color:#c0ccda;font-size:12px;text-align:center;padding:14px 0">＋ 打开开关后配置</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot"><div></div>
+      <div class="right">
+        <button class="btn-cancel" onclick="closeModal('addModal')">取消</button>
+        <button class="btn-primary" onclick="submitAdd()">确认创建</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 编辑详情 弹窗 ============ -->
+<div class="modal-mask" id="editModal">
+  <div class="modal">
+    <div class="modal-head"><div class="title">用户详情 - <span id="editUser">-</span></div><span class="close" onclick="closeModal('editModal')">✕</span></div>
+    <div class="modal-body">
+      <div class="mtabs">
+        <div class="mtab active" id="mtBasic" onclick="switchMtab(this,'mt-basic')">基本信息 <span class="lock-ic" id="mtBasicLock" style="display:none">🔒</span></div>
+        <div class="mtab" id="mtWdraw" onclick="switchMtab(this,'mt-wdraw')">出款权限配置 <span class="badge-na" id="mtWdrawState">未配置</span><span class="lock-ic" id="mtWdrawLock" style="display:none">🔒</span></div>
+        <div class="mtab" id="mtAppr" onclick="switchMtab(this,'mt-appr')">人工充值权限配置 <span class="badge-na" id="mtApprState">未配置</span><span class="lock-ic" id="mtApprLock" style="display:none">🔒</span></div>
+      </div>
+
+      <div class="mtab-content active" id="mt-basic">
+        <div class="public-cfg-block" id="editPublicBlock">
+          <div class="public-locked-banner">🔒 您无 <code>PublicConfig</code> 权限，仅可查看基本信息，无法修改/保存。</div>
+          <div class="form-grid">
+            <div class="form-row"><div class="lbl">用户账号</div><div class="field"><input class="input" disabled id="eUser"></div></div>
+            <div class="form-row"><div class="lbl"><span class="req">*</span> 用户姓名</div><div class="field"><input class="input pcfg-e" id="eName"></div></div>
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="lbl"><span class="req">*</span> 角色权限</div>
+            <div class="field"><div style="border:1px solid #d4dae3;padding:5px 10px;border-radius:3px;min-height:30px"><span class="tag tag-role" id="eRole" style="margin:0">-</span></div></div>
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="lbl"><span class="req">*</span> 归属商户</div>
+            <div class="field">
+              <div class="tenant-box">
+                <div class="head"><span>已选 2/3</span><span class="opts">全选 · 清空</span></div>
+                <div class="opts-list">
+                  <label><input type="checkbox" checked class="pcfg-e"> (2007)vnd <span class="tag tag-currency-vnd">VND</span> <span class="tag tag-group">第一集团</span></label>
+                  <label><input type="checkbox" class="pcfg-e"> (2001)sit-inr <span class="tag tag-currency-inr">INR</span> <span class="tag tag-group">第一集团</span></label>
+                  <label><input type="checkbox" checked class="pcfg-e"> (2002)sit-inr2002 <span class="tag tag-currency-inr">INR</span> <span class="tag tag-group">第一集团</span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="toggle-card-row">
+            <div class="toggle-card"><div class="left"><div class="name">用户状态</div><div class="desc">关闭后禁止登录后台</div></div><label class="switch big"><input type="checkbox" checked class="pcfg-e"><span class="slider"></span></label></div>
+            <div class="toggle-card"><div class="left"><div class="name">谷歌验证码</div><div class="desc">开启后登录需要双重校验</div></div><label class="switch big"><input type="checkbox" checked class="pcfg-e"><span class="slider"></span></label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mtab-content" id="mt-wdraw">
+        <div class="perm-block" id="editWdrawBlock">
+          <div class="b-head"><div class="b-title">出款权限配置</div><label class="switch big"><input type="checkbox" id="eWdrawSwitch"><span class="slider"></span></label></div>
+          <div class="locked-banner">🔒 您无 <code>WithdrawConfig</code> 权限，仅可查看现有配置，无法修改/保存。</div>
+          <div id="eWdrawForm">
+            <div class="form-grid">
+              <div class="form-row"><div class="lbl">职位</div><div class="field"><select class="select" id="eWdrawPos"><option>主管</option><option>组长</option><option>组员</option></select></div></div>
+              <div class="form-row"><div class="lbl">处理上限</div><div class="field"><input class="input" id="eWdrawLimit" value="5"></div></div>
+            </div>
+            <div class="form-row" style="margin-bottom:0">
+              <div class="lbl">金额区间</div>
+              <div class="field" style="display:flex;gap:8px;align-items:center">
+                <span class="tag tag-currency-inr">INR</span>
+                <input class="input" style="width:140px" id="eWdrawMin" value="1"> ~ <input class="input" style="width:140px" id="eWdrawMax" value="50000">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mtab-content" id="mt-appr">
+        <div class="perm-block" id="editApprBlock">
+          <div class="b-head"><div class="b-title">人工充值权限配置</div><label class="switch big"><input type="checkbox" id="eApprSwitch"><span class="slider"></span></label></div>
+          <div class="locked-banner">🔒 您无 <code>ApprovalConfig</code> 权限，仅可查看现有配置，无法修改/保存。</div>
+          <div id="eApprForm">
+            <div class="form-grid">
+              <div class="form-row"><div class="lbl">角色权限</div><div class="field"><div class="checkbox-row" style="padding-top:5px"><label><input type="radio" name="eAprRole" checked> 操作</label><label><input type="radio" name="eAprRole"> 审核</label></div></div></div>
+              <div class="form-row"><div class="lbl">法币</div><div class="field"><div style="padding-top:6px"><span class="tag tag-currency-inr">INR</span></div></div></div>
+            </div>
+            <div class="form-row" style="margin-bottom:12px">
+              <div class="lbl">商户</div>
+              <div class="field" style="padding-top:4px"><span class="tag tag-merchant">(2007)vnd</span> <span class="tag tag-merchant">(2002)sit-inr2002</span></div>
+            </div>
+            <div class="form-row" style="margin-bottom:0">
+              <div class="lbl">操作内容</div>
+              <div class="field"><div class="checkbox-row"><label><input type="checkbox" checked> 人工充值</label><label><input type="checkbox"> 修改银行卡</label><label><input type="checkbox" checked> 修改会员密码</label></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot"><div></div>
+      <div class="right">
+        <button class="btn-cancel" onclick="closeModal('editModal')">取消</button>
+        <button class="btn-primary" onclick="submitEdit()">保存全部修改</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 批量赋权 弹窗 ============ -->
+<div class="modal-mask" id="batchAuthModal">
+  <div class="modal lg">
+    <div class="modal-head"><div class="title">批量赋权</div><span class="close" onclick="closeModal('batchAuthModal')">✕</span></div>
+    <div class="modal-body">
+
+      <div class="sec-title">已选择 <span style="color:#1677ff">10</span> 个用户：</div>
+      <div class="user-chips" style="margin-bottom:14px">
+        <span class="user-chip">Gtest1002</span><span class="user-chip">GTest101</span><span class="user-chip">org_rocky</span>
+        <span class="user-chip">BDGmdckzl05</span><span class="user-chip">BDGmdckzl04</span><span class="user-chip">BDGmdckzl03</span>
+        <span class="user-chip">BDGmdckzl02</span><span class="user-chip">BDGmdckzl01</span><span class="user-chip">BDGmdckzz01</span>
+        <span class="user-chip">bdgcw6</span>
+      </div>
+
+      <div class="tpl-row">
+        <span class="lbl">权限模板：</span>
+        <label><input type="radio" name="batchTpl" checked> 自定义配置</label>
+        <label><input type="radio" name="batchTpl"> 复制现有用户</label>
+      </div>
+
+      <div class="cover-rule">
+        <span class="lbl">覆盖规则：<span class="help" title="全部=不论是否已有配置都覆盖；仅已配置=只覆盖目前已开启的；仅未配置=只补给未开启的">?</span></span>
+        <label style="font-size:12.5px;cursor:pointer"><input type="radio" name="cover" checked> 全部</label>
+        <label style="font-size:12.5px;cursor:pointer"><input type="radio" name="cover"> 仅已配置</label>
+        <label style="font-size:12.5px;cursor:pointer"><input type="radio" name="cover"> 仅未配置</label>
+      </div>
+
+      <div class="sec-title">归属商户 *</div>
+      <div class="tenant-box" style="margin-bottom:14px">
+        <div class="head"><span>已选 0/3</span><span class="opts">全选 · 清空</span></div>
+        <div class="opts-list">
+          <label><input type="checkbox"> (2007)vnd <span class="tag tag-currency-vnd">VND</span> <span class="tag tag-group">第一集团</span></label>
+          <label><input type="checkbox"> (2001)sit-inr <span class="tag tag-currency-inr">INR</span> <span class="tag tag-group">第一集团</span></label>
+          <label><input type="checkbox"> (2002)sit-inr2002 <span class="tag tag-currency-inr">INR</span> <span class="tag tag-group">第一集团</span></label>
+        </div>
+      </div>
+
+      <div class="perm-blocks">
+        <div class="perm-block" id="batchWithdrawBlock">
+          <div class="b-head"><div class="b-title">出款权限配置</div><label class="switch big"><input type="checkbox" id="batchWdrawSwitch" onchange="toggleBatchBlock('wdraw')"><span class="slider"></span></label></div>
+          <div class="locked-banner">🔒 您无 <code>WithdrawConfig</code> 权限，此区块不可配置。</div>
+          <div id="batchWdrawForm" style="display:none">
+            <div class="form-row" style="margin-bottom:12px"><div class="lbl"><span class="req">*</span> 职位</div><div class="field"><select class="select"><option>请选择职位</option><option>主管</option><option>组长</option><option>组员</option></select></div></div>
+          </div>
+          <div id="batchWdrawEmpty" style="color:#c0ccda;font-size:12px;text-align:center;padding:14px 0">＋ 打开开关后配置</div>
+        </div>
+
+        <div class="perm-block" id="batchApprovalBlock">
+          <div class="b-head"><div class="b-title">人工充值权限配置</div><label class="switch big"><input type="checkbox" id="batchApprSwitch" onchange="toggleBatchBlock('appr')"><span class="slider"></span></label></div>
+          <div class="locked-banner">🔒 您无 <code>ApprovalConfig</code> 权限，此区块不可配置。</div>
+          <div id="batchApprForm" style="display:none">
+            <div class="form-grid" style="margin-bottom:10px">
+              <div class="form-row"><div class="lbl">角色权限</div><div class="field"><div class="checkbox-row" style="padding-top:6px"><label><input type="radio" name="bAprRole" checked> 操作</label><label><input type="radio" name="bAprRole"> 审核</label></div></div></div>
+              <div class="form-row"><div class="lbl"><span class="req">*</span> 法币</div><div class="field"><select class="select"><option>请选择法币</option></select></div></div>
+            </div>
+            <div class="form-row" style="margin-bottom:10px"><div class="lbl"><span class="req">*</span> 商户</div><div class="field"><select class="select"><option>请选择商户</option></select></div></div>
+            <div class="form-row"><div class="lbl" style="padding-top:0">操作内容</div><div class="field"><div class="checkbox-row"><label><input type="checkbox"> 人工充值</label><label><input type="checkbox"> 修改银行卡</label><label><input type="checkbox"> 修改会员密码</label></div></div></div>
+          </div>
+          <div id="batchApprEmpty" style="color:#c0ccda;font-size:12px;text-align:center;padding:14px 0">＋ 打开开关后配置</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot"><div></div>
+      <div class="right">
+        <button class="btn-cancel" onclick="closeModal('batchAuthModal')">取消</button>
+        <button class="btn-primary" onclick="submitBatchAuth()">确认赋权</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 权限树预览 · 防错勾选弹窗 ============ -->
+<div class="modal-mask" id="treeModal">
+  <div class="modal xl tree-modal">
+    <div class="modal-head">
+      <div class="title">🌲 权限树预览 · 防错勾选（编辑角色：<input id="roleName" value="出款组长" style="border:1px solid #d4dae3;padding:3px 10px;border-radius:3px;font-size:13px;width:200px;height:26px;font-family:inherit;margin-left:6px"> ）</div>
+      <span class="close" onclick="closeModal('treeModal')">✕</span>
+    </div>
+    <div class="modal-body">
+      <div class="tree-shell">
+
+        <!-- 左：模板 -->
+        <div class="tpl-pane">
+          <div class="h">📋 角色模板（一键应用）</div>
+          <div class="desc">点击模板自动勾选对应权限组合，仍可手动微调</div>
+          <div class="tpl-card" data-tpl="super" onclick="applyTpl('super',this)"><div class="n">👑 商户超管 <span class="count">全部</span></div><div class="d">全部权限，含删除</div></div>
+          <div class="tpl-card active" data-tpl="wdraw-lead" onclick="applyTpl('wdraw-lead',this)"><div class="n">💰 出款组长 <span class="count">8</span></div><div class="d">公用 + 出款（不含充值）</div></div>
+          <div class="tpl-card" data-tpl="appr-only" onclick="applyTpl('appr-only',this)"><div class="n">💳 财务专员 <span class="count">7</span></div><div class="d">公用 + 充值（不含出款）</div></div>
+          <div class="tpl-card" data-tpl="basic" onclick="applyTpl('basic',this)"><div class="n">👥 普通客服 <span class="count">5</span></div><div class="d">只能改公用配置</div></div>
+          <div class="tpl-card" data-tpl="readonly" onclick="applyTpl('readonly',this)"><div class="n">👁 只读员工 <span class="count">2</span></div><div class="d">仅查询，不可改</div></div>
+          <div class="tpl-card" data-tpl="custom" onclick="applyTpl('custom',this)"><div class="n">⚙ 自定义 <span class="count">0</span></div><div class="d">清空，从头勾选</div></div>
+        </div>
+
+        <!-- 中：权限树 -->
+        <div class="tree-pane">
+          <div class="h">🌲 权限树 <span style="font-weight:400;color:#8693a8;font-size:11px">（🟢共享 / 🔵入口 / 🟠独立）</span></div>
+          <div class="tree-tool">
+            <span class="link" onclick="expandAll(true)">⊞ 全部展开</span><span class="sep">|</span>
+            <span class="link" onclick="expandAll(false)">⊟ 全部收起</span><span class="sep">|</span>
+            <span class="link" onclick="checkAll(true)">✓ 全选</span><span class="sep">|</span>
+            <span class="link" onclick="checkAll(false)">○ 全不选</span>
+          </div>
+          <div id="treeRoot"></div>
+        </div>
+
+        <!-- 右：摘要 + 校验 -->
+        <div class="summary-pane">
+          <div class="h">📊 实际写入 DB 的权限码 <span class="n" id="permCount">0</span></div>
+          <div class="summary-box" id="summaryBox"><span class="empty">尚未勾选任何权限</span></div>
+
+          <div class="h" style="margin-top:6px">✅ 完整性校验</div>
+          <div class="check-box" id="checkBox"></div>
+
+          <div style="margin-top:14px;padding:10px;background:#fff;border:1px dashed #e6ebf2;border-radius:3px;font-size:11px;color:#8693a8;line-height:1.7">
+            <b style="color:#1f2d3d">💡 提示</b><br>
+            • 共享码（绿色）一勾即生效，下方"影响 N 处"标签显示其覆盖范围<br>
+            • 父级菜单半选态 = 部分子节点已勾<br>
+            • 保存前自动做完整性校验
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div class="foot-stat">已勾选 <b id="effectCount">0</b> 个权限码（<span style="color:#389e0d">共享码 ×<span id="sharedCount">0</span></span> · <span style="color:#0958d9">入口码 ×<span id="entryCount">0</span></span> · <span style="color:#d46b08">独立码 ×<span id="normalCount">0</span></span>）</div>
+      <div class="right">
+        <button class="btn-cancel" onclick="closeModal('treeModal')">取消</button>
+        <button class="btn-primary" id="treeSaveBtn" onclick="saveTree()">保存角色</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="ic">✓</span><span id="toastMsg"></span></div>
+<div class="link-tip" id="linkTip"></div>
+
+<script>
+// ========== 权限矩阵 ==========
+const ROLES = {
+  'tenant-super': {name:'商户超管',desc:'商户内全权',perms:['BatchAdd','UpdateTenant','PublicConfig','WithdrawConfig','ApprovalConfig','Delete']},
+  'tenant-wdraw-lead': {name:'出款组长',desc:'可改公用 + 出款，不动充值',perms:['BatchAdd','UpdateTenant','PublicConfig','WithdrawConfig']},
+  'tenant-appr-only': {name:'财务专员',desc:'可改公用 + 充值，不动出款',perms:['BatchAdd','UpdateTenant','PublicConfig','ApprovalConfig']},
+  'tenant-basic': {name:'普通客服',desc:'只能改公用配置',perms:['UpdateTenant','PublicConfig']},
+};
+let currentRole = 'tenant-super';
+
+const USERS = [
+  {acc:'Gtest1002',name:'Gtest1002',role:'orgadmin',wdraw:{on:true,pos:'主管',limit:5,min:1,max:50000,group:'milo-小额出款'},appr:{on:true,role:'操作',merchants:['sit-inr (2001)','sit-inr2002 (2002)'],ops:'修改银行卡 / 修改会员密码'},group:'第一集团',tenants:[{n:'sit-inr2002'},{n:'vnd'},{n:'sit-inr'}],lastLogin:'--'},
+  {acc:'GTest101',name:'GTest101',role:'提现管理员',wdraw:{on:false},appr:{on:true,role:'操作',merchants:['sit-inr (2001)','sit-inr2002 (2002)'],ops:'修改银行卡 / 修改会员密码'},group:'第一集团',tenants:[{n:'sit-inr2002'},{n:'vnd'},{n:'sit-inr'}],lastLogin:'--'},
+  {acc:'org_rocky',name:'org_rocky',role:'提现主管',wdraw:{on:true,pos:'组长',limit:5,min:1,max:2,cur:'INR'},appr:{on:false},group:'第一集团',tenants:[{n:'sit-inr2002'},{n:'vnd'},{n:'sit-inr'}],lastLogin:'2026-05-26 16:48:35'},
+  {acc:'mdckzl05',name:'mdckzl05',role:'提现组长',wdraw:{on:true,pos:'组员',limit:4,min:500,max:100000000,cur:'INR'},appr:{on:true,role:'操作',merchants:['sit-inr (2001)','sit-inr2002 (2002)'],ops:'修改银行卡 / 修改会员密码'},group:'第一集团',tenants:[{n:'sit-inr2002'},{n:'vnd'},{n:'sit-inr'}],lastLogin:'--'},
+  {acc:'mdckzl04',name:'mdckzl04',role:'提现组长',wdraw:{on:true,pos:'组员',limit:4,min:2,max:3,cur:'VND'},appr:{on:true,role:'操作',merchants:['vnd (2007)'],ops:'人工充值 / 修改银行卡 / 修改会员密码'},group:'第一集团',tenants:[{n:'sit-inr'},{n:'sit-inr2002'},{n:'vnd'}],lastLogin:'--'},
+  {acc:'mdckzl03',name:'mdckzl03',role:'提现组长',wdraw:{on:true,pos:'组员',limit:5,min:1,max:99999999,cur:'INR'},appr:{on:true,role:'操作',merchants:['vnd (2007)'],ops:'人工充值'},group:'第一集团',tenants:[{n:'sit-inr'},{n:'sit-inr2002'},{n:'vnd'}],lastLogin:'--'},
+  {acc:'BDGmdckzl01',name:'mdckzl01',role:'提现组长',wdraw:{on:false},appr:{on:false},group:'第一集团',tenants:[{n:'sit-inr'},{n:'sit-inr2002'},{n:'vnd'}],lastLogin:'--'},
+];
+
+function hasPerm(p) { return ROLES[currentRole].perms.includes(p); }
+
+function renderPerms() {
+  const perms = ROLES[currentRole].perms;
+  const el = document.getElementById('permList');
+  if (!perms.length) { el.innerHTML = '<span class="none">（无任何权限）</span>'; return; }
+  el.innerHTML = perms.map(p => {
+    const isSpecial = ['PublicConfig','WithdrawConfig','ApprovalConfig'].includes(p);
+    return `<span class="perm ${isSpecial?'special':''}">${p}</span>`;
+  }).join('');
+}
+
+function tenantHtml(tenants){ return tenants.map(t=>`<span class="tag tag-merchant">${t.n}</span>`).join(''); }
+
+function renderTable() {
+  const tb = document.getElementById('userTbody');
+  tb.innerHTML = USERS.map(u => {
+    let wdrawCfg = '<span class="not-set">未配置</span>';
+    if (u.wdraw.on) {
+      if (u.wdraw.group) {
+        wdrawCfg = `<div class="cfg-text"><div>出款组别：<b>${u.wdraw.group}</b></div><div>职位：<span class="role-hl">${u.wdraw.pos}</span></div></div>`;
+      } else {
+        wdrawCfg = `<div class="cfg-text"><div>职位：<span class="role-hl">${u.wdraw.pos}</span>　处理上限：<b>${u.wdraw.limit}</b></div><div>金额区间：<span class="tag tag-currency-inr">${u.wdraw.cur||'INR'}</span> <b>${u.wdraw.min} ~ ${u.wdraw.max}</b></div></div>`;
+      }
+    }
+    let wdrawState = u.wdraw.on ? '<label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label>' : '<span class="not-set">未配置</span>';
+    let apprCfg = '<span class="not-set">未配置</span>';
+    if (u.appr.on) {
+      apprCfg = `<div class="cfg-text"><div>角色权限：<b>${u.appr.role}权限</b></div><div>商户：${u.appr.merchants.join('，')}</div><div>操作内容：${u.appr.ops}</div></div>`;
+    }
+    let apprState = u.appr.on ? '<label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label>' : '<span class="not-set">未配置</span>';
+    const canEdit = hasPerm('UpdateTenant');
+    const canDel = hasPerm('Delete');
+    return `<tr>
+      <td><input type="checkbox"></td>
+      <td>${u.acc}</td><td>${u.name}</td>
+      <td><span class="tag tag-role">${u.role}</span></td>
+      <td>${wdrawCfg}</td><td>${wdrawState}</td>
+      <td>${apprCfg}</td><td>${apprState}</td>
+      <td>${u.group}</td><td>${tenantHtml(u.tenants)}</td>
+      <td>${u.lastLogin}</td>
+      <td>
+        <span class="op-link ${canEdit?'':'disabled'}" ${canEdit?`onclick="openEdit('${u.acc}')"`:''}>编辑详情</span>
+        <span class="op-link del ${canDel?'':'disabled'}">删除</span>
+        <span class="op-link">更多 ▾</span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateToolbar() {
+  document.getElementById('btnAdd').disabled = !hasPerm('BatchAdd');
+  document.getElementById('btnBatchWdraw').disabled = !hasPerm('WithdrawConfig');
+  document.getElementById('btnBatchState').disabled = !hasPerm('PublicConfig');
+  document.getElementById('btnBatchAuth').disabled = !(hasPerm('WithdrawConfig') || hasPerm('ApprovalConfig'));
+  document.getElementById('btnBatchGoogle').disabled = !hasPerm('PublicConfig');
+  toggleDdItem('ddWdrawA', hasPerm('WithdrawConfig'));
+  toggleDdItem('ddWdrawB', hasPerm('WithdrawConfig'));
+  toggleDdItem('ddAuthWdEnable', hasPerm('WithdrawConfig'));
+  toggleDdItem('ddAuthWdDisable', hasPerm('WithdrawConfig'));
+  toggleDdItem('ddAuthAprEnable', hasPerm('ApprovalConfig'));
+  toggleDdItem('ddAuthAprDisable', hasPerm('ApprovalConfig'));
+}
+function toggleDdItem(id, enabled) {
+  const el = document.getElementById(id); if (!el) return;
+  enabled ? el.classList.remove('disabled') : el.classList.add('disabled');
+}
+
+function setRole(role, el) {
+  currentRole = role;
+  document.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderPerms(); renderTable(); updateToolbar();
+  closeAllDds();
+  const r = ROLES[role];
+  toast(`已切换为「${r.name}」— ${r.desc}`, 'success');
+}
+
+function toggleDd(id, e) {
+  if (e) e.stopPropagation();
+  const dd = document.getElementById(id);
+  const wasShow = dd.classList.contains('show');
+  closeAllDds();
+  if (!wasShow) dd.classList.add('show');
+}
+function closeAllDds() { document.querySelectorAll('.dd-menu').forEach(d => d.classList.remove('show')); }
+document.addEventListener('click', closeAllDds);
+
+function ddOp(name, requiredPerm) {
+  closeAllDds();
+  if (requiredPerm && !hasPerm(requiredPerm)) { toast(`「${name}」需要 ${requiredPerm} 权限`, 'err'); return; }
+  toast(`已触发「${name}」（演示）`, 'success');
+}
+
+// ========== 新增弹窗 ==========
+function openAdd() {
+  if (!hasPerm('BatchAdd')) { toast('您无「新增用户」入口权限', 'err'); return; }
+  document.getElementById('addWdrawSwitch').checked = false;
+  document.getElementById('addApprSwitch').checked = false;
+  document.getElementById('addWdrawForm').style.display = 'none';
+  document.getElementById('addApprForm').style.display = 'none';
+  document.getElementById('addWdrawEmpty').style.display = 'block';
+  document.getElementById('addApprEmpty').style.display = 'block';
+
+  const pb = document.getElementById('addPublicBlock');
+  if (!hasPerm('PublicConfig')) {
+    pb.classList.add('locked');
+    document.querySelectorAll('#addPublicBlock .pcfg').forEach(el => el.disabled = true);
+  } else {
+    pb.classList.remove('locked');
+    document.querySelectorAll('#addPublicBlock .pcfg').forEach(el => el.disabled = false);
+  }
+  setBlockLock('addWithdrawBlock', !hasPerm('WithdrawConfig'), 'addWdrawSwitch');
+  setBlockLock('addApprovalBlock', !hasPerm('ApprovalConfig'), 'addApprSwitch');
+  openModal('addModal');
+}
+function setBlockLock(blockId, locked, switchId) {
+  const b = document.getElementById(blockId);
+  if (locked) { b.classList.add('locked'); document.getElementById(switchId).disabled = true; }
+  else { b.classList.remove('locked'); document.getElementById(switchId).disabled = false; }
+}
+function toggleAddBlock(which) {
+  if (which === 'wdraw') {
+    const on = document.getElementById('addWdrawSwitch').checked;
+    document.getElementById('addWdrawForm').style.display = on ? 'block' : 'none';
+    document.getElementById('addWdrawEmpty').style.display = on ? 'none' : 'block';
+  } else {
+    const on = document.getElementById('addApprSwitch').checked;
+    document.getElementById('addApprForm').style.display = on ? 'block' : 'none';
+    document.getElementById('addApprEmpty').style.display = on ? 'none' : 'block';
+  }
+}
+function submitAdd() { closeModal('addModal'); toast('已创建（演示）', 'success'); }
+
+// ========== 批量赋权弹窗 ==========
+function openBatchAuth() {
+  if (!hasPerm('WithdrawConfig') && !hasPerm('ApprovalConfig')) {
+    toast('您无任何配置权限，无法发起批量赋权', 'err'); return;
+  }
+  document.getElementById('batchWdrawSwitch').checked = false;
+  document.getElementById('batchApprSwitch').checked = false;
+  document.getElementById('batchWdrawForm').style.display = 'none';
+  document.getElementById('batchApprForm').style.display = 'none';
+  document.getElementById('batchWdrawEmpty').style.display = 'block';
+  document.getElementById('batchApprEmpty').style.display = 'block';
+  setBlockLock('batchWithdrawBlock', !hasPerm('WithdrawConfig'), 'batchWdrawSwitch');
+  setBlockLock('batchApprovalBlock', !hasPerm('ApprovalConfig'), 'batchApprSwitch');
+  openModal('batchAuthModal');
+}
+function toggleBatchBlock(which) {
+  if (which === 'wdraw') {
+    const on = document.getElementById('batchWdrawSwitch').checked;
+    document.getElementById('batchWdrawForm').style.display = on ? 'block' : 'none';
+    document.getElementById('batchWdrawEmpty').style.display = on ? 'none' : 'block';
+  } else {
+    const on = document.getElementById('batchApprSwitch').checked;
+    document.getElementById('batchApprForm').style.display = on ? 'block' : 'none';
+    document.getElementById('batchApprEmpty').style.display = on ? 'none' : 'block';
+  }
+}
+function submitBatchAuth() { closeModal('batchAuthModal'); toast('已批量赋权 10 个用户（演示）', 'success'); }
+
+// ========== 编辑弹窗 ==========
+function openEdit(acc) {
+  if (!hasPerm('UpdateTenant')) { toast('您无「编辑用户」入口权限', 'err'); return; }
+  const u = USERS.find(x => x.acc === acc); if (!u) return;
+  document.getElementById('editUser').textContent = u.acc;
+  document.getElementById('eUser').value = u.acc;
+  document.getElementById('eName').value = u.name;
+  document.getElementById('eRole').textContent = u.role;
+  document.querySelectorAll('#editModal .mtab').forEach(t => t.classList.remove('active'));
+  document.querySelector('#editModal .mtab').classList.add('active');
+  document.querySelectorAll('#editModal .mtab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('mt-basic').classList.add('active');
+
+  const mtWdrawSt = document.getElementById('mtWdrawState');
+  mtWdrawSt.textContent = u.wdraw.on ? '✓ 已配置' : '未配置';
+  mtWdrawSt.className = u.wdraw.on ? 'badge-ok' : 'badge-na';
+  const mtApprSt = document.getElementById('mtApprState');
+  mtApprSt.textContent = u.appr.on ? '✓ 已配置' : '未配置';
+  mtApprSt.className = u.appr.on ? 'badge-ok' : 'badge-na';
+
+  document.getElementById('eWdrawSwitch').checked = u.wdraw.on;
+  if (u.wdraw.on && u.wdraw.pos) {
+    document.getElementById('eWdrawPos').value = u.wdraw.pos;
+    document.getElementById('eWdrawLimit').value = u.wdraw.limit || '';
+    document.getElementById('eWdrawMin').value = u.wdraw.min || '';
+    document.getElementById('eWdrawMax').value = u.wdraw.max || '';
+  }
+  document.getElementById('eApprSwitch').checked = u.appr.on;
+
+  const pb = document.getElementById('editPublicBlock');
+  const mtb = document.getElementById('mtBasic');
+  const blk = document.getElementById('mtBasicLock');
+  if (!hasPerm('PublicConfig')) {
+    pb.classList.add('locked'); mtb.classList.add('locked'); blk.style.display='inline';
+    document.querySelectorAll('#editPublicBlock .pcfg-e').forEach(el => el.disabled = true);
+  } else {
+    pb.classList.remove('locked'); mtb.classList.remove('locked'); blk.style.display='none';
+    document.querySelectorAll('#editPublicBlock .pcfg-e').forEach(el => el.disabled = false);
+  }
+  const wb = document.getElementById('editWdrawBlock');
+  const mtw = document.getElementById('mtWdraw');
+  const wlock = document.getElementById('mtWdrawLock');
+  if (!hasPerm('WithdrawConfig')) {
+    wb.classList.add('locked'); mtw.classList.add('locked'); wlock.style.display='inline';
+    setBlockReadonly('eWdraw', true);
+  } else {
+    wb.classList.remove('locked'); mtw.classList.remove('locked'); wlock.style.display='none';
+    setBlockReadonly('eWdraw', false);
+  }
+  const ab = document.getElementById('editApprBlock');
+  const mta = document.getElementById('mtAppr');
+  const alock = document.getElementById('mtApprLock');
+  if (!hasPerm('ApprovalConfig')) {
+    ab.classList.add('locked'); mta.classList.add('locked'); alock.style.display='inline';
+    setBlockReadonly('eAppr', true);
+  } else {
+    ab.classList.remove('locked'); mta.classList.remove('locked'); alock.style.display='none';
+    setBlockReadonly('eAppr', false);
+  }
+  openModal('editModal');
+}
+function setBlockReadonly(prefix, readonly) {
+  if (prefix === 'eWdraw') {
+    ['eWdrawSwitch','eWdrawPos','eWdrawLimit','eWdrawMin','eWdrawMax'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.disabled = readonly;
+    });
+  } else {
+    document.querySelectorAll('#mt-appr input, #mt-appr select').forEach(el => el.disabled = readonly);
+  }
+}
+function switchMtab(el, id) {
+  el.parentElement.querySelectorAll('.mtab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#editModal .mtab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function submitEdit() { closeModal('editModal'); toast('已保存（演示）', 'success'); }
+
+// ========== 权限树 · 防错勾选（合并版：共享码只出现一次） ==========
+const TREE = [
+  {id:'menu-root', type:'menu', name:'系统用户页面', expanded:true, children:[
+
+    {id:'menu-query', type:'menu', name:'🔍 查询权限', expanded:true, children:[
+      {id:'p-query-console', type:'perm', name:'查询列表-总控使用', code:'QueryConsole', kind:'normal'},
+      {id:'p-query-tenant', type:'perm', name:'查询列表-商户使用', code:'QueryTenant', kind:'normal'},
+      {id:'p-query-detail', type:'perm', name:'查询单个', code:'QueryDetail', kind:'normal'},
+      {id:'p-query-detail-tenant', type:'perm', name:'查询单个-商户使用', code:'QueryDetailTenant', kind:'normal'},
+    ]},
+
+    {id:'menu-entry', type:'menu', name:'📥 操作入口', expanded:true, children:[
+      {id:'p-add-entry', type:'perm', name:'新增用户（入口）', code:'BatchAdd', kind:'entry'},
+      {id:'p-edit-entry', type:'perm', name:'编辑用户（入口）', code:'UpdateTenant', kind:'entry'},
+    ]},
+
+    {id:'menu-shared', type:'menu', name:'📦 配置权限（共享码 · 一勾多生效）', expanded:true, children:[
+      {id:'p-pcfg', type:'perm', name:'公用配置', code:'PublicConfig', kind:'shared',
+        affects:['新增·公用配置块','编辑·基本信息Tab','批量变更状态','批量google操作']},
+      {id:'p-wcfg', type:'perm', name:'出款权限配置', code:'WithdrawConfig', kind:'shared',
+        affects:['新增·出款块','编辑·出款Tab','批量赋权·出款块','批量调金额区间','批量改处理上限','批量启用/禁用出款']},
+      {id:'p-acfg', type:'perm', name:'人工充值权限配置', code:'ApprovalConfig', kind:'shared',
+        affects:['新增·充值块','编辑·充值Tab','批量赋权·充值块','批量启用/禁用充值']},
+    ]},
+
+    {id:'menu-del', type:'menu', name:'🗑 删除', expanded:true, children:[
+      {id:'p-del', type:'perm', name:'删除用户', code:'Delete', kind:'normal'},
+      {id:'p-batch-del', type:'perm', name:'批量删除用户', code:'BatchDelete', kind:'normal'},
+    ]},
+
+    {id:'menu-other', type:'menu', name:'🔐 其他独立操作', expanded:true, children:[
+      {id:'p-pwd', type:'perm', name:'修改用户密码', code:'UpdatePwd', kind:'normal'},
+      {id:'p-google-reset', type:'perm', name:'谷歌验证重置', code:'GoogleReset', kind:'normal'},
+    ]},
+  ]}
+];
+const STATE = {};
+const TEMPLATES = {
+  'super': {name:'商户超管', codes:['QueryConsole','QueryTenant','QueryDetail','QueryDetailTenant','BatchAdd','UpdateTenant','PublicConfig','WithdrawConfig','ApprovalConfig','Delete','BatchDelete','UpdatePwd','GoogleReset']},
+  'wdraw-lead': {name:'出款组长', codes:['QueryTenant','QueryDetailTenant','BatchAdd','UpdateTenant','PublicConfig','WithdrawConfig']},
+  'appr-only': {name:'财务专员', codes:['QueryTenant','QueryDetailTenant','BatchAdd','UpdateTenant','PublicConfig','ApprovalConfig']},
+  'basic': {name:'普通客服', codes:['QueryTenant','QueryDetailTenant','UpdateTenant','PublicConfig']},
+  'readonly': {name:'只读员工', codes:['QueryTenant','QueryDetailTenant']},
+  'custom': {name:'自定义', codes:[]}
+};
+let currentTpl = 'wdraw-lead';
+
+function openTreeModal() {
+  applyTpl('wdraw-lead', document.querySelector('[data-tpl=wdraw-lead]'));
+  openModal('treeModal');
+}
+
+function renderTree() {
+  document.getElementById('treeRoot').innerHTML = TREE.map(n => renderNode(n, 0)).join('');
+  updateCheckStates();
+}
+function renderNode(node, depth) {
+  if (node.type === 'menu') {
+    return `<div class="tree-node">
+      <div class="tree-row menu" onclick="toggleCheck('${node.id}','menu',event)">
+        <span class="expand" onclick="event.stopPropagation();toggleExpand('${node.id}')">${node.expanded?'▾':'▸'}</span>
+        <span class="tri-check" id="chk-${node.id}"></span>
+        <span class="name">${node.name}</span>
+      </div>
+      ${node.expanded?`<div class="tree-children">${node.children.map(c=>renderNode(c,depth+1)).join('')}</div>`:''}
+    </div>`;
+  } else {
+    const badgeClass = node.kind === 'shared' ? 'shared' : (node.kind === 'entry' ? 'entry' : '');
+    const affectCount = node.affects ? node.affects.length : 0;
+    return `<div class="tree-node">
+      <div class="tree-row" onclick="toggleCheck('${node.id}','perm',event)">
+        <span class="expand"></span>
+        <span class="tri-check" id="chk-${node.id}"></span>
+        <span class="name">${node.name}</span>
+        <span class="badge-perm ${badgeClass}">${node.code}</span>
+        ${affectCount > 0 ? `<span class="badge-mark" title="此权限影响 ${affectCount} 处场景">影响 ${affectCount} 处</span>` : ''}
+      </div>
+      ${node.affects ? `<div class="tree-affect"><span class="lbl">影响：</span>${node.affects.map(a=>`<span class="tag-aff">${a}</span>`).join('')}</div>` : ''}
+    </div>`;
+  }
+}
+function walkPerm(nodes, fn) {
+  nodes.forEach(n => { if (n.type === 'perm') fn(n); if (n.children) walkPerm(n.children, fn); });
+}
+function walkAll(nodes, fn) {
+  nodes.forEach(n => { fn(n); if (n.children) walkAll(n.children, fn); });
+}
+function findNode(id, nodes=TREE) {
+  for (const n of nodes) {
+    if (n.id === id) return n;
+    if (n.children) { const r = findNode(id, n.children); if (r) return r; }
+  }
+  return null;
+}
+
+function toggleCheck(id, type, e) {
+  if (e) e.stopPropagation();
+  const node = findNode(id); if (!node) return;
+  if (type === 'menu') {
+    const cur = getMenuCheckState(node);
+    const target = cur === 'checked' ? false : true;
+    walkPerm([node], p => STATE[p.id] = target);
+    if (target) syncSharedForNode(node);
+  } else {
+    STATE[id] = !STATE[id];
+    if (node.kind === 'shared') syncSharedCode(node.code, STATE[id]);
+  }
+  if (currentTpl !== 'custom' && !window._applying) setActiveTpl('custom');
+  refreshTreeUI();
+}
+function syncSharedCode(code, checked) {
+  let synced = 0;
+  walkPerm(TREE, n => {
+    if (n.kind === 'shared' && n.code === code && STATE[n.id] !== checked) { STATE[n.id] = checked; synced++; }
+  });
+  if (synced > 0 && !window._applying) showLinkTip(`🔗 ${code} 已联动 ${synced} 处其他引用 ${checked?'✓':'✕'}`);
+}
+function syncSharedForNode(node) {
+  if (!node.children) return;
+  node.children.forEach(c => {
+    if (c.kind === 'shared') syncSharedCode(c.code, true);
+    if (c.children) syncSharedForNode(c);
+  });
+}
+function getMenuCheckState(node) {
+  let total = 0, checked = 0;
+  walkPerm([node], p => { total++; if (STATE[p.id]) checked++; });
+  if (checked === 0) return 'unchecked';
+  if (checked === total) return 'checked';
+  return 'half';
+}
+function updateCheckStates() {
+  walkAll(TREE, n => {
+    const el = document.getElementById('chk-' + n.id); if (!el) return;
+    el.classList.remove('checked', 'half');
+    if (n.type === 'perm') { if (STATE[n.id]) el.classList.add('checked'); }
+    else { const st = getMenuCheckState(n); if (st === 'checked') el.classList.add('checked'); if (st === 'half') el.classList.add('half'); }
+  });
+}
+function toggleExpand(id) { const node = findNode(id); if (node) node.expanded = !node.expanded; renderTree(); }
+function expandAll(open) { walkAll(TREE, n => { if (n.type === 'menu') n.expanded = open; }); renderTree(); }
+function checkAll(check) {
+  walkPerm(TREE, n => STATE[n.id] = check);
+  setActiveTpl(check ? 'super' : 'custom');
+  refreshTreeUI();
+}
+function applyTpl(tpl, el) {
+  currentTpl = tpl;
+  window._applying = true;
+  walkPerm(TREE, n => STATE[n.id] = false);
+  const codes = TEMPLATES[tpl].codes;
+  walkPerm(TREE, n => { if (codes.includes(n.code)) STATE[n.id] = true; });
+  window._applying = false;
+  document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (tpl !== 'custom') toast(`已应用模板「${TEMPLATES[tpl].name}」`, 'success');
+  refreshTreeUI();
+}
+function setActiveTpl(tpl) {
+  currentTpl = tpl;
+  document.querySelectorAll('.tpl-card').forEach(c => c.classList.toggle('active', c.dataset.tpl === tpl));
+}
+function refreshTreeUI() { updateCheckStates(); renderSummary(); renderCheck(); updateStats(); }
+function getEffectiveCodes() {
+  const set = new Set();
+  walkPerm(TREE, n => { if (STATE[n.id]) set.add(n.code); });
+  return [...set];
+}
+function renderSummary() {
+  const codes = getEffectiveCodes();
+  const box = document.getElementById('summaryBox');
+  if (!codes.length) { box.innerHTML = '<span class="empty">尚未勾选任何权限</span>'; }
+  else {
+    box.innerHTML = codes.map(c => {
+      const isShared = ['PublicConfig','WithdrawConfig','ApprovalConfig'].includes(c);
+      return `<span class="perm-code ${isShared?'shared':''}">${c}</span>`;
+    }).join('');
+  }
+  document.getElementById('permCount').textContent = codes.length;
+}
+function renderCheck() {
+  const codes = new Set(getEffectiveCodes());
+  const checks = [];
+  if (codes.has('BatchAdd') && !codes.has('PublicConfig') && !codes.has('WithdrawConfig') && !codes.has('ApprovalConfig')) {
+    checks.push({lvl:'err', txt:'勾了「新增用户入口」但未勾任何配置子码 → 用户进入新增弹窗后<b>什么都填不了</b>', fix:'auto-add-pcfg'});
+  }
+  if (codes.has('UpdateTenant') && !codes.has('PublicConfig') && !codes.has('WithdrawConfig') && !codes.has('ApprovalConfig')) {
+    checks.push({lvl:'err', txt:'勾了「编辑用户入口」但未勾任何配置子码 → 用户进入编辑弹窗后<b>所有 Tab 都锁着</b>', fix:'auto-add-pcfg'});
+  }
+  if ((codes.has('PublicConfig') || codes.has('WithdrawConfig') || codes.has('ApprovalConfig')) && !codes.has('BatchAdd') && !codes.has('UpdateTenant')) {
+    checks.push({lvl:'warn', txt:'勾了配置类码但<b>没勾任何入口码（BatchAdd/UpdateTenant）</b>，配了也无入口可触发', fix:'auto-add-update'});
+  }
+  if (!codes.has('QueryTenant') && !codes.has('QueryConsole')) {
+    checks.push({lvl:'warn', txt:'未勾任何「查询列表」权限 → 该角色<b>看不到用户列表页</b>', fix:'auto-add-query'});
+  }
+  if (!checks.length) checks.push({lvl:'ok', txt:'权限组合完整，可以保存 ✨'});
+
+  document.getElementById('checkBox').innerHTML = checks.map(c => `
+    <div class="check-item ${c.lvl}">
+      <span class="ic">${c.lvl==='ok'?'✓':c.lvl==='warn'?'⚠':'✕'}</span>
+      <span class="txt">${c.txt}${c.fix?`<br><button class="fix-btn" onclick="autoFix('${c.fix}')">⚡ 一键修复</button>`:''}</span>
+    </div>
+  `).join('');
+  const hasErr = checks.some(c => c.lvl === 'err');
+  document.getElementById('treeSaveBtn').disabled = hasErr;
+}
+function autoFix(action) {
+  if (action === 'auto-add-pcfg') {
+    walkPerm(TREE, n => { if (n.code === 'PublicConfig') STATE[n.id] = true; });
+    toast('已自动勾选 PublicConfig 共享码', 'success');
+  } else if (action === 'auto-add-update') {
+    walkPerm(TREE, n => { if (n.code === 'UpdateTenant') STATE[n.id] = true; });
+    toast('已自动勾选 UpdateTenant 入口码', 'success');
+  } else if (action === 'auto-add-query') {
+    walkPerm(TREE, n => { if (n.code === 'QueryTenant' || n.code === 'QueryDetailTenant') STATE[n.id] = true; });
+    toast('已自动勾选查询权限', 'success');
+  }
+  setActiveTpl('custom');
+  refreshTreeUI();
+}
+function updateStats() {
+  let shared = 0, entry = 0, normal = 0;
+  walkPerm(TREE, n => {
+    if (STATE[n.id]) {
+      if (n.kind === 'shared') shared++;
+      else if (n.kind === 'entry') entry++;
+      else normal++;
+    }
+  });
+  document.getElementById('effectCount').textContent = shared + entry + normal;
+  document.getElementById('sharedCount').textContent = shared;
+  document.getElementById('entryCount').textContent = entry;
+  document.getElementById('normalCount').textContent = normal;
+}
+function saveTree() {
+  const codes = getEffectiveCodes();
+  toast(`已保存角色「${document.getElementById('roleName').value}」，权限码：${codes.join(', ')}`, 'success');
+  closeModal('treeModal');
+}
+
+let tipT;
+function showLinkTip(msg) {
+  const t = document.getElementById('linkTip');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(tipT);
+  tipT = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+let toastT;
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.className = 'toast show ' + (type || 'success');
+  t.querySelector('.ic').textContent = type === 'err' ? '✕' : '✓';
+  document.getElementById('toastMsg').textContent = msg;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+renderPerms(); renderTable(); updateToolbar();
+renderTree();
+</script>
+</body>
+</html>
