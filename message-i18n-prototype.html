@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>消息系统多语言配置 · V1 后台可交互原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;background:#f4f6f8;color:#222;line-height:1.6}
+
+/* 顶部黄色 nav */
+.top-nav{background:#f8edc4;padding:8px 18px;display:flex;align-items:center;gap:14px;font-size:11.5px;color:#5a4a1b;border-bottom:1px solid #e0d495}
+.top-nav .site{font-weight:700;color:#222}
+.top-nav .right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:11px}
+.top-nav .right b{color:#ff7a00}
+
+.app{display:flex;flex-direction:column;min-height:calc(100vh - 35px)}
+
+/* 顶部 TAB 导航（替代侧边栏） */
+.nav-tabs{background:#001529;display:flex;align-items:stretch;flex-wrap:wrap;padding:0 14px;gap:0;border-bottom:2px solid #1677ff}
+.nav-tabs .logo{padding:11px 14px 11px 4px;font-weight:700;font-size:13px;color:#fff;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.nav-tabs .logo .p0{background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700}
+.nav-tabs .tab{padding:11px 16px;cursor:pointer;font-size:12.5px;color:#cfd8e3;display:flex;align-items:center;gap:6px;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap}
+.nav-tabs .tab:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-tabs .tab.active{background:#1677ff;color:#fff;font-weight:600;border-bottom-color:#fff}
+.nav-tabs .tab .ico{font-size:14px}
+
+/* 主体 */
+.main{flex:1;display:flex;flex-direction:column;background:#f4f6f8;min-width:0}
+.crumb{background:#fff;padding:11px 22px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:8px;font-size:13px}
+.crumb .pg-title{font-weight:600;color:#1677ff;font-size:14px}
+.crumb .crumb-right{margin-left:auto;color:#999;font-size:12px}
+.content{flex:1;padding:20px;overflow:auto}
+.page{display:none}
+.page.active{display:block}
+
+/* 按钮 */
+.btn{height:32px;padding:0 18px;border-radius:4px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.btn-add{background:linear-gradient(180deg,#5cc1f1,#4ab1e0);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.btn-add:hover{background:linear-gradient(180deg,#4ab1e0,#3a9fcc)}
+.btn-pri{background:#7a5cf0;color:#fff}
+.btn-pri:hover{background:#6a4ce0}
+.btn-back{background:#39414e;color:#fff}
+.btn-back:hover{background:#2a313c}
+.btn-save{background:#52c41a;color:#fff}
+.btn-save:hover{background:#46ab16}
+.btn-d{background:#fff;color:#333;border:1px solid #d9d9d9}
+.btn-d:hover{border-color:#1677ff;color:#1677ff}
+.btn-sm{height:26px;padding:0 12px;font-size:11.5px;border-radius:3px}
+.btn-edit{background:#fff;color:#52c41a;border:1px solid #52c41a}
+.btn-edit:hover{background:#f6ffed}
+.btn-del{background:#fff;color:#ff4d4f;border:1px solid #ffa39e}
+.btn-del:hover{background:#fff1f0}
+.btn-link{background:transparent;color:#1677ff;cursor:pointer;border:none;font-family:inherit;font-size:12.5px}
+.btn-link:hover{text-decoration:underline}
+
+/* 卡片 */
+.card{background:#fff;border:1px solid #e8e8e8;border-radius:4px;margin-bottom:14px}
+.card-title{padding:10px 18px;background:#fafbfc;border-bottom:1px solid #e8e8e8;font-size:13px;font-weight:600;color:#1677ff;display:flex;align-items:center;gap:8px}
+.card-title .right{margin-left:auto;font-weight:400;font-size:11.5px;color:#999}
+.card-body{padding:20px 24px}
+
+/* 工具条 */
+.toolbar{display:flex;align-items:center;gap:10px;padding:14px 0;flex-wrap:wrap}
+.toolbar label{color:#666}
+
+/* 多语言切换条 */
+.lang-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.lang-tabs .lt-btn{padding:5px 14px;border:1px solid #d9d9d9;border-radius:18px;cursor:pointer;font-size:12px;background:#fff;color:#444;transition:all .15s;position:relative;white-space:nowrap;font-family:inherit;line-height:1.4}
+.lang-tabs .lt-btn:hover{border-color:#1677ff;color:#1677ff}
+.lang-tabs .lt-btn.active{background:#1677ff;color:#fff;border-color:#1677ff;font-weight:600}
+.lang-tabs .lt-btn .def{font-size:9px;background:#52c41a;color:#fff;padding:0 4px;border-radius:5px;margin-left:4px;vertical-align:middle}
+.lang-tabs .lt-btn.active .def{background:#fff;color:#1677ff}
+.lang-tabs .lt-btn .miss-mark{display:inline-block;width:6px;height:6px;background:#fa8c16;border-radius:50%;margin-left:5px;vertical-align:middle}
+.lang-tabs .lt-btn.active .miss-mark{background:#fff}
+
+.new-tag{display:inline-block;background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px;margin-left:6px;font-weight:700;vertical-align:middle}
+
+/* 表单 */
+.form-row{display:flex;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f0f0f0}
+.form-row:last-child{border-bottom:none}
+.form-row .lbl{width:90px;text-align:right;padding:7px 12px 0 0;color:#333;font-size:13px;flex-shrink:0}
+.form-row .lbl .req{color:#cf1322}
+.form-row .ctrl{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.input,.select,.textarea{padding:7px 11px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:13px;background:#fff;color:#333;outline:none;width:100%}
+.input:focus,.select:focus,.textarea:focus{border-color:#1677ff;box-shadow:0 0 0 2px rgba(22,119,255,.15)}
+.input.small{width:120px}
+.textarea{min-height:80px;resize:vertical}
+.form-hint{color:#999;font-size:11.5px;margin-top:2px}
+.form-hint.warn{color:#fa8c16}
+
+/* 富文本编辑器 */
+.rich-editor{border:1px solid #d9d9d9;border-radius:3px;overflow:hidden;background:#fff}
+.rich-toolbar{padding:6px 8px;border-bottom:1px solid #e8e8e8;display:flex;gap:3px;background:#fafafa;flex-wrap:wrap}
+.rich-toolbar button{background:#fff;border:1px solid #e0e0e0;padding:4px 8px;border-radius:2px;font-size:11px;cursor:pointer;font-family:inherit;min-width:24px}
+.rich-toolbar button:hover{background:#f0f0f0}
+.rich-toolbar .sep{width:1px;background:#e0e0e0;margin:2px 4px}
+.rich-toolbar .color{background:#fffbe6;font-weight:700}
+.rich-content{min-height:220px;padding:14px 18px;font-size:13px;color:#333;outline:none}
+.rich-content[placeholder]:empty::before{content:attr(placeholder);color:#bbb}
+
+.form-actions{padding:16px 0 6px;display:flex;justify-content:center;gap:14px}
+
+/* 表格 */
+.tbl-wrap{background:#fff;border:1px solid #e8e8e8;border-radius:4px;overflow:hidden}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{background:#fafafa;padding:10px 12px;text-align:left;color:#666;font-weight:600;border-bottom:1px solid #e8e8e8;font-size:11.5px}
+.tbl td{padding:10px 12px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:middle}
+.tbl tr:hover td{background:#fafcff}
+.tbl .col-c{text-align:center}
+.state-on{color:#52c41a;font-weight:600}
+.state-off{color:#999}
+
+/* 提示条 */
+.tip{background:#e6f4ff;border-left:4px solid #1677ff;padding:11px 14px;border-radius:0 4px 4px 0;font-size:12.5px;color:#0958d9;margin-bottom:14px;line-height:1.7}
+.tip.warn{background:#fffbe6;border-color:#fa8c16;color:#874d00}
+.tip.ok{background:#f6ffed;border-color:#52c41a;color:#237804}
+.tip b{font-weight:700}
+
+.lang-flag{display:inline-block;font-size:10px;color:#1677ff;background:#e6f4ff;padding:1px 6px;border-radius:3px;margin-left:6px;font-weight:600}
+.lang-flag.miss{color:#fa8c16;background:#fff7e6}
+
+/* 站点语言配置勾选 */
+.lang-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:6px}
+.lang-chk{display:flex;align-items:center;gap:9px;border:1px solid #e8e8e8;border-radius:6px;padding:10px 12px;cursor:pointer;transition:all .15s;background:#fff}
+.lang-chk:hover{border-color:#1677ff;background:#f5f9ff}
+.lang-chk.on{border-color:#1677ff;background:#e6f4ff}
+.lang-chk input{width:16px;height:16px;cursor:pointer}
+.lang-chk .nm{font-weight:600;color:#222}
+.lang-chk .sub{color:#999;font-size:11px}
+.lang-chk .def-pill{margin-left:auto;font-size:10px;background:#52c41a;color:#fff;padding:1px 6px;border-radius:8px;font-weight:700}
+.lang-chk .set-def{margin-left:auto;font-size:10px;color:#1677ff;cursor:pointer;opacity:0;transition:.15s}
+.lang-chk:hover .set-def{opacity:1}
+
+/* 弹窗 modal */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 20px;overflow:auto}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:100%;max-width:880px;box-shadow:0 8px 40px rgba(0,0,0,.25);animation:pop .18s ease}
+@keyframes pop{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-head{padding:13px 20px;border-bottom:1px solid #eee;display:flex;align-items:center;font-size:14px;font-weight:600;color:#222}
+.modal-head .x{margin-left:auto;cursor:pointer;color:#999;font-size:20px;line-height:1}
+.modal-head .x:hover{color:#333}
+.modal-body{padding:18px 24px;max-height:70vh;overflow:auto}
+.modal-foot{padding:13px 20px;border-top:1px solid #eee;display:flex;justify-content:center;gap:12px}
+
+/* 客户端预览手机 */
+.fallback-badge{display:inline-block;font-size:9px;background:#fff7e6;color:#fa8c16;border:1px solid #ffe7ba;padding:1px 6px;border-radius:8px;margin-left:6px;font-weight:600}
+/* 字符计数 */
+.char-count{font-size:11px;color:#999}
+.char-count.over{color:#cf1322;font-weight:600}
+
+/* ===================== 自适应 / 溢出修复 ===================== */
+html,body{width:100%;max-width:100%;overflow-x:hidden;margin:0}
+*{max-width:100%}
+.app,.main,.content,.card,.card-body,.tbl-wrap{max-width:100%;min-width:0}
+.main{flex:1 1 0;overflow-x:hidden}
+.top-nav,.top-nav .right,.crumb,.toolbar{flex-wrap:wrap;row-gap:4px}
+.top-nav .right{margin-left:auto}
+.modal{max-width:min(880px,94vw)}
+.tip{word-break:break-word;overflow-wrap:anywhere}
+
+/* 紧凑全局尺寸（默认即按笔记本/预览面板优化，不依赖断点） */
+body{font-size:12.5px}
+.content{padding:14px}
+.card-body{padding:14px 16px}
+.crumb{padding:9px 16px;font-size:12.5px}
+.crumb .pg-title{font-size:13px}
+.nav-tabs{padding:0 8px}
+.nav-tabs .tab{padding:9px 12px;font-size:12px}
+.nav-tabs .logo{font-size:12.5px;padding:9px 8px 9px 2px}
+
+/* 通用表格基础样式 */
+.tbl{width:100%}
+.tbl th,.tbl td{padding:9px 10px;font-size:12px;line-height:1.5;word-break:break-word;overflow-wrap:anywhere;vertical-align:top}
+
+/* 需求说明页：整体限宽居中，避免宽屏下被拉太开 */
+#page-spec{max-width:1080px;margin:0 auto}
+
+/* 文档型表格（需求说明的概览/规则/字段限制）—— 让列按内容自然分配，第一列稍窄 */
+.tbl-spec{table-layout:auto}
+.tbl-spec th:first-child,.tbl-spec td:first-child{width:1%;white-space:nowrap;padding-right:18px}
+.tbl-spec th:last-child:not(:nth-child(2)),.tbl-spec td:last-child:not(:nth-child(2)){width:1%;white-space:nowrap;padding-left:18px;text-align:center}
+
+/* 列表型表格（在 .tbl-wrap 内）—— 固定布局 + 平均分列，绝不撑宽 */
+.tbl-wrap{overflow:hidden;border-radius:4px}
+.tbl-wrap .tbl{table-layout:fixed}
+.tbl-wrap .tbl th[style*="width"]{width:auto !important}
+.tbl-wrap .tbl th,.tbl-wrap .tbl td{padding:8px;font-size:11.5px}
+.tbl-wrap .tbl .ellipsis{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;max-height:3.4em}
+
+/* 中等窄（≤900px）：进一步压缩并隐藏次要列 */
+@media (max-width:900px){
+  .top-nav{font-size:11px;padding:6px 12px;gap:8px}
+  .top-nav .right{gap:8px}
+  .content{padding:10px}
+  .card-body{padding:12px}
+  .nav-tabs .logo{display:none}
+  .nav-tabs .tab{padding:8px 10px;font-size:11.5px}
+  .tbl .col-min{display:none}
+  .tbl col.w-id,.tbl col.w-state,.tbl col.w-sort{width:0}
+}
+
+/* 手机 */
+@media (max-width:560px){
+  .form-row{flex-direction:column}
+  .form-row .lbl{width:auto;text-align:left;padding:0 0 5px}
+  .form-actions{flex-wrap:wrap}
+  .modal-body{padding:14px}
+  .lang-grid{grid-template-columns:1fr}
+  .tbl th,.tbl td{padding:6px;font-size:11px}
+  .nav-tabs .tab .ico{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <span>当前站点：</span><span class="site">SitINR</span>
+  <div class="right">
+    <span>2026年06月01日 星期一</span>
+    <span>默认语言：<b id="navDefLang">English</b></span>
+    <span>已启用语言：<b id="navLangCount">4</b> 种</span>
+  </div>
+</div>
+
+<div class="app">
+
+  <div class="nav-tabs">
+    <div class="logo">📨 消息系统 · 多语言 <span class="p0">P0</span></div>
+    <div class="tab active" data-page="spec" onclick="goto('spec',event)"><span class="ico">📌</span>需求说明</div>
+    <div class="tab" data-page="siteLang" onclick="goto('siteLang',event)"><span class="ico">🌐</span>站点语言配置</div>
+    <div class="tab" data-page="template" onclick="goto('template',event)"><span class="ico">📝</span>消息模板</div>
+    <div class="tab" data-page="popup" onclick="goto('popup',event)"><span class="ico">💬</span>弹窗 / 公告</div>
+    <div class="tab" data-page="scroll" onclick="goto('scroll',event)"><span class="ico">📢</span>滚动消息</div>
+  </div>
+
+  <div class="main">
+    <div class="crumb">
+      <span class="pg-title" id="pageTitle">📌 需求说明 · 方案概览</span>
+      <div class="crumb-right" id="pageCrumb">需求说明 › 方案概览</div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===================== Page 0: 站点语言配置（驱动入口） ===================== -->
+      <div class="page" id="page-siteLang">
+        <div class="tip ok">
+          🌐 <b>这是多语言的总开关（前台参数配置）。</b>下面勾选的语言，决定了后面 3 个消息编辑页里出现<b>几个语言配置 Tab</b>。<br>
+          试一下：<b>勾选 / 取消勾选</b>任意语言 → 再进「消息模板 / 弹窗 / 滚动消息」，语言 Tab 会同步增减。这就是"配置驱动"。
+        </div>
+
+        <div class="card">
+          <div class="card-title">🌐 站点启用语言　<span class="right">客户端语言下拉、各消息编辑页的语言 Tab 全部以此为准</span></div>
+          <div class="card-body">
+            <div class="lang-grid" id="langGrid"></div>
+            <div class="form-hint" style="margin-top:14px">
+              ✅ 已勾选 <b id="cfgCount" style="color:#1677ff">4</b> 种语言　·　默认语言（兜底）：<b id="cfgDef" style="color:#52c41a">English</b>
+              <span style="color:#999">— 鼠标悬停某语言可"设为默认"。默认语言在编辑页必填，其它语言可选填。</span>
+            </div>
+            <div class="form-actions" style="justify-content:flex-start;padding-left:0">
+              <button class="btn btn-pri" onclick="alert('已保存站点语言配置（原型演示）')">💾 保存配置</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===================== Page 1: 消息模板 ===================== -->
+      <div class="page" id="page-template">
+        <div class="tip">
+          💡 <b>本期改动</b>：点「修改」打开的弹窗（对应图四）顶部加一条<b>语言 Tab</b>——Tab 数量 = 站点语言配置勾选的语言数。每种语言独立维护标题/内容，缺译时客户端回退默认语言。
+        </div>
+
+        <div class="card">
+          <div class="card-title">📝 消息模板</div>
+          <div class="card-body" style="padding-top:6px">
+            <div class="toolbar">
+              <label>语言：</label>
+              <select class="select small" id="tplListLang" style="width:160px" onchange="renderTemplateList()"></select>
+              <span class="form-hint" style="margin:0">（列表预览列按此语言显示，编辑时仍可逐语言维护）</span>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th style="width:80px">编码</th>
+                    <th style="width:200px">标题</th>
+                    <th>内容</th>
+                    <th style="width:90px;text-align:center">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="tplListBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===================== Page 2: 弹窗 / 公告消息 ===================== -->
+      <div class="page" id="page-popup">
+        <div class="tip">
+          💡 <b>本期改动</b>：弹窗消息列表「新增 / 修改」打开的弹窗（对应图五）顶部加<b>语言 Tab</b>；<b>标题</b>与<b>富文本内容</b>按语言独立维护。Tab 数量 = 站点语言配置勾选数。
+        </div>
+
+        <div class="card">
+          <div class="card-title">💬 弹窗消息</div>
+          <div class="card-body" style="padding-top:6px">
+            <div class="toolbar">
+              <label>标题：</label><input class="input small" placeholder="标题" style="width:200px">
+              <button class="btn btn-pri btn-sm" style="height:30px">🔍 查询</button>
+              <button class="btn btn-d btn-sm" style="height:30px">↻ 重置</button>
+              <button class="btn btn-pri btn-sm" style="height:30px" onclick="openMsgModal('popup',null)">+ 新增</button>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th style="width:50px" class="col-min">ID</th><th style="width:200px">标题</th><th>消息内容</th>
+                    <th style="width:70px" class="col-min">状态</th><th style="width:60px" class="col-min">排序</th>
+                    <th style="width:130px;text-align:center">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="popupListBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===================== Page 3: 滚动消息 ===================== -->
+      <div class="page" id="page-scroll">
+        <div class="tip">
+          💡 <b>本期改动</b>：滚动消息「新增 / 修改」弹窗顶部加<b>语言 Tab</b>；<b>标题</b>与<b>消息内容（纯文本）</b>按语言独立维护。Tab 数量 = 站点语言配置勾选数。
+        </div>
+
+        <div class="card">
+          <div class="card-title">📢 滚动消息</div>
+          <div class="card-body" style="padding-top:6px">
+            <div class="toolbar">
+              <label>标题：</label><input class="input small" placeholder="标题" style="width:200px">
+              <button class="btn btn-pri btn-sm" style="height:30px">🔍 查询</button>
+              <button class="btn btn-d btn-sm" style="height:30px">↻ 重置</button>
+              <button class="btn btn-pri btn-sm" style="height:30px" onclick="openMsgModal('scroll',null)">+ 新增</button>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th style="width:50px" class="col-min">ID</th><th style="width:240px">标题</th><th>消息内容</th>
+                    <th style="width:60px" class="col-min">排序</th>
+                    <th style="width:130px;text-align:center">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="scrollListBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===================== Page 5: 方案概览 ===================== -->
+      <div class="page active" id="page-spec">
+        <div class="tip">
+          📌 <b>本期范围一句话</b>：站点语言配置作为总开关；3 个消息编辑弹窗加"语言 Tab"，每语言独立存标题/内容。<b>客户端无改动、接口签名不变</b>，后端按用户 UseLanguage 查对应语言，缺译回退默认语言。
+        </div>
+        <div class="card">
+          <div class="card-title">📋 三大改造点（均为最小改动）</div>
+          <div class="card-body">
+            <table class="tbl tbl-spec">
+              <thead><tr><th>改造点</th><th>说明</th><th>优先级</th></tr></thead>
+              <tr><td><b>① 消息模板</b></td><td>修改弹窗顶部加语言 Tab，Title / Content 按语言切换</td><td><span style="color:#cf1322;font-weight:600">P0</span></td></tr>
+              <tr><td><b>② 弹窗/公告消息</b></td><td>新增/修改弹窗加语言 Tab；富文本内容按语言独立维护</td><td><span style="color:#cf1322;font-weight:600">P0</span></td></tr>
+              <tr><td><b>③ 滚动消息</b></td><td>同 ②，内容为纯文本输入</td><td><span style="color:#cf1322;font-weight:600">P0</span></td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚙️ 行为规则</div>
+          <div class="card-body">
+            <table class="tbl tbl-spec">
+              <thead><tr><th>规则</th><th>说明</th></tr></thead>
+              <tr><td><b>Tab 数量动态</b></td><td>编辑弹窗语言 Tab = 站点语言配置勾选的语言（本原型核心交互）</td></tr>
+              <tr><td><b>默认语言必填</b></td><td>默认语言（站点配置，通常英语）必填，否则保存失败</td></tr>
+              <tr><td><b>其它语言选填</b></td><td>可空，空=未翻译，留空将回退默认语言</td></tr>
+              <tr><td><b>客户端回退</b></td><td>用户语言 X 版本为空 → 自动回退默认语言版本</td></tr>
+              <tr><td><b>复制模板</b></td><td>编辑弹窗支持"复制默认语言到当前 Tab"，方便补译</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📏 原系统字段配置规则（多语言各版本沿用，不放宽）</div>
+          <div class="card-body">
+            <div class="tip warn" style="margin-bottom:14px">
+              多语言改造<b>不改变</b>原有字段校验：每个语言版本都按下表上限单独校验；排序、启用等<b>非语言字段</b>全语言共用一份。下表上限为示例，<b>以实际系统现有校验为准</b>。
+            </div>
+            <table class="tbl tbl-spec">
+              <thead><tr><th>页面</th><th>标题</th><th>内容</th><th>非语言字段（全语言共用）</th></tr></thead>
+              <tr><td><b>消息模板</b></td><td>必填，≤ 50 字符</td><td>≤ 500 字符；支持变量占位符，各语言占位符须一致</td><td>编码（只读）</td></tr>
+              <tr><td><b>弹窗 / 公告</b></td><td>必填，≤ 50 字符</td><td>富文本(HTML)，不限字数；单张图片建议 ≤ 2MB</td><td>排序（整数 ≥ 0）、启用/禁用</td></tr>
+              <tr><td><b>滚动消息</b></td><td>必填，≤ 50 字符</td><td>纯文本，≤ 120 字符</td><td>排序（整数 ≥ 0）、启用/禁用</td></tr>
+            </table>
+            <div class="form-hint" style="margin-top:8px">💡 在编辑弹窗里输入标题/内容时，右下角会实时显示「已输入 / 上限」字符计数，超限或必填留空会拦截保存。</div>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== 通用编辑弹窗（模板/弹窗/滚动 共用） ===================== -->
+<div class="modal-mask" id="msgModal">
+  <div class="modal">
+    <div class="modal-head"><span id="modalTitle">编辑</span><span class="x" onclick="closeModal()">×</span></div>
+    <div class="modal-body">
+
+      <!-- 语言 Tab（动态渲染，核心） -->
+      <div class="form-row" style="border-bottom:1px solid #f0f0f0">
+        <div class="lbl">语言版本：</div>
+        <div class="ctrl">
+          <div class="lang-tabs" id="modalLangTabs"></div>
+          <div class="form-hint">
+            共 <b id="modalLangN">0</b> 个语言 Tab（= 站点语言配置勾选数）·
+            <span style="color:#fa8c16">橙点 ●</span> = 尚未翻译 ·
+            <button class="btn-link" style="font-size:11.5px" onclick="copyFromDefault()">⎘ 复制默认语言到当前 Tab</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="lbl"><span class="req" id="modalTitleReq">*</span>标题：</div>
+        <div class="ctrl">
+          <input class="input" id="modalTitleInput" oninput="updateCounts()">
+          <div class="form-hint"><span id="modalTitleHint"></span> <span class="char-count" id="titleCount"></span></div>
+        </div>
+      </div>
+
+      <!-- 排序/启用：仅弹窗与滚动有 -->
+      <div class="form-row" id="modalSortRow">
+        <div class="lbl">排序：</div>
+        <div class="ctrl"><input class="input small" id="modalSortInput" value="0"></div>
+      </div>
+      <div class="form-row" id="modalStateRow">
+        <div class="lbl">启用：</div>
+        <div class="ctrl"><select class="select small" id="modalStateInput"><option>启用</option><option>禁用</option></select></div>
+      </div>
+
+      <!-- 内容：模板=textarea / 弹窗=富文本 / 滚动=单行 -->
+      <div class="form-row">
+        <div class="lbl"><span class="req">*</span>内容：</div>
+        <div class="ctrl" id="modalContentCtrl"></div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-save" onclick="saveCurrentLang()">💾 保存当前语言</button>
+      <button class="btn btn-back" onclick="closeModal()">↩ 返回</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ============ 全部可选语言 ============ */
+const ALL_LANGS = [
+  {code:'en', nm:'English',    cn:'英语'},
+  {code:'hi', nm:'हिन्दी',      cn:'印地语'},
+  {code:'pt', nm:'Português',  cn:'巴西/葡语'},
+  {code:'zh', nm:'简体中文',    cn:'中文简体'},
+  {code:'tw', nm:'繁體中文',    cn:'中文繁体'},
+  {code:'id', nm:'Indonesia',  cn:'印尼语'},
+  {code:'vi', nm:'Tiếng Việt', cn:'越南语'},
+  {code:'th', nm:'ไทย',         cn:'泰语'},
+  {code:'bn', nm:'বাংলা',       cn:'孟加拉语'},
+  {code:'my', nm:'မြန်မာ',      cn:'缅甸语'},
+  {code:'ms', nm:'Melayu',     cn:'马来语'},
+  {code:'ur', nm:'اردو',        cn:'乌尔都语'},
+  {code:'ar', nm:'العربية',     cn:'阿拉伯语'},
+  {code:'ta', nm:'தமிழ்',       cn:'泰米尔语'},
+  {code:'te', nm:'తెలుగు',      cn:'泰卢固语'},
+];
+const NAME = {}; ALL_LANGS.forEach(l=>NAME[l.code]=l);
+
+/* ============ 配置状态（驱动一切） ============ */
+let enabledLangs = ['en','hi','pt','zh'];   // 站点语言配置勾选
+let defaultLang  = 'en';                    // 默认/兜底语言
+
+/* ============ 原系统字段配置规则（多语言各版本均沿用同一套限制） ============ */
+// title/content 为字符上限；content=0 表示富文本不限字数（按 HTML 存储）
+const LIMITS = {
+  template: {title:50,  content:500},
+  popup:    {title:50,  content:0  },
+  scroll:   {title:50,  content:120},
+};
+
+/* ============ 示例数据（按 code 存翻译，空串=未翻译） ============ */
+// 消息模板
+const templates = [
+  {id:1, name:'会员注册', t:{en:'Account Registration', hi:'खाता पंजीकरण', pt:'Registro de Conta', zh:'会员注册'}, c:{en:'Congratulations, registration successful! Welcome to our platform.', hi:'बधाई हो, पंजीकरण सफल!', pt:'Parabéns, registro concluído!', zh:'恭喜您注册成功，您现在是我们的会员了。'}},
+  {id:2, name:'账号充值', t:{en:'Deposit Successful', hi:'जमा सफल', pt:'Depósito Concluído', zh:'账号充值'}, c:{en:'Your deposit of {amount} was successful.', hi:'', pt:'Seu depósito de {amount} foi concluído.', zh:'恭喜您充值成功，感谢您对我们平台的支持。'}},
+  {id:3, name:'申请提现', t:{en:'Withdrawal Request', hi:'निकासी अनुरोध', pt:'Pedido de Saque', zh:'申请提现'}, c:{en:'Your withdrawal order has been received by finance.', hi:'आपका निकासी आदेश प्राप्त हुआ।', pt:'Seu pedido de saque foi recebido.', zh:'您的提款订单财务部门已经受理。'}},
+  {id:4, name:'提现到账', t:{en:'Withdrawal Success', hi:'', pt:'Saque Concluído', zh:'提现到账'}, c:{en:'Your withdrawal has been completed by finance.', hi:'', pt:'Seu saque foi concluído.', zh:'您的提款订单财务部门已经处理成功。'}},
+  {id:5, name:'登录通知', t:{en:'Login Notification', hi:'लॉगिन सूचना', pt:'', zh:'登录通知'}, c:{en:'Your account just logged in at {time}.', hi:'आपका खाता {time} पर लॉगिन हुआ।', pt:'', zh:'您的账号刚刚于 {time} 登录。'}},
+  {id:6, name:'XOSO期号取消通知', t:{en:'Period Cancelled', hi:'', pt:'', zh:'期号取消'}, c:{en:'Period {period} of lottery {game} has been cancelled.', hi:'', pt:'', zh:'{0} 该期{1}彩票已被取消。'}},
+  {id:7, name:'修改密码', t:{en:'Password Changed', hi:'पासवर्ड बदला गया', pt:'Senha Alterada', zh:'修改密码'}, c:{en:'Your account password was changed at {time}.', hi:'', pt:'Sua senha foi alterada em {time}.', zh:'您的帐户密码已于 {time} 更改。'}},
+  {id:8, name:'TG活动奖励发放通知', t:{en:'TG Reward Distributed', hi:'', pt:'', zh:'活动奖励自动发放'}, c:{en:'Reward from the official TG channel has been distributed.', hi:'', pt:'', zh:'您加入官网TG频道的奖励已发放。'}},
+  {id:9, name:'活动奖励发放通知', t:{en:'Event Reward Notice', hi:'', pt:'Aviso de Recompensa', zh:'活动奖励通知'}, c:{en:'You have received the {0} reward.', hi:'', pt:'Você recebeu a recompensa {0}.', zh:'您已获得【{0}】奖励。'}},
+];
+
+// 弹窗消息
+const popups = [
+  {id:51, sort:0, state:'启用', t:{en:'Welcome Bonus', hi:'स्वागत बोनस', pt:'Bônus de Boas-vindas', zh:'欢迎礼包'}, c:{en:'<h3>🎉 Welcome!</h3><p>Get a <b>100% bonus</b> on first deposit.</p>', hi:'<p>पहली जमा पर 100% बोनस।</p>', pt:'<p>Bônus de 100% no primeiro depósito.</p>', zh:'<p>首充100%奖励，限时领取！</p>'}},
+  {id:48, sort:0, state:'启用', t:{en:'VIP Recharge Bonus', hi:'', pt:'', zh:'VIP充值奖励'}, c:{en:'<p>Jump to in-game page…</p>', hi:'', pt:'', zh:'<p>点我跳转充值页面…</p>'}},
+  {id:47, sort:0, state:'启用', t:{en:'BDGGAME.COM', hi:'', pt:'BDGGAME.COM', zh:''}, c:{en:'<p>⭐ BDGGAME.COM …</p>', hi:'', pt:'<p>⭐ BDGGAME.COM …</p>', zh:''}},
+  {id:46, sort:12212, state:'启用', t:{en:'Test Jump', hi:'', pt:'', zh:'测试'}, c:{en:'<p>Click to jump to deposit (google)…</p>', hi:'', pt:'', zh:'<p>点我跳转充值页面google…</p>'}},
+];
+
+// 滚动消息
+const scrolls = [
+  {id:53, sort:0, t:{en:'Daily Bonus', hi:'दैनिक बोनस', pt:'Bônus Diário', zh:'每日奖励'}, c:{en:'Anda menyenangk… daily bonus is here!', hi:'दैनिक बोनस उपलब्ध है!', pt:'Bônus diário disponível!', zh:'每日登录奖励可领取！'}},
+  {id:52, sort:0, t:{en:'Maintenance', hi:'', pt:'', zh:'维护公告'}, c:{en:'Temporary maintenance tonight 02:00-04:00.', hi:'', pt:'', zh:'今晚 02:00-04:00 临时维护。'}},
+  {id:50, sort:0, t:{en:'Scroll Test', hi:'', pt:'Teste', zh:'滚动消息测试'}, c:{en:'Scroll message test…', hi:'', pt:'Teste de mensagem…', zh:'滚动消息测试滚动消息测试…'}},
+];
+
+/* ============ 工具 ============ */
+function val(map, code){ return (map[code]&&map[code].trim()) ? map[code] : ''; }
+function fallback(map, code){
+  // 返回 {text, fromDefault}
+  if(val(map,code)) return {text:map[code], fromDefault:false};
+  return {text:map[defaultLang]||'', fromDefault:true};
+}
+function stripHtml(h){ const d=document.createElement('div'); d.innerHTML=h||''; return d.textContent||''; }
+
+/* ============ 站点语言配置页 ============ */
+function renderLangGrid(){
+  const g=document.getElementById('langGrid'); g.innerHTML='';
+  ALL_LANGS.forEach(l=>{
+    const on=enabledLangs.includes(l.code);
+    const isDef=defaultLang===l.code;
+    const div=document.createElement('div');
+    div.className='lang-chk'+(on?' on':'');
+    div.innerHTML=`<input type="checkbox" ${on?'checked':''} ${isDef?'disabled':''}>
+      <div><div class="nm">${l.cn} <span class="sub">${l.nm}</span></div></div>
+      ${isDef?'<span class="def-pill">默认</span>':(on?`<span class="set-def" data-def="${l.code}">设为默认</span>`:'')}`;
+    div.querySelector('input').addEventListener('change',()=>toggleLang(l.code));
+    div.addEventListener('click',e=>{ if(e.target.tagName!=='INPUT'&&!e.target.dataset.def) { if(!isDef) toggleLang(l.code);} });
+    const sd=div.querySelector('.set-def'); if(sd) sd.addEventListener('click',e=>{e.stopPropagation(); defaultLang=l.code; refreshAll();});
+    g.appendChild(div);
+  });
+  document.getElementById('cfgCount').textContent=enabledLangs.length;
+  document.getElementById('cfgDef').textContent=NAME[defaultLang].cn+' / '+NAME[defaultLang].nm;
+  document.getElementById('navDefLang').textContent=NAME[defaultLang].nm;
+  document.getElementById('navLangCount').textContent=enabledLangs.length;
+}
+function toggleLang(code){
+  if(code===defaultLang){ alert('默认语言不可取消，请先指定其它默认语言'); return; }
+  if(enabledLangs.includes(code)) enabledLangs=enabledLangs.filter(c=>c!==code);
+  else enabledLangs.push(code);
+  // 维持 ALL_LANGS 顺序
+  enabledLangs.sort((a,b)=>ALL_LANGS.findIndex(x=>x.code===a)-ALL_LANGS.findIndex(x=>x.code===b));
+  refreshAll();
+}
+function refreshAll(){
+  renderLangGrid();
+  fillLangSelect('tplListLang');
+  renderTemplateList(); renderPopupList(); renderScrollList();
+}
+function fillLangSelect(id){
+  const s=document.getElementById(id); if(!s) return;
+  const cur=s.value;
+  s.innerHTML=enabledLangs.map(c=>`<option value="${c}">${NAME[c].cn} / ${NAME[c].nm}${c===defaultLang?'（默认）':''}</option>`).join('');
+  if(enabledLangs.includes(cur)) s.value=cur;
+}
+
+/* ============ 三个列表 ============ */
+function renderTemplateList(){
+  const lang=document.getElementById('tplListLang').value||defaultLang;
+  document.getElementById('tplListBody').innerHTML=templates.map(r=>{
+    const fb=fallback(r.t,lang); const cfb=fallback(r.c,lang);
+    return `<tr>
+      <td>${r.id} ${r.name}</td>
+      <td>${fb.text||'—'}${fb.fromDefault&&fb.text?'<span class="fallback-badge">回退</span>':''}</td>
+      <td style="color:#666">${(cfb.text?cfb.text.slice(0,40):'—')}${cfb.text&&cfb.text.length>40?'…':''}</td>
+      <td class="col-c"><button class="btn btn-edit btn-sm" onclick="openMsgModal('template',${r.id})">修改</button></td>
+    </tr>`;
+  }).join('');
+}
+function renderPopupList(){
+  document.getElementById('popupListBody').innerHTML=popups.map(r=>{
+    const t=fallback(r.t,defaultLang).text; const c=stripHtml(fallback(r.c,defaultLang).text);
+    return `<tr>
+      <td class="col-min">${r.id}</td><td>${t||'—'}</td>
+      <td style="color:#666" class="ellipsis">${c?c.slice(0,24):'—'}${c.length>24?'…':''}</td>
+      <td class="col-c col-min ${r.state==='启用'?'state-on':'state-off'}">${r.state}</td>
+      <td class="col-c col-min">${r.sort}</td>
+      <td class="col-c">
+        <button class="btn btn-edit btn-sm" onclick="openMsgModal('popup',${r.id})">修改</button>
+        <button class="btn btn-del btn-sm">删除</button>
+      </td></tr>`;
+  }).join('');
+}
+function renderScrollList(){
+  document.getElementById('scrollListBody').innerHTML=scrolls.map(r=>{
+    const t=fallback(r.t,defaultLang).text; const c=fallback(r.c,defaultLang).text;
+    return `<tr>
+      <td class="col-min">${r.id}</td><td>${t||'—'}</td>
+      <td style="color:#666" class="ellipsis">${c?c.slice(0,40):'—'}${c.length>40?'…':''}</td>
+      <td class="col-c col-min">${r.sort}</td>
+      <td class="col-c">
+        <button class="btn btn-edit btn-sm" onclick="openMsgModal('scroll',${r.id})">修改</button>
+        <button class="btn btn-del btn-sm">删除</button>
+      </td></tr>`;
+  }).join('');
+}
+
+/* ============ 编辑弹窗（核心：语言 Tab 动态） ============ */
+let modalType=null, modalRec=null, modalLang=null;
+function findRec(type,id){
+  const arr = type==='template'?templates : type==='popup'?popups : scrolls;
+  return arr.find(r=>r.id===id);
+}
+function openMsgModal(type,id){
+  modalType=type;
+  if(id==null){ // 新增
+    modalRec={id:'(新)', name:'', sort:0, state:'启用', t:{}, c:{}};
+  } else {
+    modalRec=JSON.parse(JSON.stringify(findRec(type,id)));   // 编辑副本
+  }
+  modalLang=defaultLang;
+  const titles={template:'📝 消息模板更新',popup:'💬 弹窗消息'+(id==null?'新增':'修改'),scroll:'📢 滚动消息'+(id==null?'新增':'修改')};
+  document.getElementById('modalTitle').textContent=titles[type]+(id!=null?`　·　ID ${modalRec.id}`:'');
+  // 排序/启用行：模板隐藏
+  const show = type!=='template';
+  document.getElementById('modalSortRow').style.display = show?'':'none';
+  document.getElementById('modalStateRow').style.display = show?'':'none';
+  if(show){ document.getElementById('modalSortInput').value=modalRec.sort; document.getElementById('modalStateInput').value=modalRec.state; }
+  document.getElementById('modalTitleInput').maxLength=LIMITS[type].title;
+  buildContentControl();
+  renderModalTabs();
+  loadModalLang();
+  document.getElementById('msgModal').classList.add('show');
+}
+function buildContentControl(){
+  const ctrl=document.getElementById('modalContentCtrl');
+  const lim=LIMITS[modalType];
+  if(modalType==='popup'){
+    ctrl.innerHTML=`<div class="rich-editor">
+      <div class="rich-toolbar">
+        <button>🪄</button><div class="sep"></div><button><b>B</b></button><button><u>U</u></button>
+        <button>✂</button><div class="sep"></div><button>Arial ▾</button><button class="color">A ▾</button>
+        <div class="sep"></div><button>≡</button><button>≣</button><div class="sep"></div>
+        <button>🔗</button><button>🖼</button><button>▶</button><div class="sep"></div><button>&lt;/&gt;</button><button>?</button>
+      </div>
+      <div class="rich-content" id="modalRich" contenteditable="true" oninput="updateCounts()" placeholder="请输入富文本内容…"></div>
+    </div>
+    <div class="form-hint"><span id="modalContentHint">富文本(HTML)，支持加粗/颜色/图片/链接 · 单张图片建议 ≤ 2MB</span> <span class="char-count" id="contentCount"></span></div>`;
+  } else if(modalType==='scroll'){
+    ctrl.innerHTML=`<input class="input" id="modalPlain" maxlength="${lim.content}" oninput="updateCounts()" placeholder="请输入滚动文本（纯文本，首页跑马灯）">
+    <div class="form-hint"><span id="modalContentHint">纯文本，首页滚动播放，最多 ${lim.content} 字符</span> <span class="char-count" id="contentCount"></span></div>`;
+  } else {
+    ctrl.innerHTML=`<textarea class="textarea" id="modalArea" maxlength="${lim.content}" oninput="updateCounts()" style="min-height:120px" placeholder="请输入模板内容…"></textarea>
+    <div class="form-hint"><span id="modalContentHint">支持变量占位符 {amount} {time} {0}，最多 ${lim.content} 字符（各语言占位符须一致）</span> <span class="char-count" id="contentCount"></span></div>`;
+  }
+}
+function curContentEl(){
+  return modalType==='popup'? document.getElementById('modalRich')
+       : modalType==='scroll'? document.getElementById('modalPlain')
+       : document.getElementById('modalArea');
+}
+function updateCounts(){
+  const lim=LIMITS[modalType];
+  const tEl=document.getElementById('modalTitleInput');
+  const tc=document.getElementById('titleCount');
+  if(tEl&&tc){ tc.textContent=`${tEl.value.length}/${lim.title}`; tc.classList.toggle('over', tEl.value.length>lim.title); }
+  const cEl=curContentEl(); const cc=document.getElementById('contentCount');
+  if(cEl&&cc){
+    const len = modalType==='popup' ? (cEl.textContent||'').length : cEl.value.length;
+    if(lim.content>0){ cc.textContent=`${len}/${lim.content}`; cc.classList.toggle('over', len>lim.content); }
+    else cc.textContent=`${len} 字符（富文本不限字数）`;
+  }
+}
+function renderModalTabs(){
+  const wrap=document.getElementById('modalLangTabs'); wrap.innerHTML='';
+  enabledLangs.forEach(code=>{
+    const filled = (modalRec.t[code]&&modalRec.t[code].trim()) || (modalRec.c[code]&&modalRec.c[code].trim());
+    const b=document.createElement('button');
+    b.className='lt-btn'+(code===modalLang?' active':'');
+    b.innerHTML=`${NAME[code].cn}${code===defaultLang?'<span class="def">默认</span>':''}${filled?'':'<span class="miss-mark"></span>'}`;
+    b.onclick=()=>{ saveModalFieldsToRec(); modalLang=code; renderModalTabs(); loadModalLang(); };
+    wrap.appendChild(b);
+  });
+  document.getElementById('modalLangN').textContent=enabledLangs.length;
+  // 默认语言必填标记
+  document.getElementById('modalTitleReq').style.visibility = (modalLang===defaultLang)?'visible':'hidden';
+}
+function loadModalLang(){
+  document.getElementById('modalTitleInput').value = modalRec.t[modalLang]||'';
+  const isDef=modalLang===defaultLang;
+  document.getElementById('modalTitleHint').innerHTML = isDef
+    ? '当前编辑：<span class="lang-flag">'+NAME[modalLang].nm+'（默认 · 必填）</span>'
+    : (modalRec.t[modalLang]? '当前编辑：<span class="lang-flag">'+NAME[modalLang].nm+'</span>'
+        : '当前编辑：<span class="lang-flag miss">'+NAME[modalLang].nm+' · 未翻译，留空将回退默认语言</span>');
+  const c=modalRec.c[modalLang]||'';
+  if(modalType==='popup') document.getElementById('modalRich').innerHTML=c;
+  else if(modalType==='scroll') document.getElementById('modalPlain').value=c;
+  else document.getElementById('modalArea').value=c;
+  updateCounts();
+}
+function saveModalFieldsToRec(){
+  modalRec.t[modalLang]=document.getElementById('modalTitleInput').value;
+  if(modalType==='popup') modalRec.c[modalLang]=document.getElementById('modalRich').innerHTML;
+  else if(modalType==='scroll') modalRec.c[modalLang]=document.getElementById('modalPlain').value;
+  else modalRec.c[modalLang]=document.getElementById('modalArea').value;
+}
+function copyFromDefault(){
+  document.getElementById('modalTitleInput').value=modalRec.t[defaultLang]||'';
+  const c=modalRec.c[defaultLang]||'';
+  if(modalType==='popup') document.getElementById('modalRich').innerHTML=c;
+  else if(modalType==='scroll') document.getElementById('modalPlain').value=c;
+  else document.getElementById('modalArea').value=c;
+}
+function saveCurrentLang(){
+  saveModalFieldsToRec();
+  const lim=LIMITS[modalType];
+  const title=modalRec.t[modalLang]||'';
+  if(modalLang===defaultLang && !title.trim()){
+    alert('默认语言（'+NAME[defaultLang].nm+'）标题必填'); return;
+  }
+  if(title.length>lim.title){ alert('标题超出上限 '+lim.title+' 字符'); return; }
+  if(lim.content>0){
+    const len = modalType==='scroll'? (modalRec.c[modalLang]||'').length : (modalRec.c[modalLang]||'').length;
+    if(len>lim.content){ alert('内容超出上限 '+lim.content+' 字符'); return; }
+  }
+  // 写回真实数据
+  if(modalRec.id!=='(新)'){
+    const real=findRec(modalType,modalRec.id);
+    if(real){ real.t=modalRec.t; real.c=modalRec.c; if(modalType!=='template'){real.sort=document.getElementById('modalSortInput').value; real.state=document.getElementById('modalStateInput').value;} }
+  }
+  renderModalTabs();
+  renderTemplateList(); renderPopupList(); renderScrollList();
+  alert('已保存「'+NAME[modalLang].nm+'」版本（原型演示）');
+}
+function closeModal(){ document.getElementById('msgModal').classList.remove('show'); }
+
+/* ============ 导航 ============ */
+function goto(page,ev){
+  document.querySelectorAll('.nav-tabs .tab').forEach(i=>i.classList.remove('active'));
+  ev&&ev.currentTarget&&ev.currentTarget.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const titles={
+    siteLang:['🌐 站点语言配置','网站管理 › 站点语言配置'],
+    template:['📝 消息模板 — 多语言','网站管理 › 消息模板'],
+    popup:['💬 弹窗 / 公告消息 — 多语言','网站管理 › 弹窗消息'],
+    scroll:['📢 滚动消息 — 多语言','网站管理 › 滚动消息'],
+    spec:['📌 需求说明 · 方案概览','需求说明 › 方案概览'],
+  };
+  if(titles[page]){document.getElementById('pageTitle').textContent=titles[page][0];document.getElementById('pageCrumb').textContent=titles[page][1];}
+}
+
+/* ============ init ============ */
+fillLangSelect('tplListLang');
+renderLangGrid(); renderTemplateList(); renderPopupList(); renderScrollList();
+</script>
+
+</body>
+</html>
