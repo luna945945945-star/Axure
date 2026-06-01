@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banner 图 + 活动资讯 · 多语言改造原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;background:#f4f6f8;color:#222;line-height:1.55}
+
+/* 顶部黄色 nav（V1 风格） */
+.top-nav{background:#f8edc4;padding:8px 18px;display:flex;align-items:center;gap:14px;font-size:11.5px;color:#5a4a1b;border-bottom:1px solid #e0d495}
+.top-nav .site{font-weight:700;color:#222}
+.top-nav .right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:11px}
+.top-nav .right b{color:#ff7a00}
+
+.app{display:flex;min-height:calc(100vh - 35px)}
+
+/* 侧边栏 */
+.sider{width:220px;background:#001529;color:#cfd8e3;flex-shrink:0}
+.sider .logo{padding:14px 16px;font-weight:700;font-size:14px;color:#fff;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.08)}
+.sider .grp{padding:8px 16px;color:#a4b0be;font-size:11.5px;letter-spacing:.5px;margin-top:6px}
+.sider .item{padding:10px 16px 10px 26px;cursor:pointer;font-size:12.5px;color:#cfd8e3;display:flex;align-items:center;gap:8px;border-left:3px solid transparent;transition:all .15s}
+.sider .item:hover{background:rgba(255,255,255,.05);color:#fff}
+.sider .item.active{background:#7c4dff;color:#fff;border-left-color:#fff;font-weight:600}
+.sider .item .ico{font-size:14px;width:18px;text-align:center}
+.sider .item .new{margin-left:auto;background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:7px;font-weight:700}
+
+/* 主体 */
+.main{flex:1;display:flex;flex-direction:column;background:#f4f6f8;min-width:0}
+.crumb{background:#fff;padding:12px 22px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:8px;font-size:13px}
+.crumb .pg-title{font-weight:600;color:#7c4dff;font-size:14px}
+.crumb .crumb-right{margin-left:auto;color:#999;font-size:12px}
+.crumb .crumb-right .sep{margin:0 4px;color:#ccc}
+.content{flex:1;padding:18px;overflow:auto}
+.page{display:none}
+.page.active{display:block}
+
+/* V1 风格按钮 */
+.btn{height:32px;padding:0 14px;border-radius:4px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.btn-add{background:#7c4dff;color:#fff}
+.btn-add:hover{background:#6a3ee0}
+.btn-save{background:linear-gradient(180deg,#5cc1f1,#4ab1e0);color:#fff}
+.btn-save:hover{background:linear-gradient(180deg,#4ab1e0,#3a9fcc)}
+.btn-back{background:#39414e;color:#fff}
+.btn-back:hover{background:#2a313c}
+.btn-edit{background:#fff;color:#52c41a;border:1px solid #52c41a;padding:3px 10px;height:24px;font-size:11.5px}
+.btn-edit:hover{background:#f6ffed}
+.btn-del{background:#fff;color:#52c41a;border:1px solid #52c41a;padding:3px 10px;height:24px;font-size:11.5px}
+.btn-del:hover{background:#f6ffed}
+.btn-d{background:#fff;color:#333;border:1px solid #d9d9d9}
+.btn-d:hover{border-color:#7c4dff;color:#7c4dff}
+.btn-link{background:transparent;color:#1677ff;cursor:pointer;border:none;font-family:inherit;font-size:12.5px}
+.btn-link:hover{text-decoration:underline}
+
+/* 卡片 */
+.card{background:#fff;border:1px solid #e8e8e8;border-radius:4px;margin-bottom:14px}
+.card-title{padding:11px 18px;color:#7c4dff;font-size:14px;font-weight:600;border-bottom:1px solid #fae6b4;background:#fff;display:flex;align-items:center;gap:8px}
+.card-title .right{margin-left:auto;font-size:11.5px;color:#999;font-weight:400}
+.card-body{padding:18px 22px}
+
+/* 列表表格 */
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{background:#f6f7fa;padding:12px 10px;text-align:center;color:#222;font-weight:600;border-bottom:1px solid #e8e8e8;font-size:12.5px}
+.tbl td{padding:12px 10px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:middle;text-align:center}
+.tbl tr:hover td{background:#fafcff}
+.tbl .img-cell{display:flex;justify-content:center}
+.tbl .thumb{width:48px;height:32px;background:#e6e6e6;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#999}
+.tbl .thumb.banner-thumb{width:60px;height:36px}
+.state-show{color:#52c41a;font-weight:600}
+.state-hide{color:#ff4d4f;font-weight:600}
+
+/* 状态/权限 标签 */
+.tag{display:inline-block;padding:3px 10px;border-radius:3px;font-size:11.5px;font-weight:500;border:1px solid}
+.tag-open{background:#f6ffed;color:#52c41a;border-color:#b7eb8f}
+.tag-need{background:#fff1f0;color:#ff4d4f;border-color:#ffa39e}
+
+/* 表单 */
+.form-row{display:flex;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f5f5f5}
+.form-row:last-child{border-bottom:none}
+.form-row .lbl{width:100px;text-align:right;padding:8px 12px 0 0;color:#333;font-size:13px;flex-shrink:0}
+.form-row .lbl .req{color:#ff4d4f}
+.form-row .ctrl{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.input,.select,.textarea{padding:7px 11px;border:1px solid #d9d9d9;border-radius:3px;font-family:inherit;font-size:13px;background:#fff;color:#333;outline:none;width:100%}
+.input:focus,.select:focus,.textarea:focus{border-color:#7c4dff;box-shadow:0 0 0 2px rgba(124,77,255,.15)}
+.input.small{width:120px}
+.form-hint{color:#999;font-size:11.5px}
+.form-hint .red{color:#ff4d4f}
+.form-counter{position:absolute;right:10px;top:8px;color:#bbb;font-size:11px}
+.input-wrap{position:relative}
+
+/* radio */
+.radio{display:inline-flex;align-items:center;gap:5px;cursor:pointer;margin-right:18px;font-size:12.5px}
+.radio input{accent-color:#1677ff;cursor:pointer}
+.radio .hint{color:#999;font-size:11px;margin-left:2px}
+
+/* 上传区 */
+.upload-box{width:160px;height:130px;background:#eef0f3;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1px dashed transparent;transition:all .15s}
+.upload-box:hover{background:#e0e3e8;border-color:#7c4dff}
+.upload-box .ico{font-size:42px;color:#bfbfbf}
+.upload-box.has-img{background:linear-gradient(135deg,#7c4dff,#1677ff);color:#fff;font-size:20px;padding:10px;text-align:center;font-weight:700}
+.upload-format{font-size:11px;margin-top:6px;color:#666}
+.upload-format .fmt{color:#ff4d4f;font-weight:600}
+
+/* 多语言切换条（V1 原生胶囊按钮样式） */
+.lang-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.lang-tabs .lt-btn{padding:5px 14px;border:1px solid #d9d9d9;border-radius:18px;cursor:pointer;font-size:12px;background:#fff;color:#444;transition:all .15s;position:relative;white-space:nowrap;font-family:inherit;line-height:1.4}
+.lang-tabs .lt-btn:hover{border-color:#1677ff;color:#1677ff}
+.lang-tabs .lt-btn.active{background:#1677ff;color:#fff;border-color:#1677ff;font-weight:600}
+.lang-tabs .lt-btn .miss-mark{display:inline-block;width:6px;height:6px;background:#fa8c16;border-radius:50%;margin-left:5px;vertical-align:middle}
+.lang-tabs .lt-btn.active .miss-mark{background:#fff}
+
+/* NEW 标 */
+.new-tag{display:inline-block;background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px;margin-left:6px;font-weight:700;vertical-align:middle;letter-spacing:.5px}
+
+/* 提示框 */
+.tip{background:#e6f4ff;border-left:4px solid #1677ff;padding:11px 14px;border-radius:0 4px 4px 0;font-size:12.5px;color:#0958d9;margin-bottom:14px;line-height:1.7}
+.tip.warn{background:#fffbe6;border-color:#fa8c16;color:#874d00}
+.tip.ok{background:#f6ffed;border-color:#52c41a;color:#237804}
+.tip b{font-weight:700}
+
+/* 多语言完整度徽章 */
+.lang-status{display:inline-flex;align-items:center;gap:4px;font-size:11.5px}
+.lang-status .done{color:#52c41a;font-weight:600}
+.lang-status .miss{color:#fa8c16;font-weight:600}
+.lang-status .full{color:#52c41a;font-weight:600}
+
+/* 表单底部操作 */
+.form-actions{padding:18px 0 6px;display:flex;justify-content:center;gap:14px}
+
+/* 分页 */
+.pager{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666}
+.pager .pg{padding:4px 10px;border:1px solid #e8eaed;border-radius:3px;cursor:pointer;background:#fff;min-width:28px;text-align:center;display:inline-block;margin:0 1px}
+.pager .pg.active{background:#7c4dff;color:#fff;border-color:#7c4dff}
+
+/* 数据库示意 */
+.db-code{background:#1e1e1e;color:#dcdcdc;padding:14px 18px;border-radius:4px;font-family:Menlo,Consolas,monospace;font-size:11.5px;line-height:1.8;overflow-x:auto}
+.db-code .key{color:#569cd6}
+.db-code .pk{color:#dcdcaa}
+.db-code .type{color:#4ec9b0}
+.db-code .cmt{color:#608b4e}
+.db-code .str{color:#ce9178}
+
+/* PRD 卡片 */
+.prd-tip{background:#fffbe6;border-left:4px solid #fa8c16;padding:12px 18px;border-radius:0 6px 6px 0;font-size:12.5px;color:#874d00;margin-bottom:14px;line-height:1.8}
+
+/* 工具栏 */
+.toolbar{padding:10px 18px 6px}
+
+/* 富文本编辑器（V1 风格还原） */
+.rich-editor{border:1px solid #d9d9d9;border-radius:3px;overflow:hidden;background:#fff}
+.rich-toolbar{padding:6px 8px;border-bottom:1px solid #e8e8e8;display:flex;gap:3px;background:#fafafa;flex-wrap:wrap}
+.rich-toolbar button{background:#fff;border:1px solid #e0e0e0;padding:4px 8px;border-radius:2px;font-size:11px;cursor:pointer;font-family:inherit;min-width:24px}
+.rich-toolbar button:hover{background:#f0f0f0}
+.rich-toolbar .sep{width:1px;background:#e0e0e0;margin:2px 4px}
+.rich-toolbar .color{background:#fffbe6;font-weight:700}
+.rich-content{min-height:280px;padding:14px 18px;font-size:13px;color:#333;outline:none}
+.rich-content[placeholder]:empty::before{content:attr(placeholder);color:#bbb}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <span>当前站点：</span><span class="site">92pkr</span>
+  <div class="right">
+    <span>2026年06月01日 12:30 星期一</span>
+    <span>当前币种：<b>PKR</b></span>
+    <span>在线人数：<b>3</b></span>
+  </div>
+</div>
+
+<div class="app">
+
+  <div class="sider">
+    <div class="logo">🌐 Banner+活动 多语言改造 <span class="new-tag">P0</span></div>
+
+    <div class="grp">📌 本期改造</div>
+    <div class="item active" onclick="goto('banner-list',event)"><span class="ico">🖼</span>Banner 图列表</div>
+    <div class="item" onclick="goto('banner-edit',event)"><span class="ico">✏️</span>Banner 新增/编辑 <span class="new">i18n</span></div>
+    <div class="item" onclick="goto('activity-list',event)"><span class="ico">🎯</span>活动资讯列表</div>
+    <div class="item" onclick="goto('activity-edit',event)"><span class="ico">✏️</span>活动资讯 新增/编辑 <span class="new">i18n</span></div>
+
+    <div class="grp">需求说明</div>
+    <div class="item" onclick="goto('spec',event)"><span class="ico">📋</span>方案概览</div>
+  </div>
+
+  <div class="main">
+    <div class="crumb">
+      <span class="pg-title" id="pageTitle">🖼 Banner 图列表</span>
+      <div class="crumb-right" id="pageCrumb">
+        <span>系统管理</span><span class="sep">›</span>Banner图
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===================== Page 1: Banner 图列表 ===================== -->
+      <div class="page active" id="page-banner-list">
+
+        <div class="tip">
+          💡 <b>本期改动</b>：列表保持原样不动。点"修改"进入新增/编辑页，里面可以按语言独立配置图片（默认语言必填，其他选填，缺译时客户端自动回退默认语言）。
+        </div>
+
+        <div class="card">
+          <div class="card-title">Banner 图 <span class="right">共 16 条</span></div>
+          <div class="toolbar">
+            <button class="btn btn-add" onclick="goto('banner-edit')">+ 新 增</button>
+          </div>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th style="width:60px">ID</th>
+                <th style="width:90px">图片路径</th>
+                <th>跳转方式</th>
+                <th>跳转链接</th>
+                <th style="width:60px">排序</th>
+                <th style="width:70px">状态</th>
+                <th style="width:120px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>109</td><td><div class="img-cell"><div class="thumb banner-thumb">🦄</div></div></td><td>跳转链接</td><td>https://sitweb.22889.club/#/wa…</td><td>1</td><td><span class="state-show">显示</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>101</td><td><div class="img-cell"><div class="thumb banner-thumb">🛩</div></div></td><td>跳转子游戏</td><td>电子游戏-Spribe电子-Aviator</td><td>2</td><td><span class="state-show">显示</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>85</td><td><div class="img-cell"><div class="thumb banner-thumb">🐭</div></div></td><td>跳转子游戏</td><td>电子游戏-JILI电子-疯狂777</td><td>1</td><td><span class="state-show">显示</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>78</td><td><div class="img-cell"><div class="thumb banner-thumb">🥃</div></div></td><td>跳转在线客服</td><td>—</td><td>0</td><td><span class="state-show">显示</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>77</td><td><div class="img-cell"><div class="thumb banner-thumb">🍷</div></div></td><td>跳转在线客服</td><td>—</td><td>0</td><td><span class="state-hide">关闭</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>74</td><td><div class="img-cell"><div class="thumb banner-thumb">🎄</div></div></td><td>跳转子游戏</td><td>体育竞技-9Wickets体育-未知游戏</td><td>0</td><td><span class="state-hide">关闭</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>73</td><td><div class="img-cell"><div class="thumb banner-thumb">🎁</div></div></td><td>跳转子游戏</td><td>棋牌游戏-V8棋牌-未知游戏</td><td>0</td><td><span class="state-hide">关闭</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>72</td><td><div class="img-cell"><div class="thumb banner-thumb">🧦</div></div></td><td>跳转子游戏</td><td>体育竞技-9Wickets体育-网球</td><td>9</td><td><span class="state-hide">关闭</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>51</td><td><div class="img-cell"><div class="thumb banner-thumb">🎅</div></div></td><td>跳转在线客服</td><td>—</td><td>1</td><td><span class="state-show">显示</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+            </tbody>
+          </table>
+          <div class="pager">
+            <span>共 1 页，前往 <input class="input small" style="display:inline-block;width:50px" value="1"> 页，<select class="select" style="display:inline-block;width:90px"><option>20条/页</option></select> <button class="btn btn-d" style="height:26px;padding:0 10px;font-size:11px">GO</button></span>
+            <span>
+              <span class="pg">首页</span><span class="pg">上一页</span>
+              <span class="pg active">1</span>
+              <span class="pg">下一页</span><span class="pg">尾页</span>
+              <span style="margin-left:8px">共 16 条</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===================== Page 2: Banner 新增/编辑 ===================== -->
+      <div class="page" id="page-banner-edit">
+
+        <div class="tip">
+          💡 <b>本期改动</b>：「图片路径」字段加上方多语言切换按钮 — 每种语言独立上传一张图片。<b>未上传 = 客户端自动回退默认语言图</b>。其他字段（跳转方式 / 链接 / 排序 / 状态）保持原样，不分语言。
+        </div>
+
+        <div class="card">
+          <div class="card-title">Banner 图新增 <span class="right">ID 109 编辑中</span></div>
+          <div class="card-body">
+
+            <!-- ⭐ 图片路径（加多语言 Tab） -->
+            <div class="form-row" style="align-items:flex-start">
+              <div class="lbl">图片路径：</div>
+              <div class="ctrl">
+                <!-- 本期新增：多语言切换 -->
+                <div class="lang-tabs">
+                  <button class="lt-btn active" onclick="switchBannerLang(this,'en')">英语</button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'id')">印尼</button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'vi')">越南语</button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'pt')">巴西</button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'th')">泰语</button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'zh')">中文简体</button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'tw')">中文繁体</button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'my')">缅甸<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'bn')">孟加拉<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'hi')">印地语</button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'ms')">马来语<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'ur')">巴基斯坦语<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'ar')">阿拉伯语<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'ta')">泰米尔语<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchBannerLang(this,'te')">泰卢固语<span class="miss-mark"></span></button>
+                </div>
+
+                <!-- 上传区 -->
+                <div class="upload-box has-img" id="bannerUpload">
+                  92PKR<br>WINGO<br>WINNING STREAK
+                </div>
+                <div class="upload-format">格式：<span class="fmt">png</span></div>
+                <div class="form-hint">切换上方语言 → 显示对应语言版本的图片 · <span class="red">橙色圆点 ●</span> 表示该语言尚未上传，将回退默认语言图</div>
+              </div>
+            </div>
+
+            <!-- 跳转方式（不分语言） -->
+            <div class="form-row">
+              <div class="lbl">跳转方式：</div>
+              <div class="ctrl">
+                <div>
+                  <label class="radio"><input type="radio" name="jump" checked> 跳转链接</label>
+                  <label class="radio"><input type="radio" name="jump"> 跳转厂商或子游戏</label>
+                  <label class="radio"><input type="radio" name="jump"> 跳转在线客服</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl">跳转链接：</div>
+              <div class="ctrl"><input class="input" value="https://sitweb.22889.club/#/wallet"></div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl">排序：</div>
+              <div class="ctrl"><input class="input small" value="1"></div>
+            </div>
+
+            <div class="form-row">
+              <div class="lbl">状态：</div>
+              <div class="ctrl"><select class="select small"><option>显示</option><option>关闭</option></select></div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-add">+ 新 增</button>
+              <button class="btn btn-back" onclick="goto('banner-list')">↩ 返 回</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===================== Page 3: 活动资讯列表 ===================== -->
+      <div class="page" id="page-activity-list">
+
+        <div class="tip">
+          💡 <b>本期改动</b>：列表保持原样不动。点"修改"进入新增/编辑页，里面按语言独立配置<b>标题 + 封面图</b>（默认语言必填，其他选填，缺译自动回退默认语言）。
+        </div>
+
+        <div class="card">
+          <div class="card-title">活动资讯 <span class="right">共 13 条</span></div>
+          <div class="toolbar">
+            <button class="btn btn-add" onclick="goto('activity-edit')">+ 新 增</button>
+          </div>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th style="width:60px">ID</th>
+                <th>标题</th>
+                <th style="width:90px">封面图片</th>
+                <th style="width:80px">类型</th>
+                <th>活动内容</th>
+                <th style="width:60px">排序</th>
+                <th style="width:60px">状态</th>
+                <th style="width:80px">访问权限</th>
+                <th style="width:120px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>110</td><td>测试2</td><td><div class="img-cell"><div class="thumb">🖼</div></div></td><td>外链</td><td>/wallet/Recharge</td><td>0</td><td><span class="state-show">显示</span></td><td><span class="tag tag-need">需登录</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>108</td><td>1111</td><td><div class="img-cell"><div class="thumb">🖼</div></div></td><td>内链</td><td>https://sitweb.22889.club/#/promotion</td><td>0</td><td><span class="state-show">显示</span></td><td><span class="tag tag-open">公开</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>106</td><td>测试复制</td><td><div class="img-cell"><div class="thumb">L</div></div></td><td>内链</td><td>https://sitweb.22889.club/#/promotion</td><td>19</td><td><span class="state-show">显示</span></td><td><span class="tag tag-open">公开</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>105</td><td>11</td><td><div class="img-cell"><div class="thumb">🎄</div></div></td><td>图片</td><td>—</td><td>0</td><td><span class="state-show">显示</span></td><td><span class="tag tag-open">公开</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>104</td><td>圣诞 1</td><td><div class="img-cell"><div class="thumb">🍷</div></div></td><td>图片</td><td>—</td><td>9</td><td><span class="state-show">显示</span></td><td><span class="tag tag-open">公开</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>102</td><td>圣诞</td><td><div class="img-cell"><div class="thumb">🎁</div></div></td><td>富文本</td><td>—</td><td>0</td><td><span class="state-show">显示</span></td><td><span class="tag tag-open">公开</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>100</td><td>在线客服-亦菲</td><td><div class="img-cell"><div class="thumb">👧</div></div></td><td>在线客服</td><td>—</td><td>0</td><td><span class="state-show">显示</span></td><td><span class="tag tag-open">公开</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>99</td><td>99999999</td><td><div class="img-cell"><div class="thumb">📊</div></div></td><td>图片</td><td>—</td><td>0</td><td><span class="state-show">显示</span></td><td><span class="tag tag-open">公开</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+              <tr><td>98</td><td>1112334</td><td><div class="img-cell"><div class="thumb">🖼</div></div></td><td>在线客服</td><td>—</td><td>0</td><td><span class="state-show">显示</span></td><td><span class="tag tag-open">公开</span></td><td><button class="btn btn-edit">修改</button> <button class="btn btn-del">删除</button></td></tr>
+            </tbody>
+          </table>
+          <div class="pager">
+            <span>共 1 页，前往 <input class="input small" style="display:inline-block;width:50px" value="1"> 页，<select class="select" style="display:inline-block;width:90px"><option>20条/页</option></select></span>
+            <span>
+              <span class="pg">首页</span><span class="pg">上一页</span>
+              <span class="pg active">1</span>
+              <span class="pg">下一页</span><span class="pg">尾页</span>
+              <span style="margin-left:8px">共 13 条</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===================== Page 4: 活动资讯新增 / 编辑 ===================== -->
+      <div class="page" id="page-activity-edit">
+
+        <div class="tip">
+          💡 <b>本期改动</b>：「活动标题」和「活动图片」两个字段加多语言切换 Tab。切换语言 → 两个字段<b>同步切换</b>到对应版本。其他字段（跳转方式 / 链接 / 排序 / 状态 / 访问权限）保持原样。
+        </div>
+
+        <div class="card">
+          <div class="card-title">活动资讯新增 <span class="right">ID 106 编辑中</span></div>
+          <div class="card-body">
+
+            <!-- ⭐ 活动标题 + 活动图片 — 加多语言 Tab（共享同一组 Tab，切换时两个字段同步） -->
+            <div class="form-row" style="align-items:flex-start;padding-bottom:0;border-bottom:none">
+              <div class="lbl"></div>
+              <div class="ctrl">
+                <div class="lang-tabs" id="activityLangTabs">
+                  <button class="lt-btn active" onclick="switchActivityLang(this,'en')">英语</button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'id')">印尼</button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'vi')">越南语</button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'pt')">巴西</button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'th')">泰语</button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'zh')">中文简体</button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'tw')">中文繁体</button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'my')">缅甸<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'bn')">孟加拉<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'hi')">印地语</button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'ms')">马来语<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'ur')">巴基斯坦语<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'ar')">阿拉伯语<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'ta')">泰米尔语<span class="miss-mark"></span></button>
+                  <button class="lt-btn" onclick="switchActivityLang(this,'te')">泰卢固语<span class="miss-mark"></span></button>
+                </div>
+                <div class="form-hint" style="margin-bottom:6px">↑ 切换语言后，下方<b>活动标题</b>、<b>活动图片</b>（以及"富文本"模式下的<b>活动内容</b>）同步切换到对应版本</div>
+              </div>
+            </div>
+
+            <!-- 活动标题（多语言字段） -->
+            <div class="form-row">
+              <div class="lbl"><span class="req">*</span>活动标题：</div>
+              <div class="ctrl">
+                <div class="input-wrap">
+                  <input class="input" id="actTitle" value="MONTHLY BONUS — Register Your Cellphone Number Correctly to Earn">
+                  <span class="form-counter">52/80</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 活动跳转方式（带交互） -->
+            <div class="form-row">
+              <div class="lbl">活动跳转方式：</div>
+              <div class="ctrl">
+                <select class="select" style="max-width:240px" id="jumpType" onchange="toggleJumpType(this.value)">
+                  <option value="外链">外链</option>
+                  <option value="内链">内链</option>
+                  <option value="图片">图片</option>
+                  <option value="富文本">富文本</option>
+                  <option value="在线客服">在线客服</option>
+                </select>
+                <div class="form-hint">不同跳转方式 → 下方对应展示「活动链接」或「活动内容（富文本）」</div>
+              </div>
+            </div>
+
+            <!-- 活动图片（多语言字段） -->
+            <div class="form-row" style="align-items:flex-start">
+              <div class="lbl"><span class="req">*</span>活动图片：</div>
+              <div class="ctrl">
+                <div class="upload-box has-img" id="actUpload" style="background:linear-gradient(135deg,#1c3a8a,#a8410d)">
+                  92PKR<br>MONTHLY<br>BONUS
+                </div>
+                <div class="upload-format">格式：<span class="fmt">png</span></div>
+                <div class="form-hint">↑ 跟随上方语言切换 · 未上传将回退默认语言图</div>
+              </div>
+            </div>
+
+            <!-- 排序 -->
+            <div class="form-row">
+              <div class="lbl">排序：</div>
+              <div class="ctrl"><input class="input small" value="0"></div>
+            </div>
+
+            <!-- 状态 -->
+            <div class="form-row">
+              <div class="lbl">状态：</div>
+              <div class="ctrl">
+                <div>
+                  <label class="radio"><input type="radio" name="state" checked> 显示</label>
+                  <label class="radio"><input type="radio" name="state"> 关闭</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 访问权限 -->
+            <div class="form-row">
+              <div class="lbl">访问权限：</div>
+              <div class="ctrl">
+                <div>
+                  <label class="radio"><input type="radio" name="auth" checked> 公开<span class="hint">（未登录用户可见，默认）</span></label>
+                  <label class="radio"><input type="radio" name="auth"> 需登录后访问<span class="hint">（仅已登录用户可见）</span></label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 活动链接（外链/内链 时显示，富文本/图片/在线客服 时隐藏） -->
+            <div class="form-row" id="row-link">
+              <div class="lbl"><span class="req">*</span>活动链接：</div>
+              <div class="ctrl">
+                <input class="input" value="https://sitweb.22889.club/#/promotion">
+                <div class="form-hint">链接<b>跨语言通用</b>（如需按语言区分跳转，单独和开发提需求扩展）</div>
+              </div>
+            </div>
+
+            <!-- 活动内容（富文本，多语言字段；仅"富文本"跳转方式显示） -->
+            <div class="form-row" id="row-content" style="display:none;align-items:flex-start">
+              <div class="lbl"><span class="req">*</span>活动内容：</div>
+              <div class="ctrl">
+                <div class="rich-editor">
+                  <div class="rich-toolbar">
+                    <button>🪄</button>
+                    <div class="sep"></div>
+                    <button><b>B</b></button>
+                    <button><u>U</u></button>
+                    <button>✂</button>
+                    <div class="sep"></div>
+                    <button>Arial ▾</button>
+                    <button class="color">A ▾</button>
+                    <div class="sep"></div>
+                    <button>≡</button>
+                    <button>≣</button>
+                    <button>⇆ ▾</button>
+                    <div class="sep"></div>
+                    <button>▦ ▾</button>
+                    <button>🔗</button>
+                    <button>🖼</button>
+                    <button>▶</button>
+                    <div class="sep"></div>
+                    <button>⤢</button>
+                    <button>&lt;/&gt;</button>
+                    <button>?</button>
+                  </div>
+                  <div class="rich-content" id="actContent" contenteditable="true">
+<p>1. When the cumulative amount reaches ₹500, you can cashout apply for withdrawal.</p>
+<p>2. Invite a friend to join as your downline and have them make a deposit to receive 1 free spin and invite more friend will get more many free spin.</p>
+<p>3. The activity lasts for 3 days. After the activity period ends, accumulated rewards will be reset, and the activity will start new.</p>
+<p>4. Each user can enjoy 1 free spin opportunity per day. The spin count resets at 24:00 each day.</p>
+<p>5. After approval of the application, the bonus will be directly credited into your wallet.</p>
+<p>6. The bonus requires a turnover of one time before withdrawal.</p>
+<p><b>NOTE：</b><br>The interpretation of the activity is reserved by 92PKR.</p>
+                  </div>
+                </div>
+                <div class="form-hint">↑ 富文本内容跟随上方语言切换 · 缺译时客户端回退默认语言文本</div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-add">+ 新 增</button>
+              <button class="btn btn-back" onclick="goto('activity-list')">↩ 返 回</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ===================== Page 5: 方案概览 ===================== -->
+      <div class="page" id="page-spec">
+
+        <div class="prd-tip">
+          📋 <b>本期范围 = 一句话</b>：给「Banner 图」和「活动资讯」两个后台编辑页加上多语言 Tab，每种语言独立维护图片（+标题）。<b>客户端无改动</b>、<b>接口签名不变</b>，后端按用户 UseLanguage 查对应语言版本（缺译则回退默认语言）。
+        </div>
+
+        <div class="card">
+          <div class="card-title">📋 两大改造点</div>
+          <div class="card-body">
+            <table class="tbl">
+              <thead><tr><th style="width:140px">改造对象</th><th>多语言字段</th><th>非多语言字段（保持原样）</th></tr></thead>
+              <tr><td><b>Banner 图</b><br>(tab_Banner)</td><td>图片路径 1 项</td><td>跳转方式 / 跳转链接 / 排序 / 状态</td></tr>
+              <tr><td><b>活动资讯</b><br>(tab_Promotion)</td><td>活动标题 + 活动图片 2 项<br><span class="form-hint">（富文本类型再加"活动内容"）</span></td><td>跳转方式 / 跳转链接 / 排序 / 状态 / 访问权限</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">⚙️ 行为规则</div>
+          <div class="card-body">
+            <table class="tbl">
+              <thead><tr><th style="width:160px">规则</th><th>说明</th></tr></thead>
+              <tr><td><b>默认语言必填</b></td><td>站点默认语言（通常英语）必填，否则保存失败</td></tr>
+              <tr><td><b>其他语言选填</b></td><td>非默认语言图片/标题可空 → 客户端自动回退默认语言版本</td></tr>
+              <tr><td><b>Tab 列表动态</b></td><td>显示的语言 = 当前站点「站点语言配置」勾选的语言（与消息系统完全一致）</td></tr>
+              <tr><td><b>编辑器联动</b></td><td>活动资讯页：切换语言 Tab 时，<b>活动标题 + 活动图片</b> 同步切换</td></tr>
+              <tr><td><b>图片命名约定</b></td><td>建议存储路径 <code>banner_{id}_{langCode}.png</code> / <code>promo_{id}_{langCode}.png</code>，便于排查</td></tr>
+              <tr><td><b>保存粒度</b></td><td>每次保存仅当前 Tab 语言版本；切 Tab 前如有未保存提示</td></tr>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+
+
+    </div>
+  </div>
+</div>
+
+<script>
+function goto(page, ev) {
+  document.querySelectorAll('.sider .item').forEach(i => i.classList.remove('active'));
+  if (ev && ev.currentTarget) ev.currentTarget.classList.add('active');
+  else {
+    // 程序触发的导航也要更新侧边栏 active
+    const mapping = {
+      'banner-list':   0,
+      'banner-edit':   1,
+      'activity-list': 2,
+      'activity-edit': 3,
+      'spec':          4,
+    };
+    const items = document.querySelectorAll('.sider .grp + .item, .sider .item');
+    const allItems = document.querySelectorAll('.sider .item');
+    if (allItems[mapping[page]]) allItems[mapping[page]].classList.add('active');
+  }
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+
+  const titles = {
+    'banner-list':   ['🖼 Banner 图列表',                '系统管理 › Banner图'],
+    'banner-edit':   ['✏️ Banner 图新增 / 编辑',         '系统管理 › Banner图 › 新增'],
+    'activity-list': ['🎯 活动资讯列表',                  '活动资讯 › 活动资讯'],
+    'activity-edit': ['✏️ 活动资讯 新增 / 编辑',         '活动资讯 › 活动资讯 › 新增'],
+    'spec':          ['📋 方案概览',                     '需求说明 › 方案概览'],
+  };
+  if (titles[page]) {
+    document.getElementById('pageTitle').textContent = titles[page][0];
+    document.getElementById('pageCrumb').textContent = titles[page][1];
+  }
+  window.scrollTo(0, 0);
+}
+
+// Banner 多语言图模拟切换
+function switchBannerLang(el, code) {
+  el.parentElement.querySelectorAll('.lt-btn').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  const box = document.getElementById('bannerUpload');
+  const langMap = {
+    en: { txt: '92PKR<br>WINGO<br>WINNING STREAK', bg: 'linear-gradient(135deg,#c92020,#4a0000)' },
+    id: { txt: '92PKR<br>WINGO<br>BERUNTUN MENANG', bg: 'linear-gradient(135deg,#dc7000,#5a2800)' },
+    vi: { txt: '92PKR<br>WINGO<br>CHUỖI CHIẾN THẮNG', bg: 'linear-gradient(135deg,#c92020,#4a0000)' },
+    pt: { txt: '92PKR<br>WINGO<br>SEQUÊNCIA VITORIOSA', bg: 'linear-gradient(135deg,#005725,#001a0a)' },
+    th: { txt: '92PKR<br>WINGO<br>ชนะติดต่อกัน', bg: 'linear-gradient(135deg,#d8b800,#5a4d00)' },
+    zh: { txt: '92PKR<br>WINGO<br>连胜不停', bg: 'linear-gradient(135deg,#c92020,#4a0000)' },
+    tw: { txt: '92PKR<br>WINGO<br>連勝不停', bg: 'linear-gradient(135deg,#c92020,#4a0000)' },
+    hi: { txt: '92PKR<br>WINGO<br>विनिंग स्ट्रीक', bg: 'linear-gradient(135deg,#c92020,#4a0000)' },
+    my: { txt: '⚠ 尚未上传<br><br>将回退默认语言图', bg: '#eef0f3', color: '#999' },
+    bn: { txt: '⚠ 尚未上传<br><br>将回退默认语言图', bg: '#eef0f3', color: '#999' },
+    ms: { txt: '⚠ 尚未上传<br><br>将回退默认语言图', bg: '#eef0f3', color: '#999' },
+    ur: { txt: '⚠ 尚未上传<br><br>将回退默认语言图', bg: '#eef0f3', color: '#999' },
+    ar: { txt: '⚠ 尚未上传<br><br>将回退默认语言图', bg: '#eef0f3', color: '#999' },
+    ta: { txt: '⚠ 尚未上传<br><br>将回退默认语言图', bg: '#eef0f3', color: '#999' },
+    te: { txt: '⚠ 尚未上传<br><br>将回退默认语言图', bg: '#eef0f3', color: '#999' },
+  };
+  const cfg = langMap[code] || langMap.en;
+  box.innerHTML = cfg.txt;
+  box.style.background = cfg.bg;
+  box.style.color = cfg.color || '#fff';
+  box.style.fontSize = (cfg.color === '#999') ? '12px' : '20px';
+  box.style.fontWeight = (cfg.color === '#999') ? '500' : '700';
+}
+
+// 活动资讯多语言切换（标题 + 图片 + 富文本内容同步）
+function switchActivityLang(el, code) {
+  el.parentElement.querySelectorAll('.lt-btn').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  const titleField = document.getElementById('actTitle');
+  const box = document.getElementById('actUpload');
+  const content = document.getElementById('actContent');
+
+  const richEn = `<p>1. When the cumulative amount reaches ₹500, you can cashout apply for withdrawal.</p><p>2. Invite a friend to join as your downline and have them make a deposit to receive 1 free spin.</p><p>3. The activity lasts for 3 days. After the period ends, accumulated rewards will be reset.</p><p>4. Each user can enjoy 1 free spin opportunity per day. The count resets at 24:00 each day.</p><p>5. After approval, the bonus will be directly credited into your wallet.</p><p>6. The bonus requires a turnover of one time before withdrawal.</p><p><b>NOTE：</b><br>The interpretation of the activity is reserved by 92PKR.</p>`;
+  const richZh = `<p>1. 累计金额达到 ₹500，可申请提现。</p><p>2. 邀请好友成为您的下级并完成首充，您可获得 1 次免费转盘，邀请越多次数越多。</p><p>3. 活动持续 3 天。活动结束后，累计奖励将重置，活动重新开始。</p><p>4. 每位用户每日享有 1 次免费转盘机会，每天 24:00 重置。</p><p>5. 申请审核通过后，奖金将直接到账钱包。</p><p>6. 奖金需 1 倍流水后方可提现。</p><p><b>提示：</b><br>本活动最终解释权归 92PKR 所有。</p>`;
+  const richHi = `<p>1. ₹500 तक पहुँचने पर निकासी के लिए आवेदन कर सकते हैं।</p><p>2. एक मित्र को आमंत्रित करें और जमा करवाएँ — 1 निःशुल्क स्पिन प्राप्त होगा।</p><p>3. गतिविधि 3 दिनों तक चलेगी।</p><p>4. प्रत्येक उपयोगकर्ता को प्रतिदिन 1 निःशुल्क स्पिन मिलता है।</p><p>5. अनुमोदन के बाद बोनस सीधे आपके वॉलेट में जमा हो जाएगा।</p><p>6. बोनस के लिए 1x टर्नओवर आवश्यक है।</p>`;
+
+  const langMap = {
+    en: { title: 'MONTHLY BONUS — Register Your Cellphone Number Correctly to Earn', img: '92PKR<br>MONTHLY<br>BONUS', bg: 'linear-gradient(135deg,#1c3a8a,#a8410d)', color: '#fff', rich: richEn },
+    id: { title: 'BONUS BULANAN — Daftar Nomor HP dengan Benar',                    img: '92PKR<br>BONUS<br>BULANAN', bg: 'linear-gradient(135deg,#1c3a8a,#a8410d)', color: '#fff', rich: richEn.replace(/withdrawal/g,'penarikan') },
+    vi: { title: 'TIỀN THƯỞNG HÀNG THÁNG — Đăng ký số điện thoại',                  img: '92PKR<br>THƯỞNG<br>HÀNG THÁNG', bg: 'linear-gradient(135deg,#1c3a8a,#a8410d)', color: '#fff', rich: richEn },
+    pt: { title: 'BÔNUS MENSAL — Cadastre Seu Celular Corretamente',                img: '92PKR<br>BÔNUS<br>MENSAL', bg: 'linear-gradient(135deg,#005725,#a8410d)', color: '#fff', rich: richEn },
+    th: { title: 'โบนัสรายเดือน — ลงทะเบียนเบอร์มือถือ',                              img: '92PKR<br>โบนัส<br>รายเดือน', bg: 'linear-gradient(135deg,#1c3a8a,#a8410d)', color: '#fff', rich: richEn },
+    zh: { title: '月度奖金 — 正确注册手机号即可领取',                                  img: '92PKR<br>月度<br>奖金', bg: 'linear-gradient(135deg,#c92020,#4a0000)', color: '#fff', rich: richZh },
+    tw: { title: '月度獎金 — 正確註冊手機號即可領取',                                  img: '92PKR<br>月度<br>獎金', bg: 'linear-gradient(135deg,#c92020,#4a0000)', color: '#fff', rich: richZh },
+    hi: { title: 'मासिक बोनस — सही मोबाइल नंबर रजिस्टर करें',                          img: '92PKR<br>मासिक<br>बोनस', bg: 'linear-gradient(135deg,#1c3a8a,#a8410d)', color: '#fff', rich: richHi },
+    my: { title: '⚠ 尚未翻译，请填写', img: '⚠ 尚未上传<br><br>回退默认图', bg: '#eef0f3', color: '#999', rich: '<p style="color:#bbb">⚠ 尚未翻译，留空将回退英语版本</p>' },
+    bn: { title: '⚠ 尚未翻译，请填写', img: '⚠ 尚未上传<br><br>回退默认图', bg: '#eef0f3', color: '#999', rich: '<p style="color:#bbb">⚠ 尚未翻译，留空将回退英语版本</p>' },
+    ms: { title: '⚠ 尚未翻译，请填写', img: '⚠ 尚未上传<br><br>回退默认图', bg: '#eef0f3', color: '#999', rich: '<p style="color:#bbb">⚠ 尚未翻译，留空将回退英语版本</p>' },
+    ur: { title: '⚠ 尚未翻译，请填写', img: '⚠ 尚未上传<br><br>回退默认图', bg: '#eef0f3', color: '#999', rich: '<p style="color:#bbb">⚠ 尚未翻译，留空将回退英语版本</p>' },
+    ar: { title: '⚠ 尚未翻译，请填写', img: '⚠ 尚未上传<br><br>回退默认图', bg: '#eef0f3', color: '#999', rich: '<p style="color:#bbb">⚠ 尚未翻译，留空将回退英语版本</p>' },
+    ta: { title: '⚠ 尚未翻译，请填写', img: '⚠ 尚未上传<br><br>回退默认图', bg: '#eef0f3', color: '#999', rich: '<p style="color:#bbb">⚠ 尚未翻译，留空将回退英语版本</p>' },
+    te: { title: '⚠ 尚未翻译，请填写', img: '⚠ 尚未上传<br><br>回退默认图', bg: '#eef0f3', color: '#999', rich: '<p style="color:#bbb">⚠ 尚未翻译，留空将回退英语版本</p>' },
+  };
+  const cfg = langMap[code] || langMap.en;
+  titleField.value = (cfg.title.startsWith('⚠')) ? '' : cfg.title;
+  titleField.placeholder = (cfg.title.startsWith('⚠')) ? cfg.title : '';
+  box.innerHTML = cfg.img;
+  box.style.background = cfg.bg;
+  box.style.color = cfg.color;
+  box.style.fontSize = (cfg.color === '#999') ? '12px' : '20px';
+  box.style.fontWeight = (cfg.color === '#999') ? '500' : '700';
+  if (content) content.innerHTML = cfg.rich;
+}
+
+// 切换跳转方式 → 显示/隐藏 活动链接 / 活动内容（富文本）
+function toggleJumpType(val) {
+  const rowLink    = document.getElementById('row-link');
+  const rowContent = document.getElementById('row-content');
+  if (val === '富文本') {
+    rowLink.style.display    = 'none';
+    rowContent.style.display = '';
+  } else if (val === '外链' || val === '内链') {
+    rowLink.style.display    = '';
+    rowContent.style.display = 'none';
+  } else {
+    // 图片 / 在线客服：两个都不需要
+    rowLink.style.display    = 'none';
+    rowContent.style.display = 'none';
+  }
+}
+</script>
+
+</body>
+</html>
