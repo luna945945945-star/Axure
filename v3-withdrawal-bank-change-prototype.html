@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V3 提现订单管理 · 银行卡变更提示</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;background:#f4f6fa;color:#1f2329;line-height:1.55}
+
+/* ===== 二级 Tab（页内：审核订单详情 / 全部提现记录） ===== */
+.sub-tabs{display:flex;align-items:center;padding:0 18px;border-bottom:1px solid #f0f2f5;background:#fff;gap:0}
+.sub-tabs .st{padding:12px 18px;cursor:pointer;font-size:13px;color:#666;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;display:flex;align-items:center;gap:6px;position:relative}
+.sub-tabs .st:hover{color:#1677ff}
+.sub-tabs .st.active{color:#1677ff;font-weight:600;border-bottom-color:#1677ff}
+.sub-tabs .st .dot{display:inline-block;width:6px;height:6px;background:#ff4d4f;border-radius:50%;margin-left:4px}
+.sub-pane{display:none}
+.sub-pane.active{display:block}
+
+/* ===== V3 顶部标签 ===== */
+.top-tabs{background:#fff;display:flex;align-items:flex-end;padding:0 14px;border-bottom:1px solid #e8eaed;gap:2px}
+.top-tabs .tt{padding:10px 18px;font-size:13px;color:#666;background:#f0f2f5;border-radius:6px 6px 0 0;border:1px solid #e8eaed;border-bottom:none;cursor:pointer;display:flex;align-items:center;gap:8px;position:relative;top:1px;transition:all .15s}
+.top-tabs .tt:hover{background:#fafbfc;color:#1677ff}
+.top-tabs .tt.active{background:#fff;color:#1677ff;font-weight:600;border-bottom:1px solid #fff;z-index:2}
+.top-tabs .tt .close{color:#bbb;font-size:14px;line-height:1}
+.top-tabs .tt .close:hover{color:#cf1322}
+
+/* ===== 内容容器 ===== */
+.wrap{padding:14px 18px}
+.section{background:#fff;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.03);overflow:hidden}
+.section-title{padding:12px 18px;border-bottom:1px solid #f0f2f5;display:flex;align-items:center;gap:8px}
+.section-title .tag{padding:3px 12px;background:#e6f4ff;color:#1677ff;border-radius:4px;font-size:12px;font-weight:500}
+
+/* ===== 搜索区 ===== */
+.filter{padding:16px 20px 6px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px 18px}
+.f-item{display:flex;align-items:center;gap:8px}
+.f-item .lbl{color:#666;font-size:12.5px;flex-shrink:0;white-space:nowrap}
+.f-item .lbl .req{color:#ff4d4f}
+.f-item .ipt{flex:1;border:1px solid #d9d9d9;border-radius:4px;padding:6px 10px;font-size:12.5px;font-family:inherit;background:#fff;outline:none;width:100%;min-width:0}
+.f-item .ipt::placeholder{color:#c5c8ce}
+.f-item .ipt:focus{border-color:#1677ff}
+.f-item .ipt-grp{flex:1;display:flex;align-items:center;gap:4px}
+.f-item .ipt-grp .ipt{flex:1}
+.f-item .arrow{color:#bbb}
+.filter-actions{display:flex;justify-content:flex-end;padding:6px 20px 14px;gap:8px;border-bottom:1px solid #f0f2f5;align-items:center}
+
+/* ===== 按钮 ===== */
+.btn{height:30px;padding:0 14px;border-radius:4px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+.btn-pri{background:#1677ff;color:#fff}
+.btn-pri:hover{background:#0958d9}
+.btn-d{background:#fff;color:#1f2329;border:1px solid #d9d9d9}
+.btn-d:hover{border-color:#1677ff;color:#1677ff}
+.btn-sm{height:26px;padding:0 10px;font-size:11.5px}
+.btn-link{background:transparent;color:#1677ff;cursor:pointer;border:none;font-family:inherit;font-size:12.5px;padding:0}
+.btn-link:hover{text-decoration:underline}
+
+/* ===== 二级工具栏 ===== */
+.hint-bar{padding:8px 20px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:#ff4d4f;background:#fff}
+.hint-bar .left{display:flex;align-items:center;gap:6px}
+.hint-bar .qs{display:flex;align-items:center;gap:6px;color:#666}
+.hint-bar .qs .qc{padding:3px 10px;border:1px solid #e8eaed;border-radius:4px;cursor:pointer;font-size:11.5px;background:#fff}
+.hint-bar .qs .qc.on{background:#1677ff;color:#fff;border-color:#1677ff}
+.hint-bar .qs .qc:hover:not(.on){border-color:#1677ff;color:#1677ff}
+
+/* ===== 折叠 ===== */
+.collapse-bar{display:flex;justify-content:center;padding:6px 0;background:#fafbfc;font-size:12px;color:#1677ff;cursor:pointer;border-top:1px solid #f0f2f5;border-bottom:1px solid #f0f2f5}
+
+/* ===== 表格 ===== */
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{background:#fafbfc;padding:12px 10px;text-align:left;color:#666;font-weight:500;border-bottom:1px solid #f0f2f5;font-size:12px;white-space:nowrap}
+.tbl td{padding:14px 10px;border-bottom:1px solid #f0f2f5;color:#333;vertical-align:top}
+.tbl tr:hover td{background:#fafcff}
+.tbl .col-c{text-align:center}
+
+/* ===== 标签 ===== */
+.tag-merchant{background:#e6fffb;color:#13c2c2;padding:4px 10px;border-radius:3px;font-size:12px;display:inline-block}
+.tag-bank{background:#f0f5ff;color:#2f54eb;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+.tag-currency{background:#f6ffed;color:#52c41a;padding:4px 12px;border-radius:14px;font-size:11.5px;display:inline-block;border:1px solid #b7eb8f}
+.tag-status{padding:4px 14px;border-radius:4px;font-size:12px;display:inline-block;font-weight:500}
+.tag-status.wait{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
+.tag-status.pass{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.tag-status.reject{background:#fff1f0;color:#ff4d4f;border:1px solid #ffa39e}
+
+/* ===== 银行卡详细单元 ===== */
+.bank-cell{display:flex;flex-direction:column;gap:6px;min-width:240px}
+.bank-cell .row{font-size:12.5px;color:#333;line-height:1.7}
+.bank-cell .row .k{color:#999;display:inline-block;width:62px}
+.bank-cell .row .v{color:#333}
+
+/* ===== ⭐ 银行卡变更提示（本期核心新增） ===== */
+.bank-change{background:#fff1f0;border:1px solid #ffccc7;border-radius:4px;margin-top:8px;overflow:hidden;transition:all .2s;position:relative}
+.bank-change::before{content:"NEW";position:absolute;top:-1px;right:-1px;background:#ff5566;color:#fff;font-size:9px;padding:1px 6px;border-radius:0 4px 0 6px;font-weight:700;letter-spacing:.5px}
+.bc-head{padding:7px 11px;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;font-size:12px;font-weight:600;color:#cf1322}
+.bc-head:hover{background:#ffe8e6}
+.bc-head .ico{font-size:13px}
+.bc-head .arr{margin-left:auto;font-size:10px;color:#cf1322;transition:transform .2s}
+.bc-head.open .arr{transform:rotate(180deg)}
+.bc-body{display:none;padding:6px 12px 10px;border-top:1px dashed #ffccc7;background:#fff5f5}
+.bc-body.open{display:block}
+.bc-group{margin-top:6px}
+.bc-group:first-child{margin-top:0}
+.bc-group .gname{font-size:11.5px;color:#666;font-weight:600;margin-bottom:4px}
+.bc-group .item{font-size:11.5px;color:#333;padding-left:10px;position:relative;line-height:1.9}
+.bc-group .item::before{content:"•";position:absolute;left:0;color:#ff4d4f;font-weight:700}
+.bc-group .item .diff{color:#999}
+.bc-group .item .diff .old{text-decoration:line-through;color:#bbb;margin-right:6px}
+.bc-group .item .diff .new{color:#cf1322;font-weight:600}
+.bc-group .item .time{color:#999;font-size:10.5px;margin-left:6px}
+
+/* ===== 操作按钮 ===== */
+.act-col{display:flex;flex-direction:column;gap:4px;min-width:88px}
+.act-col .btn-link{text-align:left;color:#1677ff;font-size:12.5px}
+
+/* ===== 底部汇总 ===== */
+.tbl-foot{padding:12px 16px;background:#fafbfc;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666;border-top:1px solid #f0f2f5}
+.tbl-foot .sums div{margin-bottom:4px}
+.tbl-foot .sums b{color:#1f2329}
+.pager{display:flex;align-items:center;gap:6px;font-size:12px;color:#666}
+.pager .pg{padding:4px 10px;border:1px solid #e8eaed;border-radius:3px;cursor:pointer;background:#fff;min-width:28px;text-align:center}
+.pager .pg.active{background:#1677ff;color:#fff;border-color:#1677ff}
+.pager .pg:hover:not(.active){border-color:#1677ff;color:#1677ff}
+
+/* ===== PRD 卡片 ===== */
+.prd-tip{background:#fffbe6;border-left:4px solid #fa8c16;padding:12px 18px;border-radius:0 6px 6px 0;font-size:12.5px;color:#874d00;margin:14px 0;line-height:1.8}
+.prd-tip b{font-weight:700}
+.prd-card{background:#fff;border:1px solid #e8eaed;border-radius:8px;padding:18px 22px;margin-bottom:14px}
+.prd-card h3{font-size:14px;font-weight:600;color:#1f2329;margin-bottom:10px;display:flex;align-items:center;gap:6px;padding-bottom:8px;border-bottom:1px solid #f0f2f5}
+.prd-card h3::before{content:"";width:3px;height:14px;background:#1677ff;border-radius:2px}
+
+/* ===== 样式示意（不同状态） ===== */
+.demo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:8px}
+.demo-card{background:#fafbfc;border:1px solid #e8eaed;border-radius:6px;padding:14px}
+.demo-card .name{font-size:12.5px;color:#666;margin-bottom:8px;font-weight:600}
+
+/* 段落 */
+.para{font-size:12.5px;color:#333;line-height:1.9}
+.para code{background:#f0f2f5;padding:1px 6px;border-radius:3px;font-family:Menlo,Consolas,monospace;font-size:11.5px;color:#cf1322}
+
+/* ===== 审核订单详情弹窗（模拟） ===== */
+.audit-modal{background:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,.08);overflow:hidden;border:1px solid #e8eaed}
+.am-header{padding:14px 20px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #f0f2f5;background:#fafbfc}
+.am-header .ttl{font-size:14px;font-weight:600;color:#1f2329}
+.am-header .icns{margin-left:auto;display:flex;gap:10px;color:#999;font-size:14px}
+.am-meta{display:grid;grid-template-columns:repeat(7,1fr);gap:14px;padding:14px 20px;background:#fff;border-bottom:1px solid #f0f2f5}
+.am-meta-item .v{font-size:13px;font-weight:600;color:#1f2329}
+.am-meta-item .v.amount{color:#ff4d4f}
+.am-meta-item .v .merchant{background:#e6f4ff;color:#1677ff;padding:2px 8px;border-radius:3px;font-size:12px;font-weight:500;display:inline-block}
+.am-meta-item .v .ccy{background:#f6ffed;color:#52c41a;padding:2px 10px;border-radius:12px;font-size:11.5px;border:1px solid #b7eb8f}
+.am-meta-item .k{font-size:11px;color:#999;margin-top:3px}
+.am-tabs{padding:0 20px;display:flex;align-items:center;border-bottom:1px solid #f0f2f5;background:#fff}
+.am-tabs .at{padding:11px 14px;cursor:pointer;font-size:13px;color:#666;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.am-tabs .at:hover{color:#1677ff}
+.am-tabs .at.active{color:#1677ff;font-weight:600;border-bottom-color:#1677ff}
+.am-tabs .add{margin-left:auto;padding:6px 14px;background:#1677ff;color:#fff;border-radius:4px;font-size:11.5px;cursor:pointer}
+.am-body{padding:14px 20px;background:#fff}
+.am-info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 24px;padding:8px 0 14px;border-bottom:1px dashed #f0f2f5;font-size:12.5px}
+.am-info-grid .it{color:#666}
+.am-info-grid .it b{color:#1f2329;font-weight:500;margin-left:6px}
+.am-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:14px}
+.am-col{border:1px solid #f0f2f5;border-radius:6px;overflow:hidden}
+.am-col-head{padding:10px 14px;background:#fafbfc;font-size:12.5px;color:#1f2329;font-weight:600;border-bottom:1px solid #f0f2f5}
+.am-col-body{padding:12px 14px;font-size:12.5px}
+.am-col-body .row{padding:6px 0;color:#333;line-height:1.7}
+.am-col-body .row .k{color:#999;display:inline-block;width:90px}
+.am-col-body .footer{margin-top:8px;padding-top:8px;border-top:1px dashed #f0f2f5;font-size:11.5px;color:#666;display:flex;justify-content:space-between}
+.am-col-body .footer a{color:#1677ff;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- 顶部标签栏 -->
+<div class="top-tabs">
+  <div class="tt">系统用户 <span class="close">×</span></div>
+  <div class="tt active">提现订单管理 <span class="close">×</span></div>
+  <div class="tt">系统角色 <span class="close">×</span></div>
+</div>
+
+<div class="wrap">
+
+  <!-- 主页面 -->
+  <div class="section">
+
+    <!-- 二级 Tab（左：审核订单详情 / 右：全部提现记录） -->
+    <div class="sub-tabs">
+      <div class="st active" onclick="switchPane(this,'pane-audit')">📄 审核订单详情<span class="dot"></span></div>
+      <div class="st" onclick="switchPane(this,'pane-list')">📋 全部提现记录</div>
+    </div>
+
+    <!-- ============= Pane 1（左 Tab）：审核订单详情 ============= -->
+    <div class="sub-pane active" id="pane-audit">
+      <div style="padding:18px">
+        <div class="audit-modal" style="box-shadow:none;border:1px solid #e8eaed">
+          <div class="am-header">
+            <span style="font-size:14px">📄</span>
+            <span class="ttl">审核订单详情</span>
+            <span style="color:#999;font-size:12px;margin-left:4px">⛶</span>
+            <div class="icns"><span>✕</span></div>
+          </div>
+
+          <div class="am-meta">
+            <div class="am-meta-item"><div class="v"><span class="merchant">(2001)sit-inr</span></div><div class="k">商户</div></div>
+            <div class="am-meta-item"><div class="v">2247519</div><div class="k">会员ID</div></div>
+            <div class="am-meta-item"><div class="v" style="font-size:11.5px;word-break:break-all">WD20260530174534602001009a</div><div class="k">订单号</div></div>
+            <div class="am-meta-item"><div class="v"><span class="ccy">INR</span></div><div class="k">币种</div></div>
+            <div class="am-meta-item"><div class="v amount">1,000.00</div><div class="k">提现金额</div></div>
+            <div class="am-meta-item"><div class="v">BANK CADE22</div><div class="k">提现大类</div></div>
+            <div class="am-meta-item"><div class="v">2026-05-30 17:45:34</div><div class="k">申请时间 (UTC+5:30)</div></div>
+          </div>
+
+          <div class="am-tabs">
+            <div class="at active">订单详情</div>
+            <div class="at">订单日志</div>
+            <div class="at">会员详情</div>
+            <div class="at">游戏记录</div>
+            <div class="at">账变记录</div>
+            <div class="add">+ 添加信息页签</div>
+          </div>
+
+          <div class="am-body">
+            <div class="am-info-grid">
+              <div class="it">实际到账金额：<b>780.00</b></div>
+              <div class="it">手续费：<b>220.00</b></div>
+              <div class="it">提现倍数：<b>0</b></div>
+              <div class="it">提现次数：<b>1</b></div>
+              <div class="it">最后充值金额：<b>966.40</b></div>
+              <div class="it">累计充提差：<b>1,193,134,855.60</b></div>
+              <div class="it">人工备注：<b>未开启自动出款配置</b></div>
+              <div class="it">指派人：<b>zz2001</b></div>
+              <div class="it">订单备注：<b>121212</b></div>
+              <div class="it">指派备注：<b>11</b></div>
+            </div>
+
+            <div class="am-cols">
+              <div class="am-col">
+                <div class="am-col-head">第三方详细</div>
+                <div class="am-col-body">
+                  <div class="row"><span class="k">三方：</span>--</div>
+                  <div class="row"><span class="k">单号：</span>--</div>
+                  <div class="row"><span class="k">状态：</span>待提交</div>
+                  <div class="row"><span class="k">消息：</span>--</div>
+                  <div class="footer">
+                    <span>提交三方次数：0</span>
+                    <a>查看日志 ›</a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="am-col">
+                <div class="am-col-head">银行卡详情</div>
+                <div class="am-col-body">
+                  <div class="row"><span class="k">银行名称：</span>v1卡</div>
+                  <div class="row"><span class="k">受益人姓名：</span>ben</div>
+                  <div class="row"><span class="k">卡号：</span>7772362242333</div>
+                  <div class="row"><span class="k">IFSC Code：</span>52998224725</div>
+                  <div class="row"><span class="k">手机：</span>661255645255</div>
+
+                  <!-- ⭐ 核心新增：变更提示 -->
+                  <div class="bank-change" style="margin-top:10px">
+                    <div class="bc-head open" onclick="toggleBc(this)">
+                      <span class="ico">⚠️</span>
+                      <span>用户提现银行信息变更，请核查</span>
+                      <span class="arr">▼</span>
+                    </div>
+                    <div class="bc-body open">
+                      <div class="bc-group">
+                        <div class="gname">银行卡信息</div>
+                        <div class="item">最近修改于 <span class="new" style="color:#cf1322;font-weight:600">2026-05-26 09:48</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============= Pane 2（右 Tab）：全部提现记录 ============= -->
+    <div class="sub-pane" id="pane-list">
+
+    <!-- 搜索区 -->
+    <div class="filter">
+      <div class="f-item"><span class="lbl"><span class="req">*</span>商户</span><input class="ipt" value="(2001)sit-inr"></div>
+      <div class="f-item"><span class="lbl">提现大类</span><input class="ipt" placeholder="请选择提现大类"></div>
+      <div class="f-item"><span class="lbl">通道ID/名称</span><input class="ipt" placeholder="请选择通道ID/名称"></div>
+      <div class="f-item"><span class="lbl">会员ID</span><input class="ipt" placeholder="请输入会员ID"></div>
+      <div class="f-item"><span class="lbl">订单号</span><input class="ipt" placeholder="请输入订单号"></div>
+      <div class="f-item"><span class="lbl">订单状态</span><input class="ipt" placeholder="请选择订单状态"></div>
+      <div class="f-item"><span class="lbl">操作人</span><input class="ipt" placeholder="请输入操作人"></div>
+      <div class="f-item"><span class="lbl">提现金额</span>
+        <div class="ipt-grp"><input class="ipt" placeholder="最小金额"><span class="arrow">→</span><input class="ipt" placeholder="最大金额"></div>
+      </div>
+      <div class="f-item"><span class="lbl">提现次数</span>
+        <div class="ipt-grp"><input class="ipt" placeholder="最小次数"><span class="arrow">→</span><input class="ipt" placeholder="最大次数"></div>
+      </div>
+      <div class="f-item"><span class="lbl">提现倍数</span>
+        <div class="ipt-grp"><input class="ipt" placeholder="最小倍数"><span class="arrow">→</span><input class="ipt" placeholder="最大倍数"></div>
+      </div>
+      <div class="f-item"><span class="lbl">申请时间</span>
+        <div class="ipt-grp"><input class="ipt" value="2026-05-01 00:00:00"><span class="arrow">→</span><input class="ipt" value="2026-05-31 23:59:59"></div>
+      </div>
+      <div class="f-item"><span class="lbl">完成时间</span>
+        <div class="ipt-grp"><input class="ipt" placeholder="选择日期范围"><span class="arrow">→</span><input class="ipt" placeholder="选择日期范围"></div>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn btn-pri">🔍 搜索</button>
+      <button class="btn btn-d">↻ 重置</button>
+      <button class="btn btn-d">∧ 收起</button>
+    </div>
+
+    <!-- 提示条 + 快捷筛选 -->
+    <div class="hint-bar">
+      <div class="left">
+        <span>ⓘ</span><span>本页面可查全部提现订单</span>
+      </div>
+      <div class="qs">
+        <span class="qc">今天</span>
+        <span class="qc">昨天</span>
+        <span class="qc">本周</span>
+        <span class="qc">上周</span>
+        <span class="qc">本月</span>
+        <span class="qc on">上月</span>
+        <span class="qc">所有</span>
+        <span style="margin-left:10px">⚙ 自定义列</span>
+      </div>
+    </div>
+
+    <!-- 列表折叠 -->
+    <div class="collapse-bar">∧ 收起</div>
+
+    <!-- 表格 -->
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>商户</th>
+          <th>会员ID</th>
+          <th>订单号</th>
+          <th>提现大类</th>
+          <th>银行卡详细</th>
+          <th class="col-c">币种</th>
+          <th class="col-c">提现倍数</th>
+          <th class="col-c">提现次数</th>
+          <th class="col-c">手续费</th>
+          <th class="col-c">提现金额</th>
+          <th class="col-c">实际到账金额</th>
+          <th class="col-c">订单状态</th>
+          <th>订单时间 (UTC)</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- 行 1：✅有变更提示（默认收起） -->
+        <tr>
+          <td><span class="tag-merchant">(2001)sit-inr</span></td>
+          <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">2247519</span></td>
+          <td>WD20260530181551272001011a</td>
+          <td><span class="tag-bank">BANK<br>CADE22</span></td>
+          <td>
+            <div class="bank-cell">
+              <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
+              <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
+              <div class="row"><span class="k">账号：</span><span class="v">7772362242333</span></div>
+
+              <!-- ⭐ 核心新增：变更提示（仅展示修改日期） -->
+              <div class="bank-change">
+                <div class="bc-head" onclick="toggleBc(this)">
+                  <span class="ico">⚠️</span>
+                  <span>用户提现银行信息变更，请核查</span>
+                  <span class="arr">▼</span>
+                </div>
+                <div class="bc-body">
+                  <div class="bc-group">
+                    <div class="gname">银行卡信息</div>
+                    <div class="item">最近修改于 <span class="new" style="color:#cf1322;font-weight:600">2026-05-26 09:48</span></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </td>
+          <td class="col-c"><span class="tag-currency">INR</span></td>
+          <td class="col-c">0.00</td>
+          <td class="col-c">1</td>
+          <td class="col-c">220.00</td>
+          <td class="col-c">1,000.00</td>
+          <td class="col-c">780.00</td>
+          <td class="col-c"><span class="tag-status wait">待审核</span></td>
+          <td><div>申请：2026-05-30 18:15</div><div style="color:#999;margin-top:3px">完成：----</div></td>
+          <td>
+            <div class="act-col">
+              <button class="btn-link">查看详情</button>
+              <button class="btn-link">修改订单备注</button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- 行 2：✅有变更提示（默认展开演示） -->
+        <tr>
+          <td><span class="tag-merchant">(2001)sit-inr</span></td>
+          <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">2247519</span></td>
+          <td>WD20260530181507442001010a</td>
+          <td><span class="tag-bank">BANK<br>CADE22</span></td>
+          <td>
+            <div class="bank-cell">
+              <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
+              <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
+              <div class="row"><span class="k">账号：</span><span class="v">7772362242333</span></div>
+
+              <div class="bank-change">
+                <div class="bc-head open" onclick="toggleBc(this)">
+                  <span class="ico">⚠️</span>
+                  <span>用户提现银行信息变更，请核查</span>
+                  <span class="arr">▼</span>
+                </div>
+                <div class="bc-body open">
+                  <div class="bc-group">
+                    <div class="gname">银行卡信息</div>
+                    <div class="item">最近修改于 <span class="new" style="color:#cf1322;font-weight:600">2026-05-26 09:48</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="col-c"><span class="tag-currency">INR</span></td>
+          <td class="col-c">0.00</td>
+          <td class="col-c">1</td>
+          <td class="col-c">220.00</td>
+          <td class="col-c">1,000.00</td>
+          <td class="col-c">780.00</td>
+          <td class="col-c"><span class="tag-status wait">待审核</span></td>
+          <td><div>申请：2026-05-30 18:15</div><div style="color:#999;margin-top:3px">完成：----</div></td>
+          <td>
+            <div class="act-col">
+              <button class="btn-link">查看详情</button>
+              <button class="btn-link">修改订单备注</button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- 行 3：无变更（正常） -->
+        <tr>
+          <td><span class="tag-merchant">(2001)sit-inr</span></td>
+          <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">2247519</span></td>
+          <td>WD20260530174534602001009a</td>
+          <td><span class="tag-bank">BANK<br>CADE22</span></td>
+          <td>
+            <div class="bank-cell">
+              <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
+              <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
+              <div class="row"><span class="k">账号：</span><span class="v">7772362242333</span></div>
+              <!-- 无变更，不显示提示 -->
+            </div>
+          </td>
+          <td class="col-c"><span class="tag-currency">INR</span></td>
+          <td class="col-c">0.00</td>
+          <td class="col-c">1</td>
+          <td class="col-c">220.00</td>
+          <td class="col-c">1,000.00</td>
+          <td class="col-c">780.00</td>
+          <td class="col-c"><span class="tag-status wait">待审核</span></td>
+          <td><div>申请：2026-05-30 17:45</div><div style="color:#999;margin-top:3px">完成：----</div></td>
+          <td>
+            <div class="act-col">
+              <button class="btn-link">查看详情</button>
+              <button class="btn-link">修改订单备注</button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- 行 4：已通过 + 无变更 -->
+        <tr>
+          <td><span class="tag-merchant">(2001)sit-inr</span></td>
+          <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">600813</span></td>
+          <td>WD20260530162139912001008a</td>
+          <td><span class="tag-bank">BANK<br>CADE22</span></td>
+          <td>
+            <div class="bank-cell">
+              <div class="row"><span class="k">银行名称：</span><span class="v">Punjab & sind Bank</span></div>
+              <div class="row"><span class="k">收款人：</span><span class="v">ZOETOW</span></div>
+              <div class="row"><span class="k">账号：</span><span class="v">0285384139944796</span></div>
+            </div>
+          </td>
+          <td class="col-c"><span class="tag-currency">INR</span></td>
+          <td class="col-c">0.00</td>
+          <td class="col-c">10</td>
+          <td class="col-c">330.00</td>
+          <td class="col-c">1,500.00</td>
+          <td class="col-c">1,170.00</td>
+          <td class="col-c"><span class="tag-status pass">已通过</span></td>
+          <td><div>申请：2026-05-30 16:21</div><div style="color:#666;margin-top:3px">完成：2026-05-30 16:35</div></td>
+          <td>
+            <div class="act-col">
+              <button class="btn-link">查看详情</button>
+              <button class="btn-link">修改订单备注</button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- 行 5：已通过 + 有变更（变更早于上次提现，理论上不该显示。这里展示业务规则） -->
+        <tr>
+          <td><span class="tag-merchant">(2001)sit-inr</span></td>
+          <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">600813</span></td>
+          <td>WD20260530161912102001007a</td>
+          <td><span class="tag-bank">BANK<br>CADE22</span></td>
+          <td>
+            <div class="bank-cell">
+              <div class="row"><span class="k">银行名称：</span><span class="v">Punjab & sind Bank</span></div>
+              <div class="row"><span class="k">收款人：</span><span class="v">ZOETOW</span></div>
+              <div class="row"><span class="k">账号：</span><span class="v">0285384139944796</span></div>
+            </div>
+          </td>
+          <td class="col-c"><span class="tag-currency">INR</span></td>
+          <td class="col-c">0.00</td>
+          <td class="col-c">10</td>
+          <td class="col-c">220.00</td>
+          <td class="col-c">1,000.00</td>
+          <td class="col-c">780.00</td>
+          <td class="col-c"><span class="tag-status pass">已通过</span></td>
+          <td><div>申请：2026-05-30 16:19</div><div style="color:#666;margin-top:3px">完成：2026-05-30 16:28</div></td>
+          <td>
+            <div class="act-col">
+              <button class="btn-link">查看详情</button>
+              <button class="btn-link">修改订单备注</button>
+            </div>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+
+    <!-- 底部汇总 -->
+    <div class="tbl-foot">
+      <div class="sums">
+        <div>页面总计 &nbsp;&nbsp;&nbsp; 手续费：<b>1,918.62</b> &nbsp;&nbsp; 金额：<b>8,723.00</b> &nbsp;&nbsp; U数量：<b>0.02</b></div>
+        <div>总计 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 手续费：<b>2,902.42</b> &nbsp;&nbsp; 金额：<b>1,899,712,201.00</b> &nbsp;&nbsp; U数量：<b>0.02</b></div>
+      </div>
+      <div class="pager">
+        <span>共 7629328 条</span>
+        <span class="pg">‹</span>
+        <span class="pg active">1</span>
+        <span class="pg">2</span>
+        <span class="pg">3</span>
+        <span class="pg">4</span>
+        <span class="pg">5</span>
+        <span class="pg">6</span>
+        <span class="pg">7</span>
+        <span class="pg">…</span>
+        <span class="pg">762933</span>
+        <span class="pg">›</span>
+        <span>10 / 页</span>
+        <span>跳至</span>
+        <input class="pg" style="width:42px" value="1">
+      </div>
+    </div>
+
+    </div><!-- end pane-list -->
+
+  </div>
+
+
+  <!-- ===== PRD 需求说明 ===== -->
+  <div class="prd-tip">
+    📋 <b>需求摘要</b>：V3 后台 ① 「提现订单管理」列表页"银行卡详细"列下方 + ② 「审核订单详情」弹窗"银行卡详情"区域下方，<b>两处都</b>新增"变更提示"。判定时间窗内有银行信息变更时，红字提示"用户提现银行信息变更，请核查"。展开后<b>仅显示最近修改日期</b>，<b>不展示修改内容</b>—— 由审核人员自行核实。
+  </div>
+
+  <div class="prd-card">
+    <h3>📌 业务规则</h3>
+    <table class="tbl" style="margin-top:6px">
+      <thead>
+        <tr><th style="width:160px">规则</th><th>说明</th></tr>
+      </thead>
+      <tr><td><b>判定时间窗</b></td><td>从用户<b>上次提现完成时间</b>（无上次则取注册时间），到<b>本次提现申请时间</b>之间</td></tr>
+      <tr><td><b>判定字段</b></td><td>银行名称 / 收款人姓名 / 银行账号 / IFSC（若有）。任一字段在时间窗内被新增或修改，即触发提示</td></tr>
+      <tr><td><b>对应数据源</b></td><td><code>tab_WithdrawalBankCard</code> 的 AddTime / UpdateTime / DeletedTime；与本次订单的银行卡 ID 关联</td></tr>
+      <tr><td><b>展示位置</b></td><td>① 列表「银行卡详细」列底部；② 审核订单详情弹窗「银行卡详情」区域底部</td></tr>
+      <tr><td><b>展示形式</b></td><td>默认<b>收起</b>，仅一行红字"⚠️ 用户提现银行信息变更，请核查 ▼"；点击展开显示<b>最近修改日期</b>（不展示修改内容详情）</td></tr>
+      <tr><td><b>为何不展示修改内容</b></td><td>由<b>审核人员自行核实</b>具体变更内容，避免界面冗余；展开后只给一个时间锚点</td></tr>
+      <tr><td><b>显示条件</b></td><td>仅<b>待审核</b>订单显示（已通过/已拒绝订单不显示，减少干扰）</td></tr>
+      <tr><td><b>是否拦截审核</b></td><td>不拦截，仅<b>展示提示</b>，由运营自行判断是否通过</td></tr>
+    </table>
+  </div>
+
+  <div class="prd-card">
+    <h3>🎨 三种展示状态</h3>
+    <div class="demo-grid" style="grid-template-columns:repeat(3,1fr)">
+
+      <div class="demo-card">
+        <div class="name">① 无变更（默认隐藏）</div>
+        <div class="bank-cell">
+          <div class="row"><span class="k">银行名称：</span><span class="v">Punjab Bank</span></div>
+          <div class="row"><span class="k">收款人：</span><span class="v">ZOETOW</span></div>
+          <div class="row"><span class="k">账号：</span><span class="v">0285****4796</span></div>
+        </div>
+      </div>
+
+      <div class="demo-card">
+        <div class="name">② 有变更 · 收起态</div>
+        <div class="bank-cell">
+          <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
+          <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
+          <div class="row"><span class="k">账号：</span><span class="v">7772****2333</span></div>
+          <div class="bank-change">
+            <div class="bc-head" onclick="toggleBc(this)">
+              <span class="ico">⚠️</span>
+              <span>用户提现银行信息变更，请核查</span>
+              <span class="arr">▼</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-card">
+        <div class="name">③ 有变更 · 展开态</div>
+        <div class="bank-cell">
+          <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
+          <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
+          <div class="row"><span class="k">账号：</span><span class="v">7772****2333</span></div>
+          <div class="bank-change">
+            <div class="bc-head open" onclick="toggleBc(this)">
+              <span class="ico">⚠️</span>
+              <span>用户提现银行信息变更，请核查</span>
+              <span class="arr">▼</span>
+            </div>
+            <div class="bc-body open">
+              <div class="bc-group">
+                <div class="gname">银行卡信息</div>
+                <div class="item">最近修改于 <span class="new" style="color:#cf1322;font-weight:600">2026-05-26 09:48</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+</div>
+
+<script>
+function toggleBc(el) {
+  el.classList.toggle('open');
+  const body = el.nextElementSibling;
+  if (body && body.classList.contains('bc-body')) {
+    body.classList.toggle('open');
+  }
+}
+
+function switchPane(el, paneId) {
+  // 切换 Tab 高亮
+  el.parentElement.querySelectorAll('.st').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  // 切换 Pane 显示
+  document.querySelectorAll('.sub-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById(paneId).classList.add('active');
+}
+</script>
+
+</body>
+</html>
