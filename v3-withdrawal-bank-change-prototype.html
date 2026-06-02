@@ -74,7 +74,6 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 
 /* ===== 标签 ===== */
 .tag-merchant{background:#e6fffb;color:#13c2c2;padding:4px 10px;border-radius:3px;font-size:12px;display:inline-block}
-.tag-bank{background:#f0f5ff;color:#2f54eb;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
 .tag-currency{background:#f6ffed;color:#52c41a;padding:4px 12px;border-radius:14px;font-size:11.5px;display:inline-block;border:1px solid #b7eb8f}
 .tag-status{padding:4px 14px;border-radius:4px;font-size:12px;display:inline-block;font-weight:500}
 .tag-status.wait{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
@@ -87,16 +86,31 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 .bank-cell .row .k{color:#999;display:inline-block;width:62px}
 .bank-cell .row .v{color:#333}
 
-/* ===== ⭐ 银行卡变更提示（本期核心新增） ===== */
+/* 大类标签（按类别分色） */
+.tag-bankcard{background:#f0f5ff;color:#2f54eb;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+.tag-usdt    {background:#e6fffb;color:#13a8a8;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+.tag-upi     {background:#fff7e6;color:#d46b08;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+.tag-pix     {background:#f6ffed;color:#52c41a;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+.tag-easypaisa{background:#fcffe6;color:#7cb305;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+.tag-jazzcash {background:#fff0f6;color:#c41d7f;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+.tag-ewallet  {background:#f9f0ff;color:#722ed1;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+.tag-kbzpay   {background:#fff2e8;color:#d4380d;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+.tag-wavepay  {background:#e6f7ff;color:#0958d9;padding:4px 10px;border-radius:3px;font-size:11.5px;display:inline-block;line-height:1.6}
+
+/* ===== ⭐ 变更提示（本期核心新增） ===== */
 .bank-change{background:#fff1f0;border:1px solid #ffccc7;border-radius:4px;margin-top:8px;overflow:hidden;transition:all .2s;position:relative}
+.bank-change.first-time{background:#e6f4ff;border-color:#91caff}
 .bank-change::before{content:"NEW";position:absolute;top:-1px;right:-1px;background:#ff5566;color:#fff;font-size:9px;padding:1px 6px;border-radius:0 4px 0 6px;font-weight:700;letter-spacing:.5px}
 .bc-head{padding:7px 11px;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;font-size:12px;font-weight:600;color:#cf1322}
 .bc-head:hover{background:#ffe8e6}
 .bc-head .ico{font-size:13px}
 .bc-head .arr{margin-left:auto;font-size:10px;color:#cf1322;transition:transform .2s}
 .bc-head.open .arr{transform:rotate(180deg)}
+.bank-change.first-time .bc-head{color:#0958d9}
+.bank-change.first-time .bc-head:hover{background:#d6e4ff}
 .bc-body{display:none;padding:6px 12px 10px;border-top:1px dashed #ffccc7;background:#fff5f5}
 .bc-body.open{display:block}
+.bank-change.first-time .bc-body{border-top-color:#91caff;background:#f0f9ff}
 .bc-group{margin-top:6px}
 .bc-group:first-child{margin-top:0}
 .bc-group .gname{font-size:11.5px;color:#666;font-weight:600;margin-bottom:4px}
@@ -203,7 +217,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
             <div class="am-meta-item"><div class="v" style="font-size:11.5px;word-break:break-all">WD20260530174534602001009a</div><div class="k">订单号</div></div>
             <div class="am-meta-item"><div class="v"><span class="ccy">INR</span></div><div class="k">币种</div></div>
             <div class="am-meta-item"><div class="v amount">1,000.00</div><div class="k">提现金额</div></div>
-            <div class="am-meta-item"><div class="v">BANK CADE22</div><div class="k">提现大类</div></div>
+            <div class="am-meta-item"><div class="v">BANK CARD</div><div class="k">提现大类</div></div>
             <div class="am-meta-item"><div class="v">2026-05-30 17:45:34</div><div class="k">申请时间 (UTC+5:30)</div></div>
           </div>
 
@@ -339,7 +353,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           <th>会员ID</th>
           <th>订单号</th>
           <th>提现大类</th>
-          <th>银行卡详细</th>
+          <th>提现账户详细</th>
           <th class="col-c">币种</th>
           <th class="col-c">提现倍数</th>
           <th class="col-c">提现次数</th>
@@ -353,19 +367,18 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
       </thead>
       <tbody>
 
-        <!-- 行 1：✅有变更提示（默认收起） -->
+        <!-- 行 1：BANK CARD 大类 + 有变更（默认收起） -->
         <tr>
           <td><span class="tag-merchant">(2001)sit-inr</span></td>
           <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">2247519</span></td>
           <td>WD20260530181551272001011a</td>
-          <td><span class="tag-bank">BANK<br>CADE22</span></td>
+          <td><span class="tag-bankcard">BANK CARD</span></td>
           <td>
             <div class="bank-cell">
               <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
               <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
               <div class="row"><span class="k">账号：</span><span class="v">7772362242333</span></div>
 
-              <!-- ⭐ 核心新增：变更提示（仅展示修改日期） -->
               <div class="bank-change">
                 <div class="bc-head" onclick="toggleBc(this)">
                   <span class="ico">⚠️</span>
@@ -379,7 +392,6 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
                   </div>
                 </div>
               </div>
-
             </div>
           </td>
           <td class="col-c"><span class="tag-currency">INR</span></td>
@@ -389,7 +401,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           <td class="col-c">1,000.00</td>
           <td class="col-c">780.00</td>
           <td class="col-c"><span class="tag-status wait">待审核</span></td>
-          <td><div>申请：2026-05-30 18:15</div><div style="color:#999;margin-top:3px">完成：----</div></td>
+          <td><div>申请：2026-06-01 18:15</div><div style="color:#999;margin-top:3px">完成：----</div></td>
           <td>
             <div class="act-col">
               <button class="btn-link">查看详情</button>
@@ -398,28 +410,71 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           </td>
         </tr>
 
-        <!-- 行 2：✅有变更提示（默认展开演示） -->
+        <!-- 行 2：USDT 大类 + 有变更（默认展开演示） -->
         <tr>
           <td><span class="tag-merchant">(2001)sit-inr</span></td>
           <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">2247519</span></td>
           <td>WD20260530181507442001010a</td>
-          <td><span class="tag-bank">BANK<br>CADE22</span></td>
+          <td><span class="tag-usdt">USDT</span></td>
           <td>
             <div class="bank-cell">
-              <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
-              <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
-              <div class="row"><span class="k">账号：</span><span class="v">7772362242333</span></div>
+              <div class="row"><span class="k">币种 / 链：</span><span class="v">USDT (TRC20)</span></div>
+              <div class="row"><span class="k">钱包地址：</span><span class="v">TQrZ9wBE...8tUe2Yk</span></div>
+              <div class="row"><span class="k">备注：</span><span class="v">主钱包</span></div>
 
               <div class="bank-change">
                 <div class="bc-head open" onclick="toggleBc(this)">
                   <span class="ico">⚠️</span>
-                  <span>用户提现银行信息变更，请核查</span>
+                  <span>用户提现 USDT 地址变更，请核查</span>
                   <span class="arr">▼</span>
                 </div>
                 <div class="bc-body open">
                   <div class="bc-group">
-                    <div class="gname">银行卡信息</div>
-                    <div class="item">最近修改于 <span class="new" style="color:#cf1322;font-weight:600">2026-05-26 09:48</span></div>
+                    <div class="gname">USDT 地址信息</div>
+                    <div class="item">最近修改于 <span class="new" style="color:#cf1322;font-weight:600">2026-05-28 14:22</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td class="col-c"><span class="tag-currency">USDT</span></td>
+          <td class="col-c">0.00</td>
+          <td class="col-c">3</td>
+          <td class="col-c">1.00</td>
+          <td class="col-c">100.00</td>
+          <td class="col-c">99.00</td>
+          <td class="col-c"><span class="tag-status wait">待审核</span></td>
+          <td><div>申请：2026-06-01 17:30</div><div style="color:#999;margin-top:3px">完成：----</div></td>
+          <td>
+            <div class="act-col">
+              <button class="btn-link">查看详情</button>
+              <button class="btn-link">修改订单备注</button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- 行 3：UPI 大类 + 首次提现（特殊文案） -->
+        <tr>
+          <td><span class="tag-merchant">(2001)sit-inr</span></td>
+          <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">3318822</span></td>
+          <td>WD20260601153211002001012a</td>
+          <td><span class="tag-upi">UPI</span></td>
+          <td>
+            <div class="bank-cell">
+              <div class="row"><span class="k">UPI ID：</span><span class="v">rajesh@oksbi</span></div>
+              <div class="row"><span class="k">收款人：</span><span class="v">RAJESH KUMAR</span></div>
+              <div class="row"><span class="k">通道：</span><span class="v">FASTUPI</span></div>
+
+              <div class="bank-change first-time">
+                <div class="bc-head open" onclick="toggleBc(this)">
+                  <span class="ico">🆕</span>
+                  <span>用户首次 UPI 提现，请核查 UPI 账户信息</span>
+                  <span class="arr">▼</span>
+                </div>
+                <div class="bc-body open">
+                  <div class="bc-group">
+                    <div class="gname">UPI 账户信息（首次绑定）</div>
+                    <div class="item">UPI 绑定于 <span class="new" style="color:#0958d9;font-weight:600">2026-05-30 11:20</span></div>
                   </div>
                 </div>
               </div>
@@ -427,12 +482,12 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           </td>
           <td class="col-c"><span class="tag-currency">INR</span></td>
           <td class="col-c">0.00</td>
-          <td class="col-c">1</td>
-          <td class="col-c">220.00</td>
-          <td class="col-c">1,000.00</td>
-          <td class="col-c">780.00</td>
+          <td class="col-c">0</td>
+          <td class="col-c">100.00</td>
+          <td class="col-c">2,000.00</td>
+          <td class="col-c">1,900.00</td>
           <td class="col-c"><span class="tag-status wait">待审核</span></td>
-          <td><div>申请：2026-05-30 18:15</div><div style="color:#999;margin-top:3px">完成：----</div></td>
+          <td><div>申请：2026-06-01 15:32</div><div style="color:#999;margin-top:3px">完成：----</div></td>
           <td>
             <div class="act-col">
               <button class="btn-link">查看详情</button>
@@ -441,28 +496,28 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           </td>
         </tr>
 
-        <!-- 行 3：无变更（正常） -->
+        <!-- 行 4：PIX 大类 + 无变更（正常） -->
         <tr>
           <td><span class="tag-merchant">(2001)sit-inr</span></td>
-          <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">2247519</span></td>
-          <td>WD20260530174534602001009a</td>
-          <td><span class="tag-bank">BANK<br>CADE22</span></td>
+          <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">4456712</span></td>
+          <td>WD20260601142008002001013a</td>
+          <td><span class="tag-pix">PIX</span></td>
           <td>
             <div class="bank-cell">
-              <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
-              <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
-              <div class="row"><span class="k">账号：</span><span class="v">7772362242333</span></div>
+              <div class="row"><span class="k">PIX Key：</span><span class="v">123.456.789-00（CPF）</span></div>
+              <div class="row"><span class="k">收款人：</span><span class="v">CARLOS SILVA</span></div>
+              <div class="row"><span class="k">银行：</span><span class="v">Nubank</span></div>
               <!-- 无变更，不显示提示 -->
             </div>
           </td>
-          <td class="col-c"><span class="tag-currency">INR</span></td>
+          <td class="col-c"><span class="tag-currency">BRL</span></td>
           <td class="col-c">0.00</td>
-          <td class="col-c">1</td>
-          <td class="col-c">220.00</td>
-          <td class="col-c">1,000.00</td>
-          <td class="col-c">780.00</td>
+          <td class="col-c">12</td>
+          <td class="col-c">1.00</td>
+          <td class="col-c">500.00</td>
+          <td class="col-c">499.00</td>
           <td class="col-c"><span class="tag-status wait">待审核</span></td>
-          <td><div>申请：2026-05-30 17:45</div><div style="color:#999;margin-top:3px">完成：----</div></td>
+          <td><div>申请：2026-06-01 14:20</div><div style="color:#999;margin-top:3px">完成：----</div></td>
           <td>
             <div class="act-col">
               <button class="btn-link">查看详情</button>
@@ -471,12 +526,12 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           </td>
         </tr>
 
-        <!-- 行 4：已通过 + 无变更 -->
+        <!-- 行 5：BANK CARD 大类 + 已通过 + 无变更 -->
         <tr>
           <td><span class="tag-merchant">(2001)sit-inr</span></td>
           <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">600813</span></td>
           <td>WD20260530162139912001008a</td>
-          <td><span class="tag-bank">BANK<br>CADE22</span></td>
+          <td><span class="tag-bankcard">BANK CARD</span></td>
           <td>
             <div class="bank-cell">
               <div class="row"><span class="k">银行名称：</span><span class="v">Punjab & sind Bank</span></div>
@@ -492,35 +547,6 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           <td class="col-c">1,170.00</td>
           <td class="col-c"><span class="tag-status pass">已通过</span></td>
           <td><div>申请：2026-05-30 16:21</div><div style="color:#666;margin-top:3px">完成：2026-05-30 16:35</div></td>
-          <td>
-            <div class="act-col">
-              <button class="btn-link">查看详情</button>
-              <button class="btn-link">修改订单备注</button>
-            </div>
-          </td>
-        </tr>
-
-        <!-- 行 5：已通过 + 有变更（变更早于上次提现，理论上不该显示。这里展示业务规则） -->
-        <tr>
-          <td><span class="tag-merchant">(2001)sit-inr</span></td>
-          <td><span style="color:#1677ff;text-decoration:underline;cursor:pointer">600813</span></td>
-          <td>WD20260530161912102001007a</td>
-          <td><span class="tag-bank">BANK<br>CADE22</span></td>
-          <td>
-            <div class="bank-cell">
-              <div class="row"><span class="k">银行名称：</span><span class="v">Punjab & sind Bank</span></div>
-              <div class="row"><span class="k">收款人：</span><span class="v">ZOETOW</span></div>
-              <div class="row"><span class="k">账号：</span><span class="v">0285384139944796</span></div>
-            </div>
-          </td>
-          <td class="col-c"><span class="tag-currency">INR</span></td>
-          <td class="col-c">0.00</td>
-          <td class="col-c">10</td>
-          <td class="col-c">220.00</td>
-          <td class="col-c">1,000.00</td>
-          <td class="col-c">780.00</td>
-          <td class="col-c"><span class="tag-status pass">已通过</span></td>
-          <td><div>申请：2026-05-30 16:19</div><div style="color:#666;margin-top:3px">完成：2026-05-30 16:28</div></td>
           <td>
             <div class="act-col">
               <button class="btn-link">查看详情</button>
@@ -564,7 +590,13 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 
   <!-- ===== PRD 需求说明 ===== -->
   <div class="prd-tip">
-    📋 <b>需求摘要</b>：V3 后台 ① 「提现订单管理」列表页"银行卡详细"列下方 + ② 「审核订单详情」弹窗"银行卡详情"区域下方，<b>两处都</b>新增"变更提示"。判定时间窗内有银行信息变更时，红字提示"用户提现银行信息变更，请核查"。展开后<b>仅显示最近修改日期</b>，<b>不展示修改内容</b>—— 由审核人员自行核实。
+    📋 <b>需求摘要</b>：V3 后台 ① 「提现订单管理」列表页"提现账户详细"列 + ② 「审核订单详情」弹窗对应区域，<b>两处都</b>新增"变更提示"。<b>按本次提现大类智能匹配检查范围</b>（V3 当前 9 大类：BANK CARD / UPI / USDT / PIX / Easypaisa / JAZZCASH / E-Wallet / KBZPay / WavePay）：
+    <ul style="margin:6px 0 0 18px;line-height:1.8">
+      <li>🔴 <b>有变更</b> → 红色提示"用户提现 {大类} 信息变更，请核查"</li>
+      <li>🔵 <b>首次该大类提现</b> → 蓝色提示"用户首次 {大类} 提现，请核查 {账户} 信息"</li>
+      <li>⬜ <b>无变更 + 非首次</b> → 不显示任何提示</li>
+    </ul>
+    展开后<b>仅显示修改日期</b>，<b>不展示修改内容</b>—— 由审核人员自行核实。
   </div>
 
   <div class="prd-card">
@@ -573,65 +605,77 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
       <thead>
         <tr><th style="width:160px">规则</th><th>说明</th></tr>
       </thead>
-      <tr><td><b>判定时间窗</b></td><td>从用户<b>上次提现完成时间</b>（无上次则取注册时间），到<b>本次提现申请时间</b>之间</td></tr>
-      <tr><td><b>判定字段</b></td><td>银行名称 / 收款人姓名 / 银行账号 / IFSC（若有）。任一字段在时间窗内被新增或修改，即触发提示</td></tr>
-      <tr><td><b>对应数据源</b></td><td><code>tab_WithdrawalBankCard</code> 的 AddTime / UpdateTime / DeletedTime；与本次订单的银行卡 ID 关联</td></tr>
-      <tr><td><b>展示位置</b></td><td>① 列表「银行卡详细」列底部；② 审核订单详情弹窗「银行卡详情」区域底部</td></tr>
-      <tr><td><b>展示形式</b></td><td>默认<b>收起</b>，仅一行红字"⚠️ 用户提现银行信息变更，请核查 ▼"；点击展开显示<b>最近修改日期</b>（不展示修改内容详情）</td></tr>
-      <tr><td><b>为何不展示修改内容</b></td><td>由<b>审核人员自行核实</b>具体变更内容，避免界面冗余；展开后只给一个时间锚点</td></tr>
+      <tr><td><b>大类定义</b></td><td>沿用 V3 现有 <b>9 大类</b>：BANK CARD / UPI / USDT / PIX / Easypaisa / JAZZCASH / E-Wallet / KBZPay / WavePay</td></tr>
+      <tr><td><b>检查表对应关系</b></td><td>每个大类对应各自的提现账户表（如 BANK CARD → <code>tab_WithdrawalBankCard</code>；USDT → <code>tab_UsdtAddress</code>；UPI / PIX / 其他 → 各自账户表），具体表名以开发确认为准</td></tr>
+      <tr><td><b>判定时间窗（基准）</b></td><td>该用户<b>同大类</b>最后一笔 Status = PASS（已通过）的订单完成时间 → 本次提现申请时间。<b>撤销 / 拒绝 / 超时订单不算基准</b></td></tr>
+      <tr><td><b>首次大类提现</b></td><td>从未有过该大类 PASS 订单 → 基准用<b>该大类首次绑定时间</b>。提示文案换成"🆕 用户<b>首次</b> {大类} 提现，请核查 {账户} 信息"</td></tr>
+      <tr><td><b>同大类范围</b></td><td>用户名下<b>所有</b>该大类账户（不只是本次使用的那一个）的 Add / Update / Delete 全部纳入。理由：新增账户、删除旧账户都是资金转移风险信号</td></tr>
+      <tr><td><b>判定字段</b></td><td>对应账户表的所有业务字段（如 BANK CARD：银行名称/收款人/账号/IFSC ｜ USDT：钱包地址/链/备注 ｜ UPI：UPI ID 等）。任一字段在窗内被新增/修改/删除即触发</td></tr>
+      <tr><td><b>展示位置</b></td><td>① 列表「提现账户详细」列底部；② 审核订单详情弹窗对应账户区域底部</td></tr>
+      <tr><td><b>展示形式</b></td><td>默认<b>收起</b>，仅一行提示 + ▼；点击展开显示<b>最近修改日期</b>，不展示具体变更内容</td></tr>
+      <tr><td><b>颜色规则（仅两色）</b></td><td>🔴 红 = 有变更（任何大类统一红色）· 🔵 蓝 = 首次该大类提现</td></tr>
+      <tr><td><b>为何不展示修改内容</b></td><td>由<b>审核人员自行核实</b>，避免界面冗余；展开后只给一个时间锚点</td></tr>
       <tr><td><b>显示条件</b></td><td>仅<b>待审核</b>订单显示（已通过/已拒绝订单不显示，减少干扰）</td></tr>
       <tr><td><b>是否拦截审核</b></td><td>不拦截，仅<b>展示提示</b>，由运营自行判断是否通过</td></tr>
     </table>
   </div>
 
   <div class="prd-card">
-    <h3>🎨 三种展示状态</h3>
+    <h3>🎨 三种展示状态（适用全部 9 大类）</h3>
     <div class="demo-grid" style="grid-template-columns:repeat(3,1fr)">
 
       <div class="demo-card">
-        <div class="name">① 无变更（默认隐藏）</div>
+        <div class="name">① 有变更（红）— 9 大类通用</div>
         <div class="bank-cell">
-          <div class="row"><span class="k">银行名称：</span><span class="v">Punjab Bank</span></div>
-          <div class="row"><span class="k">收款人：</span><span class="v">ZOETOW</span></div>
-          <div class="row"><span class="k">账号：</span><span class="v">0285****4796</span></div>
-        </div>
-      </div>
-
-      <div class="demo-card">
-        <div class="name">② 有变更 · 收起态</div>
-        <div class="bank-cell">
-          <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
-          <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
-          <div class="row"><span class="k">账号：</span><span class="v">7772****2333</span></div>
-          <div class="bank-change">
-            <div class="bc-head" onclick="toggleBc(this)">
-              <span class="ico">⚠️</span>
-              <span>用户提现银行信息变更，请核查</span>
-              <span class="arr">▼</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="demo-card">
-        <div class="name">③ 有变更 · 展开态</div>
-        <div class="bank-cell">
-          <div class="row"><span class="k">银行名称：</span><span class="v">v1卡</span></div>
-          <div class="row"><span class="k">收款人：</span><span class="v">ben</span></div>
-          <div class="row"><span class="k">账号：</span><span class="v">7772****2333</span></div>
+          <div class="row"><span class="k">钱包地址：</span><span class="v">TQrZ9wBE...8tUe2Yk</span></div>
+          <div class="row"><span class="k">备注：</span><span class="v">主钱包</span></div>
           <div class="bank-change">
             <div class="bc-head open" onclick="toggleBc(this)">
               <span class="ico">⚠️</span>
-              <span>用户提现银行信息变更，请核查</span>
+              <span>用户提现 USDT 信息变更，请核查</span>
               <span class="arr">▼</span>
             </div>
             <div class="bc-body open">
               <div class="bc-group">
-                <div class="gname">银行卡信息</div>
-                <div class="item">最近修改于 <span class="new" style="color:#cf1322;font-weight:600">2026-05-26 09:48</span></div>
+                <div class="gname">USDT 账户信息</div>
+                <div class="item">最近修改于 <span class="new" style="color:#cf1322;font-weight:600">2026-05-28 14:22</span></div>
               </div>
             </div>
           </div>
+        </div>
+        <div class="form-hint" style="margin-top:8px">⚠️ 文案中 "USDT" 会随实际大类自动替换（BANK CARD / UPI / PIX / Easypaisa / JAZZCASH / E-Wallet / KBZPay / WavePay）</div>
+      </div>
+
+      <div class="demo-card">
+        <div class="name">② 首次该大类提现（蓝）</div>
+        <div class="bank-cell">
+          <div class="row"><span class="k">UPI ID：</span><span class="v">rajesh@oksbi</span></div>
+          <div class="row"><span class="k">收款人：</span><span class="v">RAJESH KUMAR</span></div>
+          <div class="row"><span class="k">通道：</span><span class="v">FASTUPI</span></div>
+          <div class="bank-change first-time">
+            <div class="bc-head open" onclick="toggleBc(this)">
+              <span class="ico">🆕</span>
+              <span>用户首次 UPI 提现，请核查 UPI 账户信息</span>
+              <span class="arr">▼</span>
+            </div>
+            <div class="bc-body open">
+              <div class="bc-group">
+                <div class="gname">UPI 账户信息（首次绑定）</div>
+                <div class="item">UPI 绑定于 <span class="new" style="color:#0958d9;font-weight:600">2026-05-30 11:20</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-hint" style="margin-top:8px">⚠️ 文案中 "UPI" 同样会随大类自动替换</div>
+      </div>
+
+      <div class="demo-card">
+        <div class="name">③ 无变更 · 非首次 — 不显示</div>
+        <div class="bank-cell">
+          <div class="row"><span class="k">PIX Key：</span><span class="v">123.456.789-00</span></div>
+          <div class="row"><span class="k">收款人：</span><span class="v">CARLOS SILVA</span></div>
+          <div class="row"><span class="k">银行：</span><span class="v">Nubank</span></div>
+          <div class="form-hint" style="color:#52c41a;margin-top:8px">✓ 该用户名下同大类账户在判定窗内无任何变更，<b>不显示任何提示</b>。</div>
         </div>
       </div>
 
