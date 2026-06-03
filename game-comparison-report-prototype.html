@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>游戏比对报表 — 原型 v1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;background:#f0f2f5;color:#333;min-width:1500px}
+
+/* ── 演示横幅 ── */
+.demo-banner{background:linear-gradient(90deg,#e6f4ff,#bae0ff);color:#0958d9;padding:6px 14px;font-size:12px;text-align:center;border-bottom:1px solid #91caff;line-height:1.6}
+.demo-banner b{color:#1677ff}
+
+/* ── 整体布局 ── */
+.layout{display:flex;min-height:calc(100vh - 30px)}
+.sider{width:160px;background:#001529;color:#fff;flex-shrink:0;padding-top:6px}
+.sider .menu-item{padding:11px 18px;font-size:13px;color:rgba(255,255,255,.65);cursor:pointer;border-left:3px solid transparent}
+.sider .menu-item:hover{color:#fff;background:rgba(255,255,255,.04)}
+.sider .menu-item.active{color:#fff;background:#1677ff;border-left-color:#69b1ff}
+.sider .menu-group{padding:11px 18px;font-size:13px;color:rgba(255,255,255,.55);cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.sider .menu-group:hover{color:#fff}
+.sider .menu-sub{padding:9px 18px 9px 32px;font-size:12.5px;color:rgba(255,255,255,.55);cursor:pointer;border-left:3px solid transparent}
+.sider .menu-sub:hover{color:#fff;background:rgba(255,255,255,.04)}
+.sider .menu-sub.active{color:#fff;background:#1677ff;border-left-color:#69b1ff}
+
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.crumb{background:#fff;padding:10px 18px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;gap:8px;font-size:13px}
+.crumb .pg-title{font-weight:600;color:#222}
+.crumb .pg-tabs{margin-left:24px;display:flex;gap:0;align-items:center}
+.ptab{padding:0 14px;height:30px;display:flex;align-items:center;font-size:12.5px;color:#666;cursor:pointer;border-radius:4px;gap:5px}
+.ptab.active{color:#1677ff;background:#e6f4ff;font-weight:500}
+.ptab:hover{color:#1677ff}
+
+.content{flex:1;padding:14px 18px;overflow:auto}
+
+/* ── 通用 ── */
+.btn{height:30px;padding:0 14px;border-radius:4px;font-size:12.5px;cursor:pointer;border:none;font-family:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.btn-p{background:#1677ff;color:#fff}.btn-p:hover{background:#0958d9}
+.btn-d{background:#fff;color:#333;border:1px solid #d9d9d9}.btn-d:hover{border-color:#1677ff;color:#1677ff}
+.btn-link{color:#1677ff;cursor:pointer;font-size:12px;background:none;border:none;font-family:inherit}.btn-link:hover{text-decoration:underline}
+
+.tag{display:inline-flex;align-items:center;padding:1px 7px;border-radius:3px;font-size:11px;white-space:nowrap;line-height:18px}
+.t-blue{background:#e6f4ff;color:#1677ff;border:1px solid #91caff}
+.t-green{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.t-orange{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.t-red{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+.t-gray{background:#fafafa;color:#888;border:1px solid #e0e0e0}
+.t-purple{background:#f9f0ff;color:#722ed1;border:1px solid #d3adf7}
+
+/* ── 筛选区 ── */
+.filter-bar{background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:14px 16px;margin-bottom:12px}
+.fb-row{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:center;margin-bottom:10px}
+.fb-row:last-child{margin-bottom:0}
+.fb-item{display:flex;align-items:center;gap:6px}
+.fb-item label{font-size:12px;color:#666;white-space:nowrap;min-width:60px;text-align:right}
+.fb-item select,.fb-item input{height:30px;border:1px solid #d9d9d9;border-radius:4px;padding:0 8px;font-size:12px;outline:none;font-family:inherit;background:#fff;min-width:160px}
+.fb-item select:focus,.fb-item input:focus{border-color:#1677ff}
+.fb-item.date input{min-width:118px}
+.fb-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+
+/* 多选 chip */
+.ms-box{display:flex;flex-wrap:wrap;gap:3px;align-items:center;min-height:30px;border:1px solid #d9d9d9;border-radius:4px;padding:2px 8px;background:#fff;min-width:200px;font-size:12px}
+.ms-chip{background:#e6f4ff;color:#1677ff;border:1px solid #91caff;padding:1px 6px;border-radius:3px;font-size:11px;display:inline-flex;align-items:center;gap:3px}
+.ms-chip .x{cursor:pointer;color:#888;font-size:10px}.ms-chip .x:hover{color:#cf1322}
+
+/* 参与厂商行 */
+.vendor-pick-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#f0f7ff;border:1px solid #bae0ff;border-radius:5px;margin-bottom:10px;flex-wrap:wrap}
+.vendor-pick-row > .vp-label{font-size:12px;color:#0958d9;font-weight:600;margin-right:4px}
+.vp-slot{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:4px;font-size:12px;background:#fff}
+.vp-slot.col-a{border:1px solid #91caff}
+.vp-slot.col-b{border:1px solid #ffd591}
+.vp-slot.col-c{border:1px solid #b7eb8f}
+.vp-tag{padding:1px 7px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.vp-slot.col-a .vp-tag{background:#1677ff;color:#fff}
+.vp-slot.col-b .vp-tag{background:#fa8c16;color:#fff}
+.vp-slot.col-c .vp-tag{background:#52c41a;color:#fff}
+.vp-sel{height:26px;border:1px solid transparent;border-radius:3px;padding:0 6px;font-size:12px;outline:none;font-family:inherit;background:transparent;min-width:110px}
+.vp-sel:focus{border-color:#1677ff;background:#fff}
+.vp-slot .x{cursor:pointer;color:#bbb;font-size:11px;margin-left:2px}
+.vp-slot .x:hover{color:#cf1322}
+.vp-add{padding:4px 10px;border-radius:3px;border:1px dashed #91caff;background:#fff;color:#1677ff;cursor:pointer;font-size:11.5px;font-family:inherit}
+.vp-add:hover{background:#e6f4ff;border-color:#1677ff}
+
+/* 对标关系表 */
+.pair-list{border:1px solid #e8e8e8;border-radius:6px;overflow:hidden;margin-bottom:10px}
+.pair-list-head{display:flex;background:#fafbff;padding:8px 12px;border-bottom:1px solid #e8e8e8;align-items:center;gap:8px;font-size:11.5px;font-weight:600;color:#555}
+.pl-h-idx{flex:0 0 36px;text-align:center}
+.pl-h-name{flex:0 0 170px}
+.pl-h-vendor{flex:1;min-width:220px;display:flex;align-items:center;gap:5px}
+.pl-h-vendor .vp-tag{font-size:10px;font-weight:700;padding:1px 5px}
+.pl-h-del{flex:0 0 30px}
+
+.pair-item{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #f5f5f5;font-size:12px;background:#fff}
+.pair-item:last-of-type{border-bottom:none}
+.pair-item:hover{background:#fafcff}
+.pi-idx{flex:0 0 36px;text-align:center;color:#888;font-weight:500}
+.pi-name{flex:0 0 170px}
+.pi-name input{height:28px;border:1px solid #d9d9d9;border-radius:3px;padding:0 8px;font-size:12px;outline:none;font-family:inherit;width:100%;background:#fff}
+.pi-name input:focus{border-color:#1677ff}
+.pi-vendor{flex:1;min-width:220px;display:flex;align-items:center;gap:5px;padding:3px 7px;border-radius:3px}
+.pi-vendor.col-a{background:#f0f7ff;border-left:3px solid #1677ff}
+.pi-vendor.col-b{background:#fff8ec;border-left:3px solid #fa8c16}
+.pi-vendor.col-c{background:#f6ffed;border-left:3px solid #52c41a}
+.pi-vendor-pre{font-size:10.5px;font-weight:600;flex-shrink:0;padding:1px 5px;border-radius:3px}
+.pi-vendor.col-a .pi-vendor-pre{background:#e6f4ff;color:#1677ff}
+.pi-vendor.col-b .pi-vendor-pre{background:#fff7e6;color:#d46b08}
+.pi-vendor.col-c .pi-vendor-pre{background:#f6ffed;color:#389e0d}
+.pi-vendor select{flex:1;height:26px;border:1px solid #d9d9d9;border-radius:3px;padding:0 6px;font-size:11.5px;outline:none;font-family:inherit;background:#fff}
+.pi-vendor select:focus{border-color:#1677ff}
+.pi-vendor select.unset{color:#aaa;font-style:italic;border-color:#ffd591;background:#fff7e6}
+.pi-del{flex:0 0 30px;display:flex;justify-content:center}
+
+.pair-add-row{padding:9px 12px;background:#fafbff;text-align:center;border-top:1px dashed #bae0ff;color:#1677ff;cursor:pointer;font-size:12px;font-weight:500}
+.pair-add-row:hover{background:#e6f4ff}
+.cg-del{width:24px;height:24px;border:1px solid #f0f0f0;background:#fff;color:#888;border-radius:50%;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s}
+.cg-del:hover{border-color:#ffa39e;background:#fff1f0;color:#cf1322}
+.cg-add-btn{height:30px;padding:0 14px;border-radius:4px;border:1px dashed #91caff;background:#f0f7ff;color:#1677ff;cursor:pointer;font-size:12.5px;display:inline-flex;align-items:center;gap:4px;font-family:inherit}
+.cg-add-btn:hover{background:#e6f4ff;border-color:#1677ff}
+
+/* 厂商独立日期范围 */
+.vendor-date{display:inline-flex;align-items:center;gap:3px;height:24px;border:1px solid #d9d9d9;border-radius:3px;padding:0 4px;background:#fff;font-size:11px;color:#555}
+.vendor-date::before{content:"📅";font-size:11px;margin-right:2px}
+.vendor-date input{height:20px;border:none;outline:none;background:transparent;font-size:11px;font-family:inherit;width:80px;text-align:center;color:#222;padding:0 2px}
+.vendor-date input:hover{background:#f5f5f5;border-radius:2px}
+.vendor-date .sep{color:#bbb}
+
+/* ── 全局健康分概览 ── */
+.overview-bar{background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:24px}
+.ov-stat{display:flex;flex-direction:column;gap:2px;padding-right:24px;border-right:1px solid #f0f0f0}
+.ov-stat:last-child{border-right:none}
+.ov-stat .ov-label{font-size:11px;color:#888}
+.ov-stat .ov-num{font-size:20px;font-weight:600;color:#222;display:flex;align-items:center;gap:6px}
+.ov-stat .ov-num small{font-size:12px;font-weight:400}
+.ov-trend{font-size:11.5px;display:inline-flex;align-items:center;gap:2px;padding:1px 5px;border-radius:3px}
+.ov-trend.up{background:#fff1f0;color:#cf1322}
+.ov-trend.down{background:#f6ffed;color:#389e0d}
+
+/* ── 游戏卡片 ── */
+.game-card{background:#fff;border:1px solid #e8e8e8;border-radius:8px;margin-bottom:14px;overflow:hidden}
+.gc-head{padding:12px 16px;border-bottom:1px solid #f0f0f0;background:linear-gradient(180deg,#fafbff,#fff);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.gc-name{font-size:15px;font-weight:600;color:#222;display:flex;align-items:center;gap:6px}
+.gc-name .cur{font-size:11px;font-weight:500;color:#1677ff;background:#e6f4ff;padding:1px 7px;border-radius:3px;border:1px solid #91caff}
+.gc-vendors{display:flex;align-items:center;gap:14px;font-size:12px;color:#555}
+.gc-vendor{display:flex;align-items:center;gap:5px}
+.gc-vendor .v-name{font-weight:600;color:#222}
+
+/* 健康分 pill */
+.health-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:11px;font-size:11px;font-weight:600;border:1px solid}
+.h-good{background:#f6ffed;color:#389e0d;border-color:#b7eb8f}
+.h-warn{background:#fffbe6;color:#d48806;border-color:#ffe58f}
+.h-bad{background:#fff1f0;color:#cf1322;border-color:#ffa39e}
+
+.gc-warn{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:#fff7e6;color:#d46b08;border:1px solid #ffd591;border-radius:11px;font-size:11px;font-weight:500;cursor:pointer}
+.gc-warn:hover{background:#ffe7c2}
+
+.gc-actions{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* ── 对比表格 ── */
+.cmp-tbl-wrap{overflow-x:auto;border-radius:0 0 8px 8px}
+.cmp-tbl-wrap::-webkit-scrollbar{height:10px}
+.cmp-tbl-wrap::-webkit-scrollbar-track{background:#fafafa}
+.cmp-tbl-wrap::-webkit-scrollbar-thumb{background:#d9d9d9;border-radius:5px}
+.cmp-tbl-wrap::-webkit-scrollbar-thumb:hover{background:#bfbfbf}
+.cmp-tbl{width:auto;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
+/* PG / UP 段头 — 厂商色填充更醒目 */
+.cmp-tbl thead tr.row-meta th{text-align:center;padding:9px 8px;font-weight:700;font-size:12.5px;border:none;letter-spacing:.3px}
+.cmp-tbl thead tr.row-meta th.meta-pg{background:linear-gradient(180deg,#1677ff,#0958d9);color:#fff}
+.cmp-tbl thead tr.row-meta th.meta-up{background:linear-gradient(180deg,#fa8c16,#d46b08);color:#fff}
+/* 列头 */
+.cmp-tbl thead tr.row-header th{text-align:right;padding:7px 6px;font-weight:500;color:#555;border-bottom:1px solid #e8e8e8;font-size:11.5px;white-space:nowrap;line-height:1.35}
+.cmp-tbl thead tr.row-header th.first{text-align:center;color:#666;font-weight:600;border-right:1px solid #e8e8e8}
+.cmp-tbl thead tr.row-header th.pg-side{background:#f0f7ff;border-bottom-color:#91caff}
+.cmp-tbl thead tr.row-header th.up-side{background:#fff7e6;border-bottom-color:#ffd591}
+/* 内容单元格 — 行无底色（纯白） */
+.cmp-tbl tbody td{padding:8px 7px;text-align:right;border-bottom:1px solid #f5f5f5;font-size:12px;color:#333;white-space:nowrap;font-variant-numeric:tabular-nums;background:#fff}
+.cmp-tbl tbody td.first{text-align:center;color:#666;font-size:11.5px;font-weight:500;border-right:1px solid #e8e8e8;background:#fafafa}
+/* 盈利率：正绿负红 */
+.cmp-tbl tbody td.pr-pos{color:#389e0d;font-weight:600}
+.cmp-tbl tbody td.pr-neg{color:#cf1322;font-weight:600}
+/* sep-col 中间缓冲列 */
+.cmp-tbl col.sep-col{width:30px}
+.cmp-tbl thead tr.row-meta th.sep-col,
+.cmp-tbl thead tr.row-header th.sep-col,
+.cmp-tbl tbody td.sep-col{background:#fff!important;border:none!important;padding:0;width:30px}
+/* 合计行（唯一带底色的行） */
+.cmp-tbl tbody tr.tr-total td{padding:10px 7px;font-weight:700;border-top:2px solid #ffa940;background:#fff7e6}
+.cmp-tbl tbody tr.tr-total td.first{background:#fff1d6;color:#874d00}
+.cmp-tbl tbody tr.tr-total td.sep-col{border-top:none!important;background:#fff!important;font-weight:normal}
+.cmp-tbl tbody tr:hover td:not(.sep-col){background:#fafcff}
+.cmp-tbl tbody tr.tr-total:hover td:not(.sep-col){background:#fff7e6}
+.cmp-tbl tbody tr.tr-total:hover td.first{background:#fff1d6}
+
+/* 数值颜色 */
+.num-pos{color:#389e0d;font-weight:500}
+.num-neg{color:#cf1322;font-weight:500}
+.num-bold{font-weight:600;color:#222}
+.num-flag{display:inline-flex;align-items:center;gap:2px;padding:0 4px;border-radius:3px}
+.num-flag.bad{background:#fff1f0;color:#cf1322;font-weight:600}
+.num-flag.warn{background:#fff7e6;color:#d46b08;font-weight:500}
+
+
+/* 有效投注比列 */
+.cmp-tbl thead tr.row-header th.eff-col{background:#e6f4ff;color:#0958d9}
+.cmp-tbl tbody td.eff-col{background:#f0f7ff;font-weight:600;font-variant-numeric:tabular-nums}
+.eff-warn{color:#d46b08}
+.eff-bad{color:#cf1322;font-weight:700}
+/* DoD 列 */
+.cmp-tbl thead tr.row-header th.dod-head{background:#fafafa;font-size:10.5px}
+.cmp-tbl thead tr.row-header th.dod-head .dod-sub{font-size:9.5px;color:#aaa;font-weight:400}
+.cmp-tbl tbody td.dod{font-size:11px;font-variant-numeric:tabular-nums}
+.dod-up{color:#389e0d;font-weight:500}     /* DoD > 110% 绿色 — 增长（流水/玩家/笔数变多） */
+.dod-down{color:#cf1322;font-weight:500}   /* DoD < 90% 红色 — 下降（值得警觉） */
+/* 合计行 */
+.cmp-tbl tbody tr.tr-total td{background:#fff7e6!important;font-weight:600;color:#874d00;border-top:2px solid #ffd591}
+.cmp-tbl tbody tr.tr-total td.first{font-size:12px;color:#874d00;text-align:center;font-weight:700}
+.cmp-tbl tbody tr.tr-total td.sep,.cmp-tbl tbody tr.tr-total td.tr-total-sep{background:#fff!important;border-top:none}
+
+/* RTP 高亮列（核心） */
+.cmp-tbl thead tr.row-meta th.diff-col-head.rtp-head{background:#fff1d6;color:#874d00;border-color:#ffc069}
+.cmp-tbl thead tr.row-header th.rtp-col{background:#ffe7c2;color:#874d00;border-bottom-color:#ffc069;font-weight:600}
+.cmp-tbl tbody td.rtp-col{background:#fff7e6;font-weight:600;color:#874d00;border-left:1px solid #ffe0b2;border-right:1px solid #ffe0b2;font-variant-numeric:tabular-nums}
+.cmp-tbl tbody tr:hover td.rtp-col{background:#ffe7c2!important}
+.cmp-tbl tbody tr.diff-col td.rtp-col{background:#ffeec2}
+/* RTP 偏离度配色（理论 RTP=96%） */
+.rtp-ok{color:#389e0d}    /* |dev| ≤ 3% */
+.rtp-mild{color:#d48806}  /* 3% < |dev| ≤ 6% */
+.rtp-bad{color:#cf1322}   /* |dev| > 6% */
+.rtp-theoretical{font-size:9.5px;color:#aaa;font-weight:400;margin-left:2px}
+
+/* sparkline */
+.sp-svg{display:inline-block;vertical-align:middle}
+
+/* ── 扩展指标区（折叠） ── */
+.gc-extra{padding:12px 16px 14px;background:#fcfcfc;border-top:1px solid #f0f0f0;display:none}
+.gc-extra.show{display:block}
+.gc-extra-title{font-size:12px;color:#555;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.gc-extra-title::before{content:"";width:3px;height:12px;background:#1677ff;border-radius:2px;display:inline-block}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.metric-card{background:#fff;border:1px solid #f0f0f0;border-radius:5px;padding:9px 11px;display:flex;flex-direction:column;gap:3px}
+.metric-card.dual{grid-template-columns:1fr 1fr}
+.mc-label{font-size:11px;color:#888;display:flex;align-items:center;justify-content:space-between}
+.mc-row{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:2px}
+.mc-vendor{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0}
+.mc-vendor .vn{font-size:10px;color:#aaa}
+.mc-vendor .vv{font-size:13px;font-weight:600;color:#222;font-variant-numeric:tabular-nums}
+.mc-diff{font-size:10.5px;font-weight:600;padding:1px 5px;border-radius:3px;flex-shrink:0}
+.mc-diff.pos{background:#f6ffed;color:#389e0d}
+.mc-diff.neg{background:#fff1f0;color:#cf1322}
+
+/* 折叠按钮 */
+.gc-expand{padding:8px 0;text-align:center;background:#fcfcfc;border-top:1px solid #f0f0f0;color:#1677ff;cursor:pointer;font-size:12px;user-select:none}
+.gc-expand:hover{background:#f0f6ff}
+.gc-expand .arrow{display:inline-block;transition:transform .15s;margin-left:3px}
+.gc-expand.expanded .arrow{transform:rotate(180deg)}
+
+/* ── 详情页 ── */
+.detail-card{background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:18px;margin-bottom:12px}
+.dc-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #f0f0f0}
+.dc-title{font-size:15px;font-weight:600;color:#222}
+.dc-back{font-size:12px;color:#1677ff;cursor:pointer}.dc-back:hover{text-decoration:underline}
+
+.dc-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+.dc-stat{background:#fafbff;border-radius:5px;padding:10px 12px;border:1px solid #f0f0f0}
+.dc-stat .l{font-size:11px;color:#888}
+.dc-stat .v{font-size:16px;font-weight:600;color:#222;margin-top:3px}
+.dc-stat .d{font-size:10.5px;margin-top:3px;color:#888}
+
+.dc-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.dc-chart{background:#fff;border:1px solid #f0f0f0;border-radius:5px;padding:14px}
+.dc-chart-title{font-size:12.5px;font-weight:600;color:#444;margin-bottom:10px}
+
+/* bar chart */
+.bar-chart{display:flex;align-items:flex-end;height:140px;gap:3px}
+.bar{flex:1;background:linear-gradient(180deg,#69b1ff,#1677ff);border-radius:2px 2px 0 0;position:relative;cursor:pointer;transition:all .15s;min-height:2px}
+.bar:hover{background:linear-gradient(180deg,#1677ff,#0958d9)}
+.bar-chart-x{display:flex;gap:3px;margin-top:5px;font-size:10px;color:#888}
+.bar-chart-x span{flex:1;text-align:center}
+
+/* trend chart */
+.trend-svg{width:100%;height:160px}
+
+/* player table */
+.player-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.player-tbl th{background:#fafafa;padding:8px 10px;text-align:left;font-weight:500;color:#555;border-bottom:1px solid #e8e8e8;font-size:11.5px}
+.player-tbl td{padding:8px 10px;border-bottom:1px solid #f5f5f5}
+.player-tbl tr:hover td{background:#fafcff}
+
+/* 字段说明面板 */
+.dict-card{background:#fff;border:1px solid #e8e8e8;border-radius:6px;margin-bottom:12px;overflow:hidden}
+.dict-head{padding:11px 16px;background:#fafafa;border-bottom:1px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.dict-head:hover{background:#f0f6ff}
+.dict-card.open .dict-head{border-bottom-color:#f0f0f0}
+.dict-title{font-size:13px;font-weight:600;color:#222;display:flex;align-items:center;gap:7px}
+.dict-title-icon{font-size:14px}
+.dict-arrow{color:#1677ff;font-size:12px;transition:transform .2s}
+.dict-card.open .dict-arrow{transform:rotate(180deg)}
+.dict-body{padding:14px 16px;display:none;background:#fcfcfc}
+.dict-card.open .dict-body{display:block}
+.dict-section{margin-bottom:14px}
+.dict-section:last-child{margin-bottom:0}
+.dict-section-title{font-size:12.5px;font-weight:600;color:#1677ff;margin-bottom:8px;padding-left:7px;border-left:3px solid #1677ff}
+.dict-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0 24px}
+.dict-grid.full{grid-template-columns:1fr}
+.dict-row{display:flex;gap:8px;padding:5px 0;font-size:12px;line-height:1.55;border-bottom:1px dashed #f0f0f0}
+.dict-row:last-child{border-bottom:none}
+.dict-key{flex:0 0 110px;color:#222;font-weight:500}
+.dict-val{flex:1;color:#555}
+.dict-val code{background:#fff7e6;color:#874d00;padding:1px 5px;border-radius:3px;font-family:'SF Mono',Monaco,monospace;font-size:11.5px}
+.dict-note{margin-top:6px;padding:8px 10px;background:#e6f4ff;border-radius:4px;font-size:11.5px;color:#0958d9;line-height:1.7}
+.dict-pill{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600;margin-right:4px}
+.dict-pill.ok{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.dict-pill.mild{background:#fffbe6;color:#d48806;border:1px solid #ffe58f}
+.dict-pill.bad{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+
+/* ── 告警页 ── */
+.alert-card{background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
+.al-rule{flex:1;display:flex;flex-direction:column;gap:5px}
+.al-name{font-size:13px;font-weight:600;color:#222}
+.al-desc{font-size:11.5px;color:#666}
+.al-thresh{display:flex;align-items:center;gap:6px;font-size:12px}
+.al-thresh input{height:28px;border:1px solid #d9d9d9;border-radius:4px;padding:0 8px;font-size:12px;width:70px;text-align:right;outline:none;font-family:inherit}
+.al-channel{display:flex;gap:4px}
+.al-ch-tag{padding:1px 7px;background:#f5f5f5;color:#666;border-radius:3px;font-size:11px;cursor:pointer;border:1px solid #e0e0e0}
+.al-ch-tag.on{background:#e6f4ff;color:#1677ff;border-color:#91caff}
+
+/* 切换页签 */
+.page-content{display:none}
+.page-content.active{display:block}
+
+/* tooltip */
+[data-tip]{position:relative;cursor:help}
+[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#333;color:#fff;font-size:11px;padding:5px 9px;border-radius:4px;white-space:nowrap;z-index:10;margin-bottom:5px;font-weight:400}
+
+.muted{color:#aaa}
+
+/* ── 厂商多选（含独立日期） ── */
+.fb-item-multi{align-items:flex-start!important}
+.fb-item-multi > label{padding-top:5px}
+.vendor-multi-box{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:32px;border:1px solid #d9d9d9;border-radius:4px;padding:5px 8px;background:#fff;flex:1}
+.vendor-chip{display:inline-flex;align-items:center;gap:6px;padding:3px 6px 3px 4px;border-radius:4px;border:1px solid;background:#fff}
+.vendor-chip.vp-pg{border-color:#91caff;background:#f0f7ff}
+.vendor-chip.vp-up{border-color:#ffd591;background:#fff7e6}
+.vendor-chip .v-tag{padding:1px 6px;border-radius:3px;font-size:10.5px;font-weight:700;color:#fff}
+.vendor-chip.vp-pg .v-tag{background:#1677ff}
+.vendor-chip.vp-up .v-tag{background:#fa8c16}
+.vendor-chip .v-name{font-size:12px;color:#222;font-weight:500}
+.vendor-chip .v-date{display:inline-flex;align-items:center;gap:3px;padding:0 4px;border-radius:3px;background:#fff;border:1px solid #e0e0e0}
+.vendor-chip .v-date input{height:22px;border:none;outline:none;background:transparent;font-size:11px;font-family:inherit;width:88px;text-align:center;color:#222;padding:0}
+.vendor-chip .v-date .d-sep{color:#bbb;font-size:10px}
+.vendor-chip .x{cursor:pointer;color:#bbb;font-size:12px;padding:0 2px}
+.vendor-chip .x:hover{color:#cf1322}
+.vendor-add{height:26px;padding:0 10px;border-radius:3px;border:1px dashed #91caff;background:#f0f7ff;color:#1677ff;cursor:pointer;font-size:11.5px;font-family:inherit}
+.vendor-add:hover{background:#e6f4ff;border-color:#1677ff}
+
+/* 添加厂商下拉 */
+.vendor-add-wrap{position:relative;display:inline-block}
+.vendor-dropdown{display:none;position:absolute;top:30px;left:0;background:#fff;border:1px solid #d9d9d9;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:180px;padding:4px 0;z-index:100}
+.vendor-dropdown.show{display:block}
+.vd-option{padding:8px 12px;cursor:pointer;font-size:12px;color:#333;display:flex;align-items:center;gap:6px;transition:background .12s}
+.vd-option:hover:not(.vd-disabled){background:#f0f7ff;color:#1677ff}
+.vd-option.vd-disabled{cursor:not-allowed;color:#bbb;background:#fafafa}
+.vd-tag{padding:1px 6px;border-radius:3px;font-size:10.5px;font-weight:700;color:#fff;letter-spacing:.3px}
+.vd-jili{background:#722ed1}
+.vd-evo{background:#13c2c2}
+.vd-pt{background:#fa541c}
+.vd-mg{background:#eb2f96}
+.vd-pg{background:#1677ff}
+.vd-up{background:#fa8c16}
+.vd-option.vd-disabled .vd-tag{opacity:.55}
+.vd-sel-mark{margin-left:auto;font-size:10.5px;color:#52c41a;font-weight:600}
+
+/* 新加厂商颜色 */
+.vendor-chip.vp-green{border-color:#b7eb8f;background:#f6ffed}
+.vendor-chip.vp-green .v-tag{background:#722ed1}
+.vendor-chip.vp-purple{border-color:#d3adf7;background:#f9f0ff}
+.vendor-chip.vp-purple .v-tag{background:#13c2c2}
+.vendor-chip.vp-cyan{border-color:#87e8de;background:#e6fffb}
+.vendor-chip.vp-cyan .v-tag{background:#fa541c}
+.vendor-chip.vp-pink{border-color:#ffadd2;background:#fff0f6}
+.vendor-chip.vp-pink .v-tag{background:#eb2f96}
+
+/* ── 报表卡片 ── */
+.rpt-card{background:#fff;border:1px solid #e8e8e8;border-radius:6px;overflow:hidden}
+.rpt-toolbar{padding:10px 14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;background:#fafbff}
+.rpt-toolbar-right{display:flex;align-items:center;gap:6px}
+.rpt-tbl-wrap{overflow-x:auto}
+.rpt-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.rpt-tbl thead th{background:#fafafa;padding:11px 10px;text-align:center;font-weight:500;color:#555;border-bottom:1px solid #e8e8e8;font-size:11.5px;white-space:nowrap;line-height:1.4}
+.rpt-tbl thead th.th-game{text-align:left;padding-left:14px}
+.rpt-tbl thead th.th-sort{cursor:pointer}
+.rpt-tbl thead th.th-sort:hover{background:#f0f6ff;color:#1677ff}
+.rpt-tbl thead th .sort-arr{font-size:10px;color:#bbb;margin-left:3px}
+.rpt-tbl thead th.th-eff-bet{background:#fff7e6;color:#874d00}
+.rpt-tbl tbody td{padding:11px 10px;text-align:center;border-bottom:1px solid #f5f5f5;font-size:12.5px;color:#333;font-variant-numeric:tabular-nums}
+.rpt-tbl tbody td.cell-game{text-align:left;padding-left:14px;line-height:1.5}
+.rpt-tbl tbody td.cell-game .game-cn{font-size:12.5px;color:#222;font-weight:500}
+.rpt-tbl tbody td.cell-game .game-en{font-size:11.5px;color:#888}
+.rpt-tbl tbody td.eff-bet-col{background:#fffbf0;font-weight:500}
+.rpt-tbl tbody tr.row-group-start td{border-top:2px solid #e8e8e8}
+.rpt-tbl tbody tr:first-child td{border-top:none}
+.rpt-tbl tbody tr:hover td{background:#fafcff}
+
+.v-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:3px;font-size:11.5px;font-weight:500;border:1px solid}
+.v-pill.vendor-pg{background:#e6f4ff;color:#1677ff;border-color:#91caff}
+.v-pill.vendor-up{background:#fff7e6;color:#d46b08;border-color:#ffd591}
+.cur-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:3px;background:#e6f4ff;color:#1677ff;border:1px solid #91caff;font-size:11px;font-weight:500}
+
+.num-pos-bold{color:#389e0d;font-weight:700}
+.num-neg-bold{color:#cf1322;font-weight:700}
+
+/* ── 分页 ── */
+.rpt-pager{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid #f0f0f0;background:#fafbff}
+.pg-controls{display:flex;align-items:center;gap:6px}
+.pg-btn{height:26px;padding:0 10px;border:1px solid #d9d9d9;background:#fff;border-radius:3px;font-size:11.5px;cursor:pointer;font-family:inherit;color:#555}
+.pg-btn:hover{border-color:#1677ff;color:#1677ff}
+.pg-btn.on{background:#1677ff;color:#fff;border-color:#1677ff}
+.pg-size{height:26px;border:1px solid #d9d9d9;border-radius:3px;font-size:11.5px;padding:0 6px;outline:none;font-family:inherit;background:#fff}
+
+/* ── 全字段始终显示（已取消按游戏子类联动） ── */
+
+/* ── 对配简化版（chip + 搜索建议） ── */
+.ps-wrap{flex:1;position:relative;border:1px solid #d9d9d9;border-radius:4px;background:#fff;padding:6px 8px;display:flex;flex-direction:column;gap:5px;min-height:38px}
+.ps-wrap:focus-within{border-color:#1677ff}
+.ps-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ps-chip{display:inline-flex;align-items:center;gap:8px;padding:4px 6px 4px 10px;background:#f0f7ff;border:1px solid #91caff;border-radius:4px;font-size:11.5px}
+.ps-chip-name{font-weight:600;color:#0958d9}
+.ps-chip-detail{font-size:10.5px;color:#666;display:inline-flex;align-items:center;gap:3px}
+.ps-vt{display:inline-flex;align-items:center;padding:0 4px;border-radius:2px;font-size:9.5px;font-weight:700;color:#fff;margin-right:2px;letter-spacing:.3px}
+.ps-vt-pg{background:#1677ff}
+.ps-vt-up{background:#fa8c16}
+.ps-vt-jili{background:#722ed1}
+.ps-arr{color:#bbb;font-size:10px;margin:0 3px}
+.ps-chip-x{cursor:pointer;color:#888;font-size:13px;padding:0 4px;line-height:1}
+.ps-chip-x:hover{color:#cf1322}
+
+.ps-search-wrap{display:flex;align-items:center;gap:5px;padding:2px 0}
+.ps-search-icon{color:#bbb;font-size:13px;padding-left:3px}
+.ps-search-input{flex:1;height:24px;border:none;outline:none;background:transparent;font-size:12px;font-family:inherit;color:#333}
+.ps-search-input::placeholder{color:#bbb;font-size:11.5px}
+
+/* 下拉 */
+.ps-dropdown{display:none;position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#fff;border:1px solid #d9d9d9;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.12);padding:6px 0;max-height:360px;overflow-y:auto;z-index:100}
+.ps-dropdown.show{display:block}
+.ps-section-title{padding:6px 12px;font-size:11px;color:#888;font-weight:600;background:#fafafa;letter-spacing:.3px}
+.ps-option{padding:8px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .12s}
+.ps-option:hover{background:#f0f7ff}
+.ps-opt-left{flex:1;display:flex;flex-direction:column;gap:3px}
+.ps-opt-name{font-size:12.5px;font-weight:600;color:#222}
+.ps-opt-mapping{font-size:11px;color:#666;display:inline-flex;align-items:center;gap:3px}
+.ps-opt-add{padding:4px 10px;background:#1677ff;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:11px;font-family:inherit;flex-shrink:0}
+.ps-opt-add:hover{background:#0958d9}
+.ps-quick{display:flex;flex-wrap:wrap;gap:5px;padding:6px 12px 10px}
+.ps-quick-btn{padding:5px 10px;background:#fff;border:1px solid #d9d9d9;border-radius:14px;cursor:pointer;font-size:11px;color:#555;font-family:inherit}
+.ps-quick-btn:hover{border-color:#1677ff;color:#1677ff;background:#e6f4ff}
+
+/* ── 对配关系列表（方案 B 旧版，已弃用） ── */
+.pair-list-box{flex:1;border:1px solid #d9d9d9;border-radius:4px;overflow:hidden;background:#fff}
+.pl-head{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fafbff;border-bottom:1px solid #e8e8e8;font-size:11.5px;font-weight:600;color:#555}
+.pl-row{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #f5f5f5;background:#fff}
+.pl-row:hover{background:#fafcff}
+.pl-idx{flex:0 0 32px;text-align:center;color:#888;font-size:11.5px;font-weight:600}
+.pl-name{flex:0 0 170px}
+.pl-name input{height:28px;border:1px solid #d9d9d9;border-radius:3px;padding:0 8px;font-size:12px;outline:none;font-family:inherit;width:100%;background:#fff}
+.pl-name input:focus{border-color:#1677ff}
+.pl-col{flex:1;min-width:200px;display:flex;align-items:center;gap:5px;padding:3px 7px;border-radius:3px;font-size:11.5px}
+.pl-col-pg{background:#f0f7ff;border-left:3px solid #1677ff}
+.pl-col-up{background:#fff8ec;border-left:3px solid #fa8c16}
+.pl-row > .pl-col select{flex:1;height:28px;border:1px solid #d9d9d9;border-radius:3px;padding:0 6px;font-size:11.5px;outline:none;font-family:inherit;background:#fff;font-variant-numeric:tabular-nums}
+.pl-row > .pl-col select:focus{border-color:#1677ff}
+.pl-head .pl-col{padding:0;background:transparent;border:none;color:#555;font-weight:600}
+.pl-del{flex:0 0 30px}
+.pl-del-btn{flex:0 0 24px;width:24px;height:24px;border:1px solid #f0f0f0;background:#fff;color:#888;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;font-family:inherit}
+.pl-del-btn:hover{border-color:#ffa39e;background:#fff1f0;color:#cf1322}
+.pl-add{padding:10px 12px;text-align:center;background:#fafbff;border-top:1px dashed #bae0ff;color:#1677ff;cursor:pointer;font-size:12.5px;font-weight:500;user-select:none}
+.pl-add:hover{background:#e6f4ff}
+
+/* 模板操作 */
+.pl-template-actions{display:flex;align-items:center;gap:8px}
+.tpl-wrap{position:relative;display:inline-block}
+.tpl-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;width:360px;background:#fff;border:1px solid #d9d9d9;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,.15);z-index:200;overflow:hidden}
+.tpl-dropdown.show{display:block;animation:tplFade .15s}
+@keyframes tplFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.tpl-search-wrap{padding:8px 10px;border-bottom:1px solid #f0f0f0;background:#fafafa;display:flex;align-items:center;gap:5px}
+.tpl-search-icon{color:#bbb;font-size:12px}
+.tpl-search-input{flex:1;height:28px;border:1px solid #d9d9d9;border-radius:3px;padding:0 8px;font-size:12px;outline:none;font-family:inherit;background:#fff}
+.tpl-search-input:focus{border-color:#1677ff}
+.tpl-list{max-height:300px;overflow-y:auto}
+.tpl-item{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;border-bottom:1px solid #f5f5f5;transition:background .12s}
+.tpl-item:last-child{border-bottom:none}
+.tpl-item:hover{background:#f0f7ff}
+.tpl-icon{flex-shrink:0;font-size:14px}
+.tpl-info{flex:1;min-width:0}
+.tpl-name{font-size:12.5px;font-weight:600;color:#222;line-height:1.4}
+.tpl-meta{font-size:10.5px;color:#888;margin-top:2px;line-height:1.4}
+.tpl-action{flex-shrink:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;color:#888;cursor:pointer;border-radius:3px;font-size:12px}
+.tpl-action:hover{background:#e6f4ff;color:#1677ff}
+.tpl-action.tpl-del:hover{background:#fff1f0;color:#cf1322}
+.tpl-footer{padding:8px 12px;background:#fff7e6;color:#874d00;font-size:11px;border-top:1px solid #ffe7c2}
+
+.tpl-current.has-tpl{color:#1677ff!important;font-weight:500}
+
+/* 通用 Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex;animation:tplFade .15s}
+.modal-dialog{background:#fff;border-radius:8px;box-shadow:0 12px 48px rgba(0,0,0,.25);width:440px;max-width:90%}
+.md-head{padding:14px 18px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between}
+.md-title{font-size:14px;font-weight:600;color:#222}
+.md-close{width:26px;height:26px;border:none;background:none;cursor:pointer;font-size:18px;color:#aaa;border-radius:4px;display:inline-flex;align-items:center;justify-content:center}
+.md-close:hover{background:#f0f0f0;color:#cf1322}
+.md-body{padding:16px 18px}
+.md-field{margin-bottom:14px}
+.md-field label{display:block;font-size:12px;color:#555;margin-bottom:5px;font-weight:500}
+.md-field input,.md-field textarea{width:100%;border:1px solid #d9d9d9;border-radius:4px;padding:8px 10px;font-size:12.5px;outline:none;font-family:inherit;resize:vertical}
+.md-field input{height:32px}
+.md-field input:focus,.md-field textarea:focus{border-color:#1677ff}
+.md-summary{margin-top:12px;padding:8px 10px;background:#f0f7ff;border-radius:4px;font-size:12px;color:#0958d9}
+.md-summary b{color:#0958d9;font-weight:600}
+.md-footer{padding:12px 18px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:8px}
+
+/* Toast */
+.toast-wrap{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;pointer-events:none}
+.toast{padding:10px 18px;border-radius:6px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.15);display:inline-flex;align-items:center;gap:8px;animation:toastIn .25s;margin-bottom:8px;background:#fff;border:1px solid}
+.toast.success{color:#389e0d;border-color:#b7eb8f;background:#f6ffed}
+.toast.info{color:#0958d9;border-color:#91caff;background:#e6f4ff}
+.toast.warn{color:#cf1322;border-color:#ffa39e;background:#fff1f0}
+@keyframes toastIn{from{top:20px;opacity:0}to{top:0;opacity:1}}
+
+/* ── 比对表（左右并列） ── */
+.rpt-tbl-cmp{width:auto;table-layout:fixed}
+.rpt-tbl-cmp thead tr.row-meta th{padding:10px 8px;text-align:center;font-weight:700;font-size:12.5px;border:none}
+.rpt-tbl-cmp thead tr.row-meta th.th-shared{background:#fafafa;color:#555;border-bottom:1px solid #e8e8e8;vertical-align:middle}
+.rpt-tbl-cmp thead tr.row-meta th.meta-pg{background:linear-gradient(180deg,#1677ff,#0958d9);color:#fff}
+.rpt-tbl-cmp thead tr.row-meta th.meta-up{background:linear-gradient(180deg,#fa8c16,#d46b08);color:#fff}
+.rpt-tbl-cmp thead tr.row-header th{background:#fafafa;text-align:center;padding:8px 6px;font-weight:500;color:#555;border-bottom:1px solid #e8e8e8;font-size:11.5px;line-height:1.35;white-space:nowrap}
+.rpt-tbl-cmp thead tr.row-header th.pg-side{background:#f0f7ff;border-bottom-color:#91caff}
+.rpt-tbl-cmp thead tr.row-header th.up-side{background:#fff7e6;border-bottom-color:#ffd591}
+.rpt-tbl-cmp thead tr.row-header th.eff-bet-col{background:#fff7c2;color:#874d00;font-weight:600}
+.rpt-tbl-cmp thead tr.row-header th.pg-side.eff-bet-col{background:#fffbe6;color:#0958d9}
+.rpt-tbl-cmp thead tr.row-header th.up-side.eff-bet-col{background:#fff2d6;color:#874d00}
+.rpt-tbl-cmp tbody td{padding:10px 8px;text-align:center;border-bottom:1px solid #f5f5f5;font-size:12px;color:#333;font-variant-numeric:tabular-nums;line-height:1.4}
+.rpt-tbl-cmp tbody td.cell-game{text-align:left;padding-left:14px;font-weight:500;background:#fafafa;border-right:1px solid #e8e8e8}
+.rpt-tbl-cmp tbody td.cell-game .game-cn{font-size:12.5px;color:#222;font-weight:600}
+.rpt-tbl-cmp tbody td.cell-game .game-en{font-size:11px;color:#888;font-weight:400;margin-top:1px}
+.rpt-tbl-cmp tbody td.cell-cur{background:#fafafa;border-right:2px solid #e8e8e8}
+.rpt-tbl-cmp tbody td.pg-side{background:rgba(22,119,255,.025)}
+.rpt-tbl-cmp tbody td.up-side{background:rgba(250,140,22,.04)}
+.rpt-tbl-cmp tbody td.pg-side.eff-bet-col{background:#e6f4ff;font-weight:600;color:#0958d9}
+.rpt-tbl-cmp tbody td.up-side.eff-bet-col{background:#ffe7c2;font-weight:600;color:#874d00}
+/* PG 末列分隔到 UP */
+.rpt-tbl-cmp tbody td.pg-end-flag,
+.rpt-tbl-cmp thead tr.row-header th.pg-end-flag{border-right:3px solid #fff}
+
+/* 合计行 */
+.rpt-tbl-cmp tbody tr.tr-total-row td{background:#fff7e6!important;font-weight:700;border-top:2px solid #ffa940;padding:12px 8px;font-size:12.5px}
+.rpt-tbl-cmp tbody tr.tr-total-row td.cell-game{background:#fff1d6!important;border-right:1px solid #ffd591}
+.rpt-tbl-cmp tbody tr.tr-total-row td.cell-game .total-label,
+.rpt-tbl-cmp tbody tr.tr-total-row td.cell-game b{color:#874d00;font-size:14px}
+.rpt-tbl-cmp tbody tr.tr-total-row td.cell-cur{background:#fff1d6!important;border-right:2px solid #ffd591}
+
+.rpt-tbl-cmp tbody tr:hover td{filter:brightness(.97)}
+
+/* ─────────── 全局对比矩阵 ─────────── */
+.summary-matrix{background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:14px 16px;margin-bottom:12px}
+.sm-title{font-size:13px;font-weight:600;color:#222;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sm-title .sm-sub{font-size:11.5px;color:#888;font-weight:400;margin-left:6px}
+.sm-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.sm-tbl th{background:#fafafa;padding:8px 10px;text-align:center;font-weight:500;color:#555;border:1px solid #f0f0f0;font-size:11.5px;white-space:nowrap}
+.sm-tbl td{padding:8px 10px;text-align:center;border:1px solid #f5f5f5;font-size:12px;white-space:nowrap}
+.sm-tbl tr:hover td{background:#fafcff}
+.sm-tbl td.game-name{text-align:left;font-weight:600;color:#222}
+.sm-winner-pg{display:inline-flex;align-items:center;gap:3px;color:#1677ff;font-weight:600;font-size:11.5px}
+.sm-winner-up{display:inline-flex;align-items:center;gap:3px;color:#d46b08;font-weight:600;font-size:11.5px}
+.sm-tie{color:#888;font-size:11.5px}
+.sm-delta{font-size:10.5px;color:#888;margin-left:2px}
+.sm-overall-pg{background:linear-gradient(135deg,#e6f4ff,#bae0ff);color:#0958d9;font-weight:700;border-radius:3px;padding:2px 8px;display:inline-flex;align-items:center;gap:3px}
+.sm-overall-up{background:linear-gradient(135deg,#fff7e6,#ffd591);color:#874d00;font-weight:700;border-radius:3px;padding:2px 8px;display:inline-flex;align-items:center;gap:3px}
+.sm-score{font-size:10px;color:#888;margin-left:3px}
+
+/* ─────────── 胜负仪表盘 ─────────── */
+.scoreboard{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0 0;width:100%;padding:8px 0 4px;border-top:1px dashed #f0f0f0}
+.sb-item{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:4px;font-size:11.5px;border:1px solid;line-height:1.3}
+.sb-item .sb-dim{color:#666;font-size:10.5px}
+.sb-item .sb-winner{font-weight:700;font-size:11px}
+.sb-item .sb-delta{font-size:10.5px;color:#888}
+.sb-pg{background:#f0f7ff;border-color:#bae0ff}
+.sb-pg .sb-winner{color:#0958d9}
+.sb-up{background:#fff7e6;border-color:#ffd591}
+.sb-up .sb-winner{color:#874d00}
+.sb-tie{background:#f5f5f5;border-color:#e0e0e0}
+.sb-tie .sb-winner{color:#888}
+.sb-overall{padding:5px 12px;font-weight:700;font-size:12.5px;margin-left:auto}
+.sb-overall.sb-pg{background:linear-gradient(135deg,#e6f4ff,#bae0ff);border-color:#69b1ff}
+.sb-overall.sb-up{background:linear-gradient(135deg,#fff7e6,#ffd591);border-color:#ffa940}
+
+/* ─────────── 异常单元格 ⚠ ─────────── */
+.cell-warn{display:inline-flex;align-items:center;gap:3px}
+.cell-warn::before{content:"⚠";font-size:10px;color:#d46b08}
+
+/* ─────────── 结论小结 ─────────── */
+.game-conclusion{padding:11px 14px;background:#f6ffed;border-top:2px solid #b7eb8f;font-size:12.5px;line-height:1.65;color:#222}
+.game-conclusion.warn-mix{background:#fffbe6;border-top-color:#ffe58f}
+.gc-conclusion-row{display:flex;align-items:flex-start;gap:8px}
+.gc-conclusion-icon{flex-shrink:0;font-size:14px;margin-top:1px}
+.gc-conclusion-text{flex:1}
+.gc-conclusion-text strong{color:#222;font-weight:700}
+.gc-winner-up{color:#d46b08;font-weight:700;background:#fff7e6;padding:1px 6px;border-radius:3px;border:1px solid #ffd591}
+.gc-winner-pg{color:#1677ff;font-weight:700;background:#e6f4ff;padding:1px 6px;border-radius:3px;border:1px solid #91caff}
+.gc-alert{display:block;margin-top:6px;padding:6px 10px;background:#fff1f0;border-left:3px solid #cf1322;border-radius:0 3px 3px 0;font-size:11.5px;color:#874d00}
+.gc-alert b{color:#cf1322}
+
+/* ─────────── 视图配置面板 ─────────── */
+.view-config{background:#fff;border:1px solid #e8e8e8;border-radius:6px;padding:11px 16px;margin-bottom:12px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.vc-label{font-size:12px;color:#666;font-weight:500;margin-right:2px;white-space:nowrap}
+.vc-presets{display:flex;gap:5px;padding-right:12px;border-right:1px solid #f0f0f0}
+.vc-preset{height:28px;padding:0 12px;border-radius:4px;border:1px solid #d9d9d9;background:#fff;color:#555;cursor:pointer;font-size:12px;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
+.vc-preset:hover{border-color:#1677ff;color:#1677ff}
+.vc-preset.on{background:#1677ff;color:#fff;border-color:#1677ff}
+.vc-toggles{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.vc-toggle{height:28px;padding:0 11px;border-radius:14px;border:1px solid #d9d9d9;background:#fff;color:#888;cursor:pointer;font-size:11.5px;display:inline-flex;align-items:center;gap:5px;font-family:inherit;user-select:none;transition:all .12s}
+.vc-toggle:hover{border-color:#1677ff;color:#1677ff}
+.vc-toggle.on{background:#e6f4ff;color:#1677ff;border-color:#91caff;font-weight:500}
+.vc-toggle.on::before{content:"✓";font-size:11px;font-weight:700;color:#1677ff}
+.vc-toggle.off::before{content:"○";font-size:10px;color:#bbb}
+.vc-tip{margin-left:auto;font-size:11px;color:#aaa;display:flex;align-items:center;gap:4px}
+
+/* ─────────── 模块隐藏规则 ─────────── */
+body.hide-matrix .summary-matrix{display:none}
+body.hide-scoreboard .scoreboard{display:none}
+body.hide-eff .cmp-tbl .eff-col{display:none}
+body.hide-dod .cmp-tbl .dod,body.hide-dod .cmp-tbl .dod-head{display:none}
+body.hide-total .cmp-tbl tr.tr-total{display:none}
+body.hide-conclusion .game-conclusion{display:none}
+
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  <b>原型 · 游戏比对报表</b> · 多厂商 × 多子游戏 × 每厂商独立日期范围
+</div>
+
+<div class="layout">
+  <!-- ── 侧边导航 ── -->
+  <div class="sider">
+    <div class="menu-group">游戏厂商管理 <span>›</span></div>
+    <div class="menu-group">商户管理 <span>›</span></div>
+    <div class="menu-group">代理管理 <span>›</span></div>
+    <div class="menu-group">会员管理 <span>›</span></div>
+    <div class="menu-item" style="color:#fff;background:rgba(255,255,255,.04)">报表管理</div>
+    <div class="menu-sub">投注流水报表</div>
+    <div class="menu-sub">玩家盈亏报表</div>
+    <div class="menu-sub active">游戏比对报表</div>
+    <div class="menu-sub">厂商对账报表</div>
+    <div class="menu-group">系统设置 <span>›</span></div>
+  </div>
+
+  <!-- ── 主区域 ── -->
+  <div class="main">
+    <div class="crumb">
+      <span class="pg-title" id="pg-title">游戏比对报表</span>
+      <div class="pg-tabs">
+        <div class="ptab active" id="t0" onclick="switchPage(0)">📊 比对报表</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ════════════════════════════════════════ -->
+      <!-- 页面 0: 比对报表（默认）                    -->
+      <!-- ════════════════════════════════════════ -->
+      <div class="page-content active" id="page0">
+
+        <!-- 筛选区 -->
+        <div class="filter-bar">
+          <div class="fb-row">
+            <div class="fb-item">
+              <label>商户名称</label>
+              <select style="min-width:200px">
+                <option>sitBRL--2002</option>
+                <option>sitBRL--2003</option>
+                <option>sitINR--2001</option>
+              </select>
+            </div>
+            <div class="fb-item">
+              <label>游戏子类</label>
+              <select id="game-type" onchange="onGameTypeChange()">
+                <option value="all">全部</option>
+                <option value="lottery">lottery</option>
+                <option value="video">video</option>
+                <option value="Slot" selected>Slot</option>
+                <option value="Fish">Fish</option>
+                <option value="sport">sport</option>
+                <option value="ChessCard">ChessCard</option>
+                <option value="small game">small game</option>
+                <option value="WinGo">WinGo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fb-row">
+            <div class="fb-item fb-item-multi">
+              <label>游戏厂商</label>
+              <div class="vendor-multi-box" id="vendor-box">
+                <div class="vendor-chip vp-pg" data-code="PG">
+                  <span class="v-tag">PG</span>
+                  <span class="v-name">PG 电子</span>
+                  <span class="x" onclick="removeVendor(this,'PG')">×</span>
+                </div>
+                <div class="vendor-chip vp-up" data-code="UP">
+                  <span class="v-tag">UP</span>
+                  <span class="v-name">UP 电子</span>
+                  <span class="x" onclick="removeVendor(this,'UP')">×</span>
+                </div>
+                <div class="vendor-add-wrap">
+                  <button class="vendor-add" onclick="toggleVendorDropdown(event)">＋ 添加厂商</button>
+                  <div class="vendor-dropdown" id="vendor-dropdown">
+                    <div class="vd-option" data-code="JILI" onclick="addVendor('JILI','JILI 电子','vp-green')"><span class="vd-tag vd-jili">JILI</span> JILI 电子</div>
+                    <div class="vd-option" data-code="EVO" onclick="addVendor('EVO','EVO 视讯','vp-purple')"><span class="vd-tag vd-evo">EVO</span> EVO 视讯</div>
+                    <div class="vd-option" data-code="PT" onclick="addVendor('PT','PT 电子','vp-cyan')"><span class="vd-tag vd-pt">PT</span> PT 电子</div>
+                    <div class="vd-option" data-code="MG" onclick="addVendor('MG','MG 电子','vp-pink')"><span class="vd-tag vd-mg">MG</span> MG 电子</div>
+                    <div class="vd-option vd-disabled" data-code="PG" data-selected="1"><span class="vd-tag vd-pg">PG</span> PG 电子 <span class="vd-sel-mark">✓ 已选</span></div>
+                    <div class="vd-option vd-disabled" data-code="UP" data-selected="1"><span class="vd-tag vd-up">UP</span> UP 电子 <span class="vd-sel-mark">✓ 已选</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fb-row" style="align-items:flex-start">
+            <div class="fb-item fb-item-multi" style="flex:1;align-items:flex-start">
+              <label style="padding-top:8px">对配关系<br><span style="font-size:10px;color:#aaa;font-weight:400">每行 = 一组比对</span></label>
+              <div class="pair-list-box">
+                <div class="pl-head">
+                  <span class="pl-idx">#</span>
+                  <span class="pl-name">对配名（自定义）</span>
+                  <span class="pl-col pl-col-pg">🔵 PG · 子游戏</span>
+                  <span class="pl-col pl-col-up">🟠 UP · 子游戏</span>
+                  <span class="pl-del"></span>
+                </div>
+                <div class="pl-row">
+                  <span class="pl-idx">1</span>
+                  <div class="pl-name"><input value="Fortune Rabbit"></div>
+                  <div class="pl-col pl-col-pg">
+                    <select>
+                      <option>pg_127 — Fortune Rabbit</option>
+                      <option>pg_200 — Speed Winner</option>
+                      <option>pg_321 — Fortune Ox</option>
+                      <option>pg_456 — Lucky Neko</option>
+                      <option>pg_678 — Dragon Tiger</option>
+                      <option>pg_888 — Mahjong Ways</option>
+                    </select>
+                  </div>
+                  <div class="pl-col pl-col-up">
+                    <select>
+                      <option>up_456 — Lucky Bunny</option>
+                      <option>up_500 — Quick Win</option>
+                      <option>up_654 — Cattle Fortune</option>
+                      <option>up_789 — Cat 6</option>
+                      <option>up_900 — Dragon Lord</option>
+                    </select>
+                  </div>
+                  <button class="pl-del-btn" onclick="removePair(this)">×</button>
+                </div>
+                <div class="pl-row">
+                  <span class="pl-idx">2</span>
+                  <div class="pl-name"><input value="Speed Winner"></div>
+                  <div class="pl-col pl-col-pg">
+                    <select>
+                      <option>pg_200 — Speed Winner</option>
+                      <option>pg_127 — Fortune Rabbit</option>
+                      <option>pg_321 — Fortune Ox</option>
+                      <option>pg_456 — Lucky Neko</option>
+                    </select>
+                  </div>
+                  <div class="pl-col pl-col-up">
+                    <select>
+                      <option>up_500 — Quick Win</option>
+                      <option>up_456 — Lucky Bunny</option>
+                      <option>up_654 — Cattle Fortune</option>
+                      <option>up_789 — Cat 6</option>
+                    </select>
+                  </div>
+                  <button class="pl-del-btn" onclick="removePair(this)">×</button>
+                </div>
+                <div class="pl-row">
+                  <span class="pl-idx">3</span>
+                  <div class="pl-name"><input value="Fortune Ox"></div>
+                  <div class="pl-col pl-col-pg">
+                    <select>
+                      <option>pg_321 — Fortune Ox</option>
+                      <option>pg_127 — Fortune Rabbit</option>
+                      <option>pg_200 — Speed Winner</option>
+                      <option>pg_456 — Lucky Neko</option>
+                    </select>
+                  </div>
+                  <div class="pl-col pl-col-up">
+                    <select>
+                      <option>up_654 — Cattle Fortune</option>
+                      <option>up_456 — Lucky Bunny</option>
+                      <option>up_500 — Quick Win</option>
+                      <option>up_789 — Cat 6</option>
+                    </select>
+                  </div>
+                  <button class="pl-del-btn" onclick="removePair(this)">×</button>
+                </div>
+                <div class="pl-row">
+                  <span class="pl-idx">4</span>
+                  <div class="pl-name"><input value="Lucky Neko"></div>
+                  <div class="pl-col pl-col-pg">
+                    <select>
+                      <option>pg_456 — Lucky Neko</option>
+                      <option>pg_127 — Fortune Rabbit</option>
+                      <option>pg_200 — Speed Winner</option>
+                      <option>pg_321 — Fortune Ox</option>
+                    </select>
+                  </div>
+                  <div class="pl-col pl-col-up">
+                    <select>
+                      <option>up_789 — Cat 6</option>
+                      <option>up_456 — Lucky Bunny</option>
+                      <option>up_500 — Quick Win</option>
+                      <option>up_654 — Cattle Fortune</option>
+                    </select>
+                  </div>
+                  <button class="pl-del-btn" onclick="removePair(this)">×</button>
+                </div>
+                <div class="pl-add" onclick="alert('演示：新增一行空白对配')">＋ 添加对配</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="fb-row">
+            <div class="pl-template-actions">
+              <div class="tpl-wrap">
+                <button class="btn btn-d" onclick="toggleTplDropdown(event)">📂 载入模板 ▾</button>
+                <div class="tpl-dropdown" id="tpl-dropdown">
+                  <div class="tpl-search-wrap">
+                    <span class="tpl-search-icon">🔍</span>
+                    <input class="tpl-search-input" placeholder="搜索模板名称...">
+                  </div>
+                  <div class="tpl-list">
+                    <div class="tpl-item" onclick="loadTemplate('PG vs UP 经典对照')">
+                      <div class="tpl-icon">📌</div>
+                      <div class="tpl-info">
+                        <div class="tpl-name">PG vs UP 经典对照</div>
+                        <div class="tpl-meta">4 组对配 · 厂商: PG, UP · 上次使用 2026-06-01</div>
+                      </div>
+                      <span class="tpl-action" onclick="event.stopPropagation();renameTpl(event,'PG vs UP 经典对照')" title="重命名">✏</span>
+                      <span class="tpl-action tpl-del" onclick="event.stopPropagation();deleteTpl(event)" title="删除">×</span>
+                    </div>
+                    <div class="tpl-item" onclick="loadTemplate('Fortune 系列对比')">
+                      <div class="tpl-icon">📌</div>
+                      <div class="tpl-info">
+                        <div class="tpl-name">Fortune 系列对比</div>
+                        <div class="tpl-meta">3 组对配 · 厂商: PG, UP, JILI · 上次使用 2026-05-28</div>
+                      </div>
+                      <span class="tpl-action" onclick="event.stopPropagation()" title="重命名">✏</span>
+                      <span class="tpl-action tpl-del" onclick="event.stopPropagation();deleteTpl(event)" title="删除">×</span>
+                    </div>
+                    <div class="tpl-item" onclick="loadTemplate('中国主题 Slot')">
+                      <div class="tpl-icon">📌</div>
+                      <div class="tpl-info">
+                        <div class="tpl-name">中国主题 Slot</div>
+                        <div class="tpl-meta">5 组对配 · 厂商: PG, UP · 上次使用 2026-05-20</div>
+                      </div>
+                      <span class="tpl-action" onclick="event.stopPropagation()" title="重命名">✏</span>
+                      <span class="tpl-action tpl-del" onclick="event.stopPropagation();deleteTpl(event)" title="删除">×</span>
+                    </div>
+                    <div class="tpl-item" onclick="loadTemplate('老虎机 Top 10')">
+                      <div class="tpl-icon">📌</div>
+                      <div class="tpl-info">
+                        <div class="tpl-name">老虎机 Top 10</div>
+                        <div class="tpl-meta">10 组对配 · 厂商: PG, UP, EVO · 上次使用 2026-05-15</div>
+                      </div>
+                      <span class="tpl-action" onclick="event.stopPropagation()" title="重命名">✏</span>
+                      <span class="tpl-action tpl-del" onclick="event.stopPropagation();deleteTpl(event)" title="删除">×</span>
+                    </div>
+                    <div class="tpl-item" onclick="loadTemplate('棋牌 vs 电子')">
+                      <div class="tpl-icon">📌</div>
+                      <div class="tpl-info">
+                        <div class="tpl-name">棋牌 vs 电子</div>
+                        <div class="tpl-meta">6 组对配 · 厂商: PG, UP · 上次使用 2026-05-10</div>
+                      </div>
+                      <span class="tpl-action" onclick="event.stopPropagation()" title="重命名">✏</span>
+                      <span class="tpl-action tpl-del" onclick="event.stopPropagation();deleteTpl(event)" title="删除">×</span>
+                    </div>
+                  </div>
+                  <div class="tpl-footer">
+                    ⚠ 载入会覆盖当前对配关系
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-d" onclick="openSaveTplDialog()">💾 保存为模板</button>
+              <span class="tpl-current" id="tpl-current" style="font-size:11px;color:#aaa;margin-left:4px">·  当前模板：未保存</span>
+            </div>
+            <div class="fb-actions">
+              <button class="btn btn-p">查询</button>
+              <button class="btn btn-d">重置</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ═══ Fortune Rabbit ═══ -->
+        <div class="game-card">
+          <div class="gc-head">
+            <div class="gc-name">Fortune Rabbit</div>
+            <div class="gc-vendors">
+              <div class="gc-vendor">
+                <span class="t-blue tag">PG</span>
+                <span class="v-name">PG</span>
+                <span class="vendor-date"><input value="2026-05-04"><span class="sep">→</span><input value="2026-05-07"></span>
+              </div>
+              <span class="muted">vs</span>
+              <div class="gc-vendor">
+                <span class="t-orange tag">UP</span>
+                <span class="v-name">UP</span>
+                <span class="vendor-date"><input value="2026-05-09"><span class="sep">→</span><input value="2026-05-12"></span>
+              </div>
+            </div>
+          </div>
+          <div class="cmp-tbl-wrap"><table class="cmp-tbl">
+            <colgroup>
+              <col style="width:88px"><col style="width:62px"><col style="width:72px"><col style="width:96px"><col style="width:96px"><col style="width:72px"><col style="width:58px"><col style="width:70px"><col style="width:62px"><col style="width:76px"><col style="width:62px">
+              <col class="sep-col" style="width:30px">
+              <col style="width:88px"><col style="width:62px"><col style="width:72px"><col style="width:96px"><col style="width:96px"><col style="width:72px"><col style="width:58px"><col style="width:70px"><col style="width:62px"><col style="width:76px"><col style="width:62px">
+            </colgroup>
+            <thead>
+              <tr class="row-meta">
+                <th colspan="11" class="meta-pg">PG · 厂商数据</th>
+                <th class="sep-col"></th>
+                <th colspan="11" class="meta-up">UP · 厂商数据</th>
+              </tr>
+              <tr class="row-header">
+                <th class="first">日期</th><th>投注人数</th><th>投注笔数</th><th>投注金额</th><th>派彩金额</th><th>输赢额</th><th>盈利率</th><th>有效<br>投注比</th><th>人均<br>投注笔数</th><th>人均<br>投注金额</th><th>平均每笔<br>投注额</th>
+                <th class="sep-col"></th>
+                <th class="first">日期</th><th>投注人数</th><th>投注笔数</th><th>投注金额</th><th>派彩金额</th><th>输赢额</th><th>盈利率</th><th>有效<br>投注比</th><th>人均<br>投注笔数</th><th>人均<br>投注金额</th><th>平均每笔<br>投注额</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="first">2026-05-07</td><td>1,116</td><td>145,745</td><td class="num-bold">372,821.00</td><td>348,974.75</td><td class="num-neg">−23,846</td><td class="pr-neg">−6.40%</td><td>95.4%</td><td>131</td><td>334.07</td><td>2.56</td><td class="sep-col"></td><td class="first">2026-05-12</td><td>558</td><td>111,751</td><td class="num-bold">260,243.50</td><td>247,631.20</td><td class="num-neg">−12,612</td><td class="pr-neg">−4.85%</td><td>97.8%</td><td>200</td><td>466.39</td><td>2.33</td></tr>
+              <tr><td class="first">2026-05-06</td><td>963</td><td>98,946</td><td class="num-bold">259,988.50</td><td>239,641.55</td><td class="num-neg">−20,347</td><td class="pr-neg">−7.83%</td><td>97.2%</td><td>103</td><td>269.98</td><td>2.63</td><td class="sep-col"></td><td class="first">2026-05-11</td><td>952</td><td>134,877</td><td class="num-bold">378,899.50</td><td>370,196.40</td><td class="num-neg">−8,703</td><td class="pr-neg">−2.30%</td><td>96.9%</td><td>142</td><td>398.00</td><td>2.81</td></tr>
+              <tr><td class="first">2026-05-05</td><td>1,007</td><td>100,836</td><td class="num-bold">239,571.00</td><td>252,801.65</td><td class="num-pos">+13,230</td><td class="pr-pos">+5.52%</td><td>96.8%</td><td>100</td><td>237.91</td><td>2.38</td><td class="sep-col"></td><td class="first">2026-05-10</td><td>1,021</td><td>107,518</td><td class="num-bold">287,814.50</td><td>298,795.95</td><td class="num-pos">+10,981</td><td class="pr-pos">+3.82%</td><td>97.6%</td><td>105</td><td>281.89</td><td>2.68</td></tr>
+              <tr><td class="first">2026-05-04</td><td>961</td><td>104,811</td><td class="num-bold">267,764.00</td><td>266,459.80</td><td class="num-neg">−1,304</td><td class="pr-neg">−0.49%</td><td>97.5%</td><td>109</td><td>278.63</td><td>2.55</td><td class="sep-col"></td><td class="first">2026-05-09</td><td>1,132</td><td>142,110</td><td class="num-bold">378,270.00</td><td>393,369.30</td><td class="num-pos">+15,099</td><td class="pr-pos">+3.99%</td><td>98.1%</td><td>126</td><td>334.16</td><td>2.66</td></tr>
+              <tr class="tr-total"><td class="first">合计</td><td>4,047</td><td>450,338</td><td class="num-bold">1,140,144.50</td><td>1,107,877.75</td><td class="num-neg">−32,267</td><td class="pr-neg">−2.83%</td><td>96.7%</td><td>111.3</td><td>281.73</td><td>2.53</td><td class="sep-col"></td><td class="first">合计</td><td>3,663</td><td>496,256</td><td class="num-bold">1,305,227.50</td><td>1,309,992.85</td><td class="num-pos">+4,765</td><td class="pr-pos">+0.37%</td><td>97.6%</td><td>135.5</td><td>356.46</td><td>2.63</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+
+        <!-- ═══ Speed Winner ═══ -->
+        <div class="game-card">
+          <div class="gc-head">
+            <div class="gc-name">Speed Winner</div>
+            <div class="gc-vendors">
+              <div class="gc-vendor">
+                <span class="t-blue tag">PG</span>
+                <span class="v-name">PG</span>
+                <span class="vendor-date"><input value="2026-05-04"><span class="sep">→</span><input value="2026-05-07"></span>
+              </div>
+              <span class="muted">vs</span>
+              <div class="gc-vendor">
+                <span class="t-orange tag">UP</span>
+                <span class="v-name">UP</span>
+                <span class="vendor-date"><input value="2026-05-09"><span class="sep">→</span><input value="2026-05-12"></span>
+              </div>
+            </div>
+          </div>
+          <div class="cmp-tbl-wrap"><table class="cmp-tbl">
+            <colgroup>
+              <col style="width:88px"><col style="width:62px"><col style="width:72px"><col style="width:96px"><col style="width:96px"><col style="width:72px"><col style="width:58px"><col style="width:70px"><col style="width:62px"><col style="width:76px"><col style="width:62px">
+              <col class="sep-col" style="width:30px">
+              <col style="width:88px"><col style="width:62px"><col style="width:72px"><col style="width:96px"><col style="width:96px"><col style="width:72px"><col style="width:58px"><col style="width:70px"><col style="width:62px"><col style="width:76px"><col style="width:62px">
+            </colgroup>
+            <thead>
+              <tr class="row-meta">
+                <th colspan="11" class="meta-pg">PG · 厂商数据</th>
+                <th class="sep-col"></th>
+                <th colspan="11" class="meta-up">UP · 厂商数据</th>
+              </tr>
+              <tr class="row-header">
+                <th class="first">日期</th><th>投注人数</th><th>投注笔数</th><th>投注金额</th><th>派彩金额</th><th>输赢额</th><th>盈利率</th><th>有效<br>投注比</th><th>人均<br>投注笔数</th><th>人均<br>投注金额</th><th>平均每笔<br>投注额</th>
+                <th class="sep-col"></th>
+                <th class="first">日期</th><th>投注人数</th><th>投注笔数</th><th>投注金额</th><th>派彩金额</th><th>输赢额</th><th>盈利率</th><th>有效<br>投注比</th><th>人均<br>投注笔数</th><th>人均<br>投注金额</th><th>平均每笔<br>投注额</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="first">2026-05-07</td><td>12</td><td>1,387</td><td class="num-bold">1,176.80</td><td>1,087.82</td><td class="num-neg">−89</td><td class="pr-neg">−7.56%</td><td>80.9%</td><td>116</td><td>98.07</td><td>0.85</td><td class="sep-col"></td><td class="first">2026-05-12</td><td>10</td><td>874</td><td class="num-bold">1,942.80</td><td>1,675.58</td><td class="num-neg">−267</td><td class="pr-neg">−13.75%</td><td>65.8%</td><td>87</td><td>194.28</td><td>2.22</td></tr>
+              <tr><td class="first">2026-05-06</td><td>11</td><td>1,180</td><td class="num-bold">2,584.00</td><td>2,226.60</td><td class="num-neg">−357</td><td class="pr-neg">−13.83%</td><td>75.3%</td><td>107</td><td>234.91</td><td>2.19</td><td class="sep-col"></td><td class="first">2026-05-11</td><td>13</td><td>743</td><td class="num-bold">1,937.20</td><td>1,856.24</td><td class="num-neg">−81</td><td class="pr-neg">−4.18%</td><td>73.6%</td><td>57</td><td>149.02</td><td>2.61</td></tr>
+              <tr><td class="first">2026-05-05</td><td>16</td><td>1,456</td><td class="num-bold">2,521.60</td><td>2,968.62</td><td class="num-pos">+447</td><td class="pr-pos">+17.73%</td><td>82.1%</td><td>91</td><td>157.60</td><td>1.73</td><td class="sep-col"></td><td class="first">2026-05-10</td><td>17</td><td>1,165</td><td class="num-bold">1,936.80</td><td>1,594.04</td><td class="num-neg">−342</td><td class="pr-neg">−17.70%</td><td>68.4%</td><td>69</td><td>113.93</td><td>1.66</td></tr>
+              <tr><td class="first">2026-05-04</td><td>17</td><td>2,007</td><td class="num-bold">4,136.00</td><td>3,603.10</td><td class="num-neg">−532</td><td class="pr-neg">−12.88%</td><td>78.5%</td><td>118</td><td>243.29</td><td>2.06</td><td class="sep-col"></td><td class="first">2026-05-09</td><td>10</td><td>577</td><td class="num-bold">3,310.00</td><td>2,888.44</td><td class="num-neg">−421</td><td class="pr-neg">−12.74%</td><td>71.2%</td><td>58</td><td>331.00</td><td>5.74</td></tr>
+              <tr class="tr-total"><td class="first">合计</td><td>56</td><td>6,030</td><td class="num-bold">10,418.40</td><td>9,886.14</td><td class="num-neg">−531</td><td class="pr-neg">−5.10%</td><td>78.9%</td><td>107.7</td><td>186.04</td><td>1.73</td><td class="sep-col"></td><td class="first">合计</td><td>50</td><td>3,359</td><td class="num-bold">9,126.80</td><td>8,014.30</td><td class="num-neg">−1,111</td><td class="pr-neg">−12.18%</td><td>69.9%</td><td>67.2</td><td>182.54</td><td>2.72</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+
+        <!-- ═══ Fortune Ox ═══ -->
+        <div class="game-card">
+          <div class="gc-head">
+            <div class="gc-name">Fortune Ox</div>
+            <div class="gc-vendors">
+              <div class="gc-vendor">
+                <span class="t-blue tag">PG</span>
+                <span class="v-name">PG</span>
+                <span class="vendor-date"><input value="2026-05-04"><span class="sep">→</span><input value="2026-05-07"></span>
+              </div>
+              <span class="muted">vs</span>
+              <div class="gc-vendor">
+                <span class="t-orange tag">UP</span>
+                <span class="v-name">UP</span>
+                <span class="vendor-date"><input value="2026-05-09"><span class="sep">→</span><input value="2026-05-12"></span>
+              </div>
+            </div>
+          </div>
+          <div class="cmp-tbl-wrap"><table class="cmp-tbl">
+            <colgroup>
+              <col style="width:88px"><col style="width:62px"><col style="width:72px"><col style="width:96px"><col style="width:96px"><col style="width:72px"><col style="width:58px"><col style="width:70px"><col style="width:62px"><col style="width:76px"><col style="width:62px">
+              <col class="sep-col" style="width:30px">
+              <col style="width:88px"><col style="width:62px"><col style="width:72px"><col style="width:96px"><col style="width:96px"><col style="width:72px"><col style="width:58px"><col style="width:70px"><col style="width:62px"><col style="width:76px"><col style="width:62px">
+            </colgroup>
+            <thead>
+              <tr class="row-meta">
+                <th colspan="11" class="meta-pg">PG · 厂商数据</th>
+                <th class="sep-col"></th>
+                <th colspan="11" class="meta-up">UP · 厂商数据</th>
+              </tr>
+              <tr class="row-header">
+                <th class="first">日期</th><th>投注人数</th><th>投注笔数</th><th>投注金额</th><th>派彩金额</th><th>输赢额</th><th>盈利率</th><th>有效<br>投注比</th><th>人均<br>投注笔数</th><th>人均<br>投注金额</th><th>平均每笔<br>投注额</th>
+                <th class="sep-col"></th>
+                <th class="first">日期</th><th>投注人数</th><th>投注笔数</th><th>投注金额</th><th>派彩金额</th><th>输赢额</th><th>盈利率</th><th>有效<br>投注比</th><th>人均<br>投注笔数</th><th>人均<br>投注金额</th><th>平均每笔<br>投注额</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="first">2026-05-07</td><td>561</td><td>46,600</td><td class="num-bold">118,008.00</td><td>97,834.65</td><td class="num-neg">−20,173</td><td class="pr-neg">−17.09%</td><td>96.5%</td><td>83</td><td>210.35</td><td>2.53</td><td class="sep-col"></td><td class="first">2026-05-12</td><td>324</td><td>56,593</td><td class="num-bold">139,151.50</td><td>137,803.85</td><td class="num-neg">−1,348</td><td class="pr-neg">−0.97%</td><td>97.5%</td><td>175</td><td>429.48</td><td>2.46</td></tr>
+              <tr><td class="first">2026-05-06</td><td>476</td><td>33,560</td><td class="num-bold">93,882.00</td><td>91,877.80</td><td class="num-neg">−2,004</td><td class="pr-neg">−2.13%</td><td>97.3%</td><td>71</td><td>197.23</td><td>2.80</td><td class="sep-col"></td><td class="first">2026-05-11</td><td>512</td><td>46,019</td><td class="num-bold">92,008.50</td><td>89,938.85</td><td class="num-neg">−2,070</td><td class="pr-neg">−2.25%</td><td>96.8%</td><td>90</td><td>179.70</td><td>2.00</td></tr>
+              <tr><td class="first">2026-05-05</td><td>436</td><td>32,561</td><td class="num-bold">62,887.50</td><td>65,245.80</td><td class="num-pos">+2,358</td><td class="pr-pos">+3.75%</td><td>96.8%</td><td>75</td><td>144.24</td><td>1.93</td><td class="sep-col"></td><td class="first">2026-05-10</td><td>584</td><td>53,132</td><td class="num-bold">105,241.50</td><td>105,729.90</td><td class="num-pos">+488</td><td class="pr-pos">+0.46%</td><td>97.2%</td><td>91</td><td>180.21</td><td>1.98</td></tr>
+              <tr><td class="first">2026-05-04</td><td>519</td><td>34,549</td><td class="num-bold">61,727.50</td><td>65,034.25</td><td class="num-pos">+3,306</td><td class="pr-pos">+5.36%</td><td>97.0%</td><td>67</td><td>118.94</td><td>1.79</td><td class="sep-col"></td><td class="first">2026-05-09</td><td>539</td><td>42,752</td><td class="num-bold">91,694.00</td><td>85,807.45</td><td class="num-neg">−5,886</td><td class="pr-neg">−6.42%</td><td>96.5%</td><td>79</td><td>170.12</td><td>2.14</td></tr>
+              <tr class="tr-total"><td class="first">合计</td><td>1,992</td><td>147,270</td><td class="num-bold">336,505.00</td><td>319,992.50</td><td class="num-neg">−16,513</td><td class="pr-neg">−4.91%</td><td>96.9%</td><td>73.9</td><td>168.93</td><td>2.28</td><td class="sep-col"></td><td class="first">合计</td><td>1,959</td><td>198,496</td><td class="num-bold">428,095.50</td><td>419,280.05</td><td class="num-neg">−8,816</td><td class="pr-neg">−2.06%</td><td>97.0%</td><td>101.3</td><td>218.53</td><td>2.16</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+
+        <!-- ═══ Lucky Neko ═══ -->
+        <div class="game-card">
+          <div class="gc-head">
+            <div class="gc-name">Lucky Neko</div>
+            <div class="gc-vendors">
+              <div class="gc-vendor">
+                <span class="t-blue tag">PG</span>
+                <span class="v-name">PG</span>
+                <span class="vendor-date"><input value="2026-05-04"><span class="sep">→</span><input value="2026-05-07"></span>
+              </div>
+              <span class="muted">vs</span>
+              <div class="gc-vendor">
+                <span class="t-orange tag">UP</span>
+                <span class="v-name">UP</span>
+                <span class="vendor-date"><input value="2026-05-09"><span class="sep">→</span><input value="2026-05-12"></span>
+              </div>
+            </div>
+          </div>
+          <div class="cmp-tbl-wrap"><table class="cmp-tbl">
+            <colgroup>
+              <col style="width:88px"><col style="width:62px"><col style="width:72px"><col style="width:96px"><col style="width:96px"><col style="width:72px"><col style="width:58px"><col style="width:70px"><col style="width:62px"><col style="width:76px"><col style="width:62px">
+              <col class="sep-col" style="width:30px">
+              <col style="width:88px"><col style="width:62px"><col style="width:72px"><col style="width:96px"><col style="width:96px"><col style="width:72px"><col style="width:58px"><col style="width:70px"><col style="width:62px"><col style="width:76px"><col style="width:62px">
+            </colgroup>
+            <thead>
+              <tr class="row-meta">
+                <th colspan="11" class="meta-pg">PG · 厂商数据</th>
+                <th class="sep-col"></th>
+                <th colspan="11" class="meta-up">UP · 厂商数据</th>
+              </tr>
+              <tr class="row-header">
+                <th class="first">日期</th><th>投注人数</th><th>投注笔数</th><th>投注金额</th><th>派彩金额</th><th>输赢额</th><th>盈利率</th><th>有效<br>投注比</th><th>人均<br>投注笔数</th><th>人均<br>投注金额</th><th>平均每笔<br>投注额</th>
+                <th class="sep-col"></th>
+                <th class="first">日期</th><th>投注人数</th><th>投注笔数</th><th>投注金额</th><th>派彩金额</th><th>输赢额</th><th>盈利率</th><th>有效<br>投注比</th><th>人均<br>投注笔数</th><th>人均<br>投注金额</th><th>平均每笔<br>投注额</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="first">2026-05-07</td><td>126</td><td>12,620</td><td class="num-bold">11,422.40</td><td>9,214.26</td><td class="num-neg">−2,208</td><td class="pr-neg">−19.33%</td><td>96.5%</td><td>100</td><td>90.65</td><td>0.91</td><td class="sep-col"></td><td class="first">2026-05-12</td><td>52</td><td>8,932</td><td class="num-bold">12,335.20</td><td>11,714.82</td><td class="num-neg">−620</td><td class="pr-neg">−5.03%</td><td>97.5%</td><td>172</td><td>237.22</td><td>1.38</td></tr>
+              <tr><td class="first">2026-05-06</td><td>124</td><td>15,993</td><td class="num-bold">10,986.82</td><td>10,886.22</td><td class="num-neg">−101</td><td class="pr-neg">−0.92%</td><td>97.1%</td><td>129</td><td>88.60</td><td>0.69</td><td class="sep-col"></td><td class="first">2026-05-11</td><td>117</td><td>15,361</td><td class="num-bold">34,980.50</td><td>34,985.04</td><td class="num-pos">+4</td><td class="pr-pos">+0.30%</td><td>98.0%</td><td>131</td><td>298.13</td><td>2.27</td></tr>
+              <tr><td class="first">2026-05-05</td><td>121</td><td>14,833</td><td class="num-bold">10,631.60</td><td>12,345.34</td><td class="num-pos">+1,713</td><td class="pr-pos">+16.12%</td><td>96.8%</td><td>123</td><td>87.86</td><td>0.72</td><td class="sep-col"></td><td class="first">2026-05-10</td><td>105</td><td>11,179</td><td class="num-bold">17,540.80</td><td>16,084.54</td><td class="num-neg">−1,456</td><td class="pr-neg">−8.30%</td><td>97.2%</td><td>106</td><td>167.06</td><td>1.57</td></tr>
+              <tr><td class="first">2026-05-04</td><td>121</td><td>12,575</td><td class="num-bold">16,740.00</td><td>14,344.58</td><td class="num-neg">−2,395</td><td class="pr-neg">−14.31%</td><td>96.3%</td><td>104</td><td>138.35</td><td>1.33</td><td class="sep-col"></td><td class="first">2026-05-09</td><td>122</td><td>17,066</td><td class="num-bold">26,141.60</td><td>23,785.92</td><td class="num-neg">−2,355</td><td class="pr-neg">−9.01%</td><td>96.8%</td><td>140</td><td>214.28</td><td>1.53</td></tr>
+              <tr class="tr-total"><td class="first">合计</td><td>492</td><td>56,021</td><td class="num-bold">49,780.82</td><td>46,790.40</td><td class="num-neg">−2,991</td><td class="pr-neg">−6.01%</td><td>96.7%</td><td>113.9</td><td>101.18</td><td>0.89</td><td class="sep-col"></td><td class="first">合计</td><td>396</td><td>52,538</td><td class="num-bold">90,998.10</td><td>86,570.32</td><td class="num-neg">−4,427</td><td class="pr-neg">−4.87%</td><td>97.4%</td><td>132.7</td><td>229.79</td><td>1.73</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+
+      </div>
+
+
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPage(idx){
+  document.querySelectorAll('.page-content').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  document.querySelectorAll('.ptab').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  window.scrollTo(0,0);
+}
+
+// 游戏子类联动：仅 small game 显示「有效投注比」列；其他子类显示人均/笔均 3 列
+function onGameTypeChange(){
+  const value = document.getElementById('game-type').value;
+  document.body.classList.remove('show-eff','show-avg');
+  if(value === 'small game'){
+    document.body.classList.add('show-eff');
+  } else {
+    document.body.classList.add('show-avg');
+  }
+}
+
+// 厂商下拉
+function toggleVendorDropdown(e){
+  e.stopPropagation();
+  document.getElementById('vendor-dropdown').classList.toggle('show');
+}
+function closeVendorDropdown(){
+  document.getElementById('vendor-dropdown').classList.remove('show');
+}
+function addVendor(code, label, colorCls){
+  const opt = document.querySelector('.vd-option[data-code="'+code+'"]');
+  if(opt && opt.classList.contains('vd-disabled')) return;
+  const box = document.getElementById('vendor-box');
+  const wrap = box.querySelector('.vendor-add-wrap');
+  const chip = document.createElement('div');
+  chip.className = 'vendor-chip ' + colorCls;
+  chip.dataset.code = code;
+  chip.innerHTML = '<span class="v-tag">'+code+'</span><span class="v-name">'+label+'</span><span class="x" onclick="removeVendor(this,\''+code+'\')">×</span>';
+  box.insertBefore(chip, wrap);
+  // 标记下拉中此项为已选
+  if(opt){
+    opt.classList.add('vd-disabled');
+    opt.dataset.selected = '1';
+    if(!opt.querySelector('.vd-sel-mark')){
+      const mark = document.createElement('span');
+      mark.className = 'vd-sel-mark';
+      mark.textContent = '✓ 已选';
+      opt.appendChild(mark);
+    }
+  }
+  closeVendorDropdown();
+}
+function removeVendor(el, code){
+  el.closest('.vendor-chip').remove();
+  // 恢复下拉中该项可选
+  const opt = document.querySelector('.vd-option[data-code="'+code+'"]');
+  if(opt){
+    opt.classList.remove('vd-disabled');
+    opt.dataset.selected = '0';
+    const mark = opt.querySelector('.vd-sel-mark');
+    if(mark) mark.remove();
+  }
+}
+// 点击其他地方关闭下拉
+document.addEventListener('click', e => {
+  if(!e.target.closest('.vendor-add-wrap')) closeVendorDropdown();
+});
+
+function removePair(btn){
+  const row = btn.closest('.pl-row');
+  if(!row) return;
+  row.remove();
+  document.querySelectorAll('.pair-list-box .pl-row .pl-idx').forEach((el,i) => el.textContent = i+1);
+}
+
+// 简化版：从下拉添加 chip
+function addPairChip(name, v1, g1, v2, g2){
+  const chips = document.getElementById('ps-chips');
+  const span = document.createElement('span');
+  span.className = 'ps-chip';
+  span.innerHTML = `
+    <span class="ps-chip-name">${name}</span>
+    <span class="ps-chip-detail">
+      <span class="ps-vt ps-vt-${v1.toLowerCase()}">${v1}</span>${g1}
+      <span class="ps-arr">⇄</span>
+      <span class="ps-vt ps-vt-${v2.toLowerCase()}">${v2}</span>${g2}
+    </span>
+    <span class="ps-chip-x" onclick="this.parentElement.remove()">×</span>
+  `;
+  chips.appendChild(span);
+  document.getElementById('ps-dropdown').classList.remove('show');
+}
+
+// 点击外部关闭下拉
+document.addEventListener('click', e => {
+  if(!e.target.closest('.ps-wrap')) {
+    const d = document.getElementById('ps-dropdown');
+    if(d) d.classList.remove('show');
+  }
+  if(!e.target.closest('.tpl-wrap')) {
+    const t = document.getElementById('tpl-dropdown');
+    if(t) t.classList.remove('show');
+  }
+});
+
+// ── 载入模板 ──
+function toggleTplDropdown(e){
+  e.stopPropagation();
+  document.getElementById('tpl-dropdown').classList.toggle('show');
+}
+function loadTemplate(name){
+  document.getElementById('tpl-dropdown').classList.remove('show');
+  const tag = document.getElementById('tpl-current');
+  tag.textContent = '·  当前模板：' + name;
+  tag.classList.add('has-tpl');
+  showToast('success', '✓ 模板「' + name + '」已载入，对配列表已更新');
+}
+function deleteTpl(e){
+  if(confirm('确定删除该模板？')){
+    e.target.closest('.tpl-item').remove();
+    showToast('info', '模板已删除');
+  }
+}
+function renameTpl(e, oldName){
+  const newName = prompt('输入新名称', oldName);
+  if(newName && newName.trim()){
+    const item = e.target.closest('.tpl-item');
+    item.querySelector('.tpl-name').textContent = newName.trim();
+    showToast('success', '✓ 已重命名为「' + newName.trim() + '」');
+  }
+}
+
+// ── 保存为模板 ──
+function openSaveTplDialog(){
+  document.getElementById('save-tpl-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('tpl-name-input').focus(), 50);
+}
+function closeSaveTplDialog(){
+  document.getElementById('save-tpl-overlay').classList.remove('show');
+  document.getElementById('tpl-name-input').value = '';
+  document.getElementById('tpl-desc-input').value = '';
+}
+function confirmSaveTpl(){
+  const name = document.getElementById('tpl-name-input').value.trim();
+  if(!name){
+    showToast('warn', '请填写模板名称');
+    return;
+  }
+  closeSaveTplDialog();
+  const tag = document.getElementById('tpl-current');
+  tag.textContent = '·  当前模板：' + name;
+  tag.classList.add('has-tpl');
+  showToast('success', '✓ 模板「' + name + '」已保存');
+}
+
+// ── Toast ──
+function showToast(type, msg){
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => { t.style.transition='opacity .25s'; t.style.opacity=0; }, 2500);
+  setTimeout(() => t.remove(), 2800);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  onGameTypeChange();
+});
+
+function toggleExtra(btn,id){
+  const ex = document.getElementById(id);
+  if(!ex) return;
+  ex.classList.toggle('show');
+  btn.classList.toggle('expanded');
+  btn.firstChild.textContent = ex.classList.contains('show')
+    ? '收起更多指标 '
+    : '展开更多指标（RTP / 玩家深度 / 投注分布 / 技术表现）';
+}
+</script>
+<!-- 保存为模板 对话框 -->
+<div class="modal-overlay" id="save-tpl-overlay" onclick="if(event.target===this)closeSaveTplDialog()">
+  <div class="modal-dialog">
+    <div class="md-head">
+      <span class="md-title">💾 保存为模板</span>
+      <button class="md-close" onclick="closeSaveTplDialog()">×</button>
+    </div>
+    <div class="md-body">
+      <div class="md-field">
+        <label>模板名称 <span style="color:#cf1322">*</span></label>
+        <input id="tpl-name-input" placeholder="例：PG vs UP 经典对照" autocomplete="off">
+      </div>
+      <div class="md-field">
+        <label>备注（可选）</label>
+        <textarea id="tpl-desc-input" placeholder="便于团队识别用途" rows="2"></textarea>
+      </div>
+      <div class="md-summary">
+        当前对配：<b>4 组</b> · 厂商：<b>PG, UP</b>
+      </div>
+    </div>
+    <div class="md-footer">
+      <button class="btn btn-d" onclick="closeSaveTplDialog()">取消</button>
+      <button class="btn btn-p" onclick="confirmSaveTpl()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+</body>
+</html>
