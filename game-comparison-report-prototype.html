@@ -631,9 +631,201 @@ body.hide-dod .cmp-tbl .dod,body.hide-dod .cmp-tbl .dod-head{display:none}
 body.hide-total .cmp-tbl tr.tr-total{display:none}
 body.hide-conclusion .game-conclusion{display:none}
 
+/* ── 业务规则浮窗 + 侧滑面板 ── */
+.rules-fab{position:fixed;right:0;top:45%;background:linear-gradient(135deg,#1677ff,#0958d9);color:#fff;border:none;border-radius:6px 0 0 6px;padding:14px 8px;cursor:pointer;font-size:12px;font-weight:600;writing-mode:horizontal-tb;line-height:1.5;box-shadow:-2px 4px 12px rgba(22,119,255,.3);z-index:998;font-family:inherit;text-align:center}
+.rules-fab:hover{background:linear-gradient(135deg,#0958d9,#003eb3);right:1px}
+.rules-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:999}
+.rules-overlay.show{display:block;animation:rfade .2s}
+@keyframes rfade{from{opacity:0}to{opacity:1}}
+.rules-panel{position:fixed;right:-600px;top:0;bottom:0;width:580px;background:#fff;box-shadow:-6px 0 24px rgba(0,0,0,.18);z-index:1000;display:flex;flex-direction:column;transition:right .28s ease}
+.rules-panel.show{right:0}
+.rules-head{padding:14px 18px;border-bottom:1px solid #f0f0f0;background:#fafbff;flex-shrink:0;position:relative}
+.rules-title{font-size:15px;font-weight:700;color:#222;display:block}
+.rules-sub{font-size:11.5px;color:#888;display:block;margin-top:3px}
+.rules-close{position:absolute;top:14px;right:14px;width:30px;height:30px;border:none;background:transparent;color:#999;font-size:20px;cursor:pointer;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+.rules-close:hover{background:#f0f0f0;color:#cf1322}
+.rules-body{flex:1;overflow-y:auto;padding:14px 18px}
+.rules-section{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #f5f5f5}
+.rules-section:last-child{border-bottom:none}
+.rs-title{font-size:13.5px;font-weight:700;color:#1677ff;margin-bottom:8px;padding-left:8px;border-left:3px solid #1677ff;line-height:1.4}
+.rs-list{list-style:none;padding:0;margin:0;font-size:12.5px;line-height:1.85;color:#444}
+.rs-list li{padding:2px 0 2px 14px;position:relative}
+.rs-list li::before{content:"•";position:absolute;left:3px;color:#1677ff;font-weight:700}
+.rs-list li.rs-test{margin-top:8px;padding-left:0;color:#874d00;font-weight:600;font-size:12px}
+.rs-list li.rs-test::before{content:""}
+.rs-list li.rs-test-item{padding-left:24px;color:#666;font-size:11.5px;line-height:1.7}
+.rs-list li.rs-test-item::before{content:"☐";color:#fa8c16;font-weight:400;left:8px}
+.rs-list b{color:#222;font-weight:600}
+.rs-list code{background:#fff7e6;color:#874d00;padding:1px 5px;border-radius:3px;font-family:'SF Mono',Monaco,monospace;font-size:11px}
+.rs-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:4px}
+.rs-table th{background:#fafafa;padding:7px 10px;text-align:left;font-weight:600;color:#444;border-bottom:1px solid #e8e8e8;font-size:11px}
+.rs-table td{padding:6px 10px;border-bottom:1px solid #f5f5f5;color:#444;line-height:1.5;vertical-align:top}
+.rs-table tr:hover td{background:#fafcff}
+.rs-table tr.rs-table-total td{background:#fff7e6;color:#874d00;padding-top:8px;padding-bottom:8px}
+.rs-table.rs-quick td:first-child{font-weight:600;color:#222;width:100px;white-space:nowrap}
+
 </style>
 </head>
 <body>
+
+<!-- 业务规则浮窗按钮 -->
+<button class="rules-fab" onclick="toggleRules()">📋<br>业务<br>规则</button>
+
+<!-- 业务规则侧滑面板 -->
+<div class="rules-overlay" id="rules-overlay" onclick="closeRules()"></div>
+<div class="rules-panel" id="rules-panel">
+  <div class="rules-head">
+    <span class="rules-title">📋 业务规则 & 验收清单</span>
+    <span class="rules-sub">配合原型阅读 · 开发 / 测试必看</span>
+    <button class="rules-close" onclick="closeRules()">×</button>
+  </div>
+  <div class="rules-body">
+
+    <div class="rules-section">
+      <div class="rs-title">① 商户名称</div>
+      <ul class="rs-list">
+        <li>必填，单选下拉</li>
+        <li>数据源：当前登录用户有权限的商户列表</li>
+        <li>切换商户时 → <b>清空</b>：厂商列表 + 对配关系 + 模板状态</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">② 游戏子类</div>
+      <ul class="rs-list">
+        <li>单选下拉，默认「全部」</li>
+        <li>选项：全部 / lottery / video / Slot / Fish / sport / ChessCard / small game / WinGo</li>
+        <li>切换子类 → <b>清空对配关系</b>（子游戏池范围变了）</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">③ 游戏厂商（含独立日期）</div>
+      <ul class="rs-list">
+        <li>多选，<b>最少 1 家、最多 4 家</b></li>
+        <li>同一厂商不可重复添加；下拉中已选项灰显 + 标「✓ 已选」</li>
+        <li>厂商列表按所选商户过滤</li>
+        <li>每家厂商有<b>独立日期范围</b>（chip 内可编辑）</li>
+        <li>日期校验：起 ≤ 止；最大跨度 90 天；不可超今日；不早于 2024-01-01</li>
+        <li><b>添加厂商</b> → 对配关系表每行新增该厂商列（默认未选）</li>
+        <li><b>删除厂商</b> → 对配关系表同步删除该厂商列</li>
+        <li><b>修改厂商日期</b> → 该厂商所有数据列重新查询</li>
+        <li>厂商数 = 1 时，× 禁用，hover 提示「至少保留 1 家厂商」</li>
+        <li>厂商数 = 4 时，「+ 添加厂商」按钮禁用</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">④ 对配关系</div>
+      <ul class="rs-list">
+        <li><b>列结构</b>：# / 对配名 / 厂商A·子游戏 / 厂商B·子游戏 / ... / ×</li>
+        <li>查询前至少 <b>1 行有效对配</b>，最多 <b>20 行</b></li>
+        <li>对配名必填，长度 <b>1-30 字符</b>，同一查询内不可重复</li>
+        <li>每行每个厂商列都必须选子游戏，否则该行不算"有效"</li>
+        <li>同一厂商的同一子游戏不可在多行中重复选</li>
+        <li>「+ 添加对配」点击后表底插入新空白行</li>
+        <li>删除行后自动重排序号；删最后一行需二次确认</li>
+        <li>子游戏下拉选项 = (商户 + 厂商 + 游戏子类) 三者过滤</li>
+        <li>子游戏展示格式：<code>厂商编码 — 游戏中文名</code></li>
+        <li>切换子类后，所有对配行的子游戏选择清空</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">⑤ 载入模板</div>
+      <ul class="rs-list">
+        <li>下拉面板列出当前用户保存的全部模板</li>
+        <li>每条展示：模板名 / 对配数 / 涉及厂商 / 上次使用时间</li>
+        <li>顶部搜索框按模板名实时过滤</li>
+        <li>点击模板触发<b>二次确认</b>："载入会覆盖当前对配，确定？"</li>
+        <li>确认后填充：对配列表 + 厂商列表 + 各厂商日期范围</li>
+        <li>模板含当前商户未接入的厂商 → 跳过并提示</li>
+        <li>模板按用户私有；列表为空时显示空状态</li>
+        <li>支持重命名 ✏（弹窗输入）和删除 ×（二次确认）</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">⑥ 保存为模板</div>
+      <ul class="rs-list">
+        <li>对话框输入：模板名（必填）+ 备注（可选）</li>
+        <li>模板名 <b>1-30 字符</b>，备注 <b>≤ 200 字符</b></li>
+        <li>保存前校验：至少 1 行有效对配（对配名非空 + 每厂商列已选）</li>
+        <li>同名模板已存在 → 弹「同名模板已存在，是否覆盖？」</li>
+        <li>单用户模板上限 <b>50 个</b></li>
+        <li>模板内容含：对配关系 + 厂商列表 + 各厂商日期范围 + 对配名</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">⑦ 查询 / 重置 / 导出</div>
+      <ul class="rs-list">
+        <li><b>查询前置</b>：商户已选 + 厂商 ≥ 2 + 对配 ≥ 1 行有效</li>
+        <li>任一条件不满足 → 按钮禁用 + Tooltip 显示原因</li>
+        <li>查询中按钮 Loading，防重复点击</li>
+        <li>重置需二次确认，恢复默认</li>
+        <li>导出仅在已生成报表后可用</li>
+        <li>导出 Excel = 当前所有游戏卡片表格（含合计行）</li>
+        <li>文件名：<code>游戏比对报表_{商户}_{当前日期}.xlsx</code></li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">⑧ 游戏比对卡片</div>
+      <ul class="rs-list">
+        <li>一张卡片 = 一行对配关系</li>
+        <li>卡片头：对配名 + 各厂商色标签（<b>不展示日期</b>，日期已在筛选区）</li>
+        <li>每段 <b>11 列</b>：日期 / 投注人数 / 投注笔数 / 投注金额 / 派彩金额 / 输赢额 / 盈利率 / 有效投注比 / 人均投注笔数 / 人均投注金额 / 平均每笔投注额</li>
+        <li>段头颜色：PG 蓝 / UP 橙 / JILI 紫 / EVO 青 / PT 红 / MG 粉</li>
+        <li>数据行无底色（白）；<b>合计行橙底加粗 + 顶部 2px 橙线</b></li>
+        <li>盈利率：正绿加粗 / 负红加粗 / 0 灰</li>
+        <li>输赢额：正绿 / 负红</li>
+        <li>PG 段与 UP 段之间留 30px 缓冲列</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">⑨ 字段公式</div>
+      <table class="rs-table">
+        <tr><th>字段</th><th>公式</th></tr>
+        <tr><td>投注人数</td><td>当日去重玩家数</td></tr>
+        <tr><td>投注笔数</td><td>COUNT(投注订单)</td></tr>
+        <tr><td>投注金额</td><td>SUM(BetAmount)</td></tr>
+        <tr><td>派彩金额</td><td>SUM(WinAmount)</td></tr>
+        <tr><td>输赢额</td><td>投注金额 − 派彩金额</td></tr>
+        <tr><td>盈利率</td><td>输赢额 / 投注金额 × 100%</td></tr>
+        <tr><td>有效投注比</td><td>有效投注金额 / 总投注金额 × 100%</td></tr>
+        <tr><td>人均投注笔数</td><td>投注笔数 / 投注人数</td></tr>
+        <tr><td>人均投注金额</td><td>投注金额 / 投注人数</td></tr>
+        <tr><td>平均每笔投注额</td><td>投注金额 / 投注笔数</td></tr>
+        <tr class="rs-table-total"><td colspan="2"><b>合计行特别说明</b></td></tr>
+        <tr><td>人数/笔数/金额/派彩/输赢</td><td>期内求和</td></tr>
+        <tr><td>盈利率</td><td>总输赢 / 总投注</td></tr>
+        <tr><td>有效投注比</td><td><b>按金额加权</b> = Σ(有效投注金额) / Σ(总投注金额) — <span style="color:#cf1322">不是简单平均</span></td></tr>
+        <tr><td>人均 / 笔均</td><td>基于求和结果计算</td></tr>
+      </table>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">⑩ 核心规则速查表</div>
+      <table class="rs-table rs-quick">
+        <tr><th>操作</th><th>限制</th></tr>
+        <tr><td>添加厂商</td><td>最多 4 家、不重复、同步加对配列</td></tr>
+        <tr><td>删除厂商</td><td>至少保留 1 家、同步删对配列</td></tr>
+        <tr><td>厂商日期</td><td>起≤止、跨度≤90天、不超今日、不早于 2024-01-01</td></tr>
+        <tr><td>添加对配</td><td>最多 20 行、对配名 1-30 字符、不重复</td></tr>
+        <tr><td>子游戏选择</td><td>按 (商户+厂商+子类) 过滤；同厂同游戏不重复</td></tr>
+        <tr><td>切换商户</td><td>清空厂商 + 对配 + 模板</td></tr>
+        <tr><td>切换子类</td><td>清空对配行的子游戏选择</td></tr>
+        <tr><td>载入模板</td><td>二次确认、不兼容厂商跳过</td></tr>
+        <tr><td>保存模板</td><td>名 1-30、备注 ≤200、≥1 行有效、同名覆盖、上限 50</td></tr>
+        <tr><td>查询</td><td>商户 + 厂商≥2 + 对配≥1 有效</td></tr>
+        <tr><td>重置 / 导出</td><td>重置二次确认；导出需先生成报表</td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
 
 <div class="demo-banner">
   <b>原型 · 游戏比对报表</b> · 多厂商 × 多子游戏 × 每厂商独立日期范围
@@ -1258,6 +1450,19 @@ function showToast(type, msg){
   setTimeout(() => { t.style.transition='opacity .25s'; t.style.opacity=0; }, 2500);
   setTimeout(() => t.remove(), 2800);
 }
+
+// 业务规则面板
+function toggleRules(){
+  document.getElementById('rules-panel').classList.add('show');
+  document.getElementById('rules-overlay').classList.add('show');
+}
+function closeRules(){
+  document.getElementById('rules-panel').classList.remove('show');
+  document.getElementById('rules-overlay').classList.remove('show');
+}
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeRules();
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   onGameTypeChange();
