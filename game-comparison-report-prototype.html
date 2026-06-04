@@ -663,6 +663,8 @@ body.hide-conclusion .game-conclusion{display:none}
 .rs-table tr:hover td{background:#fafcff}
 .rs-table tr.rs-table-total td{background:#fff7e6;color:#874d00;padding-top:8px;padding-bottom:8px}
 .rs-table.rs-quick td:first-child{font-weight:600;color:#222;width:100px;white-space:nowrap}
+.rs-list li.rs-warn{margin-top:8px;padding:8px 12px 8px 14px;background:#fff7e6;border-left:3px solid #fa8c16;border-radius:0 3px 3px 0;color:#874d00;font-size:11.5px;line-height:1.7;list-style:none}
+.rs-list li.rs-warn::before{content:""}
 
 </style>
 </head>
@@ -764,9 +766,28 @@ body.hide-conclusion .game-conclusion{display:none}
         <li>任一条件不满足 → 按钮禁用 + Tooltip 显示原因</li>
         <li>查询中按钮 Loading，防重复点击</li>
         <li>重置需二次确认，恢复默认</li>
-        <li>导出仅在已生成报表后可用</li>
-        <li>导出 Excel = 当前所有游戏卡片表格（含合计行）</li>
+        <li><b>导出</b>：与"重置"按钮并排，位于筛选区右下角</li>
+        <li>导出仅在已生成报表后可用（无报表时按钮禁用）</li>
+        <li>导出内容 = 当前筛选出的数据 <b>1:1 复刻</b>（所见即所得）</li>
+        <li>覆盖范围：所有游戏卡片 × 各厂商段 11 列 × 4 天明细 + 合计行</li>
+        <li>保留段头颜色（PG 蓝 / UP 橙）、合计行橙底、盈利率正负配色</li>
         <li>文件名：<code>游戏比对报表_{商户}_{当前日期}.xlsx</code></li>
+        <li>导出操作记录审计日志：操作人 / 时间 / 筛选条件</li>
+      </ul>
+    </div>
+
+    <div class="rules-section">
+      <div class="rs-title">⑪ 权限规则</div>
+      <ul class="rs-list">
+        <li><b>访问范围</b>：本报表<b>仅总控（超级管理员）</b>可见可操作</li>
+        <li>商户后台、代理后台、运营后台<b>不显示</b>此菜单</li>
+        <li>权限校验通过 <b>角色 = 总控</b> 判断，需在路由层 + 接口层双重校验</li>
+        <li>非总控用户通过直链访问 → 跳转到 403 无权限页</li>
+        <li>非总控用户调用接口 → 返回 403 错误码 + 提示「无权访问该报表」</li>
+        <li>总控可看到<b>所有商户</b>的数据，不受单商户权限限制</li>
+        <li>对配关系模板、查询、导出 → 全部按总控权限放开</li>
+        <li>导出日志记录中标记"由总控用户 XX 导出"</li>
+        <li class="rs-warn">⚠ 后续若新增"分级总控"或下放给区域管理员，需新增"报表查看"权限点，再配置角色绑定</li>
       </ul>
     </div>
 
@@ -820,7 +841,8 @@ body.hide-conclusion .game-conclusion{display:none}
         <tr><td>载入模板</td><td>二次确认、不兼容厂商跳过</td></tr>
         <tr><td>保存模板</td><td>名 1-30、备注 ≤200、≥1 行有效、同名覆盖、上限 50</td></tr>
         <tr><td>查询</td><td>商户 + 厂商≥2 + 对配≥1 有效</td></tr>
-        <tr><td>重置 / 导出</td><td>重置二次确认；导出需先生成报表</td></tr>
+        <tr><td>重置 / 导出</td><td>重置二次确认；导出 1:1 复刻（无报表时禁用）</td></tr>
+        <tr style="background:#fff7e6"><td><b>权限</b></td><td><b>仅总控可见可操作</b>（路由 + 接口双重校验）</td></tr>
       </table>
     </div>
 
@@ -1100,6 +1122,7 @@ body.hide-conclusion .game-conclusion{display:none}
             <div class="fb-actions">
               <button class="btn btn-p">查询</button>
               <button class="btn btn-d">重置</button>
+              <button class="btn btn-d">📥 导出</button>
             </div>
           </div>
 
