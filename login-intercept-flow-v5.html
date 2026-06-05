@@ -540,21 +540,9 @@ flowchart TD
 </section>
 
 <script>
-// Tab 切换
-document.querySelectorAll('.top-tabs .tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const pageId = btn.dataset.page;
-    document.querySelectorAll('.top-tabs .tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('page-' + pageId).classList.add('active');
-    window.scrollTo({top:0, behavior:'instant'});
-  });
-});
-
-// Mermaid 初始化
+// Mermaid 初始化（关闭 startOnLoad，避免在 display:none 容器内渲染失败）
 mermaid.initialize({
-  startOnLoad: true,
+  startOnLoad: false,
   theme: 'default',
   flowchart: {
     curve: 'basis',
@@ -567,6 +555,50 @@ mermaid.initialize({
     fontFamily: '"PingFang SC","Microsoft YaHei",-apple-system,sans-serif',
     fontSize: '13px'
   }
+});
+
+// 记录已渲染过的 mermaid 节点，避免重复
+const _mermaidRendered = new WeakSet();
+
+async function renderMermaidIn(container) {
+  const nodes = container.querySelectorAll('.mermaid');
+  const todo = [];
+  nodes.forEach(n => {
+    if (!_mermaidRendered.has(n)) {
+      _mermaidRendered.add(n);
+      // 移除 mermaid 给元素打上的"已处理"属性，确保它会被渲染
+      n.removeAttribute('data-processed');
+      todo.push(n);
+    }
+  });
+  if (todo.length) {
+    try {
+      await mermaid.run({ nodes: todo });
+    } catch (e) {
+      console.error('mermaid render error', e);
+    }
+  }
+}
+
+// Tab 切换 — 切到目标 Tab 后再渲染对应 page 的 mermaid
+document.querySelectorAll('.top-tabs .tab').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const pageId = btn.dataset.page;
+    document.querySelectorAll('.top-tabs .tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const page = document.getElementById('page-' + pageId);
+    page.classList.add('active');
+    window.scrollTo({top:0, behavior:'instant'});
+    // 让浏览器先完成布局，再渲染（确保 width > 0）
+    requestAnimationFrame(() => renderMermaidIn(page));
+  });
+});
+
+// 初次加载也渲染当前激活 Tab 内的 mermaid（若有）
+window.addEventListener('DOMContentLoaded', () => {
+  const active = document.querySelector('.page.active');
+  if (active) requestAnimationFrame(() => renderMermaidIn(active));
 });
 </script>
 </body>
