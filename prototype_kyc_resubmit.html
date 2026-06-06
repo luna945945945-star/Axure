@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>短信认证流程优化（5 项改动）· H5 原型</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Microsoft YaHei',sans-serif;background:#f5f7fa;color:#374151;font-size:14px;min-height:100vh}
+
+  /* 导航 */
+  .nav-tabs{display:flex;background:#fff;border-bottom:1px solid #e5e7eb;padding:0 20px;position:sticky;top:0;z-index:100;overflow-x:auto;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .nav-tab{padding:14px 22px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:#6b7280;font-size:14px;white-space:nowrap;transition:all .2s;flex-shrink:0}
+  .nav-tab.active{color:#2563eb;border-bottom-color:#2563eb;font-weight:600}
+  .nav-tab:hover{color:#2563eb;background:rgba(37,99,235,.05)}
+  .nav-tab .num{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;background:#e5e7eb;border-radius:50%;font-size:11px;margin-right:6px;color:#6b7280}
+  .nav-tab.active .num{background:#2563eb;color:#fff}
+
+  /* 页面布局 */
+  .page{display:none;padding:24px;max-width:1400px;margin:0 auto}
+  .page.active{display:block}
+  .page-title{font-size:22px;font-weight:600;margin-bottom:8px;color:#1f2937}
+  .page-subtitle{font-size:14px;color:#6b7280;margin-bottom:24px;line-height:1.7}
+
+  /* 双栏布局 */
+  .split{display:grid;grid-template-columns:420px 1fr;gap:30px;align-items:start}
+  .split-3{display:grid;grid-template-columns:380px 380px 1fr;gap:24px;align-items:start}
+
+  /* 手机外壳 */
+  .phone{width:380px;height:760px;background:#000;border-radius:36px;padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.5);position:relative;margin:0 auto}
+  .phone::before{content:'';position:absolute;top:14px;left:50%;transform:translateX(-50%);width:120px;height:24px;background:#000;border-radius:0 0 14px 14px;z-index:10}
+  .phone-screen{width:100%;height:100%;background:#f7f8fa;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+  .phone-status{height:30px;background:#fff;display:flex;justify-content:space-between;align-items:center;padding:0 22px;font-size:11px;color:#333;font-weight:600;flex-shrink:0}
+  .phone-header{background:#fff;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid #eee;flex-shrink:0}
+  .phone-header .back{color:#333;font-size:18px;cursor:pointer;width:24px}
+  .phone-header .title{font-size:15px;font-weight:600;color:#333}
+  .phone-header .right{width:24px;text-align:right;color:#4dabf7;font-size:18px;cursor:pointer}
+  .phone-content{flex:1;overflow-y:auto;padding:14px}
+
+  /* 充值记录卡片 */
+  .recharge-card{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .recharge-card .row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+  .recharge-card .row .lbl{color:#888}
+  .recharge-card .row .val{color:#333;font-weight:500}
+  .recharge-card .row.amount .val{color:#ff9500;font-weight:700;font-size:15px}
+  .recharge-card .header-row{padding-bottom:10px;border-bottom:1px solid #f0f0f0;margin-bottom:6px}
+  .badge-status{padding:3px 10px;border-radius:4px;font-size:12px;font-weight:600}
+  .badge-recharge{background:#26d965;color:#fff}
+  .badge-fail{background:transparent;color:#ff3838;font-size:13px;font-weight:600}
+  .badge-success{background:transparent;color:#26d965;font-size:13px;font-weight:600}
+
+  /* 主按钮 */
+  .btn-action{width:100%;padding:13px;border-radius:24px;border:none;font-size:15px;font-weight:600;cursor:pointer;margin-top:14px;transition:opacity .15s}
+  .btn-action:hover{opacity:.9}
+  .btn-red{background:linear-gradient(135deg,#ff6b6b,#ff8787);color:#fff}
+  .btn-green{background:linear-gradient(135deg,#26d965,#52d683);color:#fff}
+  .btn-orange{background:linear-gradient(135deg,#ff9500,#ffa726);color:#fff}
+  .btn-gray{background:#e0e0e0;color:#999;cursor:not-allowed}
+  .btn-light{background:#fff;color:#666;border:1.5px solid #d9d9d9}
+  .btn-hint{text-align:center;font-size:11px;color:#999;margin-top:6px;line-height:1.4}
+
+  /* Select Bank 银行卡片 */
+  .bank-tip{padding:14px;font-size:12px;color:#666;text-align:center;line-height:1.5;margin-bottom:8px}
+  .bank-card{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:8px;margin-bottom:10px;color:#fff;font-weight:600;font-size:15px;cursor:pointer;transition:transform .15s;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+  .bank-card:hover{transform:translateX(4px)}
+  .bank-card .logo{font-size:13px;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:4px}
+  .bank-phonepe{background:linear-gradient(135deg,#3949ab,#5c6bc0)}
+  .bank-paytm{background:linear-gradient(135deg,#42a5f5,#64b5f6)}
+  .bank-freecharge{background:linear-gradient(135deg,#ff9800,#ffa726)}
+  .bank-mobikwik{background:linear-gradient(135deg,#7e57c2,#9575cd)}
+  .bank-airtel{background:linear-gradient(135deg,#e53935,#ef5350)}
+
+  /* —— 旧版「Other Bank」按钮（演示用） —— */
+  .skip-old{display:block;text-align:center;padding:14px;background:#f5f5f5;color:#666;border-radius:8px;font-size:14px;margin-top:12px;border:1px solid #e0e0e0;cursor:pointer}
+
+  /* —— 新版「跳过 KYC」按钮（优化形态） —— */
+  .skip-divider{display:flex;align-items:center;gap:12px;color:#bbb;font-size:11px;margin:20px 0 12px}
+  .skip-divider::before,.skip-divider::after{content:'';flex:1;height:1px;background:#e8e8e8}
+
+  .skip-btn{display:flex;align-items:center;width:100%;padding:13px 14px;background:#fff;border:1.5px solid #ffd591;border-radius:12px;cursor:pointer;transition:all .2s;box-shadow:0 1px 4px rgba(255,149,0,.08)}
+  .skip-btn:hover{background:#fff8e8;border-color:#ffa940;transform:translateX(2px);box-shadow:0 2px 8px rgba(255,149,0,.18)}
+  .skip-btn:active{transform:translateX(2px) scale(.98)}
+  .skip-btn .skip-icon{width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fff3e0,#ffe0b2);border-radius:50%;margin-right:12px;font-size:16px;color:#ef6c00}
+  .skip-btn .skip-text{flex:1;text-align:left;line-height:1.35}
+  .skip-btn .skip-main{display:block;font-size:14px;font-weight:600;color:#d46b00}
+  .skip-btn .skip-sub{display:block;font-size:11px;color:#999;margin-top:3px}
+  .skip-btn .skip-arrow{color:#ff9500;font-size:18px;font-weight:600;margin-left:8px;transition:transform .15s}
+  .skip-btn:hover .skip-arrow{transform:translateX(3px)}
+
+  /* 工单状态 chip */
+  .status-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;margin-left:6px}
+  .chip-pending{background:#fff3e0;color:#ef6c00}
+  .chip-failed{background:#ffebee;color:#c62828}
+  .chip-success{background:#e8f5e9;color:#2e7d32}
+  .chip-processing{background:#e3f2fd;color:#1565c0}
+  .chip-info{background:#e8eaf6;color:#3949ab}
+
+  /* 说明面板 */
+  .panel{background:#fff;border-radius:10px;padding:22px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .panel h2{font-size:17px;color:#1f2937;margin-bottom:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .panel h2 .badge{font-size:11px;background:#d03050;color:#fff;padding:2px 8px;border-radius:4px;font-weight:normal}
+  .panel h2 .badge-new{background:#2563eb}
+  .panel h3{font-size:14px;color:#374151;margin:18px 0 10px;font-weight:600}
+  .panel p,.panel li{color:#4b5563;line-height:1.8;font-size:13px}
+  .panel ul{padding-left:18px}
+  .panel ul li{margin-bottom:4px}
+  .panel strong{color:#1f2937}
+  .panel .hl{color:#2563eb;font-weight:600}
+  .panel .warn{color:#ea580c;font-weight:600}
+
+  .panel table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+  .panel th{background:#f3f4f6;text-align:left;padding:10px 12px;color:#374151;font-weight:600;border:1px solid #e5e7eb}
+  .panel td{padding:10px 12px;color:#4b5563;border:1px solid #e5e7eb}
+  .panel td .chip-success,.panel td .chip-failed,.panel td .chip-pending,.panel td .chip-processing,.panel td .chip-info{font-size:11px}
+
+  .demo-toggle{display:flex;gap:8px;margin-bottom:18px;align-items:center;flex-wrap:wrap;background:#fff;padding:14px 16px;border-radius:10px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .demo-toggle .lbl{color:#6b7280;font-size:12.5px;margin-right:4px}
+  .demo-btn{padding:7px 14px;border-radius:6px;font-size:12.5px;cursor:pointer;border:1px solid #d1d5db;background:#fff;color:#6b7280;transition:all .15s}
+  .demo-btn:hover{border-color:#2563eb;color:#2563eb;background:#eff6ff}
+  .demo-btn.active{background:#2563eb;color:#fff;border-color:#2563eb;font-weight:600}
+
+  .note{background:#eff6ff;border-left:3px solid #2563eb;padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0;font-size:13px;line-height:1.8;color:#1e3a8a}
+  .note strong{color:#1f2937}
+  .note-warn{background:#fff7ed;border-left-color:#ea580c;color:#7c2d12}
+  .note-warn strong{color:#1f2937}
+  .note-red{background:#fef2f2;border-left-color:#dc2626;color:#7f1d1d}
+  .note-red strong{color:#1f2937}
+  .note-green{background:#ecfdf5;border-left-color:#10b981;color:#064e3b}
+  .note-green strong{color:#1f2937}
+
+  .flow{display:flex;flex-direction:column;gap:8px;background:#f9fafb;border-radius:10px;padding:18px;font-size:13px;border:1px solid #e5e7eb}
+  .flow-step{display:flex;align-items:flex-start;gap:10px;color:#4b5563;line-height:1.7}
+  .flow-num{width:24px;height:24px;background:#2563eb;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+  .flow-arrow{padding-left:32px;color:#94a3b8;font-size:14px}
+
+  .otp-dialog{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:50;border-radius:24px}
+  .otp-content{background:#fff;border-radius:14px;padding:20px;width:88%;max-width:300px}
+  .otp-content h3{font-size:15px;color:#333;margin-bottom:12px;text-align:center}
+  .otp-input{width:100%;padding:10px 12px;border:1px solid #d9d9d9;border-radius:6px;font-size:14px;margin-bottom:10px;outline:none}
+  .otp-buttons{display:flex;gap:8px;margin-top:10px}
+  .otp-buttons button{flex:1;padding:10px;border-radius:6px;border:none;font-size:14px;cursor:pointer}
+  .otp-cancel{background:#f0f0f0;color:#666}
+  .otp-confirm{background:#4dabf7;color:#fff}
+
+  .annotate{position:absolute;background:#d03050;color:#fff;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;box-shadow:0 2px 8px rgba(208,48,80,.3);z-index:20}
+  .annotate::after{content:'';position:absolute;border:6px solid transparent}
+  .annotate.left{right:calc(100% + 12px);top:50%;transform:translateY(-50%)}
+  .annotate.left::after{left:100%;top:50%;transform:translateY(-50%);border-left-color:#d03050}
+  .annotate.top{bottom:calc(100% + 12px);left:50%;transform:translateX(-50%)}
+  .annotate.top::after{top:100%;left:50%;transform:translateX(-50%);border-top-color:#d03050}
+  .annotate.green{background:#26d965;box-shadow:0 2px 8px rgba(38,217,101,.3)}
+  .annotate.green.top::after{border-top-color:#26d965}
+  .badge-new-inline{background:#4dabf7;color:#fff;font-size:10px;padding:1px 6px;border-radius:3px;margin-left:4px;font-weight:600}
+
+  .toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.85);color:#fff;padding:14px 22px;border-radius:8px;font-size:13px;z-index:100;opacity:0;transition:opacity .25s;pointer-events:none;max-width:280px;text-align:center;line-height:1.5}
+  .toast.show{opacity:1}
+
+  /* 通道标签 */
+  .channel-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+  .channel-upi{background:#e3f2fd;color:#1565c0}
+  .channel-bankcard{background:#f3e5f5;color:#6a1b9a}
+  .channel-usdt{background:#fff3e0;color:#ef6c00}
+
+  /* —— 树状流程图样式（参考图风格） —— */
+  .tree-canvas{background:#fafdfc;border-radius:14px;padding:50px 30px;overflow-x:auto;min-height:500px}
+  .tree-row{display:flex;justify-content:center;align-items:flex-start;gap:60px;margin:24px 0;position:relative}
+  .tree-col{display:flex;flex-direction:column;align-items:center;gap:12px;position:relative}
+  .tree-col.with-line{padding-top:36px}
+  .tree-col.with-line::before{content:'';position:absolute;top:0;left:50%;width:1.5px;height:36px;background:#7fb3a3}
+
+  .tree-box{padding:14px 22px;border-radius:6px;background:#e6f3ef;border:1px solid #7fb3a3;min-width:180px;max-width:260px;text-align:center;line-height:1.5;position:relative}
+  .tree-box.start{background:#fff;border:1.5px solid #cbd5e1;color:#475569}
+  .tree-box.start .tree-title{color:#475569}
+  .tree-box.actor{background:#fff;border:1.5px solid #cbd5e1;border-radius:6px;padding:10px 18px;color:#64748b;font-size:12.5px;font-weight:500}
+  .tree-box.system{background:#e6f3ef;border-color:#7fb3a3}
+  .tree-box.user-action{background:#dbeafe;border-color:#60a5fa}
+  .tree-box.new-feat{background:#dcfce7;border-color:#4ade80;border-width:2px;position:relative}
+  .tree-box.new-feat::after{content:'NEW';position:absolute;top:-9px;right:-8px;background:#16a34a;color:#fff;font-size:9px;padding:1px 6px;border-radius:3px;font-weight:700;letter-spacing:.5px}
+  .tree-box.async-job{background:#fef3c7;border-color:#f59e0b}
+  .tree-box.end{background:#fff;border:1.5px solid #cbd5e1;border-radius:20px;padding:10px 22px;color:#475569}
+
+  .tree-title{font-size:13.5px;font-weight:600;color:#1e293b;margin-bottom:3px}
+  .tree-subtitle{font-size:11.5px;color:#64748b;line-height:1.4;font-weight:normal}
+
+  /* 连接线 + 标签 */
+  .tree-arrow{display:flex;flex-direction:column;align-items:center;gap:4px;color:#7fb3a3;position:relative}
+  .tree-arrow.vertical{width:1.5px;height:36px;background:#7fb3a3;position:relative}
+  .tree-arrow.vertical::after{content:'';position:absolute;bottom:-4px;left:-3.5px;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid #7fb3a3}
+  .tree-arrow-label{position:absolute;background:#fafdfc;color:#64748b;font-size:11px;padding:2px 8px;border-radius:3px;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;border:1px dashed #cbd5e1}
+  .tree-arrow.dashed{background:repeating-linear-gradient(to bottom,#7fb3a3 0,#7fb3a3 4px,transparent 4px,transparent 8px)}
+
+  /* 横向分支（多个子节点共享一个父节点） */
+  .tree-branches{position:relative;padding-top:30px}
+  .tree-branches::before{content:'';position:absolute;top:0;left:50%;width:1.5px;height:14px;background:#7fb3a3}
+  .tree-branches > .h-line{position:absolute;top:14px;left:var(--start,0);right:var(--end,0);height:1.5px;background:#7fb3a3}
+  .tree-branches > .branches-row{display:flex;gap:24px;justify-content:center;padding-top:0;position:relative}
+  .tree-branches > .branches-row > .tree-col{padding-top:30px;position:relative}
+  .tree-branches > .branches-row > .tree-col::before{content:'';position:absolute;top:0;left:50%;width:1.5px;height:30px;background:#7fb3a3}
+
+  /* 决策菱形 */
+  .tree-diamond{padding:16px 30px;background:#fef9c3;border:1.5px solid #f59e0b;color:#92400e;font-weight:600;font-size:13px;text-align:center;border-radius:4px;transform:none;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);width:230px;height:80px;display:flex;align-items:center;justify-content:center;line-height:1.3}
+
+  .tree-decision{background:#fef9c3;border:1.5px solid #f59e0b;color:#92400e;border-radius:6px;padding:12px 18px;font-size:13px;font-weight:600;text-align:center;line-height:1.5;min-width:200px;max-width:280px}
+
+  /* 路径标签 */
+  .path-label{display:inline-block;background:#fff;color:#475569;font-size:11.5px;padding:3px 10px;border:1px dashed #94a3b8;border-radius:3px;margin-bottom:10px;font-weight:500}
+  .path-label.new{color:#16a34a;border-color:#4ade80;background:#dcfce7;font-weight:600}
+
+  /* 区块包装 */
+  .tree-section{background:#fff;border:1px dashed #cbd5e1;border-radius:10px;padding:20px;margin:18px 0}
+  .tree-section-title{text-align:center;font-size:12px;color:#64748b;font-weight:600;margin-bottom:14px;letter-spacing:1.5px;text-transform:uppercase}
+
+  /* 图例 */
+  .tree-legend{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;padding:14px 18px;background:#fff;border-radius:8px;margin-bottom:24px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .tree-legend-item{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#4b5563}
+  .tree-legend-swatch{width:22px;height:14px;border-radius:3px;border:1.5px solid}
+  .lg-actor{background:#fff;border-color:#cbd5e1}
+  .lg-system{background:#e6f3ef;border-color:#7fb3a3}
+  .lg-user{background:#dbeafe;border-color:#60a5fa}
+  .lg-new{background:#dcfce7;border-color:#4ade80}
+  .lg-decision{background:#fef9c3;border-color:#f59e0b}
+  .lg-async{background:#fef3c7;border-color:#f59e0b}
+
+  /* —— 流程图样式 —— */
+  .fc-canvas{background:#fff;border-radius:12px;padding:36px 24px;overflow-x:auto}
+  .fc-row{display:flex;justify-content:center;align-items:flex-start;gap:30px;margin:6px 0;flex-wrap:nowrap}
+  .fc-col{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:140px}
+  .fc-node{padding:10px 16px;border-radius:8px;font-size:12.5px;text-align:center;line-height:1.4;color:#333;background:#fff;min-width:120px;max-width:220px;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1.5px solid #e0e0e0;font-weight:500;position:relative}
+  .fc-node.start{background:linear-gradient(135deg,#26d965,#52d683);color:#fff;border:none;font-weight:600;padding:12px 20px;border-radius:24px}
+  .fc-node.end{background:linear-gradient(135deg,#ff9500,#ffb74d);color:#fff;border:none;font-weight:600;padding:12px 20px;border-radius:24px}
+  .fc-node.user{background:#e3f2fd;border-color:#90caf9;color:#0d47a1}
+  .fc-node.system{background:#f3e5f5;border-color:#ce93d8;color:#4a148c}
+  .fc-node.async{background:#fff3e0;border-color:#ffb74d;color:#e65100}
+  .fc-node.kyc{background:#e0f2f1;border-color:#80cbc4;color:#00695c}
+  .fc-node.new{border:2px dashed #d03050;background:#fff5f5;color:#c2185b;font-weight:600}
+  .fc-node.new::before{content:'NEW';position:absolute;top:-8px;right:-6px;background:#d03050;color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700}
+  .fc-diamond{padding:10px 14px;font-size:12px;text-align:center;line-height:1.3;color:#333;background:#fff8e1;border:1.5px solid #ffc107;font-weight:600;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);width:160px;height:70px;display:flex;align-items:center;justify-content:center;position:relative}
+  .fc-diamond-wrap{padding:6px;min-width:160px;display:flex;justify-content:center}
+  .fc-arrow{font-size:18px;color:#999;line-height:1;font-weight:700}
+  .fc-arrow-h{font-size:18px;color:#999;align-self:center}
+  .fc-label{font-size:11px;color:#999;background:#fff;padding:1px 6px;border-radius:3px;margin:2px 0;border:1px dashed #ddd}
+  .fc-merge-line{height:1px;background:#bbb;flex:1;align-self:center;min-width:30px}
+  .fc-group{background:#f7f9fc;border:1px dashed #cbd5e1;border-radius:10px;padding:18px 14px;margin:8px 0}
+  .fc-group-title{font-size:12px;color:#4a5568;font-weight:600;margin-bottom:10px;text-align:center;letter-spacing:1px;text-transform:uppercase}
+
+  /* —— 场景对比流程图样式 —— */
+  .scenario-block{background:#fff;border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .scenario-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:2px dashed #e0e0e0}
+  .scenario-emoji{font-size:30px}
+  .scenario-title{font-size:18px;font-weight:700;color:#333}
+  .scenario-subtitle{font-size:13px;color:#888;margin-top:4px}
+
+  .scenario-compare{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+  .scenario-col{}
+  .scenario-col-title{font-size:14px;font-weight:700;text-align:center;padding:8px 14px;border-radius:6px 6px 0 0;margin-bottom:12px}
+  .scenario-col-old{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;border-bottom:none}
+  .scenario-col-new{background:#f0fdf4;color:#166534;border:1.5px solid #86efac;border-bottom:none}
+
+  .step-card{background:#fafafa;border-radius:8px;padding:12px 14px;margin-bottom:10px;border-left:3px solid #ccc;font-size:13px;color:#333;line-height:1.5;position:relative}
+  .step-card.user{border-left-color:#42a5f5;background:#eff6ff}
+  .step-card.problem{border-left-color:#e53935;background:#fef2f2;color:#991b1b}
+  .step-card.fix{border-left-color:#26d965;background:#f0fdf4;color:#166534}
+  .step-card.system{border-left-color:#ab47bc;background:#faf5ff}
+  .step-card.async{border-left-color:#ff9800;background:#fffbeb}
+  .step-card .step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#fff;border:1.5px solid currentColor;border-radius:50%;font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0}
+  .step-card .step-content{display:flex;align-items:flex-start;gap:0}
+  .step-card .step-text{flex:1}
+  .step-card .step-emo{font-size:16px;margin-right:6px}
+  .step-card.problem::after{content:'❌';position:absolute;top:8px;right:10px;font-size:14px}
+  .step-card.fix::after{content:'✓';position:absolute;top:8px;right:10px;font-size:14px;color:#26d965;font-weight:700}
+
+  .step-arrow{text-align:center;color:#bbb;font-size:18px;line-height:1;margin:2px 0}
+
+  .step-end-old{background:#fef2f2;color:#991b1b;text-align:center;padding:14px;border-radius:6px;font-weight:600;margin-top:6px;font-size:13px;border:1.5px dashed #fca5a5}
+  .step-end-new{background:#f0fdf4;color:#166534;text-align:center;padding:14px;border-radius:6px;font-weight:600;margin-top:6px;font-size:13px;border:1.5px dashed #86efac}
+
+  .biz-glossary{background:#fff;border-radius:10px;padding:18px 22px;margin-bottom:24px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .biz-glossary h3{color:#1f2937;font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .biz-glossary ul{padding:0;list-style:none}
+  .biz-glossary li{padding:6px 0;color:#4b5563;font-size:13px;border-bottom:1px dashed #e5e7eb;line-height:1.6}
+  .biz-glossary li:last-child{border-bottom:none}
+  .biz-glossary li strong{color:#2563eb}
+
+  /* 图例 */
+  .legend{display:flex;gap:18px;flex-wrap:wrap;background:#fff;padding:14px 18px;border-radius:8px;margin-bottom:20px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#4b5563}
+  .legend-swatch{width:24px;height:14px;border-radius:3px;border:1.5px solid transparent}
+  .legend-start{background:linear-gradient(135deg,#26d965,#52d683)}
+  .legend-end{background:linear-gradient(135deg,#ff9500,#ffb74d)}
+  .legend-user{background:#e3f2fd;border-color:#90caf9}
+  .legend-system{background:#f3e5f5;border-color:#ce93d8}
+  .legend-async{background:#fff3e0;border-color:#ffb74d}
+  .legend-kyc{background:#e0f2f1;border-color:#80cbc4}
+  .legend-decision{background:#fff8e1;border-color:#ffc107}
+  .legend-new{background:#fff5f5;border:2px dashed #d03050}
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="switchPage('overview', this)"><span class="num">0</span>方案总览（5 项改动）</div>
+  <div class="nav-tab" onclick="switchPage('change1', this)"><span class="num">1</span>改动 1 · 跳过按钮优化</div>
+  <div class="nav-tab" onclick="switchPage('change2', this)"><span class="num">2</span>改动 3 · 按钮状态机（4 态）</div>
+  <div class="nav-tab" onclick="switchPage('flow', this)"><span class="num">3</span>完整补充短信认证流程</div>
+  <div class="nav-tab" onclick="switchPage('flowchart', this)"><span class="num">4</span>客户端提交完整流程树</div>
+  <div class="nav-tab" onclick="switchPage('compare', this)"><span class="num">5</span>前后对比</div>
+</div>
+
+<!-- ════════════ 页 0：方案总览 ════════════ -->
+<div id="page-overview" class="page active">
+  <div class="page-title">短信认证流程优化 · 业务规则总览</div>
+  <div class="page-subtitle">解决三个核心痛点：跳过短信认证文案误导 + 无法补充短信认证 + 同订单重复提工单</div>
+
+  <div class="panel" style="margin-bottom:18px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#3b82f6;border-left:4px solid #2563eb">
+    <h2 style="color:#1e3a8a">🎯 核心业务规则（三句话）</h2>
+    <ol style="color:#1e3a8a;line-height:2;padding-left:22px;font-size:14px">
+      <li><strong style="color:#15803d">一笔订单同时只能有一张"进行中"工单</strong> — 进行中工单不能重提，按钮变成"查看进度"或"补充短信认证"</li>
+      <li><strong style="color:#15803d">工单结束后允许重提</strong> — 驳回 / 已处理后按钮恢复为「提交存款凭证」，同时保留"查看历史工单"入口</li>
+      <li><strong style="color:#15803d">补充短信认证流程中不能再跳过</strong> — 银行列表底部不显示「跳过短信认证」按钮，避免"提交→跳过→补提→又跳过"死循环</li>
+    </ol>
+  </div>
+
+  <div class="panel">
+    <h2>本期 7 个业务改动</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>业务改动</th><th>用户感知</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1</strong></td>
+          <td>「Other Bank」按钮升级为「<strong>跳过短信认证</strong>」<br>+ 视觉降级 + 警告文案（不出现"KYC"字样）</td>
+          <td>玩家看到的是熟悉的"找不到我的银行"场景，不会被陌生术语困扰</td>
+        </tr>
+        <tr>
+          <td><strong>2</strong></td>
+          <td>充值/提现记录页能感知到"这笔订单是否已提工单、短信认证是否完成"</td>
+          <td>按钮根据实际状态智能展示，不再"一刀切"</td>
+        </tr>
+        <tr>
+          <td><strong>3</strong></td>
+          <td>充值/提现记录页按钮分为 <strong>4 种状态</strong>（无工单 / 短信认证已通过 / 短信认证待完成 / 工单已驳回或已处理）</td>
+          <td>玩家在记录页一眼看出当前能做什么</td>
+        </tr>
+        <tr>
+          <td><strong>4</strong></td>
+          <td>新增「<strong>补充短信认证</strong>」按钮（业务化文案，内部对应补 KYC 接口）</td>
+          <td>未完成短信认证的玩家能主动补救，不再被迫重提工单</td>
+        </tr>
+        <tr>
+          <td><strong>5</strong></td>
+          <td>BANKCARD 通道订单不再被强制走短信认证流程</td>
+          <td>BANKCARD 玩家直接进表单，不被多余的"选银行"困扰</td>
+        </tr>
+        <tr style="background:#f0fdf4">
+          <td><strong>6</strong> 🆕</td>
+          <td>工单驳回 / 已处理后，按钮恢复为「提交存款凭证」<br>+ "📋 查看历史工单"链接</td>
+          <td>驳回后能补充资料重提；历史工单可追溯</td>
+        </tr>
+        <tr style="background:#f0fdf4">
+          <td><strong>7</strong> 🆕</td>
+          <td>补充短信认证流程中，银行列表底部隐藏「跳过短信认证」按钮</td>
+          <td>引导玩家必须完成短信认证，避免循环跳过</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note" style="margin-top:18px">
+      <strong>💡 范围说明</strong><br>
+      • 改动覆盖<strong>充值记录页 + 提现记录页</strong>两个入口（视觉和交互一致）<br>
+      • 改动覆盖<strong>"首次提交"和"补充短信认证"</strong>两种流程<br>
+      • 仅针对印度商户的 UPI 类订单
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 页 1：改动 1 · 跳过按钮优化 ════════════ -->
+<div id="page-change1" class="page">
+  <div class="page-title">改动 1 · 「跳过短信认证」按钮形态 + 文案优化</div>
+  <div class="page-subtitle">原「Other Bank」长得像另一个银行选项，新版改成"明显的跳过按钮"形态，配合警告文案</div>
+
+  <div class="split">
+    <div>
+      <div class="demo-toggle">
+        <span class="lbl">演示切换：</span>
+        <div class="demo-btn" onclick="switchBank('old',this)">🐛 现状（误导）</div>
+        <div class="demo-btn active" onclick="switchBank('new',this)">✅ 改造后</div>
+      </div>
+
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+          <div class="phone-header">
+            <span class="back">‹</span>
+            <span class="title">Select Bank</span>
+            <span class="right"></span>
+          </div>
+          <div class="phone-content">
+            <div class="bank-tip">To help us quickly check the status of your Deposit order, please select the bank associated with your Deposit.</div>
+            <div class="bank-card bank-phonepe">Phonepe <span class="logo">📱 PhonePe</span></div>
+            <div class="bank-card bank-paytm">Paytm <span class="logo">paytm</span></div>
+            <div class="bank-card bank-freecharge">FreeCharge <span class="logo">⚡ FREECHARGE</span></div>
+            <div class="bank-card bank-mobikwik">Mobikwik <span class="logo">MobiKwik</span></div>
+            <div class="bank-card bank-airtel">Airtel <span class="logo">airtel</span></div>
+
+            <!-- 现状按钮 -->
+            <div id="bankOldBtn" style="display:none;position:relative">
+              <div class="skip-old">Other Bank</div>
+              <div class="annotate top">🚨 文案误导，看着像选另一家银行</div>
+            </div>
+
+            <!-- 改造后按钮 -->
+            <div id="bankNewBtn" style="position:relative">
+              <div class="skip-divider">—— 找不到您的银行？ ——</div>
+              <button class="skip-btn">
+                <div class="skip-icon">⏭</div>
+                <div class="skip-text">
+                  <span class="skip-main">跳过短信认证</span>
+                  <span class="skip-sub">⚠️ 跳过短信认证可能延长订单处理时间</span>
+                </div>
+                <span class="skip-arrow">›</span>
+              </button>
+              <div class="annotate green top" style="left:auto;right:8px;transform:none">✅ 业务化文案，玩家看得懂</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>🐛 现状问题</h2>
+      <p>「Other Bank」按钮存在<span class="warn">两个核心问题</span>：</p>
+      <ul>
+        <li><strong>视觉问题</strong>：跟上方银行卡用<strong>同样的大色块视觉权重</strong>，用户以为"这是另一家银行"</li>
+        <li><strong>文案问题</strong>：「Other Bank（其他银行）」不能传达"跳过短信认证"的真实含义</li>
+        <li><strong>无警告提示</strong>：用户不知道选了之后处理时间会延长</li>
+      </ul>
+
+      <h2 style="margin-top:24px">✅ 改造方案</h2>
+
+      <h3>1. 按钮形态优化（从"色块"变"独立按钮"）</h3>
+      <ul>
+        <li>加分割线：「—— 找不到您的银行？——」自然引导</li>
+        <li>圆角胶囊形 + 边框 + 阴影 → <strong>明显的按钮形态</strong></li>
+        <li>左侧加 <strong>⏭ 跳过图标</strong>（带橙色圆形背景）</li>
+        <li>右侧 <strong>箭头 ›</strong>，hover 时还有横向位移动画</li>
+        <li>橙色系配色 → 暗示"警告/兜底"，区别于上方蓝紫色 短信认证银行</li>
+      </ul>
+
+      <h3>2. 文案双层结构（业务化表达，避开 "KYC" 术语）</h3>
+      <table>
+        <thead><tr><th>层级</th><th>文案</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td>主标题（粗体）</td><td>跳过短信认证</td><td>用玩家自己的语言描述场景</td></tr>
+          <tr><td>副标题（小字 + ⚠️）</td><td>跳过短信认证可能延长订单处理时间</td><td>明确告知后果（不出现 KYC 字样）</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note note-warn" style="margin-top:14px">
+        <strong>💡 为什么用「短信认证」而不是「KYC」？</strong><br>
+        现有 H5 流程<strong>从来没有出现过 "KYC" 这个词</strong>，玩家看到的只有"选择银行 + 输入 OTP"，<strong>"短信认证"才是玩家天天接触的概念</strong>（登录、转账、网购都见过）。直接用「KYC」会让玩家一脸懵 → 用「短信认证」既准确又一看就懂。
+      </div>
+
+      <h3 style="margin-top:18px">3. 多语言同步</h3>
+      <ul>
+        <li><strong>中文</strong>：其他银行 → <span class="hl">跳过短信认证</span></li>
+        <li><strong>英文</strong>：Other Bank → <span class="hl">Skip SMS Verification</span></li>
+        <li>其他 9 种语言找翻译同事统一对齐</li>
+      </ul>
+
+      <div class="note note-warn">
+        <strong>💡 设计要点</strong><br>
+        新按钮不是为了"鼓励用户跳过"，而是为了<strong>让选择跳过的用户知情</strong>。位置放在所有银行卡下方 + 警告文案 + 橙色 → 降低误选率
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 页 2：充值/提现记录页按钮状态机（5 态） ════════════ -->
+<div id="page-change2" class="page">
+  <div class="page-title">充值/提现记录页 · 按钮状态机（4 种状态）</div>
+  <div class="page-subtitle">同一个按钮根据"订单通道 + 工单状态 + 短信认证状态"智能切换 4 种形态</div>
+
+  <div class="note note-warn" style="margin-bottom:20px">
+    <strong>💡 业务设计思路</strong><br>
+    系统会自动核对玩家的银行流水（每 2 分钟一次）：
+    <ul style="margin-top:8px;margin-left:18px;color:#7c2d12">
+      <li>核对到订单 → 显示「短信认证已通过」</li>
+      <li>未核对到 → 显示「短信认证待完成」，玩家可主动点「补充短信认证」</li>
+      <li>玩家文案<strong>不出现 "KYC"</strong>字眼（沿用现有 H5 用语风格），客服后台仍使用 KYC 术语</li>
+    </ul>
+  </div>
+
+  <div class="split">
+    <div>
+      <div class="demo-toggle">
+        <span class="lbl">通道类型：</span>
+        <div class="demo-btn active" onclick="switchChannel('upi',this)">UPI（支持短信认证）</div>
+        <div class="demo-btn" onclick="switchChannel('bankcard',this)">BANKCARD（不支持短信认证）</div>
+      </div>
+
+      <div class="demo-toggle" id="upiStates">
+        <span class="lbl">订单状态：</span>
+        <div class="demo-btn active" onclick="switchBtnState('a',this)">无工单（首次）</div>
+        <div class="demo-btn" onclick="switchBtnState('c',this)">短信认证待完成</div>
+        <div class="demo-btn" onclick="switchBtnState('d',this)">短信认证已通过</div>
+        <div class="demo-btn" onclick="switchBtnState('e',this)">工单已驳回 / 已处理</div>
+      </div>
+
+      <div class="demo-toggle" id="nonKycStates" style="display:none">
+        <span class="lbl">订单状态：</span>
+        <div class="demo-btn active" onclick="switchBtnState('a2',this)">无工单（首次）</div>
+        <div class="demo-btn" onclick="switchBtnState('d2',this)">已有工单</div>
+        <div class="demo-btn" onclick="switchBtnState('e2',this)">工单已驳回 / 已处理</div>
+      </div>
+
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+          <div class="phone-header">
+            <span class="back">‹</span>
+            <span class="title">充值记录</span>
+            <span class="right"></span>
+          </div>
+          <div class="phone-content">
+            <div class="recharge-card">
+              <div class="row header-row">
+                <span class="badge-status badge-recharge">充值</span>
+                <span class="badge-fail">充值失败</span>
+              </div>
+              <div class="row amount"><span class="lbl">金额</span><span class="val">₹100.00</span></div>
+              <div class="row"><span class="lbl">类型</span><span class="val"><span id="channelLabel" class="channel-tag channel-upi">Local UPI</span></span></div>
+              <div class="row"><span class="lbl">时间</span><span class="val">2026-06-05 11:49:07</span></div>
+              <div class="row"><span class="lbl">订单号</span><span class="val" style="font-size:11px">RC20260605114907702001012a 📋</span></div>
+
+              <!-- A: 无工单（UPI） -->
+              <div class="btnState" id="btnStateA">
+                <button class="btn-action btn-red">提交存款凭证</button>
+                <div class="btn-hint">UPI 订单首次提交 · 后续跳 Select Bank 页</div>
+              </div>
+
+              <!-- C: 短信认证待完成 → 完成短信认证 -->
+              <div class="btnState" id="btnStateC" style="display:none">
+                <button class="btn-action btn-green" onclick="goSelectBank()">补充短信认证 <span class="badge-new-inline">新增</span></button>
+                <div class="btn-hint">尚未完成短信认证，可点击加快核对 <span class="status-chip chip-failed">短信认证待完成</span></div>
+              </div>
+
+              <!-- D: 短信认证已通过（UPI） -->
+              <div class="btnState" id="btnStateD" style="display:none">
+                <button class="btn-action btn-light">查看工单进度</button>
+                <div class="btn-hint">系统已核对到订单 <span class="status-chip chip-success">短信认证已通过</span></div>
+              </div>
+
+              <!-- A2: 无工单（非短信认证通道） -->
+              <div class="btnState" id="btnStateA2" style="display:none">
+                <button class="btn-action btn-red">提交存款凭证</button>
+                <div class="btn-hint">非短信认证通道 · 直接跳表单页（跳过 Select Bank）</div>
+              </div>
+
+              <!-- D2: 已有工单（非短信认证通道） -->
+              <div class="btnState" id="btnStateD2" style="display:none">
+                <button class="btn-action btn-light">查看工单进度</button>
+                <div class="btn-hint">非短信认证通道 · 工单处理中 <span class="status-chip chip-info">非短信认证</span></div>
+              </div>
+
+              <!-- E: 工单已驳回 / 已处理（终态）— 允许重新提交 + 查看历史 -->
+              <div class="btnState" id="btnStateE" style="display:none">
+                <button class="btn-action btn-red">提交存款凭证 <span class="badge-new-inline">新增</span></button>
+                <div class="btn-hint" style="margin-top:8px">
+                  <span class="status-chip" style="background:#f3e5f5;color:#6a1b9a">工单已驳回</span>
+                  <a style="color:#2080f0;cursor:pointer;text-decoration:underline;margin-left:8px">📋 查看 1 张历史工单 ›</a>
+                </div>
+              </div>
+
+              <!-- E2: 工单已驳回 / 已处理（非短信认证通道） -->
+              <div class="btnState" id="btnStateE2" style="display:none">
+                <button class="btn-action btn-red">提交存款凭证 <span class="badge-new-inline">新增</span></button>
+                <div class="btn-hint" style="margin-top:8px">
+                  <span class="status-chip" style="background:#e8f5e9;color:#2e7d32">工单已处理</span>
+                  <a style="color:#2080f0;cursor:pointer;text-decoration:underline;margin-left:8px">📋 查看 2 张历史工单 ›</a>
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align:center;color:#999;font-size:12px;margin-top:20px">没有更多了</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>4 种按钮状态 <span class="badge badge-new">业务规则</span></h2>
+
+      <table>
+        <thead>
+          <tr><th>什么情况下出现</th><th>按钮表现</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>无工单（首次）</strong><br><span style="font-size:11.5px;color:#999">该订单未提交过工单</span></td>
+            <td><span style="color:#ff6b6b;font-weight:600">提交存款凭证</span> 红色<br><span style="font-size:11px;color:#999">点击进入首次提交流程</span></td>
+          </tr>
+          <tr>
+            <td><strong>短信认证待完成</strong> 🆕<br><span style="font-size:11.5px;color:#999">已提工单 · UPI 通道 · 未完成短信认证 或 系统暂未匹配到订单</span></td>
+            <td><span style="color:#26d965;font-weight:600">补充短信认证</span> 绿色<br><span style="font-size:11px;color:#999">点击直接跳选择银行页</span></td>
+          </tr>
+          <tr>
+            <td><strong>短信认证已通过</strong><br><span style="font-size:11.5px;color:#999">已提工单 · 系统已核对到订单<br>或 BANKCARD 等不需要核对的通道</span></td>
+            <td><span style="color:#666;font-weight:600">查看工单进度</span> 灰色<br><span style="font-size:11px;color:#999">工单正常处理中</span></td>
+          </tr>
+          <tr style="background:#f9fafb">
+            <td><strong>工单已驳回 / 已处理</strong> 🆕<br><span style="font-size:11.5px;color:#999">工单进入终态，允许再次提交</span></td>
+            <td><span style="color:#ff6b6b;font-weight:600">提交存款凭证</span> 红色<br><span style="font-size:11px;color:#2080f0">+ "📋 查看历史工单"链接</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:24px">关键业务规则</h3>
+      <ul>
+        <li><strong>BANKCARD / USDT 等通道</strong>永远不显示「完成短信认证」按钮（这类通道不需要短信认证）</li>
+        <li>同一订单有多张工单时<span class="hl">关联最新一笔</span>展示</li>
+        <li>「工单已驳回 / 已处理」下点击"提交存款凭证"会创建<strong>新工单</strong>，原历史工单仍保留可查</li>
+        <li>单工单每日补提次数限制：<span class="hl">≤ 5 次</span>（防止恶意刷 OTP）</li>
+      </ul>
+
+      <div class="note">
+        <strong>🎯 试试切换</strong><br>
+        ① 上方切「通道类型」（UPI vs BANKCARD）<br>
+        ② 切「订单状态」看 4 种按钮表现<br>
+        ③ 点击「补充短信认证」会跳到完整流程演示 Tab
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 页 3：补充短信认证完整流程 ════════════ -->
+<div id="page-flow" class="page">
+  <div class="page-title">补充短信认证 · 完整端到端流程</div>
+  <div class="page-subtitle">从充值记录页点「补充短信认证」开始，到短信认证成功的全流程演示</div>
+
+  <div class="split-3">
+    <div>
+      <div style="text-align:center;color:#4dabf7;font-size:13px;margin-bottom:10px;font-weight:600">① 充值记录页</div>
+      <div class="phone" style="height:680px">
+        <div class="phone-screen">
+          <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+          <div class="phone-header">
+            <span class="back">‹</span>
+            <span class="title">充值记录</span>
+            <span class="right"></span>
+          </div>
+          <div class="phone-content">
+            <div class="recharge-card">
+              <div class="row header-row">
+                <span class="badge-status badge-recharge">充值</span>
+                <span class="badge-fail">充值失败</span>
+              </div>
+              <div class="row amount"><span class="lbl">金额</span><span class="val">₹100.00</span></div>
+              <div class="row"><span class="lbl">类型</span><span class="val"><span class="channel-tag channel-upi">Local UPI</span></span></div>
+              <div class="row"><span class="lbl">时间</span><span class="val">2026-06-05 11:49:07</span></div>
+              <div class="row"><span class="lbl">订单号</span><span class="val" style="font-size:11px">RC20260605114907702001012a</span></div>
+              <button class="btn-action btn-green" style="position:relative">
+                补充短信认证 <span class="badge-new-inline">新增</span>
+                <div class="annotate left">用户点击 ↓</div>
+              </button>
+              <div class="btn-hint">工单已提交，尚未完成短信认证 <span class="status-chip chip-failed">短信认证待完成</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="text-align:center;color:#4dabf7;font-size:13px;margin-bottom:10px;font-weight:600">② 直接跳 Select Bank（跳过表单填写）</div>
+      <div class="phone" style="height:680px">
+        <div class="phone-screen" id="selectBankScreen">
+          <div class="phone-status"><span>9:41</span><span>📶 🔋</span></div>
+          <div class="phone-header">
+            <span class="back">‹</span>
+            <span class="title">Select Bank · 补充短信认证</span>
+            <span class="right"></span>
+          </div>
+          <div class="phone-content">
+            <div class="bank-tip" style="color:#26d965;font-weight:600">✓ 工单已存在，本次仅补充短信认证（无需重填表单）</div>
+            <div class="bank-card bank-phonepe" onclick="triggerOtp(this)">Phonepe <span class="logo">📱</span></div>
+            <div class="bank-card bank-paytm" onclick="triggerOtp(this)">Paytm <span class="logo">paytm</span></div>
+            <div class="bank-card bank-freecharge" onclick="triggerOtp(this)">FreeCharge <span class="logo">⚡</span></div>
+            <div class="bank-card bank-mobikwik" onclick="triggerOtp(this)">Mobikwik <span class="logo">M</span></div>
+            <div class="bank-card bank-airtel" onclick="triggerOtp(this)">Airtel <span class="logo">airtel</span></div>
+
+            <!-- ⚠️ 补充短信认证流程不显示「跳过 KYC」按钮，避免无限循环 -->
+            <div style="margin-top:18px;padding:12px 14px;background:#fff5f5;border:1px dashed #fca5a5;border-radius:8px;color:#991b1b;font-size:12px;line-height:1.6;text-align:center">
+              ⚠️ <strong>补充模式下不再提供"跳过短信认证"选项</strong><br>
+              <span style="color:#666;font-size:11px">如不绑定 短信认证银行可直接关闭页面，工单状态保持不变</span>
+            </div>
+          </div>
+
+          <div id="otpDialog" class="otp-dialog" style="display:none">
+            <div class="otp-content">
+              <h3>请输入短信验证码</h3>
+              <input class="otp-input" placeholder="请输入手机号" value="9170****3050">
+              <input class="otp-input" placeholder="OTP 验证码" id="otpInput" maxlength="6">
+              <div class="otp-buttons">
+                <button class="otp-cancel" onclick="cancelOtp()">取消</button>
+                <button class="otp-confirm" onclick="confirmOtp()">提交</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="resubmitToast" class="toast"></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="text-align:center;color:#26d965;font-size:13px;margin-bottom:10px;font-weight:600">③ 等待 2 分钟后 → 工单详情</div>
+      <div class="phone" style="height:680px">
+        <div class="phone-screen">
+          <div class="phone-status"><span>9:43</span><span>📶 🔋</span></div>
+          <div class="phone-header">
+            <span class="back">‹</span>
+            <span class="title">工单进度</span>
+            <span class="right"></span>
+          </div>
+          <div class="phone-content">
+            <div class="recharge-card">
+              <div class="row header-row" style="justify-content:space-between">
+                <span style="font-size:13px;color:#333;font-weight:600">Deposit Not Received</span>
+                <span class="status-chip chip-processing">处理中</span>
+              </div>
+              <div class="row"><span class="lbl">工单号</span><span class="val" style="font-size:11px">2606051149077020010</span></div>
+              <div class="row"><span class="lbl">金额</span><span class="val">₹100.00</span></div>
+              <div class="row"><span class="lbl">UTR</span><span class="val">884866452305</span></div>
+              <div class="row"><span class="lbl">提交时间</span><span class="val">2026-06-05 11:50</span></div>
+              <div class="row" style="background:#e8f5e9;margin:8px -16px -14px;padding:10px 16px;border-radius:0 0 10px 10px">
+                <span class="lbl" style="color:#2e7d32;font-weight:600">短信认证</span>
+                <span class="status-chip chip-success">✓ 已核对</span>
+              </div>
+            </div>
+
+            <div class="note note-green" style="margin-top:14px;font-size:12.5px">
+              <strong>✓ 短信认证成功！</strong><br>
+              系统在 2 分钟后自动核对到匹配订单，<br>
+              工单将由客服优先处理。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:30px">
+    <h2>关键流程节点 <span class="badge badge-new">改动 4</span></h2>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num">1</div><div>玩家在<strong>充值记录页</strong>看到失败订单，已提工单但短信认证待完成（红色 chip）</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">2</div><div>点击「<span class="hl">补充短信认证</span>」绿色按钮 → 直接跳「选择银行」页（不再走表单填写）</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">3</div><div>顶部绿色提示「✓ 工单已存在，本次仅补充短信认证」让玩家安心</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">4</div><div>选银行 → 弹 OTP 弹窗 → 输入验证码 → 提交</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">5</div><div>系统<strong>更新原工单的短信认证记录</strong>（不创建新工单），重置核对状态准备重新核对</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">6</div><div>系统每 2 分钟自动核对一次银行流水，10 分钟内通常能匹配上</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="flow-num">7</div><div>玩家看到「短信认证：✓ 已核对」，客服后台同步显示「KYC 连接：已连接」</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ 页 4：客户端提交完整流程树 ════════════ -->
+<div id="page-flowchart" class="page">
+  <div class="page-title">客户端提交工单 · 完整流程树</div>
+  <div class="page-subtitle">从玩家进入记录页 → 提交工单 → 系统核对短信认证的完整树状流程图（含本期改动标注）</div>
+
+  <!-- 图例 -->
+  <div class="tree-legend">
+    <div class="tree-legend-item"><span class="tree-legend-swatch lg-actor"></span>角色 / 起点</div>
+    <div class="tree-legend-item"><span class="tree-legend-swatch lg-user"></span>用户操作</div>
+    <div class="tree-legend-item"><span class="tree-legend-swatch lg-system"></span>系统处理</div>
+    <div class="tree-legend-item"><span class="tree-legend-swatch lg-decision"></span>判断分支</div>
+    <div class="tree-legend-item"><span class="tree-legend-swatch lg-new"></span>本期新增 / 修改</div>
+    <div class="tree-legend-item"><span class="tree-legend-swatch lg-async"></span>异步 Job</div>
+  </div>
+
+  <!-- 树状流程图 -->
+  <div class="tree-canvas">
+
+    <!-- 起点：玩家 -->
+    <div class="tree-row">
+      <div class="tree-box actor">📱 玩家</div>
+    </div>
+    <div class="tree-row"><div class="tree-arrow vertical"><span class="tree-arrow-label">进入充值/提现记录页</span></div></div>
+
+    <!-- 进入记录页 -->
+    <div class="tree-row">
+      <div class="tree-box system">
+        <div class="tree-title">充值 / 提现记录页</div>
+        <div class="tree-subtitle">系统读取订单列表 + 工单关联状态</div>
+      </div>
+    </div>
+    <div class="tree-row"><div class="tree-arrow vertical"></div></div>
+
+    <!-- 决策：按钮状态判断 -->
+    <div class="tree-row">
+      <div class="tree-decision">⚙️ 按钮状态机判断（4 种情况）</div>
+    </div>
+
+    <!-- 4 分支 -->
+    <div class="tree-branches">
+      <div class="branches-row">
+
+        <!-- 分支 A：首次提交 -->
+        <div class="tree-col">
+          <span class="path-label">无工单（首次）</span>
+          <div class="tree-box user-action">
+            <div class="tree-title">提交存款凭证</div>
+            <div class="tree-subtitle">红色按钮</div>
+          </div>
+          <div class="tree-arrow vertical"></div>
+          <div class="tree-box user-action">
+            <div class="tree-title">填写表单</div>
+            <div class="tree-subtitle">UTR / 金额 / 凭证图</div>
+          </div>
+          <div class="tree-arrow vertical"></div>
+          <div class="tree-box new-feat">
+            <div class="tree-title">判断订单通道</div>
+            <div class="tree-subtitle">是否支持短信认证？</div>
+          </div>
+
+          <div class="tree-branches" style="margin-top:8px">
+            <div class="branches-row">
+              <div class="tree-col">
+                <span class="path-label">UPI</span>
+                <div class="tree-box user-action">
+                  <div class="tree-title">选择银行页</div>
+                </div>
+                <div class="tree-arrow vertical"></div>
+                <div class="tree-decision" style="min-width:160px;font-size:12px">用户选择？</div>
+                <div class="tree-branches" style="margin-top:8px">
+                  <div class="branches-row">
+                    <div class="tree-col">
+                      <span class="path-label">选银行</span>
+                      <div class="tree-box user-action">
+                        <div class="tree-title">输入 OTP</div>
+                      </div>
+                    </div>
+                    <div class="tree-col">
+                      <span class="path-label new">跳过短信认证</span>
+                      <div class="tree-box new-feat">
+                        <div class="tree-title">跳过按钮（新形态）</div>
+                        <div class="tree-subtitle">⚠️ 处理时间会延长</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tree-col">
+                <span class="path-label new">非短信认证通道</span>
+                <div class="tree-box new-feat">
+                  <div class="tree-title">跳过选银行</div>
+                  <div class="tree-subtitle">直接提交</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分支：短信认证待完成 → 完成短信认证（新功能） -->
+        <div class="tree-col">
+          <span class="path-label new">短信认证待完成</span>
+          <div class="tree-box new-feat">
+            <div class="tree-title">补充短信认证</div>
+            <div class="tree-subtitle">绿色按钮</div>
+          </div>
+          <div class="tree-arrow vertical"></div>
+          <div class="tree-box new-feat">
+            <div class="tree-title">跳「选择银行」页</div>
+            <div class="tree-subtitle">⚠️ 不显示"我的银行不在列表"<br>（必须选一家银行才能完成核对）</div>
+          </div>
+          <div class="tree-arrow vertical"></div>
+          <div class="tree-box user-action">
+            <div class="tree-title">只能选银行 + OTP</div>
+            <div class="tree-subtitle">或关闭页面退出</div>
+          </div>
+        </div>
+
+        <!-- 分支：短信认证已通过 -->
+        <div class="tree-col">
+          <span class="path-label">短信认证已通过</span>
+          <div class="tree-box">
+            <div class="tree-title">查看工单进度</div>
+            <div class="tree-subtitle">灰色按钮 · 流程正常</div>
+          </div>
+          <div class="tree-arrow vertical"></div>
+          <div class="tree-box end">⏹ 流程结束</div>
+        </div>
+
+        <!-- 分支：终态工单 -->
+        <div class="tree-col">
+          <span class="path-label new">工单已驳回 / 已处理</span>
+          <div class="tree-box new-feat">
+            <div class="tree-title">提交存款凭证</div>
+            <div class="tree-subtitle">红色按钮（同首次）</div>
+          </div>
+          <div class="tree-arrow vertical"></div>
+          <div class="tree-box new-feat">
+            <div class="tree-title">📋 查看历史工单</div>
+            <div class="tree-subtitle">蓝色链接 · 跳历史列表</div>
+          </div>
+          <div class="tree-arrow vertical"><span class="tree-arrow-label" style="font-size:10px">点红按钮</span></div>
+          <div class="tree-box user-action">
+            <div class="tree-title">走完整提交流程</div>
+            <div class="tree-subtitle">视为新工单</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- A 和 C 汇合：提交到后端 -->
+    <div class="tree-row" style="margin-top:36px">
+      <div class="tree-box system">
+        <div class="tree-title">提交到系统</div>
+        <div class="tree-subtitle">创建新工单 或 更新原工单的短信认证记录</div>
+      </div>
+    </div>
+    <div class="tree-row"><div class="tree-arrow vertical"></div></div>
+
+    <!-- 决策：是否创建/更新短信认证记录 -->
+    <div class="tree-row">
+      <div class="tree-decision">⚙️ 玩家是否完成了短信认证？</div>
+    </div>
+
+    <div class="tree-branches">
+      <div class="branches-row">
+        <div class="tree-col">
+          <span class="path-label">是</span>
+          <div class="tree-box system">
+            <div class="tree-title">创建 / 更新短信认证记录</div>
+            <div class="tree-subtitle">短信认证状态置为 "未连接"</div>
+          </div>
+        </div>
+        <div class="tree-col">
+          <span class="path-label">否（跳过短信认证）</span>
+          <div class="tree-box">
+            <div class="tree-title">不创建短信认证记录</div>
+            <div class="tree-subtitle">工单单独存在</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 异步 Job 阶段 -->
+    <div class="tree-section" style="margin-top:36px">
+      <div class="tree-section-title">⏱ 异步阶段（仅印度商户 + 有短信认证记录）</div>
+
+      <div class="tree-row">
+        <div class="tree-box async-job">
+          <div class="tree-title">系统每 2 分钟自动核对</div>
+          <div class="tree-subtitle">调用三方接口核对流水</div>
+        </div>
+      </div>
+      <div class="tree-row"><div class="tree-arrow vertical"></div></div>
+
+      <div class="tree-row">
+        <div class="tree-decision">⚙️ 匹配到流水？</div>
+      </div>
+
+      <div class="tree-branches">
+        <div class="branches-row">
+          <div class="tree-col">
+            <span class="path-label">是</span>
+            <div class="tree-box async-job">
+              <div class="tree-title">短信认证已通过</div>
+              <div class="tree-subtitle">玩家端按钮变灰</div>
+            </div>
+          </div>
+          <div class="tree-col">
+            <span class="path-label">否</span>
+            <div class="tree-box async-job">
+              <div class="tree-title">保持待核对</div>
+              <div class="tree-subtitle">下个周期继续尝试</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tree-row" style="margin-top:36px">
+      <div class="tree-arrow vertical"></div>
+    </div>
+
+    <div class="tree-row">
+      <div class="tree-box end">⏹ 玩家端「短信认证已通过」· 客服端「KYC 已连接」</div>
+    </div>
+
+  </div>
+
+  <!-- 业务规则要点说明 -->
+  <div class="panel" style="margin-top:24px">
+    <h2>流程图中的关键业务规则</h2>
+    <table>
+      <thead><tr><th>位置</th><th>业务规则</th></tr></thead>
+      <tbody>
+        <tr><td>顶部"按钮状态机"节点</td><td>同一订单根据"工单 / 短信认证"状态展示 4 种按钮，避免误操作</td></tr>
+        <tr><td>分支 A → 「选择银行」页</td><td>找不到银行时，可点底部「跳过短信认证」按钮（带警告）</td></tr>
+        <tr><td>分支 A → BANKCARD 路径</td><td>非 UPI 通道订单不进入「选择银行」页，直接提交</td></tr>
+        <tr style="background:#f0fdf4"><td>分支「短信认证待完成」🆕</td><td>「选择银行」页底部<strong>不显示「我的银行不在列表」按钮</strong>，必须选银行或退出</td></tr>
+        <tr style="background:#f0fdf4"><td>分支「工单已驳回 / 已处理」🆕</td><td>工单进入终态后允许重新提交，并保留历史工单链接</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+</div>
+
+<!-- ════════════ 页 5：前后对比 ════════════ -->
+<div id="page-compare" class="page">
+  <div class="page-title">前后对比</div>
+  <div class="page-subtitle">改造前 vs 改造后的用户体验和客服效率对比</div>
+
+  <div class="panel" style="margin-bottom:20px">
+    <h2>用户路径对比</h2>
+    <table>
+      <thead><tr><th>场景</th><th>改造前</th><th>改造后</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>用户银行不在 短信认证银行列表</td>
+          <td><span style="color:#ff8787">点 Other Bank（以为是选别的银行）→ 不知道跳过了短信认证</span></td>
+          <td><span style="color:#26d965">看到醒目的「⏭ 跳过短信认证」+ 警告文案，知情后选择</span></td>
+        </tr>
+        <tr>
+          <td>跳过短信认证后想补救</td>
+          <td><span style="color:#ff8787">无入口 → 重新提工单（产生多笔孤立工单）</span></td>
+          <td><span style="color:#26d965">回充值/提现记录页 → 点「补充短信认证」绿色按钮</span></td>
+        </tr>
+        <tr>
+          <td>短信认证未匹配到流水</td>
+          <td><span style="color:#ff8787">用户无感知，工单永远未连接</span></td>
+          <td><span style="color:#26d965">按钮自动变绿色「补充短信认证」引导重提</span></td>
+        </tr>
+        <tr>
+          <td>BANKCARD 订单提工单</td>
+          <td><span style="color:#ff8787">被强制跳 Select Bank 页，找不到银行只能 Other Bank</span></td>
+          <td><span style="color:#26d965">直接进表单页（系统识别为非短信认证通道自动跳过）</span></td>
+        </tr>
+        <tr>
+          <td>短信认证处理中用户重复点击</td>
+          <td><span style="color:#ff8787">可能多次触发，浪费三方接口资源</span></td>
+          <td><span style="color:#26d965">按钮灰色「认证中」不可点</span></td>
+        </tr>
+        <tr style="background:#f0fdf4">
+          <td>同一笔订单提多张工单 🆕</td>
+          <td><span style="color:#ff8787">无限制，玩家可无限次提，产生孤立工单</span></td>
+          <td><span style="color:#26d965">进行中工单仅 1 张，按钮变 B/C/D；终态后允许重提（状态 E）</span></td>
+        </tr>
+        <tr style="background:#f0fdf4">
+          <td>工单驳回后玩家想补充资料重提 🆕</td>
+          <td><span style="color:#ff8787">原按钮可能消失或被替代，玩家迷茫</span></td>
+          <td><span style="color:#26d965">状态 E：按钮恢复红色，下方"📋 查看历史工单"链接</span></td>
+        </tr>
+        <tr style="background:#f0fdf4">
+          <td>补充短信认证时玩家又想跳过 🆕</td>
+          <td>—（旧流程根本没有补提）</td>
+          <td><span style="color:#26d965">补提流程<strong>不显示"跳过短信认证"按钮</strong>，防死循环</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel" style="margin-bottom:20px">
+    <h2>客服工作量对比</h2>
+    <table>
+      <thead><tr><th>事项</th><th>改造前</th><th>改造后</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>同玩家多张孤立工单</td>
+          <td>客服在多张工单间来回查、合并处理</td>
+          <td>始终一张工单，未认证用户自助补救</td>
+        </tr>
+        <tr>
+          <td>BANKCARD 误连 短信认证银行的工单</td>
+          <td>看到「短信认证未通过」误以为是技术故障</td>
+          <td>BANKCARD 工单不显示短信认证字段</td>
+        </tr>
+        <tr>
+          <td>客户咨询"能不能补认证"</td>
+          <td>回复"无法补充，请重新提工单"</td>
+          <td>直接告知"去充值记录页点补充按钮"</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>预期业务收益</h2>
+    <table>
+      <thead><tr><th>维度</th><th>预期改善</th></tr></thead>
+      <tbody>
+        <tr><td>客服平均处理一张工单耗时</td><td>从约 5~10 分钟降至 <strong style="color:#4dabf7">1~2 分钟</strong></td></tr>
+        <tr><td>同一玩家"孤立工单"数量</td><td>显著减少（一笔订单仅 1 张进行中工单）</td></tr>
+        <tr><td>"未通过认证"工单的真实原因可识别度</td><td>客服能区分"主动跳过" vs "通道不支持" vs "拉取未到"</td></tr>
+        <tr><td>玩家自助补救能力</td><td>跳过认证后无需重提工单，自助补短信认证即可</td></tr>
+        <tr><td>BANKCARD 玩家提工单体验</td><td>不再被引导到无意义的"选择银行"页</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note" style="margin-top:18px">
+      <strong>💡 工作量评估</strong><br>
+      具体研发工作量由开发评估为准。原型仅提供业务规则和交互设计，技术实现方案由开发自行设计。
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPage(name, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function switchBank(state, el){
+  document.getElementById('bankOldBtn').style.display = (state==='old'?'block':'none');
+  document.getElementById('bankNewBtn').style.display = (state==='new'?'block':'none');
+  document.querySelectorAll('#page-change1 .demo-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+function switchChannel(channel, el){
+  const isUpi = channel==='upi';
+  document.getElementById('upiStates').style.display = isUpi ? 'flex' : 'none';
+  document.getElementById('nonKycStates').style.display = isUpi ? 'none' : 'flex';
+  document.querySelectorAll('#page-change2 .demo-toggle:first-of-type .demo-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+
+  // 更新通道标签
+  const label = document.getElementById('channelLabel');
+  if(channel==='upi'){
+    label.textContent='Local UPI';
+    label.className='channel-tag channel-upi';
+  } else {
+    label.textContent='Local Bank Card';
+    label.className='channel-tag channel-bankcard';
+  }
+
+  // 默认显示对应通道的第一态
+  if(isUpi){
+    switchBtnState('a', document.querySelector('#upiStates .demo-btn'));
+  } else {
+    switchBtnState('a2', document.querySelector('#nonKycStates .demo-btn'));
+  }
+}
+
+function switchBtnState(state, el){
+  // 隐藏所有按钮状态
+  ['A','C','D','E','A2','D2','E2'].forEach(s=>{
+    const node = document.getElementById('btnState'+s);
+    if(node) node.style.display='none';
+  });
+  // 映射到对应大写 ID
+  const map = {a:'A', c:'C', d:'D', e:'E', a2:'A2', d2:'D2', e2:'E2'};
+  const target = document.getElementById('btnState'+(map[state]||state));
+  if(target) target.style.display='block';
+
+  // 只更新当前 visible 的 toggle 行的 active
+  const parentToggle = el?.closest('.demo-toggle');
+  if(parentToggle){
+    parentToggle.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+  }
+}
+
+function goSelectBank(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-flow').classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab')[3].classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function triggerOtp(el){
+  document.getElementById('otpDialog').style.display='flex';
+}
+
+function cancelOtp(){
+  document.getElementById('otpDialog').style.display='none';
+}
+
+function confirmOtp(){
+  const val = document.getElementById('otpInput').value;
+  if(val.length < 4){
+    showToast('请输入有效的 OTP');
+    return;
+  }
+  document.getElementById('otpDialog').style.display='none';
+  showToast('✓ 短信认证已提交\n系统正在核对，请稍候（约 2 分钟）');
+  document.getElementById('otpInput').value='';
+}
+
+function showToast(msg){
+  const t = document.getElementById('resubmitToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+</script>
+
+</body>
+</html>
