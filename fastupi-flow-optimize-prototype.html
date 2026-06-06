@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V1 · FASTUPI 提现流程优化</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;background:#f4f6fa;color:#1f2329;line-height:1.55}
+
+.wrap{max-width:1280px;margin:0 auto;padding:20px}
+
+/* 页头 */
+.page-head{background:#fff;border-radius:10px;padding:22px 28px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.page-head h1{font-size:20px;font-weight:700;color:#1f2329;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.page-head .sub{font-size:13px;color:#666}
+.page-head .tags{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+.page-head .tag{padding:3px 10px;border-radius:11px;font-size:11.5px;font-weight:500;background:#e6f4ff;color:#2470ff}
+
+/* 卡片 */
+.card{background:#fff;border-radius:10px;padding:22px 26px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-h{font-size:16px;font-weight:700;color:#1f2329;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f0f1f4;display:flex;align-items:center;gap:8px}
+.card-h .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#2470ff,#5a3ff8);color:#fff;font-size:13px;font-weight:700}
+
+/* 泳道流程图 */
+.swim{display:grid;grid-template-columns:120px 1fr;gap:0;border:1px solid #ecedf2;border-radius:8px;overflow:hidden;margin-bottom:14px}
+.swim-lane{display:contents}
+.swim-actor{background:#f6f8fb;padding:18px 14px;font-size:13px;font-weight:600;color:#444;border-bottom:1px solid #ecedf2;display:flex;align-items:center;gap:6px;border-right:1px solid #ecedf2}
+.swim-actor.user{background:#e6f4ff;color:#1677ff}
+.swim-actor.client{background:#f0fff4;color:#389e0d}
+.swim-actor.backend{background:#fff7e6;color:#d46b08}
+.swim-actor.thirdparty{background:#f9f0ff;color:#722ed1}
+.swim-body{padding:14px 16px;border-bottom:1px solid #ecedf2;display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:74px}
+.swim-lane:last-child .swim-actor,
+.swim-lane:last-child .swim-body{border-bottom:none}
+
+/* 节点 — 简化色块：默认中性，只有"新增"标红 */
+.node{padding:7px 13px;border-radius:6px;font-size:12.5px;background:#fff;border:1px solid #dcdfe4;color:#333;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;line-height:1.4}
+
+/* 判断节点：保留 ? 前缀，中性灰 */
+.node.decision{background:#fafbfc;border-color:#dcdfe4;color:#666}
+.node.decision::before{content:"?";margin-right:4px;color:#999;font-weight:700}
+
+/* 普通动作 / 成功 / 系统：都用中性，弱化（不抢视觉） */
+.node.action,.node.success,.node.system{background:#fff;border-color:#dcdfe4;color:#333}
+.node.success::before{content:"✓";margin-right:4px;color:#999}
+
+/* 警告（如"出款失败"）：浅红文字提示，不刷主背景 */
+.node.warning{background:#fff;border-color:#ffccc7;color:#cf1322}
+.node.warning::before{content:"⚠";margin-right:4px}
+
+/* 🔴 唯一显眼：本期新增 */
+.node.new,.node.priority{background:linear-gradient(135deg,#ff4d4f,#cf1322);color:#fff;border:none;font-weight:600;box-shadow:0 2px 6px rgba(255,77,79,.25)}
+.node.new::before{content:"🆕 新增";margin-right:4px}
+.node.priority::before{content:"🆕 新增";margin-right:4px}
+
+/* 箭头 */
+.arr{color:#aaa;font-size:16px;display:inline-flex;align-items:center}
+.arr.down{display:block;text-align:center;margin:4px 0;color:#bbb}
+
+/* 优化点详细图 */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.detail-card{background:#fafbfd;border:1px solid #ecedf2;border-radius:8px;padding:16px 18px}
+.detail-card h4{font-size:14px;color:#1f2329;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.detail-card h4 .badge{background:#ff5566;color:#fff;font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600}
+.detail-card .step-row{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:12.5px;color:#444}
+.detail-card .step-row .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#2470ff;color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+.detail-card .step-row.warn .n{background:#cf1322}
+.detail-card .step-row.ok .n{background:#52c41a}
+.detail-card .step-row b{color:#cf1322}
+.detail-card .step-divider{height:1px;background:#ecedf2;margin:4px 0 4px 24px}
+
+/* 弹窗示意 */
+.mock-popup{background:#fff;border:1px solid #ecedf2;border-radius:10px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-width:280px;margin:8px 0}
+.mock-popup .pop-ttl{font-size:13.5px;font-weight:700;color:#cf1322;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.mock-popup .pop-body{font-size:12px;color:#555;line-height:1.7;margin-bottom:10px}
+.mock-popup .pop-body b{color:#cf1322}
+.mock-popup .pop-timer{background:linear-gradient(90deg,#fff7e6,#ffd591);color:#874d00;padding:6px 10px;border-radius:5px;font-size:11.5px;font-weight:600;text-align:center;margin-bottom:8px}
+.mock-popup .pop-btns{display:flex;gap:6px}
+.mock-popup .pop-btns button{flex:1;padding:6px;font-size:12px;border:none;border-radius:5px;cursor:pointer;font-family:inherit;font-weight:500}
+.mock-popup .pop-btns .pri{background:#cf1322;color:#fff}
+.mock-popup .pop-btns .sec{background:#f0f1f4;color:#444}
+
+/* SLA 时间轴 */
+.timeline{display:flex;align-items:center;gap:0;padding:14px 6px;background:#fff;border-radius:8px;border:1px solid #ecedf2;overflow-x:auto}
+.tl-node{flex-shrink:0;padding:8px 12px;border-radius:6px;font-size:11.5px;color:#444;text-align:center;background:#f6f8fb;min-width:90px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tl-node .time{font-weight:700;color:#2470ff;font-size:13px}
+.tl-node.warn{background:#fff1f0;color:#cf1322}
+.tl-node.warn .time{color:#cf1322}
+.tl-arrow{flex-shrink:0;color:#aaa;font-size:14px;padding:0 6px}
+
+/* 规则汇总表 */
+.rules-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.rules-tbl th{background:#fafbfd;padding:10px 14px;text-align:left;font-weight:600;color:#555;border-bottom:1px solid #ecedf2;font-size:12px}
+.rules-tbl td{padding:11px 14px;border-bottom:1px solid #f0f1f4;color:#333;vertical-align:top}
+.rules-tbl tr:hover td{background:#fafcff}
+.rules-tbl .col-c{text-align:center}
+.rules-tbl .tag{display:inline-block;padding:2px 9px;border-radius:3px;font-size:11px;font-weight:500}
+.rules-tbl .tag.new{background:#fff1f0;color:#ff4d4f}
+.rules-tbl .tag.mod{background:#fffbe6;color:#fa8c16}
+
+/* 颜色图例 */
+.legend{background:#fafbfd;border-radius:6px;padding:10px 14px;font-size:11.5px;color:#666;display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:14px}
+.legend .it{display:flex;align-items:center;gap:5px}
+.legend .it .dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+.legend .it .dot.action{background:#fff;border:1px solid #dcdfe4}
+.legend .it .dot.decision{background:#fafbfc;border:1px solid #dcdfe4}
+.legend .it .dot.warning{background:#fff;border:1px solid #ffccc7}
+.legend .it .dot.new{background:linear-gradient(135deg,#ff4d4f,#cf1322)}
+
+
+/* 失败订单流向 */
+.fail-flow{}
+.ff-trigger{background:linear-gradient(90deg,#fff1f0,#ffccc7);color:#cf1322;padding:12px 16px;border-radius:6px;font-size:13.5px;text-align:center;margin-bottom:14px;font-weight:600}
+.ff-branches{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ff-branch{background:#fff;border:2px solid;border-radius:8px;padding:14px 16px;position:relative}
+.ff-branch.case-a{border-color:#b7eb8f}
+.ff-branch.case-b{border-color:#ffd591}
+.ff-branch.case-c{border-color:#ffa39e}
+.ff-tag{position:absolute;top:-12px;left:14px;padding:3px 10px;border-radius:9px;font-size:10.5px;font-weight:700;color:#fff}
+.ff-branch.case-a .ff-tag{background:#52c41a}
+.ff-branch.case-b .ff-tag{background:#fa8c16}
+.ff-branch.case-c .ff-tag{background:#cf1322}
+.ff-title{font-size:13px;font-weight:700;color:#1f2329;margin-bottom:5px;margin-top:4px}
+.ff-title b{color:#cf1322}
+.ff-desc{font-size:11.5px;color:#666;margin-bottom:10px;line-height:1.6;padding-bottom:8px;border-bottom:1px dashed #ecedf2}
+.ff-action{display:flex;flex-direction:column;gap:6px}
+.ff-act-row{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;color:#444;line-height:1.5}
+.ff-act-row .step{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#2470ff;color:#fff;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.ff-act-row .step.ok{background:#52c41a}
+.ff-act-row .step.warn{background:#cf1322}
+.ff-act-row b{color:#cf1322}
+.ff-act-row code{background:#f0f1f4;padding:1px 5px;border-radius:3px;font-size:10.5px;color:#cf1322}
+
+/* 状态机 */
+.state-chart{display:flex;align-items:center;gap:10px;padding:12px;background:#fafbfd;border:1px solid #ecedf2;border-radius:6px;flex-wrap:wrap}
+.st-node{padding:8px 12px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;text-align:center;min-width:90px}
+.st-running{background:#2470ff}
+.st-warning{background:#fa8c16}
+.st-cancelled{background:#999}
+.st-pending{background:#cf1322}
+.st-sub{display:block;font-size:10px;opacity:.85;font-weight:400;margin-top:2px}
+.st-arr{color:#aaa;font-size:11.5px}
+.st-branch{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* 现状对比 */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.compare-card{padding:14px 16px;border-radius:8px}
+.compare-card.before{background:#fff1f0;border:1px solid #ffccc7}
+.compare-card.after{background:#f6ffed;border:1px solid #b7eb8f}
+.compare-card h5{font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.compare-card.before h5{color:#cf1322}
+.compare-card.after h5{color:#389e0d}
+.compare-card ul{list-style:none;padding-left:0}
+.compare-card li{font-size:12px;color:#555;padding:3px 0 3px 16px;position:relative;line-height:1.7}
+.compare-card li::before{content:"●";position:absolute;left:4px;font-size:8px}
+.compare-card.before li::before{color:#ff4d4f}
+.compare-card.after li::before{color:#52c41a}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ===== 页头 ===== -->
+  <div class="page-head">
+    <h1>🚀 V1 · FASTUPI 提现流程优化方案</h1>
+    <div class="sub">解决 KYC 断连、出款延迟、用户离线等关键痛点 · 4 项核心优化</div>
+    <div class="tags">
+      <span class="tag">⭐ 单点银行登录提醒</span>
+      <span class="tag">⭐ 派单优先级</span>
+      <span class="tag">⭐ 15 分钟审核 SLA</span>
+      <span class="tag">⭐ 全局重连弹窗</span>
+    </div>
+  </div>
+
+  <!-- ===== 图例 ===== -->
+  <div class="card">
+    <div class="card-h">📖 图例</div>
+    <div class="legend">
+      <span class="it"><span class="dot action"></span>现有流程节点</span>
+      <span class="it"><span class="dot decision"></span><b>?</b> 判断节点</span>
+      <span class="it"><span class="dot warning"></span>⚠ 失败/警告</span>
+      <span class="it"><span class="dot new"></span>🆕 本期新增（红色 = 改动点）</span>
+    </div>
+  </div>
+
+
+  <!-- ===== 整体泳道流程图 ===== -->
+  <div class="card">
+    <div class="card-h"><span class="num">1</span>完整流程图（4 角色泳道）</div>
+
+    <div class="swim">
+
+      <!-- 用户 -->
+      <div class="swim-lane">
+        <div class="swim-actor user">👤 用户</div>
+        <div class="swim-body">
+          <span class="node action">进入「提现」页</span>
+          <span class="arr">→</span>
+          <span class="node action">选择 FASTUPI</span>
+          <span class="arr">→</span>
+          <span class="node action">选银行</span>
+          <span class="arr">→</span>
+          <span class="node action">输入金额 / 提交</span>
+          <span class="arr">→</span>
+          <span class="node action">KYC 验证</span>
+        </div>
+      </div>
+
+      <!-- 客户端 -->
+      <div class="swim-lane">
+        <div class="swim-actor client">📱 客户端</div>
+        <div class="swim-body">
+          <span class="node decision">该银行是<b>单点登录</b>？</span>
+          <span class="arr">→</span>
+          <span style="display:inline-flex;flex-direction:column;gap:6px">
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <span style="color:#cf1322;font-size:11px;font-weight:600;width:36px">是 →</span>
+              <span class="node new warning">弹窗：保持登录 15-30 分钟</span>
+              <span class="arr">→</span>
+              <span class="node action">用户确认</span>
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <span style="color:#52c41a;font-size:11px;font-weight:600;width:36px">否 →</span>
+              <span class="node success">走正常提现流程，无额外提示</span>
+            </span>
+          </span>
+          <span class="arr">→</span>
+          <span class="node action">提交订单 → 后台</span>
+        </div>
+      </div>
+
+      <!-- 后台 -->
+      <div class="swim-lane">
+        <div class="swim-actor backend">⚙️ 后台</div>
+        <div class="swim-body">
+          <span class="node decision">是否走自动出款？</span>
+          <span class="arr">→</span>
+          <span class="node action">否：派单到人工</span>
+          <span class="arr">→</span>
+          <span class="node priority new">非自动单优先派发</span>
+          <span class="arr">→</span>
+          <span class="node action">审核员处理</span>
+          <span class="arr">→</span>
+          <span class="node new">15min SLA</span>
+        </div>
+      </div>
+
+      <!-- 三方 -->
+      <div class="swim-lane">
+        <div class="swim-actor thirdparty">🏦 三方 / 银行</div>
+        <div class="swim-body">
+          <span class="node action">三方收到请求</span>
+          <span class="arr">→</span>
+          <span class="node decision">KYC 验证 / 是否断连？</span>
+          <span class="arr">→</span>
+          <span style="display:inline-flex;flex-direction:column;gap:6px">
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <span style="color:#52c41a;font-size:11px;font-weight:600;width:36px">否 →</span>
+              <span class="node success">出款成功</span>
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px">
+              <span style="color:#cf1322;font-size:11px;font-weight:600;width:36px">断连 →</span>
+              <span class="node new warning">全局重连弹窗</span>
+              <span class="arr">→</span>
+              <span class="node decision">用户在线？</span>
+              <span class="arr">→</span>
+              <span style="display:inline-flex;flex-direction:column;gap:4px">
+                <span style="display:inline-flex;align-items:center;gap:4px"><span style="color:#52c41a;font-size:10px;width:30px">是 →</span><span class="node success">重连成功 → 出款</span></span>
+                <span style="display:inline-flex;align-items:center;gap:4px"><span style="color:#cf1322;font-size:10px;width:30px">否 →</span><span class="node warning">出款失败 → 直接提现退回</span></span>
+              </span>
+            </span>
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== 4 个优化点详细 ===== -->
+  <div class="card">
+    <div class="card-h"><span class="num">2</span>4 个核心优化点 · 详细流程</div>
+
+    <div class="detail-grid">
+
+      <!-- 优化 1：单点银行提醒 -->
+      <div class="detail-card">
+        <h4>① 单点登录银行 · 提交时弹窗 <span class="badge">客户端</span></h4>
+        <div class="step-row"><span class="n">1</span>用户选择<b>单点登录</b>类银行（如 PhonePe / Paytm / airtel / slice / twid）</div>
+        <div class="step-divider"></div>
+        <div class="step-row"><span class="n">2</span>客户端读取后台"KYC 银行列表 / 登录类型 = 单点"匹配命中</div>
+        <div class="step-divider"></div>
+        <div class="step-row warn"><span class="n">3</span><b>弹窗</b>：提示用户需保持登录等待</div>
+
+        <!-- 弹窗示意 -->
+        <div class="mock-popup">
+          <div class="pop-ttl">⚠️ 重要提醒</div>
+          <div class="pop-body">您选择的银行 <b>PhonePe</b> 可能会需要进行 <b>2 次验证</b>，请在<b>提交后保持平台在线</b>，停留 <b>15-30 分钟</b>。<br><br>若错过 2 次验证，可能会导致本笔提现失败。</div>
+          <div class="pop-timer">⏱️ 建议留在 APP 至少 15 分钟</div>
+          <div class="pop-btns">
+            <button class="sec">取消</button>
+            <button class="pri">已了解，提交</button>
+          </div>
+        </div>
+
+        <div class="step-row ok"><span class="n">4</span>用户点"已了解" → 继续提交订单</div>
+        <div class="step-divider"></div>
+        <div class="step-row"><span class="n">5</span>记录该用户已被提醒（短期内不重复弹）</div>
+      </div>
+
+      <!-- 优化 2：派单优先级 -->
+      <div class="detail-card">
+        <h4>② 非自动出款订单 · 优先派发 <span class="badge">后台</span></h4>
+        <div class="step-row"><span class="n">1</span>订单进入派单队列</div>
+        <div class="step-divider"></div>
+        <div class="step-row"><span class="n">2</span>系统判断订单来源</div>
+        <div class="step-divider"></div>
+
+        <div style="background:#fff;border:1px solid #ecedf2;border-radius:6px;padding:10px;margin:8px 0">
+          <div style="font-size:11px;color:#666;margin-bottom:6px">📊 派单优先级（高 → 低）</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="background:linear-gradient(90deg,#fff1f0,#fff);padding:5px 9px;border-radius:4px;font-size:11.5px;display:flex;justify-content:space-between"><span><b style="color:#cf1322">P0</b> · 非自动单（含 FASTUPI 单点）</span><span class="tag" style="background:#ff5566;color:#fff;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:600">⭐ 新</span></div>
+            <div style="background:#fff7e6;padding:5px 9px;border-radius:4px;font-size:11.5px"><b style="color:#fa8c16">P1</b> · 大额（≥ ₹10,000）</div>
+            <div style="background:#fafbfd;padding:5px 9px;border-radius:4px;font-size:11.5px"><b style="color:#666">P2</b> · 常规自动单</div>
+          </div>
+        </div>
+
+        <div class="step-row ok"><span class="n">3</span>P0 订单 → 立刻入审单池顶部</div>
+        <div class="step-divider"></div>
+        <div class="step-row"><span class="n">4</span>审核员看到的列表自动按 P0/P1/P2 排序</div>
+        <div class="step-divider"></div>
+        <div class="step-row warn"><span class="n">5</span><b>避免</b>：用户已离线后才轮到处理 → 失败</div>
+      </div>
+
+      <!-- 优化 3：15min SLA -->
+      <div class="detail-card">
+        <h4>③ 审单 15 分钟 SLA <span class="badge">后台</span></h4>
+        <div class="step-row"><span class="n">1</span>P0 单产生后 → 计时开始</div>
+        <div class="step-divider"></div>
+
+        <!-- 时间轴 -->
+        <div class="timeline" style="margin:8px 0">
+          <div class="tl-node"><span class="time">0min</span>订单产生</div>
+          <span class="tl-arrow">→</span>
+          <div class="tl-node"><span class="time">≤5min</span>派单<br>到审核</div>
+          <span class="tl-arrow">→</span>
+          <div class="tl-node warn"><span class="time">≤15min</span>审核<br>完成</div>
+          <span class="tl-arrow">→</span>
+          <div class="tl-node"><span class="time">+5min</span>三方<br>处理</div>
+          <span class="tl-arrow">→</span>
+          <div class="tl-node" style="background:#f6ffed;color:#389e0d"><span class="time" style="color:#52c41a">≤25min</span>出款<br>完成</div>
+        </div>
+
+        <div class="step-row warn"><span class="n">2</span><b>超 10min 未审核</b> → 自动提醒审核员</div>
+        <div class="step-divider"></div>
+        <div class="step-row warn"><span class="n">3</span><b>超 15min 未审核</b> → 上报主管 / 自动重派</div>
+      </div>
+
+      <!-- 优化 4：全局重连弹窗 -->
+      <div class="detail-card">
+        <h4>④ 全局重连弹窗 · 任意页面实时弹 <span class="badge">客户端</span></h4>
+        <div class="step-row"><span class="n">1</span>三方 KYC 通道检测到断连</div>
+        <div class="step-divider"></div>
+        <div class="step-row"><span class="n">2</span>后台 SignalR 推送到客户端</div>
+        <div class="step-divider"></div>
+
+        <div class="mock-popup" style="border-top:3px solid #cf1322">
+          <div class="pop-ttl">⚠️ 提现验证中断</div>
+          <div class="pop-body">您的 FASTUPI 提现订单 <b>WD20260605...</b> 验证已断连，需要重新连接以完成出款，否则订单将被取消。</div>
+          <div class="pop-timer" style="background:linear-gradient(90deg,#fff1f0,#ffccc7);color:#cf1322">⏱️ 倒计时：04:32 · 请尽快处理</div>
+          <div class="pop-btns">
+            <button class="sec">稍后</button>
+            <button class="pri">立即重连</button>
+          </div>
+        </div>
+
+        <div class="step-row ok"><span class="n">3</span><b>任意页面</b>（首页 / 活动 / 游戏 / 钱包）实时弹出</div>
+        <div class="step-divider"></div>
+        <div class="step-row"><span class="n">4</span>L3 强弹窗 + 倒计时 + 必须点击才关闭</div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===== 失败订单流向（简化版） ===== -->
+  <div class="card">
+    <div class="card-h"><span class="num">3</span>❌ 出款失败处理：直接退回</div>
+
+    <div style="background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:#874d00;line-height:1.7">
+      💡 用户离线 / 重连超时（默认 5 分钟）未恢复后 → 系统直接判定<b>出款失败</b>，<b>资金原路退回到用户钱包</b>，订单关闭。<b>无场景区分，统一处理</b>。
+    </div>
+
+    <!-- 简化的失败处理流程 -->
+    <div style="background:#fafbfc;border:1px solid #ecedf2;border-radius:8px;padding:18px 22px">
+      <h4 style="font-size:13px;color:#444;font-weight:600;margin-bottom:14px">📋 处理步骤（5 步）</h4>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
+          <span style="width:24px;height:24px;border-radius:50%;background:#2470ff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">1</span>
+          <div style="flex:1;font-size:13px;color:#333">系统判定订单失败（重连超时 / KYC 失败）</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
+          <span style="width:24px;height:24px;border-radius:50%;background:#2470ff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">2</span>
+          <div style="flex:1;font-size:13px;color:#333">如已提交三方 → 自动调三方 <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">cancel</code> 接口取消</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
+          <span style="width:24px;height:24px;border-radius:50%;background:#2470ff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">3</span>
+          <div style="flex:1;font-size:13px;color:#333"><b style="color:#52c41a">资金原路退回用户钱包</b>（解冻余额 + 写账变记录）</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
+          <span style="width:24px;height:24px;border-radius:50%;background:#2470ff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">4</span>
+          <div style="flex:1;font-size:13px;color:#333">订单状态 → <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">已取消</code>，原因 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">KYC 断连超时</code></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
+          <span style="width:24px;height:24px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">5</span>
+          <div style="flex:1;font-size:13px;color:#333">站内信通知用户：<b>提现已退回钱包，请重新发起</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 用户视角文案 -->
+    <h4 style="font-size:13px;color:#444;font-weight:600;margin:20px 0 10px">📩 用户端通知文案</h4>
+    <div class="mock-popup" style="max-width:320px;margin:0">
+      <div class="pop-ttl" style="color:#fa8c16">📨 提现已退回</div>
+      <div class="pop-body">您的 FASTUPI 提现订单 <b>WD20260605...</b>（金额 <b>¥1,000</b>）因 KYC 验证中断已自动取消，<b style="color:#52c41a">资金已退回您的钱包</b>。<br><br>请重新发起提现，建议提交后保持在 APP 内 15-30 分钟。</div>
+      <div class="pop-btns">
+        <button class="sec">查看钱包</button>
+        <button class="pri">重新提现</button>
+      </div>
+    </div>
+
+    <!-- 关键规则 -->
+    <h4 style="font-size:13px;color:#444;font-weight:600;margin:20px 0 10px">⚙️ 关键规则</h4>
+    <table class="rules-tbl">
+      <thead><tr><th style="width:140px">规则</th><th>说明</th></tr></thead>
+      <tr><td><b>重连超时时长</b></td><td>默认 <code>5 分钟</code>（可后台配置 1-15 分钟）</td></tr>
+      <tr><td><b>资金退回</b></td><td>无论资金处于何阶段，<b>一律退回用户钱包</b>，无场景区分</td></tr>
+      <tr><td><b>三方取消</b></td><td>如已提交三方 → 自动调 cancel 接口；调用失败进重试队列每 10min 重试，超 3 次进异常队列由财务介入</td></tr>
+      <tr><td><b>用户通知</b></td><td><b>站内信</b>告知"资金已退回钱包，请重新发起"</td></tr>
+      <tr><td><b>禁止重发</b></td><td>失败订单不支持"一键重发"，必须用户重新发起，避免重复扣款</td></tr>
+      <tr><td><b>极端情况</b></td><td>若三方已扣款且 cancel 失败 → 进入异常队列，由财务人工对账处理（极少发生）</td></tr>
+    </table>
+
+  </div>
+
+  <!-- ===== 改造前 vs 改造后 ===== -->
+  <div class="card">
+    <div class="card-h"><span class="num">4</span>改造前 vs 改造后 · 效果对比</div>
+
+    <div class="compare-grid">
+      <div class="compare-card before">
+        <h5>❌ 改造前痛点</h5>
+        <ul>
+          <li>用户提交后立刻退出 APP → KYC 断连无人响应</li>
+          <li>FASTUPI 单点订单和常规单混在一起，可能等几小时</li>
+          <li>审单无 SLA，运营自由处理顺序</li>
+          <li>断连提示只在"提现详情"页才看得到，离开就丢失</li>
+          <li>三方 KYC 超时，订单作废，用户投诉</li>
+          <li>客服无法快速判断"是用户问题还是审单延迟"</li>
+        </ul>
+      </div>
+      <div class="compare-card after">
+        <h5>✅ 改造后效果</h5>
+        <ul>
+          <li>提交时<b>主动提示</b>用户保持在线 15-30 分钟</li>
+          <li>非自动 P0 单<b>跳到队首</b>，5 分钟内入审单池</li>
+          <li>审单 <b>15 分钟 SLA</b>，超时自动重派 + 提醒主管</li>
+          <li>断连弹窗<b>全局可见</b>，任意页面 SignalR 实时推</li>
+          <li>断连提示<b>实时下发</b>到任意页面，用户回 APP 就能看到</li>
+          <li>每环节有<b>时间戳记录</b>，客服一查就知卡在哪里</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+</body>
+</html>
