@@ -310,6 +310,24 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;backg
   </div>
 </div>
 
+<!-- 单切换 关闭二次确认 -->
+<div class="mask" id="singleConfirmModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-h">
+      <span class="title" id="singleConfirmTitle">关闭确认</span>
+      <span class="close" onclick="closeModal('singleConfirmModal')">✕</span>
+    </div>
+    <div class="modal-b" style="display:flex;align-items:flex-start;gap:10px;padding:22px 18px">
+      <span style="font-size:22px;color:#fa8c16;line-height:1">⚠</span>
+      <div style="line-height:1.65;color:#333;font-size:13.5px" id="singleConfirmText"></div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-d" onclick="closeModal('singleConfirmModal')">取消</button>
+      <button class="btn btn-pp" onclick="executeSingleToggle()">确认关闭</button>
+    </div>
+  </div>
+</div>
+
 <!-- 批量操作 - 极简确认（参考 element-style 风格） -->
 <div class="mask" id="batchModal">
   <div class="modal" style="width:380px">
@@ -436,10 +454,39 @@ function toggleAllSelect() {
   renderTable();
 }
 
-// 单切换 - 直接生效（无二次确认）
+// 单切换 - 开启即时生效；关闭需二次确认
 function askToggle(id, field) {
   const m = members.find(x => x.id === id);
   const newVal = !m[field];
+  const fieldName = field === 'rebateBet' ? '领取返佣' : '上级返佣';
+
+  // 关闭：弹出二次确认
+  if (!newVal) {
+    pendingSingle = { id, field, fieldName };
+    const tip = field === 'rebateBet'
+      ? '关闭后，该会员作为上级时将<b style="color:#cf1322">收不到下级带来的返佣</b>。下级正常投注产生的返佣将不再发放给该会员。'
+      : '关闭后，该会员的投注将<b style="color:#cf1322">不再为其上级产生返佣</b>。不影响代理线结构，也不影响该会员自身领取下级返佣。';
+    document.getElementById('singleConfirmTitle').textContent = `关闭「${fieldName}」`;
+    document.getElementById('singleConfirmText').innerHTML =
+      `您确认要关闭会员 <b>${m.id}</b>（${m.name}）的<b>${fieldName}</b>开关吗？<br><br><span style="color:#666;font-size:12.5px">${tip}</span>`;
+    document.getElementById('singleConfirmModal').classList.add('show');
+    return;
+  }
+
+  // 开启：直接生效
+  applySingleToggle(id, field, true);
+}
+
+function executeSingleToggle() {
+  if (!pendingSingle) return;
+  applySingleToggle(pendingSingle.id, pendingSingle.field, false);
+  pendingSingle = null;
+  closeModal('singleConfirmModal');
+}
+
+function applySingleToggle(id, field, newVal) {
+  const m = members.find(x => x.id === id);
+  if (!m) return;
   const fieldName = field === 'rebateBet' ? '领取返佣' : '上级返佣';
   m[field] = newVal;
   logs.unshift({
