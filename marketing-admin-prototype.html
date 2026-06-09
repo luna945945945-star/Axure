@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V1 · 消息模板（站内信推送 + 跳转配置）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;background:#f5f6fa;color:#1f2329;line-height:1.55}
+
+
+/* 顶部 Tab 切换 */
+.main-tabs{background:#fff;padding:0 24px;display:flex;gap:0;border-bottom:1px solid #f0f1f4}
+.main-tabs .mt-btn{padding:11px 18px;background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:13.5px;color:#666;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.main-tabs .mt-btn:hover{color:#7c4dff}
+.main-tabs .mt-btn.active{color:#7c4dff;font-weight:600;border-bottom-color:#7c4dff}
+.main-tabs .mt-btn .new-tag{background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700;margin-left:2px}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* 活动配置页：筛选条 */
+.act-filter{background:#fff;padding:14px 18px;border-radius:6px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.03);display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.act-filter .group{display:flex;align-items:center;gap:6px}
+.act-filter .lbl{color:#666;font-size:12.5px}
+.act-filter .chip{padding:4px 12px;border:1px solid #dcdfe4;border-radius:12px;cursor:pointer;font-size:12px;background:#fff;color:#555;transition:all .15s}
+.act-filter .chip:hover{border-color:#7c4dff;color:#7c4dff}
+.act-filter .chip.active{background:#7c4dff;color:#fff;border-color:#7c4dff;font-weight:600}
+.act-filter .search{flex:1;max-width:240px;padding:6px 10px;border:1px solid #dcdfe4;border-radius:4px;font-size:12.5px;font-family:inherit;outline:none}
+.act-filter .search:focus{border-color:#7c4dff}
+.act-filter .right{margin-left:auto;display:flex;gap:8px}
+.act-filter .right button{padding:6px 12px;border:1px solid #dcdfe4;border-radius:4px;background:#fff;cursor:pointer;font-size:12px;font-family:inherit;color:#444}
+.act-filter .right button.primary{background:#7c4dff;color:#fff;border-color:#7c4dff}
+.act-filter .right button:hover:not(.primary){border-color:#7c4dff;color:#7c4dff}
+
+/* 活动列表的"摘要条" */
+.act-summary{background:#f6ffed;border:1px solid #b7eb8f;border-radius:5px;padding:9px 14px;margin-bottom:12px;font-size:12.5px;color:#389e0d;display:flex;align-items:center;gap:8px}
+.act-summary b{color:#1f2329}
+.act-summary .right-acts{margin-left:auto;display:flex;gap:8px}
+.act-summary .right-acts button{padding:4px 11px;border:1px solid #b7eb8f;background:#fff;color:#52c41a;border-radius:4px;cursor:pointer;font-size:11.5px;font-family:inherit}
+.act-summary .right-acts button:hover{background:#f0ffe0}
+
+/* 单活动编辑用 - 简化版 */
+.modal-shell.sm{max-width:560px}
+
+/* 模板编辑弹窗内：活动配置→改为跳转链接 */
+.act-jump-link{background:#fffbe6;border:1px solid #ffd591;border-radius:6px;padding:14px 18px;display:flex;align-items:center;gap:14px;font-size:13px;color:#874d00}
+.act-jump-link .ico{font-size:22px}
+.act-jump-link .body{flex:1}
+.act-jump-link .title-row{font-weight:600;margin-bottom:3px;color:#1f2329}
+.act-jump-link .desc{font-size:11.5px;color:#666}
+.act-jump-link .go-btn{padding:7px 16px;border:1px solid #7c4dff;background:#fff;color:#7c4dff;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:500;font-size:12.5px}
+.act-jump-link .go-btn:hover{background:#7c4dff;color:#fff}
+
+/* 顶部黄色栏 */
+.top-nav{background:#f8edc4;padding:6px 18px;font-size:11.5px;color:#5a4a1b;border-bottom:1px solid #e0d495;display:flex;align-items:center;gap:14px}
+.top-nav .right{margin-left:auto}
+.top-nav .right b{color:#ff7a00}
+
+/* 标题栏 */
+.page-header{background:#fff;padding:14px 24px;display:flex;align-items:center;border-bottom:1px solid #f0f1f4}
+.page-header .ttl{font-size:15px;font-weight:600;color:#7c4dff}
+.page-header .crumb{margin-left:auto;font-size:12px;color:#999}
+.page-header .crumb .sep{margin:0 6px;color:#ccc}
+
+.wrap{padding:14px 24px}
+
+/* 语言筛选条 */
+.filter-bar{background:#fff;padding:14px 18px;border-radius:6px;margin-bottom:12px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.filter-bar .lbl{color:#444;font-size:13px}
+.filter-bar .select{padding:6px 10px;border:1px solid #dcdfe4;border-radius:4px;font-size:13px;font-family:inherit;background:#fff;outline:none;min-width:200px}
+.filter-bar .btn-set{background:#7c4dff;color:#fff;border:none;padding:7px 14px;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px}
+.filter-bar .btn-set:hover{background:#6230f0}
+
+/* 表格 */
+.tbl-wrap{background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:#f6f7fa;padding:12px 10px;text-align:center;color:#222;font-weight:600;border-bottom:1px solid #e8e8e8;font-size:12.5px}
+.tbl td{padding:13px 10px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:middle;text-align:center}
+.tbl tr:hover td{background:#fafcff}
+.tbl .col-l{text-align:left}
+.tbl .code-col{color:#222;font-weight:500}
+.tbl .new-tag{background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700;margin-left:4px}
+
+/* 推送状态 */
+.push-on{color:#52c41a;font-weight:600}
+.push-off{color:#999}
+.push-money{display:inline-flex;align-items:center;gap:4px;color:#52c41a;font-weight:600}
+.push-money::before{content:"🔒 "}
+.push-by-act{display:inline-flex;align-items:center;gap:4px;color:#d46b08;font-weight:500;text-decoration:underline;text-decoration-style:dashed;text-decoration-color:#ffd591;cursor:pointer}
+.push-by-act:hover{color:#ad4e00}
+.push-by-act::before{content:"🔗 "}
+
+/* 类型标签 */
+.cat-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;white-space:nowrap}
+.cat-pill.money{background:#fff1f0;color:#cf1322;border:1px solid #ffccc7}
+.cat-pill.activity{background:#fffbe6;color:#d46b08;border:1px solid #ffd591}
+.cat-pill.normal{background:#f0f5ff;color:#1677ff;border:1px solid #adc6ff}
+
+/* 操作按钮 */
+.btn-edit{background:#fff;color:#52c41a;border:1px solid #52c41a;padding:4px 14px;border-radius:3px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.btn-edit:hover{background:#f6ffed}
+
+/* 分页 */
+.pager{background:#fff;border-radius:6px;margin-top:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.pager .pg-input{padding:5px 8px;border:1px solid #dcdfe4;border-radius:4px;width:60px;font-family:inherit;text-align:center}
+.pager .pg-select{padding:5px 8px;border:1px solid #dcdfe4;border-radius:4px;font-family:inherit}
+.pager .pg-go{background:#7c4dff;color:#fff;border:none;padding:5px 14px;border-radius:4px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.pager .pg-btns{display:flex;gap:6px;align-items:center}
+.pager .pg-btn{padding:5px 12px;border:1px solid #dcdfe4;border-radius:4px;background:#fff;cursor:pointer;font-size:12.5px;font-family:inherit;color:#444}
+.pager .pg-btn.active{background:#7c4dff;color:#fff;border-color:#7c4dff;font-weight:600}
+.pager .pg-btn:hover:not(.active){border-color:#7c4dff;color:#7c4dff}
+
+/* 弹窗 */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.modal-mask.open{display:flex}
+.modal-shell{background:#fff;border-radius:8px;width:100%;max-width:760px;max-height:calc(100vh - 40px);display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.3);overflow:hidden}
+.modal-head{padding:14px 22px;border-bottom:1px solid #f0f1f4;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#fafbfc,#fff)}
+.modal-head .ttl{font-size:15px;font-weight:600;color:#222}
+.modal-head .close{cursor:pointer;color:#999;font-size:20px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.modal-head .close:hover{background:#f0f0f0;color:#cf1322}
+.modal-body{flex:1;overflow-y:auto;padding:20px 24px}
+.modal-foot{padding:12px 22px;border-top:1px solid #f0f1f4;display:flex;justify-content:flex-end;gap:10px;background:#fafbfc}
+.modal-foot .btn{padding:7px 18px;border-radius:4px;font-size:13px;cursor:pointer;border:none;font-family:inherit;font-weight:500}
+.modal-foot .btn-cancel{background:#fff;color:#444;border:1px solid #dcdfe4}
+.modal-foot .btn-save{background:#7c4dff;color:#fff}
+.modal-foot .btn-save:hover{background:#6230f0}
+
+/* 弹窗表单 */
+.fm-row{display:flex;align-items:flex-start;margin-bottom:14px;gap:14px}
+.fm-row .lb{width:110px;color:#444;text-align:right;font-size:13px;padding-top:7px;flex-shrink:0}
+.fm-row .lb .req{color:#ff4d4f;margin-right:2px}
+.fm-row .cl{flex:1;min-width:0}
+.readonly{padding:7px 11px;background:#f5f6fa;border:1px solid #ecedf2;border-radius:4px;color:#555;font-size:13px;min-height:34px;cursor:default}
+.readonly.ml{min-height:60px;white-space:pre-wrap}
+.select-full{padding:7px 11px;border:1px solid #dcdfe4;border-radius:4px;font-size:13px;font-family:inherit;background:#fff;outline:none;width:100%;max-width:280px}
+.select-full:focus{border-color:#7c4dff}
+
+/* 推送开关 */
+.toggle{display:inline-flex;align-items:center;cursor:pointer;gap:8px}
+.toggle .switch{position:relative;width:42px;height:22px;background:#ccc;border-radius:11px;transition:.2s}
+.toggle .switch::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s}
+.toggle.on .switch{background:#52c41a}
+.toggle.on .switch::after{left:23px}
+.toggle .lbl-txt{color:#444;font-size:13px}
+
+/* 钱类锁定提示 */
+.locked-tip{background:#f6ffed;border:1px solid #b7eb8f;border-radius:4px;padding:9px 13px;color:#389e0d;font-size:12.5px;line-height:1.7;display:flex;align-items:center;gap:8px}
+.locked-tip .ic{font-size:16px}
+.locked-tip b{color:#1f2329}
+
+
+
+
+.audit-tbl .toggle, .tbl .toggle{display:inline-block;cursor:pointer;vertical-align:middle}
+.audit-tbl .toggle .switch, .tbl .toggle .switch{position:relative;display:inline-block;width:36px;height:20px;background:#ccc;border-radius:10px;transition:.2s}
+.audit-tbl .toggle .switch::after, .tbl .toggle .switch::after{content:"";position:absolute;left:2.5px;top:2.5px;width:15px;height:15px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.audit-tbl .toggle.on .switch, .tbl .toggle.on .switch{background:#52c41a}
+.audit-tbl .toggle.on .switch::after, .tbl .toggle.on .switch::after{left:18.5px}
+
+
+/* 批量模式浮动条 */
+.batch-bar{background:linear-gradient(90deg,#f9f5ff,#fff);border:1px solid #7c4dff;border-radius:6px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:14px;font-size:12.5px;color:#444;box-shadow:0 2px 6px rgba(124,77,255,.12)}
+.batch-bar .ic{font-size:14px}
+.batch-bar b{color:#7c4dff;font-size:14px}
+.batch-bar button{padding:5px 11px;border:1px solid #dcdfe4;background:#fff;color:#666;border-radius:4px;cursor:pointer;font-size:11.5px;font-family:inherit}
+.batch-bar button:hover{border-color:#7c4dff;color:#7c4dff}
+.batch-bar button.primary{background:#7c4dff;color:#fff;border-color:#7c4dff}
+.batch-bar button.primary:hover{background:#6230f0}
+.batch-bar button.primary.danger{background:#cf1322;border-color:#cf1322}
+.batch-bar button.primary.danger:hover{background:#a8071a}
+.batch-bar .right-acts{margin-left:auto;display:flex;gap:8px}
+
+/* checkbox 列 */
+.cb-col{width:36px;text-align:center}
+.cb-col input[type=checkbox]{accent-color:#7c4dff;width:14px;height:14px;cursor:pointer}
+tr.cb-selected{background:#f9f5ff !important}
+
+
+/* 活动配置表紧凑化 */
+#pane-act .tbl td{padding:9px 10px;line-height:1.45}
+#pane-act .tbl th{padding:10px}
+#pane-act .ac-name{align-items:flex-start;padding:0}
+.ac-jump-link{display:inline-block;font-size:11px;color:#7c4dff;text-decoration:none;margin-top:2px;cursor:pointer}
+.ac-jump-link:hover{text-decoration:underline;color:#6230f0}
+.tpl-mini{display:inline-block;padding:2px 8px;background:#f0f5ff;color:#1677ff;border-radius:3px;font-size:11px;font-weight:500;white-space:nowrap}
+
+
+/* 批量操作下拉菜单 */
+.batch-dd{display:inline-block}
+.batch-menu{position:absolute;top:calc(100% + 4px);right:0;min-width:160px;background:#fff;border:1px solid #e5e7ed;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:50;display:none;padding:4px 0}
+.batch-menu.open{display:block;animation:bm-fade .15s}
+@keyframes bm-fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.bm-item{padding:8px 14px;font-size:12.5px;color:#333;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.bm-item:hover{background:#f5efff;color:#7c4dff}
+.bm-ico{font-weight:700;font-size:13px;width:14px;display:inline-block}
+.bm-sep{height:1px;background:#f0f1f4;margin:4px 0}
+
+/* 筛选条右侧 全局 保存/取消 按钮（常亮） */
+.act-filter .right .top-save-btn{background:linear-gradient(135deg,#7c4dff,#5a32d6) !important;color:#fff !important;border:1px solid #7c4dff !important;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(124,77,255,.3)}
+.act-filter .right .top-save-btn:hover{background:linear-gradient(135deg,#6230f0,#4a26b8) !important}
+.act-filter .right .top-save-btn b{font-weight:700}
+.act-filter .right .top-cancel-btn{background:#fff !important;color:#666 !important;border:1px solid #dcdfe4 !important;cursor:pointer}
+.act-filter .right .top-cancel-btn:hover{background:#fff1f0 !important;color:#cf1322 !important;border-color:#ffa39e !important}
+
+
+/* 浮动保存条 */
+.save-bar{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120%);background:linear-gradient(135deg,#7c4dff,#5a32d6);color:#fff;padding:12px 22px;border-radius:30px;box-shadow:0 8px 24px rgba(124,77,255,.35);display:flex;align-items:center;gap:14px;font-size:13.5px;z-index:200;transition:transform .25s;min-width:420px}
+.save-bar.show{transform:translateX(-50%) translateY(0)}
+.save-bar .ic{font-size:18px}
+.save-bar b{font-size:15px}
+.save-bar .right-btns{margin-left:auto;display:flex;gap:8px}
+.save-bar button{padding:6px 14px;border-radius:18px;font-family:inherit;font-size:12.5px;cursor:pointer;font-weight:500}
+.save-bar .cancel{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.4)}
+.save-bar .cancel:hover{background:rgba(255,255,255,.3)}
+.save-bar .save{background:#fff;color:#7c4dff;border:none}
+.save-bar .save:hover{background:#f0e9ff}
+
+/* 脏行（有未保存改动） */
+.row-dirty{background:#fffbe6 !important}
+.row-dirty td{border-left:3px solid transparent}
+.row-dirty td:first-child{border-left-color:#fa8c16}
+.dirty-dot{display:inline-block;width:6px;height:6px;background:#fa8c16;border-radius:50%;margin-left:4px;animation:dotpulse 1.2s infinite}
+@keyframes dotpulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* inline 下拉（紧凑） */
+.inline-select{padding:3px 6px;border:1px solid #dcdfe4;border-radius:3px;font-size:11.5px;font-family:inherit;background:#fff;outline:none;cursor:pointer;min-width:80px}
+.inline-select:hover{border-color:#7c4dff}
+.inline-select:focus{border-color:#7c4dff;box-shadow:0 0 0 2px rgba(124,77,255,.1)}
+
+/* 推送级别专属样式 */
+.lv-L1{color:#999}
+.lv-L2{color:#fa8c16}
+.lv-L3{color:#cf1322;font-weight:600}
+
+/* ============= 推送样式预览 Tab ============= */
+.sp-toolbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px;margin:6px 0 16px}
+.sp-filter{display:flex;align-items:center;gap:6px}
+.sp-flt-lbl{font-size:12px;color:#666;margin-right:4px}
+.sp-chip{padding:4px 11px;background:#f5f5f7;border-radius:14px;font-size:11.5px;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.sp-chip:hover{background:#ede4ff;color:#7c4dff}
+.sp-chip.active{background:#7c4dff;color:#fff;border-color:#7c4dff}
+.sp-theme-btn{margin-left:auto;padding:6px 14px;background:#fff;border:1px solid #dcdfe4;border-radius:4px;font-family:inherit;font-size:12px;cursor:pointer;color:#444}
+.sp-theme-btn:hover{border-color:#7c4dff;color:#7c4dff}
+
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.sp-card{background:#fff;border:1px solid #ecedf2;border-radius:8px;padding:14px;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s}
+.sp-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.08);transform:translateY(-2px)}
+.sp-tag-row{display:flex;gap:6px;margin-bottom:8px}
+.sp-lv-tag,.sp-cat-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600;letter-spacing:.2px}
+.sp-lv-tag.lv1{background:#f5f5f5;color:#888}
+.sp-lv-tag.lv2{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.sp-lv-tag.lv3{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+.sp-cat-tag.money{background:#fff7e6;color:#d46b08}
+.sp-cat-tag.activity{background:#f9f0ff;color:#722ed1}
+.sp-cat-tag.normal{background:#f5f5f5;color:#666}
+.sp-title{font-size:13.5px;font-weight:600;color:#1f2329;margin-bottom:4px}
+.sp-desc{font-size:11.5px;color:#666;line-height:1.55;margin-bottom:12px;min-height:46px}
+
+/* 手机 mockup */
+.phone{margin:0 auto;width:240px;height:436px;background:#000;border-radius:28px;padding:8px;position:relative;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.phone-notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:88px;height:18px;background:#000;border-radius:0 0 14px 14px;z-index:5}
+.phone-screen{width:100%;height:100%;background:#f4f5f7;border-radius:22px;overflow:hidden;position:relative;font-size:11px}
+.ps-statusbar{display:flex;justify-content:space-between;padding:6px 16px 4px;font-size:9.5px;font-weight:600;color:#333;position:relative}
+.ps-sb-r{letter-spacing:.5px}
+.ps-appbar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:#fff;border-bottom:1px solid #f0f0f0}
+.ps-logo{font-weight:700;font-size:13px;background:linear-gradient(90deg,#7c4dff,#ff6f91);-webkit-background-clip:text;background-clip:text;color:transparent}
+.ps-bell{position:relative;font-size:14px}
+.ps-badge{position:absolute;top:-4px;right:-7px;background:#ff4d4f;color:#fff;font-size:8.5px;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px;border:1.5px solid #fff;font-weight:700}
+.ps-badge.inline{position:static;display:inline-flex;border:none;margin-right:4px;font-size:9px}
+.ps-tabs{display:flex;padding:4px 8px;background:#fff;border-bottom:1px solid #f0f0f0;gap:2px;overflow-x:auto}
+.ps-tab{padding:5px 10px;border-radius:12px;background:#f5f5f5;font-size:10px;color:#666;white-space:nowrap}
+.ps-tab.active{background:#7c4dff;color:#fff}
+.ps-content{padding:8px 12px;flex:1}
+.ps-banner{background:linear-gradient(135deg,#ff6f91,#ffb86b);color:#fff;border-radius:6px;padding:14px 10px;font-weight:600;text-align:center;font-size:11.5px;margin-bottom:8px;box-shadow:0 2px 8px rgba(255,111,145,.3)}
+.ph-banner{position:relative;overflow:hidden}
+.ph-banner::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:ph-shimmer 2.5s infinite}
+@keyframes ph-shimmer{to{left:200%}}
+.ps-row{background:#fff;border-radius:5px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:#333}
+.ps-mini{background:#ff4d4f;color:#fff;padding:1px 5px;border-radius:3px;font-size:8.5px;font-weight:700}
+
+/* 我的页 */
+.ps-mine-hero{display:flex;align-items:center;gap:10px;padding:14px 14px 16px;background:linear-gradient(135deg,#7c4dff,#5a32d6);color:#fff}
+.ps-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+.ps-menu{padding:6px 10px}
+.ps-mi{background:#fff;border-radius:5px;padding:10px 12px;margin-bottom:5px;display:flex;justify-content:space-between;font-size:11px;color:#333}
+
+/* L2 toast 样式 */
+.ps-toast-top{margin:6px 8px 0;background:#fff;border-radius:10px;padding:9px 11px;display:flex;align-items:flex-start;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,.12);position:relative;animation:slide-down .4s ease}
+@keyframes slide-down{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.ps-tt-ico{width:26px;height:26px;background:linear-gradient(135deg,#ffd166,#ff7c5b);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ps-tt-body{flex:1;min-width:0}
+.ps-tt-ttl{font-size:11px;font-weight:600;color:#1f2329}
+.ps-tt-msg{font-size:10px;color:#666;margin-top:1px;line-height:1.4}
+.ps-tt-time{font-size:9px;color:#999;flex-shrink:0}
+
+.ps-toast-mat{margin:6px 8px 0;background:linear-gradient(135deg,#722ed1,#b37feb);color:#fff;border-radius:8px;padding:10px 11px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(114,46,209,.35);animation:slide-down .4s ease}
+.ps-tt-btn{background:#fff;color:#722ed1;border:none;border-radius:12px;padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer;flex-shrink:0;font-family:inherit}
+
+.ps-toast-mid{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.78);color:#fff;padding:8px 14px;border-radius:18px;font-size:11px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(4px);animation:fade-in .3s ease}
+@keyframes fade-in{from{opacity:0;transform:translate(-50%,-50%) scale(.9)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+.ps-toast-bot{position:absolute;left:8px;right:8px;bottom:14px;background:#fff;border-radius:10px;padding:12px;box-shadow:0 -4px 16px rgba(0,0,0,.12);animation:slide-up .4s ease}
+@keyframes slide-up{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.ps-bot-btn{width:100%;background:#7c4dff;color:#fff;border:none;border-radius:6px;padding:9px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+
+/* L3 强弹窗 */
+.ps-modal-mask{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px);animation:fade-in .3s ease;padding:14px}
+
+.ps-modal-card{background:#fff;border-radius:14px;padding:18px 16px;width:100%;max-width:200px;text-align:center;position:relative;animation:zoom-in .35s ease}
+@keyframes zoom-in{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+
+.ps-modal-card.cel{background:linear-gradient(180deg,#fffbeb,#fff);border:1px solid #ffd591}
+.cel-deco{font-size:18px;margin-bottom:2px;letter-spacing:2px}
+.cel-ico{font-size:38px;margin:4px 0}
+.cel-ttl{font-size:13px;font-weight:700;color:#1f2329;margin-bottom:4px}
+.cel-amt{font-size:22px;font-weight:800;color:#fa541c;margin-bottom:6px;text-shadow:0 1px 0 rgba(0,0,0,.05)}
+.cel-msg{font-size:10.5px;color:#666;line-height:1.45;margin-bottom:12px}
+.cel-btn{width:100%;background:linear-gradient(135deg,#ff6f91,#ff8e3c);color:#fff;border:none;border-radius:18px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(255,111,145,.4)}
+.cel-close{position:absolute;top:6px;right:10px;font-size:18px;color:#999;cursor:pointer}
+
+.ps-modal-card.wait{background:#fff}
+.wait-ico{font-size:38px;margin:4px 0 6px}
+.wait-ttl{font-size:13px;font-weight:700;color:#1f2329;margin-bottom:6px}
+.wait-msg{font-size:11px;color:#444;line-height:1.55;margin-bottom:14px}
+.wait-msg b{color:#fa541c;font-size:13px}
+.wait-btns{display:flex;gap:8px}
+.wait-cancel{flex:1;background:#f5f5f5;color:#666;border:none;border-radius:14px;padding:7px;font-size:11px;cursor:pointer;font-family:inherit}
+.wait-go{flex:1.4;background:linear-gradient(135deg,#7c4dff,#5a32d6);color:#fff;border:none;border-radius:14px;padding:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 10px rgba(124,77,255,.4)}
+
+.ps-modal-card.warn{background:#fff;border:1px solid #ffa39e}
+.warn-ico{font-size:34px;margin-bottom:4px;filter:drop-shadow(0 2px 4px rgba(207,19,34,.3))}
+.warn-ttl{font-size:13px;font-weight:700;color:#cf1322;margin-bottom:6px}
+.warn-msg{font-size:10.5px;color:#444;line-height:1.5;margin-bottom:10px}
+.warn-msg b{color:#cf1322}
+.warn-timer{font-size:10px;color:#666;margin-bottom:10px;padding:4px 10px;background:#fff1f0;border-radius:10px;display:inline-block}
+.warn-timer b{color:#cf1322;font-family:Menlo,monospace}
+.warn-btn{width:100%;background:linear-gradient(135deg,#cf1322,#a8071a);color:#fff;border:none;border-radius:6px;padding:9px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+
+.ps-sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:16px 16px 0 0;padding:8px 16px 18px;animation:slide-up .35s ease}
+.sheet-grip{width:36px;height:3.5px;background:#dcdfe4;border-radius:2px;margin:0 auto 12px}
+.sheet-ico{font-size:34px;text-align:center;margin-bottom:6px}
+.sheet-ttl{font-size:13px;font-weight:700;color:#1f2329;text-align:center;margin-bottom:6px}
+.sheet-msg{font-size:11px;color:#666;line-height:1.5;text-align:center;margin-bottom:14px}
+.sheet-msg b{color:#fa541c}
+.sheet-btn{width:100%;background:#7c4dff;color:#fff;border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:6px}
+.sheet-link{width:100%;background:transparent;color:#999;border:none;padding:6px;font-size:11px;cursor:pointer;font-family:inherit}
+
+/* 深色主题 */
+.sp-dark .phone-screen{background:#1a1a1f;color:#eee}
+.sp-dark .ps-statusbar{color:#eee}
+.sp-dark .ps-appbar{background:#222229;border-bottom-color:#33333d}
+.sp-dark .ps-row{background:#262630;color:#ddd}
+.sp-dark .ps-tabs{background:#222229;border-bottom-color:#33333d}
+.sp-dark .ps-tab{background:#33333d;color:#bbb}
+.sp-dark .ps-toast-top{background:#262630;color:#eee}
+.sp-dark .ps-tt-ttl{color:#fff}
+.sp-dark .ps-tt-msg{color:#aaa}
+.sp-dark .ps-toast-bot{background:#262630;color:#eee}
+.sp-dark .ps-mi{background:#262630;color:#ddd}
+.sp-dark .ps-modal-card{background:#262630;color:#eee}
+.sp-dark .ps-modal-card.cel{background:linear-gradient(180deg,#332a1f,#262630);border-color:#5a4a2a}
+.sp-dark .cel-ttl,.sp-dark .wait-ttl,.sp-dark .sheet-ttl{color:#fff}
+.sp-dark .cel-msg,.sp-dark .wait-msg,.sp-dark .sheet-msg{color:#bbb}
+.sp-dark .wait-cancel{background:#33333d;color:#bbb}
+.sp-dark .ps-sheet{background:#262630}
+.sp-dark .ps-modal-card.warn{background:#262630;border-color:#a8071a}
+
+.ac-code{display:inline-block;background:#f0f5ff;color:#1677ff;padding:1px 6px;border-radius:3px;font-size:10.5px;font-family:Menlo,Consolas,monospace;margin-left:4px;font-weight:400}
+.kind-tag{display:inline-block;padding:1px 7px;border-radius:9px;font-size:10px;font-weight:600;margin-left:4px;letter-spacing:.3px}
+.kind-tag.a{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.kind-tag.b{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
+
+
+.ae-section{background:#fafbfc;border:1px solid #ecedf2;border-radius:6px;padding:12px 16px;margin-bottom:12px}
+.ae-section.ae-advanced{background:#fffbe6;border-color:#ffd591}
+.ae-title{font-size:12.5px;font-weight:600;color:#1f2329;margin-bottom:10px;display:flex;align-items:center}
+.ae-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:12.5px}
+.ae-info-grid .ae-k{color:#888;margin-right:4px}
+.ae-info-grid code{background:#fff;border:1px solid #dcdfe4;color:#7c4dff;padding:1px 7px;border-radius:3px;font-family:Menlo,Consolas,monospace;font-size:11.5px}
+.ae-lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ae-lang-row{display:flex;align-items:center;gap:8px}
+.ae-lang-row .ae-flag{font-size:16px}
+.ae-lang-row .ae-lang-lbl{width:50px;color:#666;font-size:12px;flex-shrink:0}
+.ae-lang-row .ae-input{flex:1;padding:6px 10px;border:1px solid #dcdfe4;border-radius:4px;font-family:inherit;font-size:12.5px;outline:none}
+.ae-lang-row .ae-input:focus{border-color:#7c4dff}
+.ae-cfg-grid{display:flex;flex-direction:column;gap:10px}
+.ae-cfg-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ae-cfg-lbl{width:80px;color:#444;font-size:13px;flex-shrink:0}
+.ae-select{padding:6px 10px;border:1px solid #dcdfe4;border-radius:4px;font-family:inherit;font-size:12.5px;outline:none;min-width:180px}
+.ae-select:focus{border-color:#7c4dff}
+.ae-preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ae-preview-card{background:#fff;border:1px solid #ecedf2;border-radius:6px;overflow:hidden}
+.ae-preview-head{background:#fafbfc;padding:6px 12px;font-size:11px;color:#666;font-weight:500;border-bottom:1px solid #ecedf2}
+.ae-preview-body{padding:10px 12px}
+.ae-preview-title{font-weight:600;color:#1f2329;font-size:12.5px;margin-bottom:5px}
+.ae-preview-content{font-size:11.5px;color:#555;line-height:1.6}
+.ae-preview-meta{margin-top:10px;padding-top:8px;border-top:1px dashed #ecedf2;font-size:11.5px;color:#666;display:flex;align-items:center}
+.ae-preview-meta b{color:#7c4dff;margin-left:3px;margin-right:8px}
+.ae-checkbox{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#874d00}
+.ae-checkbox input{accent-color:#fa8c16;width:14px;height:14px}
+
+.act-tbl tr.grp-row td{background:#f5f6fa;padding:6px 12px;border-bottom:none;font-size:11px;color:#888}
+.act-tbl .grp-tag{display:inline-block;padding:1px 9px;background:#fff;border:1px solid #dcdfe4;border-radius:10px;font-weight:600;color:#555;letter-spacing:.5px}
+
+/* 活动多选表格 */
+.act-tbl{width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid #ecedf2;border-radius:6px;overflow:hidden}
+.act-tbl th{background:#fafbfc;padding:9px 12px;text-align:left;color:#666;font-weight:600;border-bottom:1px solid #ecedf2;font-size:11.5px}
+.act-tbl td{padding:10px 12px;border-bottom:1px solid #f0f1f4;color:#333;vertical-align:middle}
+.act-tbl tr:last-child td{border-bottom:none}
+.act-tbl tr:hover td{background:#fafcff}
+.act-tbl .ac-name{display:flex;align-items:center;gap:6px;font-weight:500}
+.act-tbl .ac-name .ico{font-size:14px}
+.act-tbl .ac-sel{width:36px;text-align:center}
+.act-tbl .ac-jump{width:160px}
+.act-tbl select{padding:4px 8px;border:1px solid #dcdfe4;border-radius:3px;font-size:11.5px;font-family:inherit;background:#fff;outline:none;width:100%}
+.act-tbl select:focus{border-color:#7c4dff}
+.act-tbl input[type=checkbox]{accent-color:#7c4dff;width:14px;height:14px;cursor:pointer}
+.act-tbl tr.row-off td{opacity:.5}
+.act-tbl tr.row-off select{pointer-events:none}
+
+/* 顶部说明 */
+.intro{background:#e6f7ff;border-left:3px solid #1677ff;padding:11px 15px;border-radius:0 5px 5px 0;font-size:12.5px;color:#0958d9;margin-bottom:12px;line-height:1.7}
+.intro code{background:#fff;padding:1px 5px;border-radius:3px;font-size:11.5px;color:#1677ff;font-family:Menlo,Consolas,monospace}
+</style>
+</head>
+<body>
+
+<div class="top-nav">
+  <span>当前站点：<b style="color:#222">SitINR</b></span>
+  <div class="right">
+    <span>2026年06月08日</span>
+    <span>当前币种：<b>INR</b></span>
+    <span>在线人数：<b style="color:#1677ff">3</b></span>
+  </div>
+</div>
+
+<div class="page-header">
+  <div class="ttl" id="pageTitle">消息模板</div>
+  <div class="crumb" id="pageCrumb">
+    <span>网站管理</span><span class="sep">›</span>
+    <span>消息模板</span><span class="sep">›</span>
+    <span>消息模板</span>
+  </div>
+</div>
+
+<!-- 二级 Tab 切换 -->
+<div class="main-tabs">
+  <button class="mt-btn active" onclick="switchTab(this,'pane-tpl')">📩 消息模板</button>
+  <button class="mt-btn" onclick="switchTab(this,'pane-act')">🎯 活动推送配置 <span class="new-tag">NEW</span></button>
+  <button class="mt-btn" onclick="switchTab(this,'pane-style')">🎨 推送样式预览 <span class="new-tag">UI</span></button>
+</div>
+
+<div class="wrap">
+
+  <!-- ===== Tab 1: 消息模板 ===== -->
+  <div class="tab-pane active" id="pane-tpl">
+
+  <div class="intro">
+    💡 <b>本次改造</b>：现有 9 条模板的<b>编码 / 标题 / 内容</b>不可编辑、不允许新增。仅新增 2 列：<code>是否推送站内信</code> 和 <code>跳转动作</code>，运营自由开关。<br>
+    其中 <b>8 / 9 活动类模板</b>因覆盖多个活动，进编辑页后<b>按单个活动</b>分别开启 / 关闭推送和跳转。
+  </div>
+
+  <div class="filter-bar">
+    <span class="lbl">语言：</span>
+    <select class="select"><option>请选择</option><option>英语</option><option>印尼</option><option>越南语</option><option>中文简体</option><option>印地语</option></select>
+    <button class="btn-set">🔍 设置</button>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:200px">编码</th>
+          <th>标题</th>
+          <th>内容</th>
+          <th style="width:180px">是否推送站内信 <span class="new-tag">NEW</span></th>
+          <th style="width:140px">跳转动作 <span class="new-tag">NEW</span></th>
+          <th style="width:100px">操作</th>
+        </tr>
+      </thead>
+      <tbody id="tplBody"></tbody>
+    </table>
+  </div>
+
+  <div class="pager">
+    <div>共 1 页，前往 <input class="pg-input" value="1"> 页，<select class="pg-select"><option>20 条/页</option></select> <button class="pg-go">GO</button></div>
+    <div class="pg-btns">
+      <button class="pg-btn">首页</button>
+      <button class="pg-btn">上一页</button>
+      <button class="pg-btn active">1</button>
+      <button class="pg-btn">下一页</button>
+      <button class="pg-btn">尾页</button>
+      <span style="color:#666;font-size:12.5px;margin-left:8px">共 9 条</span>
+    </div>
+  </div>
+
+  </div><!-- /pane-tpl -->
+
+  <!-- ===== Tab 2: 活动推送配置 ===== -->
+  <div class="tab-pane" id="pane-act">
+
+    <div class="intro">
+      💡 <b>活动推送配置</b>：当前 <b>16 个活动</b>，可按业务分组筛选。配置项：是否推送 / 跳转动作。<br>
+      达标后系统按活动类型即时（A 直发）或生成可领取记录（B 待领），<b>开启推送</b>的活动会同步发送站内实时弹窗，点击跳转到指定页。
+    </div>
+
+    <!-- 筛选条 -->
+    <div class="act-filter">
+      <div class="group">
+        <span class="lbl">状态：</span>
+        <span class="chip active" onclick="filterAct(this,'status','all')">全部</span>
+        <span class="chip" onclick="filterAct(this,'status','on')">已开启</span>
+        <span class="chip" onclick="filterAct(this,'status','off')">已关闭</span>
+      </div>
+      <div class="group">
+        <span class="lbl">类型：</span>
+        <span class="chip active" onclick="filterAct(this,'kind','all')">全部</span>
+        <span class="chip" onclick="filterAct(this,'kind','A')">A 直发</span>
+        <span class="chip" onclick="filterAct(this,'kind','B')">B 待领</span>
+      </div>
+      <div class="group">
+        <span class="lbl">分组：</span>
+        <span class="chip active" onclick="filterAct(this,'group','all')">全部</span>
+        <span class="chip" onclick="filterAct(this,'group','抽奖')">抽奖</span>
+        <span class="chip" onclick="filterAct(this,'group','新手·任务')">新手任务</span>
+        <span class="chip" onclick="filterAct(this,'group','新会员特权')">新会员</span>
+        <span class="chip" onclick="filterAct(this,'group','充值奖励')">充值</span>
+        <span class="chip" onclick="filterAct(this,'group','关系链')">关系链</span>
+      </div>
+      <input class="search" placeholder="🔍 搜索活动名 / 枚举值" oninput="searchAct(this.value)">
+
+      <div class="right">
+        <div class="batch-dd" style="position:relative">
+          <button class="primary" onclick="toggleBatchMenu(event)">📋 批量操作 <span id="batchSelInfo" style="margin-left:4px;font-size:11px;opacity:.9">(已选 <b id="selectedCount">0</b>)</span> <span style="margin-left:2px;font-size:9px">▼</span></button>
+          <div class="batch-menu" id="batchMenu">
+            <div class="bm-item" onclick="batchApply(true)"><span class="bm-ico" style="color:#52c41a">✓</span>开启选中推送</div>
+            <div class="bm-item" onclick="batchApply(false)"><span class="bm-ico" style="color:#cf1322">✗</span>关闭选中推送</div>
+            <div class="bm-sep"></div>
+            <div class="bm-item" onclick="batchSelectAllVisible(true)">全选当前页</div>
+            <div class="bm-item" onclick="batchSelectAllVisible(false)">取消全选</div>
+          </div>
+        </div>
+        <button id="topSaveBtn" class="top-save-btn active" onclick="saveAllChanges()">💾 保存 <span id="topSaveCount" style="display:none">(<b>0</b>)</span></button>
+        <button id="topCancelBtn" class="top-cancel-btn active" onclick="cancelAllChanges()">取消</button>
+      </div>
+      <span id="visibleCount" style="display:none">16</span>
+    </div>
+
+    <!-- 隐藏字段用于摘要统计（脚本仍读取） -->
+    <span id="totalCount" style="display:none">16</span>
+    <span id="onCount" style="display:none">11</span>
+    <span id="offCount" style="display:none">5</span>
+
+    <!-- 活动列表（参照消息模板列表样式） -->
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr id="actListHead">
+            <th class="cb-col"><input type="checkbox" id="cbAll" onchange="toggleSelectAll(this)"></th>
+            <th style="width:220px">活动 / 枚举值</th>
+            <th>触发时机</th>
+            <th style="width:200px">关联模板</th>
+            <th style="width:90px;text-align:center">是否推送</th>
+            <th style="width:120px">跳转动作</th>
+            <th style="width:130px">推送级别</th>
+          </tr>
+        </thead>
+        <tbody id="actListBody"></tbody>
+      </table>
+    </div>
+
+    <div class="pager">
+      <div>共 1 页，前往 <input class="pg-input" value="1"> 页，<select class="pg-select"><option>20 条/页</option></select> <button class="pg-go">GO</button></div>
+      <div class="pg-btns">
+        <button class="pg-btn">首页</button>
+        <button class="pg-btn">上一页</button>
+        <button class="pg-btn active">1</button>
+        <button class="pg-btn">下一页</button>
+        <button class="pg-btn">尾页</button>
+        <span style="color:#666;font-size:12.5px;margin-left:8px">共 <span id="pagerCount">16</span> 条</span>
+      </div>
+    </div>
+
+  </div><!-- /pane-act -->
+
+  <!-- ===== Tab 3: 推送样式预览 ===== -->
+  <div class="tab-pane" id="pane-style">
+
+    <div class="intro">
+      💡 <b>推送样式预览</b>：按推送级别（L1 / L2 / L3）+ 消息分类（钱类 / 活动类 / 普通）做了多套样式备选，方便 UI 设计师参考与挑选。<br>
+      每套样式都基于手机 mockup，可右键截图保存。点击右上角「<b>切换主题</b>」可对比深浅模式效果。
+    </div>
+
+    <!-- 顶部工具条 -->
+    <div class="sp-toolbar">
+      <div class="sp-filter">
+        <span class="sp-flt-lbl">推送级别：</span>
+        <span class="sp-chip active" onclick="filterStyle(this,'lv','all')">全部</span>
+        <span class="sp-chip" onclick="filterStyle(this,'lv','L2')">L2 横幅</span>
+        <span class="sp-chip" onclick="filterStyle(this,'lv','L3')">L3 强弹窗</span>
+      </div>
+      <div class="sp-filter">
+        <span class="sp-flt-lbl">分类：</span>
+        <span class="sp-chip active" onclick="filterStyle(this,'cat','all')">全部</span>
+        <span class="sp-chip" onclick="filterStyle(this,'cat','money')">💰 钱类</span>
+        <span class="sp-chip" onclick="filterStyle(this,'cat','activity')">🎁 活动类</span>
+      </div>
+      <button class="sp-theme-btn" onclick="toggleSpTheme()">🌗 切换主题</button>
+    </div>
+
+    <!-- 样式网格 -->
+    <div class="sp-grid" id="spGrid">
+
+      <!-- ===== L2 · 横幅 toast ===== -->
+
+      <!-- B1: 顶部下滑横幅（iOS 风） -->
+      <div class="sp-card" data-lv="L2" data-cat="money">
+        <div class="sp-tag-row">
+          <span class="sp-lv-tag lv2">L2 · 横幅</span>
+          <span class="sp-cat-tag money">💰 钱类</span>
+        </div>
+        <div class="sp-title">B1 · 顶部下滑横幅 (iOS 风)</div>
+        <div class="sp-desc">从屏幕顶部滑入，停留 3-5 秒自动收起。可点击跳转。适合：充值到账、提现成功。</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="ps-statusbar"><span>9:41</span><span class="ps-sb-r">●●●● 5G ▮</span></div>
+            <div class="ps-toast-top">
+              <div class="ps-tt-ico">💰</div>
+              <div class="ps-tt-body">
+                <div class="ps-tt-ttl">充值已到账</div>
+                <div class="ps-tt-msg">您的充值 ₹500 已到账，点击查看钱包</div>
+              </div>
+              <span class="ps-tt-time">现在</span>
+            </div>
+            <div class="ps-appbar"><span class="ps-logo">🎰 ARWin</span><span class="ps-bell">🔔<span class="ps-badge">1</span></span></div>
+            <div class="ps-content">
+              <div class="ps-banner">🎁 Welcome Bonus</div>
+              <div class="ps-row"><span>🎲 Lottery</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B2: 顶部 toast (Android Material) -->
+      <div class="sp-card" data-lv="L2" data-cat="activity">
+        <div class="sp-tag-row">
+          <span class="sp-lv-tag lv2">L2 · 横幅</span>
+          <span class="sp-cat-tag activity">🎁 活动类</span>
+        </div>
+        <div class="sp-title">B2 · 顶部 toast (Material 风)</div>
+        <div class="sp-desc">扁平矩形横幅，强色彩区分类型。适合：活动奖励到账、活动待领取。</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="ps-statusbar"><span>9:41</span><span class="ps-sb-r">●●●● 5G ▮</span></div>
+            <div class="ps-toast-mat">
+              <span style="font-size:18px">🎁</span>
+              <div style="flex:1">
+                <div style="font-weight:600;font-size:12.5px">大转盘 奖励待领取</div>
+                <div style="font-size:11px;opacity:.9;margin-top:1px">充值达标后获得 3 次抽奖机会</div>
+              </div>
+              <button class="ps-tt-btn">去领取</button>
+            </div>
+            <div class="ps-appbar"><span class="ps-logo">🎰 ARWin</span><span class="ps-bell">🔔<span class="ps-badge">1</span></span></div>
+            <div class="ps-content">
+              <div class="ps-banner ph-banner">🎁 Welcome Bonus</div>
+              <div class="ps-row"><span>🎲 Lottery</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== L3 · 强弹窗 ===== -->
+
+      <!-- C2: 居中模态弹窗（B 类待领取） -->
+      <div class="sp-card" data-lv="L3" data-cat="activity">
+        <div class="sp-tag-row">
+          <span class="sp-lv-tag lv3">L3 · 强弹窗</span>
+          <span class="sp-cat-tag activity">🎁 活动类</span>
+        </div>
+        <div class="sp-title">C2 · 居中待领取弹窗</div>
+        <div class="sp-desc">引导用户去活动页参与/领取。适合：B 类（大转盘、签到、每日任务）。CTA 按钮强引导。</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="ps-statusbar"><span>9:41</span><span class="ps-sb-r">●●●● 5G ▮</span></div>
+            <div class="ps-appbar"><span class="ps-logo">🎰 ARWin</span><span class="ps-bell">🔔</span></div>
+            <div class="ps-content" style="filter:blur(1px);opacity:.6">
+              <div class="ps-banner ph-banner">🎁 Welcome Bonus</div>
+              <div class="ps-row"><span>🎲 Lottery</span></div>
+            </div>
+            <div class="ps-modal-mask">
+              <div class="ps-modal-card wait">
+                <div class="wait-ico">🎡</div>
+                <div class="wait-ttl">大转盘 奖励待领取</div>
+                <div class="wait-msg">您已获得 <b>3 次</b> 抽奖机会<br>前往活动页参与抽奖</div>
+                <div class="wait-btns">
+                  <button class="wait-cancel">稍后</button>
+                  <button class="wait-go">立即参与</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C3: 全屏接管 (KYC 验证) -->
+      <div class="sp-card" data-lv="L3" data-cat="money">
+        <div class="sp-tag-row">
+          <span class="sp-lv-tag lv3">L3 · 强弹窗</span>
+          <span class="sp-cat-tag money">💰 钱类</span>
+        </div>
+        <div class="sp-title">C3 · 高危警示弹窗</div>
+        <div class="sp-desc">红色警示风格 + 强制操作。适合：KYC 验证中断、提现风控阻断。用户必须处理。</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="ps-statusbar"><span>9:41</span><span class="ps-sb-r">●●●● 5G ▮</span></div>
+            <div class="ps-appbar"><span class="ps-logo">🎰 ARWin</span><span class="ps-bell">🔔</span></div>
+            <div class="ps-content" style="filter:blur(1px);opacity:.4">
+              <div class="ps-banner ph-banner">🎁 Welcome Bonus</div>
+            </div>
+            <div class="ps-modal-mask">
+              <div class="ps-modal-card warn">
+                <div class="warn-ico">⚠️</div>
+                <div class="warn-ttl">您的提现正在等待验证</div>
+                <div class="warn-msg">您的 <b>FASTUPI</b> 提现订单需要完成 KYC 验证，请尽快重新验证，<b>超时订单将被取消</b>。</div>
+                <div class="warn-timer">剩余时间：<b>14:32</b></div>
+                <button class="warn-btn">立即验证</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sp-grid -->
+
+  </div><!-- /pane-style -->
+
+</div><!-- /wrap -->
+
+
+<!-- 编辑弹窗 -->
+<div class="modal-mask" id="modalEdit" onclick="if(event.target===this)closeEdit()">
+  <div class="modal-shell">
+    <div class="modal-head">
+      <div class="ttl">✏️ 修改消息模板 <span id="editTplName" style="color:#999;font-weight:400;margin-left:6px;font-size:13px"></span></div>
+      <span class="close" onclick="closeEdit()">×</span>
+    </div>
+    <div class="modal-body">
+
+      <div class="fm-row">
+        <div class="lb">编码：</div>
+        <div class="cl"><div class="readonly" id="editCode" style="max-width:140px"></div></div>
+      </div>
+
+      <div class="fm-row">
+        <div class="lb">标题：</div>
+        <div class="cl"><div class="readonly" id="editTitle"></div></div>
+      </div>
+
+      <div class="fm-row">
+        <div class="lb">内容：</div>
+        <div class="cl"><div class="readonly ml" id="editBody"></div></div>
+      </div>
+
+      <hr style="border:none;border-top:1px dashed #ecedf2;margin:14px 0 16px">
+
+      <div class="fm-row" id="rowPush">
+        <div class="lb"><span class="req">*</span>是否推送：</div>
+        <div class="cl">
+          <div id="pushNormal" style="display:none">
+            <div class="toggle" id="toggleNormal" onclick="toggleSwitch(this)">
+              <span class="switch"></span>
+              <span class="lbl-txt"><b id="normalToggleLbl">关</b>（站内信红点，无弹窗）</span>
+            </div>
+            <div style="color:#999;font-size:11.5px;margin-top:6px">开启后：用户登录时实时推送弹窗 + 站内信</div>
+          </div>
+
+          <div id="pushActivity" style="display:none">
+            <div style="background:#fffbe6;border:1px solid #ffd591;border-radius:5px;padding:9px 13px;color:#874d00;font-size:12.5px;line-height:1.7">
+              🔗 <b>按活动分别配置</b>：该模板覆盖多个活动，在下方"活动配置"区域<b>单独勾选</b>哪些活动需要推送 + 配置跳转目标。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fm-row" id="rowJump">
+        <div class="lb">跳转动作：</div>
+        <div class="cl">
+          <select class="select-full" id="editJump">
+            <option>不跳转</option>
+            <option>钱包</option>
+            <option>新手礼包页</option>
+            <option>活动页</option>
+            <option>彩种页</option>
+            <option>KYC 验证</option>
+            <option>VIP 中心</option>
+          </select>
+          <div style="color:#999;font-size:11.5px;margin-top:4px">用户点击站内信后跳转的目标页</div>
+        </div>
+      </div>
+
+      <div class="fm-row" id="rowActivity" style="display:none">
+        <div class="lb">活动配置：</div>
+        <div class="cl">
+          <div class="act-jump-link">
+            <span class="ico">🎯</span>
+            <div class="body">
+              <div class="title-row">该模板覆盖 <span id="actCount">16</span> 个活动</div>
+              <div class="desc">是否推送 / 跳转动作 / 触发时机 在「活动推送配置」页统一管理，可按分组筛选、批量启停</div>
+            </div>
+            <button class="go-btn" onclick="closeEdit();jumpToActPage()">前往配置页 →</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-cancel" onclick="closeEdit()">取消</button>
+      <button class="btn btn-save" onclick="alert('✅ 已保存');closeEdit()">💾 保存</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const TPL = [
+  { code:1, name:'会员注册',          cat:'normal',   title:'Registrasi Akun',                          body:'Selamat！pendaftaran akun {nickname} berhasil. Klaim hadiah pendaftaran sekarang…', jump:'新手礼包页', push:false },
+  { code:2, name:'账号充值',          cat:'normal',   title:'Deposit Akun',                             body:'Selamat atas keberhasilan deposit Anda sebesar {amount}, saldo telah masuk ke akun.',  jump:'钱包',       push:true  },
+  { code:3, name:'申请提现',          cat:'normal',   title:'Pengajuan Penarikan',                      body:'Ajuan penarikan Anda sebesar {amount} sedang diproses, mohon menunggu konfirmasi.',  jump:'钱包',       push:false },
+  { code:4, name:'提现到账',          cat:'normal',   title:'Penarikan berhasil',                       body:'Ajuan penarikan Anda sebesar {amount} telah berhasil ditransfer ke rekening.',       jump:'钱包',       push:true  },
+  { code:5, name:'登录通知',          cat:'normal',   title:'Notifikasi Masuk',                         body:'Akun Anda baru saja masuk pada {time}. Jika bukan Anda, segera ubah kata sandi.',    jump:'不跳转',     push:false },
+  { code:6, name:'XOSO 期号取消通知', cat:'normal',   title:'Periode dibatalkan',                       body:'{period} Transaksi Lottery dibatalkan, taruhan Anda akan dikembalikan ke saldo.',    jump:'彩种页',     push:true  },
+  { code:7, name:'修改密码',          cat:'normal',   title:'Ubah kata sandi',                          body:'Kata Sandi akun telah berhasil diubah pada {time}. Jika bukan Anda, segera hubungi…',jump:'不跳转',     push:false },
+  { code:8, name:'TG 活动奖励发放通知',cat:'activity', title:'Hadiah aktivitas didistribusikan secara otomatis', body:'Hadiah yang Anda dapatkan dari aktivitas TG senilai {amount} telah masuk ke akun.', jump:'按活动', push:'byact' },
+  { code:9, name:'活动奖励到账通知',  cat:'activity', title:'{活动名} 奖励已到账 🎉',                   body:'恭喜！您的「{活动名}」活动奖励 {amount} 已到账，请查收。',                             jump:'按活动',   push:'byact' },
+  { code:10,name:'活动奖励待领取通知',cat:'activity', title:'{活动名} 奖励待领取 🎁',                   body:'您的「{活动名}」活动奖励待领取，请前往活动页参与/签到/领取。',                          jump:'按活动',   push:'byact', isNew:true },
+  { code:11,name:'KYC 验证中断',     cat:'normal',   title:'⚠️ 您的提现正在等待验证',                  body:'您的 FASTUPI 提现订单需要完成 KYC 验证，请尽快返回 APP 重新验证，超时订单将被取消。', jump:'KYC 验证', push:true, isNew:true },
+];
+
+// V1 现有活动全集（16 项）按 A 类直发 / B 类待领 拆到模板 9 / 模板 10
+const ACTIVITIES = {
+  // 模板 8 - TG 活动奖励发放通知（活动未接入）
+  8: [],
+
+  // 模板 9 - 活动奖励到账通知（A 类直发活动，共 6 个 · 真正充值/达标后即时入钱包）
+  9: [
+    // 充值奖励（全 A 类）
+    { id:'app-download',  code:131, kind:'A', group:'充值奖励',   name:'App 下载充值奖励',    trigger:'下载 App 后首次充值触发 · 即时到账',      push:true,  jump:'钱包' },
+    { id:'recharge-lv',   code:132, kind:'A', group:'充值奖励',   name:'充值等级奖励',        trigger:'累计充值达到等级门槛 · 即时到账',         push:true,  jump:'钱包' },
+    { id:'vip-recharge',  code:133, kind:'A', group:'充值奖励',   name:'VIP 充值等级奖励',    trigger:'VIP 用户充值达到等级门槛 · 即时到账',     push:true,  jump:'钱包' },
+    { id:'return-recharge',code:134,kind:'A', group:'充值奖励',   name:'回归新充值奖励',      trigger:'老用户回归后充值触发 · 即时到账',         push:true,  jump:'钱包' },
+    // 关系链
+    { id:'partner-bonus', code:122, kind:'A', group:'关系链',     name:'合伙人奖励',          trigger:'下级充值达到配置金额 · 上级即时到账',     push:true,  jump:'钱包' },
+    { id:'invite-bonus',  code:20,  kind:'A', group:'关系链',     name:'邀请奖励',            trigger:'下级完成充值 · 上级即时到账',             push:true,  jump:'钱包' },
+  ],
+
+  // 模板 10 - 活动奖励待领取通知（B 类，共 10 个 · 用户需前往活动页点击参与/签到/领取）
+  10: [
+    // 抽奖类（需用户去活动页点击参与）
+    { id:'wheel',         code:119, kind:'B', group:'抽奖',       name:'大转盘',              trigger:'充值达标后获得抽奖次数 · 前往活动页参与抽奖',         push:true,  jump:'活动页' },
+    { id:'invited-wheel', code:130, kind:'B', group:'抽奖',       name:'邀请转盘',            trigger:'下级充值后上级获得抽奖次数 · 前往活动页参与抽奖',     push:true,  jump:'活动页' },
+    // 新手·任务
+    { id:'sign-in',       code:7,   kind:'B', group:'新手·任务',  name:'每日签到',            trigger:'当天充值达标 · 解锁签到资格，前往活动页签到领取',     push:false, jump:'活动页' },
+    { id:'first-recharge',code:14,  kind:'B', group:'新手·任务',  name:'首充奖励',            trigger:'用户首次充值成功 · 解锁奖励，前往活动页点击领取',     push:true,  jump:'活动页' },
+    { id:'championship',  code:114, kind:'B', group:'新手·任务',  name:'锦标赛',              trigger:'参与条件含充值门槛 · 周期结束后待领取',  push:true,  jump:'活动页' },
+    { id:'newbie-gift',   code:113, kind:'B', group:'新手·任务',  name:'新手礼包',            trigger:'首充金额达标 · 礼包待领取',              push:true,  jump:'活动页' },
+    { id:'daily-award',   code:118, kind:'B', group:'新手·任务',  name:'每日奖励',            trigger:'任务目标含充值类 · 当日达标后待领取',     push:false, jump:'活动页' },
+    { id:'weekly-award',  code:107, kind:'B', group:'新手·任务',  name:'每周奖励',            trigger:'任务目标含充值类 · 当周达标后待领取',     push:false, jump:'活动页' },
+    // 新会员特权
+    { id:'first-loss',    code:116, kind:'B', group:'新会员特权', name:'新会员负盈利彩金',   trigger:'首充后时效内亏损按比例 · 时效结束待领取', push:true,  jump:'活动页' },
+    { id:'newbie-game',   code:117, kind:'B', group:'新会员特权', name:'新会员玩游戏送彩金', trigger:'首充后玩游戏达标 · 达标后待领取',         push:true,  jump:'活动页' },
+  ],
+
+  // 模板 11 - KYC 验证中断（无活动，钱类消息）
+};
+
+const JUMP_OPTIONS = ['不跳转','活动页','钱包'];
+
+const CAT_LABEL = {
+  money:    '<span class="cat-pill money">💰 钱类</span>',
+  activity: '<span class="cat-pill activity">🎁 活动类</span>',
+  normal:   '<span class="cat-pill normal">📋 普通</span>'
+};
+
+function renderList(){
+  const body = document.getElementById('tplBody');
+  body.innerHTML = TPL.map(t => {
+    let pushCell;
+    if(t.cat === 'activity'){
+      const acts = ACTIVITIES[t.code];
+      const on = acts.filter(a => a.push).length;
+      pushCell = `<span class="push-by-act" onclick="openEdit(${t.code})">按活动 (${on}/${acts.length}) ›</span>`;
+    } else pushCell = t.push ? '<span class="push-on">开</span>' : '<span class="push-off">关</span>';
+
+    const jumpCell = t.cat === 'activity'
+      ? '<span style="color:#d46b08">按活动</span>'
+      : `<span>${t.jump}</span>`;
+
+    const isNew = t.isNew ? ' <span class="new-tag">NEW</span>' : '';
+    const rowStyle = t.isNew ? ' style="background:#fff7e6"' : '';
+    return `<tr${rowStyle}>
+      <td class="code-col">${t.code}&nbsp;${t.name}${isNew}</td>
+      <td>${t.title.length > 40 ? t.title.substr(0,40)+'…' : t.title}</td>
+      <td>${t.body.length > 30 ? t.body.substr(0,30)+'…' : t.body}</td>
+      <td>${pushCell}</td>
+      <td>${jumpCell}</td>
+      <td><button class="btn-edit" onclick="openEdit(${t.code})">修改</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openEdit(code){
+  const t = TPL.find(x => x.code === code);
+  if(!t) return;
+  document.getElementById('editTplName').textContent = '· #' + t.code + ' ' + t.name;
+  document.getElementById('editCode').textContent = t.code;
+  document.getElementById('editTitle').textContent = t.title;
+  document.getElementById('editBody').textContent = t.body;
+
+  const isAct = (t.cat === 'activity');
+  document.getElementById('pushNormal').style.display   = isAct ? 'none' : '';
+  document.getElementById('pushActivity').style.display = isAct ? '' : 'none';
+  document.getElementById('rowJump').style.display      = isAct ? 'none' : '';
+  document.getElementById('rowActivity').style.display  = isAct ? '' : 'none';
+
+  if(!isAct){
+    const tg = document.getElementById('toggleNormal');
+    tg.classList.toggle('on', t.push);
+    document.getElementById('normalToggleLbl').textContent = t.push ? '开' : '关';
+    document.getElementById('editJump').value = t.jump;
+  } else {
+    renderActTable(t.code);
+  }
+
+  document.getElementById('modalEdit').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderActTable(code){
+  const acts = ACTIVITIES[code] || [];
+  const body = document.getElementById('actBody');
+  let html = '';
+  let lastGroup = null;
+  acts.forEach(a => {
+    if(a.group && a.group !== lastGroup){
+      html += `<tr class="grp-row"><td colspan="4"><span class="grp-tag">${a.group}</span></td></tr>`;
+      lastGroup = a.group;
+    }
+    const off = a.push ? '' : 'row-off';
+    const kindTag = a.kind === 'A'
+      ? '<span class="kind-tag a">A 直发</span>'
+      : '<span class="kind-tag b">B 待领</span>';
+    html += `<tr class="${off}">
+      <td>
+        <div class="ac-name">
+          <span class="ico">${a.ico}</span>
+          <div>
+            <div style="font-weight:500">${a.name} <span class="ac-code">${a.code}</span> ${kindTag}</div>
+          </div>
+        </div>
+      </td>
+      <td style="font-size:11.5px;color:#666;line-height:1.5">${a.trigger}</td>
+      <td class="ac-sel" style="text-align:center"><input type="checkbox" ${a.push?'checked':''} onchange="toggleAct(this)"></td>
+      <td class="ac-jump"><select>${JUMP_OPTIONS.map(j => `<option ${j===a.jump?'selected':''}>${j}</option>`).join('')}</select></td>
+    </tr>`;
+  });
+  body.innerHTML = html;
+  const sel = document.getElementById('selAll');
+  sel.checked = acts.every(a => a.push);
+  sel.indeterminate = !sel.checked && acts.some(a => a.push);
+}
+
+function toggleAct(cb){
+  const tr = cb.closest('tr');
+  tr.classList.toggle('row-off', !cb.checked);
+}
+
+function toggleAll(cb){
+  document.querySelectorAll('#actBody input[type=checkbox]').forEach(c => {
+    c.checked = cb.checked;
+    toggleAct(c);
+  });
+}
+
+function toggleSwitch(el){
+  el.classList.toggle('on');
+  document.getElementById('normalToggleLbl').textContent = el.classList.contains('on') ? '开' : '关';
+}
+
+function closeEdit(){
+  document.getElementById('modalEdit').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeEdit();
+});
+
+// ========= Tab 切换 =========
+function switchTab(btn, paneId){
+  document.querySelectorAll('.main-tabs .mt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(paneId).classList.add('active');
+  const titles = {
+    'pane-tpl': ['消息模板', '网站管理 › 消息模板 › 消息模板'],
+    'pane-act': ['活动推送配置', '营销中心 › 活动推送配置'],
+    'pane-style': ['推送样式预览', '营销中心 › 推送样式预览'],
+  };
+  if(titles[paneId]){
+    document.getElementById('pageTitle').textContent = titles[paneId][0];
+    document.getElementById('pageCrumb').textContent = titles[paneId][1].split('›').map((s,i,a)=>i<a.length-1? s.trim()+' › ':s.trim()).join('');
+  }
+}
+
+function jumpToActPage(){
+  const btn = document.querySelectorAll('.main-tabs .mt-btn')[1];
+  btn.click();
+}
+
+// ========= 推送样式预览：筛选 + 主题切换 =========
+const spFilter = { lv:'all', cat:'all' };
+function filterStyle(el, key, val){
+  el.parentElement.querySelectorAll('.sp-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  spFilter[key] = val;
+  document.querySelectorAll('#spGrid .sp-card').forEach(card=>{
+    const lvOk = spFilter.lv === 'all' || card.dataset.lv === spFilter.lv;
+    const catOk = spFilter.cat === 'all' || card.dataset.cat === spFilter.cat;
+    card.style.display = (lvOk && catOk) ? '' : 'none';
+  });
+}
+function toggleSpTheme(){
+  document.getElementById('spGrid').classList.toggle('sp-dark');
+}
+
+// ========= 活动列表（独立页） =========
+// 活动 → 后台配置页的映射（运营点跳转用）
+const ACT_CONFIG_PAGES = {
+  'wheel':          '大转盘配置',
+  'invited-wheel':  '邀请转盘配置',
+  'sign-in':        '每日签到配置',
+  'first-recharge': '首充奖励配置',
+  'app-download':   'App 下载奖励配置',
+  'recharge-lv':    '充值等级配置',
+  'vip-recharge':   'VIP 充值等级配置',
+  'return-recharge':'回归充值奖励配置',
+  'partner-bonus':  '合伙人奖励配置',
+  'invite-bonus':   '邀请奖励配置',
+  'championship':   '锦标赛配置',
+  'newbie-gift':    '新手礼包配置',
+  'daily-award':    '每日活动配置',
+  'weekly-award':   '每周活动配置',
+  'first-loss':     '新会员负盈利配置',
+  'newbie-game':    '新会员玩游戏配置',
+};
+
+function jumpToActCfg(id){
+  const page = ACT_CONFIG_PAGES[id] || '该活动配置页';
+  alert('🚀 跳转到：' + page + '\n\n（演示）实际会打开对应的活动配置页面');
+}
+
+// 合并 9 / 10 模板所有活动到一张总表（按 kind 关联对应模板）
+const ALL_ACTIVITIES = [
+  ...(ACTIVITIES[9]  || []).map(a => ({...a, tplCode: 9,  tplName:'活动奖励到账通知'})),
+  ...(ACTIVITIES[10] || []).map(a => ({...a, tplCode: 10, tplName:'活动奖励待领取通知'})),
+];
+
+let actFilter = { status:'all', kind:'all', group:'all', kw:'' };
+
+// ========= 选择 + 批量菜单状态 =========
+let selectedIds = new Set();
+
+function toggleBatchMenu(ev){
+  ev.stopPropagation();
+  document.getElementById('batchMenu').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const m = document.getElementById('batchMenu');
+  if(m) m.classList.remove('open');
+});
+
+function toggleSelect(id){
+  if(selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  updateBatchCount();
+  renderActList();
+}
+
+function toggleSelectAll(cb){
+  const visible = getVisibleActs();
+  if(cb.checked) visible.forEach(a => selectedIds.add(a.id));
+  else visible.forEach(a => selectedIds.delete(a.id));
+  updateBatchCount();
+  renderActList();
+}
+
+function batchSelectAllVisible(on){
+  document.getElementById('batchMenu').classList.remove('open');
+  const visible = getVisibleActs();
+  if(on) visible.forEach(a => selectedIds.add(a.id));
+  else visible.forEach(a => selectedIds.delete(a.id));
+  updateBatchCount();
+  renderActList();
+}
+
+function getVisibleActs(){
+  return ALL_ACTIVITIES.filter(a => {
+    if(actFilter.status === 'on' && !a.push) return false;
+    if(actFilter.status === 'off' && a.push) return false;
+    if(actFilter.kind !== 'all' && a.kind !== actFilter.kind) return false;
+    if(actFilter.group !== 'all' && a.group !== actFilter.group) return false;
+    if(actFilter.kw){
+      const kw = actFilter.kw.toLowerCase();
+      if(!a.name.toLowerCase().includes(kw) && String(a.code).toLowerCase().indexOf(kw) === -1) return false;
+    }
+    return true;
+  });
+}
+
+function updateBatchCount(){
+  document.getElementById('selectedCount').textContent = selectedIds.size;
+  document.getElementById('visibleCount').textContent = getVisibleActs().length;
+  // 同步全选 checkbox 状态
+  const visible = getVisibleActs();
+  const selCount = visible.filter(a => selectedIds.has(a.id)).length;
+  const cbAll = document.getElementById('cbAll');
+  cbAll.checked = selCount > 0 && selCount === visible.length;
+  cbAll.indeterminate = selCount > 0 && selCount < visible.length;
+}
+
+function batchApply(on){
+  document.getElementById('batchMenu').classList.remove('open');
+  if(selectedIds.size === 0){ alert('请先勾选活动'); return; }
+  if(!confirm(on ? `对选中的 ${selectedIds.size} 个活动开启推送？` : `对选中的 ${selectedIds.size} 个活动关闭推送？`)) return;
+  ALL_ACTIVITIES.forEach(a => { if(selectedIds.has(a.id)) a.push = on; });
+  Object.keys(ACTIVITIES).forEach(c => ACTIVITIES[c].forEach(a => {
+    if(selectedIds.has(a.id)){
+      const m = ALL_ACTIVITIES.find(x=>x.id===a.id);
+      if(m) a.push = m.push;
+    }
+  }));
+  renderActList();
+  renderList();
+}
+
+// ========= 草稿状态（未保存改动） =========
+const pendingChanges = new Map();  // id → { push?, jump?, level? }
+
+function setActDraft(id, key, value){
+  const a = ALL_ACTIVITIES.find(x => x.id === id);
+  if(!a) return;
+  // 取当前真值（已保存的）
+  const origValue = key === 'level' ? (a.level || 'L2') : a[key];
+  // 如果是 push 字段且 value 是字符串 'true' / 'false'，转 bool
+  if(key === 'push' && typeof value === 'string') value = value === 'true';
+  // 是否回到原值
+  if(value === origValue){
+    const change = pendingChanges.get(id);
+    if(change){
+      delete change[key];
+      if(Object.keys(change).length === 0) pendingChanges.delete(id);
+    }
+  } else {
+    const change = pendingChanges.get(id) || {};
+    change[key] = value;
+    pendingChanges.set(id, change);
+  }
+  updateSaveBar();
+  // 局部刷新该行的脏标记（其他字段已经在 select/toggle 上响应）
+  renderActList();
+}
+
+function togglePushDraft(ev, id){
+  ev.stopPropagation();
+  const a = ALL_ACTIVITIES.find(x => x.id === id);
+  if(!a) return;
+  const draft = pendingChanges.get(id) || {};
+  const curPush = draft.push !== undefined ? draft.push : a.push;
+  setActDraft(id, 'push', !curPush);
+}
+
+function updateSaveBar(){
+  const count = pendingChanges.size;
+  const bar = document.getElementById('saveBar');
+  const topCount = document.getElementById('topSaveCount');
+  if(bar){
+    if(count > 0){
+      bar.classList.add('show');
+      document.getElementById('saveBarCount').textContent = count;
+    } else {
+      bar.classList.remove('show');
+    }
+  }
+  if(topCount){
+    if(count > 0){
+      topCount.style.display = '';
+      topCount.querySelector('b').textContent = count;
+    } else {
+      topCount.style.display = 'none';
+    }
+  }
+}
+
+function saveAllChanges(){
+  if(pendingChanges.size === 0){ alert('当前没有未保存的修改'); return; }
+  const count = pendingChanges.size;
+  pendingChanges.forEach((changes, id) => {
+    const a = ALL_ACTIVITIES.find(x => x.id === id);
+    if(!a) return;
+    Object.assign(a, changes);
+    Object.keys(ACTIVITIES).forEach(c => ACTIVITIES[c].forEach(x => {
+      if(x.id === id) Object.assign(x, changes);
+    }));
+  });
+  pendingChanges.clear();
+  updateSaveBar();
+  renderActList();
+  renderList();
+  alert(`✅ 已保存 ${count} 项更改`);
+}
+
+function cancelAllChanges(){
+  if(pendingChanges.size === 0){ alert('当前没有未保存的修改'); return; }
+  if(!confirm(`确定取消 ${pendingChanges.size} 项未保存的修改？`)) return;
+  pendingChanges.clear();
+  updateSaveBar();
+  renderActList();
+}
+
+
+// 离开页面前提示未保存
+window.addEventListener('beforeunload', e => {
+  if(pendingChanges.size > 0){
+    e.preventDefault();
+    e.returnValue = '有未保存的修改，确定离开吗？';
+    return e.returnValue;
+  }
+});
+
+function renderActList(){
+  const body = document.getElementById('actListBody');
+  const filtered = ALL_ACTIVITIES.filter(a => {
+    if(actFilter.status === 'on' && !a.push) return false;
+    if(actFilter.status === 'off' && a.push) return false;
+    if(actFilter.kind !== 'all' && a.kind !== actFilter.kind) return false;
+    if(actFilter.group !== 'all' && a.group !== actFilter.group) return false;
+    if(actFilter.kw){
+      const kw = actFilter.kw.toLowerCase();
+      if(!a.name.toLowerCase().includes(kw) && String(a.code).toLowerCase().indexOf(kw) === -1) return false;
+    }
+    return true;
+  });
+
+  body.innerHTML = filtered.map((a,i) => {
+    const isSel = selectedIds.has(a.id);
+    const cbCell = `<td class="cb-col"><input type="checkbox" ${isSel?'checked':''} onchange="toggleSelect('${a.id}')"></td>`;
+    const cfgPage = ACT_CONFIG_PAGES[a.id] || '该活动配置页';
+    // 从 pendingChanges 读取草稿值
+    const draft = pendingChanges.get(a.id) || {};
+    const curPush  = draft.push  !== undefined ? draft.push  : a.push;
+    const curJump  = draft.jump  !== undefined ? draft.jump  : a.jump;
+    const curLevel = draft.level !== undefined ? draft.level : (a.level || 'L2');
+    const isDirty = pendingChanges.has(a.id);
+    const toggleCls = curPush ? 'toggle on' : 'toggle';
+    return `<tr class="${isSel?'cb-selected':''} ${isDirty?'row-dirty':''}">
+      ${cbCell}
+      <td class="col-l">
+        <div class="ac-name">
+          <div>
+            <div><b>${a.name}</b> <span class="ac-code">${a.code}</span>${isDirty?'<span class="dirty-dot" title="有未保存改动"></span>':''}</div>
+            <a class="ac-jump-link" onclick="jumpToActCfg('${a.id}')">→ 前往${cfgPage}</a>
+          </div>
+        </div>
+      </td>
+      <td style="font-size:11.5px;color:#666;line-height:1.45;text-align:center">${a.trigger}</td>
+      <td><span class="tpl-mini">${a.tplCode} · ${a.tplName}</span></td>
+      <td style="text-align:center">
+        <div class="${toggleCls}" onclick="togglePushDraft(event,'${a.id}')">
+          <span class="switch"></span>
+        </div>
+      </td>
+      <td style="text-align:center">
+        <select class="inline-select" onchange="setActDraft('${a.id}','jump',this.value)">
+          ${['不跳转','活动页','钱包'].map(j=>`<option ${j===curJump?'selected':''}>${j}</option>`).join('')}
+        </select>
+      </td>
+      <td style="text-align:center">
+        <select class="inline-select lv-${curLevel}" onchange="setActDraft('${a.id}','level',this.value)">
+          <option value="L1" ${curLevel==='L1'?'selected':''}>L1 · 静默红点</option>
+          <option value="L2" ${curLevel==='L2'?'selected':''}>L2 · 横幅 toast</option>
+          <option value="L3" ${curLevel==='L3'?'selected':''}>L3 · 强弹窗</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="7" style="padding:30px;color:#999">无匹配活动</td></tr>`;
+
+  // 更新摘要
+  const on = ALL_ACTIVITIES.filter(a => a.push).length;
+  const total = ALL_ACTIVITIES.length;
+  document.getElementById('onCount').textContent = on;
+  document.getElementById('offCount').textContent = total - on;
+  document.getElementById('totalCount').textContent = total;
+  document.getElementById('pagerCount').textContent = total;
+  updateBatchCount();
+}
+
+function filterAct(el, key, val){
+  el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  actFilter[key] = val;
+  renderActList();
+}
+
+function searchAct(kw){
+  actFilter.kw = kw;
+  renderActList();
+}
+
+function batchToggle(on){
+  if(!confirm(on ? `确定开启全部 ${ALL_ACTIVITIES.length} 个活动的推送？` : `确定关闭全部 ${ALL_ACTIVITIES.length} 个活动的推送？`)) return;
+  ALL_ACTIVITIES.forEach(a => a.push = on);
+  Object.keys(ACTIVITIES).forEach(c => ACTIVITIES[c].forEach(a => {
+    const m = ALL_ACTIVITIES.find(x=>x.id===a.id);
+    if(m) a.push = m.push;
+  }));
+  renderActList();
+  renderList();
+}
+
+
+renderList();
+renderActList();
+</script>
+
+
+<!-- 浮动保存条（有未保存改动时显示） -->
+<div class="save-bar" id="saveBar">
+  <span class="ic">⚠️</span>
+  <span>已修改 <b id="saveBarCount">0</b> 项尚未保存</span>
+  <div class="right-btns">
+    <button class="cancel" onclick="cancelAllChanges()">取消全部</button>
+    <button class="save" onclick="saveAllChanges()">💾 保存全部</button>
+  </div>
+</div>
+
+</body>
+</html>
