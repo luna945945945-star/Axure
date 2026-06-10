@@ -421,6 +421,40 @@ tr.cb-selected{background:#f9f5ff !important}
 /* 顶部说明 */
 .intro{background:#e6f7ff;border-left:3px solid #1677ff;padding:11px 15px;border-radius:0 5px 5px 0;font-size:12.5px;color:#0958d9;margin-bottom:12px;line-height:1.7}
 .intro code{background:#fff;padding:1px 5px;border-radius:3px;font-size:11.5px;color:#1677ff;font-family:Menlo,Consolas,monospace}
+
+/* ============ 需求说明 侧面抽屉 ============ */
+.spec-trigger{position:fixed;right:0;top:45%;transform:translateY(-50%);background:linear-gradient(135deg,#7c4dff,#5a32d6);color:#fff;writing-mode:vertical-rl;padding:18px 8px;border-radius:8px 0 0 8px;font-size:12.5px;letter-spacing:3px;cursor:pointer;box-shadow:-3px 3px 12px rgba(124,77,255,.35);z-index:90;font-weight:600;user-select:none;transition:all .2s}
+.spec-trigger:hover{padding-right:14px;box-shadow:-3px 3px 18px rgba(124,77,255,.5)}
+.spec-trigger .ico{font-size:14px;margin-bottom:6px}
+
+.spec-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:120;display:none}
+.spec-mask.open{display:block;animation:spec-fade .15s}
+@keyframes spec-fade{from{opacity:0}to{opacity:1}}
+.spec-drawer{position:fixed;top:0;right:0;bottom:0;width:820px;background:#fff;z-index:121;box-shadow:-8px 0 24px rgba(0,0,0,.15);display:none;flex-direction:column;transform:translateX(100%);transition:transform .25s}
+.spec-drawer.open{display:flex;transform:translateX(0)}
+.spec-drawer-h{padding:14px 20px;border-bottom:1px solid #ebeef5;display:flex;align-items:center;justify-content:space-between}
+.spec-drawer-h .ttl{font-size:14px;font-weight:600;color:#303133}
+.spec-drawer-h .close{font-size:18px;color:#909399;cursor:pointer;padding:0 4px}
+.spec-drawer-h .close:hover{color:#f56c6c}
+
+.spec-toc{position:sticky;top:0;background:#fafbfc;border-bottom:1px solid #ebeef5;padding:10px 16px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px}
+.spec-toc a{color:#606266;cursor:pointer;padding:3px 8px;border-radius:3px;text-decoration:none}
+.spec-toc a:hover{background:#ede4ff;color:#7c4dff}
+
+.spec-doc{flex:1;overflow-y:auto;padding:18px 22px;font-size:13px;line-height:1.7;color:#303133}
+.spec-doc h2{font-size:15px;font-weight:600;color:#7c4dff;margin:20px 0 10px;padding-bottom:6px;border-bottom:2px solid #ede4ff;display:flex;align-items:center;gap:6px}
+.spec-doc h2:first-child{margin-top:0}
+.spec-doc h3{font-size:13.5px;font-weight:600;color:#1f2329;margin:14px 0 6px;padding-left:8px;border-left:3px solid #7c4dff}
+.spec-doc p{margin:4px 0;color:#606266}
+.spec-doc ul{margin:6px 0;padding-left:22px}
+.spec-doc li{margin:3px 0;line-height:1.65}
+.spec-doc code{background:#f5f0ff;color:#7c4dff;padding:1px 6px;border-radius:3px;font-family:Menlo,Consolas,monospace;font-size:11.5px}
+.spec-doc b{color:#1f2329;font-weight:600}
+.spec-doc table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}
+.spec-doc table th{background:#f7f9fc;color:#5a6071;font-weight:600;padding:7px 8px;text-align:left;border:1px solid #ebeef5}
+.spec-doc table td{padding:6px 8px;border:1px solid #ebeef5;color:#606266;vertical-align:top}
+.spec-doc .callout{background:#fff7e6;border:1px solid #ffd591;border-left:3px solid #faad14;border-radius:4px;padding:9px 12px;margin:10px 0;font-size:12px;color:#874d00;line-height:1.6}
+.spec-doc .flow{background:#f7f9fc;border:1px solid #e4e7ed;border-radius:4px;padding:12px 14px;margin:8px 0;font-family:Menlo,Consolas,monospace;font-size:11.5px;color:#5a6071;line-height:1.8;white-space:pre}
 </style>
 </head>
 <body>
@@ -1346,6 +1380,157 @@ renderActList();
     <button class="save" onclick="saveAllChanges()">💾 保存全部</button>
   </div>
 </div>
+
+
+<!-- ====================== 侧面"需求说明"触发器 + 抽屉 ====================== -->
+<div class="spec-trigger" onclick="openSpec()" title="点击展开需求说明">
+  <span class="ico">📋</span>需求说明
+</div>
+
+<div class="spec-mask" id="specMask" onclick="closeSpec()"></div>
+<div class="spec-drawer" id="specDrawer">
+  <div class="spec-drawer-h">
+    <div class="ttl">📋 营销中心 · 消息模板 + 活动推送配置 · 需求说明</div>
+    <span class="close" onclick="closeSpec()">✕</span>
+  </div>
+  <div class="spec-toc">
+    <a onclick="document.getElementById('sec-1').scrollIntoView({behavior:'smooth'})">① 新增字段</a>
+    <a onclick="document.getElementById('sec-2').scrollIntoView({behavior:'smooth'})">② 新增配置</a>
+    <a onclick="document.getElementById('sec-3').scrollIntoView({behavior:'smooth'})">③ 推送链路</a>
+    <a onclick="document.getElementById('sec-4').scrollIntoView({behavior:'smooth'})">④ 多语言 / 系统日志</a>
+  </div>
+  <div class="spec-doc">
+
+    <!-- ============ 1 新增字段 ============ -->
+    <h2 id="sec-1">1、新增字段</h2>
+
+    <h3>1.1 消息模板 Tab</h3>
+    <ul>
+      <li>新增 <b>模板 9</b> 活动奖励到账通知（A 类活动通用）</li>
+      <li>新增 <b>模板 10</b> 活动奖励待领取通知（B 类活动通用）</li>
+      <li>新增 <b>模板 11</b> KYC 验证中断（FASTUPI 风控专用）</li>
+      <li>列表新增两列：<b>是否推送</b> / <b>跳转动作</b>（钱类、普通可改；活动类跳到 Tab 2）</li>
+    </ul>
+
+    <h3>1.2 活动推送配置 Tab（新页面）</h3>
+    <ul>
+      <li>列表新增三个可编辑字段：<b>是否推送</b> / <b>跳转动作</b> / <b>推送级别</b></li>
+      <li>顶部新增 <b>批量操作</b> 下拉 + <b>保存</b> / <b>取消</b> 按钮</li>
+    </ul>
+
+
+    <!-- ============ 2 新增配置 ============ -->
+    <h2 id="sec-2">2、新增配置</h2>
+
+    <h3>2.1 11 条模板归属</h3>
+    <table>
+      <tr><th>编码</th><th>模板</th><th>分类</th><th>备注</th></tr>
+      <tr><td>1</td><td>会员注册</td><td>普通</td><td></td></tr>
+      <tr><td>2</td><td>账号充值</td><td>钱类</td><td></td></tr>
+      <tr><td>3</td><td>申请提现</td><td>钱类</td><td></td></tr>
+      <tr><td>4</td><td>提现到账</td><td>钱类</td><td></td></tr>
+      <tr><td>5</td><td>登录通知</td><td>普通</td><td></td></tr>
+      <tr><td>6</td><td>XOSO 期号取消</td><td>普通</td><td></td></tr>
+      <tr><td>7</td><td>修改密码</td><td>普通</td><td></td></tr>
+      <tr><td>8</td><td>TG 活动奖励</td><td>活动类</td><td><b>暂未上线，不配置</b></td></tr>
+      <tr><td><b>9</b></td><td><b>活动奖励到账</b></td><td><b>活动类</b></td><td><b>NEW · A 类通用</b></td></tr>
+      <tr><td><b>10</b></td><td><b>活动奖励待领取</b></td><td><b>活动类</b></td><td><b>NEW · B 类通用</b></td></tr>
+      <tr><td><b>11</b></td><td><b>KYC 验证中断</b></td><td><b>普通</b></td><td><b>NEW · FASTUPI 风控</b></td></tr>
+    </table>
+
+    <p style="margin-top:10px"><b>字段规则：</b></p>
+    <ul>
+      <li><b>编码 / 标题 / 内容 / 分类</b> → 产研锁定，<b>运营不可改</b></li>
+      <li><b>是否推送 / 跳转动作</b> → 运营可改；活动类模板这两列跳到 Tab 2 按活动配置</li>
+      <li>新增活动未挂模板时：默认关闭推送 + 兜底文案"活动奖励通知" + 后台告警</li>
+    </ul>
+
+    <h3>2.2 16 个活动 → 模板归属</h3>
+
+    <p><b>模板 9 · A 类直发 6 个</b>（达标即时到账）</p>
+    <ul>
+      <li>131 App 下载充值 / 132 充值等级 / 133 VIP 充值等级 / 134 回归新充值 / 122 合伙人 / 20 邀请</li>
+    </ul>
+
+    <p><b>模板 10 · B 类待领取 10 个</b>（需用户到活动页操作）</p>
+    <ul>
+      <li>119 大转盘 / 130 邀请转盘 / 7 每日签到 / 14 首充奖励 / 114 锦标赛 / 113 新手礼包 / 118 每日奖励 / 107 每周奖励 / 116 新会员负盈利彩金 / 117 新会员玩游戏送彩金</li>
+    </ul>
+
+    <div class="callout">
+      <b>关联模板不可换绑</b>：活动→模板的映射由产研管理，运营只能改"是否推送 / 跳转 / 级别"
+    </div>
+
+    <h3>2.3 推送级别 L1 / L2 / L3</h3>
+    <table>
+      <tr><th>级别</th><th>表现</th><th>默认匹配</th></tr>
+      <tr><td>L1 静默红点</td><td>仅红点 + 未读数</td><td>普通类（1/5/6/7）</td></tr>
+      <tr><td>L2 横幅 toast</td><td>顶部下滑 3-5 秒</td><td>活动类（9/10）</td></tr>
+      <tr><td>L3 强弹窗</td><td>居中模态 + 遮罩，需用户主动关</td><td>钱类（2/3/4）+ KYC（11）</td></tr>
+    </table>
+    <p>运营可在活动推送配置 Tab 改默认级别。</p>
+
+    <h3>2.4 编辑 / 保存约束</h3>
+    <ul>
+      <li>表格直接编辑（不进入编辑态）→ 改动行打脏标识 → 顶部「💾 保存(N)」常亮</li>
+      <li><b>关闭/跳页拦截</b>：有未保存改动时浏览器拦截</li>
+      <li><b>批量动作仅改"是否推送"</b>，跳转动作 + 推送级别保留（避免覆盖运营精配）</li>
+    </ul>
+
+
+    <!-- ============ 3 推送链路 ============ -->
+    <h2 id="sec-3">3、推送链路与兜底</h2>
+
+    <h3>3.1 触发链路</h3>
+    <div class="flow">业务达标 → 营销中心生成站内信（写 tab_SiteMessage）
+            ↓ 判断"是否推送"
+            ↓ 开
+SignalR 推送在线端 → 按级别渲染 L1 / L2 / L3
+            ↓ 离线
+仅写站内信表 → 登录时拉取 → 顶栏铃铛红点</div>
+
+    <h3>3.2 跳转映射</h3>
+    <table>
+      <tr><th>配置</th><th>行为</th></tr>
+      <tr><td>不跳转</td><td>仅关闭横幅 / 红点</td></tr>
+      <tr><td>活动页</td><td>跳到该活动详情页（按 <code>ACT_CONFIG_PAGES</code> 映射）</td></tr>
+      <tr><td>钱包 / 新手礼包页 / 彩种页 / KYC 验证 / VIP 中心</td><td>跳对应页</td></tr>
+    </table>
+
+
+    <!-- ============ 4 多语言 / 系统日志 ============ -->
+    <h2 id="sec-4">4、多语言、系统日志</h2>
+
+    <h3>4.1 多语言</h3>
+    <ul>
+      <li><b>模板正文</b> → <code>tab_Template_Lang</code> 子表，15 种语言全翻</li>
+      <li><b>活动名</b> → <code>tab_Activity_Lang</code> 子表；模板 9/10 通过 <code>{活动名}</code> + <code>{amount}</code> 占位插入</li>
+      <li><b>工作量</b>：模板正文 11×15 = <b>165 条</b>；活动名 16×15 = <b>240 条</b></li>
+    </ul>
+    <p>支持语言：英语 / 印尼 / 越南 / 巴西 / 泰语 / 简中 / 繁中 / 缅甸 / 孟加拉 / 印地语 / 马来语 / 巴基斯坦语 / 阿拉伯语 / 泰米尔语 / 泰卢固语</p>
+
+    <h3>4.2 系统日志</h3>
+    <p>所有写操作必记：</p>
+    <ul>
+      <li>操作人 / 时间 / 模板编码或活动编码 / 字段名 / 前值 → 新值</li>
+      <li>批量动作额外记：批次 ID / 影响活动列表 / 影响行数</li>
+    </ul>
+
+    <div style="height:40px"></div>
+  </div>
+</div>
+
+<script>
+function openSpec(){
+  document.getElementById('specMask').classList.add('open');
+  document.getElementById('specDrawer').classList.add('open');
+}
+function closeSpec(){
+  document.getElementById('specMask').classList.remove('open');
+  document.getElementById('specDrawer').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeSpec(); });
+</script>
 
 </body>
 </html>
