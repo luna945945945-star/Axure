@@ -405,7 +405,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           <span class="arr">→</span>
           <span class="node action">否：派单到人工</span>
           <span class="arr">→</span>
-          <span class="node priority new">非自动单优先派发</span>
+          <span class="node priority new">FASTUPI 优先派发</span>
           <span class="arr">→</span>
           <span class="node action">审核员处理</span>
           <span class="arr">→</span>
@@ -416,25 +416,25 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
       <!-- 三方 -->
       <div class="swim-lane">
         <div class="swim-actor thirdparty">🏦 三方 / 银行</div>
-        <div class="swim-body">
+        <div class="swim-body" style="flex-wrap:nowrap;overflow-x:auto">
           <span class="node action">三方收到请求</span>
           <span class="arr">→</span>
           <span class="node decision">KYC 验证 / 是否断连？</span>
           <span class="arr">→</span>
-          <span style="display:inline-flex;flex-direction:column;gap:6px">
+          <span style="display:inline-flex;flex-direction:column;gap:6px;flex-shrink:0">
             <span style="display:inline-flex;align-items:center;gap:6px">
-              <span style="color:#52c41a;font-size:11px;font-weight:600;width:36px">否 →</span>
+              <span style="color:#52c41a;font-size:11px;font-weight:600;width:36px;flex-shrink:0">否 →</span>
               <span class="node success">出款成功</span>
             </span>
             <span style="display:inline-flex;align-items:center;gap:6px">
-              <span style="color:#cf1322;font-size:11px;font-weight:600;width:36px">断连 →</span>
+              <span style="color:#cf1322;font-size:11px;font-weight:600;width:36px;flex-shrink:0">断连 →</span>
               <span class="node new warning">全局重连弹窗</span>
               <span class="arr">→</span>
               <span class="node decision">用户在线？</span>
               <span class="arr">→</span>
-              <span style="display:inline-flex;flex-direction:column;gap:4px">
-                <span style="display:inline-flex;align-items:center;gap:4px"><span style="color:#52c41a;font-size:10px;width:30px">是 →</span><span class="node success">重连成功 → 出款</span></span>
-                <span style="display:inline-flex;align-items:center;gap:4px"><span style="color:#cf1322;font-size:10px;width:30px">否 →</span><span class="node warning">出款失败 → 直接提现退回</span></span>
+              <span style="display:inline-flex;flex-direction:column;gap:4px;flex-shrink:0">
+                <span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><span style="color:#52c41a;font-size:10px;width:30px;flex-shrink:0">是 →</span><span class="node success">29 分钟内重连成功 → 系统自动提交三方出款</span></span>
+                <span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><span style="color:#cf1322;font-size:10px;width:30px;flex-shrink:0">否 →</span><span class="node warning">30 分钟倒计时结束未重连 → 直接提现退回</span></span>
               </span>
             </span>
           </span>
@@ -485,17 +485,13 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
         <div class="step-divider"></div>
 
         <div style="background:#fff;border:1px solid #ecedf2;border-radius:6px;padding:10px;margin:8px 0">
-          <div style="font-size:11px;color:#666;margin-bottom:6px">📊 派单优先级（高 → 低）</div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="background:linear-gradient(90deg,#fff1f0,#fff);padding:5px 9px;border-radius:4px;font-size:11.5px;display:flex;justify-content:space-between"><span><b style="color:#cf1322">P0</b> · 非自动单（含 FASTUPI 单点）</span><span class="tag" style="background:#ff5566;color:#fff;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:600">⭐ 新</span></div>
-            <div style="background:#fff7e6;padding:5px 9px;border-radius:4px;font-size:11.5px"><b style="color:#fa8c16">P1</b> · 大额（≥ ₹10,000）</div>
-            <div style="background:#fafbfd;padding:5px 9px;border-radius:4px;font-size:11.5px"><b style="color:#666">P2</b> · 常规自动单</div>
-          </div>
+          <div style="font-size:11px;color:#666;margin-bottom:6px">📊 派单优先级</div>
+          <div style="background:linear-gradient(90deg,#fff1f0,#fff);padding:5px 9px;border-radius:4px;font-size:11.5px;display:flex;justify-content:space-between;align-items:center"><span><b style="color:#cf1322">FASTUPI 单点</b></span><span class="tag" style="background:#ff5566;color:#fff;padding:1px 6px;border-radius:8px;font-size:9px;font-weight:600">⭐ 新</span></div>
         </div>
 
-        <div class="step-row ok"><span class="n">3</span>P0 订单 → 立刻入审单池顶部</div>
+        <div class="step-row ok"><span class="n">3</span>FASTUPI 订单 → 立刻入审单池顶部</div>
         <div class="step-divider"></div>
-        <div class="step-row"><span class="n">4</span>审核员看到的列表自动按 P0/P1/P2 排序</div>
+        <div class="step-row"><span class="n">4</span>审核员看到的列表可以优先处理 FASTUPI 订单</div>
         <div class="step-divider"></div>
         <div class="step-row warn"><span class="n">5</span><b>避免</b>：用户已离线后才轮到处理 → 失败</div>
       </div>
@@ -529,13 +525,13 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
         <h4>④ 全局重连弹窗 · 任意页面实时弹 <span class="badge">客户端</span></h4>
         <div class="step-row"><span class="n">1</span>三方 KYC 通道检测到断连</div>
         <div class="step-divider"></div>
-        <div class="step-row"><span class="n">2</span>后台 SignalR 推送到客户端</div>
+        <div class="step-row"><span class="n">2</span>后台实时推送到客户端</div>
         <div class="step-divider"></div>
 
         <div class="mock-popup" style="border-top:3px solid #cf1322">
           <div class="pop-ttl">⚠️ 提现验证中断</div>
           <div class="pop-body">您的 FASTUPI 提现订单 <b>WD20260605...</b> 验证已断连，需要重新连接以完成出款，否则订单将被取消。</div>
-          <div class="pop-timer" style="background:linear-gradient(90deg,#fff1f0,#ffccc7);color:#cf1322">⏱️ 倒计时：04:32 · 请尽快处理</div>
+          <div class="pop-timer" style="background:linear-gradient(90deg,#fff1f0,#ffccc7);color:#cf1322">⏱️ 倒计时：29:00 · 请尽快处理</div>
           <div class="pop-btns">
             <button class="sec">稍后</button>
             <button class="pri">立即重连</button>
@@ -556,32 +552,57 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
     <div class="card-h"><span class="num">3</span>❌ 出款失败处理：直接退回</div>
 
     <div style="background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:#874d00;line-height:1.7">
-      💡 用户离线 / 重连超时（默认 5 分钟）未恢复后 → 系统直接判定<b>出款失败</b>，<b>资金原路退回到用户钱包</b>，订单关闭。<b>无场景区分，统一处理</b>。
+      💡 按"订单是否已提交三方"区分两种失败场景。<b>判定方式不同，但兜底动作一致</b>：系统判定出款失败 → 资金原路退回用户钱包 → 站内信通知用户重新发起。
     </div>
 
-    <!-- 简化的失败处理流程 -->
-    <div style="background:#fafbfc;border:1px solid #ecedf2;border-radius:8px;padding:18px 22px">
-      <h4 style="font-size:13px;color:#444;font-weight:600;margin-bottom:14px">📋 处理步骤（5 步）</h4>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
-          <span style="width:24px;height:24px;border-radius:50%;background:#2470ff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">1</span>
-          <div style="flex:1;font-size:13px;color:#333">系统判定订单失败（重连超时 / KYC 失败）</div>
+    <!-- 场景 ① 未提交三方 -->
+    <div style="background:#fafbfc;border:1px solid #ecedf2;border-left:4px solid #fa8c16;border-radius:8px;padding:16px 20px;margin-bottom:12px">
+      <h4 style="font-size:13.5px;color:#d46b08;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+        <span style="background:#fa8c16;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px">场景 ①</span>
+        订单<b>未提交三方</b> · 后台审单 / 派单阶段断连
+      </h4>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
+          <span style="width:22px;height:22px;border-radius:50%;background:#fa8c16;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">1</span>
+          <div style="flex:1;font-size:12.5px;color:#333">审单提交三方失败（KYC 断连）→ 触发<b>客户端全局重连弹窗</b> + <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">29 分钟倒计时</code></div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
-          <span style="width:24px;height:24px;border-radius:50%;background:#2470ff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">2</span>
-          <div style="flex:1;font-size:13px;color:#333">如已提交三方 → 自动调三方 <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">cancel</code> 接口取消</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
+          <span style="width:22px;height:22px;border-radius:50%;background:#fa8c16;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">2</span>
+          <div style="flex:1;font-size:12.5px;color:#333"><b style="color:#cf1322">29 分钟内未重连成功</b> → 系统判定<b>出款失败</b>，订单不提交三方</div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
-          <span style="width:24px;height:24px;border-radius:50%;background:#2470ff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">3</span>
-          <div style="flex:1;font-size:13px;color:#333"><b style="color:#52c41a">资金原路退回用户钱包</b>（解冻余额 + 写账变记录）</div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
+          <span style="width:22px;height:22px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">3</span>
+          <div style="flex:1;font-size:12.5px;color:#333"><b style="color:#52c41a">资金原路退回用户钱包</b>（解冻余额 + 写账变记录），订单状态 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">已拒绝</code>，原因 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">重连超时</code></div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
-          <span style="width:24px;height:24px;border-radius:50%;background:#2470ff;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">4</span>
-          <div style="flex:1;font-size:13px;color:#333">订单状态 → <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">已取消</code>，原因 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">KYC 断连超时</code></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
+          <span style="width:22px;height:22px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">4</span>
+          <div style="flex:1;font-size:12.5px;color:#333">站内信通知：<b>提现已退回钱包，请重新发起</b></div>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border:1px solid #ecedf2;border-radius:6px">
-          <span style="width:24px;height:24px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0">5</span>
-          <div style="flex:1;font-size:13px;color:#333">站内信通知用户：<b>提现已退回钱包，请重新发起</b></div>
+      </div>
+    </div>
+
+    <!-- 场景 ② 已提交三方 -->
+    <div style="background:#fafbfc;border:1px solid #ecedf2;border-left:4px solid #cf1322;border-radius:8px;padding:16px 20px">
+      <h4 style="font-size:13.5px;color:#cf1322;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+        <span style="background:#cf1322;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px">场景 ②</span>
+        订单<b>已提交三方</b> · 三方 KYC 验证阶段断连
+      </h4>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
+          <span style="width:22px;height:22px;border-radius:50%;background:#cf1322;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">1</span>
+          <div style="flex:1;font-size:12.5px;color:#333">三方回调结果 <code style="background:#fff1f0;color:#cf1322;padding:1px 6px;border-radius:3px;font-size:11.5px">State = 3</code>（出款失败） + KYC 连接状态 <code style="background:#fff1f0;color:#cf1322;padding:1px 6px;border-radius:3px;font-size:11.5px">Disconnect</code></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
+          <span style="width:22px;height:22px;border-radius:50%;background:#cf1322;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">2</span>
+          <div style="flex:1;font-size:12.5px;color:#333">三方回调出款失败，系统判定<b>出款失败</b></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
+          <span style="width:22px;height:22px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">3</span>
+          <div style="flex:1;font-size:12.5px;color:#333"><b style="color:#52c41a">资金原路退回用户钱包</b>（解冻余额 + 写账变记录），订单状态 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">已拒绝</code>，原因 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">重连超时</code></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
+          <span style="width:22px;height:22px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">4</span>
+          <div style="flex:1;font-size:12.5px;color:#333">站内信通知：<b>提现已退回钱包，请重新发起</b></div>
         </div>
       </div>
     </div>
@@ -601,12 +622,12 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
     <h4 style="font-size:13px;color:#444;font-weight:600;margin:20px 0 10px">⚙️ 关键规则</h4>
     <table class="rules-tbl">
       <thead><tr><th style="width:140px">规则</th><th>说明</th></tr></thead>
-      <tr><td><b>重连超时时长</b></td><td>默认 <code>5 分钟</code>（可后台配置 1-15 分钟）</td></tr>
-      <tr><td><b>资金退回</b></td><td>无论资金处于何阶段，<b>一律退回用户钱包</b>，无场景区分</td></tr>
-      <tr><td><b>三方取消</b></td><td>如已提交三方 → 自动调 cancel 接口；调用失败进重试队列每 10min 重试，超 3 次进异常队列由财务介入</td></tr>
+      <tr><td><b>重连倒计时</b></td><td>场景 ①（未提交三方）默认 <code>29 分钟</code>，倒计时结束未重连 → 自动判失败</td></tr>
+      <tr><td><b>三方判失败</b></td><td>场景 ②（已提交三方）判定条件：<code>State = 3</code> <b>且</b> KYC 连接状态 = <code>Disconnect</code></td></tr>
+      <tr><td><b>资金退回</b></td><td>两种场景<b>统一退回用户钱包</b>（解冻余额 + 写账变记录）</td></tr>
       <tr><td><b>用户通知</b></td><td><b>站内信</b>告知"资金已退回钱包，请重新发起"</td></tr>
       <tr><td><b>禁止重发</b></td><td>失败订单不支持"一键重发"，必须用户重新发起，避免重复扣款</td></tr>
-      <tr><td><b>极端情况</b></td><td>若三方已扣款且 cancel 失败 → 进入异常队列，由财务人工对账处理（极少发生）</td></tr>
+      <tr><td><b>缓冲设计</b></td><td>客户端重连倒计时 <code>29 分钟</code> 比系统判失败退回 <code>30 分钟</code> 早 <b>1 分钟</b>。预留 1 分钟缓冲，避免用户在临界时刻重连成功（触发自动提交三方）的同时，系统又判定失败退回，导致<b style="color:#cf1322">重复出款或资金损失</b></td></tr>
     </table>
 
   </div>
@@ -619,23 +640,25 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
       <div class="compare-card before">
         <h5>❌ 改造前痛点</h5>
         <ul>
-          <li>用户提交后立刻退出 APP → KYC 断连无人响应</li>
-          <li>FASTUPI 单点订单和常规单混在一起，可能等几小时</li>
-          <li>审单无 SLA，运营自由处理顺序</li>
-          <li>断连提示只在"提现详情"页才看得到，离开就丢失</li>
-          <li>三方 KYC 超时，订单作废，用户投诉</li>
-          <li>客服无法快速判断"是用户问题还是审单延迟"</li>
+          <li>用户提交后立刻退出 APP → KYC 断连无人响应，订单作废</li>
+          <li>FASTUPI 单点订单和常规自动单混在一起，可能等几小时</li>
+          <li>审单<b>无 SLA</b>，处理顺序随意，单点订单容易被遗漏</li>
+          <li>断连提示<b>只在"提现详情"页</b>才看得到，用户切到其他页面就丢失</li>
+          <li>失败处理<b>无明确场景区分</b>，资金停在中间状态，客服无法判断"退了没"</li>
+          <li>用户重连成功 / 系统判失败 <b>时间窗口冲突</b>，可能出现重复出款或扣款</li>
+          <li>客服无法快速定位订单卡在哪个环节</li>
         </ul>
       </div>
       <div class="compare-card after">
         <h5>✅ 改造后效果</h5>
         <ul>
-          <li>提交时<b>主动提示</b>用户保持在线 15-30 分钟</li>
-          <li>非自动 P0 单<b>跳到队首</b>，5 分钟内入审单池</li>
+          <li>提交时按银行类型<b>主动提示</b>用户保持在线 15-30 分钟</li>
+          <li><b>FASTUPI 优先派发</b>：单点订单跳到队首，立刻入审单池顶部</li>
           <li>审单 <b>15 分钟 SLA</b>，超时自动重派 + 提醒主管</li>
-          <li>断连弹窗<b>全局可见</b>，任意页面 SignalR 实时推</li>
-          <li>断连提示<b>实时下发</b>到任意页面，用户回 APP 就能看到</li>
-          <li>每环节有<b>时间戳记录</b>，客服一查就知卡在哪里</li>
+          <li><b>客户端全局重连弹窗</b>：任意页面实时弹出，附 <b>29 分钟倒计时</b></li>
+          <li>失败处理<b>双场景明确</b>：未提交三方（重连超时）/ 已提交三方（State=3+Disconnect），<b>统一退回钱包</b></li>
+          <li><b>29/30 分钟缓冲设计</b>：客户端早 1 分钟超时，避免临界点重连+判失败<b>重复出款</b></li>
+          <li>失败订单状态 = <code>已拒绝</code>，资金原路退回 + 站内信通知用户重新发起</li>
         </ul>
       </div>
     </div>
