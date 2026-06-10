@@ -1,0 +1,1301 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会员回归奖励 · 指定 ID 原型</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;font-size:13px;color:#303133;background:#f4f6fa}
+button{font-family:inherit}
+a{text-decoration:none;color:inherit}
+
+/* 顶部 demo bar */
+.demo-bar{height:32px;background:linear-gradient(90deg,#fff,#f9faff);border-bottom:1px solid #eef0f3;display:flex;align-items:center;padding:0 18px;font-size:12px;color:#666;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.demo-bar .demo-tag{background:linear-gradient(135deg,#ff6b35,#ff4d4f);color:#fff;font-size:10px;padding:2px 7px;border-radius:3px;margin-right:10px;font-weight:700;letter-spacing:.5px;box-shadow:0 1px 3px rgba(255,107,53,.3)}
+.demo-bar .ttl{font-weight:600;color:#222}
+.demo-bar .sub{margin-left:14px;color:#909399}
+
+/* 主 Tab */
+.main-tabs{background:#fff;border-bottom:1px solid #eef0f3;display:flex;padding:0 18px;height:42px;box-shadow:0 1px 3px rgba(0,0,0,.02)}
+.main-tabs .mt-btn{padding:11px 18px;background:transparent;border:none;cursor:pointer;font-family:inherit;font-size:13.5px;color:#606266;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.main-tabs .mt-btn:hover{color:#7c5cfa}
+.main-tabs .mt-btn.active{color:#7c5cfa;font-weight:600;border-bottom-color:#7c5cfa}
+.main-tabs .mt-btn .new-tag{background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700;margin-left:2px}
+
+/* 统一红色 NEW 标识 */
+.new-mark{display:inline-block;background:#ff5566;color:#fff !important;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700;margin-left:3px;letter-spacing:.3px;vertical-align:middle;line-height:1.4}
+
+/* 页面 */
+.page{padding:18px 22px}
+
+/* 页面头部（含面包屑 + 标题 + 描述） */
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;padding:4px 2px}
+.page-header .left{display:flex;flex-direction:column;gap:6px}
+.page-ttl{font-size:18px;color:#1f2329;font-weight:600;display:flex;align-items:center;gap:10px;letter-spacing:.3px}
+.page-ttl::before{content:'';display:inline-block;width:4px;height:18px;background:linear-gradient(180deg,#7c5cfa,#5a32d6);border-radius:2px}
+.page-desc{font-size:12px;color:#909399;line-height:1.5;padding-left:14px}
+.page-warn{font-size:12px;color:#a8740d;line-height:1.55;padding:7px 12px 7px 14px;margin-left:14px;background:#fff7e6;border-left:3px solid #faad14;border-radius:0 4px 4px 0;display:inline-block;max-width:880px}
+.page-warn b{color:#cf1322;font-weight:600}
+.crumb{font-size:12px;color:#909399}
+.crumb .sep{margin:0 5px;color:#c0c4cc}
+.crumb b{color:#606266;font-weight:400}
+.crumb .cur{color:#1f2329;font-weight:500}
+
+/* 卡片 */
+.card{background:#fff;border-radius:6px;padding:18px 20px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid #eef0f3}
+
+/* 顶部工具栏（左侧筛选/按钮 + 右侧状态分段） */
+.toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;padding:12px 14px;background:#fafbfc;border:1px solid #eef0f3;border-radius:6px;margin-bottom:14px}
+.toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.toolbar-left .fld{display:flex;align-items:center;gap:8px;margin-right:6px}
+.toolbar-left label{color:#606266;font-size:12.5px;white-space:nowrap}
+.toolbar-left .select{height:32px;padding:0 12px;border:1px solid #dcdfe6;border-radius:4px;font-size:12.5px;background:#fff;color:#303133;outline:none;font-family:inherit;min-width:180px;transition:border-color .15s}
+.toolbar-left .select:focus{border-color:#7c5cfa;box-shadow:0 0 0 2px rgba(124,92,250,.08)}
+
+/* 筛选条 */
+.filter-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;padding:12px 14px;background:#fafbfc;border:1px solid #eef0f3;border-radius:5px}
+.filter-row .fld{display:flex;align-items:center;gap:8px}
+.filter-row label{color:#606266;font-size:12.5px;white-space:nowrap}
+.filter-row .input,.filter-row .select{height:32px;padding:0 12px;border:1px solid #dcdfe6;border-radius:4px;font-size:12.5px;background:#fff;color:#303133;outline:none;font-family:inherit;min-width:180px;transition:border-color .15s}
+.filter-row .input:focus,.filter-row .select:focus{border-color:#7c5cfa;box-shadow:0 0 0 2px rgba(124,92,250,.08)}
+
+/* 按钮组 */
+.btn-row{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.btn{padding:0 16px;height:32px;border:1px solid transparent;border-radius:4px;font-size:12.5px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;background:#fff;font-weight:500;white-space:nowrap;flex-shrink:0}
+.btn-pp{background:linear-gradient(135deg,#7c5cfa,#6a47e8);color:#fff;border-color:transparent;box-shadow:0 2px 5px rgba(124,92,250,.25)}
+.btn-pp:hover{background:linear-gradient(135deg,#6a47e8,#5a32d6);box-shadow:0 3px 8px rgba(124,92,250,.35);transform:translateY(-1px)}
+.btn-d{background:#fff;color:#606266;border-color:#dcdfe6}
+.btn-d:hover{color:#7c5cfa;border-color:#7c5cfa;background:#f8f6ff}
+.btn-danger{background:#fff;color:#f56c6c;border-color:#fbc4c4}
+.btn-danger:hover{background:#fef0f0;border-color:#f56c6c}
+
+/* 表格 */
+.tbl{width:100%;border-collapse:collapse;background:#fff;font-size:12.5px;border-radius:4px;overflow:hidden}
+.tbl th{background:#f7f9fc;font-weight:600;color:#5a6071;padding:11px 12px;text-align:left;border-bottom:1px solid #e4e7ed;white-space:nowrap;font-size:12.5px;letter-spacing:.2px}
+.tbl td{padding:13px 12px;border-bottom:1px solid #f0f2f5;color:#303133;vertical-align:middle}
+.tbl tbody tr{transition:background .15s}
+.tbl tbody tr:hover td{background:#fafbff}
+.tbl tbody tr:last-child td{border-bottom:none}
+
+/* ID 列样式 */
+.tbl td:first-child{font-weight:600;color:#7c5cfa;font-family:Menlo,Consolas,monospace;font-size:13px}
+
+/* 操作列：按钮统一不换行，自动换行成多个按钮 */
+.tbl td:last-child{white-space:nowrap}
+.tbl td:last-child .btn{margin:2px 4px 2px 0;white-space:nowrap}
+.tbl td:last-child .btn:last-child{margin-right:0}
+
+/* 状态标签 */
+.tag{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:3px;font-size:11px;line-height:18px}
+.tag.green{background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
+.tag.blue{background:#ecf5ff;color:#409eff;border:1px solid #d9ecff}
+.tag.orange{background:#fdf6ec;color:#e6a23c;border:1px solid #faecd8}
+.tag.red{background:#fef0f0;color:#f56c6c;border:1px solid #fbc4c4}
+.tag.gray{background:#f4f4f5;color:#909399;border:1px solid #e9e9eb}
+.tag.purple{background:#f5f0ff;color:#7c5cfa;border:1px solid #e1d3ff}
+
+/* 开关 */
+.sw{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.sw-track{position:relative;width:38px;height:18px;background:#dcdfe6;border-radius:10px;transition:background .2s}
+.sw-track::after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.sw.on .sw-track{background:linear-gradient(90deg,#67c23a,#5cb030)}
+.sw.on .sw-track::after{transform:translateX(20px)}
+.sw-lbl{font-size:11.5px;color:#606266;font-weight:500}
+.sw.on .sw-lbl{color:#5cb030}
+
+/* 分页 */
+.pager{display:flex;align-items:center;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid #f0f2f5;font-size:12.5px;color:#606266;flex-wrap:wrap}
+.pager .gap{flex:1}
+.pg-num{min-width:30px;height:28px;padding:0 8px;border:1px solid #dcdfe6;background:#fff;border-radius:4px;cursor:pointer;font-size:12px;transition:all .15s;font-family:inherit}
+.pg-num.active{background:linear-gradient(135deg,#7c5cfa,#6a47e8);color:#fff;border-color:transparent;box-shadow:0 2px 5px rgba(124,92,250,.25)}
+.pg-num:hover:not(.active){color:#7c5cfa;border-color:#7c5cfa;background:#f8f6ff}
+.pg-input{width:44px;height:28px;border:1px solid #dcdfe6;border-radius:4px;font-size:12px;text-align:center;font-family:inherit;outline:none}
+.pg-input:focus{border-color:#7c5cfa}
+.pg-select{height:28px;border:1px solid #dcdfe6;border-radius:4px;font-size:12px;font-family:inherit;padding:0 8px;outline:none}
+
+/* 适用对象标识 */
+.scope-cell{line-height:1.4}
+.scope-name{font-size:12.5px;color:#303133;white-space:nowrap}
+.scope-name.pick{color:#7c5cfa;font-weight:600}
+.scope-num{font-size:11px;color:#909399;margin-top:2px;white-space:nowrap}
+.num-link{color:#409eff;cursor:pointer;text-decoration:underline;text-decoration-style:dashed;text-decoration-color:#a8d2ff}
+.num-link:hover{color:#7c5cfa}
+
+
+/* ========= 弹窗 ========= */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-mask.open{display:flex;animation:fadein .15s}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.modal{background:#fff;border-radius:6px;width:100%;max-width:680px;max-height:calc(100vh - 40px);display:flex;flex-direction:column;box-shadow:0 14px 42px rgba(0,0,0,.25);animation:slideup .2s}
+.modal.lg{max-width:880px}
+@keyframes slideup{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-h{padding:13px 18px;border-bottom:1px solid #ebeef5;display:flex;align-items:center;justify-content:space-between}
+.modal-h .ttl{font-size:14px;color:#303133;font-weight:600}
+.modal-h .actions{display:flex;align-items:center;gap:14px;color:#909399;font-size:14px}
+.modal-h .actions span{cursor:pointer}
+.modal-h .actions span:hover{color:#7c5cfa}
+.modal-b{flex:1;overflow-y:auto;padding:22px 28px}
+.modal-f{padding:12px 18px;border-top:1px solid #ebeef5;display:flex;justify-content:flex-end;gap:10px;background:#fafafa}
+
+/* 表单 */
+.fm-row{display:flex;margin-bottom:14px;align-items:flex-start}
+.fm-row .lb{width:170px;text-align:right;padding-right:12px;color:#606266;font-size:12.5px;line-height:30px;flex-shrink:0}
+.fm-row .lb .req{color:#f56c6c;margin-right:3px}
+.fm-row .ctl{flex:1;min-width:0}
+.fm-row .ctl .ctl-input{width:100%;height:30px;padding:0 10px;border:1px solid #dcdfe6;border-radius:3px;font-size:12.5px;font-family:inherit;outline:none}
+.fm-row .ctl .ctl-input:focus{border-color:#7c5cfa}
+.fm-row .ctl .ph-hint{color:#67c23a;font-size:11.5px;margin-top:4px;line-height:1.5}
+.fm-row .ctl .ph-info{color:#909399;font-size:11.5px;margin-top:4px}
+.fm-row .ctl .ph-warn{color:#e6a23c;font-size:11.5px;margin-top:4px}
+
+/* 单选 / 复选 */
+.radio-row{display:flex;gap:18px;line-height:30px}
+.radio-row label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px;color:#303133}
+.radio-row input[type=radio]{accent-color:#7c5cfa;width:14px;height:14px;cursor:pointer}
+
+/* 区块分隔标题 */
+.sec-divider{position:relative;margin:20px 0 14px;padding:0 12px 4px 0;border-bottom:1px dashed #ebeef5;color:#7c5cfa;font-size:12.5px;font-weight:600}
+.sec-divider::before{content:'';display:inline-block;width:3px;height:13px;background:#7c5cfa;border-radius:1.5px;vertical-align:-2px;margin-right:8px}
+.sec-divider .badge{margin-left:8px;padding:1px 6px;background:#f5f0ff;border-radius:8px;color:#7c5cfa;font-size:10px;border:1px solid #e1d3ff;font-weight:500}
+
+/* ID 列表 Tab */
+.id-tabs{display:flex;gap:0;border-bottom:1px solid #ebeef5;margin-bottom:12px}
+.id-tab{padding:7px 16px;cursor:pointer;font-size:12.5px;color:#606266;border-bottom:2px solid transparent;margin-bottom:-1px}
+.id-tab.active{color:#7c5cfa;border-bottom-color:#7c5cfa;font-weight:600}
+.id-tab-pane{display:none}
+.id-tab-pane.active{display:block}
+.id-textarea{width:100%;min-height:120px;padding:10px;border:1px solid #dcdfe6;border-radius:3px;font-family:Menlo,Consolas,monospace;font-size:12px;line-height:1.6;outline:none;resize:vertical}
+.id-textarea:focus{border-color:#7c5cfa}
+.id-import{padding:30px 20px;background:#fafbff;border:1px dashed #c3b8f0;border-radius:4px;text-align:center;color:#909399}
+.id-import .imp-ico{font-size:32px;color:#7c5cfa;margin-bottom:8px}
+.id-import .imp-link{color:#7c5cfa;cursor:pointer;font-weight:500;margin:0 4px;text-decoration:underline}
+.id-import .imp-tip{margin-top:8px;font-size:11.5px;color:#909399}
+
+/* 统计行 */
+.id-stat{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:#606266;background:#fafbff;border:1px solid #ebeef5;border-radius:4px;padding:10px 14px}
+.id-stat .stat-item{display:flex;align-items:center;gap:4px}
+.id-stat .stat-item.ok b{color:#67c23a}
+.id-stat .stat-item.warn b{color:#e6a23c}
+.id-stat .stat-item.err b{color:#f56c6c}
+.id-stat .stat-item.conflict b{color:#f56c6c}
+.id-stat .stat-item b{font-size:14px;font-family:Menlo,Consolas,monospace}
+.id-stat .stat-item .view-link{color:#409eff;cursor:pointer;font-size:11px;text-decoration:underline;margin-left:4px}
+
+/* 抽屉 */
+.drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:120;display:none}
+.drawer-mask.open{display:block;animation:fadein .15s}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:680px;background:#fff;z-index:121;box-shadow:-8px 0 24px rgba(0,0,0,.15);display:none;flex-direction:column;transform:translateX(100%);transition:transform .25s}
+.drawer.wide{width:820px}
+
+/* 侧面"需求说明"触发按钮 */
+.spec-trigger{position:fixed;right:0;top:45%;transform:translateY(-50%);background:linear-gradient(135deg,#7c5cfa,#5a32d6);color:#fff;writing-mode:vertical-rl;padding:18px 8px;border-radius:8px 0 0 8px;font-size:12.5px;letter-spacing:3px;cursor:pointer;box-shadow:-3px 3px 12px rgba(124,92,250,.35);z-index:90;font-weight:600;user-select:none;transition:all .2s}
+.spec-trigger:hover{padding-right:14px;box-shadow:-3px 3px 18px rgba(124,92,250,.5)}
+.spec-trigger .ico{font-size:14px;margin-bottom:6px}
+
+/* 需求说明文档样式 */
+.spec-doc{font-size:13px;line-height:1.7;color:#303133}
+.spec-doc h2{font-size:15px;font-weight:600;color:#7c5cfa;margin:20px 0 10px;padding-bottom:6px;border-bottom:2px solid #ede4ff;display:flex;align-items:center;gap:6px}
+.spec-doc h2:first-child{margin-top:0}
+.spec-doc h3{font-size:13.5px;font-weight:600;color:#1f2329;margin:14px 0 6px;padding-left:8px;border-left:3px solid #7c5cfa}
+.spec-doc h4{font-size:12.5px;font-weight:600;color:#5a6071;margin:10px 0 4px}
+.spec-doc p{margin:4px 0;color:#606266}
+.spec-doc ul,.spec-doc ol{margin:6px 0;padding-left:22px}
+.spec-doc li{margin:3px 0;line-height:1.65}
+.spec-doc code{background:#f5f0ff;color:#7c5cfa;padding:1px 6px;border-radius:3px;font-family:Menlo,Consolas,monospace;font-size:11.5px}
+.spec-doc b{color:#1f2329;font-weight:600}
+.spec-doc .tag{display:inline-block;padding:1px 7px;border-radius:8px;font-size:10.5px;background:#f0f9eb;color:#67c23a;border:1px solid #d4edc1;margin-left:3px;font-weight:500}
+.spec-doc .tag.warn{background:#fdf6ec;color:#e6a23c;border-color:#f5dab1}
+.spec-doc .tag.danger{background:#fef0f0;color:#f56c6c;border-color:#fbc4c4}
+.spec-doc table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}
+.spec-doc table th{background:#f7f9fc;color:#5a6071;font-weight:600;padding:7px 8px;text-align:left;border:1px solid #ebeef5}
+.spec-doc table td{padding:6px 8px;border:1px solid #ebeef5;color:#606266;vertical-align:top}
+.spec-doc table td:first-child{font-weight:500;color:#303133;white-space:nowrap}
+.spec-doc .callout{background:#fff7e6;border:1px solid #ffd591;border-left:3px solid #faad14;border-radius:4px;padding:9px 12px;margin:10px 0;font-size:12px;color:#874d00;line-height:1.6}
+.spec-doc .callout b{color:#cf1322}
+.spec-doc .scenario{background:#f7f9fc;border:1px solid #e4e7ed;border-radius:4px;padding:9px 12px;margin:8px 0;font-size:12px;color:#5a6071}
+
+/* 目录侧边导航 */
+.spec-toc{position:sticky;top:0;background:#fafbfc;border-bottom:1px solid #ebeef5;padding:10px 16px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px}
+.spec-toc a{color:#606266;cursor:pointer;padding:3px 8px;border-radius:3px;text-decoration:none}
+.spec-toc a:hover{background:#ede4ff;color:#7c5cfa}
+.drawer.open{display:flex;transform:translateX(0)}
+.drawer-h{padding:14px 20px;border-bottom:1px solid #ebeef5;display:flex;align-items:center;justify-content:space-between}
+.drawer-h .ttl{font-size:14px;font-weight:600;color:#303133}
+.drawer-h .acts{display:flex;gap:10px;align-items:center}
+.drawer-h .close{font-size:18px;color:#909399;cursor:pointer;padding:0 4px}
+.drawer-h .close:hover{color:#f56c6c}
+.drawer-b{flex:1;overflow-y:auto;padding:14px 20px}
+.drawer-search{margin-bottom:12px;display:flex;gap:8px}
+.drawer-search input{flex:1;height:30px;padding:0 10px 0 30px;border:1px solid #dcdfe6;border-radius:3px;font-size:12px;outline:none;background:#fff url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2214%22 height=%2214%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23909399%22 stroke-width=%222%22><circle cx=%2211%22 cy=%2211%22 r=%228%22/><path d=%22m21 21-4.35-4.35%22/></svg>') no-repeat 9px center}
+
+/* 冲突弹窗 */
+.conflict-box{background:#fff7e6;border:1px solid #ffd591;border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:#874d00;line-height:1.6}
+.conflict-box b{color:#cf1322}
+.conflict-list{margin-top:8px;background:#fff;border:1px solid #ffe7ba;border-radius:3px;padding:8px 12px;max-height:180px;overflow-y:auto;font-family:Menlo,Consolas,monospace;font-size:11.5px}
+.conflict-list .ci{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed #ffe7ba}
+.conflict-list .ci:last-child{border-bottom:none}
+
+/* 总额预估卡 */
+.estimate-box{background:#fff7e6;border:1px solid #ffd591;border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:#874d00;line-height:1.8}
+.estimate-box .est-row{display:flex;justify-content:space-between;align-items:center}
+.estimate-box .est-amt{color:#cf1322;font-weight:700;font-size:14px;font-family:Menlo,Consolas,monospace}
+
+/* 状态 Tab（分段控件） */
+.status-tabs{display:inline-flex;gap:0;flex-wrap:wrap;background:#f4f6fa;padding:3px;border-radius:8px;border:1px solid #e4e7ed}
+.st-tab{padding:7px 16px;border-radius:6px;cursor:pointer;font-size:12.5px;color:#606266;background:transparent;display:inline-flex;align-items:center;gap:6px;transition:all .2s;font-weight:500}
+.st-tab:hover{color:#7c5cfa}
+.st-tab.active{background:linear-gradient(135deg,#7c5cfa,#6a47e8);color:#fff;box-shadow:0 2px 8px rgba(124,92,250,.3)}
+.st-tab .count{font-weight:600;font-family:Menlo,Consolas,monospace;font-size:11px;padding:1px 6px;background:rgba(0,0,0,.06);border-radius:8px}
+.st-tab.active .count{background:rgba(255,255,255,.22)}
+.st-tab .dot{width:6px;height:6px;border-radius:50%;background:#67c23a;box-shadow:0 0 0 3px rgba(103,194,58,.18)}
+.st-tab.active .dot{background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25)}
+
+/* 状态徽章 */
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:11px;font-size:11px;font-weight:600;line-height:1.5;letter-spacing:.2px;white-space:nowrap}
+.status-pill.running{background:#f0f9eb;color:#67c23a;border:1px solid #d4edc1}
+.status-pill.running::before{content:'';display:inline-block;width:5px;height:5px;background:#67c23a;border-radius:50%;box-shadow:0 0 0 2px rgba(103,194,58,.2)}
+.status-pill.ended{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
+.status-pill.archived{background:#f4f4f5;color:#909399;border:1px solid #dcdfe4}
+
+/* 已结束 / 已归档 行整体灰化 */
+.row-ended td{color:#909399}
+.row-ended td a,.row-ended td .num-link{color:#909399}
+.row-ended .sw.disabled{opacity:.55;pointer-events:none}
+.row-archived td{color:#909399}
+.row-archived td a,.row-archived td .num-link{color:#909399}
+
+/* 来源类型显示 */
+.src-auto{color:#606266;background:#f4f4f5;padding:2px 8px;border-radius:3px;font-size:11px;display:inline-flex;align-items:center;gap:3px}
+.src-pick{color:#7c5cfa;background:#f5f0ff;padding:2px 8px;border-radius:3px;font-size:11px;display:inline-flex;align-items:center;gap:3px;border:1px solid #e1d3ff}
+
+/* 规则 ID 链接 */
+.rule-link{color:#409eff;cursor:pointer;text-decoration:underline}
+.rule-link:hover{color:#7c5cfa}
+
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <span class="demo-tag">DEMO</span>
+  <span class="ttl">会员回归奖励 · 指定 ID 名单</span>
+  <span class="sub">支持 适用对象 / 名单导入 / 冲突校验 / 总额预估 / 领取记录来源区分</span>
+</div>
+
+<!-- 主 Tab -->
+<div class="main-tabs">
+  <button class="mt-btn active" onclick="switchTab(this,'pane-list')">📋 回归奖励规则列表</button>
+  <button class="mt-btn" onclick="switchTab(this,'pane-record')">📑 回归奖励领取记录 <span class="new-mark">NEW</span></button>
+</div>
+
+<!-- ====================== Tab 1: 规则列表 ====================== -->
+<div class="page tab-pane" id="pane-list">
+
+  <!-- 页面头部 -->
+  <div class="page-header">
+    <div class="left">
+      <div class="page-ttl">会员回归奖励</div>
+      <div class="page-desc">配置回归奖励规则 · 支持「按条件全员匹配」与「指定 ID 精准发放」两种模式</div>
+      <div class="page-warn">⚠ 同一会员若同时命中「全员」与「指定 ID」两类规则，奖励将<b>独立累加发放</b>（即获得两份），请在导入名单前先与现有全员规则做交集排查。</div>
+    </div>
+    <div class="crumb">
+      活动奖励 <span class="sep">›</span>
+      会员回归奖励 <span class="sep">›</span>
+      <span class="cur">回归奖励列表</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- 顶部工具栏：左侧筛选+按钮，右侧状态分段 -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="fld">
+          <label>适用对象 <span class="new-mark">NEW</span></label>
+          <select class="select"><option>全部</option><option>按条件全员</option><option>指定 ID</option></select>
+        </div>
+        <button class="btn btn-pp">🔍 查询</button>
+        <button class="btn btn-d">🔄 重置</button>
+        <span style="width:1px;height:20px;background:#e4e7ed;margin:0 4px"></span>
+        <button class="btn btn-pp" onclick="openAdd()">＋ 新增规则</button>
+        <button class="btn btn-d" onclick="switchTabByName('pane-record')">📑 回归奖励记录</button>
+      </div>
+      <div class="status-tabs">
+        <div class="st-tab active" onclick="switchStatusTab(this,'st-running')"><span class="dot"></span>进行中 <span class="count">7</span> <span class="new-mark">NEW</span></div>
+        <div class="st-tab" onclick="switchStatusTab(this,'st-ended')">已结束 <span class="count">2</span> <span class="new-mark">NEW</span></div>
+        <div class="st-tab" onclick="switchStatusTab(this,'st-archived')">📦 已归档 <span class="count">3</span> <span class="new-mark">NEW</span></div>
+      </div>
+    </div>
+
+    <!-- 表格（横向滚动） -->
+    <div style="overflow-x:auto" id="st-running" class="st-pane">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:50px">ID</th>
+          <th style="width:90px">状态 <span class="new-mark">NEW</span></th>
+          <th>适用对象 <span class="new-mark">NEW</span></th>
+          <th>会员离线天数</th>
+          <th>会员历史累计充值金额</th>
+          <th>累计总充值次数</th>
+          <th>累计充提差</th>
+          <th>累充固定奖金</th>
+          <th>累充百分比奖金(%)</th>
+          <th>累充活动状态</th>
+          <th>新充值赠送比例(%)</th>
+          <th>新充值赠送上限</th>
+          <th>回归赠送有效期(h)</th>
+          <th>新充值活动状态</th>
+          <th>操作人</th>
+          <th>操作时间</th>
+          <th>创建日期</th>
+          <th style="width:220px;min-width:220px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>10</td>
+          <td><span class="status-pill running">●进行中</span></td>
+          <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
+          <td>1</td><td>100</td><td>1</td><td>0</td>
+          <td>1</td><td>1</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>10%</td><td>20</td><td>16</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>luna</td><td>2026-05-05 18:16:31</td><td>2025-03-17 14:22:50</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px" onclick="openEdit('全员')">编辑</button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td><span class="status-pill running">●进行中</span></td>
+          <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
+          <td>7</td><td>1000</td><td>2</td><td>100</td>
+          <td>10</td><td>1</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>10%</td><td>100</td><td>2</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>luna</td><td>2026-05-05 18:16:33</td><td>2025-03-17 14:23:21</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px" onclick="openEdit('全员')">编辑</button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>21</td>
+          <td><span class="status-pill running">●进行中</span></td>
+          <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">156 人</span></div></div></td>
+          <td style="color:#909399">不限制</td>
+          <td style="color:#909399">不限制</td>
+          <td style="color:#909399">不限制</td>
+          <td style="color:#909399">不限制</td>
+          <td>50</td><td>5</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>10%</td><td>200</td><td>24</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>luna</td><td>2026-06-09 10:32:11</td><td>2026-06-09 10:32:11</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px" onclick="openEdit('指定')">编辑</button>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openDrawer()">📋 名单 <span class="new-mark">NEW</span></button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>22</td>
+          <td><span class="status-pill running">●进行中</span></td>
+          <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">48 人</span></div></div></td>
+          <td style="color:#909399">不限制</td>
+          <td style="color:#909399">不限制</td>
+          <td style="color:#909399">不限制</td>
+          <td style="color:#909399">不限制</td>
+          <td>100</td><td>0</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>15%</td><td>500</td><td>48</td>
+          <td><div class="sw" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
+          <td>micheal</td><td>2026-06-08 16:21:08</td><td>2026-06-08 16:21:08</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px" onclick="openEdit('指定')">编辑</button>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openDrawer()">📋 名单 <span class="new-mark">NEW</span></button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td><span class="status-pill running">●进行中</span></td>
+          <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
+          <td>10</td><td>5000</td><td>3</td><td style="color:#909399">不限制</td>
+          <td>0</td><td>1</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>10%</td><td>200</td><td>3</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>micheal</td><td>2026-05-18 18:00:10</td><td>2025-12-18 21:07:34</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px" onclick="openEdit('全员')">编辑</button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>15</td>
+          <td><span class="status-pill running">●进行中</span></td>
+          <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
+          <td>10</td><td>10000</td><td>5</td><td style="color:#909399">不限制</td>
+          <td>100</td><td>1</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>5%</td><td>500</td><td>4</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>micheal</td><td>2026-05-18 18:00:08</td><td>2025-12-19 17:33:33</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px" onclick="openEdit('全员')">编辑</button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+        <tr>
+          <td>20</td>
+          <td><span class="status-pill running">●进行中</span></td>
+          <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
+          <td>10</td><td>20000</td><td>2</td><td style="color:#909399">不限制</td>
+          <td>100</td><td>0</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>1%</td><td style="color:#909399">不限制</td><td>17</td>
+          <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>micheal</td><td>2026-05-18 18:00:07</td><td>2025-12-24 19:50:21</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px" onclick="openEdit('全员')">编辑</button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- ===== 已结束 ===== -->
+    <div style="overflow-x:auto;display:none" id="st-ended" class="st-pane">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:50px">ID</th>
+          <th style="width:130px">状态</th>
+          <th>适用对象</th>
+          <th>累充固定奖金</th>
+          <th>累充百分比奖金(%)</th>
+          <th>累充活动状态</th>
+          <th>新充值赠送比例(%)</th>
+          <th>新充值赠送上限</th>
+          <th>回归赠送有效期(h)</th>
+          <th>新充值活动状态</th>
+          <th>结束原因</th>
+          <th>结束时间</th>
+          <th>距归档</th>
+          <th>操作人</th>
+          <th>创建日期</th>
+          <th style="width:240px;min-width:240px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-ended">
+          <td>19</td>
+          <td><span class="status-pill ended">⏹ 已结束</span></td>
+          <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">200 人</span></div></div></td>
+          <td>100</td><td>5</td>
+          <td><div class="sw on disabled"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
+          <td>10%</td><td>300</td><td>24</td>
+          <td><div class="sw disabled"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
+          <td><span class="tag gray">自然结束</span><br><span style="font-size:10.5px;color:#909399">累充已发完 + 新充值到期</span></td>
+          <td>2026-06-05 11:24:08</td>
+          <td><span class="tag orange">26 天后</span></td>
+          <td>luna</td><td>2026-06-04 10:12:00</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openCopy()">📄 复制</button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+        <tr class="row-ended">
+          <td>18</td>
+          <td><span class="status-pill ended">⏹ 已结束</span></td>
+          <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">85 人</span></div></div></td>
+          <td>200</td><td>3</td>
+          <td><div class="sw disabled"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
+          <td>5%</td><td>500</td><td>72</td>
+          <td><div class="sw disabled"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
+          <td><span class="tag orange">运营手动</span><br><span style="font-size:10.5px;color:#909399">手动关停两个开关</span></td>
+          <td>2026-05-28 16:08:33</td>
+          <td><span class="tag orange">18 天后</span></td>
+          <td>micheal</td><td>2026-05-20 09:30:11</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openCopy()">📄 复制</button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- ===== 已归档 ===== -->
+    <div style="overflow-x:auto;display:none" id="st-archived" class="st-pane">
+    <div style="background:#f4f4f5;border-left:3px solid #c0c4cc;padding:8px 14px;margin-bottom:10px;font-size:12px;color:#606266;line-height:1.55">
+      📦 <b>已归档规则</b>：结束满 30 天的规则会自动归档，配置与名单仅可<b>查看 / 复制 / 导出</b>。归档满 <b>180 天</b> 后软删除（数据保留供财务审计）。
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:50px">ID</th>
+          <th style="width:110px">状态</th>
+          <th>适用对象</th>
+          <th>累充奖励</th>
+          <th>新充值返还</th>
+          <th>结束时间</th>
+          <th>归档时间</th>
+          <th>距软删</th>
+          <th>操作人</th>
+          <th>创建日期</th>
+          <th style="width:180px;min-width:180px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-archived">
+          <td>16</td>
+          <td><span class="status-pill archived">📦 已归档</span></td>
+          <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">320 人</span></div></div></td>
+          <td>固定 100 + 3%</td>
+          <td>10% / 上限 200 / 24h</td>
+          <td>2026-04-12 10:00:00</td>
+          <td>2026-05-12 03:00:00</td>
+          <td><span class="tag gray">152 天后</span></td>
+          <td>luna</td><td>2026-04-08 09:00:00</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openCopy()">📄 复制</button>
+          </td>
+        </tr>
+        <tr class="row-archived">
+          <td>12</td>
+          <td><span class="status-pill archived">📦 已归档</span></td>
+          <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">68 人</span></div></div></td>
+          <td>固定 500 + 1%</td>
+          <td>15% / 上限 1000 / 48h</td>
+          <td>2026-03-20 12:00:00</td>
+          <td>2026-04-19 03:00:00</td>
+          <td><span class="tag gray">115 天后</span></td>
+          <td>micheal</td><td>2026-03-15 14:33:21</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openCopy()">📄 复制</button>
+          </td>
+        </tr>
+        <tr class="row-archived">
+          <td>9</td>
+          <td><span class="status-pill archived">📦 已归档</span></td>
+          <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
+          <td>固定 50 + 2%</td>
+          <td>8% / 上限 100 / 12h</td>
+          <td>2026-02-15 18:30:00</td>
+          <td>2026-03-17 03:00:00</td>
+          <td><span class="tag red">7 天后</span></td>
+          <td>luna</td><td>2026-01-10 11:00:00</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openCopy()">📄 复制</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pager">
+      <span>到第</span><input class="pg-input" value="1"><span>页</span>
+      <button class="btn btn-d" style="height:26px;font-size:11.5px">确定</button>
+      <span class="gap"></span>
+      <button class="pg-num">首页</button>
+      <button class="pg-num">上一页</button>
+      <button class="pg-num active">1</button>
+      <button class="pg-num">下一页</button>
+      <button class="pg-num">尾页</button>
+      <select class="pg-select"><option>15条/页</option></select>
+      <span>共 7 条</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ====================== Tab 2: 领取记录 ====================== -->
+<div class="page tab-pane" id="pane-record" style="display:none">
+  <div class="crumb">
+    活动奖励 <span class="sep">›</span>
+    会员回归奖励 <span class="sep">›</span>
+    <b>老会员回归奖励领取记录</b>
+  </div>
+  <div class="page-ttl">老会员回归奖励领取记录</div>
+
+  <div class="card">
+    <!-- 筛选条 -->
+    <div class="filter-row">
+      <div class="fld"><label>会员ID</label><input class="input" placeholder="会员ID"></div>
+      <div class="fld"><label>充值订单号</label><input class="input" placeholder="充值订单号"></div>
+      <div class="fld">
+        <label>状态</label>
+        <select class="select"><option>请选择</option><option>未充值</option><option>已领取</option><option>已完成</option><option>已过期</option><option>未领取</option></select>
+      </div>
+      <div class="fld">
+        <label>奖励类型</label>
+        <select class="select"><option>请选择</option><option>回归奖励</option><option>新充值赠送</option></select>
+      </div>
+      <div class="fld">
+        <label>来源类型 <span class="new-mark">NEW</span></label>
+        <select class="select"><option>全部</option><option>系统自动（条件匹配）</option><option>指定 ID</option></select>
+      </div>
+      <div class="fld">
+        <label>规则ID <span class="new-mark">NEW</span></label>
+        <input class="input" placeholder="规则ID" style="min-width:120px">
+      </div>
+      <div class="fld">
+        <label>领取时间</label>
+        <input class="input" placeholder="领取时间">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-pp">🔍 查询</button>
+      <button class="btn btn-pp">🔄 重置</button>
+      <button class="btn btn-d" style="margin-left:auto">📥 导出</button>
+    </div>
+
+    <!-- 表格 -->
+    <div style="overflow-x:auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>序号</th>
+          <th>会员ID</th>
+          <th>来源类型 <span class="new-mark">NEW</span></th>
+          <th>规则ID <span class="new-mark">NEW</span></th>
+          <th>充值订单号</th>
+          <th>奖励类型</th>
+          <th>状态</th>
+          <th>充值金额</th>
+          <th>赠送比例</th>
+          <th>赠送上限</th>
+          <th>赠送金额</th>
+          <th>限时开始时间</th>
+          <th>限时结束时间</th>
+          <th>领取时间</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background:#fff7e6">
+          <td>1981</td><td>2247690</td>
+          <td><span class="src-pick">🎯 指定 ID</span></td>
+          <td><span class="rule-link" onclick="openDrawer()">21</span></td>
+          <td>—</td>
+          <td>回归奖励</td>
+          <td><span class="tag blue">已领取</span></td>
+          <td>—</td><td>—</td><td>—</td>
+          <td><b>5,200.00</b></td>
+          <td>2026-06-09 11:32:11</td><td>2026-06-10 11:32:11</td><td>2026-06-09 11:33:08</td>
+        </tr>
+        <tr style="background:#fff7e6">
+          <td>1980</td><td>2247690</td>
+          <td><span class="src-pick">🎯 指定 ID</span></td>
+          <td><span class="rule-link" onclick="openDrawer()">21</span></td>
+          <td>—</td>
+          <td>新充值赠送</td>
+          <td><span class="tag orange">未充值</span></td>
+          <td>0</td><td>10.00</td><td>200.00</td>
+          <td>0.00</td>
+          <td>2026-06-09 11:32:11</td><td>2026-06-11 11:32:11</td><td>—</td>
+        </tr>
+        <tr style="background:#fff7e6">
+          <td>1979</td><td>2247689</td>
+          <td><span class="src-pick">🎯 指定 ID</span></td>
+          <td><span class="rule-link" onclick="openDrawer()">21</span></td>
+          <td>2026060912354706400003</td>
+          <td>新充值赠送</td>
+          <td><span class="tag blue">已完成</span></td>
+          <td>1000.00</td><td>10.00</td><td>200.00</td>
+          <td>100.00</td>
+          <td>2026-06-09 09:21:54</td><td>2026-06-11 09:21:54</td><td>2026-06-09 09:46:33</td>
+        </tr>
+        <tr>
+          <td>1977</td><td>2247668</td>
+          <td><span class="src-auto">🌐 系统自动</span></td>
+          <td><span class="rule-link">10</span></td>
+          <td>—</td>
+          <td>新充值赠送</td>
+          <td><span class="tag orange">未充值</span></td>
+          <td>0</td><td>10.00</td><td>20.00</td><td>0.00</td>
+          <td>2026-06-09 15:08:03</td><td>2026-06-10 7:08:03</td><td>—</td>
+        </tr>
+        <tr>
+          <td>1976</td><td>2247668</td>
+          <td><span class="src-auto">🌐 系统自动</span></td>
+          <td><span class="rule-link">10</span></td>
+          <td>—</td>
+          <td>回归奖励</td>
+          <td><span class="tag blue">已领取</span></td>
+          <td>—</td><td>—</td><td>—</td>
+          <td>802.11</td>
+          <td>2026-06-09 15:08:03</td><td>2026-06-10 00:00:00</td><td>2026-06-09 15:08:15</td>
+        </tr>
+        <tr>
+          <td>1975</td><td>2250763</td>
+          <td><span class="src-auto">🌐 系统自动</span></td>
+          <td><span class="rule-link">14</span></td>
+          <td>2026060912354706400003</td>
+          <td>新充值赠送</td>
+          <td><span class="tag blue">已完成</span></td>
+          <td>1000.00</td><td>10.00</td><td>20.00</td><td>20.00</td>
+          <td>2026-06-09 12:26:53</td><td>2026-06-10 4:26:53</td><td>2026-06-09 12:35:59</td>
+        </tr>
+        <tr>
+          <td>1974</td><td>2250763</td>
+          <td><span class="src-auto">🌐 系统自动</span></td>
+          <td><span class="rule-link">14</span></td>
+          <td>—</td>
+          <td>回归奖励</td>
+          <td><span class="tag blue">已领取</span></td>
+          <td>—</td><td>—</td><td>—</td>
+          <td>100,006.01</td>
+          <td>2026-06-09 12:26:53</td><td>2026-06-10 00:00:00</td><td>2026-06-09 12:27:00</td>
+        </tr>
+        <tr>
+          <td>1973</td><td>2247665</td>
+          <td><span class="src-auto">🌐 系统自动</span></td>
+          <td><span class="rule-link">10</span></td>
+          <td>—</td>
+          <td>新充值赠送</td>
+          <td><span class="tag orange">未充值</span></td>
+          <td>0</td><td>10.00</td><td>20.00</td><td>0.00</td>
+          <td>2026-06-09 12:07:29</td><td>2026-06-10 4:07:29</td><td>—</td>
+        </tr>
+        <tr>
+          <td>1972</td><td>2247665</td>
+          <td><span class="src-auto">🌐 系统自动</span></td>
+          <td><span class="rule-link">10</span></td>
+          <td>—</td>
+          <td>回归奖励</td>
+          <td><span class="tag gray">未领取</span></td>
+          <td>—</td><td>—</td><td>—</td>
+          <td>2,001.00</td>
+          <td>2026-06-09 12:07:29</td><td>2026-06-10 00:00:00</td><td>—</td>
+        </tr>
+        <tr>
+          <td>1959</td><td>100036</td>
+          <td><span class="src-auto">🌐 系统自动</span></td>
+          <td><span class="rule-link">14</span></td>
+          <td>—</td>
+          <td>新充值赠送</td>
+          <td><span class="tag red">已过期</span></td>
+          <td>0</td><td>10.00</td><td>20.00</td><td>0.00</td>
+          <td>2026-06-08 17:39:15</td><td>2026-06-09 9:39:15</td><td>—</td>
+        </tr>
+        <tr>
+          <td>1958</td><td>100036</td>
+          <td><span class="src-auto">🌐 系统自动</span></td>
+          <td><span class="rule-link">14</span></td>
+          <td>—</td>
+          <td>回归奖励</td>
+          <td><span class="tag blue">已领取</span></td>
+          <td>—</td><td>—</td><td>—</td>
+          <td>3,197.70</td>
+          <td>2026-06-08 17:39:15</td><td>2026-06-09 00:00:00</td><td>2026-06-08 17:39:23</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="pager">
+      <span>共 99 页，前往</span><input class="pg-input" value="1"><span>页</span>
+      <select class="pg-select"><option>20条/页</option></select>
+      <button class="btn btn-d" style="height:26px;font-size:11.5px">GO</button>
+      <span class="gap"></span>
+      <button class="pg-num">首页</button>
+      <button class="pg-num">上一页</button>
+      <button class="pg-num active">1</button>
+      <button class="pg-num">2</button>
+      <button class="pg-num">3</button>
+      <button class="pg-num">4</button>
+      <button class="pg-num">5</button>
+      <button class="pg-num">下一页</button>
+      <button class="pg-num">尾页</button>
+      <span>共 1966 条</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ====================== 新增 / 编辑 弹窗 ====================== -->
+<div class="modal-mask" id="modalEdit" onclick="if(event.target===this)closeEdit()">
+  <div class="modal lg">
+    <div class="modal-h">
+      <div class="ttl" id="modalTitle">新增会员回归奖励</div>
+      <div class="actions"><span title="最小化">—</span><span title="放大">⛶</span><span title="关闭" onclick="closeEdit()">✕</span></div>
+    </div>
+    <div class="modal-b">
+
+      <!-- 适用对象 -->
+      <div class="fm-row">
+        <div class="lb"><span class="req">*</span>适用对象 <span class="new-mark">NEW</span></div>
+        <div class="ctl">
+          <div class="radio-row">
+            <label><input type="radio" name="scope" value="all" checked onchange="setScope('all')"> 按条件全员（系统按下方条件自动匹配）</label>
+            <label><input type="radio" name="scope" value="pick" onchange="setScope('pick')"> 指定 ID（跳过条件直接发放）</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 仅"指定 ID"模式显示：会员 ID 列表 ===== -->
+      <div id="idBlock" style="display:none">
+        <div class="sec-divider">会员 ID 列表 <span class="badge" style="background:#fff7e6;color:#d46b08;border-color:#ffd591">指定 ID</span></div>
+
+        <div class="fm-row" style="align-items:stretch">
+          <div class="lb"><span class="req">*</span>会员 ID</div>
+          <div class="ctl">
+            <div class="id-tabs">
+              <div class="id-tab active" onclick="switchIdTab(this,'tab-manual')">✏️ 手动输入</div>
+              <div class="id-tab" onclick="switchIdTab(this,'tab-import')">📁 批量导入</div>
+            </div>
+
+            <div class="id-tab-pane active" id="tab-manual">
+              <textarea class="id-textarea" id="idTa" placeholder="每行一个会员ID，或用英文逗号分隔。&#10;示例：&#10;2247648&#10;2247647, 2247646&#10;2247645"
+                oninput="parseManual()">2247648
+2247647
+2247646
+2247645
+2247644
+2247643
+2247642
+2247641</textarea>
+              <div class="ph-info">最多 <b>500</b> 个；超过请使用批量导入</div>
+            </div>
+
+            <div class="id-tab-pane" id="tab-import">
+              <div class="id-import">
+                <div class="imp-ico">📥</div>
+                <div>
+                  <span class="imp-link">点击上传</span> 或拖拽 .xlsx / .csv 文件到此处
+                </div>
+                <div class="imp-tip">
+                  单次最多 <b>5,000</b> 个 · 仅识别 A 列（会员ID）· <span class="imp-link">下载模板</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 校验统计 -->
+            <div class="id-stat" id="idStat">
+              <div class="stat-item ok">✅ 有效 <b>156</b></div>
+              <div class="stat-item warn">⚠ 重复 <b>2</b> <span class="view-link" onclick="alert('已自动去重')">已去重</span></div>
+              <div class="stat-item err">❌ 不存在 <b>2</b> <span class="view-link" onclick="alert('2247640, 2247639')">查看</span></div>
+              <div class="stat-item conflict">🚫 已在其他规则 <b>3</b> <span class="view-link" onclick="showConflict()">查看冲突</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 仅"按条件全员"模式显示：条件过滤 ===== -->
+      <div id="condBlock">
+        <div class="sec-divider">条件过滤</div>
+
+        <div class="fm-row">
+          <div class="lb"><span class="req">*</span>会员离线天数 ></div>
+          <div class="ctl">
+            <input class="ctl-input" placeholder="必填，且只能输入 >0">
+          </div>
+        </div>
+        <div class="fm-row">
+          <div class="lb"><span class="req">*</span>会员历史累充金额 >=</div>
+          <div class="ctl">
+            <input class="ctl-input" placeholder="必填，且只能输入 >=0, 允许两位小数">
+          </div>
+        </div>
+        <div class="fm-row">
+          <div class="lb"><span class="req">*</span>会员历史累充次数 >=</div>
+          <div class="ctl">
+            <input class="ctl-input" placeholder="必填，且只能输入 >=0">
+          </div>
+        </div>
+        <div class="fm-row">
+          <div class="lb">会员历史累计充提差 >=</div>
+          <div class="ctl">
+            <input class="ctl-input" placeholder="选填，不填时不限制">
+          </div>
+        </div>
+      </div>
+
+      <!-- 累充奖励 -->
+      <div class="sec-divider">累充奖励配置 <span class="badge">累充活动状态=开 时生效</span></div>
+
+      <div class="fm-row">
+        <div class="lb"><span class="req">*</span>累充固定奖金</div>
+        <div class="ctl">
+          <input class="ctl-input" placeholder="必填，且只能输入 >=0, 允许两位小数">
+        </div>
+      </div>
+      <div class="fm-row">
+        <div class="lb"><span class="req">*</span>累充百分比奖金(%)</div>
+        <div class="ctl">
+          <input class="ctl-input" placeholder="必填，且只能输入 >=0">
+          <div class="ph-hint">输入值1，即1%，当会员历史总充值金额100元能获得1元回归奖励。</div>
+        </div>
+      </div>
+
+      <!-- 新充值赠送 -->
+      <div class="sec-divider">新充值赠送配置 <span class="badge">新充值活动状态=开 时生效</span></div>
+
+      <div class="fm-row">
+        <div class="lb"><span class="req">*</span>新充值赠送比例(%)</div>
+        <div class="ctl">
+          <input class="ctl-input" placeholder="必填，且只能输入 >0">
+        </div>
+      </div>
+      <div class="fm-row">
+        <div class="lb">新充值赠送上限</div>
+        <div class="ctl">
+          <input class="ctl-input" placeholder="选填，不填时不限制">
+        </div>
+      </div>
+      <div class="fm-row">
+        <div class="lb"><span class="req">*</span>回归赠送有效期(小时)</div>
+        <div class="ctl">
+          <input class="ctl-input" placeholder="必填，且只能输入 >0">
+        </div>
+      </div>
+
+      <!-- 自动结束策略（仅指定 ID模式显示） -->
+      <div id="lifecycleBlock" style="display:none">
+        <div class="sec-divider">生命周期 <span class="badge" style="background:#fff7e6;color:#d46b08;border-color:#ffd591">指定 ID</span></div>
+
+        <div class="fm-row">
+          <div class="lb">自动结束</div>
+          <div class="ctl">
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;line-height:30px">
+              <input type="checkbox" checked style="accent-color:#7c5cfa;width:14px;height:14px;cursor:pointer">
+              累充全部发完 <b>AND</b> 新充值有效期到期 → 自动置为「已结束」
+            </label>
+            <div class="ph-info">系统每小时扫描，符合条件即自动结束。结束后开关变灰，名单只读。</div>
+          </div>
+        </div>
+        <div class="fm-row">
+          <div class="lb">自动归档天数</div>
+          <div class="ctl">
+            <input class="ctl-input" value="30" style="max-width:120px">
+            <div class="ph-info">结束 N 天后自动归档（默认 <b>30</b>），归档后从默认列表隐藏，归档满 <b>180</b> 天后软删除。</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-pp">确认</button>
+      <button class="btn btn-d" onclick="closeEdit()">关闭</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ====================== 冲突明细 弹窗 ====================== -->
+<div class="modal-mask" id="modalConflict" onclick="if(event.target===this)closeConflict()">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-h">
+      <div class="ttl">⚠ 冲突 ID 明细</div>
+      <div class="actions"><span title="关闭" onclick="closeConflict()">✕</span></div>
+    </div>
+    <div class="modal-b">
+      <div class="conflict-box">
+        以下 <b>3</b> 个会员 ID 已存在于其他「指定 ID」规则中。<br>
+        按业务规则<b>「只发一次，取最新规则」</b>：保存后这些 ID 将从原规则中被覆盖到本规则。
+      </div>
+      <div class="conflict-list">
+        <div class="ci"><span>2247648</span><span>原规则：<b>22</b> （已发累充奖励 ₹500）</span></div>
+        <div class="ci"><span>2247647</span><span>原规则：<b>22</b> （已发累充奖励 ₹420）</span></div>
+        <div class="ci"><span>2247641</span><span>原规则：<b>21</b> （未发放）</span></div>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:#606266">说明：已发放的累充奖励不会重复发放；未发放的会用新规则结算。</div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-pp">确认覆盖并继续保存</button>
+      <button class="btn btn-d" onclick="closeConflict()">先去检查</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ====================== 名单 抽屉 ====================== -->
+<!-- ====================== 侧面"需求说明"触发器 + 抽屉 ====================== -->
+<div class="spec-trigger" onclick="openSpec()" title="点击展开需求说明">
+  <span class="ico">📋</span>需求说明
+</div>
+
+<div class="drawer-mask" id="specMask" onclick="closeSpec()"></div>
+<div class="drawer wide" id="specDrawer">
+  <div class="drawer-h">
+    <div class="ttl">📋 老会员回归奖励 · 指定 ID 改造需求说明</div>
+    <div class="acts">
+      <span class="close" onclick="closeSpec()">✕</span>
+    </div>
+  </div>
+  <div class="spec-toc">
+    <a onclick="document.getElementById('sec-1').scrollIntoView({behavior:'smooth'})">① 新增字段</a>
+    <a onclick="document.getElementById('sec-2').scrollIntoView({behavior:'smooth'})">② 新增配置</a>
+    <a onclick="document.getElementById('sec-3').scrollIntoView({behavior:'smooth'})">③ 回归奖励记录</a>
+    <a onclick="document.getElementById('sec-4').scrollIntoView({behavior:'smooth'})">④ 系统日志</a>
+  </div>
+  <div class="drawer-b spec-doc">
+
+    <!-- ============ 1 新增字段 ============ -->
+    <h2 id="sec-1">1、新增字段</h2>
+
+    <h3>1.1 搜索框</h3>
+    <ul>
+      <li>适用对象 下拉筛选</li>
+      <li>状态切换 Tab：进行中 / 已结束 / 已归档</li>
+    </ul>
+
+    <h3>1.2 列表新增列</h3>
+    <ul>
+      <li><b>状态</b>、<b>适用对象</b>（指定 ID 行下方显示"N 人"链接进入名单）</li>
+      <li><b>已结束</b> 额外列：结束原因（自然结束 / 运营手动）、结束时间、距归档倒计时</li>
+      <li><b>已归档</b> 额外列：结束时间、归档时间、距软删倒计时</li>
+    </ul>
+
+
+    <!-- ============ 2 新增配置 ============ -->
+    <h2 id="sec-2">2、新增配置</h2>
+
+    <h3>2.1 数量上限</h3>
+    <ul>
+      <li>手动输入 ≤ <b>500</b></li>
+      <li>单次导入 ≤ <b>5000</b>（.xlsx / .csv，提供模板）</li>
+      <li>单规则累计 ≤ <b>10000</b></li>
+      <li>同站点指定 ID 规则 ≤ <b>50</b> 条</li>
+    </ul>
+
+    <h3>2.2 累充奖励发放</h3>
+    <ul>
+      <li><b>触发</b>：保存 + 累充开关=开 → 异步队列遍历名单立即结算</li>
+      <li><b>计算</b>：固定奖金 + 历史累充 × 百分比</li>
+      <li><b>频率</b>：每会员每规则<b>仅一次</b>；跨规则站点级生命周期最多一次</li>
+      <li>已发不撤回</li>
+    </ul>
+
+    <h3>2.3 新充值返还</h3>
+    <ul>
+      <li><b>触发</b>：名单内会员有效期内每次新充值</li>
+      <li><b>计时起点</b>：该会员累充奖励到账时刻（每个 ID 独立计时）</li>
+      <li><b>频率</b>：有效期内多次，受单笔上限约束</li>
+      <li><b>失效</b>：到期 / 累计达上限 / 新充值开关关闭 / 会员被移除</li>
+    </ul>
+
+    <h3>2.4 名单冻结</h3>
+    <ul>
+      <li><b>条件</b>：累充开关=开 <b>或</b> 新充值开关=开（任一开启即冻结）</li>
+      <li><b>限制</b>：禁止追加、禁止移除（搜索、导出仍可）</li>
+      <li><b>解冻</b>：两个开关都关闭</li>
+    </ul>
+
+    <h3>2.5 ID 冲突与双发风险</h3>
+    <div class="callout">
+      <b>同一会员同时命中"全员" + "指定 ID"</b> → 奖励独立累加发放（领两份）。系统不去重，运营自查。
+    </div>
+    <ul>
+      <li>同 ID 在多条"指定 ID"规则间冲突 → 取最新规则覆盖，旧规则该 ID 标"被覆盖"</li>
+      <li>导入校验：✅ 有效 / ⚠ 重复（自动去重）/ ❌ 不存在 / 🚫 已在其他规则（弹窗确认覆盖）</li>
+    </ul>
+
+    <h3>2.6 规则生命周期</h3>
+    <table>
+      <tr><th>流转</th><th>触发条件</th></tr>
+      <tr><td>进行中 → 已结束</td><td>累充全发完 AND（新充值有效期到期 OR 开关关闭），每小时定时扫描</td></tr>
+      <tr><td>已结束 → 已归档</td><td>距实际结束时间满 <code>AutoArchiveDays</code>（默认 <b>30</b> 天）</td></tr>
+      <tr><td>已归档 → 软删除</td><td>距归档时间满 <b>180</b> 天，UI 不可见数据保留</td></tr>
+    </table>
+    <ul>
+      <li>已结束：开关 disabled，名单只读</li>
+      <li>已归档：完全只读，不可删除</li>
+    </ul>
+
+    <h3>2.7 复制规则</h3>
+    <ul>
+      <li>已结束 / 已归档 规则 → 「复制」生成新规则，预填配置</li>
+      <li>ID 名单选项：不复制 / 全部复制 / 仅复制未触发累充的</li>
+      <li>新规则记录 <code>SourceRuleId</code> 字段</li>
+    </ul>
+
+
+    <!-- ============ 3 回归奖励记录 ============ -->
+    <h2 id="sec-3">3、回归奖励记录</h2>
+    <ul>
+      <li><b>筛选新增</b>：来源类型（系统自动 / 指定 ID）、规则 ID</li>
+      <li><b>列新增</b>：来源类型、规则 ID（可点击跳到规则）</li>
+      <li><b>字段</b>：每条记录新增 <code>RuleId</code> + <code>SourceType</code></li>
+      <li>删除规则后已发记录保留（财务一致性）</li>
+    </ul>
+
+
+    <!-- ============ 4 系统日志 ============ -->
+    <h2 id="sec-4">4、系统日志</h2>
+
+    <table>
+      <tr><th>操作</th><th>记录字段</th></tr>
+      <tr><td>新增规则</td><td>操作人 / 时间 / 规则 ID / 适用对象 / 条件 / 奖励 / 名单数量</td></tr>
+      <tr><td>编辑规则</td><td>操作人 / 时间 / 规则 ID / 改动字段 前值 → 新值</td></tr>
+      <tr><td>删除规则</td><td>操作人 / 时间 / 规则 ID / 规则快照</td></tr>
+      <tr><td>导出名单</td><td>操作人 / 时间 / 规则 ID / 导出条数</td></tr>
+      <tr><td>追加 / 移除 ID</td><td>操作人 / 时间 / 规则 ID / ID 列表</td></tr>
+      <tr><td>开关变更</td><td>操作人 / 时间 / 规则 ID / 类型 / 开 ↔ 关</td></tr>
+      <tr><td>复制规则</td><td>操作人 / 时间 / 源规则 ID / 新规则 ID</td></tr>
+      <tr><td>自动结束 / 归档</td><td>系统 / 时间 / 规则 ID / 原因</td></tr>
+      <tr><td>冲突覆盖</td><td>操作人 / 时间 / ID 列表 / 原规则 / 新规则</td></tr>
+    </table>
+
+    <div style="height:40px"></div>
+  </div>
+</div>
+
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-h">
+    <div class="ttl">规则 21 · ID 名单 <span style="color:#909399;font-weight:400;margin-left:4px">(156 人)</span></div>
+    <div class="acts">
+      <button class="btn btn-d" style="padding:0 10px;height:26px;font-size:11.5px">📥 导出</button>
+      <span class="close" onclick="closeDrawer()">✕</span>
+    </div>
+  </div>
+  <div class="drawer-b">
+    <div class="drawer-search">
+      <input placeholder="搜索会员 ID">
+      <select class="select" style="height:30px"><option>累充奖励：全部</option><option>待发</option><option>已发</option><option>已领取</option></select>
+      <select class="select" style="height:30px"><option>新充值奖励：全部</option><option>未充值</option><option>已过期</option><option>已发放</option></select>
+    </div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>序号</th><th>会员ID</th><th>加入时间</th><th>累充奖励</th><th>新充值奖励</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>2247648</td><td>2026-06-09 10:32</td><td><span class="tag blue">📥 已领取 ₹500</span></td><td><span class="tag orange">未充值</span></td></tr>
+        <tr><td>2</td><td>2247647</td><td>2026-06-09 10:32</td><td><span class="tag blue">📥 已领取 ₹420</span></td><td><span class="tag green">✅ 已发放 ₹100</span></td></tr>
+        <tr><td>3</td><td>2247646</td><td>2026-06-09 10:32</td><td><span class="tag gray">⏳ 待发</span></td><td><span class="tag orange">未充值</span></td></tr>
+        <tr><td>4</td><td>2247645</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 已发 ₹360</span></td><td><span class="tag orange">未充值</span></td></tr>
+        <tr><td>5</td><td>2247644</td><td>2026-06-09 10:32</td><td><span class="tag blue">📥 已领取 ₹360</span></td><td><span class="tag red">❌ 已过期</span></td></tr>
+        <tr><td>6</td><td>2247643</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 已发 ₹820</span></td><td><span class="tag green">✅ 已发放 ₹50</span></td></tr>
+        <tr><td>7</td><td>2247642</td><td>2026-06-09 10:32</td><td><span class="tag blue">📥 已领取 ₹240</span></td><td><span class="tag orange">未充值</span></td></tr>
+        <tr><td>8</td><td>2247641</td><td>2026-06-09 10:32</td><td><span class="tag gray">⏳ 待发</span></td><td><span class="tag orange">未充值</span></td></tr>
+      </tbody>
+    </table>
+    <div class="pager">
+      <span class="gap"></span>
+      <button class="pg-num">上一页</button>
+      <button class="pg-num active">1</button>
+      <button class="pg-num">2</button>
+      <button class="pg-num">3</button>
+      <button class="pg-num">下一页</button>
+      <span>共 156 条</span>
+    </div>
+  </div>
+</div>
+
+
+<script>
+function switchTab(btn, paneId){
+  document.querySelectorAll('.main-tabs .mt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-pane').forEach(p=>p.style.display='none');
+  document.getElementById(paneId).style.display='';
+}
+function switchTabByName(paneId){
+  const idx = paneId==='pane-record'?1:0;
+  switchTab(document.querySelectorAll('.main-tabs .mt-btn')[idx], paneId);
+}
+
+function openAdd(){
+  document.getElementById('modalTitle').textContent = '新增会员回归奖励';
+  document.querySelector('input[name=scope][value=all]').checked = true;
+  setScope('all');
+  document.getElementById('modalEdit').classList.add('open');
+}
+function openEdit(type){
+  document.getElementById('modalTitle').textContent = '编辑会员回归奖励';
+  if(type==='指定'){
+    document.querySelector('input[name=scope][value=pick]').checked = true;
+    setScope('pick');
+  } else {
+    document.querySelector('input[name=scope][value=all]').checked = true;
+    setScope('all');
+  }
+  document.getElementById('modalEdit').classList.add('open');
+}
+function closeEdit(){ document.getElementById('modalEdit').classList.remove('open'); }
+
+function setScope(mode){
+  const isPick = mode === 'pick';
+  document.getElementById('condBlock').style.display      = isPick ? 'none' : '';
+  document.getElementById('idBlock').style.display        = isPick ? ''     : 'none';
+  document.getElementById('lifecycleBlock').style.display = isPick ? ''     : 'none';
+}
+
+function switchStatusTab(el, paneId){
+  el.parentElement.querySelectorAll('.st-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.st-pane').forEach(p=>p.style.display='none');
+  document.getElementById(paneId).style.display='';
+}
+
+function openCopy(){
+  document.getElementById('modalTitle').textContent = '📄 复制规则（基于规则 19）';
+  document.querySelector('input[name=scope][value=pick]').checked = true;
+  setScope('pick');
+  document.getElementById('modalEdit').classList.add('open');
+}
+
+function switchIdTab(el, paneId){
+  el.parentElement.querySelectorAll('.id-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.id-tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(paneId).classList.add('active');
+}
+
+function parseManual(){
+  const v = document.getElementById('idTa').value;
+  const ids = v.split(/[\s,]+/).filter(Boolean);
+  // 简单 mock：演示用，不真实校验
+}
+
+function showConflict(){ document.getElementById('modalConflict').classList.add('open'); }
+function closeConflict(){ document.getElementById('modalConflict').classList.remove('open'); }
+
+function openDrawer(){
+  document.getElementById('drawerMask').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawerMask').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+}
+
+function openSpec(){
+  document.getElementById('specMask').classList.add('open');
+  document.getElementById('specDrawer').classList.add('open');
+}
+function closeSpec(){
+  document.getElementById('specMask').classList.remove('open');
+  document.getElementById('specDrawer').classList.remove('open');
+}
+
+function toggleSw(el){
+  el.classList.toggle('on');
+  const lbl = el.querySelector('.sw-lbl');
+  if(lbl) lbl.textContent = el.classList.contains('on') ? '开启' : '关闭';
+}
+
+// ESC 关闭
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ closeEdit(); closeConflict(); closeDrawer(); closeSpec(); }
+});
+</script>
+
+</body>
+</html>
