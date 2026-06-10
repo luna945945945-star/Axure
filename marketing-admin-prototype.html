@@ -534,8 +534,8 @@ tr.cb-selected{background:#f9f5ff !important}
   <div class="tab-pane" id="pane-act">
 
     <div class="intro">
-      💡 <b>活动推送配置</b>：当前 <b>16 个活动</b>，可按业务分组筛选。配置项：是否推送 / 跳转动作。<br>
-      达标后系统按活动类型即时（A 直发）或生成可领取记录（B 待领），<b>开启推送</b>的活动会同步发送站内实时弹窗，点击跳转到指定页。
+      💡 <b>活动推送配置</b>：当前 <b>16 个活动</b>，可按业务分组筛选。配置项：<b>站内信</b>（默认开启，红点提醒）/ <b>是否推送</b>（实时横幅或强弹窗）/ <b>跳转动作</b> / <b>推送级别</b>（L2 横幅 / L3 强弹窗）。<br>
+      达标后系统按活动类型即时（A 直发）或生成可领取记录（B 待领）。两个开关解耦：<b>站内信</b>负责消息中心红点，<b>是否推送</b>负责实时弹窗。
     </div>
 
     <!-- 筛选条 -->
@@ -594,6 +594,7 @@ tr.cb-selected{background:#f9f5ff !important}
             <th style="width:220px">活动 / 枚举值</th>
             <th>触发时机</th>
             <th style="width:200px">关联模板</th>
+            <th style="width:90px;text-align:center">站内信 <span class="new-tag">NEW</span></th>
             <th style="width:90px;text-align:center">是否推送</th>
             <th style="width:120px">跳转动作</th>
             <th style="width:130px">推送级别</th>
@@ -621,7 +622,7 @@ tr.cb-selected{background:#f9f5ff !important}
   <div class="tab-pane" id="pane-style">
 
     <div class="intro">
-      💡 <b>推送样式预览</b>：按推送级别（L1 / L2 / L3）+ 消息分类（钱类 / 活动类 / 普通）做了多套样式备选，方便 UI 设计师参考与挑选。<br>
+      💡 <b>推送样式预览</b>：按推送级别（L2 / L3）+ 消息分类（钱类 / 活动类 / 普通）做了多套样式备选，方便 UI 设计师参考与挑选。<br>
       每套样式都基于手机 mockup，可右键截图保存。点击右上角「<b>切换主题</b>」可对比深浅模式效果。
     </div>
 
@@ -1188,7 +1189,10 @@ function setActDraft(id, key, value){
   const a = ALL_ACTIVITIES.find(x => x.id === id);
   if(!a) return;
   // 取当前真值（已保存的）
-  const origValue = key === 'level' ? (a.level || 'L2') : a[key];
+  let origValue;
+  if(key === 'level') origValue = (a.level === 'L1' ? 'L2' : (a.level || 'L2'));
+  else if(key === 'inbox') origValue = (a.inbox !== false);  // 默认开启
+  else origValue = a[key];
   // 如果是 push 字段且 value 是字符串 'true' / 'false'，转 bool
   if(key === 'push' && typeof value === 'string') value = value === 'true';
   // 是否回到原值
@@ -1215,6 +1219,15 @@ function togglePushDraft(ev, id){
   const draft = pendingChanges.get(id) || {};
   const curPush = draft.push !== undefined ? draft.push : a.push;
   setActDraft(id, 'push', !curPush);
+}
+
+function toggleInboxDraft(ev, id){
+  ev.stopPropagation();
+  const a = ALL_ACTIVITIES.find(x => x.id === id);
+  if(!a) return;
+  const draft = pendingChanges.get(id) || {};
+  const curInbox = draft.inbox !== undefined ? draft.inbox : (a.inbox !== false);
+  setActDraft(id, 'inbox', !curInbox);
 }
 
 function updateSaveBar(){
@@ -1297,9 +1310,11 @@ function renderActList(){
     const draft = pendingChanges.get(a.id) || {};
     const curPush  = draft.push  !== undefined ? draft.push  : a.push;
     const curJump  = draft.jump  !== undefined ? draft.jump  : a.jump;
-    const curLevel = draft.level !== undefined ? draft.level : (a.level || 'L2');
+    const curLevel = draft.level !== undefined ? draft.level : (a.level === 'L1' ? 'L2' : (a.level || 'L2'));
+    const curInbox = draft.inbox !== undefined ? draft.inbox : (a.inbox !== false);
     const isDirty = pendingChanges.has(a.id);
     const toggleCls = curPush ? 'toggle on' : 'toggle';
+    const inboxCls = curInbox ? 'toggle on' : 'toggle';
     return `<tr class="${isSel?'cb-selected':''} ${isDirty?'row-dirty':''}">
       ${cbCell}
       <td class="col-l">
@@ -1313,6 +1328,11 @@ function renderActList(){
       <td style="font-size:11.5px;color:#666;line-height:1.45;text-align:center">${a.trigger}</td>
       <td><span class="tpl-mini">${a.tplCode} · ${a.tplName}</span></td>
       <td style="text-align:center">
+        <div class="${inboxCls}" onclick="toggleInboxDraft(event,'${a.id}')" title="站内信红点：开启=写消息中心 / 关闭=不写">
+          <span class="switch"></span>
+        </div>
+      </td>
+      <td style="text-align:center">
         <div class="${toggleCls}" onclick="togglePushDraft(event,'${a.id}')">
           <span class="switch"></span>
         </div>
@@ -1324,13 +1344,12 @@ function renderActList(){
       </td>
       <td style="text-align:center">
         <select class="inline-select lv-${curLevel}" onchange="setActDraft('${a.id}','level',this.value)">
-          <option value="L1" ${curLevel==='L1'?'selected':''}>L1 · 静默红点</option>
           <option value="L2" ${curLevel==='L2'?'selected':''}>L2 · 横幅 toast</option>
           <option value="L3" ${curLevel==='L3'?'selected':''}>L3 · 强弹窗</option>
         </select>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="7" style="padding:30px;color:#999">无匹配活动</td></tr>`;
+  }).join('') || `<tr><td colspan="8" style="padding:30px;color:#999">无匹配活动</td></tr>`;
 
   // 更新摘要
   const on = ALL_ACTIVITIES.filter(a => a.push).length;
@@ -1414,7 +1433,7 @@ renderActList();
 
     <h3>1.2 活动推送配置 Tab（新页面）</h3>
     <ul>
-      <li>列表新增三个可编辑字段：<b>是否推送</b> / <b>跳转动作</b> / <b>推送级别</b></li>
+      <li>列表新增四个可编辑字段：<b>站内信</b>（默认开启）/ <b>是否推送</b> / <b>跳转动作</b> / <b>推送级别</b>（L2 / L3）</li>
       <li>顶部新增 <b>批量操作</b> 下拉 + <b>保存</b> / <b>取消</b> 按钮</li>
     </ul>
 
@@ -1461,14 +1480,17 @@ renderActList();
       <b>关联模板不可换绑</b>：活动→模板的映射由产研管理，运营只能改"是否推送 / 跳转 / 级别"
     </div>
 
-    <h3>2.3 推送级别 L1 / L2 / L3</h3>
+    <h3>2.3 站内信 与 推送级别（两个开关解耦）</h3>
+    <div class="callout">
+      <b>站内信</b>（默认开启）= 写消息中心红点，所有活动达标都会写一条站内信记录 + 顶部铃铛红点。<br>
+      <b>是否推送</b> + <b>推送级别</b> = 在站内信之上叠加的实时弹窗（L2 横幅 / L3 强弹窗），关闭后仅保留站内信红点。
+    </div>
     <table>
       <tr><th>级别</th><th>表现</th><th>默认匹配</th></tr>
-      <tr><td>L1 静默红点</td><td>仅红点 + 未读数</td><td>普通类（1/5/6/7）</td></tr>
       <tr><td>L2 横幅 toast</td><td>顶部下滑 3-5 秒</td><td>活动类（9/10）</td></tr>
       <tr><td>L3 强弹窗</td><td>居中模态 + 遮罩，需用户主动关</td><td>钱类（2/3/4）+ KYC（11）</td></tr>
     </table>
-    <p>运营可在活动推送配置 Tab 改默认级别。</p>
+    <p>原 L1 静默红点 已不再作为推送级别选项，<b>"仅红点"的能力由"站内信"独立开关承担</b>，便于运营单独控制是否写消息中心。</p>
 
     <h3>2.4 编辑 / 保存约束</h3>
     <ul>
@@ -1482,12 +1504,16 @@ renderActList();
     <h2 id="sec-3">3、推送链路与兜底</h2>
 
     <h3>3.1 触发链路</h3>
-    <div class="flow">业务达标 → 营销中心生成站内信（写 tab_SiteMessage）
-            ↓ 判断"是否推送"
-            ↓ 开
-SignalR 推送在线端 → 按级别渲染 L1 / L2 / L3
-            ↓ 离线
-仅写站内信表 → 登录时拉取 → 顶栏铃铛红点</div>
+    <div class="flow">业务达标
+   ↓
+判断「站内信」开关 → 开 → 写 tab_SiteMessage（顶部铃铛红点）
+                       关 → 不写消息中心
+   ↓
+判断「是否推送」开关
+   ↓ 开
+SignalR 推送在线端 → 按级别渲染 L2 横幅 / L3 强弹窗
+   ↓ 离线
+仅依赖站内信红点 → 登录时拉取消息中心</div>
 
     <h3>3.2 跳转映射</h3>
     <table>
