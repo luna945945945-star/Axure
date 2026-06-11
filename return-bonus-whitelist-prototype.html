@@ -255,23 +255,40 @@ a{text-decoration:none;color:inherit}
 .status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:11px;font-size:11px;font-weight:600;line-height:1.5;letter-spacing:.2px;white-space:nowrap}
 .status-pill.running{background:#f0f9eb;color:#67c23a;border:1px solid #d4edc1}
 .status-pill.running::before{content:'';display:inline-block;width:5px;height:5px;background:#67c23a;border-radius:50%;box-shadow:0 0 0 2px rgba(103,194,58,.2)}
+.status-pill.paused{background:#ecf5ff;color:#409eff;border:1px solid #d9ecff}
 .status-pill.ended{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
-.status-pill.archived{background:#f4f4f5;color:#909399;border:1px solid #dcdfe4}
 
-/* 已结束 / 已归档 行整体灰化 */
+/* 已停用行（全员规则两开关都关）样式 */
+.row-paused td{color:#5a6071}
+.row-paused .sw.disabled{opacity:.55;pointer-events:none}
+
+/* 已结束 行整体灰化 */
 .row-ended td{color:#909399}
 .row-ended td a,.row-ended td .num-link{color:#909399}
 .row-ended .sw.disabled{opacity:.55;pointer-events:none}
-.row-archived td{color:#909399}
-.row-archived td a,.row-archived td .num-link{color:#909399}
 
-/* 来源类型显示 */
+/* 适用对象显示 */
 .src-auto{color:#606266;background:#f4f4f5;padding:2px 8px;border-radius:3px;font-size:11px;display:inline-flex;align-items:center;gap:3px}
 .src-pick{color:#7c5cfa;background:#f5f0ff;padding:2px 8px;border-radius:3px;font-size:11px;display:inline-flex;align-items:center;gap:3px;border:1px solid #e1d3ff}
 
-/* 规则 ID 链接 */
+/* 活动 ID 链接 */
 .rule-link{color:#409eff;cursor:pointer;text-decoration:underline}
 .rule-link:hover{color:#7c5cfa}
+
+/* ===== 表头模块色块分组 =====
+   grp-cond  → 用户条件（黄）
+   grp-cum   → 累充奖励（紫）
+   grp-new   → 新充值赠送（青）
+   *-start / *-end 用于左右描边，让一组视觉上更明确 */
+.tbl thead th.grp-cond{background:#fdf6ec;color:#8c5a08}
+.tbl thead th.grp-cum {background:#f5f0ff;color:#5b3eb8}
+.tbl thead th.grp-new {background:#e6f7ff;color:#0a5694}
+.tbl thead th.grp-cond-start{border-left:2px solid #e6a23c}
+.tbl thead th.grp-cond-end  {border-right:2px solid #e6a23c}
+.tbl thead th.grp-cum-start {border-left:2px solid #7c5cfa}
+.tbl thead th.grp-cum-end   {border-right:2px solid #7c5cfa}
+.tbl thead th.grp-new-start {border-left:2px solid #409eff}
+.tbl thead th.grp-new-end   {border-right:2px solid #409eff}
 
 </style>
 </head>
@@ -311,19 +328,22 @@ a{text-decoration:none;color:inherit}
     <div class="toolbar">
       <div class="toolbar-left">
         <div class="fld">
+          <label>活动状态</label>
+          <select class="select"><option>全部</option><option>已开启</option><option>已关闭</option><option>进行中</option><option>已结束</option></select>
+        </div>
+        <div class="fld">
           <label>适用对象 <span class="new-mark">NEW</span></label>
           <select class="select"><option>全部</option><option>按条件全员</option><option>指定 ID</option></select>
         </div>
         <button class="btn btn-pp">🔍 查询</button>
         <button class="btn btn-d">🔄 重置</button>
         <span style="width:1px;height:20px;background:#e4e7ed;margin:0 4px"></span>
-        <button class="btn btn-pp" onclick="openAdd()">＋ 新增规则</button>
+        <button class="btn btn-pp" onclick="openAdd()">＋ 新增</button>
         <button class="btn btn-d" onclick="switchTabByName('pane-record')">📑 回归奖励记录</button>
       </div>
       <div class="status-tabs">
-        <div class="st-tab active" onclick="switchStatusTab(this,'st-running')"><span class="dot"></span>进行中 <span class="count">7</span> <span class="new-mark">NEW</span></div>
+        <div class="st-tab active" onclick="switchStatusTab(this,'st-running')"><span class="dot"></span>进行中 <span class="count">9</span> <span class="new-mark">NEW</span></div>
         <div class="st-tab" onclick="switchStatusTab(this,'st-ended')">已结束 <span class="count">2</span> <span class="new-mark">NEW</span></div>
-        <div class="st-tab" onclick="switchStatusTab(this,'st-archived')">📦 已归档 <span class="count">3</span> <span class="new-mark">NEW</span></div>
       </div>
     </div>
 
@@ -332,20 +352,20 @@ a{text-decoration:none;color:inherit}
     <table class="tbl">
       <thead>
         <tr>
-          <th style="width:50px">ID</th>
-          <th style="width:90px">状态 <span class="new-mark">NEW</span></th>
-          <th>适用对象 <span class="new-mark">NEW</span></th>
-          <th>会员离线天数</th>
-          <th>会员历史累计充值金额</th>
-          <th>累计总充值次数</th>
-          <th>累计充提差</th>
-          <th>累充固定奖金</th>
-          <th>累充百分比奖金(%)</th>
-          <th>累充活动状态</th>
-          <th>新充值赠送比例(%)</th>
-          <th>新充值赠送上限</th>
-          <th>回归赠送有效期(h)</th>
-          <th>新充值活动状态</th>
+          <th style="width:60px">活动ID</th>
+          <th class="grp-cond grp-cond-start">适用对象 <span class="new-mark">NEW</span></th>
+          <th class="grp-cond">会员离线天数</th>
+          <th class="grp-cond">会员历史累计充值金额</th>
+          <th class="grp-cond">累计总充值次数</th>
+          <th class="grp-cond grp-cond-end">累计充提差</th>
+          <th class="grp-cum grp-cum-start">累充固定奖金</th>
+          <th class="grp-cum">累充百分比奖金(%)</th>
+          <th class="grp-cum">累充赠送上限 <span class="new-mark">NEW</span></th>
+          <th class="grp-cum grp-cum-end">累充活动状态</th>
+          <th class="grp-new grp-new-start">新充值赠送比例(%)</th>
+          <th class="grp-new">新充值赠送上限</th>
+          <th class="grp-new">回归赠送有效期(h)</th>
+          <th class="grp-new grp-new-end">新充值活动状态</th>
           <th>操作人</th>
           <th>操作时间</th>
           <th>创建日期</th>
@@ -355,10 +375,9 @@ a{text-decoration:none;color:inherit}
       <tbody>
         <tr>
           <td>10</td>
-          <td><span class="status-pill running">●进行中</span></td>
           <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
           <td>1</td><td>100</td><td>1</td><td>0</td>
-          <td>1</td><td>1</td>
+          <td>1</td><td>1</td><td style="color:#909399">不限制</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
           <td>10%</td><td>20</td><td>16</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
@@ -370,10 +389,9 @@ a{text-decoration:none;color:inherit}
         </tr>
         <tr>
           <td>11</td>
-          <td><span class="status-pill running">●进行中</span></td>
           <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
           <td>7</td><td>1000</td><td>2</td><td>100</td>
-          <td>10</td><td>1</td>
+          <td>10</td><td>1</td><td>100</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
           <td>10%</td><td>100</td><td>2</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
@@ -385,13 +403,12 @@ a{text-decoration:none;color:inherit}
         </tr>
         <tr>
           <td>21</td>
-          <td><span class="status-pill running">●进行中</span></td>
           <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">156 人</span></div></div></td>
           <td style="color:#909399">不限制</td>
           <td style="color:#909399">不限制</td>
           <td style="color:#909399">不限制</td>
           <td style="color:#909399">不限制</td>
-          <td>50</td><td>5</td>
+          <td>50</td><td>5</td><td>500</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
           <td>10%</td><td>200</td><td>24</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
@@ -404,13 +421,12 @@ a{text-decoration:none;color:inherit}
         </tr>
         <tr>
           <td>22</td>
-          <td><span class="status-pill running">●进行中</span></td>
           <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">48 人</span></div></div></td>
           <td style="color:#909399">不限制</td>
           <td style="color:#909399">不限制</td>
           <td style="color:#909399">不限制</td>
           <td style="color:#909399">不限制</td>
-          <td>100</td><td>0</td>
+          <td>100</td><td>0</td><td style="color:#909399">不限制</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
           <td>15%</td><td>500</td><td>48</td>
           <td><div class="sw" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
@@ -423,10 +439,9 @@ a{text-decoration:none;color:inherit}
         </tr>
         <tr>
           <td>14</td>
-          <td><span class="status-pill running">●进行中</span></td>
           <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
           <td>10</td><td>5000</td><td>3</td><td style="color:#909399">不限制</td>
-          <td>0</td><td>1</td>
+          <td>0</td><td>1</td><td>200</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
           <td>10%</td><td>200</td><td>3</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
@@ -438,10 +453,9 @@ a{text-decoration:none;color:inherit}
         </tr>
         <tr>
           <td>15</td>
-          <td><span class="status-pill running">●进行中</span></td>
           <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
           <td>10</td><td>10000</td><td>5</td><td style="color:#909399">不限制</td>
-          <td>100</td><td>1</td>
+          <td>100</td><td>1</td><td>800</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
           <td>5%</td><td>500</td><td>4</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
@@ -453,10 +467,9 @@ a{text-decoration:none;color:inherit}
         </tr>
         <tr>
           <td>20</td>
-          <td><span class="status-pill running">●进行中</span></td>
           <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
           <td>10</td><td>20000</td><td>2</td><td style="color:#909399">不限制</td>
-          <td>100</td><td>0</td>
+          <td>100</td><td>0</td><td style="color:#909399">不限制</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
           <td>1%</td><td style="color:#909399">不限制</td><td>17</td>
           <td><div class="sw on" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
@@ -466,45 +479,75 @@ a{text-decoration:none;color:inherit}
             <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
           </td>
         </tr>
+        <!-- 全员规则 · 活动状态=已关闭（两开关都关 → 暂停态，可通过"活动状态"筛选定位） -->
+        <tr class="row-paused">
+          <td>17</td>
+          <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
+          <td>3</td><td>500</td><td>1</td><td style="color:#909399">不限制</td>
+          <td>20</td><td>2</td><td>300</td>
+          <td><div class="sw" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
+          <td>8%</td><td>150</td><td>24</td>
+          <td><div class="sw" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
+          <td>luna</td><td>2026-06-01 14:22:08</td><td>2025-11-20 10:45:00</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px" onclick="openEdit('全员')">编辑</button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
+        <tr class="row-paused">
+          <td>13</td>
+          <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
+          <td>14</td><td>3000</td><td>2</td><td style="color:#909399">不限制</td>
+          <td>50</td><td>1</td><td style="color:#909399">不限制</td>
+          <td><div class="sw" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
+          <td>6%</td><td>300</td><td>12</td>
+          <td><div class="sw" onclick="toggleSw(this)"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
+          <td>micheal</td><td>2026-05-18 09:30:15</td><td>2025-08-12 16:20:33</td>
+          <td>
+            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px" onclick="openEdit('全员')">编辑</button>
+            <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
+          </td>
+        </tr>
       </tbody>
     </table>
     </div>
 
-    <!-- ===== 已结束 ===== -->
+    <!-- ===== 已结束（仅指定 ID 规则：发放完成）===== -->
     <div style="overflow-x:auto;display:none" id="st-ended" class="st-pane">
+    <div style="background:#fdf6ec;border-left:3px solid #e6a23c;padding:8px 14px;margin-bottom:10px;font-size:12px;color:#874d00;line-height:1.55">
+      ⏹ <b>已结束 = 仅适用于「指定 ID」规则</b>：判定基于<b>系统发放完成</b>（累充已为名单内 ID 全部结算 + 新充值有效期到期/开关关闭），<u>不依赖用户实际领取</u>。<br>
+      <span style="color:#a8740d">用户的领取状态在「回归奖励领取记录」页查询（按活动 ID + 状态筛选），与规则状态解耦。全员规则不会进入本 Tab；已结束的规则业务上不会恢复，运营手动删除。</span>
+    </div>
     <table class="tbl">
       <thead>
         <tr>
-          <th style="width:50px">ID</th>
-          <th style="width:130px">状态</th>
-          <th>适用对象</th>
-          <th>累充固定奖金</th>
-          <th>累充百分比奖金(%)</th>
-          <th>累充活动状态</th>
-          <th>新充值赠送比例(%)</th>
-          <th>新充值赠送上限</th>
-          <th>回归赠送有效期(h)</th>
-          <th>新充值活动状态</th>
+          <th style="width:60px">活动ID</th>
+          <th class="grp-cond grp-cond-start grp-cond-end">适用对象</th>
+          <th class="grp-cum grp-cum-start">累充固定奖金</th>
+          <th class="grp-cum">累充百分比奖金(%)</th>
+          <th class="grp-cum">累充赠送上限 <span class="new-mark">NEW</span></th>
+          <th class="grp-cum grp-cum-end">累充活动状态</th>
+          <th class="grp-new grp-new-start">新充值赠送比例(%)</th>
+          <th class="grp-new">新充值赠送上限</th>
+          <th class="grp-new">回归赠送有效期(h)</th>
+          <th class="grp-new grp-new-end">新充值活动状态</th>
           <th>结束原因</th>
           <th>结束时间</th>
-          <th>距归档</th>
           <th>操作人</th>
           <th>创建日期</th>
-          <th style="width:240px;min-width:240px">操作</th>
+          <th style="width:200px;min-width:200px">操作</th>
         </tr>
       </thead>
       <tbody>
         <tr class="row-ended">
           <td>19</td>
-          <td><span class="status-pill ended">⏹ 已结束</span></td>
           <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">200 人</span></div></div></td>
-          <td>100</td><td>5</td>
+          <td>100</td><td>5</td><td>500</td>
           <td><div class="sw on disabled"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
           <td>10%</td><td>300</td><td>24</td>
           <td><div class="sw disabled"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
-          <td><span class="tag gray">自然结束</span><br><span style="font-size:10.5px;color:#909399">累充已发完 + 新充值到期</span></td>
+          <td><span class="tag green">发放完成</span><br><span style="font-size:10.5px;color:#909399">累充已全发 + 新充值到期</span></td>
           <td>2026-06-05 11:24:08</td>
-          <td><span class="tag orange">26 天后</span></td>
           <td>luna</td><td>2026-06-04 10:12:00</td>
           <td>
             <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
@@ -514,91 +557,18 @@ a{text-decoration:none;color:inherit}
         </tr>
         <tr class="row-ended">
           <td>18</td>
-          <td><span class="status-pill ended">⏹ 已结束</span></td>
           <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">85 人</span></div></div></td>
-          <td>200</td><td>3</td>
+          <td>200</td><td>3</td><td style="color:#909399">不限制</td>
           <td><div class="sw disabled"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
           <td>5%</td><td>500</td><td>72</td>
           <td><div class="sw disabled"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
-          <td><span class="tag orange">运营手动</span><br><span style="font-size:10.5px;color:#909399">手动关停两个开关</span></td>
+          <td><span class="tag green">发放完成</span><br><span style="font-size:10.5px;color:#909399">累充已全发 + 新充值开关关</span></td>
           <td>2026-05-28 16:08:33</td>
-          <td><span class="tag orange">18 天后</span></td>
           <td>micheal</td><td>2026-05-20 09:30:11</td>
           <td>
             <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
             <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openCopy()">📄 复制</button>
             <button class="btn btn-danger" style="padding:0 8px;height:24px;font-size:11.5px">删除</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-
-    <!-- ===== 已归档 ===== -->
-    <div style="overflow-x:auto;display:none" id="st-archived" class="st-pane">
-    <div style="background:#f4f4f5;border-left:3px solid #c0c4cc;padding:8px 14px;margin-bottom:10px;font-size:12px;color:#606266;line-height:1.55">
-      📦 <b>已归档规则</b>：结束满 30 天的规则会自动归档，配置与名单仅可<b>查看 / 复制 / 导出</b>。归档满 <b>180 天</b> 后软删除（数据保留供财务审计）。
-    </div>
-    <table class="tbl">
-      <thead>
-        <tr>
-          <th style="width:50px">ID</th>
-          <th style="width:110px">状态</th>
-          <th>适用对象</th>
-          <th>累充奖励</th>
-          <th>新充值返还</th>
-          <th>结束时间</th>
-          <th>归档时间</th>
-          <th>距软删</th>
-          <th>操作人</th>
-          <th>创建日期</th>
-          <th style="width:180px;min-width:180px">操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="row-archived">
-          <td>16</td>
-          <td><span class="status-pill archived">📦 已归档</span></td>
-          <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">320 人</span></div></div></td>
-          <td>固定 100 + 3%</td>
-          <td>10% / 上限 200 / 24h</td>
-          <td>2026-04-12 10:00:00</td>
-          <td>2026-05-12 03:00:00</td>
-          <td><span class="tag gray">152 天后</span></td>
-          <td>luna</td><td>2026-04-08 09:00:00</td>
-          <td>
-            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
-            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openCopy()">📄 复制</button>
-          </td>
-        </tr>
-        <tr class="row-archived">
-          <td>12</td>
-          <td><span class="status-pill archived">📦 已归档</span></td>
-          <td><div class="scope-cell"><div class="scope-name pick">指定 ID</div><div class="scope-num"><span class="num-link" onclick="openDrawer()">68 人</span></div></div></td>
-          <td>固定 500 + 1%</td>
-          <td>15% / 上限 1000 / 48h</td>
-          <td>2026-03-20 12:00:00</td>
-          <td>2026-04-19 03:00:00</td>
-          <td><span class="tag gray">115 天后</span></td>
-          <td>micheal</td><td>2026-03-15 14:33:21</td>
-          <td>
-            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
-            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openCopy()">📄 复制</button>
-          </td>
-        </tr>
-        <tr class="row-archived">
-          <td>9</td>
-          <td><span class="status-pill archived">📦 已归档</span></td>
-          <td><div class="scope-cell"><div class="scope-name">全员</div></div></td>
-          <td>固定 50 + 2%</td>
-          <td>8% / 上限 100 / 12h</td>
-          <td>2026-02-15 18:30:00</td>
-          <td>2026-03-17 03:00:00</td>
-          <td><span class="tag red">7 天后</span></td>
-          <td>luna</td><td>2026-01-10 11:00:00</td>
-          <td>
-            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px">👁 查看</button>
-            <button class="btn btn-d" style="padding:0 8px;height:24px;font-size:11.5px;color:#7c5cfa;border-color:#c3b8f0" onclick="openCopy()">📄 复制</button>
           </td>
         </tr>
       </tbody>
@@ -645,12 +615,12 @@ a{text-decoration:none;color:inherit}
         <select class="select"><option>请选择</option><option>回归奖励</option><option>新充值赠送</option></select>
       </div>
       <div class="fld">
-        <label>来源类型 <span class="new-mark">NEW</span></label>
-        <select class="select"><option>全部</option><option>系统自动（条件匹配）</option><option>指定 ID</option></select>
+        <label>适用对象 <span class="new-mark">NEW</span></label>
+        <select class="select"><option>全部</option><option>按条件全员</option><option>指定 ID</option></select>
       </div>
       <div class="fld">
-        <label>规则ID <span class="new-mark">NEW</span></label>
-        <input class="input" placeholder="规则ID" style="min-width:120px">
+        <label>活动ID <span class="new-mark">NEW</span></label>
+        <input class="input" placeholder="活动ID" style="min-width:120px">
       </div>
       <div class="fld">
         <label>领取时间</label>
@@ -670,8 +640,8 @@ a{text-decoration:none;color:inherit}
         <tr>
           <th>序号</th>
           <th>会员ID</th>
-          <th>来源类型 <span class="new-mark">NEW</span></th>
-          <th>规则ID <span class="new-mark">NEW</span></th>
+          <th>适用对象 <span class="new-mark">NEW</span></th>
+          <th>活动ID <span class="new-mark">NEW</span></th>
           <th>充值订单号</th>
           <th>奖励类型</th>
           <th>状态</th>
@@ -940,6 +910,13 @@ a{text-decoration:none;color:inherit}
           <div class="ph-hint">输入值1，即1%，当会员历史总充值金额100元能获得1元回归奖励。</div>
         </div>
       </div>
+      <div class="fm-row">
+        <div class="lb">累充赠送上限 <span class="new-mark">NEW</span></div>
+        <div class="ctl">
+          <input class="ctl-input" placeholder="选填，不填时不限制（累充百分比奖金的封顶值）">
+          <div class="ph-hint">仅对「累充百分比奖金」生效。例：上限=500 时，无论会员历史累计充值多少，百分比部分最多发放 500。</div>
+        </div>
+      </div>
 
       <!-- 新充值赠送 -->
       <div class="sec-divider">新充值赠送配置 <span class="badge">新充值活动状态=开 时生效</span></div>
@@ -974,14 +951,7 @@ a{text-decoration:none;color:inherit}
               <input type="checkbox" checked style="accent-color:#7c5cfa;width:14px;height:14px;cursor:pointer">
               累充全部发完 <b>AND</b> 新充值有效期到期 → 自动置为「已结束」
             </label>
-            <div class="ph-info">系统每小时扫描，符合条件即自动结束。结束后开关变灰，名单只读。</div>
-          </div>
-        </div>
-        <div class="fm-row">
-          <div class="lb">自动归档天数</div>
-          <div class="ctl">
-            <input class="ctl-input" value="30" style="max-width:120px">
-            <div class="ph-info">结束 N 天后自动归档（默认 <b>30</b>），归档后从默认列表隐藏，归档满 <b>180</b> 天后软删除。</div>
+            <div class="ph-info">系统每小时扫描，符合条件即自动结束。结束后开关变灰，名单只读。业务上不会恢复，如需新场景请直接复制为新规则；运营可手动删除。</div>
           </div>
         </div>
       </div>
@@ -1049,15 +1019,17 @@ a{text-decoration:none;color:inherit}
 
     <h3>1.1 搜索框</h3>
     <ul>
-      <li>适用对象 下拉筛选</li>
-      <li>状态切换 Tab：进行中 / 已结束 / 已归档</li>
+      <li>活动状态 下拉筛选（沿用 V1 现有交互：全部 / 已开启 / 已关闭 / 进行中 / 已结束）</li>
+      <li>适用对象 下拉筛选（全部 / 按条件全员 / 指定 ID）</li>
+      <li>状态切换 Tab：进行中 / 已结束（已结束仅出现指定 ID 规则，无自动归档/软删除）</li>
     </ul>
 
     <h3>1.2 列表新增列</h3>
     <ul>
+      <li>列表中"ID"列统一改名为「<b>活动ID</b>」</li>
       <li><b>状态</b>、<b>适用对象</b>（指定 ID 行下方显示"N 人"链接进入名单）</li>
-      <li><b>已结束</b> 额外列：结束原因（自然结束 / 运营手动）、结束时间、距归档倒计时</li>
-      <li><b>已归档</b> 额外列：结束时间、归档时间、距软删倒计时</li>
+      <li><b>累充赠送上限</b>（百分比奖金的封顶值，非必填，留空 = 不限制）</li>
+      <li><b>已结束</b> 额外列：结束原因（系统自动「发放完成」/ 运营手动）、结束时间</li>
     </ul>
 
 
@@ -1104,21 +1076,36 @@ a{text-decoration:none;color:inherit}
       <li>导入校验：✅ 有效 / ⚠ 重复（自动去重）/ ❌ 不存在 / 🚫 已在其他规则（弹窗确认覆盖）</li>
     </ul>
 
-    <h3>2.6 规则生命周期</h3>
+    <h3>2.6 规则生命周期（按"适用对象"分两套状态机）</h3>
+
+    <div class="callout">
+      <b>两类规则用不同的状态机</b>。全员规则永远在跑（新会员持续产生，无"消费完"概念），所以没有"已结束"；指定 ID 规则是一次性精准营销，有明确的"发完"时间点。<br>
+      <b>不设自动归档与软删除</b>：已结束的规则业务上不会再恢复，复用场景一律新建规则；如需清理由运营手动删除。
+    </div>
+
+    <p><b>① 全员规则：仅一种生命周期状态 = 进行中</b></p>
+    <ul>
+      <li>无"已结束"概念，<b>不参与自动归档/软删除流程</b></li>
+      <li>开关层面的"开启 / 关闭"通过列表顶部 <b>「活动状态」筛选器</b> 定位（沿用 V1 现有交互），不另开 Tab</li>
+      <li>两个开关都关闭 = 暂停生效，但规则仍在「进行中」Tab，运营随时可重启</li>
+      <li>真要废弃 → 运营手动点「删除」（带二次确认）</li>
+    </ul>
+
+    <p style="margin-top:14px"><b>② 指定 ID 规则：进行中 → 已结束（终态，无归档/软删除）</b></p>
     <table>
       <tr><th>流转</th><th>触发条件</th></tr>
-      <tr><td>进行中 → 已结束</td><td>累充全发完 AND（新充值有效期到期 OR 开关关闭），每小时定时扫描</td></tr>
-      <tr><td>已结束 → 已归档</td><td>距实际结束时间满 <code>AutoArchiveDays</code>（默认 <b>30</b> 天）</td></tr>
-      <tr><td>已归档 → 软删除</td><td>距归档时间满 <b>180</b> 天，UI 不可见数据保留</td></tr>
+      <tr><td>进行中 → 已结束</td><td><b>发放完成判定</b>（系统层面）：累充已为名单内所有应发 ID 完成结算（含被覆盖、异常 ID）AND（新充值有效期到期 OR 新充值开关关闭 OR 累计达上限），每小时扫描</td></tr>
+      <tr><td>已结束 → 删除</td><td>运营手动删除（已发记录保留，规则配置进入历史日志）</td></tr>
     </table>
     <ul>
-      <li>已结束：开关 disabled，名单只读</li>
-      <li>已归档：完全只读，不可删除</li>
+      <li><b>不依赖用户实际领取</b>：领取与否在「回归奖励记录」页按 活动 ID + 状态 筛选查询，与规则状态解耦</li>
+      <li>已结束：开关 disabled，名单只读，业务上不会恢复</li>
+      <li>不会重启已结束的规则，新场景请使用「复制」生成新规则</li>
     </ul>
 
     <h3>2.7 复制规则</h3>
     <ul>
-      <li>已结束 / 已归档 规则 → 「复制」生成新规则，预填配置</li>
+      <li>已结束规则 → 「复制」生成新规则，预填配置</li>
       <li>ID 名单选项：不复制 / 全部复制 / 仅复制未触发累充的</li>
       <li>新规则记录 <code>SourceRuleId</code> 字段</li>
     </ul>
@@ -1127,9 +1114,9 @@ a{text-decoration:none;color:inherit}
     <!-- ============ 3 回归奖励记录 ============ -->
     <h2 id="sec-3">3、回归奖励记录</h2>
     <ul>
-      <li><b>筛选新增</b>：来源类型（系统自动 / 指定 ID）、规则 ID</li>
-      <li><b>列新增</b>：来源类型、规则 ID（可点击跳到规则）</li>
-      <li><b>字段</b>：每条记录新增 <code>RuleId</code> + <code>SourceType</code></li>
+      <li><b>筛选新增</b>：适用对象（按条件全员 / 指定 ID）、活动 ID</li>
+      <li><b>列新增</b>：适用对象、活动 ID（可点击跳到规则）</li>
+      <li><b>字段</b>：每条记录新增 <code>RuleId</code>（活动 ID） + <code>SourceType</code>（适用对象）</li>
       <li>删除规则后已发记录保留（财务一致性）</li>
     </ul>
 
@@ -1139,14 +1126,14 @@ a{text-decoration:none;color:inherit}
 
     <table>
       <tr><th>操作</th><th>记录字段</th></tr>
-      <tr><td>新增规则</td><td>操作人 / 时间 / 规则 ID / 适用对象 / 条件 / 奖励 / 名单数量</td></tr>
-      <tr><td>编辑规则</td><td>操作人 / 时间 / 规则 ID / 改动字段 前值 → 新值</td></tr>
-      <tr><td>删除规则</td><td>操作人 / 时间 / 规则 ID / 规则快照</td></tr>
-      <tr><td>导出名单</td><td>操作人 / 时间 / 规则 ID / 导出条数</td></tr>
-      <tr><td>追加 / 移除 ID</td><td>操作人 / 时间 / 规则 ID / ID 列表</td></tr>
-      <tr><td>开关变更</td><td>操作人 / 时间 / 规则 ID / 类型 / 开 ↔ 关</td></tr>
-      <tr><td>复制规则</td><td>操作人 / 时间 / 源规则 ID / 新规则 ID</td></tr>
-      <tr><td>自动结束 / 归档</td><td>系统 / 时间 / 规则 ID / 原因</td></tr>
+      <tr><td>新增规则</td><td>操作人 / 时间 / 活动 ID / 适用对象 / 条件 / 奖励 / 名单数量</td></tr>
+      <tr><td>编辑规则</td><td>操作人 / 时间 / 活动 ID / 改动字段 前值 → 新值</td></tr>
+      <tr><td>删除规则</td><td>操作人 / 时间 / 活动 ID / 规则快照</td></tr>
+      <tr><td>导出名单</td><td>操作人 / 时间 / 活动 ID / 导出条数</td></tr>
+      <tr><td>追加 / 移除 ID</td><td>操作人 / 时间 / 活动 ID / ID 列表</td></tr>
+      <tr><td>开关变更</td><td>操作人 / 时间 / 活动 ID / 类型 / 开 ↔ 关</td></tr>
+      <tr><td>复制规则</td><td>操作人 / 时间 / 源活动 ID / 新活动 ID</td></tr>
+      <tr><td>自动结束</td><td>系统 / 时间 / 活动 ID / 原因（发放完成 / 新充值到期 / 开关关闭）</td></tr>
       <tr><td>冲突覆盖</td><td>操作人 / 时间 / ID 列表 / 原规则 / 新规则</td></tr>
     </table>
 
