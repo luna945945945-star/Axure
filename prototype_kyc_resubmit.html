@@ -312,6 +312,47 @@
   <div class="page-title">短信认证流程优化 · 业务规则总览</div>
   <div class="page-subtitle">解决三个核心痛点：跳过短信认证文案误导 + 无法补充短信认证 + 同订单重复提工单</div>
 
+  <div class="panel" style="margin-bottom:18px;background:linear-gradient(135deg,#fff7ed,#ffedd5);border-color:#fb923c;border-left:4px solid #ea580c">
+    <h2 style="color:#7c2d12">⚠️ 关键架构区别：两个提单入口能力不同</h2>
+    <table style="margin-top:12px">
+      <thead>
+        <tr><th>对比项</th><th style="background:#fef3c7;color:#7c2d12">入口 1 · 彩票平台</th><th style="background:#dbeafe;color:#1e3a8a">入口 2 · 客服中心</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>所在页面</strong></td>
+          <td>充值记录 / 提现记录</td>
+          <td>客服中心 → Deposit/Withdrawal not received</td>
+        </tr>
+        <tr>
+          <td><strong>归属系统</strong></td>
+          <td>彩票主站</td>
+          <td>工单系统</td>
+        </tr>
+        <tr>
+          <td><strong>能获取的信息</strong></td>
+          <td>仅"是否有工单"</td>
+          <td>完整工单状态 + 短信认证状态</td>
+        </tr>
+        <tr>
+          <td><strong>按钮逻辑</strong></td>
+          <td><strong style="color:#7c2d12">2 态简化版</strong></td>
+          <td><strong style="color:#1e3a8a">4 态完整版</strong></td>
+        </tr>
+        <tr>
+          <td><strong>无工单时</strong></td>
+          <td>提交存款凭证（红色，可点）→ 跳转工单系统</td>
+          <td>提交存款凭证（红色）</td>
+        </tr>
+        <tr>
+          <td><strong>有工单时</strong></td>
+          <td>按钮置灰 + 下方提示"📋 查看 N 张历史工单"</td>
+          <td>按短信认证状态分 3 种（待完成 / 已通过 / 终态）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <div class="panel" style="margin-bottom:18px;background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#3b82f6;border-left:4px solid #2563eb">
     <h2 style="color:#1e3a8a">🎯 核心业务规则（三句话）</h2>
     <ol style="color:#1e3a8a;line-height:2;padding-left:22px;font-size:14px">
@@ -479,28 +520,42 @@
 
 <!-- ════════════ 页 2：充值/提现记录页按钮状态机（5 态） ════════════ -->
 <div id="page-change2" class="page">
-  <div class="page-title">充值/提现记录页 · 按钮状态机（4 种状态）</div>
-  <div class="page-subtitle">同一个按钮根据"订单通道 + 工单状态 + 短信认证状态"智能切换 4 种形态</div>
+  <div class="page-title">订单页按钮状态机 · 双入口设计</div>
+  <div class="page-subtitle">两个入口能力不同：彩票平台只能 2 态，工单系统能 4 态</div>
 
   <div class="note note-warn" style="margin-bottom:20px">
-    <strong>💡 业务设计思路</strong><br>
-    系统会自动核对玩家的银行流水（每 2 分钟一次）：
+    <strong>💡 双入口架构</strong><br>
     <ul style="margin-top:8px;margin-left:18px;color:#7c2d12">
-      <li>核对到订单 → 显示「短信认证已通过」</li>
-      <li>未核对到 → 显示「短信认证待完成」，玩家可主动点「补充短信认证」</li>
-      <li>玩家文案<strong>不出现 "KYC"</strong>字眼（沿用现有 H5 用语风格），客服后台仍使用 KYC 术语</li>
+      <li><strong>入口 1（彩票平台）</strong>：仅能拿到"有/无工单"，按钮简化为 2 态（无工单可点 / 有工单置灰）</li>
+      <li><strong>入口 2（工单系统）</strong>：拿到完整工单 + 短信认证状态，按钮按 4 态智能切换</li>
+      <li>切换下方"提单入口"按钮可看两套不同的设计</li>
     </ul>
   </div>
 
   <div class="split">
     <div>
+      <!-- 提单入口切换（顶层） -->
+      <div class="demo-toggle" style="background:linear-gradient(135deg,#fff7ed,#ffedd5);border-color:#fb923c">
+        <span class="lbl" style="color:#7c2d12;font-weight:600">提单入口：</span>
+        <div class="demo-btn active" onclick="switchEntry('lottery',this)">🎰 入口 1 · 彩票平台（2 态）</div>
+        <div class="demo-btn" onclick="switchEntry('workorder',this)">🎫 入口 2 · 工单系统（4 态）</div>
+      </div>
+
       <div class="demo-toggle">
         <span class="lbl">通道类型：</span>
         <div class="demo-btn active" onclick="switchChannel('upi',this)">UPI（支持短信认证）</div>
         <div class="demo-btn" onclick="switchChannel('bankcard',this)">BANKCARD（不支持短信认证）</div>
       </div>
 
-      <div class="demo-toggle" id="upiStates">
+      <!-- 入口 1 · 彩票平台（2 态） -->
+      <div class="demo-toggle" id="lotteryStates">
+        <span class="lbl">订单状态：</span>
+        <div class="demo-btn active" onclick="switchBtnState('lottery1',this)">无工单</div>
+        <div class="demo-btn" onclick="switchBtnState('lottery2',this)">已有工单</div>
+      </div>
+
+      <!-- 入口 2 · 工单系统（4 态） · UPI 通道 -->
+      <div class="demo-toggle" id="upiStates" style="display:none">
         <span class="lbl">订单状态：</span>
         <div class="demo-btn active" onclick="switchBtnState('a',this)">无工单（首次）</div>
         <div class="demo-btn" onclick="switchBtnState('c',this)">短信认证待完成</div>
@@ -508,6 +563,7 @@
         <div class="demo-btn" onclick="switchBtnState('e',this)">工单已驳回 / 已处理</div>
       </div>
 
+      <!-- 入口 2 · 工单系统（4 态） · 非 KYC 通道 -->
       <div class="demo-toggle" id="nonKycStates" style="display:none">
         <span class="lbl">订单状态：</span>
         <div class="demo-btn active" onclick="switchBtnState('a2',this)">无工单（首次）</div>
@@ -534,10 +590,28 @@
               <div class="row"><span class="lbl">时间</span><span class="val">2026-06-05 11:49:07</span></div>
               <div class="row"><span class="lbl">订单号</span><span class="val" style="font-size:11px">RC20260605114907702001012a 📋</span></div>
 
-              <!-- A: 无工单（UPI） -->
-              <div class="btnState" id="btnStateA">
+              <!-- ━━━━━ 入口 1 · 彩票平台（2 态） ━━━━━ -->
+              <!-- lottery1: 无工单 -->
+              <div class="btnState" id="btnStateLottery1">
                 <button class="btn-action btn-red">提交存款凭证</button>
-                <div class="btn-hint">UPI 订单首次提交 · 后续跳 Select Bank 页</div>
+                <div class="btn-hint">🎰 来自彩票平台 · 点击跳转工单系统首次提交</div>
+              </div>
+
+              <!-- lottery2: 已有工单 -->
+              <div class="btnState" id="btnStateLottery2" style="display:none">
+                <button class="btn-action btn-gray" disabled>提交存款凭证</button>
+                <div class="btn-hint" style="margin-top:8px">
+                  <span class="status-chip" style="background:#e3f2fd;color:#1565c0">工单进行中</span>
+                  <a style="color:#2080f0;cursor:pointer;text-decoration:underline;margin-left:8px">📋 查看 1 张历史工单 ›</a>
+                </div>
+                <div class="btn-hint" style="margin-top:6px;font-size:11px;color:#999">🎰 彩票平台仅能感知"有/无工单"，无法显示更细状态</div>
+              </div>
+
+              <!-- ━━━━━ 入口 2 · 工单系统（4 态） ━━━━━ -->
+              <!-- A: 无工单（UPI） -->
+              <div class="btnState" id="btnStateA" style="display:none">
+                <button class="btn-action btn-red">提交存款凭证</button>
+                <div class="btn-hint">🎫 工单系统 · UPI 订单首次提交 · 后续跳 Select Bank 页</div>
               </div>
 
               <!-- C: 短信认证待完成 → 完成短信认证 -->
@@ -590,12 +664,28 @@
     </div>
 
     <div class="panel">
-      <h2>4 种按钮状态 <span class="badge badge-new">业务规则</span></h2>
-
+      <h2>入口 1 · 彩票平台（2 态）<span class="badge" style="background:#ea580c">仅基础信息</span></h2>
       <table>
-        <thead>
-          <tr><th>什么情况下出现</th><th>按钮表现</th></tr>
-        </thead>
+        <thead><tr><th>什么情况下出现</th><th>按钮表现</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>无工单</strong><br><span style="font-size:11.5px;color:#999">该订单未提交过工单</span></td>
+            <td><span style="color:#ff6b6b;font-weight:600">提交存款凭证</span> 红色（可点）<br><span style="font-size:11px;color:#999">点击跳转工单系统</span></td>
+          </tr>
+          <tr>
+            <td><strong>已有工单</strong><br><span style="font-size:11.5px;color:#999">该订单已经提交过工单（无论什么状态）</span></td>
+            <td><span style="color:#999;font-weight:600">提交存款凭证</span> 灰色（不可点）<br><span style="font-size:11px;color:#2080f0">+ "📋 查看 N 张历史工单"链接</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note note-warn" style="margin-top:12px;font-size:12.5px">
+        <strong>⚠️ 为什么彩票平台只能 2 态？</strong><br>
+        彩票主站只能调"是否有工单"接口（不暴露工单状态、短信认证等敏感信息）。所以彩票页只能<strong>简单引导</strong>到"查看历史"或"新建工单"，不做精细状态切换。
+      </div>
+
+      <h2 style="margin-top:24px">入口 2 · 工单系统（4 态）<span class="badge badge-new">完整状态</span></h2>
+      <table>
+        <thead><tr><th>什么情况下出现</th><th>按钮表现</th></tr></thead>
         <tbody>
           <tr>
             <td><strong>无工单（首次）</strong><br><span style="font-size:11.5px;color:#999">该订单未提交过工单</span></td>
@@ -618,7 +708,7 @@
 
       <h3 style="margin-top:24px">关键业务规则</h3>
       <ul>
-        <li><strong>BANKCARD / USDT 等通道</strong>永远不显示「完成短信认证」按钮（这类通道不需要短信认证）</li>
+        <li><strong>BANKCARD / USDT 等通道</strong>永远不显示「补充短信认证」按钮（这类通道不需要）</li>
         <li>同一订单有多张工单时<span class="hl">关联最新一笔</span>展示</li>
         <li>「工单已驳回 / 已处理」下点击"提交存款凭证"会创建<strong>新工单</strong>，原历史工单仍保留可查</li>
         <li>单工单每日补提次数限制：<span class="hl">≤ 5 次</span>（防止恶意刷 OTP）</li>
@@ -626,8 +716,8 @@
 
       <div class="note">
         <strong>🎯 试试切换</strong><br>
-        ① 上方切「通道类型」（UPI vs BANKCARD）<br>
-        ② 切「订单状态」看 4 种按钮表现<br>
+        ① 顶部切「提单入口」看两套设计差异<br>
+        ② 切「通道类型」「订单状态」看更多场景<br>
         ③ 点击「补充短信认证」会跳到完整流程演示 Tab
       </div>
     </div>
@@ -772,8 +862,8 @@
 
 <!-- ════════════ 页 4：客户端提交完整流程树 ════════════ -->
 <div id="page-flowchart" class="page">
-  <div class="page-title">客户端提交工单 · 完整流程树</div>
-  <div class="page-subtitle">从玩家进入记录页 → 提交工单 → 系统核对短信认证的完整树状流程图（含本期改动标注）</div>
+  <div class="page-title">客户端提交工单 · 完整流程树（双入口架构）</div>
+  <div class="page-subtitle">玩家有两种提单入口：彩票平台（2 态）和客服中心（4 态），两路汇合到同一个提交流程</div>
 
   <!-- 图例 -->
   <div class="tree-legend">
@@ -792,21 +882,71 @@
     <div class="tree-row">
       <div class="tree-box actor">📱 玩家</div>
     </div>
-    <div class="tree-row"><div class="tree-arrow vertical"><span class="tree-arrow-label">进入充值/提现记录页</span></div></div>
+    <div class="tree-row"><div class="tree-arrow vertical"><span class="tree-arrow-label">充值/提现失败</span></div></div>
 
-    <!-- 进入记录页 -->
+    <!-- 入口分支：彩票平台 vs 客服中心 -->
     <div class="tree-row">
-      <div class="tree-box system">
-        <div class="tree-title">充值 / 提现记录页</div>
-        <div class="tree-subtitle">系统读取订单列表 + 工单关联状态</div>
+      <div class="tree-decision">⚙️ 玩家从哪个入口提单？</div>
+    </div>
+
+    <div class="tree-branches" style="margin-top:12px">
+      <div class="branches-row" style="gap:80px">
+
+        <!-- 入口 1 · 彩票平台 -->
+        <div class="tree-col" style="border:2px dashed #fb923c;border-radius:12px;padding:18px 14px;background:#fff7ed">
+          <span class="path-label" style="background:#fff3c7;color:#7c2d12;border-color:#fb923c">🎰 入口 1 · 彩票平台</span>
+
+          <div class="tree-box" style="background:#fff;border-color:#fb923c">
+            <div class="tree-title">充值 / 提现记录页</div>
+            <div class="tree-subtitle">彩票主站 · 仅能感知"有/无工单"</div>
+          </div>
+          <div class="tree-arrow vertical"></div>
+
+          <div class="tree-decision" style="background:#fef9c3;width:200px;height:60px">仅 2 种情况</div>
+
+          <div class="tree-branches" style="margin-top:8px">
+            <div class="branches-row" style="gap:14px">
+              <div class="tree-col">
+                <span class="path-label">无工单</span>
+                <div class="tree-box user-action">
+                  <div class="tree-title">提交存款凭证（红）</div>
+                  <div class="tree-subtitle">点击跳转工单系统</div>
+                </div>
+              </div>
+              <div class="tree-col">
+                <span class="path-label new">已有工单 🆕</span>
+                <div class="tree-box new-feat">
+                  <div class="tree-title">按钮置灰</div>
+                  <div class="tree-subtitle">+ "查看 N 张历史工单"</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 入口 2 · 客服中心 -->
+        <div class="tree-col" style="border:2px dashed #3b82f6;border-radius:12px;padding:18px 14px;background:#eff6ff">
+          <span class="path-label" style="background:#dbeafe;color:#1e3a8a;border-color:#3b82f6">🎫 入口 2 · 客服中心</span>
+
+          <div class="tree-box" style="background:#fff;border-color:#3b82f6">
+            <div class="tree-title">Self Service Center</div>
+            <div class="tree-subtitle">点击 Deposit/Withdrawal not received</div>
+          </div>
+          <div class="tree-arrow vertical"></div>
+
+          <div class="tree-box system" style="border-color:#3b82f6">
+            <div class="tree-title">工单系统订单列表</div>
+            <div class="tree-subtitle">视觉与彩票页一致<br>但能拿到完整状态</div>
+          </div>
+          <div class="tree-arrow vertical"></div>
+
+          <div class="tree-decision" style="width:200px;height:60px">4 种情况</div>
+        </div>
+
       </div>
     </div>
-    <div class="tree-row"><div class="tree-arrow vertical"></div></div>
 
-    <!-- 决策：按钮状态判断 -->
-    <div class="tree-row">
-      <div class="tree-decision">⚙️ 按钮状态机判断（4 种情况）</div>
-    </div>
+    <div class="tree-row" style="margin-top:24px"><div class="tree-arrow vertical"><span class="tree-arrow-label" style="font-size:11px">↓ 入口 2 继续展开 4 种情况 ↓</span></div></div>
 
     <!-- 4 分支 -->
     <div class="tree-branches">
@@ -1005,11 +1145,12 @@
     <table>
       <thead><tr><th>位置</th><th>业务规则</th></tr></thead>
       <tbody>
-        <tr><td>顶部"按钮状态机"节点</td><td>同一订单根据"工单 / 短信认证"状态展示 4 种按钮，避免误操作</td></tr>
-        <tr><td>分支 A → 「选择银行」页</td><td>找不到银行时，可点底部「跳过短信认证」按钮（带警告）</td></tr>
-        <tr><td>分支 A → BANKCARD 路径</td><td>非 UPI 通道订单不进入「选择银行」页，直接提交</td></tr>
-        <tr style="background:#f0fdf4"><td>分支「短信认证待完成」🆕</td><td>「选择银行」页底部<strong>不显示「我的银行不在列表」按钮</strong>，必须选银行或退出</td></tr>
-        <tr style="background:#f0fdf4"><td>分支「工单已驳回 / 已处理」🆕</td><td>工单进入终态后允许重新提交，并保留历史工单链接</td></tr>
+        <tr style="background:#fff7ed"><td><strong>入口 1（彩票平台）路径</strong></td><td>彩票主站仅能拿到"是否有工单"信息，按钮简化为 2 态（无工单可点 / 有工单置灰+查看历史）</td></tr>
+        <tr style="background:#eff6ff"><td><strong>入口 2（客服中心）路径</strong></td><td>工单系统能拿到完整状态，按钮分 4 种情况智能切换（无工单 / 待完成 / 已通过 / 终态）</td></tr>
+        <tr><td>入口 2 → 分支 A → 「选择银行」页</td><td>找不到银行时，可点底部「跳过短信认证」按钮（带警告）</td></tr>
+        <tr><td>入口 2 → 分支 A → BANKCARD 路径</td><td>非 UPI 通道订单不进入「选择银行」页，直接提交</td></tr>
+        <tr style="background:#f0fdf4"><td>入口 2 → 分支「短信认证待完成」🆕</td><td>「选择银行」页底部<strong>不显示「我的银行不在列表」按钮</strong>，必须选银行或退出</td></tr>
+        <tr style="background:#f0fdf4"><td>入口 2 → 分支「工单已驳回 / 已处理」🆕</td><td>工单进入终态后允许重新提交，并保留历史工单链接</td></tr>
       </tbody>
     </table>
   </div>
@@ -1131,11 +1272,34 @@ function switchBank(state, el){
   if(el) el.classList.add('active');
 }
 
+let currentEntry = 'lottery'; // 'lottery' 或 'workorder'
+
+function switchEntry(entry, el){
+  currentEntry = entry;
+  const isLottery = entry === 'lottery';
+  document.getElementById('lotteryStates').style.display = isLottery ? 'flex' : 'none';
+  // 切到工单系统时，根据当前通道显示对应的 toggle
+  if(isLottery){
+    document.getElementById('upiStates').style.display='none';
+    document.getElementById('nonKycStates').style.display='none';
+    switchBtnState('lottery1', document.querySelector('#lotteryStates .demo-btn'));
+  } else {
+    // 工单系统：默认 UPI 通道 + A 态
+    document.getElementById('upiStates').style.display='flex';
+    switchBtnState('a', document.querySelector('#upiStates .demo-btn'));
+  }
+  // 更新 entry toggle 的 active
+  document.querySelectorAll('#page-change2 .demo-toggle:first-of-type .demo-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
 function switchChannel(channel, el){
+  // 仅在"入口 2 · 工单系统"模式下生效
+  if(currentEntry !== 'workorder') return;
   const isUpi = channel==='upi';
   document.getElementById('upiStates').style.display = isUpi ? 'flex' : 'none';
   document.getElementById('nonKycStates').style.display = isUpi ? 'none' : 'flex';
-  document.querySelectorAll('#page-change2 .demo-toggle:first-of-type .demo-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#page-change2 .demo-toggle')[1].querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('active'));
   if(el) el.classList.add('active');
 
   // 更新通道标签
@@ -1158,12 +1322,12 @@ function switchChannel(channel, el){
 
 function switchBtnState(state, el){
   // 隐藏所有按钮状态
-  ['A','C','D','E','A2','D2','E2'].forEach(s=>{
+  ['Lottery1','Lottery2','A','C','D','E','A2','D2','E2'].forEach(s=>{
     const node = document.getElementById('btnState'+s);
     if(node) node.style.display='none';
   });
   // 映射到对应大写 ID
-  const map = {a:'A', c:'C', d:'D', e:'E', a2:'A2', d2:'D2', e2:'E2'};
+  const map = {a:'A', c:'C', d:'D', e:'E', a2:'A2', d2:'D2', e2:'E2', lottery1:'Lottery1', lottery2:'Lottery2'};
   const target = document.getElementById('btnState'+(map[state]||state));
   if(target) target.style.display='block';
 
