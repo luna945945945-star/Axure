@@ -80,6 +80,23 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 .tbl .col-l{text-align:left}
 .tbl .code-col{color:#222;font-weight:500}
 .tbl .new-tag{background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700;margin-left:4px}
+.q-tip{position:relative;display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:#e4e7ed;color:#666;border-radius:50%;font-size:10px;font-weight:700;margin-left:4px;cursor:help;vertical-align:middle;font-family:Arial,sans-serif}
+.q-tip:hover{background:#7c4dff;color:#fff}
+.q-tip::after{content:attr(data-tip);position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#303133;color:#fff;padding:8px 12px;border-radius:5px;font-size:12px;font-weight:400;line-height:1.6;white-space:normal;width:280px;text-align:left;letter-spacing:.2px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.q-tip::before{content:'';position:absolute;top:calc(100% + 2px);left:50%;transform:translateX(-50%);border:6px solid transparent;border-bottom-color:#303133;opacity:0;pointer-events:none;transition:opacity .2s;z-index:201}
+.q-tip:hover::after,.q-tip:hover::before{opacity:1}
+
+/* 模板列表 · 行内开关 + 下拉 */
+.tpl-sw{display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none}
+.tpl-sw-track{position:relative;width:34px;height:18px;background:#dcdfe6;border-radius:10px;transition:background .15s}
+.tpl-sw-track::after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tpl-sw.on .tpl-sw-track{background:#52c41a}
+.tpl-sw.on .tpl-sw-track::after{transform:translateX(16px)}
+.tpl-sw-lbl{font-size:12.5px;color:#666;font-weight:500;min-width:14px}
+.tpl-sw.on .tpl-sw-lbl{color:#389e0d}
+.tpl-inline-sel{padding:4px 8px;border:1px solid #dcdfe4;border-radius:3px;font-size:12px;font-family:inherit;background:#fff;outline:none;cursor:pointer;min-width:100px;color:#333}
+.tpl-inline-sel:hover{border-color:#7c4dff}
+.tpl-inline-sel:focus{border-color:#7c4dff;box-shadow:0 0 0 2px rgba(124,77,255,.1)}
 
 /* 推送状态 */
 .push-on{color:#52c41a;font-weight:600}
@@ -490,14 +507,18 @@ tr.cb-selected{background:#f9f5ff !important}
   <div class="tab-pane active" id="pane-tpl">
 
   <div class="intro">
-    💡 <b>本次改造</b>：现有 9 条模板的<b>编码 / 标题 / 内容</b>不可编辑、不允许新增。仅新增 2 列：<code>是否推送站内信</code> 和 <code>跳转动作</code>，运营自由开关。<br>
-    其中 <b>8 / 9 活动类模板</b>因覆盖多个活动，进编辑页后<b>按单个活动</b>分别开启 / 关闭推送和跳转。
+    💡 <b>本次改造</b>：现有 12 条模板的<b>编码</b>不允许新增。<b>标题 / 内容</b>支持运营自定义文本（注意保留 <code>{ }</code> 变量占位符）。<br>
+    新增 2 列 <code>是否推送站内信</code> 和 <code>跳转动作</code>，<b>列表内直接可改</b>，无需进入编辑页。<br>
+    其中 <b>模板 8 TG 活动</b>暂未上线，两列以"—"占位；<b>模板 9 / 10 活动类</b>因覆盖多个活动，点击「按活动」跳到「活动推送配置」Tab 统一管理。
   </div>
 
   <div class="filter-bar">
     <span class="lbl">语言：</span>
     <select class="select"><option>请选择</option><option>英语</option><option>印尼</option><option>越南语</option><option>中文简体</option><option>印地语</option></select>
     <button class="btn-set">🔍 设置</button>
+    <span style="margin-left:14px;color:#cf1322;font-size:11.5px;line-height:1.5;display:inline-flex;align-items:center;gap:4px">
+      ⚠️ 标题与内容支持自定义文本配置，但请<b>勿删除或改动 <code style="background:#fff1f0;padding:1px 5px;border-radius:3px;color:#cf1322;font-family:Menlo,Consolas,monospace">{ }</code> 中的变量占位符</b>，否则可能导致用户收到的内容缺失或显示错误。
+    </span>
   </div>
 
   <div class="tbl-wrap">
@@ -507,8 +528,11 @@ tr.cb-selected{background:#f9f5ff !important}
           <th style="width:200px">编码</th>
           <th>标题</th>
           <th>内容</th>
-          <th style="width:180px">是否推送站内信 <span class="new-tag">NEW</span></th>
-          <th style="width:140px">跳转动作 <span class="new-tag">NEW</span></th>
+          <th style="width:200px">
+            是否推送站内信 <span class="new-tag">NEW</span>
+            <span class="q-tip" data-tip="该开关仅控制实时弹窗推送，不影响站内信默认红点。关闭后将不再弹出实时通知，但用户进入站内信中心仍可查看完整内容并跳转。">?</span>
+          </th>
+          <th style="width:160px">跳转动作 <span class="new-tag">NEW</span></th>
           <th style="width:100px">操作</th>
         </tr>
       </thead>
@@ -594,8 +618,8 @@ tr.cb-selected{background:#f9f5ff !important}
             <th style="width:220px">活动 / 枚举值</th>
             <th>触发时机</th>
             <th style="width:200px">关联模板</th>
-            <th style="width:90px;text-align:center">站内信 <span class="new-tag">NEW</span></th>
-            <th style="width:90px;text-align:center">是否推送</th>
+            <th style="width:100px;text-align:center">站内信 <span class="new-tag">NEW</span> <span class="q-tip" data-tip="控制活动达标后是否在消息中心写入站内信记录（顶部铃铛红点）。默认开启，关闭后该活动达标不写消息中心，用户在站内信里看不到这条记录。">?</span></th>
+            <th style="width:100px;text-align:center">是否推送 <span class="q-tip" data-tip="控制活动达标后是否实时弹出推送（L2 横幅 或 L3 强弹窗）。与站内信独立：关闭后不弹实时通知，但只要站内信开关开着，用户进消息中心仍可看到。">?</span></th>
             <th style="width:120px">跳转动作</th>
             <th style="width:130px">推送级别</th>
           </tr>
@@ -759,10 +783,44 @@ tr.cb-selected{background:#f9f5ff !important}
             <div class="ps-modal-mask">
               <div class="ps-modal-card warn">
                 <div class="warn-ico">⚠️</div>
-                <div class="warn-ttl">您的提现正在等待验证</div>
-                <div class="warn-msg">您的 <b>FASTUPI</b> 提现订单需要完成 KYC 验证，请尽快重新验证，<b>超时订单将被取消</b>。</div>
-                <div class="warn-timer">剩余时间：<b>14:32</b></div>
-                <button class="warn-btn">立即验证</button>
+                <div class="warn-ttl">提现验证中断</div>
+                <div class="warn-msg">您的 <b>FASTUPI</b> 提现订单 <b>WD20260605...</b> 验证已断连，需要重新连接以完成出款，<b>否则订单将被取消</b>。</div>
+                <div class="warn-timer">⏱️ 倒计时：<b>29:00</b> · 请尽快处理</div>
+                <div style="display:flex;gap:8px;margin-top:6px">
+                  <button class="warn-btn" style="background:linear-gradient(135deg,#bfbfbf,#909399);flex:1">稍后</button>
+                  <button class="warn-btn" style="flex:1.4">立即重连</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- C4 · 提现已退回（模板 12） -->
+      <div class="sp-card" data-lv="L3" data-cat="money">
+        <div class="sp-tag-row">
+          <span class="sp-lv-tag lv3">L3 · 强弹窗</span>
+          <span class="sp-cat-tag money">💰 钱类</span>
+        </div>
+        <div class="sp-title">C4 · 提现已退回（模板 12）</div>
+        <div class="sp-desc">橙色提醒风格 + 双按钮（查看钱包 / 重新提现）。在 KYC 重连失败、订单取消后弹出，引导用户重新发起。</div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="ps-statusbar"><span>9:41</span><span class="ps-sb-r">●●●● 5G ▮</span></div>
+            <div class="ps-appbar"><span class="ps-logo">🎰 ARWin</span><span class="ps-bell">🔔</span></div>
+            <div class="ps-content" style="filter:blur(1px);opacity:.4">
+              <div class="ps-banner ph-banner">🎁 Welcome Bonus</div>
+            </div>
+            <div class="ps-modal-mask">
+              <div class="ps-modal-card warn" style="border-color:#ffd591">
+                <div class="warn-ico" style="color:#fa8c16">📨</div>
+                <div class="warn-ttl" style="color:#d46b08">提现已退回</div>
+                <div class="warn-msg">您的 <b>FASTUPI</b> 提现订单 <b style="color:#cf1322">WD20260605...</b>（金额 <b style="color:#cf1322">¥1,000</b>）因 KYC 验证中断已自动取消，<b style="color:#52c41a">资金已退回您的钱包</b>。<br><br>请重新发起提现，建议提交后保持在 APP 内 15~30 分钟。</div>
+                <div style="display:flex;gap:8px;margin-top:6px">
+                  <button class="warn-btn" style="background:linear-gradient(135deg,#bfbfbf,#909399);flex:1">查看钱包</button>
+                  <button class="warn-btn" style="flex:1">重新提现</button>
+                </div>
               </div>
             </div>
           </div>
@@ -792,12 +850,18 @@ tr.cb-selected{background:#f9f5ff !important}
 
       <div class="fm-row">
         <div class="lb">标题：</div>
-        <div class="cl"><div class="readonly" id="editTitle"></div></div>
+        <div class="cl">
+          <input class="editable-input" id="editTitle" style="width:100%;padding:7px 10px;border:1px solid #dcdfe4;border-radius:4px;font-size:13px;font-family:inherit;outline:none">
+          <div style="color:#cf1322;font-size:11px;margin-top:4px">⚠️ 请勿删除或改动 <code style="background:#fff1f0;color:#cf1322;padding:1px 5px;border-radius:3px;font-family:Menlo,Consolas,monospace">{ }</code> 中的变量占位符</div>
+        </div>
       </div>
 
       <div class="fm-row">
         <div class="lb">内容：</div>
-        <div class="cl"><div class="readonly ml" id="editBody"></div></div>
+        <div class="cl">
+          <textarea class="editable-input" id="editBody" rows="3" style="width:100%;padding:7px 10px;border:1px solid #dcdfe4;border-radius:4px;font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>
+          <div style="color:#cf1322;font-size:11px;margin-top:4px">⚠️ 请勿删除或改动 <code style="background:#fff1f0;color:#cf1322;padding:1px 5px;border-radius:3px;font-family:Menlo,Consolas,monospace">{ }</code> 中的变量占位符</div>
+        </div>
       </div>
 
       <hr style="border:none;border-top:1px dashed #ecedf2;margin:14px 0 16px">
@@ -827,10 +891,8 @@ tr.cb-selected{background:#f9f5ff !important}
           <select class="select-full" id="editJump">
             <option>不跳转</option>
             <option>钱包</option>
-            <option>新手礼包页</option>
             <option>活动页</option>
-            <option>彩种页</option>
-            <option>KYC 验证</option>
+            <option>提现页</option>
             <option>VIP 中心</option>
           </select>
           <div style="color:#999;font-size:11.5px;margin-top:4px">用户点击站内信后跳转的目标页</div>
@@ -862,17 +924,18 @@ tr.cb-selected{background:#f9f5ff !important}
 
 <script>
 const TPL = [
-  { code:1, name:'会员注册',          cat:'normal',   title:'Registrasi Akun',                          body:'Selamat！pendaftaran akun {nickname} berhasil. Klaim hadiah pendaftaran sekarang…', jump:'新手礼包页', push:false },
+  { code:1, name:'会员注册',          cat:'normal',   title:'Registrasi Akun',                          body:'Selamat！pendaftaran akun {nickname} berhasil. Klaim hadiah pendaftaran sekarang…', jump:'活动页',     push:false },
   { code:2, name:'账号充值',          cat:'normal',   title:'Deposit Akun',                             body:'Selamat atas keberhasilan deposit Anda sebesar {amount}, saldo telah masuk ke akun.',  jump:'钱包',       push:true  },
   { code:3, name:'申请提现',          cat:'normal',   title:'Pengajuan Penarikan',                      body:'Ajuan penarikan Anda sebesar {amount} sedang diproses, mohon menunggu konfirmasi.',  jump:'钱包',       push:false },
   { code:4, name:'提现到账',          cat:'normal',   title:'Penarikan berhasil',                       body:'Ajuan penarikan Anda sebesar {amount} telah berhasil ditransfer ke rekening.',       jump:'钱包',       push:true  },
   { code:5, name:'登录通知',          cat:'normal',   title:'Notifikasi Masuk',                         body:'Akun Anda baru saja masuk pada {time}. Jika bukan Anda, segera ubah kata sandi.',    jump:'不跳转',     push:false },
-  { code:6, name:'XOSO 期号取消通知', cat:'normal',   title:'Periode dibatalkan',                       body:'{period} Transaksi Lottery dibatalkan, taruhan Anda akan dikembalikan ke saldo.',    jump:'彩种页',     push:true  },
+  { code:6, name:'XOSO 期号取消通知', cat:'normal',   title:'Periode dibatalkan',                       body:'{period} Transaksi Lottery dibatalkan, taruhan Anda akan dikembalikan ke saldo.',    jump:'不跳转',     push:true  },
   { code:7, name:'修改密码',          cat:'normal',   title:'Ubah kata sandi',                          body:'Kata Sandi akun telah berhasil diubah pada {time}. Jika bukan Anda, segera hubungi…',jump:'不跳转',     push:false },
   { code:8, name:'TG 活动奖励发放通知',cat:'activity', title:'Hadiah aktivitas didistribusikan secara otomatis', body:'Hadiah yang Anda dapatkan dari aktivitas TG senilai {amount} telah masuk ke akun.', jump:'按活动', push:'byact' },
   { code:9, name:'活动奖励到账通知',  cat:'activity', title:'{活动名} 奖励已到账 🎉',                   body:'恭喜！您的「{活动名}」活动奖励 {amount} 已到账，请查收。',                             jump:'按活动',   push:'byact' },
   { code:10,name:'活动奖励待领取通知',cat:'activity', title:'{活动名} 奖励待领取 🎁',                   body:'您的「{活动名}」活动奖励待领取，请前往活动页参与/签到/领取。',                          jump:'按活动',   push:'byact', isNew:true },
-  { code:11,name:'KYC 验证中断',     cat:'normal',   title:'⚠️ 您的提现正在等待验证',                  body:'您的 FASTUPI 提现订单需要完成 KYC 验证，请尽快返回 APP 重新验证，超时订单将被取消。', jump:'KYC 验证', push:true, isNew:true },
+  { code:11,name:'KYC 验证中断',     cat:'normal',   title:'⚠️ 提现验证中断',                          body:'您的 FASTUPI 提现订单 {orderNo} 验证已断连，需要重新连接以完成出款，否则订单将被取消。', jump:'提现页', push:true, isNew:true },
+  { code:12,name:'提现已退回',       cat:'normal',   title:'📨 提现已退回',                            body:'您的 FASTUPI 提现订单 {orderNo}（金额 {amount}）因 KYC 验证中断已自动取消，资金已退回您的钱包。请重新发起提现，建议提交后保持在 APP 内 15~30 分钟。', jump:'钱包',    push:true, isNew:true },
 ];
 
 // V1 现有活动全集（16 项）按 A 类直发 / B 类待领 拆到模板 9 / 模板 10
@@ -912,7 +975,7 @@ const ACTIVITIES = {
   // 模板 11 - KYC 验证中断（无活动，钱类消息）
 };
 
-const JUMP_OPTIONS = ['不跳转','活动页','钱包'];
+const JUMP_OPTIONS = ['不跳转','钱包','活动页','提现页','VIP 中心'];
 
 const CAT_LABEL = {
   money:    '<span class="cat-pill money">💰 钱类</span>',
@@ -923,16 +986,28 @@ const CAT_LABEL = {
 function renderList(){
   const body = document.getElementById('tplBody');
   body.innerHTML = TPL.map(t => {
-    let pushCell;
-    if(t.cat === 'activity'){
+    let pushCell, jumpCell;
+
+    // 模板 8（TG 活动）暂未上线 → 两列显示 "--"
+    if(t.code === 8){
+      pushCell = '<span style="color:#bbb;font-size:13px">— 未上线</span>';
+      jumpCell = '<span style="color:#bbb">—</span>';
+    }
+    // 活动类模板（9 / 10）→ 点击跳到 Tab 2 活动推送配置
+    else if(t.cat === 'activity'){
       const acts = ACTIVITIES[t.code];
       const on = acts.filter(a => a.push).length;
-      pushCell = `<span class="push-by-act" onclick="openEdit(${t.code})">按活动 (${on}/${acts.length}) ›</span>`;
-    } else pushCell = t.push ? '<span class="push-on">开</span>' : '<span class="push-off">关</span>';
-
-    const jumpCell = t.cat === 'activity'
-      ? '<span style="color:#d46b08">按活动</span>'
-      : `<span>${t.jump}</span>`;
+      pushCell = `<a class="push-by-act" style="cursor:pointer;color:#d46b08;text-decoration:underline;text-decoration-style:dashed" onclick="jumpToActPage()" title="跳到 活动推送配置 Tab 按活动开关">🔗 按活动 (${on}/${acts.length}) ›</a>`;
+      jumpCell = `<a style="color:#d46b08;cursor:pointer;text-decoration:underline;text-decoration-style:dashed" onclick="jumpToActPage()" title="跳到 活动推送配置 Tab 按活动配置">按活动 ›</a>`;
+    }
+    // 钱类 / 普通：列表内可直接改
+    else {
+      const switchCls = t.push ? 'tpl-sw on' : 'tpl-sw';
+      pushCell = `<div class="${switchCls}" onclick="toggleTplPush(${t.code})" title="点击切换"><span class="tpl-sw-track"></span><span class="tpl-sw-lbl">${t.push?'开':'关'}</span></div>`;
+      const jumpOpts = JUMP_OPTIONS.slice();
+      if(!jumpOpts.includes(t.jump)) jumpOpts.unshift(t.jump);
+      jumpCell = `<select class="tpl-inline-sel" onchange="setTplJump(${t.code}, this.value)">${jumpOpts.map(j=>`<option ${j===t.jump?'selected':''}>${j}</option>`).join('')}</select>`;
+    }
 
     const isNew = t.isNew ? ' <span class="new-tag">NEW</span>' : '';
     const rowStyle = t.isNew ? ' style="background:#fff7e6"' : '';
@@ -947,13 +1022,25 @@ function renderList(){
   }).join('');
 }
 
+function toggleTplPush(code){
+  const t = TPL.find(x => x.code === code);
+  if(!t) return;
+  t.push = !t.push;
+  renderList();
+}
+function setTplJump(code, val){
+  const t = TPL.find(x => x.code === code);
+  if(!t) return;
+  t.jump = val;
+}
+
 function openEdit(code){
   const t = TPL.find(x => x.code === code);
   if(!t) return;
   document.getElementById('editTplName').textContent = '· #' + t.code + ' ' + t.name;
   document.getElementById('editCode').textContent = t.code;
-  document.getElementById('editTitle').textContent = t.title;
-  document.getElementById('editBody').textContent = t.body;
+  document.getElementById('editTitle').value = t.title;
+  document.getElementById('editBody').value = t.body;
 
   const isAct = (t.cat === 'activity');
   document.getElementById('pushNormal').style.display   = isAct ? 'none' : '';
@@ -1339,7 +1426,7 @@ function renderActList(){
       </td>
       <td style="text-align:center">
         <select class="inline-select" onchange="setActDraft('${a.id}','jump',this.value)">
-          ${['不跳转','活动页','钱包'].map(j=>`<option ${j===curJump?'selected':''}>${j}</option>`).join('')}
+          ${JUMP_OPTIONS.map(j=>`<option ${j===curJump?'selected':''}>${j}</option>`).join('')}
         </select>
       </td>
       <td style="text-align:center">
@@ -1427,7 +1514,8 @@ renderActList();
     <ul>
       <li>新增 <b>模板 9</b> 活动奖励到账通知（A 类活动通用）</li>
       <li>新增 <b>模板 10</b> 活动奖励待领取通知（B 类活动通用）</li>
-      <li>新增 <b>模板 11</b> KYC 验证中断（FASTUPI 风控专用）</li>
+      <li>新增 <b>模板 11</b> KYC 验证中断（FASTUPI 风控专用，含倒计时 + 立即重连/稍后按钮）</li>
+      <li>新增 <b>模板 12</b> 提现已退回（FASTUPI 风控配套）</li>
       <li>列表新增两列：<b>是否推送</b> / <b>跳转动作</b>（钱类、普通可改；活动类跳到 Tab 2）</li>
     </ul>
 
@@ -1441,7 +1529,7 @@ renderActList();
     <!-- ============ 2 新增配置 ============ -->
     <h2 id="sec-2">2、新增配置</h2>
 
-    <h3>2.1 11 条模板归属</h3>
+    <h3>2.1 12 条模板归属</h3>
     <table>
       <tr><th>编码</th><th>模板</th><th>分类</th><th>备注</th></tr>
       <tr><td>1</td><td>会员注册</td><td>普通</td><td></td></tr>
@@ -1454,7 +1542,8 @@ renderActList();
       <tr><td>8</td><td>TG 活动奖励</td><td>活动类</td><td><b>暂未上线，不配置</b></td></tr>
       <tr><td><b>9</b></td><td><b>活动奖励到账</b></td><td><b>活动类</b></td><td><b>NEW · A 类通用</b></td></tr>
       <tr><td><b>10</b></td><td><b>活动奖励待领取</b></td><td><b>活动类</b></td><td><b>NEW · B 类通用</b></td></tr>
-      <tr><td><b>11</b></td><td><b>KYC 验证中断</b></td><td><b>普通</b></td><td><b>NEW · FASTUPI 风控</b></td></tr>
+      <tr><td><b>11</b></td><td><b>KYC 验证中断</b></td><td><b>普通</b></td><td><b>NEW · FASTUPI 风控（倒计时 29:00 + 立即重连/稍后）</b></td></tr>
+      <tr><td><b>12</b></td><td><b>提现已退回</b></td><td><b>普通</b></td><td><b>NEW · FASTUPI 风控配套</b></td></tr>
     </table>
 
     <p style="margin-top:10px"><b>字段规则：</b></p>
@@ -1520,7 +1609,7 @@ SignalR 推送在线端 → 按级别渲染 L2 横幅 / L3 强弹窗
       <tr><th>配置</th><th>行为</th></tr>
       <tr><td>不跳转</td><td>仅关闭横幅 / 红点</td></tr>
       <tr><td>活动页</td><td>跳到该活动详情页（按 <code>ACT_CONFIG_PAGES</code> 映射）</td></tr>
-      <tr><td>钱包 / 新手礼包页 / 彩种页 / KYC 验证 / VIP 中心</td><td>跳对应页</td></tr>
+      <tr><td>钱包 / 活动页 / 提现页 / VIP 中心</td><td>跳对应页</td></tr>
     </table>
 
 
