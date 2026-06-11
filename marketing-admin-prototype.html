@@ -609,9 +609,8 @@ tr.cb-selected{background:#f9f5ff !important}
             <th style="width:220px">活动 / 枚举值</th>
             <th>触发时机</th>
             <th style="width:200px">关联模板</th>
-            <th style="width:100px;text-align:center">站内信 <span class="new-tag">NEW</span> <span class="q-tip" data-tip="控制活动达标后是否在消息中心写入站内信记录（顶部铃铛红点）。默认开启，关闭后该活动达标不写消息中心，用户在站内信里看不到这条记录。">?</span></th>
-            <th style="width:100px;text-align:center">是否推送 <span class="q-tip" data-tip="控制活动达标后是否实时弹出推送（L2 横幅 或 L3 强弹窗）。与站内信独立：关闭后不弹实时通知，但只要站内信开关开着，用户进消息中心仍可看到。">?</span></th>
-            <th style="width:120px">跳转动作</th>
+            <th style="width:130px;text-align:center">是否推送站内信 <span class="new-tag">NEW</span> <span class="q-tip" data-tip="所有活动达标后【始终写入消息中心红点】，无需配置。本开关控制达标时是否同时实时弹出推送（L2 横幅 或 L3 强弹窗）。关闭后用户在线也不弹，仅靠铃铛红点提示。">?</span></th>
+            <th style="width:120px">跳转动作 <span class="q-tip" data-tip="跳转动作由活动绑定固定，🔒 仅展示不可改（与模板/推送样式同一锁定原则）。">?</span></th>
             <th style="width:160px">推送样式</th>
           </tr>
         </thead>
@@ -896,14 +895,17 @@ tr.cb-selected{background:#f9f5ff !important}
       <hr style="border:none;border-top:1px dashed #ecedf2;margin:14px 0 16px">
 
       <div class="fm-row" id="rowPush">
-        <div class="lb"><span class="req">*</span>是否推送：</div>
+        <div class="lb"><span class="req">*</span>是否推送站内信：</div>
         <div class="cl">
           <div id="pushNormal" style="display:none">
             <div class="toggle" id="toggleNormal" onclick="toggleSwitch(this)">
               <span class="switch"></span>
-              <span class="lbl-txt"><b id="normalToggleLbl">关</b>（站内信红点，无弹窗）</span>
+              <span class="lbl-txt"><b id="normalToggleLbl">关</b></span>
             </div>
-            <div style="color:#999;font-size:11.5px;margin-top:6px">开启后：用户登录时实时推送弹窗 + 站内信</div>
+            <div id="pushLockedTip" style="display:none;background:#fff1f0;border:1px solid #ffa39e;border-radius:4px;padding:7px 11px;color:#cf1322;font-size:11.5px;line-height:1.55;margin-top:6px">
+              🔒 <b>风控关键路径</b>：模板 11 KYC 验证中断为提现安全提醒，站内信推送强制开启，不可关闭。
+            </div>
+            <div id="pushNormalHint" style="color:#999;font-size:11.5px;margin-top:6px">开启后：用户登录时实时推送弹窗 + 站内信</div>
           </div>
 
           <div id="pushActivity" style="display:none">
@@ -917,14 +919,10 @@ tr.cb-selected{background:#f9f5ff !important}
       <div class="fm-row" id="rowJump">
         <div class="lb">跳转动作：</div>
         <div class="cl">
-          <select class="select-full" id="editJump">
-            <option>不跳转</option>
-            <option>钱包</option>
-            <option>活动页</option>
-            <option>提现页</option>
-            <option>VIP 中心</option>
-          </select>
-          <div style="color:#999;font-size:11.5px;margin-top:4px">用户点击站内信后跳转的目标页</div>
+          <div id="editJumpLocked" class="readonly" style="display:inline-flex;align-items:center;gap:6px;max-width:280px;background:#f5f5f7;border:1px solid #e4e7ed;color:#555">
+            <span>🔒</span><span id="editJumpText">不跳转</span>
+          </div>
+          <div style="color:#999;font-size:11.5px;margin-top:4px">🔒 跳转动作由模板固定，不可修改（与推送样式一同由产品/UI 锁定）</div>
         </div>
       </div>
 
@@ -953,10 +951,10 @@ tr.cb-selected{background:#f9f5ff !important}
 
 <script>
 const TPL = [
-  { code:1, name:'会员注册',          cat:'normal',   title:'Registrasi Akun',                          body:'Selamat！pendaftaran akun {nickname} berhasil. Klaim hadiah pendaftaran sekarang…', jump:'活动页',     push:false },
+  { code:1, name:'会员注册',          cat:'normal',   title:'Registrasi Akun',                          body:'Selamat！pendaftaran akun {nickname} berhasil. Klaim hadiah pendaftaran sekarang…', jump:'不跳转',     push:false },
   { code:2, name:'账号充值',          cat:'normal',   title:'Deposit Akun',                             body:'Selamat atas keberhasilan deposit Anda sebesar {amount}, saldo telah masuk ke akun.',  jump:'钱包',       push:true  },
-  { code:3, name:'申请提现',          cat:'normal',   title:'Pengajuan Penarikan',                      body:'Ajuan penarikan Anda sebesar {amount} sedang diproses, mohon menunggu konfirmasi.',  jump:'钱包',       push:false },
-  { code:4, name:'提现到账',          cat:'normal',   title:'Penarikan berhasil',                       body:'Ajuan penarikan Anda sebesar {amount} telah berhasil ditransfer ke rekening.',       jump:'钱包',       push:true  },
+  { code:3, name:'申请提现',          cat:'normal',   title:'Pengajuan Penarikan',                      body:'Ajuan penarikan Anda sebesar {amount} sedang diproses, mohon menunggu konfirmasi.',  jump:'不跳转',     push:false },
+  { code:4, name:'提现到账',          cat:'normal',   title:'Penarikan berhasil',                       body:'Ajuan penarikan Anda sebesar {amount} telah berhasil ditransfer ke rekening.',       jump:'不跳转',     push:true  },
   { code:5, name:'登录通知',          cat:'normal',   title:'Notifikasi Masuk',                         body:'Akun Anda baru saja masuk pada {time}. Jika bukan Anda, segera ubah kata sandi.',    jump:'不跳转',     push:false },
   { code:6, name:'XOSO 期号取消通知', cat:'normal',   title:'Periode dibatalkan',                       body:'{period} Transaksi Lottery dibatalkan, taruhan Anda akan dikembalikan ke saldo.',    jump:'不跳转',     push:true  },
   { code:7, name:'修改密码',          cat:'normal',   title:'Ubah kata sandi',                          body:'Kata Sandi akun telah berhasil diubah pada {time}. Jika bukan Anda, segera hubungi…',jump:'不跳转',     push:false },
@@ -964,7 +962,7 @@ const TPL = [
   { code:9, name:'活动奖励到账通知',  cat:'activity', title:'{活动名} 奖励已到账 🎉',                   body:'恭喜！您的「{活动名}」活动奖励 {amount} 已到账，请查收。',                             jump:'按活动',   push:'byact' },
   { code:10,name:'活动奖励待领取通知',cat:'activity', title:'{活动名} 奖励待领取 🎁',                   body:'您的「{活动名}」活动奖励待领取，请前往活动页参与/签到/领取。',                          jump:'按活动',   push:'byact', isNew:true },
   { code:11,name:'KYC 验证中断',     cat:'normal',   title:'⚠️ 提现验证中断',                          body:'您的 FASTUPI 提现订单 {orderNo} 验证已断连，需要重新连接以完成出款，否则订单将被取消。', jump:'提现页', push:true, isNew:true },
-  { code:12,name:'提现已退回',       cat:'normal',   title:'📨 提现已退回',                            body:'您的 FASTUPI 提现订单 {orderNo}（金额 {amount}）因 KYC 验证中断已自动取消，资金已退回您的钱包。请重新发起提现，建议提交后保持在 APP 内 15~30 分钟。', jump:'钱包',    push:true, isNew:true },
+  { code:12,name:'提现已退回',       cat:'normal',   title:'📨 提现已退回',                            body:'您的 {提现大类} 提现订单 {orderNo}（金额 {amount}）因 KYC 验证中断已自动取消，资金已退回您的钱包。请重新发起提现，建议提交后保持在 APP 内 15~30 分钟。', jump:'钱包',    push:true, isNew:true },
 ];
 
 // V1 现有活动全集（16 项）按 A 类直发 / B 类待领 拆到模板 9 / 模板 10
@@ -1029,13 +1027,16 @@ function renderList(){
       pushCell = `<a class="push-by-act" style="cursor:pointer;color:#d46b08;text-decoration:underline;text-decoration-style:dashed" onclick="jumpToActPage()" title="跳到 活动推送配置 Tab 按活动开关">🔗 按活动 (${on}/${acts.length}) ›</a>`;
       jumpCell = `<a style="color:#d46b08;cursor:pointer;text-decoration:underline;text-decoration-style:dashed" onclick="jumpToActPage()" title="跳到 活动推送配置 Tab 按活动配置">按活动 ›</a>`;
     }
-    // 钱类 / 普通：列表内可直接改
+    // 钱类 / 普通：推送开关可改；跳转动作 🔒 锁定（由模板固定）
     else {
       const switchCls = t.push ? 'tpl-sw on' : 'tpl-sw';
-      pushCell = `<div class="${switchCls}" onclick="toggleTplPush(${t.code})" title="点击切换"><span class="tpl-sw-track"></span><span class="tpl-sw-lbl">${t.push?'开':'关'}</span></div>`;
-      const jumpOpts = JUMP_OPTIONS.slice();
-      if(!jumpOpts.includes(t.jump)) jumpOpts.unshift(t.jump);
-      jumpCell = `<select class="tpl-inline-sel" onchange="setTplJump(${t.code}, this.value)">${jumpOpts.map(j=>`<option ${j===t.jump?'selected':''}>${j}</option>`).join('')}</select>`;
+      // 模板 11（KYC 验证中断）= 风控关键路径，站内信推送 🔒 锁定为开
+      if(t.code === 11){
+        pushCell = `<div class="tpl-sw on" style="cursor:not-allowed;opacity:.85" title="风控关键路径，站内信推送已锁定为开"><span class="tpl-sw-track"></span><span class="tpl-sw-lbl">🔒 开</span></div>`;
+      } else {
+        pushCell = `<div class="${switchCls}" onclick="toggleTplPush(${t.code})" title="点击切换"><span class="tpl-sw-track"></span><span class="tpl-sw-lbl">${t.push?'开':'关'}</span></div>`;
+      }
+      jumpCell = `<span class="locked-jump" title="跳转动作由模板固定，不可修改" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#f5f5f7;color:#555;border:1px solid #e4e7ed;border-radius:10px;font-size:11.5px;font-weight:500">🔒 ${t.jump}</span>`;
     }
 
     const isNew = t.isNew ? ' <span class="new-tag">NEW</span>' : '';
@@ -1064,13 +1065,9 @@ function renderList(){
 function toggleTplPush(code){
   const t = TPL.find(x => x.code === code);
   if(!t) return;
+  if(code === 11) return; // 模板 11 = 风控关键路径，锁定为开
   t.push = !t.push;
   renderList();
-}
-function setTplJump(code, val){
-  const t = TPL.find(x => x.code === code);
-  if(!t) return;
-  t.jump = val;
 }
 
 function openEdit(code){
@@ -1089,9 +1086,15 @@ function openEdit(code){
 
   if(!isAct){
     const tg = document.getElementById('toggleNormal');
-    tg.classList.toggle('on', t.push);
-    document.getElementById('normalToggleLbl').textContent = t.push ? '开' : '关';
-    document.getElementById('editJump').value = t.jump;
+    const pushLocked = (t.code === 11);
+    tg.classList.toggle('on', pushLocked ? true : t.push);
+    tg.classList.toggle('locked', pushLocked);
+    tg.style.cursor = pushLocked ? 'not-allowed' : 'pointer';
+    tg.style.opacity = pushLocked ? '.85' : '1';
+    document.getElementById('normalToggleLbl').textContent = pushLocked ? '🔒 开' : (t.push ? '开' : '关');
+    document.getElementById('pushLockedTip').style.display = pushLocked ? '' : 'none';
+    document.getElementById('pushNormalHint').style.display = pushLocked ? 'none' : '';
+    document.getElementById('editJumpText').textContent = t.jump;
   } else {
     renderActTable(t.code);
   }
@@ -1147,6 +1150,7 @@ function toggleAll(cb){
 }
 
 function toggleSwitch(el){
+  if(el.classList.contains('locked')) return; // 模板 11 = 风控关键路径，锁定为开
   el.classList.toggle('on');
   document.getElementById('normalToggleLbl').textContent = el.classList.contains('on') ? '开' : '关';
 }
@@ -1362,15 +1366,6 @@ function togglePushDraft(ev, id){
   setActDraft(id, 'push', !curPush);
 }
 
-function toggleInboxDraft(ev, id){
-  ev.stopPropagation();
-  const a = ALL_ACTIVITIES.find(x => x.id === id);
-  if(!a) return;
-  const draft = pendingChanges.get(id) || {};
-  const curInbox = draft.inbox !== undefined ? draft.inbox : (a.inbox !== false);
-  setActDraft(id, 'inbox', !curInbox);
-}
-
 function updateSaveBar(){
   const count = pendingChanges.size;
   const bar = document.getElementById('saveBar');
@@ -1451,11 +1446,8 @@ function renderActList(){
     const draft = pendingChanges.get(a.id) || {};
     const curPush  = draft.push  !== undefined ? draft.push  : a.push;
     const curJump  = draft.jump  !== undefined ? draft.jump  : a.jump;
-    const curLevel = draft.level !== undefined ? draft.level : (a.level === 'L1' ? 'L2' : (a.level || 'L2'));
-    const curInbox = draft.inbox !== undefined ? draft.inbox : (a.inbox !== false);
     const isDirty = pendingChanges.has(a.id);
     const toggleCls = curPush ? 'toggle on' : 'toggle';
-    const inboxCls = curInbox ? 'toggle on' : 'toggle';
     return `<tr class="${isSel?'cb-selected':''} ${isDirty?'row-dirty':''}">
       ${cbCell}
       <td class="col-l">
@@ -1469,19 +1461,12 @@ function renderActList(){
       <td style="font-size:11.5px;color:#666;line-height:1.45;text-align:center">${a.trigger}</td>
       <td><span class="tpl-mini">${a.tplCode} · ${a.tplName}</span></td>
       <td style="text-align:center">
-        <div class="${inboxCls}" onclick="toggleInboxDraft(event,'${a.id}')" title="站内信红点：开启=写消息中心 / 关闭=不写">
+        <div class="${toggleCls}" onclick="togglePushDraft(event,'${a.id}')" title="是否推送站内信：所有活动都会写消息中心红点，本开关控制是否同时实时弹推送">
           <span class="switch"></span>
         </div>
       </td>
       <td style="text-align:center">
-        <div class="${toggleCls}" onclick="togglePushDraft(event,'${a.id}')">
-          <span class="switch"></span>
-        </div>
-      </td>
-      <td style="text-align:center">
-        <select class="inline-select" onchange="setActDraft('${a.id}','jump',this.value)">
-          ${JUMP_OPTIONS.map(j=>`<option ${j===curJump?'selected':''}>${j}</option>`).join('')}
-        </select>
+        <span class="locked-jump" title="跳转动作由活动绑定固定，不可修改" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#f5f5f7;color:#555;border:1px solid #e4e7ed;border-radius:10px;font-size:11.5px;font-weight:500">🔒 ${curJump}</span>
       </td>
       <td style="text-align:center">
         ${(()=>{
@@ -1491,7 +1476,7 @@ function renderActList(){
         })()}
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="8" style="padding:30px;color:#999">无匹配活动</td></tr>`;
+  }).join('') || `<tr><td colspan="7" style="padding:30px;color:#999">无匹配活动</td></tr>`;
 
   // 更新摘要
   const on = ALL_ACTIVITIES.filter(a => a.push).length;
@@ -1701,41 +1686,47 @@ const SPEC_DATA = {
         <li>新增 <b>模板 9</b> 活动奖励到账通知（A 类活动通用）</li>
         <li>新增 <b>模板 10</b> 活动奖励待领取通知（B 类活动通用）</li>
         <li>新增 <b>模板 11</b> KYC 验证中断（FASTUPI 风控，含倒计时 + 立即重连/稍后）</li>
-        <li>新增 <b>模板 12</b> 提现已退回（FASTUPI 风控配套）</li>
-        <li>列表新增两列：<b>是否推送站内信</b> / <b>跳转动作</b>，列表内直接可改</li>
+        <li>新增 <b>模板 12</b> 提现已退回（FASTUPI 风控配套，文案以 <code>{提现大类}</code> 变量适配多通道）</li>
+        <li>列表新增一列：<b>是否推送站内信</b>，列表内直接可改（模板 11 🔒 锁定为开）</li>
+        <li>列表新增一列：<b>跳转动作</b>（🔒 由模板编码固定，与推送样式同级锁定，仅展示不可改）</li>
         <li>列表新增一列：<b>推送样式</b>（🔒 由模板编码固定，仅展示不可改）</li>
       </ul>
       <h2>2、12 条模板归属</h2>
       <table>
-        <tr><th>编码</th><th>模板</th><th>分类</th><th>固定推送样式</th></tr>
-        <tr><td>1</td><td>会员注册</td><td>普通</td><td>B1 顶部下滑横幅</td></tr>
-        <tr><td>2</td><td>账号充值</td><td>钱类</td><td>B1 顶部下滑横幅</td></tr>
-        <tr><td>3</td><td>申请提现</td><td>钱类</td><td>B1 顶部下滑横幅</td></tr>
-        <tr><td>4</td><td>提现到账</td><td>钱类</td><td>B1 顶部下滑横幅</td></tr>
-        <tr><td>5</td><td>登录通知</td><td>普通</td><td>B1 顶部下滑横幅</td></tr>
-        <tr><td>6</td><td>XOSO 期号取消</td><td>普通</td><td>B1 顶部下滑横幅</td></tr>
-        <tr><td>7</td><td>修改密码</td><td>普通</td><td>B1 顶部下滑横幅</td></tr>
-        <tr><td>8</td><td>TG 活动奖励</td><td>活动类</td><td>— 暂未上线</td></tr>
-        <tr><td><b>9</b></td><td><b>活动奖励到账</b></td><td><b>活动类</b></td><td>B1 顶部下滑横幅</td></tr>
-        <tr><td><b>10</b></td><td><b>活动奖励待领取</b></td><td><b>活动类</b></td><td>B2 Material toast</td></tr>
-        <tr><td><b>11</b></td><td><b>KYC 验证中断</b></td><td><b>普通</b></td><td>C3 高危警示弹窗</td></tr>
-        <tr><td><b>12</b></td><td><b>提现已退回</b></td><td><b>普通</b></td><td>C4 提现已退回</td></tr>
+        <tr><th>编码</th><th>模板</th><th>分类</th><th>固定推送样式</th><th>固定跳转</th></tr>
+        <tr><td>1</td><td>会员注册</td><td>普通</td><td>B1 顶部下滑横幅</td><td>不跳转</td></tr>
+        <tr><td>2</td><td>账号充值</td><td>钱类</td><td>B1 顶部下滑横幅</td><td>钱包</td></tr>
+        <tr><td>3</td><td>申请提现</td><td>钱类</td><td>B1 顶部下滑横幅</td><td>钱包</td></tr>
+        <tr><td>4</td><td>提现到账</td><td>钱类</td><td>B1 顶部下滑横幅</td><td>钱包</td></tr>
+        <tr><td>5</td><td>登录通知</td><td>普通</td><td>B1 顶部下滑横幅</td><td>不跳转</td></tr>
+        <tr><td>6</td><td>XOSO 期号取消</td><td>普通</td><td>B1 顶部下滑横幅</td><td>不跳转</td></tr>
+        <tr><td>7</td><td>修改密码</td><td>普通</td><td>B1 顶部下滑横幅</td><td>不跳转</td></tr>
+        <tr><td>8</td><td>TG 活动奖励</td><td>活动类</td><td>— 暂未上线</td><td>—</td></tr>
+        <tr><td><b>9</b></td><td><b>活动奖励到账</b></td><td><b>活动类</b></td><td>B1 顶部下滑横幅</td><td>按活动</td></tr>
+        <tr><td><b>10</b></td><td><b>活动奖励待领取</b></td><td><b>活动类</b></td><td>B2 Material toast</td><td>按活动</td></tr>
+        <tr><td><b>11</b></td><td><b>KYC 验证中断</b></td><td><b>普通</b></td><td>C3 高危警示弹窗</td><td>提现页</td></tr>
+        <tr><td><b>12</b></td><td><b>提现已退回</b></td><td><b>普通</b></td><td>C4 提现已退回</td><td>钱包</td></tr>
       </table>
       <h2>3、字段编辑权限</h2>
       <table>
         <tr><th>字段</th><th>运营是否可改</th><th>说明</th></tr>
         <tr><td>编码 / 分类</td><td>❌</td><td>产研锁定，不允许新增</td></tr>
         <tr><td>标题 / 内容</td><td>✅</td><td>支持自定义，但 <code>{ }</code> 变量占位符不可删改</td></tr>
-        <tr><td>是否推送站内信</td><td>✅</td><td>列表内直接可改</td></tr>
-        <tr><td>跳转动作</td><td>✅</td><td>5 项标准：不跳转 / 钱包 / 活动页 / 提现页 / VIP 中心</td></tr>
+        <tr><td>是否推送站内信</td><td>✅（模板 11 除外）</td><td>列表内直接可改；<b>模板 11 KYC 验证中断 🔒 锁定为开</b>（风控关键路径，不允许关闭）</td></tr>
+        <tr><td>跳转动作</td><td>❌</td><td>🔒 由模板编码固定，与推送样式一同锁定，列表/弹窗仅展示</td></tr>
         <tr><td>推送样式</td><td>❌</td><td>由产品/UI 固定，与模板编码强绑定</td></tr>
       </table>
-      <h2>4、多语言</h2>
+      <h2>4、变量占位符</h2>
+      <ul>
+        <li><code>{nickname}</code> / <code>{amount}</code> / <code>{orderNo}</code> / <code>{time}</code> / <code>{period}</code> / <code>{活动名}</code>：通用</li>
+        <li><b><code>{提现大类}</code></b>（模板 12 新增）：根据用户实际提现通道动态替换为 FASTUPI / IMPS / UPI / Bank Transfer 等大类名，方便未来扩通道</li>
+      </ul>
+      <h2>5、多语言</h2>
       <ul>
         <li><b>模板正文</b> → <code>tab_Template_Lang</code> 子表，15 种语言全翻</li>
         <li><b>工作量</b>：12×15 = <b>180 条</b></li>
       </ul>
-      <h2>5、系统日志</h2>
+      <h2>6、系统日志</h2>
       <ul><li>所有写操作必记：操作人 / 时间 / 模板编码 / 字段名 / 前值 → 新值</li></ul>
     `
   },
@@ -1744,42 +1735,42 @@ const SPEC_DATA = {
     html: `
       <h2>1、新增字段</h2>
       <ul>
-        <li><b>站内信</b>（默认开启）：是否在消息中心写入站内信记录（铃铛红点）</li>
-        <li><b>是否推送</b>：是否实时弹窗（关闭时推送样式列置灰）</li>
-        <li><b>跳转动作</b>：5 项标准目标</li>
+        <li><b>是否推送站内信</b>（唯一可改开关）：所有活动达标【始终写消息中心红点】无需配置；本开关控制是否同时实时弹推送（L2 横幅 / L3 强弹窗）</li>
+        <li><b>跳转动作</b>：🔒 由活动绑定固定，与推送样式同级锁定，仅展示不可改</li>
         <li><b>推送样式</b>：🔒 由所属模板固定，不可改</li>
         <li>顶部新增：<b>批量操作</b> 下拉 + 全局 <b>保存</b> / <b>取消</b> 按钮</li>
       </ul>
+      <div class="callout">
+        <b>架构简化（区别于早期方案）</b>：早期"站内信 / 是否推送"双开关被合并。原因：双开关有"开 + 关"这种 footgun 组合（用户看到了横幅但消息中心找不到记录，必然客诉）。统一为单开关后，后端不用判断是否落库，铃铛红点永远可还原历史。
+      </div>
       <h2>2、16 个活动 → 模板归属</h2>
-      <p><b>模板 9 · A 类直发 6 个</b>（达标即时到账，绑定 B1 顶部下滑横幅）</p>
+      <p><b>模板 9 · A 类直发 6 个</b>（达标即时到账，绑定 B1 顶部下滑横幅，固定跳转 = 钱包）</p>
       <ul><li>131 App 下载充值 / 132 充值等级 / 133 VIP 充值等级 / 134 回归新充值 / 122 合伙人 / 20 邀请</li></ul>
-      <p><b>模板 10 · B 类待领取 10 个</b>（需用户去活动页领取，绑定 B2 Material toast）</p>
+      <p><b>模板 10 · B 类待领取 10 个</b>（需用户去活动页领取，绑定 B2 Material toast，固定跳转 = 活动页）</p>
       <ul><li>119 大转盘 / 130 邀请转盘 / 7 每日签到 / 14 首充奖励 / 114 锦标赛 / 113 新手礼包 / 118 每日奖励 / 107 每周奖励 / 116 新会员负盈利彩金 / 117 新会员玩游戏送彩金</li></ul>
-      <div class="callout">活动 → 模板映射由产研锁定，运营只能改"站内信 / 是否推送 / 跳转"。新增活动未挂模板时：默认关闭推送 + 兜底文案"活动奖励通知" + 后台告警。</div>
-      <h2>3、站内信 与 是否推送（双开关解耦）</h2>
+      <div class="callout">活动 → 模板映射由产研锁定，<b>跳转动作随活动绑定一同锁定</b>，运营只能改"是否推送站内信"这一个开关。新增活动未挂模板时：默认关闭推送 + 兜底文案"活动奖励通知" + 后台告警。</div>
+      <h2>3、是否推送站内信（单开关行为表）</h2>
       <table>
-        <tr><th>站内信</th><th>是否推送</th><th>用户体验</th></tr>
-        <tr><td>开</td><td>开</td><td>实时弹横幅 + 消息中心红点（默认）</td></tr>
-        <tr><td>开</td><td>关</td><td>不弹窗，仅消息中心红点</td></tr>
-        <tr><td>关</td><td>开</td><td>弹横幅但不写消息中心（不推荐）</td></tr>
-        <tr><td>关</td><td>关</td><td>该活动达标无任何提醒</td></tr>
+        <tr><th>是否推送站内信</th><th>消息中心红点</th><th>实时弹推送</th><th>用户体验</th></tr>
+        <tr><td>开（默认）</td><td>✅ 始终写</td><td>✅ 在线即弹</td><td>实时弹横幅 + 消息中心红点</td></tr>
+        <tr><td>关</td><td>✅ 始终写</td><td>❌ 不弹</td><td>不弹推送，仅靠消息中心红点提示</td></tr>
       </table>
+      <p style="color:#888;font-size:11.5px">写消息中心是系统行为，不再暴露给运营。如需对高频活动做去噪，由产品端在模板层加"高频"标签做 1 分钟内同 messageType 去重写入。</p>
       <h2>4、编辑与保存约束</h2>
       <ul>
         <li>表格直接编辑（不进入编辑态）→ 改动行黄底 + 橙色脏标记 → 顶部「💾 保存(N)」常亮</li>
         <li><b>关闭/跳页拦截</b>：有未保存改动时浏览器拦截</li>
-        <li><b>批量动作仅改"是否推送"</b>：跳转动作 / 站内信不受影响（避免覆盖运营精配）</li>
+        <li><b>批量动作 = 批量开/关"是否推送站内信"</b>（跳转动作已锁定、消息中心红点始终写，不存在其他可批量改的字段）</li>
       </ul>
       <h2>5、触发链路</h2>
       <div class="flow">业务达标
    ↓
-判断「站内信」开关 → 开 → 写 tab_SiteMessage（铃铛红点）
-                       关 → 不写消息中心
+始终写 tab_SiteMessage（铃铛红点） — 不再由运营开关控制
    ↓
-判断「是否推送」开关 → 开 → SignalR 推送在线端 → 渲染对应样式
-                       关 → 不弹窗
+判断「是否推送站内信」开关 → 开 → SignalR 推送在线端 → 渲染对应样式
+                            关 → 不弹推送
    ↓ 用户离线
-仅靠站内信红点兜底，登录后拉取消息中心</div>
+靠站内信红点兜底，登录后拉取消息中心</div>
       <h2>6、系统日志</h2>
       <ul>
         <li>所有写操作必记：操作人 / 时间 / 活动编码 / 字段名 / 前值 → 新值</li>
