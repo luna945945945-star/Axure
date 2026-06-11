@@ -509,6 +509,7 @@ tr.cb-selected{background:#f9f5ff !important}
   <div class="intro">
     💡 <b>本次改造</b>：现有 12 条模板的<b>编码</b>不允许新增。<b>标题 / 内容</b>支持运营自定义文本（注意保留 <code>{ }</code> 变量占位符）。<br>
     新增 2 列 <code>是否推送站内信</code> 和 <code>跳转动作</code>，<b>列表内直接可改</b>，无需进入编辑页。<br>
+    🎨 <b>推送样式由产品/UI 统一固定</b>，运营不能修改，列表里以"推送样式"列只读展示。模板 1-9 用 B1 / 10 用 B2 / 11 用 C3 / 12 用 C4。<br>
     其中 <b>模板 8 TG 活动</b>暂未上线，两列以"—"占位；<b>模板 9 / 10 活动类</b>因覆盖多个活动，点击「按活动」跳到「活动推送配置」Tab 统一管理。
   </div>
 
@@ -533,6 +534,7 @@ tr.cb-selected{background:#f9f5ff !important}
             <span class="q-tip" data-tip="该开关仅控制实时弹窗推送，不影响站内信默认红点。关闭后将不再弹出实时通知，但用户进入站内信中心仍可查看完整内容并跳转。">?</span>
           </th>
           <th style="width:160px">跳转动作 <span class="new-tag">NEW</span></th>
+          <th style="width:170px">推送样式 <span class="new-tag">NEW</span> <span class="q-tip" data-tip="样式由产品/UI 固定：1-9 → B1 顶部下滑横幅；10 → B2 顶部 Material toast；11 → C3 高危警示弹窗；12 → C4 提现已退回。运营不可改。">🔒</span></th>
           <th style="width:100px">操作</th>
         </tr>
       </thead>
@@ -558,8 +560,9 @@ tr.cb-selected{background:#f9f5ff !important}
   <div class="tab-pane" id="pane-act">
 
     <div class="intro">
-      💡 <b>活动推送配置</b>：当前 <b>16 个活动</b>，可按业务分组筛选。配置项：<b>站内信</b>（默认开启，红点提醒）/ <b>是否推送</b>（实时横幅或强弹窗）/ <b>跳转动作</b> / <b>推送级别</b>（L2 横幅 / L3 强弹窗）。<br>
-      达标后系统按活动类型即时（A 直发）或生成可领取记录（B 待领）。两个开关解耦：<b>站内信</b>负责消息中心红点，<b>是否推送</b>负责实时弹窗。
+      💡 <b>活动推送配置</b>：当前 <b>16 个活动</b>，可按业务分组筛选。可改：<b>站内信</b>（默认开启）/ <b>是否推送</b> / <b>跳转动作</b>。<b>推送样式锁定</b>（🔒 由所属模板决定，运营不可改）。<br>
+      <b>样式映射规则</b>：模板 1-9（含 A 类活动）→ <b>B1 顶部下滑横幅</b>；模板 10（B 类待领）→ <b>B2 顶部 Material toast</b>；模板 11（KYC 中断）→ <b>C3 高危警示弹窗</b>；模板 12（提现退回）→ <b>C4 提现已退回</b>。<br>
+      多通知合并：1 分钟内多条通知 → 自动合并为 <b>B3 聚合横幅</b>，点击展开查看。
     </div>
 
     <!-- 筛选条 -->
@@ -621,7 +624,7 @@ tr.cb-selected{background:#f9f5ff !important}
             <th style="width:100px;text-align:center">站内信 <span class="new-tag">NEW</span> <span class="q-tip" data-tip="控制活动达标后是否在消息中心写入站内信记录（顶部铃铛红点）。默认开启，关闭后该活动达标不写消息中心，用户在站内信里看不到这条记录。">?</span></th>
             <th style="width:100px;text-align:center">是否推送 <span class="q-tip" data-tip="控制活动达标后是否实时弹出推送（L2 横幅 或 L3 强弹窗）。与站内信独立：关闭后不弹实时通知，但只要站内信开关开着，用户进消息中心仍可看到。">?</span></th>
             <th style="width:120px">跳转动作</th>
-            <th style="width:130px">推送级别</th>
+            <th style="width:160px">推送样式 <span class="q-tip" data-tip="样式由所属消息模板固定：模板 9 → B1 顶部下滑横幅；模板 10 → B2 顶部 Material toast。运营不可改，只能控制是否推送。">🔒</span></th>
           </tr>
         </thead>
         <tbody id="actListBody"></tbody>
@@ -646,8 +649,9 @@ tr.cb-selected{background:#f9f5ff !important}
   <div class="tab-pane" id="pane-style">
 
     <div class="intro">
-      💡 <b>推送样式预览</b>：按推送级别（L2 / L3）+ 消息分类（钱类 / 活动类 / 普通）做了多套样式备选，方便 UI 设计师参考与挑选。<br>
-      每套样式都基于手机 mockup，可右键截图保存。点击右上角「<b>切换主题</b>」可对比深浅模式效果。
+      💡 <b>推送样式预览</b>：本期样式与消息模板<b>固定绑定</b>，<u>运营不能修改样式</u>，只能开启/关闭"是否推送"。<br>
+      📩 <b>模板 1-9 → B1 顶部下滑横幅</b>　·　<b>模板 10 → B2 Material 横幅</b>　·　<b>模板 11 → C3 高危警示弹窗</b>　·　<b>模板 12 → C4 提现已退回弹窗</b><br>
+      🔔 <b>B3 多通知聚合横幅</b>：玩家短时间收到多条通知时，<u>不再逐条弹出，合并成一条折叠横幅</u>，点击展开查看全部。
     </div>
 
     <!-- 顶部工具条 -->
@@ -677,9 +681,10 @@ tr.cb-selected{background:#f9f5ff !important}
         <div class="sp-tag-row">
           <span class="sp-lv-tag lv2">L2 · 横幅</span>
           <span class="sp-cat-tag money">💰 钱类</span>
+          <span class="sp-bind-tag" style="background:#e6f7ff;color:#0958d9;border:1px solid #91caff;font-size:11px;padding:1px 8px;border-radius:10px;font-weight:600">📩 绑定模板 1-9</span>
         </div>
         <div class="sp-title">B1 · 顶部下滑横幅 (iOS 风)</div>
-        <div class="sp-desc">从屏幕顶部滑入，停留 3-5 秒自动收起。可点击跳转。适合：充值到账、提现成功。</div>
+        <div class="sp-desc">从屏幕顶部滑入，停留 3-5 秒自动收起。可点击跳转。<b>固定绑定模板 1-9</b>（普通类 + 钱类 + A 类活动），运营不可改。</div>
         <div class="phone">
           <div class="phone-notch"></div>
           <div class="phone-screen">
@@ -706,9 +711,10 @@ tr.cb-selected{background:#f9f5ff !important}
         <div class="sp-tag-row">
           <span class="sp-lv-tag lv2">L2 · 横幅</span>
           <span class="sp-cat-tag activity">🎁 活动类</span>
+          <span class="sp-bind-tag" style="background:#fff7e6;color:#ad6800;border:1px solid #ffd591;font-size:11px;padding:1px 8px;border-radius:10px;font-weight:600">📩 绑定模板 10</span>
         </div>
         <div class="sp-title">B2 · 顶部 toast (Material 风)</div>
-        <div class="sp-desc">扁平矩形横幅，强色彩区分类型。适合：活动奖励到账、活动待领取。</div>
+        <div class="sp-desc">扁平矩形横幅 + 「去领取」按钮强引导。<b>固定绑定模板 10</b>（活动奖励待领取），运营不可改。</div>
         <div class="phone">
           <div class="phone-notch"></div>
           <div class="phone-screen">
@@ -730,48 +736,87 @@ tr.cb-selected{background:#f9f5ff !important}
         </div>
       </div>
 
-      <!-- ===== L3 · 强弹窗 ===== -->
-
-      <!-- C2: 居中模态弹窗（B 类待领取） -->
-      <div class="sp-card" data-lv="L3" data-cat="activity">
+      <!-- B3: 多通知聚合横幅（点击展开） -->
+      <div class="sp-card" data-lv="L2" data-cat="money">
         <div class="sp-tag-row">
-          <span class="sp-lv-tag lv3">L3 · 强弹窗</span>
-          <span class="sp-cat-tag activity">🎁 活动类</span>
+          <span class="sp-lv-tag lv2">L2 · 横幅</span>
+          <span class="sp-cat-tag normal" style="background:#f4f5f7;color:#5a6478;border:1px solid #dcdfe6">🔔 聚合</span>
+          <span class="sp-bind-tag" style="background:#f0f5ff;color:#2f54eb;border:1px solid #adc6ff;font-size:11px;padding:1px 8px;border-radius:10px;font-weight:600">🆕 多通知合并</span>
         </div>
-        <div class="sp-title">C2 · 居中待领取弹窗</div>
-        <div class="sp-desc">引导用户去活动页参与/领取。适合：B 类（大转盘、签到、每日任务）。CTA 按钮强引导。</div>
+        <div class="sp-title">B3 · 多通知聚合横幅（点击展开）</div>
+        <div class="sp-desc">玩家短时间收到多条通知时，<b>不再逐条弹出</b>，而是合并成一个折叠横幅。点击展开后逐条显示，可分别点击跳转。</div>
         <div class="phone">
           <div class="phone-notch"></div>
           <div class="phone-screen">
             <div class="ps-statusbar"><span>9:41</span><span class="ps-sb-r">●●●● 5G ▮</span></div>
-            <div class="ps-appbar"><span class="ps-logo">🎰 ARWin</span><span class="ps-bell">🔔</span></div>
-            <div class="ps-content" style="filter:blur(1px);opacity:.6">
-              <div class="ps-banner ph-banner">🎁 Welcome Bonus</div>
-              <div class="ps-row"><span>🎲 Lottery</span></div>
-            </div>
-            <div class="ps-modal-mask">
-              <div class="ps-modal-card wait">
-                <div class="wait-ico">🎡</div>
-                <div class="wait-ttl">大转盘 奖励待领取</div>
-                <div class="wait-msg">您已获得 <b>3 次</b> 抽奖机会<br>前往活动页参与抽奖</div>
-                <div class="wait-btns">
-                  <button class="wait-cancel">稍后</button>
-                  <button class="wait-go">立即参与</button>
-                </div>
+
+            <!-- 折叠态横幅 -->
+            <div class="ps-toast-top" id="multiBannerCollapsed" style="cursor:pointer;background:linear-gradient(135deg,#262626,#434343);color:#fff" onclick="toggleMultiBanner(this)">
+              <div class="ps-tt-ico" style="background:linear-gradient(135deg,#1677ff,#69b1ff);color:#fff;font-size:14px">🔔</div>
+              <div class="ps-tt-body">
+                <div class="ps-tt-ttl" style="color:#fff">ARWin · 您有 3 条新通知</div>
+                <div class="ps-tt-msg" style="color:#d9d9d9">点击展开查看 ▼</div>
               </div>
+              <span class="ps-tt-time" style="color:#bfbfbf">现在</span>
+            </div>
+
+            <!-- 展开后的多条通知（默认隐藏） -->
+            <div id="multiBannerExpanded" style="display:none;margin:6px 8px 0;background:linear-gradient(180deg,#262626,#1f1f1f);border-radius:14px;padding:10px;box-shadow:0 6px 18px rgba(0,0,0,.3);animation:slide-down .35s ease">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:0 6px 8px;border-bottom:1px solid #434343">
+                <span style="color:#fff;font-size:12.5px;font-weight:600">🔔 通知中心 (3)</span>
+                <span style="color:#bfbfbf;font-size:11px;cursor:pointer" onclick="toggleMultiBanner(this)">收起 ▲</span>
+              </div>
+              <!-- 每条小通知 -->
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 6px;border-bottom:1px solid #303030">
+                <span style="font-size:18px">💰</span>
+                <div style="flex:1">
+                  <div style="color:#fff;font-size:12.5px;font-weight:600">充值已到账</div>
+                  <div style="color:#bfbfbf;font-size:11px;margin-top:1px">您的充值 ₹500 已到账</div>
+                </div>
+                <span style="color:#8c8c8c;font-size:10px">2 分钟前</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 6px;border-bottom:1px solid #303030">
+                <span style="font-size:18px">🎁</span>
+                <div style="flex:1">
+                  <div style="color:#fff;font-size:12.5px;font-weight:600">首充奖励到账</div>
+                  <div style="color:#bfbfbf;font-size:11px;margin-top:1px">您的首充奖励 ₹50 已到账</div>
+                </div>
+                <span style="color:#8c8c8c;font-size:10px">1 分钟前</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 6px">
+                <span style="font-size:18px">🎲</span>
+                <div style="flex:1">
+                  <div style="color:#fff;font-size:12.5px;font-weight:600">大转盘 奖励待领取</div>
+                  <div style="color:#bfbfbf;font-size:11px;margin-top:1px">您获得 3 次抽奖机会</div>
+                </div>
+                <span style="color:#8c8c8c;font-size:10px">现在</span>
+              </div>
+            </div>
+
+            <div class="ps-appbar"><span class="ps-logo">🎰 ARWin</span><span class="ps-bell">🔔<span class="ps-badge">3</span></span></div>
+            <div class="ps-content">
+              <div class="ps-banner">🎁 Welcome Bonus</div>
+              <div class="ps-row"><span>🎲 Lottery</span></div>
             </div>
           </div>
         </div>
+        <div style="background:#f0f5ff;border:1px dashed #adc6ff;border-radius:6px;padding:8px 10px;margin-top:10px;color:#2f54eb;font-size:11.5px;line-height:1.6">
+          💡 <b>试试：点击手机里的折叠横幅</b>可展开/收起 3 条通知。<br>
+          实际触发场景：玩家 1 分钟内同时获得"充值到账 + 首充奖励 + 大转盘"等多条通知时合并。
+        </div>
       </div>
+
+      <!-- ===== L3 · 强弹窗 ===== -->
 
       <!-- C3: 全屏接管 (KYC 验证) -->
       <div class="sp-card" data-lv="L3" data-cat="money">
         <div class="sp-tag-row">
           <span class="sp-lv-tag lv3">L3 · 强弹窗</span>
           <span class="sp-cat-tag money">💰 钱类</span>
+          <span class="sp-bind-tag" style="background:#fff1f0;color:#cf1322;border:1px solid #ffa39e;font-size:11px;padding:1px 8px;border-radius:10px;font-weight:600">📩 绑定模板 11</span>
         </div>
         <div class="sp-title">C3 · 高危警示弹窗</div>
-        <div class="sp-desc">红色警示风格 + 强制操作。适合：KYC 验证中断、提现风控阻断。用户必须处理。</div>
+        <div class="sp-desc">红色警示风格 + 强制操作 + 倒计时。<b>固定绑定模板 11</b>（KYC 验证中断），运营不可改。</div>
         <div class="phone">
           <div class="phone-notch"></div>
           <div class="phone-screen">
@@ -801,9 +846,10 @@ tr.cb-selected{background:#f9f5ff !important}
         <div class="sp-tag-row">
           <span class="sp-lv-tag lv3">L3 · 强弹窗</span>
           <span class="sp-cat-tag money">💰 钱类</span>
+          <span class="sp-bind-tag" style="background:#fff7e6;color:#d46b08;border:1px solid #ffd591;font-size:11px;padding:1px 8px;border-radius:10px;font-weight:600">📩 绑定模板 12</span>
         </div>
-        <div class="sp-title">C4 · 提现已退回（模板 12）</div>
-        <div class="sp-desc">橙色提醒风格 + 双按钮（查看钱包 / 重新提现）。在 KYC 重连失败、订单取消后弹出，引导用户重新发起。</div>
+        <div class="sp-title">C4 · 提现已退回</div>
+        <div class="sp-desc">橙色提醒风格 + 双按钮（查看钱包 / 重新提现）。<b>固定绑定模板 12</b>（提现已退回），运营不可改。</div>
         <div class="phone">
           <div class="phone-notch"></div>
           <div class="phone-screen">
@@ -1011,12 +1057,20 @@ function renderList(){
 
     const isNew = t.isNew ? ' <span class="new-tag">NEW</span>' : '';
     const rowStyle = t.isNew ? ' style="background:#fff7e6"' : '';
+    // 推送样式映射（产品/UI 固定）
+    let styleChip;
+    if(t.code === 8) styleChip = '<span style="color:#bbb;font-size:11.5px">— 未上线</span>';
+    else if(t.code === 11) styleChip = '<span class="locked-style" style="background:#fff1f0;color:#cf1322;border:1px solid #ffa39e;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:3px">🔒 C3 高危警示</span>';
+    else if(t.code === 12) styleChip = '<span class="locked-style" style="background:#fff7e6;color:#d46b08;border:1px solid #ffd591;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:3px">🔒 C4 提现已退回</span>';
+    else if(t.code === 10) styleChip = '<span class="locked-style" style="background:#fff7e6;color:#ad6800;border:1px solid #ffd591;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:3px">🔒 B2 Material toast</span>';
+    else styleChip = '<span class="locked-style" style="background:#e6f7ff;color:#0958d9;border:1px solid #91caff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:3px">🔒 B1 顶部下滑横幅</span>';
     return `<tr${rowStyle}>
       <td class="code-col">${t.code}&nbsp;${t.name}${isNew}</td>
       <td>${t.title.length > 40 ? t.title.substr(0,40)+'…' : t.title}</td>
       <td>${t.body.length > 30 ? t.body.substr(0,30)+'…' : t.body}</td>
       <td>${pushCell}</td>
       <td>${jumpCell}</td>
+      <td>${styleChip}</td>
       <td><button class="btn-edit" onclick="openEdit(${t.code})">修改</button></td>
     </tr>`;
   }).join('');
@@ -1157,6 +1211,21 @@ function filterStyle(el, key, val){
 }
 function toggleSpTheme(){
   document.getElementById('spGrid').classList.toggle('sp-dark');
+}
+
+// 多通知聚合横幅：折叠/展开切换
+function toggleMultiBanner(el){
+  const collapsed = document.getElementById('multiBannerCollapsed');
+  const expanded = document.getElementById('multiBannerExpanded');
+  if(!collapsed || !expanded) return;
+  const isExpanded = expanded.style.display !== 'none';
+  if(isExpanded){
+    expanded.style.display = 'none';
+    collapsed.style.display = 'flex';
+  } else {
+    collapsed.style.display = 'none';
+    expanded.style.display = 'block';
+  }
 }
 
 // ========= 活动列表（独立页） =========
@@ -1430,10 +1499,10 @@ function renderActList(){
         </select>
       </td>
       <td style="text-align:center">
-        <select class="inline-select lv-${curLevel}" onchange="setActDraft('${a.id}','level',this.value)">
-          <option value="L2" ${curLevel==='L2'?'selected':''}>L2 · 横幅 toast</option>
-          <option value="L3" ${curLevel==='L3'?'selected':''}>L3 · 强弹窗</option>
-        </select>
+        ${(()=>{
+          const style = a.tplCode === 10 ? {label:'B2 · 顶部 Material toast',cls:'lv2',bg:'#fff7e6',color:'#ad6800',border:'#ffd591'} : {label:'B1 · 顶部下滑横幅',cls:'lv2',bg:'#e6f7ff',color:'#0958d9',border:'#91caff'};
+          return `<span class="locked-style" style="background:${style.bg};color:${style.color};border:1px solid ${style.border};padding:3px 9px;border-radius:11px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px" title="样式由所属模板固定，运营不可改">🔒 ${style.label}</span>`;
+        })()}
       </td>
     </tr>`;
   }).join('') || `<tr><td colspan="8" style="padding:30px;color:#999">无匹配活动</td></tr>`;
@@ -1521,7 +1590,7 @@ renderActList();
 
     <h3>1.2 活动推送配置 Tab（新页面）</h3>
     <ul>
-      <li>列表新增四个可编辑字段：<b>站内信</b>（默认开启）/ <b>是否推送</b> / <b>跳转动作</b> / <b>推送级别</b>（L2 / L3）</li>
+      <li>列表新增三个可编辑字段：<b>站内信</b>（默认开启）/ <b>是否推送</b> / <b>跳转动作</b>。<b>推送样式</b>由模板固定不可改（🔒 1-9 → B1，10 → B2，11 → C3，12 → C4）</li>
       <li>顶部新增 <b>批量操作</b> 下拉 + <b>保存</b> / <b>取消</b> 按钮</li>
     </ul>
 
@@ -1569,17 +1638,18 @@ renderActList();
       <b>关联模板不可换绑</b>：活动→模板的映射由产研管理，运营只能改"是否推送 / 跳转 / 级别"
     </div>
 
-    <h3>2.3 站内信 与 推送级别（两个开关解耦）</h3>
+    <h3>2.3 站内信 与 推送样式（样式由模板固定）</h3>
     <div class="callout">
-      <b>站内信</b>（默认开启）= 写消息中心红点，所有活动达标都会写一条站内信记录 + 顶部铃铛红点。<br>
-      <b>是否推送</b> + <b>推送级别</b> = 在站内信之上叠加的实时弹窗（L2 横幅 / L3 强弹窗），关闭后仅保留站内信红点。
+      <b>站内信</b>（默认开启）= 写消息中心红点。<b>是否推送</b> = 是否实时弹窗。<b>推送样式 🔒 锁定</b>，运营不可改。
     </div>
     <table>
-      <tr><th>级别</th><th>表现</th><th>默认匹配</th></tr>
-      <tr><td>L2 横幅 toast</td><td>顶部下滑 3-5 秒</td><td>活动类（9/10）</td></tr>
-      <tr><td>L3 强弹窗</td><td>居中模态 + 遮罩，需用户主动关</td><td>钱类（2/3/4）+ KYC（11）</td></tr>
+      <tr><th>模板编码</th><th>固定推送样式</th><th>表现</th></tr>
+      <tr><td>1 - 9</td><td>B1 · 顶部下滑横幅（iOS 风）</td><td>顶部滑入 3-5 秒自动收起，可点击跳转</td></tr>
+      <tr><td>10</td><td>B2 · 顶部 Material toast</td><td>扁平横幅 + 「去领取」按钮强引导</td></tr>
+      <tr><td>11</td><td>C3 · 高危警示弹窗</td><td>居中红色警示 + 倒计时 29:00 + 立即重连 / 稍后</td></tr>
+      <tr><td>12</td><td>C4 · 提现已退回</td><td>居中橙色提示 + 查看钱包 / 重新提现</td></tr>
     </table>
-    <p>原 L1 静默红点 已不再作为推送级别选项，<b>"仅红点"的能力由"站内信"独立开关承担</b>，便于运营单独控制是否写消息中心。</p>
+    <p><b>多通知合并：</b>1 分钟内同一会员收到多条通知 → 自动合并为 <b>B3 聚合横幅</b>（深色顶部条，显示"您有 N 条新通知"），点击展开查看每条详情并可分别跳转，不再逐条弹出造成打扰。</p>
 
     <h3>2.4 编辑 / 保存约束</h3>
     <ul>
