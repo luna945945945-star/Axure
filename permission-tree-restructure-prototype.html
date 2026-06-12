@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🌳 角色权限树「抽屉放大编辑」· 最终方案原型 + 需求说明</title>
+<!--
+  ✅ 确定方案：点「权限编辑」→ 抽屉式展开放大（全宽横向编辑）→ ✕/遮罩/ESC 收起
+  · 紧凑平铺：模块/菜单/页面成行，权限以对齐网格平铺在页面标签右侧（借鉴密集布局，更整洁）
+  · 选中样式：仅复选框打勾，不高亮整行
+  · 敏感：仅 2 处 —— 系统用户页面·编辑用户可USDT出款权限(叶子)、支代付三方管理页面(页面级)；保存含敏感→二次确认（现有逻辑保留）
+  · 全程共享同一数据模型：勾选/父子联动/半选 不变（只改样式与承载容器）
+-->
+<style>
+:root{
+  --primary:#1677ff; --primary-dark:#0958d9; --primary-light:#e6f4ff;
+  --success:#52c41a; --warning:#fa8c16; --danger:#cf1322;
+  --text:#222; --text-2:#555; --text-3:#888;
+  --border:#e8e8e8; --border-strong:#dcdfe6; --bg:#f0f2f5; --bg-card:#fff; --bg-hover:#f3f8ff;
+  --radius:8px; --shadow:0 2px 8px rgba(0,0,0,.06); --shadow-lg:0 12px 48px rgba(0,0,0,.20);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;color:var(--text);background:var(--bg);line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input{font-family:inherit;font-size:inherit;outline:none}
+
+.demo-banner{position:fixed;top:0;left:0;right:0;height:42px;background:linear-gradient(90deg,#fff7e6,#ffe7ba);border-bottom:1px solid #ffd591;padding:0 16px;font-size:12px;color:#874d00;display:flex;align-items:center;justify-content:space-between;z-index:900}
+.demo-banner .b-left{font-weight:700}
+.demo-banner .b-tabs{display:flex;gap:4px}
+.demo-banner .b-tab{padding:4px 13px;background:#fff;border:1px solid #ffd591;border-radius:14px;cursor:pointer;font-size:11.5px;color:#874d00;font-weight:600;white-space:nowrap}
+.demo-banner .b-tab.on{background:#fa8c16;color:#fff;border-color:#fa8c16}
+.with-banner{padding-top:42px}
+
+.toolbar{background:#fff;border-bottom:1px solid var(--border);padding:7px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px}
+.toolbar .ttl{font-weight:700;display:flex;align-items:center;gap:6px}
+.toolbar .ttl .dot{width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 10px var(--primary)}
+.toolbar .grow{flex:1}
+.toolbar .hint{color:#874d00;background:#fff7e6;border:1px solid #ffe0a3;border-radius:14px;padding:3px 11px}
+.stat{display:flex;align-items:center;gap:5px;color:var(--text-2);background:#f6f8fb;border:1px solid var(--border);border-radius:20px;padding:3px 11px}
+.stat b{color:var(--primary)} .stat.good b{color:var(--success)} .stat.warn b{color:var(--danger)}
+
+.page{display:flex;gap:14px;padding:14px 18px;align-items:flex-start}
+.page.full .right{display:none}
+.left{flex:1;min-width:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.right{width:30%;min-width:340px;max-width:430px;background:#fff;border:2px solid var(--primary);border-radius:var(--radius);box-shadow:0 4px 16px rgba(22,119,255,.12);display:flex;flex-direction:column;align-self:stretch}
+
+.l-search{padding:10px 14px;display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--border)}
+.l-search input{height:30px;border:1px solid var(--border-strong);border-radius:5px;padding:0 10px;width:200px}
+.l-search .b{height:30px;padding:0 14px;border-radius:5px;font-size:12.5px;display:inline-flex;align-items:center;gap:4px}
+.l-search .b.pri{background:var(--primary);color:#fff} .l-search .b.gh{border:1px solid var(--border-strong);color:var(--text-2)}
+.l-tip{margin:12px 14px;background:#eef5ff;border:1px solid #cfe2ff;border-radius:6px;padding:10px 12px;font-size:12px;color:var(--text-2)}
+.l-tip b{color:var(--primary)} .l-tip .k{background:#fff;border:1px solid #cfe2ff;border-radius:4px;padding:1px 6px;color:var(--primary);font-size:11px}
+.l-toolbar{padding:0 14px 10px;display:flex;gap:8px;align-items:center}
+.l-toolbar .b{height:30px;padding:0 12px;border-radius:5px;font-size:12.5px;display:inline-flex;align-items:center;gap:4px}
+.l-toolbar .b.pri{background:var(--primary);color:#fff} .l-toolbar .b.gh{border:1px solid var(--border-strong);color:var(--text-2)}
+.l-toolbar .grow{flex:1}
+table.roles{width:100%;border-collapse:collapse;font-size:12px}
+table.roles th,table.roles td{padding:9px 8px;text-align:left;white-space:nowrap;border-bottom:1px solid #f0f0f0}
+table.roles th{background:#fafbfc;color:var(--text-2);font-weight:600;font-size:11.5px}
+table.roles tr.active td{background:#e9f3ff}
+table.roles tr:hover td{background:#f7faff}
+.badge-on{display:inline-flex;align-items:center;gap:3px;background:#f6ffed;color:var(--success);border:1px solid #b7eb8f;border-radius:10px;padding:1px 8px;font-size:11px}
+.op a{color:var(--primary);cursor:pointer;margin-right:8px}.op a.del{color:var(--danger)}
+.op a.edit-perm{font-weight:700;background:var(--primary-light);padding:2px 8px;border-radius:5px}
+.op a.edit-perm:hover{background:#cfe5ff}
+.l-foot{padding:10px 14px;display:flex;justify-content:flex-end;align-items:center;gap:8px;font-size:12px;color:var(--text-3)}
+.l-foot .pg{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;border:1px solid var(--border-strong);border-radius:5px;padding:0 6px;cursor:pointer}
+.l-foot .pg.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+.p-head{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border);background:#fafbfc;flex-wrap:wrap}
+.p-head .assign{font-size:12.5px;color:var(--text-2)}.p-head .assign b{background:var(--primary-light);color:var(--primary);padding:2px 9px;border-radius:11px;margin-left:3px;font-size:12px}
+.p-head .grow{flex:1}
+.p-head .lk{font-size:12px;color:var(--text-2);cursor:pointer;padding:3px 7px;border-radius:5px;white-space:nowrap}.p-head .lk:hover{color:var(--primary);background:var(--primary-light)}
+.p-head .save{height:28px;padding:0 14px;background:var(--primary);color:#fff;border-radius:5px;font-size:12px;font-weight:600}
+.p-search{padding:9px 14px;border-bottom:1px solid var(--border)}
+.p-search input{width:100%;height:32px;border:1px solid var(--border-strong);border-radius:6px;padding:0 11px}
+.scroll{overflow:auto;padding:12px 14px}
+.scroll::-webkit-scrollbar{width:8px}.scroll::-webkit-scrollbar-thumb{background:#d6dbe2;border-radius:5px}
+.right .scroll{flex:1;min-height:520px;max-height:calc(100vh - 230px)}
+
+/* checkbox（选中=框带勾，不高亮整行） */
+.cbox{width:15px;height:15px;border:1.5px solid #c0c4cc;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:#fff;color:#fff;font-size:10px;line-height:1;transition:all .12s;cursor:pointer}
+.cbox.checked{background:var(--primary);border-color:var(--primary)}.cbox.checked::after{content:'✓'}
+.cbox.indet{background:var(--primary);border-color:var(--primary)}.cbox.indet::after{content:'';width:8px;height:2px;background:#fff;border-radius:1px}
+.cbox:hover{border-color:var(--primary)}
+
+.tag{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;font-size:11px;font-weight:600;flex-shrink:0}
+.tag-module{background:#e8f0ff;color:#2a5fd6;border:1px solid #c5d8ff}
+.tag-menu{background:#eafff8;color:#0f9b73;border:1px solid #bdf0df}
+.tag-page{background:#f6efff;color:#7b3fd1;border:1px solid #e2d2fb}
+.tag.red{background:#fff1f0;color:var(--danger);border-color:#ffa39e}
+
+/* 敏感标签（保留现有逻辑） */
+.sens{display:inline-flex;align-items:center;height:17px;padding:0 6px;border-radius:4px;font-size:10.5px;font-weight:700;background:#fff1f0;color:var(--danger);border:1px solid #ffa39e;flex-shrink:0;white-space:nowrap}
+.sens.sm{height:15px;font-size:10px;padding:0 4px}
+.bf-node .sens{margin-left:auto}
+
+/* 改造前·竖排 */
+.bf-node{display:flex;align-items:center;gap:7px;height:29px;border-radius:5px;padding-right:6px}
+.bf-node:hover{background:var(--bg-hover)}
+.bf-caret{width:13px;text-align:center;color:var(--text-3);font-size:10px;flex-shrink:0;cursor:pointer;user-select:none}
+.bf-caret.leaf{visibility:hidden}
+.bf-label{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bf-node.is-perm .bf-label{color:var(--text-2)}
+
+/* 改造后·紧凑平铺（借鉴密集布局，对齐网格更整洁） */
+.m-grp{margin-bottom:9px}
+.row-mod{display:flex;align-items:center;gap:8px;padding:6px 10px;background:linear-gradient(90deg,#eef4ff,#f7faff);border:1px solid #dbe7ff;border-radius:7px;cursor:pointer}
+.row-mod:hover{background:#e9f1ff}
+.row-menu{display:flex;align-items:center;gap:8px;padding:5px 8px 5px 22px;cursor:pointer;border-radius:6px}
+.row-menu:hover{background:var(--bg-hover)}
+.nm-h{font-weight:700;font-size:13px}
+.row-menu .nm-h{font-weight:600;font-size:12.5px}
+.cr{width:12px;text-align:center;color:var(--text-3);font-size:10px;flex-shrink:0;cursor:pointer}
+.cnt{font-size:11px;color:var(--text-3);background:#eef1f5;border-radius:9px;padding:0 7px;flex-shrink:0}
+.cnt.full{color:var(--success);background:#f0fbe9}
+.pg-row{display:flex;align-items:flex-start;gap:10px;padding:5px 8px 5px 44px;border-bottom:1px dashed #eef1f5}
+.pg-row:hover{background:#fcfdff}
+.pg-label{flex:0 0 216px;display:flex;align-items:center;gap:6px;padding-top:2px;min-width:0}
+.pg-nm{font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pg-perms{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px 8px;min-width:0}
+.perm{display:inline-flex;align-items:center;gap:6px;padding:3px 7px;border-radius:5px;cursor:pointer;min-width:0}
+.perm:hover{background:var(--bg-hover)}
+.pm-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px;color:var(--text-2)}
+.perm.is-sens{grid-column:1/-1;background:#fff8f8;border:1px solid #ffe0e0}
+.perm.is-sens .pm-nm{color:var(--text)}
+.empty{color:var(--text-3);font-size:12.5px;padding:24px;text-align:center}
+mark{background:#fff2a8;color:#874d00;border-radius:2px;padding:0 1px}
+
+/* 敏感权限提醒 弹窗（现有二次确认逻辑） */
+.modal{position:fixed;inset:0;z-index:1100;background:rgba(0,20,50,.45);display:none;align-items:center;justify-content:center;padding:30px}
+.modal.show{display:flex}
+.modal-card{width:560px;max-width:94vw;background:#fff;border-radius:12px;box-shadow:var(--shadow-lg);overflow:hidden;display:flex;flex-direction:column;max-height:84vh}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:14px}
+.modal-head .mx{color:var(--text-3);cursor:pointer;font-size:16px}
+.modal-warn{margin:14px 18px 6px;background:#fff7e6;border:1px solid #ffe0a3;border-radius:8px;padding:10px 12px;color:#874d00;font-size:12.5px;display:flex;gap:7px;align-items:flex-start}
+.modal-body{padding:6px 18px;overflow:auto}
+.sens-grp{border:1px solid #ffd6d6;background:#fff8f8;border-radius:8px;padding:11px 13px;margin-bottom:10px}
+.sg-path{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text)}
+.sg-sep{color:var(--text-3)}
+.sg-page{display:flex;align-items:center;gap:7px;margin-top:7px}
+.sg-pagename{color:var(--danger);font-weight:600;font-size:12.5px}
+.sg-perms{margin-top:7px;display:flex;flex-wrap:wrap;gap:6px}
+.sg-perms .it{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text-2);background:#fff;border:1px solid #ffd6d6;border-radius:14px;padding:2px 10px}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:13px 18px;border-top:1px solid var(--border)}
+.btn-cancel{height:32px;padding:0 18px;border:1px solid var(--border-strong);border-radius:6px;color:var(--text-2);background:#fff}
+.btn-cancel:hover{border-color:var(--primary);color:var(--primary)}
+.btn-ok{height:32px;padding:0 20px;background:var(--warning);color:#fff;border-radius:6px;font-weight:600}
+.btn-ok:hover{background:#e07c10}
+
+/* 抽屉（最终方案）；演示态 top:42px 让位 banner，生产用 top:0 */
+.mask{position:fixed;top:42px;left:0;right:0;bottom:0;background:rgba(0,20,50,.4);z-index:790;display:none}
+.mask.show{display:block}
+.drawer{position:fixed;top:42px;right:0;bottom:0;width:82vw;max-width:1320px;background:#fff;z-index:800;box-shadow:var(--shadow-lg);transform:translateX(100%);transition:transform .3s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column}
+.drawer.show{transform:translateX(0)}
+.dw-head{display:flex;align-items:center;gap:10px;padding:13px 20px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,#f7faff,#fff)}
+.dw-head .t{font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px}
+.dw-head .assign{font-size:12.5px;color:var(--text-2)}.dw-head .assign b{background:var(--primary-light);color:var(--primary);padding:2px 9px;border-radius:11px}
+.dw-head .grow{flex:1}
+.dw-head .lk{font-size:12.5px;color:var(--text-2);cursor:pointer;padding:5px 9px;border-radius:5px}.dw-head .lk:hover{color:var(--primary);background:var(--primary-light)}
+.dw-head .save{height:30px;padding:0 18px;background:var(--primary);color:#fff;border-radius:5px;font-size:12.5px;font-weight:600}.dw-head .save:hover{background:var(--primary-dark)}
+.dw-head .close{height:30px;padding:0 12px;border:1px solid var(--border-strong);border-radius:5px;color:var(--text-2);display:inline-flex;align-items:center;gap:5px;font-size:12.5px}.dw-head .close:hover{border-color:var(--danger);color:var(--danger)}
+.dw-sub{padding:9px 20px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:center;background:#fafbfc}
+.dw-sub input{flex:1;height:32px;border:1px solid var(--border-strong);border-radius:6px;padding:0 11px}
+.dw-sub input:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-light)}
+.dw-body{flex:1;overflow:auto;padding:14px 22px}
+
+/* 需求说明 */
+.doc{max-width:1000px;margin:0 auto;padding:16px}
+.doc .card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 22px;margin-bottom:14px}
+.doc h2{font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.doc h3{font-size:13px;margin:14px 0 5px;color:var(--text);border-left:3px solid var(--primary);padding-left:8px}
+.doc p,.doc li{font-size:13px;color:var(--text-2);line-height:1.8}
+.doc ul{padding-left:20px}
+.doc .ck{list-style:none;padding-left:2px}
+.doc .ck li{position:relative;padding-left:22px;margin:4px 0}
+.doc .ck li::before{content:'☐';position:absolute;left:2px;top:-1px;color:var(--primary);font-size:14px}
+.doc table{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0}
+.doc th,.doc td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top}
+.doc th{background:#fafbfc;font-weight:600}
+.doc .yes{color:var(--success);font-weight:700}.doc .no{color:var(--danger);font-weight:700}.doc .star{color:var(--warning);font-weight:700}
+.add,.keep,.flag{display:inline-block;border-radius:4px;padding:0 6px;font-size:11px;font-weight:700;margin-right:5px}
+.add{background:#f6ffed;color:var(--success);border:1px solid #b7eb8f}
+.keep{background:#fff1f0;color:var(--danger);border:1px solid #ffa39e}
+.flag{background:#fff4e6;color:#d97316;border:1px solid #ffddb3}
+.doc pre{background:#0d1b2a;color:#cfe3ff;border-radius:8px;padding:12px 14px;font-size:12px;line-height:1.7;overflow:auto;font-family:Consolas,monospace}
+.doc pre .c{color:#6b8aaa}.doc pre .k{color:#79c0ff}.doc pre .s{color:#7ee787}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0;font-size:12.5px}
+.flow .n{background:var(--primary-light);color:var(--primary-dark);border:1px solid #bcdcff;border-radius:8px;padding:7px 12px;font-weight:600}
+.flow .ar{color:var(--text-3);font-weight:700}
+
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#22324a;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;z-index:1200;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body class="with-banner">
+
+<div class="demo-banner">
+  <div class="b-left">🌳 角色权限树「抽屉放大编辑」· 最终方案</div>
+  <div class="b-tabs">
+    <span class="b-tab" data-sc="before" onclick="go('before',this)">① 改造前·窄栏竖排</span>
+    <span class="b-tab on" data-sc="after" onclick="go('after',this)">② 改造后·抽屉放大 ⭐</span>
+    <span class="b-tab" data-sc="doc" onclick="go('doc',this)">③ 需求说明</span>
+  </div>
+  <div style="font-size:11px">同一数据模型 · 勾选即同步</div>
+</div>
+
+<div class="toolbar" id="toolbar">
+  <div class="ttl"><span class="dot"></span>系统管理 / 角色管理</div>
+  <div class="grow"></div>
+  <div class="hint" id="hint">👉 点任意行「权限编辑」→ 抽屉放大编辑</div>
+  <div class="stat good">已选权限 <b id="selCount">0</b> 项</div>
+  <div class="stat" id="densStat" style="display:none">每行约 <b>–</b> 项</div>
+</div>
+
+<div class="page" id="page">
+  <div class="left">
+    <div class="l-search"><input placeholder="请输入角色名称"><span class="b pri">🔍 搜索</span><span class="b gh">↻ 重置</span></div>
+    <div class="l-tip">ⓘ <b>权限配置提醒</b> ：点击 <span class="k">权限编辑</span> 按钮，<b>抽屉放大</b>分配权限。未选中则代表未获得对应权限。</div>
+    <div class="l-toolbar"><span class="b pri">＋ 新增角色</span><span class="grow"></span><span class="b gh">⚙ 自定义列</span></div>
+    <table class="roles">
+      <thead><tr><th>ID</th><th>角色名称</th><th>状态</th><th>创建人</th><th>创建时间(UTC+5:30)</th><th>角色描述</th><th>最后修改人</th><th>操作</th></tr></thead>
+      <tbody id="roleRows"></tbody>
+    </table>
+    <div class="l-foot">共 18 条 <span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">›</span> 10/页 跳至 1</div>
+  </div>
+
+  <div class="right" id="sidePanel">
+    <div class="p-head"><span class="assign">分配：<b id="roleNameSide">len测试</b></span><span class="grow"></span><span class="lk" onclick="expandAll(false)">收起全部</span><span class="lk" onclick="selectAll(true)">全选</span><span class="save" onclick="onSave()">保存权限</span></div>
+    <div class="p-search"><input id="kwSide" placeholder="输入菜单/权限名称搜索" oninput="onSearch('Side')"></div>
+    <div class="scroll" id="sideScroll"><div id="sideBody"></div></div>
+  </div>
+</div>
+
+<div class="mask" id="mask" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="dw-head">
+    <span class="t">⛶ 权限编辑（放大）</span>
+    <span class="assign">分配：<b id="roleNameDw">len测试</b></span>
+    <span class="grow"></span>
+    <span class="lk" onclick="expandAll(false)">收起全部</span>
+    <span class="lk" onclick="expandAll(true)">展开全部</span>
+    <span class="lk" onclick="selectAll(true)">全选</span>
+    <span class="save" onclick="onSave()">保存权限</span>
+    <span class="close" onclick="closeDrawer()">✕ 收起</span>
+  </div>
+  <div class="dw-sub"><input id="kwDw" placeholder="输入菜单/权限名称搜索" oninput="onSearch('Dw')"><span style="font-size:12px;color:var(--text-3)" id="dwDens">每行约 – 项</span></div>
+  <div class="dw-body" id="drawerScroll"><div id="drawerBody"></div></div>
+</div>
+
+<div class="modal" id="sensModal">
+  <div class="modal-card">
+    <div class="modal-head"><span>⚠ 敏感权限提醒</span><span class="mx" onclick="closeSens()">✕</span></div>
+    <div class="modal-warn">⚠ 当前保存的权限包含以下敏感操作，请确认是否继续：</div>
+    <div class="modal-body" id="sensList"></div>
+    <div class="modal-foot"><button class="btn-cancel" onclick="closeSens()">取消</button><button class="btn-ok" onclick="confirmSens()">确定</button></div>
+  </div>
+</div>
+
+<div class="doc" id="doc" style="display:none">
+  <div class="card">
+    <h2>一、需求背景 & 目标</h2>
+    <ul>
+      <li><b>痛点</b>：给角色授权时，权限树在右侧约 30% 窄栏（≈380px）逐行竖排——一个菜单的多个权限要逐行勾，一屏只看到 2~3 个菜单，<b>容易误勾、漏勾</b>。</li>
+      <li><b>目标</b>：一屏看到多个菜单的权限，整组扫视、方便勾选。</li>
+      <li><b>硬约束</b>（已与开发确认）：<b>只改客户端样式 / 承载容器，不改勾选逻辑与数据结构</b>，原勾选体系保持不变。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>二、最终方案（已确认）：权限编辑 → 抽屉放大 + 紧凑平铺</h2>
+    <p>点角色行的「权限编辑」→ <b>抽屉式从右展开放大</b>（≈82vw），权限树<b>紧凑平铺</b>：模块/菜单/页面成行，权限以<b>对齐网格平铺在「页面」标签右侧</b>（借鉴密集布局，配合对齐网格更整洁）；点 <b>✕收起 / 遮罩 / ESC</b> 收起。</p>
+    <div class="flow">
+      <span class="n">角色列表</span><span class="ar">→ 权限编辑</span>
+      <span class="n">抽屉放大编辑</span><span class="ar">→ 勾选/搜索</span>
+      <span class="n">保存</span><span class="ar">→ 含敏感?</span>
+      <span class="n" style="background:#fff1f0;color:#cf1322;border-color:#ffa39e">敏感二次确认</span><span class="ar">→ 确定</span>
+      <span class="n">成功 · 收起</span>
+    </div>
+    <p style="font-size:12px;color:var(--text-3)">※ 不含敏感权限时跳过二次确认直接保存；敏感判定与弹窗为<b>现有逻辑，原样保留</b>。</p>
+    <table style="margin-top:6px">
+      <tr><th>项</th><th>说明</th></tr>
+      <tr><td>触发入口</td><td>角色行「权限编辑」按钮（沿用现有入口，改为打开抽屉）</td></tr>
+      <tr><td>承载容器</td><td>右侧抽屉，宽 ≈82vw，遮罩聚焦；列表恢复整宽（移除原常驻窄栏）</td></tr>
+      <tr><td><b>排版（紧凑平铺）</b></td><td>页面标签居左定宽，其权限以 <b>对齐网格</b> 平铺右侧、自动换行；去掉卡片重边框，行距收紧 → 同屏显示更多</td></tr>
+      <tr><td><b>选中样式</b></td><td><b>仅复选框打勾</b>，不高亮整行/不填充（贴近原生、更干净）</td></tr>
+      <tr><td>密度（实测）</td><td>抽屉 ≈1050px → 每行 4~6 项；22 权限的「系统用户页面」≈4~5 行内看完</td></tr>
+      <tr><td><b>敏感权限</b></td><td>带「<span style="color:var(--danger);font-weight:700">敏感</span>」标签<b>继续保留显示</b>（可在 <b>权限(叶子)</b> 或 <b>页面</b> 上）；保存若含敏感 → 弹「敏感权限提醒」<b>二次确认</b>——<b>现有逻辑原样保留</b></td></tr>
+    </table>
+    <p style="margin-top:6px;font-size:12px;color:var(--text-3)">当前系统敏感项仅 2 处：<b>系统管理/系统用户页面 · 编辑用户可USDT出款权限</b>（叶子级）、<b>财务管理/支代付三方管理页面</b>（页面级）。</p>
+  </div>
+
+  <div class="card">
+    <h2>三、🔧 开发改动点</h2>
+    <p>总原则：<b>只动「渲染样式 + 承载容器」，不动「数据 + 勾选逻辑」</b>。<span class="add">新增/改</span> <span class="keep">禁止改</span></p>
+
+    <h3>① 入口与容器</h3>
+    <ul>
+      <li><span class="add">改</span>「权限编辑」点击 → 打开 <code>el-drawer</code>（宽 ≈82vw，带遮罩）；权限树整体渲染进抽屉 body（<b>容器迁移，组件实例与勾选逻辑不变</b>）。</li>
+      <li><span class="add">新增</span>抽屉头：分配角色名 + 收起全部/展开全部/全选/保存/✕收起；支持 遮罩点击 / ESC 收起。</li>
+      <li><span class="add">改</span>移除原右侧常驻窄栏，角色列表恢复整宽。</li>
+    </ul>
+
+    <h3>② 紧凑平铺 + 选中样式（样式）</h3>
+    <ul>
+      <li><span class="add">改</span><b>权限横向平铺</b>：把「页面」节点设为弹性行——<code>页面标签</code> 居左定宽，其 <code>.el-tree-node__children</code> 移到右侧做 <b>对齐网格</b>（<code>grid auto-fill</code>）自动换行；模块/菜单仍整行并显示「已选/总」计数。</li>
+      <li><span class="add">改</span><b>选中样式仅保留复选框打勾</b>：去掉旧的整行高亮/背景填充。</li>
+      <li><span class="add">改</span>收紧行距、去卡片重边框（改用浅虚线分隔），<code>ellipsis</code>+<code>title</code> 处理长名 → 同屏更多。</li>
+      <li><span class="add">改</span><b>「敏感」标签随节点带入</b>：叶子权限的敏感标显示在该权限名后；<b>页面级</b>敏感标显示在页面标签处（红色）。标签数据来源不变。</li>
+    </ul>
+
+    <h3>③ ⛔ 明确不许改（回归基线）</h3>
+    <ul>
+      <li><span class="keep">禁改</span>权限数据源、节点 <code>node-key</code>、<code>check-keys</code> / <code>v-model</code>。</li>
+      <li><span class="keep">禁改</span>父子联动勾选、半选(indeterminate) 计算、搜索 <code>filter-node-method</code>、全选、收起全部。</li>
+      <li><span class="keep">禁改</span>「保存权限」提交结构与入参字段（<b>后端无感</b>）。</li>
+      <li><span class="keep">禁改</span><b>保存「敏感权限」二次确认弹窗（敏感权限提醒）</b>：触发点从旧面板按钮移到抽屉「保存权限」，<b>敏感判定 + 弹窗内容 + 取消/确定逻辑完全不变</b>；敏感标记来源不变。</li>
+    </ul>
+<pre><span class="c">/* 页面节点：标签居左 + 权限网格平铺右侧（仅权限树容器内生效） */</span>
+.perm-tree .page-node{ <span class="k">display</span>:flex; <span class="k">align-items</span>:flex-start; }
+.perm-tree .page-node &gt; .el-tree-node__content{ <span class="k">flex</span>:<span class="s">0 0 216px</span>; }
+.perm-tree .page-node &gt; .el-tree-node__children{ <span class="k">flex</span>:<span class="s">1</span>;
+  <span class="k">display</span>:grid; <span class="k">grid-template-columns</span>:repeat(auto-fill,minmax(<span class="s">150px</span>,1fr)); <span class="k">gap</span>:<span class="s">2px 8px</span>; }
+.perm-tree .page-node &gt; .el-tree-node__children .el-tree-node__content{ <span class="k">padding-left</span>:<span class="s">6px</span> !important; }
+<span class="c">/* 选中只留复选框打勾：移除旧的整行高亮（如有） */</span>
+.perm-tree .el-tree-node.is-checked &gt; .el-tree-node__content{ <span class="k">background</span>:none; }</pre>
+  </div>
+
+  <div class="card">
+    <h2>四、🧪 测试点 & 回归清单</h2>
+    <h3>A. 逻辑回归（必须与改造前一字不差）</h3>
+    <ul class="ck">
+      <li>勾单个权限 → 所属 页面/菜单/模块 <b>三级父节点呈半选(─)</b></li>
+      <li>勾页面/菜单/模块 → 旗下权限<b>全部选中</b>；再点 → 全部取消</li>
+      <li>取消某页<b>最后一个</b>已选权限 → 三级父级 半选→未选 正确回落</li>
+      <li>全选 / 收起全部 / 展开全部、模块/菜单/页面「已选/总」计数正确</li>
+      <li>搜索菜单名、权限名：命中显示+高亮，非命中隐藏；清空恢复</li>
+      <li>★ <b>保存权限：抓包对比改造前后提交的权限 key 集合完全一致</b></li>
+      <li>编辑已有角色：已授权权限回显勾选、父级半选正确；切换角色刷新对应权限</li>
+    </ul>
+    <h3>B. 抽屉交互 & 紧凑平铺（新增）</h3>
+    <ul class="ck">
+      <li>点「权限编辑」→ 抽屉从右展开放大，标题与分配角色名正确</li>
+      <li>抽屉内 勾选 / 搜索 / 全选 / 收起全部 / 保存 均正常</li>
+      <li>✕收起 / 点遮罩 / 按 ESC → 抽屉收起；未保存改动关闭处理符合产品约定</li>
+      <li><b>选中样式仅复选框打勾</b>，无整行高亮</li>
+      <li>权限网格随分辨率自适应换行（1366/1440/1920）；22 权限页面显示紧凑无错位</li>
+      <li>长权限名截断省略 + 悬浮 title 显示全名</li>
+    </ul>
+    <h3>C. 敏感权限二次确认（现有逻辑，重点回归）</h3>
+    <ul class="ck">
+      <li>勾选含「敏感」的权限/页面 → 点保存 → <b>弹「敏感权限提醒」二次确认窗</b></li>
+      <li>弹窗按 模块/菜单/页面 列出敏感操作（叶子级 & 页面级都覆盖），内容与改造前一致</li>
+      <li>点「取消」→ <b>不保存</b>；点「确定」→ <b>才真正提交保存</b>（入参一致）</li>
+      <li>未勾选任何敏感项 → 直接保存、<b>不弹</b>二次确认</li>
+      <li>「敏感」标签在 改造前竖排 / 改造后平铺 均正确显示（叶子在权限名后、页面在页面标签处）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const P=(id,name,c,s)=>({id,type:'perm',name,checked:!!c,sensitive:!!s});
+const DATA=[
+ {id:'m1',type:'module',name:'会员管理',children:[
+  {id:'mn1',type:'menu',name:'会员列表',children:[
+   {id:'p1',type:'page',name:'会员列表页面',children:[P('q1','查询列表',1),P('q2','导出'),P('q3','在线列表'),P('q4','导入批量操作',1),P('q5','封号')]},
+   {id:'p2',type:'page',name:'会员详情页',children:[P('d1','查看基本信息'),P('d2','修改备注'),P('d3','设置打码量'),P('d4','修改会员状态'),P('d5','查看投注信息'),P('d6','查看操作日志'),P('d7','查看钱包信息'),P('d8','修改会员密码')]}]},
+  {id:'mn2',type:'menu',name:'会员层级',children:[
+   {id:'p3',type:'page',name:'会员层级列表',children:[P('l1','查询列表'),P('l2','新增'),P('l3','编辑'),P('l4','删除')]}]}]},
+ {id:'m2',type:'module',name:'系统管理',children:[
+  {id:'mn3',type:'menu',name:'系统用户',children:[
+   {id:'p4',type:'page',name:'系统用户页面',children:[
+     P('s1','新增用户',1),P('s2','删除用户',1),P('s3','修改用户密码',1),P('s4','重置google',1),P('s5','查询列表',1),
+     P('s6','批量修改状态'),P('s7','批量新增'),P('s8','编辑用户'),P('s9','修改用户状态'),P('s10','查看详情'),
+     P('s11','批量编辑出款审核金额区间'),P('s12','批量编辑处理订单上限'),P('s13','修改是否验证谷歌'),P('s14','批量赋权系统用户'),
+     P('s15','批量删除用户'),P('s16','批量重置google'),P('s17','批量转移google'),P('s18','编辑用户基本信息'),
+     P('s19','编辑用户出款权限'),P('s20','编辑用户人工充值权限'),P('s21','编辑用户归属商户'),P('s22','编辑用户可USDT出款权限',1,1)]}]},
+  {id:'mn5',type:'menu',name:'IP白名单',children:[
+   {id:'p6',type:'page',name:'IP白名单页面',children:[P('i1','查询列表'),P('i2','新增'),P('i3','修改状态'),P('i4','删除'),P('i5','修改备注')]}]}]},
+ {id:'m3',type:'module',name:'财务管理',children:[
+  {id:'mn4',type:'menu',name:'支代付三方管理',children:[
+   {id:'p5',type:'page',name:'支代付三方管理页面',sensitive:true,children:[P('f1','查看详情',1),P('f2','查询列表',1),P('f3','新增'),P('f4','编辑'),P('f5','删除')]}]}]}
+];
+
+const ROLES=[
+ [100025,'len测试','org_len','2026-06-08 11:17:35','ee','org_len'],
+ [100024,'mic测试','org_mic','2026-06-04 12:35:58','--','org_mic'],
+ [100023,'三方','kenan1','2026-05-29 19:53:12','--','kenan1'],
+ [100022,'组长测试','jun0001','2026-05-29 18:14:05','--','jun0001'],
+ [100021,'财务测试','jun0001','2026-05-29 18:04:17','--','jun0001'],
+ [100020,'出款测试','jun0001','2026-05-29 17:54:17','--','jun0001'],
+ [100019,'客服测试','jun0001','2026-05-29 17:48:53','--','jun0001'],
+ [100018,'bdgcw','org_bdg','2026-05-26 13:28:40','1212','milozg01'],
+ [100017,'bdg测试','org_bdg','2026-05-26 13:17:43','bdg测试','org_bdg'],
+ [100016,'推广主管','org_bdg','2026-05-25 11:07:27','推广主管','org_bdg']];
+
+let scenario='after', drawerOpen=true, role='len测试', kw='';
+let activeMount=null, activeLayout='tile';
+const collapsed=new Set();
+const $=id=>document.getElementById(id);
+
+function state(n){ if(n.type==='perm') return n.checked?'checked':'none';
+ let on=0,t=0,indet=false; for(const c of n.children){const s=state(c);t++; if(s==='checked')on++; else if(s==='indet')indet=true;}
+ if(indet) return 'indet'; if(on===0) return 'none'; return on===t?'checked':'indet'; }
+function eachPerm(n,fn){ n.type==='perm'?fn(n):n.children.forEach(c=>eachPerm(c,fn)); }
+function count(n){ let on=0,total=0; eachPerm(n,p=>{total++; if(p.checked)on++;}); return on+'/'+total; }
+function find(id,l=DATA){ for(const n of l){ if(n.id===id)return n; if(n.children){const r=find(id,n.children); if(r)return r;} } return null; }
+function walk(fn,l=DATA){ l.forEach(n=>{fn(n); n.children&&walk(fn,n.children);}); }
+
+function toggle(id){ const n=find(id); if(n.type==='perm') n.checked=!n.checked; else{ const on=state(n)!=='checked'; eachPerm(n,p=>p.checked=on);} render(); }
+function selectAll(on){ DATA.forEach(m=>eachPerm(m,p=>p.checked=on)); render(); }
+function expandAll(open){ collapsed.clear(); if(!open) walk(n=>{ if(n.type==='menu'||n.type==='page') collapsed.add(n.id); }); render(); }
+function toggleCollapse(id){ collapsed.has(id)?collapsed.delete(id):collapsed.add(id); render(); }
+
+function hit(n){ if(!kw) return true; if(n.type==='perm') return n.name.toLowerCase().includes(kw); return n.children.some(hit)||n.name.toLowerCase().includes(kw); }
+function esc(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function hl(s){ if(!kw) return esc(s); const i=s.toLowerCase().indexOf(kw); if(i<0) return esc(s); return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+kw.length))+'</mark>'+esc(s.slice(i+kw.length)); }
+const TAG={module:'模块',menu:'菜单',page:'菜单',perm:'权限'};
+const cls=s=>s==='checked'?'checked':s==='indet'?'indet':'';
+const cntCls=n=>{ const [a,b]=count(n).split('/'); return a>0&&a===b?'full':''; };
+
+/* 改造前·竖排 */
+function vNode(n,d){ if(!hit(n)) return ''; const s=state(n),leaf=n.type==='perm',open=!collapsed.has(n.id);
+ const car=leaf?'<span class="bf-caret leaf">▾</span>':`<span class="bf-caret" onclick="event.stopPropagation();toggleCollapse('${n.id}')">${open?'▾':'▸'}</span>`;
+ let h=`<div class="bf-node ${leaf?'is-perm':''}" style="padding-left:${d*20}px">${car}<span class="cbox ${cls(s)}" onclick="toggle('${n.id}')"></span><span class="tag tag-${n.type}">${TAG[n.type]}</span><span class="bf-label">${hl(n.name)}</span>${n.sensitive?'<span class="sens">敏感</span>':''}</div>`;
+ if(!leaf&&open) h+=n.children.map(c=>vNode(c,d+1)).join(''); return h; }
+
+/* 改造后·紧凑平铺 */
+function afModule(m){ if(!hit(m)) return ''; const open=!collapsed.has(m.id);
+ return `<div class="m-grp"><div class="row-mod" onclick="toggleCollapse('${m.id}')">
+   <span class="cr">${open?'▾':'▸'}</span><span class="cbox ${cls(state(m))}" onclick="event.stopPropagation();toggle('${m.id}')"></span>
+   <span class="tag tag-module">模块</span><span class="nm-h">${hl(m.name)}</span><span class="cnt ${cntCls(m)}">${count(m)}</span>
+   ${m.sensitive?'<span class="sens">敏感</span>':''}</div>
+   ${open?m.children.map(afMenu).join(''):''}</div>`; }
+function afMenu(mn){ if(!hit(mn)) return ''; const open=!collapsed.has(mn.id);
+ return `<div class="mn-grp"><div class="row-menu" onclick="toggleCollapse('${mn.id}')">
+   <span class="cr">${open?'▾':'▸'}</span><span class="cbox ${cls(state(mn))}" onclick="event.stopPropagation();toggle('${mn.id}')"></span>
+   <span class="tag tag-menu">菜单</span><span class="nm-h">${hl(mn.name)}</span><span class="cnt ${cntCls(mn)}">${count(mn)}</span>
+   ${mn.sensitive?'<span class="sens">敏感</span>':''}</div>
+   ${open?mn.children.map(afPage).join(''):''}</div>`; }
+function afPage(pg){ if(!hit(pg)) return ''; const perms=pg.children.filter(hit);
+ const chips=perms.map(p=>`<span class="perm ${p.sensitive?'is-sens':''}" onclick="toggle('${p.id}')" title="${esc(p.name)}">
+     <span class="cbox ${p.checked?'checked':''}"></span><span class="pm-nm">${hl(p.name)}</span>${p.sensitive?'<span class="sens sm">敏感</span>':''}</span>`).join('');
+ return `<div class="pg-row">
+   <div class="pg-label"><span class="cbox ${cls(state(pg))}" onclick="toggle('${pg.id}')"></span>
+     <span class="tag tag-page ${pg.sensitive?'red':''}">页面</span><span class="pg-nm" title="${esc(pg.name)}">${hl(pg.name)}</span>
+     <span class="cnt ${cntCls(pg)}">${count(pg)}</span>${pg.sensitive?'<span class="sens">敏感</span>':''}</div>
+   <div class="pg-perms">${chips||'<span class="empty" style="padding:4px">无匹配</span>'}</div>
+ </div>`; }
+
+function treeHTML(layout){ return DATA.map(m=>layout==='vertical'?vNode(m,0):afModule(m)).join('')||'<div class="empty">无匹配结果</div>'; }
+
+function render(){
+ const isDoc=scenario==='doc';
+ $('doc').style.display=isDoc?'':'none'; $('page').style.display=isDoc?'none':''; $('toolbar').style.display=isDoc?'none':'';
+ if(isDoc){ $('mask').classList.remove('show'); $('drawer').classList.remove('show'); return; }
+
+ const sc={}; ['sideScroll','drawerScroll'].forEach(id=>sc[id]=$(id)?$(id).scrollTop:0);
+ $('page').classList.toggle('full', scenario==='after');
+ $('hint').style.display = scenario==='after' ? '' : 'none';
+
+ const dw = (scenario==='after' && drawerOpen);
+ $('mask').classList.toggle('show', dw);
+ $('drawer').classList.toggle('show', dw);
+
+ if(scenario==='before'){ $('sideBody').innerHTML=treeHTML('vertical'); activeMount=$('sideBody'); activeLayout='vertical'; }
+ else { if(dw){ $('drawerBody').innerHTML=treeHTML('tile'); activeMount=$('drawerBody'); activeLayout='tile'; } else activeMount=null; }
+ ['sideScroll','drawerScroll'].forEach(id=>{ if($(id)) $(id).scrollTop=sc[id]; });
+
+ let sel=0; DATA.forEach(m=>eachPerm(m,p=>{if(p.checked)sel++;})); $('selCount').textContent=sel;
+ const ds=$('densStat');
+ if(scenario==='before'){ ds.style.display='none'; }
+ else if(dw){ ds.style.display=''; const body=$('drawerBody').querySelector('.pg-perms'); const w=body?body.clientWidth:0; const per=Math.max(1,Math.floor((w+8)/(150+8)));
+   ds.className='stat '+(per>=4?'good':'warn'); ds.innerHTML=`平铺每行约 <b>${per}</b> 项`;
+   $('dwDens').textContent=`权限区宽≈${w}px · 每行约 ${per} 项`; }
+ else { ds.style.display='none'; }
+}
+
+function onSearch(which){ kw=$('kw'+which).value.trim().toLowerCase();
+ const other=which==='Dw'?'Side':'Dw'; if($('kw'+other)) $('kw'+other).value=$('kw'+which).value;
+ render(); }
+function openDrawer(name){ role=name; document.querySelectorAll('#roleNameDw,#roleNameSide').forEach(e=>e.textContent=name);
+ if(scenario==='after'){ drawerOpen=true; } render(); }
+function closeDrawer(){ drawerOpen=false; render(); }
+
+/* 敏感：收集已勾选的敏感叶子 + 含勾选的敏感页面，按 模块>菜单>页面 分组（现有逻辑） */
+function collectSensitive(){ const hits=[];
+ for(const m of DATA) for(const mn of m.children) for(const pg of mn.children){
+   if(pg.type!=='page') continue; const items=[];
+   if(pg.sensitive && pg.children.some(p=>p.checked)) items.push({name:pg.name,page:true});
+   pg.children.forEach(p=>{ if(p.checked&&p.sensitive) items.push({name:p.name}); });
+   if(items.length) hits.push({m,mn,pg,items}); }
+ return hits; }
+function onSave(){ const hits=collectSensitive(); if(hits.length) openSens(hits); else doSave(); }
+function openSens(hits){
+ $('sensList').innerHTML=hits.map(g=>`<div class="sens-grp">
+   <div class="sg-path"><span class="tag tag-module">模块</span><b>${g.m.name}</b><span class="sg-sep">/</span><span class="tag tag-menu">菜单</span>${g.mn.name}</div>
+   <div class="sg-page"><span class="tag red">页面</span><span class="sg-pagename">${g.pg.name}</span></div>
+   <div class="sg-perms">${g.items.map(it=>`<span class="it"><span class="sens">敏感</span>${it.name}${it.page?'（页面）':''}</span>`).join('')}</div>
+ </div>`).join('');
+ $('sensModal').classList.add('show'); }
+function closeSens(){ $('sensModal').classList.remove('show'); }
+function confirmSens(){ closeSens(); doSave(); }
+function doSave(){ let s=0; DATA.forEach(m=>eachPerm(m,p=>{if(p.checked)s++;})); toast('✅ 保存成功：已勾选 '+s+' 项权限（入参与改造前一致）');
+ if(scenario==='after'){ setTimeout(closeDrawer,600); } }
+
+function go(sc,el){ scenario=sc; if(sc==='after') drawerOpen=true; if(sc==='before') drawerOpen=false;
+ document.querySelectorAll('.b-tab').forEach(t=>t.classList.toggle('on', t.dataset.sc===sc)); render(); }
+
+let toastT;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
+ if($('sensModal').classList.contains('show')) closeSens();
+ else if(scenario==='after'&&drawerOpen) closeDrawer(); });
+
+$('roleRows').innerHTML=ROLES.map((r,i)=>`<tr class="${i===0?'active':''}"><td>${r[0]}</td><td>${r[1]}</td><td><span class="badge-on">●启用</span></td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td class="op"><a class="edit-perm" onclick="openDrawer('${r[1]}')">权限编辑</a><a>编辑</a><a class="del">删除</a></td></tr>`).join('');
+
+render();
+</script>
+</body>
+</html>
