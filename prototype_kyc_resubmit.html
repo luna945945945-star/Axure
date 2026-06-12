@@ -445,6 +445,13 @@
   <div class="page-title">改动 2 · 提单交互全流程演示</div>
   <div class="page-subtitle">两个 Tab 分别演示「彩票平台提工单」与「客服工单系统提工单」的完整交互，按按钮可看到下一步效果</div>
 
+  <!-- 顶层：通道类型切换 -->
+  <div class="demo-toggle" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#f59e0b">
+    <span class="lbl" style="color:#92400e;font-weight:600">通道类型：</span>
+    <div class="demo-btn active" onclick="switchChannel('upi',this)">🇮🇳 UPI（短信认证）</div>
+    <div class="demo-btn" onclick="switchChannel('bankcard',this)">🏦 BANKCARD（无短信认证）</div>
+  </div>
+
   <!-- 双 Tab 切换 -->
   <div class="demo-toggle" style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border-color:#3b82f6">
     <span class="lbl" style="color:#1e3a8a;font-weight:600">提单入口：</span>
@@ -526,12 +533,21 @@
       <strong>🎫 客服工单系统提工单</strong>：能拿到完整工单 + 短信认证状态，按钮分 <strong>4 种状态</strong>。点不同按钮看完整交互（订单列表 → 进度查询 → 银行列表 → OTP）。
     </div>
 
-    <div class="demo-toggle">
+    <!-- UPI 通道：4 态 -->
+    <div class="demo-toggle" id="woStatesUpi">
       <span class="lbl">订单状态：</span>
       <div class="demo-btn active" onclick="woState('none',this)">无工单</div>
       <div class="demo-btn" onclick="woState('pending',this)">短信认证待完成</div>
       <div class="demo-btn" onclick="woState('done',this)">短信认证已通过</div>
       <div class="demo-btn" onclick="woState('rejected',this)">已驳回 / 已处理</div>
+    </div>
+
+    <!-- BANKCARD 通道：3 态 -->
+    <div class="demo-toggle" id="woStatesBankcard" style="display:none">
+      <span class="lbl">订单状态：</span>
+      <div class="demo-btn active" onclick="woState('bc_none',this)">无工单</div>
+      <div class="demo-btn" onclick="woState('bc_processing',this)">工单处理中</div>
+      <div class="demo-btn" onclick="woState('bc_rejected',this)">已驳回 / 已处理</div>
     </div>
 
     <div class="split-3">
@@ -613,6 +629,54 @@
                 </div>
               </div>
 
+              <!-- ━━━ BANKCARD · 无工单 ━━━ -->
+              <div id="woState_bc_none" style="display:none">
+                <div class="recharge-card">
+                  <div class="row header-row">
+                    <span class="badge-status badge-recharge">充值</span>
+                    <span class="badge-fail">充值失败</span>
+                  </div>
+                  <div class="row amount"><span class="lbl">金额</span><span class="val">₹500.00</span></div>
+                  <div class="row"><span class="lbl">类型</span><span class="val" style="color:#7c3aed;font-weight:600">🏦 BANKCARD</span></div>
+                  <div class="row"><span class="lbl">订单号</span><span class="val" style="font-size:11px">RC20260605114907...</span></div>
+                  <button class="btn-action btn-red" onclick="woNextScreen('form_bc')">提交存款凭证</button>
+                  <div class="btn-hint">🏦 BANKCARD · 不走短信认证 · 直接提交工单</div>
+                </div>
+              </div>
+
+              <!-- ━━━ BANKCARD · 工单处理中（进度页，无超链接） ━━━ -->
+              <div id="woState_bc_processing" style="display:none">
+                <div style="background:#fff;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <div style="font-size:14px;font-weight:600">Deposit Not Received</div>
+                    <span style="color:#2080f0;font-size:12px;font-weight:600">Pending</span>
+                  </div>
+                  <div style="font-size:11.5px;color:#888;margin-bottom:6px">Order: 26061208152462...</div>
+                  <div style="font-size:11px;color:#7c3aed;margin-bottom:12px">🏦 类型：BANKCARD</div>
+                  <div style="background:#f3f4f6;border-radius:6px;padding:10px;font-size:12px;color:#666;margin-bottom:14px">Waiting for processing, please be patient</div>
+                  <button style="width:100%;padding:12px;background:#1f2937;color:#fff;border:none;border-radius:22px;font-size:13.5px;font-weight:500">Reminders</button>
+                  <div style="margin-top:10px;font-size:11.5px;color:#999;text-align:center">🏦 BANKCARD 通道 · 不显示"补充短信认证"</div>
+                </div>
+              </div>
+
+              <!-- ━━━ BANKCARD · 已驳回 / 已处理 ━━━ -->
+              <div id="woState_bc_rejected" style="display:none">
+                <div class="recharge-card">
+                  <div class="row header-row">
+                    <span class="badge-status badge-recharge">充值</span>
+                    <span class="badge-fail">充值失败</span>
+                  </div>
+                  <div class="row amount"><span class="lbl">金额</span><span class="val">₹500.00</span></div>
+                  <div class="row"><span class="lbl">类型</span><span class="val" style="color:#7c3aed;font-weight:600">🏦 BANKCARD</span></div>
+                  <div class="row"><span class="lbl">订单号</span><span class="val" style="font-size:11px">RC20260605114907...</span></div>
+                  <button class="btn-action btn-red" onclick="woNextScreen('form_bc')">提交存款凭证</button>
+                  <div class="btn-hint" style="margin-top:8px">
+                    <span class="status-chip" style="background:#fef3c7;color:#92400e">工单已驳回</span>
+                    <a onclick="goToHistory()" style="color:#2080f0;cursor:pointer;text-decoration:underline;margin-left:8px">📋 查看 1 张历史工单 ›</a>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
@@ -639,13 +703,39 @@
                 </div>
               </div>
 
-              <!-- 表单填写 -->
+              <!-- BANKCARD 工单处理中 · 说明屏 -->
+              <div id="woNext_idle_bc" style="display:none">
+                <div style="padding:40px 16px;text-align:center">
+                  <div style="font-size:48px;margin-bottom:14px;color:#7c3aed">🏦</div>
+                  <div style="font-size:15px;font-weight:600;color:#5b21b6;margin-bottom:10px">BANKCARD 通道 · 处理中</div>
+                  <div style="background:#f5f3ff;border-radius:8px;padding:14px;font-size:12.5px;color:#5b21b6;line-height:1.9;text-align:left">
+                    <strong>🚫 不显示"补充短信认证"超链接</strong><br>
+                    原因：BANKCARD 通道是<strong>银行卡转账</strong>，不需要走短信认证流程，玩家只需等待客服处理即可。
+                  </div>
+                </div>
+              </div>
+
+              <!-- UPI 表单填写 -->
               <div id="woNext_form" style="display:none">
                 <div style="background:#fff;border-radius:8px;padding:14px;font-size:12.5px">
                   <div style="margin-bottom:14px"><label style="color:#666">订单号</label><input style="width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;margin-top:4px" value="RC20260605..."></div>
                   <div style="margin-bottom:14px"><label style="color:#666">UTR (银行转账号)</label><input style="width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;margin-top:4px" placeholder="请输入 12 位 UTR"></div>
                   <div style="margin-bottom:14px"><label style="color:#666">金额</label><input style="width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;margin-top:4px" value="₹100"></div>
                   <button class="btn-action btn-red" onclick="woNextScreen('bank_first')">下一步：选择银行</button>
+                </div>
+              </div>
+
+              <!-- BANKCARD 表单填写（直接提交，不选银行） -->
+              <div id="woNext_form_bc" style="display:none">
+                <div style="background:#fff;border-radius:8px;padding:14px;font-size:12.5px">
+                  <div style="background:#f5f3ff;border-left:3px solid #7c3aed;padding:10px;margin-bottom:14px;font-size:11.5px;color:#5b21b6;border-radius:0 6px 6px 0">
+                    🏦 BANKCARD 通道 · <strong>无需短信认证</strong>，填完资料即可直接提交
+                  </div>
+                  <div style="margin-bottom:14px"><label style="color:#666">订单号</label><input style="width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;margin-top:4px" value="RC20260605..."></div>
+                  <div style="margin-bottom:14px"><label style="color:#666">银行账户名</label><input style="width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;margin-top:4px" placeholder="请输入银行账户名"></div>
+                  <div style="margin-bottom:14px"><label style="color:#666">银行卡号</label><input style="width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;margin-top:4px" placeholder="请输入银行卡号"></div>
+                  <div style="margin-bottom:14px"><label style="color:#666">金额</label><input style="width:100%;padding:9px;border:1px solid #ddd;border-radius:6px;margin-top:4px" value="₹500"></div>
+                  <button class="btn-action btn-red" onclick="woNextScreen('success', 'bankcard')">提交工单</button>
                 </div>
               </div>
 
@@ -747,14 +837,26 @@
 
       <!-- 说明面板 -->
       <div class="panel">
-        <h2>🎫 客服工单 · 4 态规则</h2>
+        <h2>🎫 客服工单 · 通道差异规则</h2>
+
+        <h3 style="margin-top:0">🇮🇳 UPI 通道（4 态）</h3>
         <table>
           <thead><tr><th>状态</th><th>按钮 / 超链接</th></tr></thead>
           <tbody>
-            <tr><td><strong>无工单</strong></td><td><span style="color:#ff6b6b">提交存款凭证</span> 红色 →<br>首次模式（有"跳过"）</td></tr>
-            <tr><td><strong>短信认证待完成</strong> 🆕</td><td>进度页催单按钮下方绿色超链接<br>补充模式（无"跳过"）</td></tr>
-            <tr><td><strong>短信认证已通过</strong></td><td>进度页正常显示<br><span style="color:#16a34a">右侧无操作（无需补充）</span></td></tr>
-            <tr><td><strong>已驳回 / 已处理</strong> 🆕</td><td><span style="color:#ff6b6b">提交存款凭证</span> 红色<br>+ 「📋 查看历史工单」可点跳进度页</td></tr>
+            <tr><td><strong>无工单</strong></td><td><span style="color:#ff6b6b">提交存款凭证</span> → 表单 → 选银行（含跳过）→ OTP</td></tr>
+            <tr><td><strong>短信认证待完成</strong> 🆕</td><td>进度页绿色超链接<br>补充模式（无"跳过"）</td></tr>
+            <tr><td><strong>短信认证已通过</strong></td><td>进度页正常显示，无超链接</td></tr>
+            <tr><td><strong>已驳回 / 已处理</strong> 🆕</td><td><span style="color:#ff6b6b">提交存款凭证</span> + 历史链接</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="margin-top:16px">🏦 BANKCARD 通道（3 态 · 无短信认证）</h3>
+        <table style="background:#faf5ff">
+          <thead><tr><th>状态</th><th>按钮 / 提示</th></tr></thead>
+          <tbody>
+            <tr><td><strong>无工单</strong></td><td><span style="color:#ff6b6b">提交存款凭证</span> → 表单 → <strong style="color:#7c3aed">直接提交（跳过银行 + OTP）</strong></td></tr>
+            <tr><td><strong>工单处理中</strong></td><td>进度页正常显示<br><strong style="color:#dc2626">不显示"补充短信认证"超链接</strong></td></tr>
+            <tr><td><strong>已驳回 / 已处理</strong></td><td>同 UPI · <span style="color:#ff6b6b">提交存款凭证</span> + 历史链接</td></tr>
           </tbody>
         </table>
 
@@ -1075,22 +1177,52 @@ function lotteryState(state, el){
   if(el) el.classList.add('active');
 }
 
-// ━━━━━━ 客服工单 4 态切换 ━━━━━━
+// ━━━━━━ 通道类型切换（UPI / BANKCARD） ━━━━━━
+let currentChannel = 'upi';
+function switchChannel(channel, el){
+  currentChannel = channel;
+  const upiToggle = document.getElementById('woStatesUpi');
+  const bcToggle = document.getElementById('woStatesBankcard');
+  if(upiToggle) upiToggle.style.display = (channel==='upi'?'flex':'none');
+  if(bcToggle) bcToggle.style.display = (channel==='bankcard'?'flex':'none');
+
+  // 更新 active
+  el.parentElement.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+
+  // 切换默认状态
+  if(channel==='upi'){
+    const noneBtn = document.querySelector('#woStatesUpi .demo-btn');
+    if(noneBtn) woState('none', noneBtn);
+  } else {
+    const noneBtn = document.querySelector('#woStatesBankcard .demo-btn');
+    if(noneBtn) woState('bc_none', noneBtn);
+  }
+}
+
+// ━━━━━━ 客服工单状态切换（UPI 4 态 + BANKCARD 3 态） ━━━━━━
 function woState(state, el){
-  ['none','pending','done','rejected'].forEach(s=>{
+  ['none','pending','done','rejected','bc_none','bc_processing','bc_rejected'].forEach(s=>{
     const node = document.getElementById('woState_'+s);
     if(node) node.style.display = (s===state?'block':'none');
   });
   // 顶部标题切换
   const title = document.getElementById('woScreen1Title');
-  const titles = {none:'订单列表', pending:'查询进度', done:'查询进度', rejected:'订单列表'};
+  const titles = {
+    none:'订单列表', pending:'查询进度', done:'查询进度', rejected:'订单列表',
+    bc_none:'订单列表', bc_processing:'查询进度', bc_rejected:'订单列表'
+  };
   if(title) title.textContent = titles[state] || '订单列表';
-  el.parentElement.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('active'));
-  if(el) el.classList.add('active');
+  if(el){
+    el.parentElement.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+  }
 
   // 根据状态联动屏 2
   if(state === 'done') {
     woNextScreen('passed');
+  } else if(state === 'bc_processing') {
+    woNextScreen('idle_bc');
   } else {
     woNextScreen('idle');
   }
@@ -1098,7 +1230,7 @@ function woState(state, el){
 
 // ━━━━━━ 工单系统右屏切换 ━━━━━━
 function woNextScreen(screen, context){
-  ['idle','form','bank_first','bank_resubmit','passed','otp','success'].forEach(s=>{
+  ['idle','idle_bc','form','form_bc','bank_first','bank_resubmit','passed','otp','success'].forEach(s=>{
     const node = document.getElementById('woNext_'+s);
     if(node) node.style.display = (s===screen?'block':'none');
   });
@@ -1106,12 +1238,23 @@ function woNextScreen(screen, context){
   const screen2Title = document.getElementById('woScreen2Title');
 
   // Success 屏标题随 context 切换
-  const successStepTitle = (context === 'skip') ? '⑤ 工单已提交 · 跳过短信认证' : '⑤ 系统核对中 · 1-2 分钟';
-  const successHeader    = (context === 'skip') ? '工单提交成功' : '提交成功';
+  let successStepTitle, successHeader;
+  if(context === 'skip'){
+    successStepTitle = '③ 工单已提交 · 跳过短信认证';
+    successHeader    = '工单提交成功';
+  } else if(context === 'bankcard'){
+    successStepTitle = '③ 工单已提交 · BANKCARD 通道';
+    successHeader    = '工单提交成功';
+  } else {
+    successStepTitle = '⑤ 系统核对中 · 1-2 分钟';
+    successHeader    = '提交成功';
+  }
 
   const titles = {
     idle:          {header:'下一步',                stepTitle:'② 下一步联动展示'},
+    idle_bc:       {header:'BANKCARD 工单处理中',   stepTitle:'② 无补充短信认证入口'},
     form:          {header:'工单资料填写',          stepTitle:'② 填写工单资料'},
+    form_bc:       {header:'工单资料填写（BANKCARD）',stepTitle:'② 填写银行卡资料 · 无银行选择'},
     bank_first:    {header:'选择银行（首次模式）',  stepTitle:'③ 选择银行 · 有跳过按钮'},
     bank_resubmit: {header:'选择银行（补充模式）',  stepTitle:'② 选择银行 · 无跳过按钮'},
     passed:        {header:'已完成',                stepTitle:'✓ 短信认证已通过'},
@@ -1148,6 +1291,20 @@ function updateSuccessContent(context){
       message.innerHTML = '<strong>📝 工单已提交，等待客服处理</strong><br>未关联银行，处理时间会延长<br><span style="color:#666;font-size:11px">客服处理结果会通过站内信通知您</span>';
       message.style.background = '#fff7ed';
       message.style.color = '#9a3412';
+    }
+  } else if(context === 'bankcard'){
+    // BANKCARD 通道 → 工单提交成功，无核对
+    tag.textContent = 'BANKCARD 通道';
+    tag.style.background = '#f5f3ff';
+    tag.style.color = '#5b21b6';
+    title.textContent = '工单提交成功';
+    title.style.color = '#15803d';
+
+    if(progressArea) progressArea.style.display = 'none';
+    if(message){
+      message.innerHTML = '<strong>🏦 BANKCARD 通道无需短信认证</strong><br>工单已提交，等待客服处理<br><span style="color:#666;font-size:11px">处理结果会通过站内信通知您</span>';
+      message.style.background = '#f5f3ff';
+      message.style.color = '#5b21b6';
     }
   } else {
     // 默认：OTP 完成 → 短信认证已提交，含核对动画
@@ -1193,11 +1350,17 @@ function startSuccessCountdown(){
   }, 1000);
 }
 
-// ━━━━━━ 历史工单跳转（项 7） ━━━━━━
+// ━━━━━━ 历史工单跳转（按当前通道分流） ━━━━━━
 function goToHistory(){
-  // 切换到"短信认证待完成"状态，模拟跳到进度页查看历史工单
-  const pendingBtn = document.querySelectorAll('#entryWorkOrder .demo-toggle .demo-btn')[1];
-  if(pendingBtn) woState('pending', pendingBtn);
+  if(currentChannel === 'bankcard'){
+    // BANKCARD → 跳到"工单处理中"（无补充短信认证超链接）
+    const processBtn = document.querySelectorAll('#woStatesBankcard .demo-btn')[1];
+    if(processBtn) woState('bc_processing', processBtn);
+  } else {
+    // UPI → 跳到"短信认证待完成"（有超链接）
+    const pendingBtn = document.querySelectorAll('#woStatesUpi .demo-btn')[1];
+    if(pendingBtn) woState('pending', pendingBtn);
+  }
 }
 
 // ━━━━━━ Toast ━━━━━━
