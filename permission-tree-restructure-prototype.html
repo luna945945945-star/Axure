@@ -100,7 +100,7 @@ table.roles tr:hover td{background:#f7faff}
 .bf-node:hover{background:var(--bg-hover)}
 .bf-caret{width:13px;text-align:center;color:var(--text-3);font-size:10px;flex-shrink:0;cursor:pointer;user-select:none}
 .bf-caret.leaf{visibility:hidden}
-.bf-label{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bf-label{font-size:13px;white-space:nowrap}
 .bf-node.is-perm .bf-label{color:var(--text-2)}
 
 /* 改造后·紧凑平铺（借鉴密集布局，对齐网格更整洁） */
@@ -116,13 +116,13 @@ table.roles tr:hover td{background:#f7faff}
 .cnt.full{color:var(--success);background:#f0fbe9}
 .pg-row{display:flex;align-items:flex-start;gap:10px;padding:5px 8px 5px 44px;border-bottom:1px dashed #eef1f5}
 .pg-row:hover{background:#fcfdff}
-.pg-label{flex:0 0 216px;display:flex;align-items:center;gap:6px;padding-top:2px;min-width:0}
-.pg-nm{font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pg-perms{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px 8px;min-width:0}
-.perm{display:inline-flex;align-items:center;gap:6px;padding:3px 7px;border-radius:5px;cursor:pointer;min-width:0}
+.pg-label{flex:0 0 auto;min-width:200px;display:flex;align-items:center;gap:6px;padding-top:3px}
+.pg-nm{font-weight:600;font-size:12.5px;white-space:nowrap}
+.pg-perms{flex:1;display:flex;flex-wrap:wrap;gap:3px 18px;min-width:0}
+.perm{display:inline-flex;align-items:center;gap:6px;padding:3px 7px;border-radius:5px;cursor:pointer}
 .perm:hover{background:var(--bg-hover)}
-.pm-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px;color:var(--text-2)}
-.perm.is-sens{grid-column:1/-1;background:#fff8f8;border:1px solid #ffe0e0}
+.pm-nm{white-space:nowrap;font-size:12.5px;color:var(--text-2)}
+.perm.is-sens{flex-basis:100%;background:#fff8f8;border:1px solid #ffe0e0}
 .perm.is-sens .pm-nm{color:var(--text)}
 .empty{color:var(--text-3);font-size:12.5px;padding:24px;text-align:center}
 mark{background:#fff2a8;color:#874d00;border-radius:2px;padding:0 1px}
@@ -282,7 +282,7 @@ mark{background:#fff2a8;color:#874d00;border-radius:2px;padding:0 1px}
       <tr><th>项</th><th>说明</th></tr>
       <tr><td>触发入口</td><td>角色行「权限编辑」按钮（沿用现有入口，改为打开抽屉）</td></tr>
       <tr><td>承载容器</td><td>右侧抽屉，宽 ≈82vw，遮罩聚焦；列表恢复整宽（移除原常驻窄栏）</td></tr>
-      <tr><td><b>排版（紧凑平铺）</b></td><td>页面标签居左定宽，其权限以 <b>对齐网格</b> 平铺右侧、自动换行；去掉卡片重边框，行距收紧 → 同屏显示更多</td></tr>
+      <tr><td><b>排版（紧凑平铺）</b></td><td>页面标签居左（<b>名称完整不省略</b>），其权限按<b>自然宽度平铺右侧、自动换行</b>；去掉卡片重边框，行距收紧 → 同屏显示更多</td></tr>
       <tr><td><b>选中样式</b></td><td><b>仅复选框打勾</b>，不高亮整行/不填充（贴近原生、更干净）</td></tr>
       <tr><td>密度（实测）</td><td>抽屉 ≈1050px → 每行 4~6 项；22 权限的「系统用户页面」≈4~5 行内看完</td></tr>
       <tr><td><b>敏感权限</b></td><td>带「<span style="color:var(--danger);font-weight:700">敏感</span>」标签<b>继续保留显示</b>（可在 <b>权限(叶子)</b> 或 <b>页面</b> 上）；保存若含敏感 → 弹「敏感权限提醒」<b>二次确认</b>——<b>现有逻辑原样保留</b></td></tr>
@@ -303,9 +303,9 @@ mark{background:#fff2a8;color:#874d00;border-radius:2px;padding:0 1px}
 
     <h3>② 紧凑平铺 + 选中样式（样式）</h3>
     <ul>
-      <li><span class="add">改</span><b>权限横向平铺</b>：把「页面」节点设为弹性行——<code>页面标签</code> 居左定宽，其 <code>.el-tree-node__children</code> 移到右侧做 <b>对齐网格</b>（<code>grid auto-fill</code>）自动换行；模块/菜单仍整行并显示「已选/总」计数。</li>
+      <li><span class="add">改</span><b>权限横向平铺</b>：把「页面」节点设为弹性行——<code>页面标签</code> 居左（<b>宽度自适应、名称完整不省略</b>），其 <code>.el-tree-node__children</code> 移到右侧 <b>弹性平铺</b>（<code>flex-wrap</code>、按权限名自然宽度）自动换行；模块/菜单仍整行并显示「已选/总」计数。</li>
       <li><span class="add">改</span><b>选中样式仅保留复选框打勾</b>：去掉旧的整行高亮/背景填充。</li>
-      <li><span class="add">改</span>收紧行距、去卡片重边框（改用浅虚线分隔），<code>ellipsis</code>+<code>title</code> 处理长名 → 同屏更多。</li>
+      <li><span class="add">改</span>收紧行距、去卡片重边框（改用浅虚线分隔）；<b>权限名 / 页面名完整显示、严禁省略</b>（中文长名按自然宽度平铺、自动换行，运营须看到完整权限）→ 同屏更多。</li>
       <li><span class="add">改</span><b>「敏感」标签随节点带入</b>：叶子权限的敏感标显示在该权限名后；<b>页面级</b>敏感标显示在页面标签处（红色）。标签数据来源不变。</li>
     </ul>
 
@@ -316,12 +316,13 @@ mark{background:#fff2a8;color:#874d00;border-radius:2px;padding:0 1px}
       <li><span class="keep">禁改</span>「保存权限」提交结构与入参字段（<b>后端无感</b>）。</li>
       <li><span class="keep">禁改</span><b>保存「敏感权限」二次确认弹窗（敏感权限提醒）</b>：触发点从旧面板按钮移到抽屉「保存权限」，<b>敏感判定 + 弹窗内容 + 取消/确定逻辑完全不变</b>；敏感标记来源不变。</li>
     </ul>
-<pre><span class="c">/* 页面节点：标签居左 + 权限网格平铺右侧（仅权限树容器内生效） */</span>
+<pre><span class="c">/* 页面节点：标签居左(宽度自适应·名称不省略) + 权限弹性平铺右侧 */</span>
 .perm-tree .page-node{ <span class="k">display</span>:flex; <span class="k">align-items</span>:flex-start; }
-.perm-tree .page-node &gt; .el-tree-node__content{ <span class="k">flex</span>:<span class="s">0 0 216px</span>; }
+.perm-tree .page-node &gt; .el-tree-node__content{ <span class="k">flex</span>:<span class="s">0 0 auto</span>; <span class="k">min-width</span>:<span class="s">200px</span>; <span class="k">white-space</span>:nowrap; }
 .perm-tree .page-node &gt; .el-tree-node__children{ <span class="k">flex</span>:<span class="s">1</span>;
-  <span class="k">display</span>:grid; <span class="k">grid-template-columns</span>:repeat(auto-fill,minmax(<span class="s">150px</span>,1fr)); <span class="k">gap</span>:<span class="s">2px 8px</span>; }
-.perm-tree .page-node &gt; .el-tree-node__children .el-tree-node__content{ <span class="k">padding-left</span>:<span class="s">6px</span> !important; }
+  <span class="k">display</span>:flex; <span class="k">flex-wrap</span>:wrap; <span class="k">gap</span>:<span class="s">3px 18px</span>; }
+<span class="c">/* 权限名完整：不截断、不省略，按自然宽度排 */</span>
+.perm-tree .page-node .el-tree-node__label{ <span class="k">white-space</span>:nowrap; <span class="k">overflow</span>:visible; }
 <span class="c">/* 选中只留复选框打勾：移除旧的整行高亮（如有） */</span>
 .perm-tree .el-tree-node.is-checked &gt; .el-tree-node__content{ <span class="k">background</span>:none; }</pre>
   </div>
@@ -345,7 +346,7 @@ mark{background:#fff2a8;color:#874d00;border-radius:2px;padding:0 1px}
       <li>✕收起 / 点遮罩 / 按 ESC → 抽屉收起；未保存改动关闭处理符合产品约定</li>
       <li><b>选中样式仅复选框打勾</b>，无整行高亮</li>
       <li>权限网格随分辨率自适应换行（1366/1440/1920）；22 权限页面显示紧凑无错位</li>
-      <li>长权限名截断省略 + 悬浮 title 显示全名</li>
+      <li><b>权限名 / 页面名 完整显示，不得截断省略</b>（如「批量编辑出款审核金额区间」「支代付三方管理页面」须完整可见）</li>
     </ul>
     <h3>C. 敏感权限二次确认（现有逻辑，重点回归）</h3>
     <ul class="ck">
@@ -472,9 +473,10 @@ function render(){
  let sel=0; DATA.forEach(m=>eachPerm(m,p=>{if(p.checked)sel++;})); $('selCount').textContent=sel;
  const ds=$('densStat');
  if(scenario==='before'){ ds.style.display='none'; }
- else if(dw){ ds.style.display=''; const body=$('drawerBody').querySelector('.pg-perms'); const w=body?body.clientWidth:0; const per=Math.max(1,Math.floor((w+8)/(150+8)));
-   ds.className='stat '+(per>=4?'good':'warn'); ds.innerHTML=`平铺每行约 <b>${per}</b> 项`;
-   $('dwDens').textContent=`权限区宽≈${w}px · 每行约 ${per} 项`; }
+ else if(dw){ ds.style.display=''; const body=$('drawerBody').querySelector('.pg-perms');
+   let per=1; if(body){ const items=[...body.querySelectorAll('.perm')]; if(items.length){ const t0=items[0].offsetTop; per=items.filter(p=>p.offsetTop===t0).length; } }
+   per=Math.max(1,per); ds.className='stat '+(per>=4?'good':'warn'); ds.innerHTML=`平铺每行约 <b>${per}</b> 项`;
+   $('dwDens').textContent=`横向平铺 · 名称完整不省略 · 每行约 ${per} 项`; }
  else { ds.style.display='none'; }
 }
 
