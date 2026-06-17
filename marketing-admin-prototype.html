@@ -575,6 +575,7 @@ tr.cb-selected{background:#f9f5ff !important}
         <span class="chip active" onclick="filterAct(this,'kind','all')">全部</span>
         <span class="chip" onclick="filterAct(this,'kind','A')">A 直发</span>
         <span class="chip" onclick="filterAct(this,'kind','B')">B 待领</span>
+        <span class="chip" onclick="filterAct(this,'kind','AB')">双通知</span>
       </div>
       <input class="search" placeholder="🔍 搜索活动名 / 枚举值" oninput="searchAct(this.value)">
 
@@ -932,7 +933,7 @@ tr.cb-selected{background:#f9f5ff !important}
           <div class="act-jump-link">
             <span class="ico">🎯</span>
             <div class="body">
-              <div class="title-row">该模板覆盖 <span id="actCount">16</span> 个活动</div>
+              <div class="title-row">该模板覆盖 <span id="actCount">15</span> 个活动</div>
               <div class="desc">是否推送 / 跳转动作 / 触发时机 在「活动推送配置」页统一管理，可按分组筛选、批量启停</div>
             </div>
             <button class="go-btn" onclick="closeEdit();jumpToActPage()">前往配置页 →</button>
@@ -980,23 +981,23 @@ const ACTIVITIES = {
     // 关系链
     { id:'partner-bonus', code:122, kind:'A', group:'关系链',     name:'合伙人奖励',          trigger:'下级充值达到配置金额 · 上级即时到账',     push:true,  jump:'钱包' },
     { id:'invite-bonus',  code:20,  kind:'A', group:'关系链',     name:'邀请奖励',            trigger:'下级完成充值 · 上级即时到账',             push:true,  jump:'钱包' },
+    // 新手·任务（改造：原 B 类待领取 → 改为 A 类直接到账）
+    { id:'first-recharge',code:14,  kind:'A', group:'新手·任务',  name:'首充奖励',            trigger:'用户首次充值成功 · 直接到账',           push:true,  jump:'钱包' },
+    { id:'championship',  code:114, kind:'A', group:'新手·任务',  name:'锦标赛',              trigger:'周期结束系统结算 · 直接到账',           push:true,  jump:'钱包' },
   ],
 
-  // 模板 10 - 活动奖励待领取通知（B 类，共 10 个 · 用户需前往活动页点击参与/签到/领取）
+  // 模板 10 - 活动奖励待领取通知（B 类 · 用户需前往活动页参与/领取）
   10: [
     // 抽奖类（需用户去活动页点击参与）
     { id:'wheel',         code:119, kind:'B', group:'抽奖',       name:'大转盘',              trigger:'充值达标后获得抽奖次数 · 前往活动页参与抽奖',         push:true,  jump:'活动页' },
     { id:'invited-wheel', code:130, kind:'B', group:'抽奖',       name:'邀请转盘',            trigger:'下级充值后上级获得抽奖次数 · 前往活动页参与抽奖',     push:true,  jump:'活动页' },
-    // 新手·任务
-    { id:'sign-in',       code:7,   kind:'B', group:'新手·任务',  name:'每日签到',            trigger:'当天充值达标 · 解锁签到资格，前往活动页签到领取',     push:false, jump:'活动页' },
-    { id:'first-recharge',code:14,  kind:'B', group:'新手·任务',  name:'首充奖励',            trigger:'用户首次充值成功 · 解锁奖励，前往活动页点击领取',     push:true,  jump:'活动页' },
-    { id:'championship',  code:114, kind:'B', group:'新手·任务',  name:'锦标赛',              trigger:'参与条件含充值门槛 · 周期结束后待领取',  push:true,  jump:'活动页' },
-    { id:'newbie-gift',   code:113, kind:'B', group:'新手·任务',  name:'新手礼包',            trigger:'首充金额达标 · 礼包待领取',              push:true,  jump:'活动页' },
+    // 新手·任务（每日 / 每周）
     { id:'daily-award',   code:118, kind:'B', group:'新手·任务',  name:'每日奖励',            trigger:'任务目标含充值类 · 当日达标后待领取',     push:false, jump:'活动页' },
     { id:'weekly-award',  code:107, kind:'B', group:'新手·任务',  name:'每周奖励',            trigger:'任务目标含充值类 · 当周达标后待领取',     push:false, jump:'活动页' },
-    // 新会员特权
-    { id:'first-loss',    code:116, kind:'B', group:'新会员特权', name:'新会员负盈利彩金',   trigger:'首充后时效内亏损按比例 · 时效结束待领取', push:true,  jump:'活动页' },
-    { id:'newbie-game',   code:117, kind:'B', group:'新会员特权', name:'新会员玩游戏送彩金', trigger:'首充后玩游戏达标 · 达标后待领取',         push:true,  jump:'活动页' },
+    // 双通知活动（待领取 + 到账，两个开关）
+    { id:'newbie-gift',   code:113, kind:'AB', dualPush:true, group:'新手·任务',  name:'新手礼包',            trigger:'首充达标 → 礼包待领取（B2 横幅 · 跳活动页）→ 用户领取 → 到账提醒（B1 横幅 · 跳钱包）', push:true,  pushAccount:true, jump:'活动页', jumpAccount:'钱包' },
+    { id:'first-loss',    code:116, kind:'AB', dualPush:true, group:'新会员特权', name:'新会员负盈利彩金',   trigger:'首充后时效内亏损按比例 → 时效结束待领取 → 用户领取 → 到账提醒', push:true,  pushAccount:true, jump:'活动页', jumpAccount:'钱包' },
+    { id:'newbie-game',   code:117, kind:'AB', dualPush:true, group:'新会员特权', name:'新会员玩游戏送彩金', trigger:'首充后玩游戏达标 → 待领取 → 用户领取 → 到账提醒',           push:true,  pushAccount:true, jump:'活动页', jumpAccount:'钱包' },
   ],
 
   // 模板 11 - KYC 验证中断（无活动，钱类消息）
@@ -1116,7 +1117,9 @@ function renderActTable(code){
     const off = a.push ? '' : 'row-off';
     const kindTag = a.kind === 'A'
       ? '<span class="kind-tag a">A 直发</span>'
-      : '<span class="kind-tag b">B 待领</span>';
+      : a.kind === 'AB'
+        ? '<span class="kind-tag b" style="background:#f0e6ff;color:#7c4dff;border-color:#d3bfff">双通知</span>'
+        : '<span class="kind-tag b">B 待领</span>';
     html += `<tr class="${off}">
       <td>
         <div class="ac-name">
@@ -1222,7 +1225,6 @@ function toggleMultiBanner(el){
 const ACT_CONFIG_PAGES = {
   'wheel':          '大转盘配置',
   'invited-wheel':  '邀请转盘配置',
-  'sign-in':        '每日签到配置',
   'first-recharge': '首充奖励配置',
   'app-download':   'App 下载奖励配置',
   'recharge-lv':    '充值等级配置',
@@ -1291,7 +1293,7 @@ function getVisibleActs(){
   return ALL_ACTIVITIES.filter(a => {
     if(actFilter.status === 'on' && !a.push) return false;
     if(actFilter.status === 'off' && a.push) return false;
-    if(actFilter.kind !== 'all' && a.kind !== actFilter.kind) return false;
+    if(actFilter.kind !== 'all' && a.kind !== actFilter.kind && !(a.kind === 'AB' && (actFilter.kind === 'A' || actFilter.kind === 'B'))) return false;
     if(actFilter.group !== 'all' && a.group !== actFilter.group) return false;
     if(actFilter.kw){
       const kw = actFilter.kw.toLowerCase();
@@ -1337,9 +1339,10 @@ function setActDraft(id, key, value){
   let origValue;
   if(key === 'level') origValue = (a.level === 'L1' ? 'L2' : (a.level || 'L2'));
   else if(key === 'inbox') origValue = (a.inbox !== false);  // 默认开启
+  else if(key === 'pushAccount') origValue = (a.pushAccount !== false); // 双通知活动默认开
   else origValue = a[key];
-  // 如果是 push 字段且 value 是字符串 'true' / 'false'，转 bool
-  if(key === 'push' && typeof value === 'string') value = value === 'true';
+  // 如果是 push / pushAccount 字段且 value 是字符串 'true' / 'false'，转 bool
+  if((key === 'push' || key === 'pushAccount') && typeof value === 'string') value = value === 'true';
   // 是否回到原值
   if(value === origValue){
     const change = pendingChanges.get(id);
@@ -1357,13 +1360,14 @@ function setActDraft(id, key, value){
   renderActList();
 }
 
-function togglePushDraft(ev, id){
+function togglePushDraft(ev, id, field){
   ev.stopPropagation();
   const a = ALL_ACTIVITIES.find(x => x.id === id);
   if(!a) return;
+  const key = field || 'push'; // 'push' = 待领取通知；'pushAccount' = 到账通知
   const draft = pendingChanges.get(id) || {};
-  const curPush = draft.push !== undefined ? draft.push : a.push;
-  setActDraft(id, 'push', !curPush);
+  const cur = draft[key] !== undefined ? draft[key] : (key === 'pushAccount' ? (a.pushAccount !== false) : a[key]);
+  setActDraft(id, key, !cur);
 }
 
 function updateSaveBar(){
@@ -1429,7 +1433,7 @@ function renderActList(){
   const filtered = ALL_ACTIVITIES.filter(a => {
     if(actFilter.status === 'on' && !a.push) return false;
     if(actFilter.status === 'off' && a.push) return false;
-    if(actFilter.kind !== 'all' && a.kind !== actFilter.kind) return false;
+    if(actFilter.kind !== 'all' && a.kind !== actFilter.kind && !(a.kind === 'AB' && (actFilter.kind === 'A' || actFilter.kind === 'B'))) return false;
     if(actFilter.group !== 'all' && a.group !== actFilter.group) return false;
     if(actFilter.kw){
       const kw = actFilter.kw.toLowerCase();
@@ -1446,35 +1450,66 @@ function renderActList(){
     const draft = pendingChanges.get(a.id) || {};
     const curPush  = draft.push  !== undefined ? draft.push  : a.push;
     const curJump  = draft.jump  !== undefined ? draft.jump  : a.jump;
+    const curPushAccount = draft.pushAccount !== undefined ? draft.pushAccount : (a.pushAccount !== false);
     const isDirty = pendingChanges.has(a.id);
     const toggleCls = curPush ? 'toggle on' : 'toggle';
+    const toggleAccountCls = curPushAccount ? 'toggle on' : 'toggle';
+
+    // 双通知活动：两个模板 / 两个开关 / 两个跳转 / 两个样式
+    const isDual = a.dualPush === true;
+
+    // 关联模板列
+    const tplCell = isDual
+      ? `<div style="display:flex;flex-direction:column;gap:4px"><span class="tpl-mini">10 · 待领取通知</span><span class="tpl-mini" style="background:#e6f7ff;color:#0958d9">9 · 到账通知</span></div>`
+      : `<span class="tpl-mini">${a.tplCode} · ${a.tplName}</span>`;
+
+    // 是否推送站内信 列
+    const pushCell = isDual
+      ? `<div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+          <div style="display:flex;align-items:center;gap:5px"><div class="${toggleCls}" onclick="togglePushDraft(event,'${a.id}','push')" title="是否实时弹"待领取"提醒"><span class="switch"></span></div><span style="font-size:10.5px;color:#5a6071">待领取</span></div>
+          <div style="display:flex;align-items:center;gap:5px"><div class="${toggleAccountCls}" onclick="togglePushDraft(event,'${a.id}','pushAccount')" title="是否实时弹"到账"提醒"><span class="switch"></span></div><span style="font-size:10.5px;color:#5a6071">到账</span></div>
+        </div>`
+      : `<div class="${toggleCls}" onclick="togglePushDraft(event,'${a.id}')" title="是否推送站内信：所有活动都会写消息中心红点，本开关控制是否同时实时弹推送"><span class="switch"></span></div>`;
+
+    // 跳转动作 列
+    const jumpCell = isDual
+      ? `<div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+          <span class="locked-jump" title="待领取通知跳转：活动页" style="display:inline-flex;align-items:center;gap:3px;padding:1px 7px;background:#fff7e6;color:#ad6800;border:1px solid #ffd591;border-radius:10px;font-size:10.5px;font-weight:500">🔒 活动页</span>
+          <span class="locked-jump" title="到账通知跳转：钱包" style="display:inline-flex;align-items:center;gap:3px;padding:1px 7px;background:#e6f7ff;color:#0958d9;border:1px solid #91caff;border-radius:10px;font-size:10.5px;font-weight:500">🔒 钱包</span>
+        </div>`
+      : `<span class="locked-jump" title="跳转动作由活动绑定固定，不可修改" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#f5f5f7;color:#555;border:1px solid #e4e7ed;border-radius:10px;font-size:11.5px;font-weight:500">🔒 ${curJump}</span>`;
+
+    // 推送样式 列
+    const styleCell = isDual
+      ? (() => {
+          const dim1 = curPush ? '' : 'dim';
+          const dim2 = curPushAccount ? '' : 'dim';
+          return `<div style="display:flex;flex-direction:column;gap:4px;align-items:center">
+            <span class="locked-style ${dim1}" style="background:#fff7e6;color:#ad6800;border:1px solid #ffd591;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600">🔒 B2 · Material toast</span>
+            <span class="locked-style ${dim2}" style="background:#e6f7ff;color:#0958d9;border:1px solid #91caff;padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:600">🔒 B1 · 顶部下滑横幅</span>
+          </div>`;
+        })()
+      : (() => {
+          const style = a.tplCode === 10 ? {label:'B2 · 顶部 Material toast',bg:'#fff7e6',color:'#ad6800',border:'#ffd591'} : {label:'B1 · 顶部下滑横幅',bg:'#e6f7ff',color:'#0958d9',border:'#91caff'};
+          const dim = curPush ? '' : 'dim';
+          return `<span class="locked-style ${dim}" style="background:${style.bg};color:${style.color};border:1px solid ${style.border};padding:3px 9px;border-radius:11px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px">🔒 ${style.label}</span>`;
+        })();
+
     return `<tr class="${isSel?'cb-selected':''} ${isDirty?'row-dirty':''}">
       ${cbCell}
       <td class="col-l">
         <div class="ac-name">
           <div>
-            <div><b>${a.name}</b> <span class="ac-code">${a.code}</span>${isDirty?'<span class="dirty-dot" title="有未保存改动"></span>':''}</div>
+            <div><b>${a.name}</b> <span class="ac-code">${a.code}</span>${isDual?' <span class="kind-tag" style="background:#f0e6ff;color:#7c4dff;border:1px solid #d3bfff;font-size:9.5px;padding:1px 6px;border-radius:8px;margin-left:3px">双通知</span>':''}${isDirty?'<span class="dirty-dot" title="有未保存改动"></span>':''}</div>
             <a class="ac-jump-link" onclick="jumpToActCfg('${a.id}')">→ 前往${cfgPage}</a>
           </div>
         </div>
       </td>
       <td style="font-size:11.5px;color:#666;line-height:1.45;text-align:center">${a.trigger}</td>
-      <td><span class="tpl-mini">${a.tplCode} · ${a.tplName}</span></td>
-      <td style="text-align:center">
-        <div class="${toggleCls}" onclick="togglePushDraft(event,'${a.id}')" title="是否推送站内信：所有活动都会写消息中心红点，本开关控制是否同时实时弹推送">
-          <span class="switch"></span>
-        </div>
-      </td>
-      <td style="text-align:center">
-        <span class="locked-jump" title="跳转动作由活动绑定固定，不可修改" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:#f5f5f7;color:#555;border:1px solid #e4e7ed;border-radius:10px;font-size:11.5px;font-weight:500">🔒 ${curJump}</span>
-      </td>
-      <td style="text-align:center">
-        ${(()=>{
-          const style = a.tplCode === 10 ? {label:'B2 · 顶部 Material toast',cls:'lv2',bg:'#fff7e6',color:'#ad6800',border:'#ffd591'} : {label:'B1 · 顶部下滑横幅',cls:'lv2',bg:'#e6f7ff',color:'#0958d9',border:'#91caff'};
-          const dim = curPush ? '' : 'dim';
-          return `<span class="locked-style ${dim}" style="background:${style.bg};color:${style.color};border:1px solid ${style.border};padding:3px 9px;border-radius:11px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px">🔒 ${style.label}</span>`;
-        })()}
-      </td>
+      <td>${tplCell}</td>
+      <td style="text-align:center">${pushCell}</td>
+      <td style="text-align:center">${jumpCell}</td>
+      <td style="text-align:center">${styleCell}</td>
     </tr>`;
   }).join('') || `<tr><td colspan="7" style="padding:30px;color:#999">无匹配活动</td></tr>`;
 
@@ -1592,17 +1627,26 @@ renderActList();
       <li>新增活动未挂模板时：默认关闭推送 + 兜底文案"活动奖励通知" + 后台告警</li>
     </ul>
 
-    <h3>2.2 16 个活动 → 模板归属</h3>
+    <h3>2.2 15 个活动 → 模板归属</h3>
 
-    <p><b>模板 9 · A 类直发 6 个</b>（达标即时到账）</p>
+    <p><b>模板 9 · A 类直发 8 个</b>（达标即时到账）</p>
     <ul>
-      <li>131 App 下载充值 / 132 充值等级 / 133 VIP 充值等级 / 134 回归新充值 / 122 合伙人 / 20 邀请</li>
+      <li>131 App 下载充值 / 132 充值等级 / 133 VIP 充值等级 / 134 回归新充值 / 122 合伙人 / 20 邀请 / <b>14 首充奖励（新）</b> / <b>114 锦标赛（新）</b></li>
     </ul>
 
-    <p><b>模板 10 · B 类待领取 10 个</b>（需用户到活动页操作）</p>
+    <p><b>模板 10 · B 类待领取 4 个</b>（需用户到活动页操作）</p>
     <ul>
-      <li>119 大转盘 / 130 邀请转盘 / 7 每日签到 / 14 首充奖励 / 114 锦标赛 / 113 新手礼包 / 118 每日奖励 / 107 每周奖励 / 116 新会员负盈利彩金 / 117 新会员玩游戏送彩金</li>
+      <li>119 大转盘 / 130 邀请转盘 / 118 每日奖励 / 107 每周奖励</li>
     </ul>
+
+    <p><b>双通知 · 同时绑定模板 9 + 10 共 3 个</b></p>
+    <ul>
+      <li>113 新手礼包 / 116 新会员负盈利彩金 / 117 新会员玩游戏送彩金</li>
+      <li>触发链路：达标 → 弹"待领取"提醒（B2 横幅 → 活动页）→ 用户领取 → 弹"到账"提醒（B1 横幅 → 钱包）</li>
+      <li>两个推送开关可独立控制：仅开"到账"、仅开"待领取"、两个都开、两个都关</li>
+    </ul>
+
+    <p style="margin-top:8px;color:#888;font-size:12px">📌 本次改造：每日签到（7）取消通知；首充（14）/ 锦标赛（114）从"待领取"改为"直接到账"；113 / 116 / 117 改为双通知。</p>
 
     <div class="callout">
       <b>关联模板不可换绑</b>：活动→模板的映射由产研管理，运营只能改"是否推送 / 跳转 / 级别"
@@ -1743,11 +1787,17 @@ const SPEC_DATA = {
       <div class="callout">
         <b>架构简化（区别于早期方案）</b>：早期"站内信 / 是否推送"双开关被合并。原因：双开关有"开 + 关"这种 footgun 组合（用户看到了横幅但消息中心找不到记录，必然客诉）。统一为单开关后，后端不用判断是否落库，铃铛红点永远可还原历史。
       </div>
-      <h2>2、16 个活动 → 模板归属</h2>
-      <p><b>模板 9 · A 类直发 6 个</b>（达标即时到账，绑定 B1 顶部下滑横幅，固定跳转 = 钱包）</p>
-      <ul><li>131 App 下载充值 / 132 充值等级 / 133 VIP 充值等级 / 134 回归新充值 / 122 合伙人 / 20 邀请</li></ul>
-      <p><b>模板 10 · B 类待领取 10 个</b>（需用户去活动页领取，绑定 B2 Material toast，固定跳转 = 活动页）</p>
-      <ul><li>119 大转盘 / 130 邀请转盘 / 7 每日签到 / 14 首充奖励 / 114 锦标赛 / 113 新手礼包 / 118 每日奖励 / 107 每周奖励 / 116 新会员负盈利彩金 / 117 新会员玩游戏送彩金</li></ul>
+      <h2>2、15 个活动 → 模板归属</h2>
+      <p><b>模板 9 · A 类直发 8 个</b>（达标即时到账，绑定 B1 顶部下滑横幅，固定跳转 = 钱包）</p>
+      <ul><li>131 App 下载充值 / 132 充值等级 / 133 VIP 充值等级 / 134 回归新充值 / 122 合伙人 / 20 邀请 / <b>14 首充奖励（改造）</b> / <b>114 锦标赛（改造）</b></li></ul>
+
+      <p style="margin-top:8px"><b>模板 10 · B 类待领取 4 个</b>（需用户去活动页领取，绑定 B2 Material toast，固定跳转 = 活动页）</p>
+      <ul><li>119 大转盘 / 130 邀请转盘 / 118 每日奖励 / 107 每周奖励</li></ul>
+
+      <p style="margin-top:8px"><b>双通知 · 同时绑定模板 9 + 模板 10 共 3 个</b>（先发"待领取"提醒，用户领取后再发"到账"提醒，两个推送开关可独立控制）</p>
+      <ul><li>113 新手礼包 / 116 新会员负盈利彩金 / 117 新会员玩游戏送彩金</li></ul>
+
+      <p style="margin-top:8px;color:#888;font-size:11.5px">📌 改造说明：<b>每日签到（7）</b> 取消通知，从活动推送配置列表移除；<b>首充奖励（14） / 锦标赛（114）</b> 由"待领取"改为"直接到账"；<b>新手礼包（113）/ 新会员负盈利（116）/ 新会员玩游戏送彩金（117）</b> 同时支持"待领取 + 到账"两个推送开关。</p>
       <div class="callout">活动 → 模板映射由产研锁定，<b>跳转动作随活动绑定一同锁定</b>，运营只能改"是否推送站内信"这一个开关。新增活动未挂模板时：默认关闭推送 + 兜底文案"活动奖励通知" + 后台告警。</div>
       <h2>3、是否推送站内信（单开关行为表）</h2>
       <table>
