@@ -383,7 +383,7 @@ a{text-decoration:none;color:inherit}
       <div class="page-ttl">会员回归奖励</div>
       <div class="page-desc">配置回归奖励规则 · 支持「按条件全员匹配」与「指定 ID 精准发放」两种模式</div>
       <div class="page-notice">
-        <div class="ntc-item"><span class="ntc-ic">⚠</span><span>同一会员若同时命中「全员」与「指定 ID」两类规则，奖励将 <b class="em">独立累加发放</b>（即获得两份）。导入名单前请与现有全员规则做交集排查。</span></div>
+        <div class="ntc-item"><span class="ntc-ic">🎯</span><span>同一会员同时命中「指定 ID」与「全员」两类规则时，按 <b class="em">指定 ID 优先</b>：发放指定 ID 奖励，该会员本轮的全员奖励同步标记为 <b class="em">已过期</b>（视为已发放，<u>不重复发放、不累加</u>）。</span></div>
         <div class="ntc-item"><span class="ntc-ic">🛡</span><span><b>开关 ≠ 撤回</b>：关闭累充 / 新充值开关 <u>只阻挡未来新产生</u>，<b class="em">不撤回</b>已发未领的奖励。</span></div>
       </div>
     </div>
@@ -713,6 +713,17 @@ a{text-decoration:none;color:inherit}
         </tr>
       </thead>
       <tbody>
+        <tr style="background:#f5f0ff">
+          <td>1982</td><td>2247690</td>
+          <td><span class="src-auto">🌐 系统自动</span></td>
+          <td><span class="rule-link">10</span></td>
+          <td>—</td>
+          <td>回归奖励</td>
+          <td><span class="tag red">已过期</span> <span class="help-tip" data-tip="该会员同时命中指定 ID 规则 21，按「指定 ID 优先」原则：已发放指定 ID 奖励（见序号 1981），本条全员奖励标记为已过期（视为已发放，不重复发放）。下一轮重新计算时可再次参与。">?</span></td>
+          <td>—</td><td>—</td><td>—</td>
+          <td style="color:#909399">0.00</td>
+          <td>2026-06-09 11:32:11</td><td>2026-06-09 11:32:11</td><td>—</td>
+        </tr>
         <tr style="background:#fff7e6">
           <td>1981</td><td>2247690</td>
           <td><span class="src-pick">🎯 指定 ID</span></td>
@@ -1160,12 +1171,20 @@ a{text-decoration:none;color:inherit}
     </table>
 
 
-    <h3>2.3 双发风险与约束</h3>
+    <h3>2.3 优先级与去重约束</h3>
+
+    <div class="callout" style="background:#f5f0ff;border:1px solid #c3b8f0;border-left:3px solid #7c4dff;color:#5b3eb8">
+      <b style="color:#5b3eb8">🎯 指定 ID 优先原则</b>　<span style="font-size:11px;color:#7c5cfa">（同时满足「指定 ID 奖励」与「全员奖励」条件时）</span><br>
+      ① <b>指定 ID 优先</b>：发放指定 ID 奖励，该会员本轮的全员奖励同步标记为「<b>已过期</b>」（视为已发放，<u>不重复发放、不累加</u>）。<br>
+      ② <b>下一轮重新计算</b>：本轮领取完成后，新一轮开始时规则重新生效；会员若再次满足条件，可再次领取。
+    </div>
+
     <table>
       <tr><th style="width:200px">维度</th><th>说明</th></tr>
       <tr><td>同规则 · 累充奖励</td><td>唯一性键 = <b>活动 ID + 会员 ID</b>。同一规则同一会员<b>最多发一次累充</b>。重新打开开关扫描名单时，已发过的会员自动跳过。</td></tr>
       <tr><td>同规则 · 新充值返还</td><td>唯一性键 = <b>活动 ID + 会员 ID</b>。同一规则同一会员<b>最多开启一次返还有效期</b>，已开启过的不重置；已过期的不重新开启。</td></tr>
-      <tr><td>跨规则双发风险</td><td>系统不去重，运营自查。同一会员同时命中"按条件全员" + 一条或多条"指定 ID"规则时，奖励<b>独立累加发放</b>（会员领两份甚至多份）。导入名单前请与现有全员规则做交集排查。</td></tr>
+      <tr><td>跨规则优先级 <span class="new-mark">改造</span></td><td>同一会员同时命中"按条件全员" + "指定 ID" 规则时，<b>指定 ID 优先</b>：发放指定 ID 奖励，该会员的全员奖励标记为「<b>已过期</b>」（视为已发放、不重复发放）。<b class="em" style="color:#cf1322">不再独立累加发放（旧逻辑已废弃）</b>。</td></tr>
+      <tr><td>跨轮次复领 <span class="new-mark">改造</span></td><td>上述优先级判定<b>仅作用于本轮</b>。本轮领取完成后进入新一轮，规则重新生效，会员再次达标可<b>再次领取</b>，新一轮重新按"指定 ID 优先"判定。</td></tr>
     </table>
 
 
