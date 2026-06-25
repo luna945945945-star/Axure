@@ -98,6 +98,9 @@ a{text-decoration:none;color:inherit}
 .tag.red{background:#fef0f0;color:#f56c6c;border:1px solid #fbc4c4}
 .tag.gray{background:#f4f4f5;color:#909399;border:1px solid #e9e9eb}
 .tag.purple{background:#f5f0ff;color:#7c5cfa;border:1px solid #e1d3ff}
+.tag.void{background:#f4f4f5;color:#a8071a;border:1px solid #ebd0d0}
+.rb-op-none{color:#c0c4cc;font-size:11.5px}
+.rb-cancel-btn{padding:0 10px;height:24px;font-size:11.5px}
 
 /* 开关 */
 .sw{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
@@ -185,6 +188,27 @@ a{text-decoration:none;color:inherit}
 .id-stat .stat-item.conflict b{color:#f56c6c}
 .id-stat .stat-item b{font-size:14px;font-family:Menlo,Consolas,monospace}
 .id-stat .stat-item .view-link{color:#409eff;cursor:pointer;font-size:11px;text-decoration:underline;margin-left:4px}
+
+/* ===== 批量导入「导入界面」（借鉴人工充值 · 上传 Excel）===== */
+.imp-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.imp-hint{color:#cf1322;font-size:11.5px;line-height:1.6}
+.imp-btn-tpl{color:#1677ff;border-color:#a3c8ff;background:#f0f7ff}
+.imp-btn-tpl:hover{color:#0958d9;border-color:#1677ff;background:#e6f2ff}
+.imp-stat{display:flex;gap:26px;align-items:center;font-size:13px;color:#303133;margin-bottom:10px;font-weight:500}
+.imp-stat b{font-family:Menlo,Consolas,monospace;font-size:14px}
+.imp-stat .num-err{color:#cf1322}
+.imp-tbl-wrap{border:1px solid #ebeef5;border-radius:4px;max-height:340px;overflow:auto}
+.imp-tbl-wrap .tbl th{position:sticky;top:0;z-index:1}
+.imp-tbl-wrap .tbl td:first-child{font-weight:400;color:#909399;font-family:inherit;font-size:12.5px}
+.val-err{color:#cf1322;font-weight:500}
+.val-warn{color:#d46b08}
+.val-info{color:#606266}
+.val-none{color:#c0c4cc}
+.imp-empty{text-align:center;color:#909399;padding:38px 0;font-size:12.5px;background:#fafbff}
+.imp-op-btn{padding:0 8px;height:24px;font-size:11.5px;color:#f56c6c;border-color:#fbc4c4;background:#fff}
+.imp-op-btn:hover{background:#fef0f0;border-color:#f56c6c}
+.imp-stat .num-ok{color:#389e0d}
+.imp-stat .num-dup{color:#d46b08}
 
 /* 抽屉 */
 .drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:120;display:none}
@@ -383,8 +407,9 @@ a{text-decoration:none;color:inherit}
       <div class="page-ttl">会员回归奖励</div>
       <div class="page-desc">配置回归奖励规则 · 支持「按条件全员匹配」与「指定 ID 精准发放」两种模式</div>
       <div class="page-notice">
-        <div class="ntc-item"><span class="ntc-ic">🎯</span><span>同一会员同时命中「指定 ID」与「全员」两类规则时，按 <b class="em">指定 ID 优先</b>：发放指定 ID 奖励，该会员本轮的全员奖励同步标记为 <b class="em">已过期</b>（视为已发放，<u>不重复发放、不累加</u>）。</span></div>
+        <div class="ntc-item"><span class="ntc-ic">🎯</span><span><b>指定优先 · 已发不重发</b>：进入任一「指定 ID」名单的会员，<b>只领该指定规则</b>、自动退出全部「全员」规则；累充为一次性，<b class="em">已发放的累充不会再发</b>（换 / 转规则也不重发），新充值返还按最新规则。</span></div>
         <div class="ntc-item"><span class="ntc-ic">🛡</span><span><b>开关 ≠ 撤回</b>：关闭累充 / 新充值开关 <u>只阻挡未来新产生</u>，<b class="em">不撤回</b>已发未领的奖励。</span></div>
+        <div class="ntc-item"><span class="ntc-ic">↩</span><span><b>可人工追回</b>：「回归奖励领取记录」页可对 <b>未领取</b>（已发未领）的奖励点「<b>取消发放</b>」追回 —— 二次确认、置「已取消」、会员不可再领，<b class="em">不可撤销</b>。</span></div>
       </div>
     </div>
     <div class="crumb">
@@ -577,8 +602,8 @@ a{text-decoration:none;color:inherit}
     <!-- ===== 已结束（仅指定 ID 规则：发放完成）===== -->
     <div style="overflow-x:auto;display:none" id="st-ended" class="st-pane">
     <div style="background:#fdf6ec;border-left:3px solid #e6a23c;padding:8px 14px;margin-bottom:10px;font-size:12px;color:#874d00;line-height:1.55">
-      ⏹ <b>已结束 = 仅适用于「指定 ID」规则</b>：判定基于<b>系统已不会再产生新发放</b>（累充全员发完或开关关 + 新充值有效期到期或累计达上限或开关关），<u>不依赖用户实际领取</u>。<br>
-      <span style="color:#a8740d">⚠ <b>开关 ≠ 撤回</b>：已结束后，存量"已发未领"奖励仍按既定生命周期发放/领取，<b>不会被回收</b>（详见需求说明 §3）。用户的领取状态在「回归奖励记录」页按活动 ID + 状态筛选查询。全员规则不会进入本 Tab；已结束规则业务上不会恢复，运营手动删除。</span>
+      ⏹ <b>已结束 = 仅「指定 ID」规则、且仅由运营手动结束</b>（已取消系统自动结束）。<b>软结束 = 关闭入口</b>：结束后不再接纳新会员、不发新累充、不开新窗口；<b>存量自然收尾</b>（已开的新充值窗口跑完有效期、已发未领的累充仍可领），<u>不回收</u>。<br>
+      <span style="color:#a8740d">⚠ 想<b>暂停</b>发放（以后还想开）请<b>关闭开关</b>，规则留在「进行中」；「结束」是终态、不可恢复。全员规则不进入本 Tab。领取状态在「回归奖励记录」页按活动 ID + 状态查询。</span>
     </div>
     <table class="tbl">
       <thead>
@@ -608,7 +633,7 @@ a{text-decoration:none;color:inherit}
           <td><div class="sw on disabled"><div class="sw-track"></div><span class="sw-lbl">开启</span></div></td>
           <td>10%</td><td>300</td><td>24</td>
           <td><div class="sw disabled"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
-          <td><span class="tag green">发放完成</span><br><span style="font-size:10.5px;color:#909399">累充已全发 + 新充值到期</span></td>
+          <td><span class="tag blue">运营手动结束</span><br><span style="font-size:10.5px;color:#909399">luna 手动归档</span></td>
           <td>2026-06-05 11:24:08</td>
           <td>luna</td><td>2026-06-04 10:12:00</td>
           <td>
@@ -622,7 +647,7 @@ a{text-decoration:none;color:inherit}
           <td><div class="sw disabled"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
           <td>5%</td><td>500</td><td>72</td>
           <td><div class="sw disabled"><div class="sw-track"></div><span class="sw-lbl">关闭</span></div></td>
-          <td><span class="tag green">发放完成</span><br><span style="font-size:10.5px;color:#909399">累充已全发 + 新充值开关关</span></td>
+          <td><span class="tag blue">运营手动结束</span><br><span style="font-size:10.5px;color:#909399">micheal 手动归档</span></td>
           <td>2026-05-28 16:08:33</td>
           <td>micheal</td><td>2026-05-20 09:30:11</td>
           <td>
@@ -666,7 +691,7 @@ a{text-decoration:none;color:inherit}
       <div class="fld"><label>充值订单号</label><input class="input" placeholder="充值订单号"></div>
       <div class="fld">
         <label>状态</label>
-        <select class="select"><option>请选择</option><option>未充值</option><option>已领取</option><option>已完成</option><option>已过期</option><option>未领取</option></select>
+        <select class="select"><option>请选择</option><option>未充值</option><option>已领取</option><option>已完成</option><option>已过期</option><option>未领取</option><option>已取消</option></select>
       </div>
       <div class="fld">
         <label>奖励类型</label>
@@ -710,19 +735,34 @@ a{text-decoration:none;color:inherit}
           <th>限时开始时间</th>
           <th>限时结束时间</th>
           <th>领取时间</th>
+          <th style="width:130px">操作 <span class="new-mark">NEW</span></th>
         </tr>
       </thead>
       <tbody>
-        <tr style="background:#f5f0ff">
-          <td>1982</td><td>2247690</td>
+        <!-- 取消发放示例（置顶）：指定 ID + 系统自动 各一条「未领取」 -->
+        <tr style="background:#fff7e6">
+          <td>1985</td><td>2247691</td>
+          <td><span class="src-pick">🎯 指定 ID</span></td>
+          <td><span class="rule-link" onclick="openDrawer()">21</span></td>
+          <td>—</td>
+          <td>回归奖励</td>
+          <td><span class="tag gray">未领取</span></td>
+          <td>—</td><td>—</td><td>—</td>
+          <td>5,200.00</td>
+          <td>2026-06-25 09:00:00</td><td>2026-06-26 09:00:00</td><td>—</td>
+          <td><button class="btn btn-danger rb-cancel-btn" onclick="cancelReward(this)">↩ 取消发放</button></td>
+        </tr>
+        <tr>
+          <td>1972</td><td>2247665</td>
           <td><span class="src-auto">🌐 系统自动</span></td>
           <td><span class="rule-link">10</span></td>
           <td>—</td>
           <td>回归奖励</td>
-          <td><span class="tag red">已过期</span> <span class="help-tip" data-tip="该会员同时命中指定 ID 规则 21，按「指定 ID 优先」原则：已发放指定 ID 奖励（见序号 1981），本条全员奖励标记为已过期（视为已发放，不重复发放）。下一轮重新计算时可再次参与。">?</span></td>
+          <td><span class="tag gray">未领取</span></td>
           <td>—</td><td>—</td><td>—</td>
-          <td style="color:#909399">0.00</td>
-          <td>2026-06-09 11:32:11</td><td>2026-06-09 11:32:11</td><td>—</td>
+          <td>2,001.00</td>
+          <td>2026-06-25 08:00:00</td><td>2026-06-26 00:00:00</td><td>—</td>
+          <td><button class="btn btn-danger rb-cancel-btn" onclick="cancelReward(this)">↩ 取消发放</button></td>
         </tr>
         <tr style="background:#fff7e6">
           <td>1981</td><td>2247690</td>
@@ -734,6 +774,7 @@ a{text-decoration:none;color:inherit}
           <td>—</td><td>—</td><td>—</td>
           <td><b>5,200.00</b></td>
           <td>2026-06-09 11:32:11</td><td>2026-06-10 11:32:11</td><td>2026-06-09 11:33:08</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
         <tr style="background:#fff7e6">
           <td>1980</td><td>2247690</td>
@@ -745,6 +786,7 @@ a{text-decoration:none;color:inherit}
           <td>0</td><td>10.00</td><td>200.00</td>
           <td>0.00</td>
           <td>2026-06-09 11:32:11</td><td>2026-06-11 11:32:11</td><td>—</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
         <tr style="background:#fff7e6">
           <td>1979</td><td>2247689</td>
@@ -756,6 +798,7 @@ a{text-decoration:none;color:inherit}
           <td>1000.00</td><td>10.00</td><td>200.00</td>
           <td>100.00</td>
           <td>2026-06-09 09:21:54</td><td>2026-06-11 09:21:54</td><td>2026-06-09 09:46:33</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
         <tr>
           <td>1977</td><td>2247668</td>
@@ -766,6 +809,7 @@ a{text-decoration:none;color:inherit}
           <td><span class="tag orange">未充值</span></td>
           <td>0</td><td>10.00</td><td>20.00</td><td>0.00</td>
           <td>2026-06-09 15:08:03</td><td>2026-06-10 7:08:03</td><td>—</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
         <tr>
           <td>1976</td><td>2247668</td>
@@ -777,6 +821,7 @@ a{text-decoration:none;color:inherit}
           <td>—</td><td>—</td><td>—</td>
           <td>802.11</td>
           <td>2026-06-09 15:08:03</td><td>2026-06-10 00:00:00</td><td>2026-06-09 15:08:15</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
         <tr>
           <td>1975</td><td>2250763</td>
@@ -787,6 +832,7 @@ a{text-decoration:none;color:inherit}
           <td><span class="tag blue">已完成</span></td>
           <td>1000.00</td><td>10.00</td><td>20.00</td><td>20.00</td>
           <td>2026-06-09 12:26:53</td><td>2026-06-10 4:26:53</td><td>2026-06-09 12:35:59</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
         <tr>
           <td>1974</td><td>2250763</td>
@@ -798,6 +844,7 @@ a{text-decoration:none;color:inherit}
           <td>—</td><td>—</td><td>—</td>
           <td>100,006.01</td>
           <td>2026-06-09 12:26:53</td><td>2026-06-10 00:00:00</td><td>2026-06-09 12:27:00</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
         <tr>
           <td>1973</td><td>2247665</td>
@@ -808,17 +855,7 @@ a{text-decoration:none;color:inherit}
           <td><span class="tag orange">未充值</span></td>
           <td>0</td><td>10.00</td><td>20.00</td><td>0.00</td>
           <td>2026-06-09 12:07:29</td><td>2026-06-10 4:07:29</td><td>—</td>
-        </tr>
-        <tr>
-          <td>1972</td><td>2247665</td>
-          <td><span class="src-auto">🌐 系统自动</span></td>
-          <td><span class="rule-link">10</span></td>
-          <td>—</td>
-          <td>回归奖励</td>
-          <td><span class="tag gray">未领取</span></td>
-          <td>—</td><td>—</td><td>—</td>
-          <td>2,001.00</td>
-          <td>2026-06-09 12:07:29</td><td>2026-06-10 00:00:00</td><td>—</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
         <tr>
           <td>1959</td><td>100036</td>
@@ -829,6 +866,7 @@ a{text-decoration:none;color:inherit}
           <td><span class="tag red">已过期</span></td>
           <td>0</td><td>10.00</td><td>20.00</td><td>0.00</td>
           <td>2026-06-08 17:39:15</td><td>2026-06-09 9:39:15</td><td>—</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
         <tr>
           <td>1958</td><td>100036</td>
@@ -840,6 +878,7 @@ a{text-decoration:none;color:inherit}
           <td>—</td><td>—</td><td>—</td>
           <td>3,197.70</td>
           <td>2026-06-08 17:39:15</td><td>2026-06-09 00:00:00</td><td>2026-06-08 17:39:23</td>
+          <td><span class="rb-op-none">—</span></td>
         </tr>
       </tbody>
     </table>
@@ -882,6 +921,7 @@ a{text-decoration:none;color:inherit}
             <label><input type="radio" name="scope" value="all" checked onchange="setScope('all')"> 按条件全员（系统按下方条件自动匹配）</label>
             <label><input type="radio" name="scope" value="pick" onchange="setScope('pick')"> 指定 ID（跳过条件直接发放）</label>
           </div>
+          <div id="scopeHint" class="ph-info" style="margin-top:8px;line-height:1.6;color:#5b3eb8;background:#f5f0ff;border:1px solid #e1d3ff;border-radius:4px;padding:7px 10px"></div>
         </div>
       </div>
 
@@ -914,18 +954,32 @@ a{text-decoration:none;color:inherit}
 2247643
 2247642
 2247641</textarea>
-              <div class="ph-info">最多 <b>500</b> 个；超过请使用批量导入</div>
+              <div class="ph-info">数量<b>暂不限制</b>（原 500 上限已取消）；超大名单建议用批量导入</div>
             </div>
 
             <div class="id-tab-pane" id="tab-import">
-              <div class="id-import">
+              <div class="id-import" id="impUploadZone">
                 <div class="imp-ico">📥</div>
-                <div>
-                  <span class="imp-link">点击上传</span> 或拖拽 .xlsx / .csv 文件到此处
+                <div>通过 Excel 批量导入会员 ID，导入前<b style="color:#7c5cfa">逐条校验、可剔除无效项</b>，确认后再写入名单</div>
+                <div style="margin-top:14px;display:flex;gap:8px;justify-content:center">
+                  <button class="btn btn-pp" onclick="openImport()">☁ 上传 Excel</button>
+                  <button class="btn btn-d imp-btn-tpl" onclick="downloadTpl()">⬇ 模板下载</button>
                 </div>
                 <div class="imp-tip">
-                  单次最多 <b>5,000</b> 个 · 仅识别 A 列（会员ID）· <span class="imp-link">下载模板</span>
+                  单次<b>暂不限制</b>（上限 <b>2 万</b>）· 文件 ≤ <b>4M</b> · 仅识别 A 列（会员ID）· 自动去重
                 </div>
+              </div>
+              <!-- 确定后：已确认名单回填到此，可编辑后重新检测 -->
+              <div id="impResultZone" style="display:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                  <span style="font-size:12.5px;color:#303133;font-weight:600">📋 已确认导入名单（<b id="impResultCount" style="color:#7c5cfa">0</b> 个）</span>
+                  <div style="display:flex;gap:8px">
+                    <button class="btn btn-pp" style="height:28px;font-size:12px" onclick="recheckImport()">🔄 重新检测</button>
+                    <button class="btn btn-d" style="height:28px;font-size:12px" onclick="reuploadImport()">☁ 重新上传</button>
+                  </div>
+                </div>
+                <textarea class="id-textarea" id="impResultTa" placeholder="导入确认后的会员ID显示在此，可编辑后点「重新检测」再次校验"></textarea>
+                <div class="ph-info">可直接编辑后点「<b>重新检测</b>」重新校验归属与有效性。</div>
               </div>
             </div>
 
@@ -934,7 +988,7 @@ a{text-decoration:none;color:inherit}
               <div class="stat-item ok">✅ 有效 <b>156</b></div>
               <div class="stat-item warn">⚠ 重复 <b>2</b> <span class="view-link" onclick="alert('已自动去重')">已去重</span></div>
               <div class="stat-item err">❌ 不存在 <b>2</b> <span class="view-link" onclick="alert('2247640, 2247639')">查看</span></div>
-              <div class="stat-item conflict">🚫 已在其他规则 <b>3</b> <span class="view-link" onclick="showConflict()">查看冲突</span></div>
+              <div class="stat-item warn">🔁 已在其他指定名单 <b>3</b> <span class="view-link" onclick="showConflict()">查看归属</span></div>
             </div>
           </div>
         </div>
@@ -1021,21 +1075,21 @@ a{text-decoration:none;color:inherit}
         <div class="sec-divider">生命周期 <span class="badge" style="background:#fff7e6;color:#d46b08;border-color:#ffd591">指定 ID</span></div>
 
         <div class="fm-row">
-          <div class="lb">自动结束</div>
+          <div class="lb">结束方式</div>
           <div class="ctl">
             <div style="font-size:12.5px;line-height:1.7;color:#303133">
-              累充全部发完 <b>AND</b> 新充值有效期到期 → 该条活动自动置为「<b>已结束</b>」
+              <b>仅手动结束</b>：点击列表行的「<b>结束</b>」按钮 → 该条活动置为「<b>已结束</b>」（终态、不可恢复）。<b>无系统自动结束</b>。
             </div>
           </div>
         </div>
 
         <div class="fm-row">
-          <div class="lb">手动结束</div>
+          <div class="lb">软结束收尾</div>
           <div class="ctl">
             <div style="font-size:12.5px;line-height:1.7;color:#303133">
-              点击列表行的「<b>结束</b>」按钮 → 该条活动置为「<b>已结束</b>」
+              结束 = <b>关闭入口</b>：不再接纳新会员、不发新累充、不开新窗口；<b>存量自然收尾</b>（已开窗口跑完有效期、已发未领的累充仍可领），不回收。
             </div>
-            <div class="ph-info" style="color:#909399;font-size:11.5px;margin-top:6px">已结束后的存量"已发未领"仍可正常领取。</div>
+            <div class="ph-info" style="color:#909399;font-size:11.5px;margin-top:6px">想暂停发放（以后还想开）→ 关闭开关，规则留在「进行中」，别用「结束」。</div>
           </div>
         </div>
       </div>
@@ -1049,28 +1103,92 @@ a{text-decoration:none;color:inherit}
 </div>
 
 
+<!-- ====================== 批量导入「导入界面」弹窗（借鉴人工充值 · 上传 Excel）====================== -->
+<div class="modal-mask" id="modalImport" style="z-index:130" onclick="if(event.target===this)closeImport()">
+  <div class="modal lg">
+    <div class="modal-h">
+      <div class="ttl">导入界面 · 批量导入会员 ID</div>
+      <div class="actions"><span title="最小化">—</span><span title="放大">⛶</span><span title="关闭" onclick="closeImport()">✕</span></div>
+    </div>
+    <div class="modal-b">
+
+      <!-- 工具栏：模板下载 + 上传 Excel + 限制说明 -->
+      <div class="imp-toolbar">
+        <button class="btn btn-d imp-btn-tpl" onclick="downloadTpl()">⬇ 模板下载</button>
+        <button class="btn btn-pp" onclick="mockUpload()">☁ 上传Excel</button>
+        <span class="imp-hint">（单次<b>暂不限制、上限 2 万条</b>，文件不超过 4M）·（仅识别「会员ID」列；重复<b>自动去重并逐行标注</b>，黑名单 / 不存在会员将被剔除）</span>
+      </div>
+
+      <!-- 统计 -->
+      <div class="imp-stat">
+        <span>总数：<b id="impTotal">0</b></span>
+        <span>正常：<b class="num-ok" id="impNormal">0</b></span>
+        <span>异常：<b class="num-err" id="impAbn">0</b></span>
+      </div>
+
+      <!-- 预览表 -->
+      <div class="imp-tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:64px">序号</th>
+              <th style="width:150px">会员ID</th>
+              <th style="width:92px">状态</th>
+              <th>校验信息</th>
+              <th style="width:80px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="impTbody">
+            <tr><td colspan="5"><div class="imp-empty">📄 暂无数据，请点击「上传Excel」选择文件（.xlsx / .csv）</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="pager">
+        <span>共 <b id="impCount">0</b> 条</span>
+        <span class="gap"></span>
+        <button class="pg-num">上一页</button>
+        <button class="pg-num active">1</button>
+        <button class="pg-num">下一页</button>
+        <select class="pg-select"><option>500 条/页</option></select>
+        <span>到第</span><input class="pg-input" value="1"><span>页</span>
+        <button class="btn btn-d" style="height:26px;font-size:11.5px">确定</button>
+      </div>
+
+    </div>
+    <div class="modal-f" style="justify-content:space-between">
+      <button class="btn btn-d" onclick="exportAttribution()">📥 导出归属清单</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-pp" onclick="execImport()">确定</button>
+        <button class="btn btn-d" onclick="closeImport()">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- ====================== 冲突明细 弹窗 ====================== -->
 <div class="modal-mask" id="modalConflict" onclick="if(event.target===this)closeConflict()">
   <div class="modal" style="max-width:520px">
     <div class="modal-h">
-      <div class="ttl">⚠ 冲突 ID 明细</div>
+      <div class="ttl">🔁 名单归属 · 请选择处理方式</div>
       <div class="actions"><span title="关闭" onclick="closeConflict()">✕</span></div>
     </div>
     <div class="modal-b">
-      <div class="conflict-box">
-        以下 <b>3</b> 个会员 ID 已存在于其他「指定 ID」规则中。<br>
-        按业务规则<b>「只发一次，取最新规则」</b>：保存后这些 ID 将从原规则中被覆盖到本规则。
+      <div style="background:#f0f7ff;border:1px solid #a3c8ff;border-radius:4px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:#0958d9;line-height:1.65">
+        以下 <b>3</b> 个会员已在其他「指定 ID」名单中。请选择本批的<b>归属方式</b>（无论选哪种，系统都保证<b>不重复发放</b>）：
       </div>
       <div class="conflict-list">
-        <div class="ci"><span>2247648</span><span>原规则：<b>22</b> （已发累充奖励 ₹500）</span></div>
-        <div class="ci"><span>2247647</span><span>原规则：<b>22</b> （已发累充奖励 ₹420）</span></div>
-        <div class="ci"><span>2247641</span><span>原规则：<b>21</b> （未发放）</span></div>
+        <div class="ci"><span>2247648</span><span>原名单 <b>22</b> → 归属本规则（累充已发，不重复发）</span></div>
+        <div class="ci"><span>2247647</span><span>原名单 <b>22</b> → 归属本规则（累充已发，不重复发）</span></div>
+        <div class="ci"><span>2247641</span><span>原名单 <b>21</b> → 归属本规则（未发，按新规则结算）</span></div>
       </div>
-      <div style="margin-top:12px;font-size:12px;color:#606266">说明：已发放的累充奖励不会重复发放；未发放的会用新规则结算。</div>
+      <div style="margin-top:10px;font-size:11.5px;color:#909399;line-height:1.6">· <b>移到本规则</b> = 取最新归属，原名单不再向其发放（累充已发的不重复发）。<br>· <b>保留原规则</b> = 这些 ID 本次不导入，仍由原名单发放。</div>
     </div>
     <div class="modal-f">
-      <button class="btn btn-pp">确认覆盖并继续保存</button>
-      <button class="btn btn-d" onclick="closeConflict()">先去检查</button>
+      <button class="btn btn-pp" onclick="closeConflict()">移到本规则（取最新）</button>
+      <button class="btn btn-d" onclick="closeConflict()">保留原规则、本次跳过</button>
     </div>
   </div>
 </div>
@@ -1122,7 +1240,7 @@ a{text-decoration:none;color:inherit}
       <tr><td>活动 ID <span class="type-tag">列</span></td><td>原"ID"列改名「活动 ID」，统一命名便于跨页反查。</td></tr>
       <tr><td>适用对象 <span class="type-tag">列</span> <span class="new-mark">NEW</span></td><td>取值：按条件全员 ｜ 指定 ID。<b>指定 ID 行下方挂「N 人」链接</b>，点击进名单抽屉。</td></tr>
       <tr><td>累充赠送上限 <span class="help-tip" data-tip="累充赠送上限 = 累充固定奖金 + 累充百分比奖金 两项总和的封顶值。非必填，留空 = 不限制。">?</span> <span class="type-tag">列</span> <span class="new-mark">NEW</span></td><td><b>累充固定奖金 + 累充百分比奖金 两项总和的封顶值</b>。非必填，留空 = 不限制。</td></tr>
-      <tr><td>结束原因 + 结束时间 <span class="type-tag">列</span> <span class="new-mark">NEW</span></td><td>仅"已结束" Tab 显示。原因取值：系统自动发放完成 ｜ 运营手动结束。</td></tr>
+      <tr><td>结束原因 + 结束时间 <span class="type-tag">列</span> <span class="new-mark">NEW</span></td><td>仅"已结束" Tab 显示。<b>原因只有「运营手动结束」</b>（已取消系统自动结束）。结束时间 = 运营点「结束」的时刻。</td></tr>
       <tr><td>操作按钮 <span class="type-tag">列</span> <span class="new-mark">改造</span></td><td>按规则类型差异化显示：全员行 = 编辑；<b>指定 ID 行 = 编辑 + 结束</b>（NEW，二次确认，不可撤销）；已结束行 = 查看。</td></tr>
     </table>
 
@@ -1131,7 +1249,7 @@ a{text-decoration:none;color:inherit}
     <table>
       <tr><th style="width:200px">字段</th><th>说明</th></tr>
       <tr><td>适用对象 <span class="type-tag">单选</span> <span class="new-mark">NEW</span></td><td>二选一：按条件全员 ｜ 指定 ID。选「指定 ID」后下方展开名单管理区。</td></tr>
-      <tr><td>名单管理 <span class="type-tag">区域</span> <span class="new-mark">NEW</span></td><td>仅"指定 ID"模式显示，3 子 Tab：手动输入 ｜ 文件导入 ｜ 已添加列表。</td></tr>
+      <tr><td>名单管理 <span class="type-tag">区域</span> <span class="new-mark">NEW</span></td><td>仅"指定 ID"模式显示，含「手动输入」「批量导入」两种方式。<b>批量导入借鉴人工充值「上传 Excel」交互</b>：模板下载 → 上传 Excel → 逐条校验预览（校验信息列 + 错误数量统计）→ 开始执行写入。</td></tr>
       <tr><td>累充赠送上限 <span class="help-tip" data-tip="累充赠送上限 = 累充固定奖金 + 累充百分比奖金 两项总和的封顶值。非必填，留空 = 不限制。">?</span> <span class="type-tag">输入</span> <span class="new-mark">NEW</span></td><td>位于"累充百分比奖金 (%)" 字段下方。非必填，留空 = 不限制。</td></tr>
       <tr><td>生命周期 <span class="type-tag">说明区</span> <span class="new-mark">NEW</span></td><td>仅"指定 ID"模式显示，提示自动结束 / 手动结束两条路径。</td></tr>
     </table>
@@ -1142,6 +1260,7 @@ a{text-decoration:none;color:inherit}
       <tr><th style="width:200px">字段</th><th>说明</th></tr>
       <tr><td>适用对象 <span class="type-tag">筛选 + 列</span> <span class="new-mark">NEW</span></td><td>筛选取值与主列表一致。列展示该条记录来自"按条件全员"还是"指定 ID"规则。</td></tr>
       <tr><td>活动 ID <span class="type-tag">筛选 + 列</span> <span class="new-mark">NEW</span></td><td>支持按活动 ID 反查所有发放记录。<b>列可点击跳转</b>到规则配置页。</td></tr>
+      <tr><td>操作 · 取消发放 <span class="type-tag">列</span> <span class="new-mark">NEW</span></td><td>仅<b>「未领取」</b>(已发未领) 记录可见。运营点击<b>人工追回</b>该笔奖励:二次确认 → 状态置「<b>已取消</b>」→ 会员不可再领,<b>不可撤销</b>。已领取 / 已完成 / 已过期 / 未充值 均显示"—"不可操作。</td></tr>
       <tr><td>用途</td><td>供运营 / 财务排查"来自哪条规则"。规则被删除后已发记录保留（财务一致性）。</td></tr>
     </table>
 
@@ -1162,8 +1281,8 @@ a{text-decoration:none;color:inherit}
     <h3>2.2 名单维护（仅指定 ID 规则）</h3>
     <table>
       <tr><th style="width:200px">项</th><th>说明</th></tr>
-      <tr><td>数量上限</td><td>手动输入 ≤ <b>500</b>；单次导入 ≤ <b>5000</b>（.xlsx / .csv）；单规则累计 ≤ <b>10000</b>；同站点指定 ID 规则 ≤ <b>50</b> 条。</td></tr>
-      <tr><td>导入校验</td><td>有效 / 重复（自动去重）/ ID 不存在 / 已在其他指定 ID 规则（弹窗确认覆盖）。冲突取最新规则，旧规则标"被覆盖"。</td></tr>
+      <tr><td>数量上限 <span class="new-mark">改造</span></td><td>手动输入<b>暂不限制</b>（原 500 已取消）；单次导入<b>暂不限制</b>（上限 <b>2 万</b>，.xlsx / .csv）；单规则累计<b>暂不限制</b>；同站点指定 ID 规则 ≤ <b>50</b> 条。</td></tr>
+      <tr><td>导入校验</td><td>导入后进入「导入界面」逐条预览：每行显示 <b>校验信息</b>（正常 / 重复已去重 / 会员不存在 / 黑名单 / 已在其他指定名单 · 取最新归属）。<b>状态列（正常 / 异常）置于校验信息前、异常置顶</b>；顶部统计 <b>总数 / 正常 / 异常</b>，可逐行删除、可<b>导出归属清单</b>。点<b>确定</b>后有效名单写入「会员ID」文本框，下方显示 <b>有效 / 重复 / 不存在 / 已在其他指定名单</b>。冲突取最新规则，旧规则标"被覆盖"。</td></tr>
       <tr><td>新建确认后</td><td>两个开关默认都未开启 → 名单<b>可自由编辑</b>（追加 / 移除 / 重新导入）。</td></tr>
       <tr><td>开启任一开关</td><td>累充开关 <b>或</b> 新充值开关 任一开启 → 名单<b>立即冻结</b>（禁止追加 / 移除，仅可搜索 / 导出）。</td></tr>
       <tr><td>再次编辑名单</td><td>必须先<b>关闭两个开关</b> → 编辑名单 → 重新打开开关。</td></tr>
@@ -1171,29 +1290,24 @@ a{text-decoration:none;color:inherit}
     </table>
 
 
-    <h3>2.3 优先级与去重约束</h3>
-
-    <div class="callout" style="background:#f5f0ff;border:1px solid #c3b8f0;border-left:3px solid #7c4dff;color:#5b3eb8">
-      <b style="color:#5b3eb8">🎯 指定 ID 优先原则</b>　<span style="font-size:11px;color:#7c5cfa">（同时满足「指定 ID 奖励」与「全员奖励」条件时）</span><br>
-      ① <b>指定 ID 优先</b>：发放指定 ID 奖励，该会员本轮的全员奖励同步标记为「<b>已过期</b>」（视为已发放，<u>不重复发放、不累加</u>）。<br>
-      ② <b>下一轮重新计算</b>：本轮领取完成后，新一轮开始时规则重新生效；会员若再次满足条件，可再次领取。
-    </div>
-
+    <h3>2.3 发放归属（指定优先 · 自动互斥）<span class="new-mark">改造</span></h3>
+    <div class="spec-tldr">一个会员只归属一条规则、只领一份。被指定的人优先走指定规则、自动退出全员，系统保证不重复发放，<b>运营无需手工排查交集</b>。</div>
     <table>
       <tr><th style="width:200px">维度</th><th>说明</th></tr>
-      <tr><td>同规则 · 累充奖励</td><td>唯一性键 = <b>活动 ID + 会员 ID</b>。同一规则同一会员<b>最多发一次累充</b>。重新打开开关扫描名单时，已发过的会员自动跳过。</td></tr>
-      <tr><td>同规则 · 新充值返还</td><td>唯一性键 = <b>活动 ID + 会员 ID</b>。同一规则同一会员<b>最多开启一次返还有效期</b>，已开启过的不重置；已过期的不重新开启。</td></tr>
-      <tr><td>跨规则优先级 <span class="new-mark">改造</span></td><td>同一会员同时命中"按条件全员" + "指定 ID" 规则时，<b>指定 ID 优先</b>：发放指定 ID 奖励，该会员的全员奖励标记为「<b>已过期</b>」（视为已发放、不重复发放）。<b class="em" style="color:#cf1322">不再独立累加发放（旧逻辑已废弃）</b>。</td></tr>
-      <tr><td>跨轮次复领 <span class="new-mark">改造</span></td><td>上述优先级判定<b>仅作用于本轮</b>。本轮领取完成后进入新一轮，规则重新生效，会员再次达标可<b>再次领取</b>，新一轮重新按"指定 ID 优先"判定。</td></tr>
+      <tr><td>指定 ↔ 全员（核心）</td><td>会员进入<b>任一进行中的「指定 ID」名单</b> → <b>只按该指定规则发放</b>，并<b>自动从所有「全员」规则中排除</b>。发奖判定：在指定名单内 → 走指定；否则 → 走命中的全员规则。<b>两类不会同发</b>，无需交集排查。</td></tr>
+      <tr><td>指定 ↔ 指定</td><td>同一会员只能归属<b>一条</b>指定规则。重复导入到另一名单 → <b>取最新归属</b>（自动从旧名单移出）；<b>已发放的累充不重复发</b>，未发的按新规则结算。</td></tr>
+      <tr><td>同规则 · 累充奖励</td><td>唯一性键 = <b>活动 ID + 会员 ID</b>。同一规则同一会员<b>最多发一次累充</b>，重开开关扫描名单时已发过的自动跳过。</td></tr>
+      <tr><td>同规则 · 新充值返还</td><td>唯一性键 = <b>活动 ID + 会员 ID</b>。同一规则同一会员<b>最多开一次返还有效期</b>，已开启的不重置、已过期的不重开。</td></tr>
+      <tr><td>归属留痕 / 可控 <span class="new-mark">NEW</span></td><td>自动归属<b>留痕可查可控</b>：① 规则名单标「<b>本规则生效 / 已转至规则Y</b>」；② 指定↔指定冲突，运营可选「<b>移到本规则 / 保留原规则</b>」，归属由运营拍板；③ 导入预览可<b>导出归属清单</b>留底。</td></tr>
     </table>
 
 
     <h3>2.4 规则生命周期</h3>
     <table>
       <tr><th style="width:200px">类型</th><th>说明</th></tr>
-      <tr><td>按条件全员</td><td>仅"进行中"状态。新会员持续达标、持续发放，无"消费完"概念。两个开关都关闭 = 暂停，规则仍在「进行中」Tab。开关层面"已开启 / 已关闭"通过顶部<b>「活动状态」筛选器</b>定位。</td></tr>
-      <tr><td>指定 ID · 自动结束</td><td>累充全部发完 <b>AND</b> 新充值有效期到期 → 系统判定，自动置为「已结束」。</td></tr>
-      <tr><td>指定 ID · 手动结束</td><td>列表行的「结束」按钮 → 二次确认，置为「已结束」。</td></tr>
+      <tr><td>按条件全员</td><td>仅"进行中"状态。新会员持续达标、持续发放（<b>已进入指定名单的会员自动排除</b>，不参与全员匹配），无"消费完"概念。两个开关都关闭 = 暂停，规则仍在「进行中」Tab。开关层面"已开启 / 已关闭"通过顶部<b>「活动状态」筛选器</b>定位。</td></tr>
+      <tr><td>指定 ID · 结束方式 <span class="new-mark">改造</span></td><td><b>仅运营手动结束</b>（已取消系统自动结束——新充值窗口按会员登录起算、无统一可判的结束点）。点列表行「结束」→ 二次确认 → 「已结束」。</td></tr>
+      <tr><td>软结束收尾 <span class="new-mark">NEW</span></td><td>结束 = <b>关闭入口</b>：不再接纳新会员 / 不发新累充 / 不开新窗口；<b>存量自然收尾</b>（已开窗口跑完有效期、已发未领累充仍可领），不回收。想暂停请<b>关开关</b>（留在进行中），别用结束。</td></tr>
       <tr><td>已结束 = 终态</td><td>存量"已发未领"仍可正常领取。新场景请<b>新建规则</b>（不提供复制功能）。</td></tr>
     </table>
 
@@ -1202,6 +1316,8 @@ a{text-decoration:none;color:inherit}
     <h2 id="sec-switch"><span class="num-badge">3</span>开关逻辑 <span class="must-read">必读</span></h2>
 
     <p style="margin:8px 0 10px"><b>🛡 核心原则：开关 ≠ 撤回</b>。关闭累充开关 / 新充值开关 <u>只阻挡"未来新产生"，不影响已经发出去的奖励</u>。已发未领的钱按既定生命周期让会员领走，<b>不做事后回收</b>。</p>
+
+    <div class="callout"><b>例外 · 人工追回（NEW）</b>：以上"系统不回收"是<b>默认</b>行为。运营若需主动追回,可在「回归奖励领取记录」页对单笔<b>「未领取」</b>(已发未领) 奖励点「<b>取消发放</b>」—— 二次确认 → 状态置「已取消」、赠送金额作废、会员不可再领,<b>不可撤销</b>。仅 <code>未领取</code> 状态可操作;已领取(钱已到账)/ 已完成 / 已过期 / 未充值 均不可追回。</div>
 
     <table>
       <tr><th>场景</th><th>开关操作</th><th style="width:35%">预期行为</th></tr>
@@ -1223,6 +1339,8 @@ a{text-decoration:none;color:inherit}
       <tr><td>追加 / 移除 ID</td><td>操作人 / 时间 / 活动 ID / ID 列表</td></tr>
       <tr><td>开关变更</td><td>操作人 / 时间 / 活动 ID / 类型（累充 / 新充值）/ 开 ↔ 关</td></tr>
       <tr><td>手动结束</td><td>操作人 / 时间 / 活动 ID</td></tr>
+      <tr><td>取消发放（人工追回）<span class="new-mark">NEW</span></td><td>操作人 / 时间 / 活动 ID / 会员 ID / 金额 / 原状态 → 已取消</td></tr>
+      <tr><td>归属变更（取最新 / 冲突）<span class="new-mark">NEW</span></td><td>操作人 / 时间 / 会员 ID / 原规则 → 新规则</td></tr>
     </table>
 
     <div style="height:40px"></div>
@@ -1247,18 +1365,18 @@ a{text-decoration:none;color:inherit}
     <table class="tbl">
       <thead>
         <tr>
-          <th>序号</th><th>会员ID</th><th>加入时间</th><th>累充奖励</th><th>新充值奖励</th>
+          <th>序号</th><th>会员ID</th><th>加入时间</th><th>归属 <span class="new-mark">NEW</span></th><th>累充奖励</th><th>新充值奖励</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td>1</td><td>2247648</td><td>2026-06-09 10:32</td><td><span class="tag blue">📥 已领取 ₹500</span></td><td><span class="tag orange">未充值</span></td></tr>
-        <tr><td>2</td><td>2247647</td><td>2026-06-09 10:32</td><td><span class="tag blue">📥 已领取 ₹420</span></td><td><span class="tag green">✅ 已发放 ₹100</span></td></tr>
-        <tr><td>3</td><td>2247646</td><td>2026-06-09 10:32</td><td><span class="tag gray">⏳ 待发</span></td><td><span class="tag orange">未充值</span></td></tr>
-        <tr><td>4</td><td>2247645</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 已发 ₹360</span></td><td><span class="tag orange">未充值</span></td></tr>
-        <tr><td>5</td><td>2247644</td><td>2026-06-09 10:32</td><td><span class="tag blue">📥 已领取 ₹360</span></td><td><span class="tag red">❌ 已过期</span></td></tr>
-        <tr><td>6</td><td>2247643</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 已发 ₹820</span></td><td><span class="tag green">✅ 已发放 ₹50</span></td></tr>
-        <tr><td>7</td><td>2247642</td><td>2026-06-09 10:32</td><td><span class="tag blue">📥 已领取 ₹240</span></td><td><span class="tag orange">未充值</span></td></tr>
-        <tr><td>8</td><td>2247641</td><td>2026-06-09 10:32</td><td><span class="tag gray">⏳ 待发</span></td><td><span class="tag orange">未充值</span></td></tr>
+        <tr><td>1</td><td>2247648</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 本规则生效</span></td><td><span class="tag blue">📥 已领取 ₹500</span></td><td><span class="tag orange">未充值</span></td></tr>
+        <tr><td>2</td><td>2247647</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 本规则生效</span></td><td><span class="tag blue">📥 已领取 ₹420</span></td><td><span class="tag green">✅ 已发放 ₹100</span></td></tr>
+        <tr><td>3</td><td>2247646</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 本规则生效</span></td><td><span class="tag gray">⏳ 待发</span></td><td><span class="tag orange">未充值</span></td></tr>
+        <tr><td>4</td><td>2247645</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 本规则生效</span></td><td><span class="tag green">✅ 已发 ₹360</span></td><td><span class="tag orange">未充值</span></td></tr>
+        <tr><td>5</td><td>2247644</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 本规则生效</span></td><td><span class="tag blue">📥 已领取 ₹360</span></td><td><span class="tag red">❌ 已过期</span></td></tr>
+        <tr style="color:#909399"><td>6</td><td>2247643</td><td>2026-06-09 10:32</td><td><span class="tag gray">↗ 已转至规则 25</span></td><td><span style="color:#c0c4cc">已发 ₹820（归 25）</span></td><td><span style="color:#c0c4cc">—</span></td></tr>
+        <tr><td>7</td><td>2247642</td><td>2026-06-09 10:32</td><td><span class="tag green">✅ 本规则生效</span></td><td><span class="tag blue">📥 已领取 ₹240</span></td><td><span class="tag orange">未充值</span></td></tr>
+        <tr style="color:#909399"><td>8</td><td>2247641</td><td>2026-06-09 10:32</td><td><span class="tag gray">↗ 已转至规则 25</span></td><td><span style="color:#c0c4cc">未发（已转走）</span></td><td><span style="color:#c0c4cc">—</span></td></tr>
       </tbody>
     </table>
     <div class="pager">
@@ -1290,6 +1408,9 @@ function openAdd(){
   document.getElementById('modalTitle').textContent = '新增会员回归奖励';
   document.querySelector('input[name=scope][value=all]').checked = true;
   setScope('all');
+  // 重置批量导入结果区
+  const uz=document.getElementById('impUploadZone'), rz=document.getElementById('impResultZone');
+  if(uz) uz.style.display=''; if(rz){ rz.style.display='none'; document.getElementById('impResultTa').value=''; }
   document.getElementById('modalEdit').classList.add('open');
 }
 function openEdit(type){
@@ -1310,6 +1431,9 @@ function setScope(mode){
   document.getElementById('condBlock').style.display      = isPick ? 'none' : '';
   document.getElementById('idBlock').style.display        = isPick ? ''     : 'none';
   document.getElementById('lifecycleBlock').style.display = isPick ? ''     : 'none';
+  document.getElementById('scopeHint').innerHTML = isPick
+    ? '🎯 <b>指定优先 · 互斥</b>：只发名单内会员；他们将<b>只领本规则、自动不参与任何「全员」规则</b>，系统保证不重复发放。'
+    : '📢 符合下方条件的会员都会收到；<b>已进入任一指定名单的会员自动除外</b>（他们只领指定规则，不在此重复发）。';
 }
 
 function switchStatusTab(el, paneId){
@@ -1320,8 +1444,8 @@ function switchStatusTab(el, paneId){
 }
 
 function confirmEnd(ruleId){
-  if(!confirm('确认结束活动 ID ' + ruleId + ' ？\n\n结束后该条活动规则将归类至"已结束"，开关不可改，名单只读。\n存量"已发未领"奖励仍可正常领取。\n\n该操作不可撤销。')) return;
-  alert('✅ 活动 ' + ruleId + ' 已置为「已结束」\n\n（演示用，实际请刷新查看已结束 Tab）');
+  if(!confirm('确认结束活动 ID ' + ruleId + ' ？\n\n【软结束】结束后：不再接纳新会员、不发新累充、不开新窗口；\n存量自然收尾——已开的新充值窗口跑完有效期、已发未领的累充仍可领，不回收。\n开关不可改、名单只读、终态不可恢复。\n\n⚠ 只是想暂停发放（以后还想开）？请改用「关闭开关」，不要用结束。')) return;
+  alert('✅ 活动 ' + ruleId + ' 已置为「已结束」（运营手动结束）\n\n（演示用，实际请刷新查看已结束 Tab）');
 }
 
 function switchIdTab(el, paneId){
@@ -1335,6 +1459,131 @@ function parseManual(){
   const v = document.getElementById('idTa').value;
   const ids = v.split(/[\s,]+/).filter(Boolean);
   // 简单 mock：演示用，不真实校验
+}
+
+/* ===== 批量导入「导入界面」（借鉴人工充值 · 上传 Excel）===== */
+// st=状态：正常=全新有效、直接入库（无需关注）；异常=需关注，校验信息逐行说明原因 + 是否入库
+//   异常含三类：不存在/黑名单（剔除不入库）、重复（去重不入库）、已在其他指定名单（取最新归属、仍入库）。异常置顶。
+const IMP_ROWS = [
+  // —— 异常（需关注，置顶）——
+  {id:'2247640', cat:'noexist', st:'异常', msg:'会员ID 不存在，剔除不入库;'},
+  {id:'100000',  cat:'noexist', st:'异常', msg:'黑名单会员，剔除不入库;'},
+  {id:'2247646', cat:'inother', st:'异常', msg:'已在指定规则 22（累充已发未领），取最新归属本规则（入库），仅生效新充值返还;'},
+  {id:'2247641', cat:'inother', st:'异常', msg:'已在指定规则 21（累充待发），取最新归属本规则（入库），按新规则发;'},
+  {id:'2247648', cat:'dup',     st:'异常', msg:'重复（文件内重复），已去重忽略、不入库;'},
+  {id:'2247630', cat:'dup',     st:'异常', msg:'重复（已在本名单），已去重忽略、不入库;'},
+  // —— 正常（全新有效，直接入库）——
+  {id:'2247648', cat:'valid',   st:'正常', msg:''},
+  {id:'2247649', cat:'valid',   st:'正常', msg:''},
+];
+
+const IMP_STATUS = {
+  '正常': '<span class="tag green">正常</span>',
+  '异常': '<span class="tag red">异常</span>',
+};
+function impMsgCls(cat){
+  if(cat==='noexist') return 'val-err';
+  if(cat==='dup' || cat==='inother') return 'val-warn';
+  return 'val-none';
+}
+
+function openImport(){
+  resetImport();
+  document.getElementById('modalImport').classList.add('open');
+}
+function closeImport(){ document.getElementById('modalImport').classList.remove('open'); }
+
+function resetImport(){
+  document.getElementById('impTbody').innerHTML =
+    '<tr><td colspan="5"><div class="imp-empty">📄 暂无数据，请点击「上传Excel」选择文件（.xlsx / .csv）</div></td></tr>';
+  recomputeImp();
+}
+
+function mockUpload(){
+  document.getElementById('impTbody').innerHTML = IMP_ROWS.map((r,i)=>`
+    <tr data-cat="${r.cat}" data-st="${r.st}">
+      <td>${i+1}</td>
+      <td style="font-family:Menlo,Consolas,monospace;color:#7c5cfa;font-weight:600">${r.id}</td>
+      <td>${IMP_STATUS[r.st]}</td>
+      <td class="${impMsgCls(r.cat)}">${r.msg || '—'}</td>
+      <td><button class="btn imp-op-btn" onclick="removeImpRow(this)">删除</button></td>
+    </tr>`).join('');
+  recomputeImp();
+}
+
+function removeImpRow(btn){
+  btn.closest('tr').remove();
+  document.querySelectorAll('#impTbody tr[data-cat]').forEach((tr,i)=>{ tr.children[0].textContent = i+1; });
+  recomputeImp();
+}
+
+function recomputeImp(){
+  const rows = [...document.querySelectorAll('#impTbody tr[data-cat]')];
+  document.getElementById('impTotal').textContent  = rows.length;
+  document.getElementById('impNormal').textContent = rows.filter(r=>r.dataset.st==='正常').length;
+  document.getElementById('impAbn').textContent    = rows.filter(r=>r.dataset.st==='异常').length;
+  document.getElementById('impCount').textContent  = rows.length;
+}
+
+function execImport(){
+  const rows = [...document.querySelectorAll('#impTbody tr[data-cat]')];
+  if(!rows.length){ alert('请先点击「上传Excel」导入文件'); return; }
+  const byCat = c => rows.filter(r=>r.dataset.cat===c);
+  const valid=byCat('valid'), inother=byCat('inother'), dup=byCat('dup'), noexist=byCat('noexist');
+  // 正常（写入名单）= 有效 + 已在其他指定名单（取最新归属）
+  const writeIds = [...valid, ...inother].map(r=>r.children[1].textContent.trim());
+  // 回填到「批量导入」结果区（停在批量导入 Tab，可再次检测）
+  const rta = document.getElementById('impResultTa');
+  const exist = rta.value.split(/[\s,]+/).filter(Boolean);
+  const merged = [...new Set([...exist, ...writeIds])];
+  rta.value = merged.join('\n');
+  document.getElementById('impResultCount').textContent = merged.length;
+  document.getElementById('impUploadZone').style.display = 'none';
+  document.getElementById('impResultZone').style.display = '';
+  // 下方统计：有效 / 重复 / 不存在 / 已在其他指定名单
+  const stat = document.getElementById('idStat');
+  if(stat){
+    stat.innerHTML =
+      '<div class="stat-item ok">✅ 有效 <b>'+valid.length+'</b></div>'+
+      '<div class="stat-item warn">⚠ 重复 <b>'+dup.length+'</b> <span class="view-link" onclick="alert(\'文件内重复 / 已在本名单，已自动去重\')">已去重</span></div>'+
+      '<div class="stat-item err">❌ 不存在 <b>'+noexist.length+'</b> <span class="view-link" onclick="alert(\'2247640 不存在；100000 黑名单\')">查看</span></div>'+
+      '<div class="stat-item warn">🔁 已在其他指定名单 <b>'+inother.length+'</b> <span class="view-link" onclick="showConflict()">查看归属</span></div>';
+  }
+  closeImport();
+}
+
+function exportAttribution(){
+  const rows = [...document.querySelectorAll('#impTbody tr[data-st]')];
+  if(!rows.length){ alert('请先上传 Excel，再导出归属清单'); return; }
+  alert('演示：导出《本次导入归属清单.xlsx》\n\n含每个会员ID的：归属结论（写入本规则 / 取最新归属 / 去重忽略 / 校验失败）+ 校验信息，供导入前留底、事后排查。');
+}
+
+function downloadTpl(){ alert('演示：开始下载《会员ID导入模板.xlsx》\n\n模板仅含 A 列「会员ID」，每行一个。'); }
+
+/* ===== 批量导入结果区：重新检测 / 重新上传 ===== */
+function recheckImport(){
+  // 取「批量导入」结果区当前名单，重新进入导入界面逐条校验（演示：重新展示校验结果）
+  openImport();
+  mockUpload();
+}
+function reuploadImport(){ openImport(); }
+
+/* ===== 领取记录 · 取消发放（人工追回「已发未领」奖励，仅"未领取"可操作）===== */
+function cancelReward(btn){
+  const tr = btn.closest('tr');
+  const memberId = tr.children[1].textContent.trim();
+  const amount   = tr.children[10].textContent.trim();
+  if(!confirm(
+    '确认取消发放并追回该笔奖励？\n\n'+
+    '会员 ID：'+memberId+'\n'+
+    '奖励金额：₹'+amount+'\n\n'+
+    '取消后：该笔「已发未领」奖励将作废，会员不可再领取。\n'+
+    '此为人工追回（独立于开关、不影响其他记录），操作不可撤销。'
+  )) return;
+  tr.children[6].innerHTML  = '<span class="tag void">⊘ 已取消</span>';
+  tr.children[10].innerHTML = '<s style="color:#c0c4cc">'+amount+'</s>';
+  tr.children[14].innerHTML = '<span class="rb-op-none" title="人工追回 · 不可撤销">已追回 · luna</span>';
+  alert('✅ 已取消发放并追回 ₹'+amount+'（演示）\n\n该记录状态已置为「已取消」，会员不可再领取。');
 }
 
 function showConflict(){ document.getElementById('modalConflict').classList.add('open'); }
@@ -1366,7 +1615,7 @@ function toggleSw(el){
 
 // ESC 关闭
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ closeEdit(); closeConflict(); closeDrawer(); closeSpec(); }
+  if(e.key==='Escape'){ closeImport(); closeEdit(); closeConflict(); closeDrawer(); closeSpec(); }
 });
 </script>
 
