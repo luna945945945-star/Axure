@@ -377,30 +377,48 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
       <!-- 客户端 -->
       <div class="swim-lane">
         <div class="swim-actor client">📱 客户端</div>
-        <div class="swim-body">
+        <div class="swim-body" style="flex-wrap:nowrap;overflow-x:auto">
           <span class="node decision">该银行是<b>单点登录</b>？</span>
           <span class="arr">→</span>
-          <span style="display:inline-flex;flex-direction:column;gap:6px">
-            <span style="display:inline-flex;align-items:center;gap:6px">
-              <span style="color:#cf1322;font-size:11px;font-weight:600;width:36px">是 →</span>
+          <span style="display:inline-flex;flex-direction:column;gap:6px;flex-shrink:0">
+            <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+              <span style="color:#cf1322;font-size:11px;font-weight:600;flex-shrink:0">是 →</span>
               <span class="node new warning">弹窗：保持登录 15-30 分钟</span>
               <span class="arr">→</span>
               <span class="node action">用户确认</span>
             </span>
-            <span style="display:inline-flex;align-items:center;gap:6px">
-              <span style="color:#52c41a;font-size:11px;font-weight:600;width:36px">否 →</span>
-              <span class="node success">走正常提现流程，无额外提示</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+              <span style="color:#52c41a;font-size:11px;font-weight:600;flex-shrink:0">否 →</span>
+              <span class="node success">正常提现，无额外提示</span>
             </span>
           </span>
           <span class="arr">→</span>
           <span class="node action">提交订单 → 后台</span>
+          <span class="arr">→</span>
+          <span class="node decision">出款中 KYC 断连？</span>
+          <span class="arr">→</span>
+          <span style="display:inline-flex;flex-direction:column;gap:6px;flex-shrink:0">
+            <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+              <span style="color:#cf1322;font-size:11px;font-weight:600;flex-shrink:0">断连 →</span>
+              <span class="node new warning">任意页全局重连弹窗 + 29min 倒计时</span>
+              <span class="arr">→</span>
+              <span style="display:inline-flex;flex-direction:column;gap:4px;flex-shrink:0">
+                <span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><span style="color:#52c41a;font-size:10px;flex-shrink:0">重连 →</span><span class="node success">KYC 恢复 → 系统自动重提</span></span>
+                <span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><span style="color:#cf1322;font-size:10px;flex-shrink:0">超时 →</span><span class="node warning">订单取消 · 资金退回（站内信）</span></span>
+              </span>
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+              <span style="color:#52c41a;font-size:11px;font-weight:600;flex-shrink:0">正常 →</span>
+              <span class="node success">无需重连，正常出款</span>
+            </span>
+          </span>
         </div>
       </div>
 
       <!-- 后台 -->
       <div class="swim-lane">
         <div class="swim-actor backend">⚙️ 后台</div>
-        <div class="swim-body">
+        <div class="swim-body" style="flex-wrap:nowrap;overflow-x:auto">
           <span class="node decision">是否走自动出款？</span>
           <span class="arr">→</span>
           <span class="node action">否：派单到人工</span>
@@ -410,6 +428,23 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
           <span class="node action">审核员处理</span>
           <span class="arr">→</span>
           <span class="node new">15min SLA</span>
+          <span class="arr">→</span>
+          <span class="node action">确认通道出款（提交三方）</span>
+          <span class="arr">→</span>
+          <span class="node decision">三方是否接单？</span>
+          <span class="arr">→</span>
+          <span style="display:inline-flex;flex-direction:column;gap:6px;flex-shrink:0">
+            <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+              <span style="color:#52c41a;font-size:11px;font-weight:600;flex-shrink:0">提交成功 →</span>
+              <span class="node success">订单「已提交」→ 等待三方回调</span>
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+              <span style="color:#cf1322;font-size:11px;font-weight:600;flex-shrink:0">提交失败(3005) →</span>
+              <span class="node new warning">订单留「待审核」+ 29min KYC重连剩余</span>
+              <span class="arr">→</span>
+              <span class="node warning">超时未重连 → 自动取消 · 原路退回</span>
+            </span>
+          </span>
         </div>
       </div>
 
@@ -419,23 +454,21 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
         <div class="swim-body" style="flex-wrap:nowrap;overflow-x:auto">
           <span class="node action">三方收到请求</span>
           <span class="arr">→</span>
-          <span class="node decision">KYC 验证 / 是否断连？</span>
+          <span class="node decision">KYC 是否连接？</span>
           <span class="arr">→</span>
           <span style="display:inline-flex;flex-direction:column;gap:6px;flex-shrink:0">
-            <span style="display:inline-flex;align-items:center;gap:6px">
-              <span style="color:#52c41a;font-size:11px;font-weight:600;width:36px;flex-shrink:0">否 →</span>
-              <span class="node success">出款成功</span>
-            </span>
-            <span style="display:inline-flex;align-items:center;gap:6px">
-              <span style="color:#cf1322;font-size:11px;font-weight:600;width:36px;flex-shrink:0">断连 →</span>
-              <span class="node new warning">全局重连弹窗</span>
-              <span class="arr">→</span>
-              <span class="node decision">用户在线？</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+              <span style="color:#52c41a;font-size:11px;font-weight:600;flex-shrink:0">已连接 →</span>
+              <span class="node action">受理订单 → 等待三方回调</span>
               <span class="arr">→</span>
               <span style="display:inline-flex;flex-direction:column;gap:4px;flex-shrink:0">
-                <span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><span style="color:#52c41a;font-size:10px;width:30px;flex-shrink:0">是 →</span><span class="node success">29 分钟内重连成功 → 系统自动提交三方出款</span></span>
-                <span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><span style="color:#cf1322;font-size:10px;width:30px;flex-shrink:0">否 →</span><span class="node warning">30 分钟倒计时结束未重连 → 直接提现退回</span></span>
+                <span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><span style="color:#52c41a;font-size:10px;flex-shrink:0">回调成功 →</span><span class="node success">出款成功 · 已通过</span></span>
+                <span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><span style="color:#cf1322;font-size:10px;flex-shrink:0">回调失败 →</span><span class="node warning">原路退回 · 已拒绝</span></span>
               </span>
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+              <span style="color:#cf1322;font-size:11px;font-weight:600;flex-shrink:0">断连 →</span>
+              <span class="node warning">返回失败 KYC 3005 → 触发客户端重连</span>
             </span>
           </span>
         </div>
@@ -517,7 +550,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 
         <div class="step-row warn"><span class="n">2</span><b>超 10min 未审核</b> → 自动提醒审核员</div>
         <div class="step-divider"></div>
-        <div class="step-row warn"><span class="n">3</span><b>超 15min 未审核</b> → 上报主管 / 自动重派</div>
+        <div class="step-row ok"><span class="n">3</span>SLA 仅做<b>提醒</b>，<b>不</b>自动重派 / <b>不</b>上报主管（评审已去除）</div>
       </div>
 
       <!-- 优化 4：全局重连弹窗 -->
@@ -549,63 +582,79 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 
   <!-- ===== 失败订单流向（简化版） ===== -->
   <div class="card">
-    <div class="card-h"><span class="num">3</span>❌ 出款失败处理：直接退回</div>
+    <div class="card-h"><span class="num">3</span>❌ 出款失败处理：按「通道出款提交结果」分两分支</div>
 
     <div style="background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:#874d00;line-height:1.7">
-      💡 按"订单是否已提交三方"区分两种失败场景。<b>判定方式不同，但兜底动作一致</b>：系统判定出款失败 → 资金原路退回用户钱包 → 站内信通知用户重新发起。
+      💡 审核员点「确认通道出款」后，按<b>三方是否接单</b>分两分支。两分支<b>兜底一致</b>：判定失败 → 资金原路退回钱包（解冻 + 写账变）→ 站内信通知用户重新发起。
     </div>
 
-    <!-- 场景 ① 未提交三方 -->
+    <!-- 决策点 -->
+    <div style="text-align:center;margin-bottom:14px">
+      <span class="node" style="background:#2470ff;color:#fff;border:none">审核员「确认通道出款」</span>
+      <span class="arr">→</span>
+      <span class="node decision">三方是否接单？</span>
+    </div>
+
+    <!-- 分支 A · 提交失败 -->
     <div style="background:#fafbfc;border:1px solid #ecedf2;border-left:4px solid #fa8c16;border-radius:8px;padding:16px 20px;margin-bottom:12px">
       <h4 style="font-size:13.5px;color:#d46b08;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px">
-        <span style="background:#fa8c16;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px">场景 ①</span>
-        订单<b>未提交三方</b> · 后台审单 / 派单阶段断连
+        <span style="background:#fa8c16;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px">分支 A</span>
+        通道出款提交<b>失败</b> · provider 返 <code style="background:#fff1f0;color:#cf1322;padding:1px 6px;border-radius:3px;font-size:11.5px">KYC error 3005</code>（未真正入三方）
       </h4>
       <div style="display:flex;flex-direction:column;gap:8px">
         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
           <span style="width:22px;height:22px;border-radius:50%;background:#fa8c16;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">1</span>
-          <div style="flex:1;font-size:12.5px;color:#333">审单提交三方失败（KYC 断连）→ 触发<b>客户端全局重连弹窗</b> + <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">29 分钟倒计时</code></div>
+          <div style="flex:1;font-size:12.5px;color:#333">订单<b>保持「待审核」</b>（状态不变）→ 写标记位 <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">ReconnectDeadline = now+29min</code>，三方详细 = <b style="color:#cf1322">失败</b></div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
           <span style="width:22px;height:22px;border-radius:50%;background:#fa8c16;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">2</span>
-          <div style="flex:1;font-size:12.5px;color:#333"><b style="color:#cf1322">29 分钟内未重连成功</b> → 系统判定<b>出款失败</b>，订单不提交三方</div>
+          <div style="flex:1;font-size:12.5px;color:#333">该笔单<b>移出该审核员列表</b> → 进「全部提现记录」可追溯；客户端<b>立即弹</b>全局重连弹窗 + <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">29min 倒计时</code>（同步服务端 deadline）</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
           <span style="width:22px;height:22px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">3</span>
-          <div style="flex:1;font-size:12.5px;color:#333"><b style="color:#52c41a">资金原路退回用户钱包</b>（解冻余额 + 写账变记录），订单状态 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">已拒绝</code>，原因 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">重连超时</code></div>
+          <div style="flex:1;font-size:12.5px;color:#333"><b style="color:#52c41a">复用现有能力</b>：29min 内用户重连 KYC → 系统<b>自动重提三方</b> → 订单转<b>「已提交」→ 走分支 B</b></div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
-          <span style="width:22px;height:22px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">4</span>
-          <div style="flex:1;font-size:12.5px;color:#333">站内信通知：<b>提现已退回钱包，请重新发起</b></div>
+          <span style="width:22px;height:22px;border-radius:50%;background:#cf1322;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">4</span>
+          <div style="flex:1;font-size:12.5px;color:#333"><b style="color:#cf1322">29min 到点仍未重连成功</b> → 后台<b>自动取消</b> → 原路退回钱包，订单状态 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">已拒绝</code>，原因 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">重连超时</code></div>
         </div>
       </div>
+      <div style="margin-top:10px;font-size:11.5px;color:#874d00;background:#fff7e6;border:1px dashed #ffd591;border-radius:5px;padding:7px 10px">⚠️ 重连后自动重提<b>若再次失败，29min 不重置</b>（以首次提交失败为准，一单一上限）</div>
     </div>
 
-    <!-- 场景 ② 已提交三方 -->
+    <!-- 分支 B · 提交成功 -->
     <div style="background:#fafbfc;border:1px solid #ecedf2;border-left:4px solid #cf1322;border-radius:8px;padding:16px 20px">
       <h4 style="font-size:13.5px;color:#cf1322;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:6px">
-        <span style="background:#cf1322;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px">场景 ②</span>
-        订单<b>已提交三方</b> · 三方 KYC 验证阶段断连
+        <span style="background:#cf1322;color:#fff;padding:1px 8px;border-radius:10px;font-size:11px">分支 B</span>
+        通道出款提交<b>成功</b> · 已入三方，进入匹配 / 验证窗口
       </h4>
       <div style="display:flex;flex-direction:column;gap:8px">
         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
           <span style="width:22px;height:22px;border-radius:50%;background:#cf1322;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">1</span>
-          <div style="flex:1;font-size:12.5px;color:#333">三方回调结果 <code style="background:#fff1f0;color:#cf1322;padding:1px 6px;border-radius:3px;font-size:11.5px">State = 3</code>（出款失败） + KYC 连接状态 <code style="background:#fff1f0;color:#cf1322;padding:1px 6px;border-radius:3px;font-size:11.5px">Disconnect</code></div>
+          <div style="flex:1;font-size:12.5px;color:#333">订单转<b>「已提交」</b>，三方详细 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">等待回调</code>；三方进入匹配窗口（如 <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">60min</code>）</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
-          <span style="width:22px;height:22px;border-radius:50%;background:#cf1322;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">2</span>
-          <div style="flex:1;font-size:12.5px;color:#333">三方回调出款失败，系统判定<b>出款失败</b></div>
+          <span style="width:22px;height:22px;border-radius:50%;background:#fa8c16;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">2</span>
+          <div style="flex:1;font-size:12.5px;color:#333">窗口内 KYC <b>断连才弹</b>客户端重连弹窗，倒计时 = <b>三方剩余窗口</b>（非本地 29min）</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
           <span style="width:22px;height:22px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">3</span>
-          <div style="flex:1;font-size:12.5px;color:#333"><b style="color:#52c41a">资金原路退回用户钱包</b>（解冻余额 + 写账变记录），订单状态 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">已拒绝</code>，原因 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">重连超时</code></div>
+          <div style="flex:1;font-size:12.5px;color:#333">三方<b style="color:#52c41a">成功回调</b> → 三方详细 = 成功 → <b style="color:#52c41a">出款完成</b></div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid #ecedf2;border-radius:5px">
-          <span style="width:22px;height:22px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">4</span>
-          <div style="flex:1;font-size:12.5px;color:#333">站内信通知：<b>提现已退回钱包，请重新发起</b></div>
+          <span style="width:22px;height:22px;border-radius:50%;background:#cf1322;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">4</span>
+          <div style="flex:1;font-size:12.5px;color:#333">三方<b>失败 / 超时回调</b> → 系统判失败 → 原路退回钱包，订单状态 = <code style="background:#f0f1f4;padding:1px 6px;border-radius:3px;font-size:11.5px">已拒绝</code></div>
         </div>
       </div>
     </div>
+
+    <!-- 状态字段映射（V3 现有枚举） -->
+    <h4 style="font-size:13px;color:#444;font-weight:600;margin:20px 0 10px">🗂 状态字段映射（V3 现有枚举）</h4>
+    <table class="rules-tbl">
+      <thead><tr><th style="width:170px">字段</th><th>取值</th></tr></thead>
+      <tr><td><b>订单状态 WithdrawState</b></td><td><code>0 待审核</code> · <code>1 已通过</code> · <code>2 已拒绝</code> · <code>3 已提交</code></td></tr>
+      <tr><td><b>三方详细 ThirdState</b></td><td><code>0 待提交</code> · <code>1 等待回调</code> · <code>2 失败</code> · <code>3 成功</code> · <code>4 需去三方确认</code> · <code>5 提交三方中</code></td></tr>
+    </table>
 
     <!-- 用户视角文案 -->
     <h4 style="font-size:13px;color:#444;font-weight:600;margin:20px 0 10px">📩 用户端通知文案</h4>
@@ -622,12 +671,12 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
     <h4 style="font-size:13px;color:#444;font-weight:600;margin:20px 0 10px">⚙️ 关键规则</h4>
     <table class="rules-tbl">
       <thead><tr><th style="width:140px">规则</th><th>说明</th></tr></thead>
-      <tr><td><b>重连倒计时</b></td><td>场景 ①（未提交三方）默认 <code>29 分钟</code>，倒计时结束未重连 → 自动判失败</td></tr>
-      <tr><td><b>三方判失败</b></td><td>场景 ②（已提交三方）判定条件：<code>State = 3</code> <b>且</b> KYC 连接状态 = <code>Disconnect</code></td></tr>
-      <tr><td><b>资金退回</b></td><td>两种场景<b>统一退回用户钱包</b>（解冻余额 + 写账变记录）</td></tr>
-      <tr><td><b>用户通知</b></td><td><b>站内信</b>告知"资金已退回钱包，请重新发起"</td></tr>
-      <tr><td><b>禁止重发</b></td><td>失败订单不支持"一键重发"，必须用户重新发起，避免重复扣款</td></tr>
-      <tr><td><b>缓冲设计</b></td><td>客户端重连倒计时 <code>29 分钟</code> 比系统判失败退回 <code>30 分钟</code> 早 <b>1 分钟</b>。预留 1 分钟缓冲，避免用户在临界时刻重连成功（触发自动提交三方）的同时，系统又判定失败退回，导致<b style="color:#cf1322">重复出款或资金损失</b></td></tr>
+      <tr><td><b>KYC重连剩余</b></td><td>分支 A 固定 <code>29 分钟</code>，<b>只存服务端</b>、客户端同步显示；到点未重连成功 → 后台自动取消退回</td></tr>
+      <tr><td><b>自动重提</b></td><td><b>复用现有</b>「KYC 重连 → 自动重提三方」能力；本期只新增 29min 封顶。重提再失败 <b>不重置</b>倒计时（一单一上限）</td></tr>
+      <tr><td><b>分支 B 窗口</b></td><td>倒计时 = <b>三方返回的剩余窗口</b>（如 60min），由三方回调决定成败；客户端<b>断连才弹</b></td></tr>
+      <tr><td><b>资金退回</b></td><td>两分支<b>统一原路退回钱包</b>（解冻 + 写账变），由 V1 钱包执行（V3 发 MQ，<b>带幂等键</b>）</td></tr>
+      <tr><td><b>并发安全</b></td><td>「重连自动重提」与「到点判失败」临界并发 → <b>订单状态乐观锁 + 幂等键</b>互斥（<b>非</b>靠时间差缓冲；旧 29/30 双时钟方案作废）</td></tr>
+      <tr><td><b>用户通知 / 禁止重发</b></td><td><b>站内信</b>告知"资金已退回，请重新发起"；失败单<b>不支持一键重发</b>，避免重复扣款</td></tr>
     </table>
 
   </div>
@@ -654,10 +703,10 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
         <ul>
           <li>提交时按银行类型<b>主动提示</b>用户保持在线 15-30 分钟</li>
           <li><b>FASTUPI 优先派发</b>：单点订单跳到队首，立刻入审单池顶部</li>
-          <li>审单 <b>15 分钟 SLA</b>，超时自动重派 + 提醒主管</li>
+          <li>审单 <b>15 分钟 SLA</b>，超 10min 自动提醒审核员（<b>不</b>自动重派 / <b>不</b>上报主管）</li>
           <li><b>客户端全局重连弹窗</b>：任意页面实时弹出，附 <b>29 分钟倒计时</b></li>
-          <li>失败处理<b>双场景明确</b>：未提交三方（重连超时）/ 已提交三方（State=3+Disconnect），<b>统一退回钱包</b></li>
-          <li><b>29/30 分钟缓冲设计</b>：客户端早 1 分钟超时，避免临界点重连+判失败<b>重复出款</b></li>
+          <li>失败处理<b>双分支明确</b>：提交失败（KYC3005 · 29min 重连封顶）/ 提交成功（三方窗口 · 断连才弹），<b>统一退回钱包</b></li>
+          <li><b>单一服务端时钟 + 幂等锁</b>：29min 只存服务端、客户端同步显示，临界并发靠状态锁防<b>重复出款</b></li>
           <li>失败订单状态 = <code>已拒绝</code>，资金原路退回 + 站内信通知用户重新发起</li>
         </ul>
       </div>
@@ -671,14 +720,67 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 
   <!-- ===== 5. 后台审单页改造 ===== -->
   <div class="card">
-    <div class="card-h"><span class="num">5</span>🖥 后台审单页改造 · 仅加<b style="color:#cf1322;margin-left:4px">视觉提示</b>，不改字段/不改状态</div>
+    <div class="card-h"><span class="num">5</span>🖥 后台审单页改造 · 涉及 <b style="color:#cf1322;margin:0 4px">3 个列表页 + 1 个审核弹窗</b> · 逐页标注改动</div>
 
-    <div style="background:#fff7e6;border:1px solid #ffd591;border-radius:6px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:#874d00;line-height:1.7">
-      💡 沿用 V3 现有审单页<b>所有字段 / 列 / 审核状态文案</b>不变。<b style="color:#cf1322">改动只有 3 处</b>：FASTUPI 标签变红 + 顶部提示条 + 详情弹窗提示横幅。
+    <!-- ===== FASTUPI 后台审单流程图（给测试） ===== -->
+    <div style="background:#fafbfd;border:1px solid #e3e8f0;border-radius:8px;padding:18px 20px;margin-bottom:20px">
+      <div style="font-size:14px;font-weight:700;color:#1f2329;margin-bottom:3px">🔄 FASTUPI 后台审单流程</div>
+      <div style="font-size:11.5px;color:#888;margin-bottom:14px">订单状态流转 + 分支节点（给测试同学对照；<span style="color:#cf1322">🆕</span> = 本期新增）</div>
+
+      <!-- 横向流程：节点 + 箭头，分支用标签箭头（沿用泳道节点样式） -->
+      <div style="display:flex;flex-wrap:nowrap;overflow-x:auto;align-items:flex-start;gap:8px;padding:10px 2px 14px">
+        <span class="node">FASTUPI 订单产生</span>
+        <span class="arr">→</span>
+        <span class="node new">优先派发置顶</span>
+        <span class="arr">→</span>
+        <span class="node">审核员选通道 ·「确认通道出款」</span>
+        <span class="arr">→</span>
+        <span class="node decision">三方是否接单？</span>
+        <span class="arr">→</span>
+        <!-- 一级分支 -->
+        <span style="display:inline-flex;flex-direction:column;gap:16px;flex-shrink:0">
+          <!-- 提交成功 -->
+          <span style="display:inline-flex;align-items:center;gap:8px;white-space:nowrap">
+            <span style="color:#389e0d;font-size:11px;font-weight:700;flex-shrink:0">提交成功 →</span>
+            <span class="node">订单 已提交</span>
+            <span class="arr">→</span>
+            <span class="node">等待三方回调</span>
+            <span class="arr">→</span>
+            <span style="display:inline-flex;flex-direction:column;gap:6px;flex-shrink:0">
+              <span style="display:inline-flex;align-items:center;gap:6px"><span style="color:#52c41a;font-size:10.5px;font-weight:600;flex-shrink:0">回调成功 →</span><span class="node success">出款成功 · 已通过</span></span>
+              <span style="display:inline-flex;align-items:center;gap:6px"><span style="color:#cf1322;font-size:10.5px;font-weight:600;flex-shrink:0">回调失败 →</span><span class="node warning">原路退回 · 已拒绝</span></span>
+            </span>
+          </span>
+          <!-- 提交失败 -->
+          <span style="display:inline-flex;align-items:center;gap:8px;white-space:nowrap">
+            <span style="color:#fa8c16;font-size:11px;font-weight:700;flex-shrink:0">提交失败(KYC&nbsp;3005) →</span>
+            <span class="node new">待审核 + 29min KYC重连剩余</span>
+            <span class="arr">→</span>
+            <span class="node decision">29min 内重连？</span>
+            <span class="arr">→</span>
+            <span style="display:inline-flex;flex-direction:column;gap:6px;flex-shrink:0">
+              <span style="display:inline-flex;align-items:center;gap:6px"><span style="color:#52c41a;font-size:10.5px;font-weight:600;flex-shrink:0">是 →</span><span class="node success">自动重提 → 转「已提交」（汇入提交成功）</span></span>
+              <span style="display:inline-flex;align-items:center;gap:6px"><span style="color:#cf1322;font-size:10.5px;font-weight:600;flex-shrink:0">否 →</span><span class="node warning">超时取消 · 原路退回 · 已拒绝</span></span>
+            </span>
+          </span>
+        </span>
+      </div>
+
+      <!-- 页面归属 -->
+      <div style="font-size:11px;color:#555;border-top:1px dashed #e3e8f0;padding-top:11px;display:flex;gap:20px;flex-wrap:wrap;line-height:1.6">
+        <span>📄 <b style="color:#2470ff">页面 A</b> 出款员工操作台：产生 → 派发 → 审核 → 确认通道出款</span>
+        <span>📄 <b style="color:#2470ff">页面 C</b> 当前提现订单：提交失败·重连中（转派 / 批量转派均过滤）</span>
+        <span>📄 <b style="color:#2470ff">页面 D</b> 全部提现记录：两分支终态（已通过 / 已拒绝）追溯</span>
+      </div>
     </div>
 
-    <!-- ===== 列表页 mock ===== -->
-    <h4 style="font-size:13.5px;color:#1f2329;font-weight:700;margin:18px 0 10px">列表页改造</h4>
+    <!-- ===== 页面 A · 出款员工操作台 ===== -->
+    <div style="background:#eef4ff;border-left:4px solid #2470ff;border-radius:6px;padding:11px 14px;margin:26px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="background:#2470ff;color:#fff;font-size:12.5px;padding:2px 12px;border-radius:12px;font-weight:700">页面 A</span>
+      <span style="font-size:14.5px;font-weight:700;color:#1f2329">出款员工操作台</span>
+      <span style="font-size:11.5px;color:#888">我的审核订单</span>
+      <span style="margin-left:auto;font-size:11px;color:#2470ff;background:#fff;border:1px solid #d6e4ff;padding:2px 10px;border-radius:10px">4 项改动</span>
+    </div>
 
     <div class="audit-mock">
       <!-- 顶部 tabs -->
@@ -819,34 +921,21 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
       </div>
     </div>
 
-    <!-- 改造点说明 -->
-    <h4 style="font-size:13px;color:#444;font-weight:600;margin:18px 0 10px">📋 列表页 3 个改造点</h4>
-    <div class="mod-list">
-      <div class="mod-item">
-        <span class="n">1</span>
-        <div>
-          <div class="t">「我的审核订单」末尾加 [FASTUPI N] 快速分类 tab</div>
-          <div class="d">复用现有 tab 模式（与"总单数 / 待审核 / 审核中"同行），数字红色加粗 + 轻微脉动。<b>点击 → 列表只展示 FASTUPI 单</b>，集中"一波打捞"处理</div>
-        </div>
-      </div>
-      <div class="mod-item">
-        <span class="n">2</span>
-        <div>
-          <div class="t">异常 banner（仅条件触发，常态隐藏）</div>
-          <div class="d">触发条件：<b>FASTUPI 单 ≥ 5 笔 或 任意一笔等待 ≥ 10 分钟</b>。条件解除后自动收起 · 常态下不占空间</div>
-        </div>
-      </div>
-      <div class="mod-item">
-        <span class="n">3</span>
-        <div>
-          <div class="t">「提现大类」列内 FASTUPI 值红字加粗</div>
-          <div class="d">仅改值的<b>文字样式</b>（红色加粗）· 无背景、无图标 · <b>列字段 / 列宽 / 其他大类样式全部不变</b></div>
-        </div>
-      </div>
+    <div style="font-size:12.5px;color:#1f2329;line-height:1.95;margin:10px 0 4px">
+      <b>改动</b><br>
+      1. FASTUPI 优先派发置顶（后端派单逻辑，详见 §2）<br>
+      2. 「我的审核订单」末尾新增 [FASTUPI N] 快速分类 tab，点击只看 FASTUPI 单<br>
+      3. 异常 banner：FASTUPI 单 ≥5 笔 或 任一笔等待 ≥10min 触发，常态隐藏<br>
+      4. 「提现大类」列 FASTUPI 值红字加粗（仅文字样式，列 / 字段不变）
     </div>
 
-    <!-- ===== 审核详情弹窗 mock ===== -->
-    <h4 style="font-size:13.5px;color:#1f2329;font-weight:700;margin:28px 0 10px">审核详情弹窗改造</h4>
+    <!-- ===== 页面 B · 审核详情弹窗（由 D 上移，紧邻操作台） ===== -->
+    <div style="background:#eef4ff;border-left:4px solid #2470ff;border-radius:6px;padding:11px 14px;margin:32px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="background:#2470ff;color:#fff;font-size:12.5px;padding:2px 12px;border-radius:12px;font-weight:700">页面 B</span>
+      <span style="font-size:14.5px;font-weight:700;color:#1f2329">审核详情弹窗</span>
+      <span style="font-size:11.5px;color:#888">在操作台点「查看详情 / 开始审核」弹出</span>
+      <span style="margin-left:auto;font-size:11px;color:#2470ff;background:#fff;border:1px solid #d6e4ff;padding:2px 10px;border-radius:10px">2 项改动</span>
+    </div>
 
     <div class="detail-mock">
       <div class="dm-head">
@@ -856,7 +945,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
         <div class="icns"><span>⛶</span><span>✕</span></div>
       </div>
 
-      <!-- ⭐ 改造点 3：仅 FASTUPI 单显示这条提示横幅 -->
+      <!-- ⭐ 改造点：仅 FASTUPI 单显示这条提示横幅 -->
       <div style="background:#fff7e6;border-bottom:1px solid #ffd591;padding:9px 22px;display:flex;align-items:center;gap:10px;font-size:12.5px;color:#874d00;position:relative">
         <span style="background:#ff4d4f;color:#fff;font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700;position:absolute;top:-7px;right:14px">NEW</span>
         <span style="font-size:14px">🔥</span>
@@ -933,20 +1022,222 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
       <div class="annotate" style="margin:10px 22px 14px">仅顶部加一条提示横幅 · 其余<b>字段 / tabs / 操作按钮 / 颜色全部不动</b></div>
     </div>
 
-    <h4 style="font-size:13px;color:#444;font-weight:600;margin:18px 0 10px">📋 详情弹窗 1 个改造点</h4>
-    <div class="mod-list" style="grid-template-columns:1fr">
-      <div class="mod-item">
-        <span class="n">3</span>
-        <div>
-          <div class="t">弹窗顶部加一条浅色提示横幅</div>
-          <div class="d">"<b>提示：</b>本笔为 FASTUPI 订单，用户已在线等待，请<b>尽快完成审核</b>" · 仅 FASTUPI 单显示 · <b>不挡操作 / 不改按钮 / 不改字段</b></div>
+    <div style="font-size:12.5px;color:#1f2329;line-height:1.95;margin:10px 0 4px">
+      <b>改动</b><br>
+      1. 顶部 FASTUPI 提示横幅（仅 FASTUPI 单显示，不挡操作 / 不改字段）<br>
+      2. 提交失败后「第三方详细」显示失败态：状态 = 失败 + KYC 3005 消息 + KYC重连剩余
+    </div>
+
+    <!-- ===== 页面 C · 当前提现订单 ===== -->
+    <div style="background:#eef4ff;border-left:4px solid #2470ff;border-radius:6px;padding:11px 14px;margin:32px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="background:#2470ff;color:#fff;font-size:12.5px;padding:2px 12px;border-radius:12px;font-weight:700">页面 C</span>
+      <span style="font-size:14.5px;font-weight:700;color:#1f2329">当前提现订单</span>
+      <span style="font-size:11.5px;color:#888">在审 / 处理中订单</span>
+      <span style="margin-left:auto;font-size:11px;color:#2470ff;background:#fff;border:1px solid #d6e4ff;padding:2px 10px;border-radius:10px">3 项改动</span>
+    </div>
+
+    <div class="audit-mock" style="overflow-x:auto">
+      <!-- 顶部 tabs（真实页面） -->
+      <div class="audit-toptabs">
+        <div class="tt">出款看板</div>
+        <div class="tt">出款员工操作台</div>
+        <div class="tt">出款组别配置</div>
+        <div class="tt">出款员工报表</div>
+        <div class="tt active">当前提现订单</div>
+        <div class="tt">全部提现记录</div>
+      </div>
+
+      <div class="audit-card first" style="border-radius:0 0 8px 8px;margin-top:0;border-top:none">
+        <!-- 筛选 chips（真实页面 · 原样保留） -->
+        <div class="audit-mytab">
+          <span class="mt active">全部</span>
+          <span class="mt">待派发</span>
+          <span class="mt">待审核</span>
+          <span class="mt">审核中</span>
+          <span class="mt">审核超时</span>
+          <span class="mt">已提交</span>
+          <div class="right-acts">
+            <button class="b-batch">批量转派</button>
+          </div>
         </div>
+
+        <table class="audit-tbl" style="min-width:1340px">
+          <thead>
+            <tr>
+              <th style="width:26px"><input type="checkbox"></th>
+              <th>商户</th><th>会员ID</th><th>订单号</th><th>提现大类</th>
+              <th>订单时间</th><th>币种</th><th class="col-c">手续费</th><th class="col-c">提现金额</th><th class="col-c">实际到账金额</th>
+              <th>当前审核已耗时</th><th style="min-width:240px">第三方详细 <span style="background:#ff4d4f;color:#fff;font-size:8px;padding:0 5px;border-radius:6px">改造</span></th>
+              <th>当前处理状态</th><th>当前订单状态</th><th>操作人</th><th>操作 <span style="background:#ff4d4f;color:#fff;font-size:8px;padding:0 5px;border-radius:6px">改造</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- ⭐ 分支 A：FASTUPI 提交失败·重连中（改造行） -->
+            <tr class="row-warn">
+              <td><input type="checkbox"></td>
+              <td><span class="merchant-tag">2001</span></td>
+              <td style="color:#2470ff;text-decoration:underline">2250936</td>
+              <td style="font-size:10.5px">WD202606251220...<br>3381 2001009a</td>
+              <td><span class="fastupi-tag">FASTUPI</span></td>
+              <td style="font-size:10.5px">2026-06-25 12:20:33</td>
+              <td><span class="inr-tag">INR</span></td>
+              <td class="col-c">0.00</td>
+              <td class="col-c">1,000.00</td>
+              <td class="col-c">900.00</td>
+              <td>--</td>
+              <td style="font-size:10.5px;line-height:1.7">
+                三方：FASTUPI<br>
+                单号：--<br>
+                状态：<b style="color:#cf1322">失败</b><br>
+                消息：<span style="color:#cf1322">KYC status error(3005)，KYC连接后自动重提</span><br>
+                提交三方次数：1<br>
+                <span style="background:#fff1f0;border-radius:3px;padding:2px 6px;margin-top:2px;display:inline-block"><span style="color:#cf1322">KYC重连剩余：</span><b style="color:#cf1322;font-family:'SF Mono',Menlo,monospace">28:43</b></span>
+                <span style="background:#ff4d4f;color:#fff;font-size:8px;padding:0 4px;border-radius:5px">新增行</span>
+              </td>
+              <td><span class="st-wait">待派发</span></td>
+              <td><span class="st-wait">待审核</span></td>
+              <td>系统</td>
+              <td style="white-space:nowrap">
+                <span class="act-link">查看详情</span><br>
+                <span style="color:#c4c7ce;cursor:not-allowed;font-size:11.5px" title="KYC重连剩余进行中，禁止转派">转派</span>
+                <span style="background:#f0f1f4;color:#999;font-size:8.5px;padding:1px 5px;border-radius:6px">倒计时中·置灰</span>
+              </td>
+            </tr>
+            <!-- 普通待审核单（对照·原样） -->
+            <tr>
+              <td><input type="checkbox"></td>
+              <td><span class="merchant-tag">2001</span></td>
+              <td style="color:#2470ff;text-decoration:underline">2250936</td>
+              <td style="font-size:10.5px">WD202606251220...<br>1884 2001008a</td>
+              <td>BANK CARD</td>
+              <td style="font-size:10.5px">2026-06-25 12:20:18</td>
+              <td><span class="inr-tag">INR</span></td>
+              <td class="col-c">0.00</td>
+              <td class="col-c">1,000.00</td>
+              <td class="col-c">1,000.00</td>
+              <td>--</td>
+              <td style="font-size:10.5px;line-height:1.7;color:#888">三方：--<br>状态：待提交<br>提交三方次数：0</td>
+              <td><span class="st-wait">待派发</span></td>
+              <td><span class="st-wait">待审核</span></td>
+              <td>系统</td>
+              <td style="white-space:nowrap"><span class="act-link">查看详情</span><br><span class="act-link org">转派</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
+
+    <div style="font-size:12.5px;color:#1f2329;line-height:1.95;margin:10px 0 4px">
+      <b>改动</b><br>
+      1. 分支 A 提交失败单驻留本页（状态仍待审核，标记位 ReconnectDeadline 标识重连中），走完流程后转入全部提现记录（页面 D）<br>
+      2. 「第三方详细」列新增「KYC重连剩余」行（与客户端同步、服务端为准）<br>
+      3. 倒计时结束前：「转派」置灰禁用，且「批量转派」自动过滤掉该单（避免打断自动重提）；倒计时结束后恢复
+    </div>
+
+    <!-- ===== 页面 D · 全部提现记录 ===== -->
+    <div style="background:#eef4ff;border-left:4px solid #2470ff;border-radius:6px;padding:11px 14px;margin:32px 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="background:#2470ff;color:#fff;font-size:12.5px;padding:2px 12px;border-radius:12px;font-weight:700">页面 D</span>
+      <span style="font-size:14.5px;font-weight:700;color:#1f2329">全部提现记录</span>
+      <span style="font-size:11.5px;color:#888">全部状态订单（待审核 / 已通过 / 已拒绝 / 已提交）· 无「当前处理状态」列</span>
+      <span style="margin-left:auto;font-size:11px;color:#2470ff;background:#fff;border:1px solid #d6e4ff;padding:2px 10px;border-radius:10px">1 项改动</span>
+    </div>
+
+    <div class="audit-mock" style="overflow-x:auto">
+      <!-- 顶部 tabs（全部提现记录 active） -->
+      <div class="audit-toptabs">
+        <div class="tt">出款看板</div>
+        <div class="tt">出款员工操作台</div>
+        <div class="tt">出款组别配置</div>
+        <div class="tt">出款员工报表</div>
+        <div class="tt">当前提现订单</div>
+        <div class="tt active">全部提现记录</div>
+      </div>
+
+      <div class="audit-card first" style="border-radius:0 0 8px 8px;margin-top:0;border-top:none">
+        <div style="font-size:11px;color:#cf1322;padding:4px 0 10px">ⓘ 本页面可查<b>全部</b>提现订单（含全部状态）· 用搜索区「订单状态」筛选 · <b>无「当前处理状态」列</b>（那是「当前提现订单」页才有）</div>
+
+        <table class="audit-tbl" style="min-width:1560px">
+          <thead>
+            <tr>
+              <th style="width:26px"><input type="checkbox"></th>
+              <th>商户</th><th>会员ID</th><th>订单号</th><th>提现大类</th>
+              <th style="min-width:150px">银行卡详细</th>
+              <th>币种</th><th class="col-c">提现倍数</th><th class="col-c">提现次数</th><th class="col-c">手续费</th><th class="col-c">提现金额</th><th class="col-c">实际到账</th>
+              <th>订单状态</th>
+              <th style="min-width:150px">订单时间 (UTC+5:30)</th>
+              <th style="min-width:215px">第三方详细 <span style="background:#ff4d4f;color:#fff;font-size:8px;padding:0 5px;border-radius:6px">改造</span></th>
+              <th style="min-width:160px">备注信息</th>
+              <th>操作人</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- ① 改造行：FASTUPI 重连中（订单状态仍待审核）→ 第三方详细显示KYC重连剩余 -->
+            <tr class="row-warn">
+              <td><input type="checkbox"></td>
+              <td><span class="merchant-tag">(2001)sit-inr</span></td>
+              <td style="color:#2470ff;text-decoration:underline">2250936</td>
+              <td style="font-size:10.5px">WD2026062515324...<br>2442001011a</td>
+              <td><span class="fastupi-tag">Fast UPI</span></td>
+              <td style="font-size:10px;line-height:1.6">银行名称：phonepe<br>收款人：MILO<br>账号：9896362946@axl</td>
+              <td><span class="inr-tag">INR</span></td>
+              <td class="col-c">0.00</td>
+              <td class="col-c">0</td>
+              <td class="col-c">0.00</td>
+              <td class="col-c">200.00</td>
+              <td class="col-c">200.00</td>
+              <td><span class="st-wait">待审核</span></td>
+              <td style="font-size:10px;line-height:1.6">申请：2026-06-25 15:32:42<br>完成：--</td>
+              <td style="font-size:10.5px;line-height:1.7">
+                三方：FASTUPI<br>
+                状态：<b style="color:#cf1322">失败</b><br>
+                消息：<span style="color:#cf1322">KYC status error(3005)</span><br>
+                提交三方次数：1<br>
+                <span style="background:#fff1f0;border-radius:3px;padding:2px 6px;margin-top:2px;display:inline-block"><span style="color:#cf1322">KYC重连剩余：</span><b style="color:#cf1322;font-family:'SF Mono',Menlo,monospace">28:43</b></span>
+              </td>
+              <td style="font-size:10.5px;line-height:1.6">人工备注：--<br>订单备注：--</td>
+              <td>milozz01</td>
+              <td style="white-space:nowrap"><span class="act-link">查看详情</span><br><span class="act-link">修改订单备注</span></td>
+            </tr>
+
+            <!-- ② 红框样式：FASTUPI 重连超时 → 已拒绝·人工取消（与截图一致） -->
+            <tr style="outline:2px solid #ff4d4f;outline-offset:-2px">
+              <td><input type="checkbox"></td>
+              <td><span class="merchant-tag">(2001)sit-inr</span></td>
+              <td style="color:#2470ff;text-decoration:underline">2250936</td>
+              <td style="font-size:10.5px">WD2026062512013...<br>2432001007a</td>
+              <td><span class="fastupi-tag">Fast UPI</span></td>
+              <td style="font-size:10px;line-height:1.6">银行名称：phonepe<br>收款人：MILO<br>账号：9896362946@axl</td>
+              <td><span class="inr-tag">INR</span></td>
+              <td class="col-c">0.00</td>
+              <td class="col-c">0</td>
+              <td class="col-c">100.00</td>
+              <td class="col-c">100.00</td>
+              <td class="col-c">100.00</td>
+              <td><span style="background:#fff1f0;color:#cf1322;border:1px solid #ffccc7;padding:2px 9px;border-radius:11px;font-size:11px">已拒绝</span></td>
+              <td style="font-size:10px;line-height:1.6">申请：2026-06-25 12:01:32<br>完成：2026-06-25 12:38:00</td>
+              <td style="font-size:10.5px;line-height:1.7">
+                <b style="color:#cf1322">人工取消</b><br>
+                提交三方次数：1
+              </td>
+              <td style="font-size:10.5px;line-height:1.6">人工备注：<span style="color:#cf1322">KYC验证中断超时自动取消</span><br>订单备注：--</td>
+              <td>milozz01</td>
+              <td style="white-space:nowrap"><span class="act-link">查看详情</span><br><span class="act-link">修改订单备注</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="font-size:12.5px;color:#1f2329;line-height:1.95;margin:10px 0 4px">
+      <b>改动</b><br>
+      1. 仅「第三方详细」列加一个效果：FASTUPI <b>重连中</b>（订单状态仍待审核）时展示<b>KYC重连剩余</b>；其余字段沿用本页现有列（订单状态 / 第三方详细 / 备注信息 等，<b>无「当前处理状态」列</b>）。超时取消后 → 订单状态 = <b style="color:#cf1322">已拒绝</b>、第三方详细 = <b>人工取消</b>、人工备注 = <b>KYC验证中断超时自动取消</b>
+    </div>
+
 
   </div>
 
 
+  </div>
 </div>
 
 
