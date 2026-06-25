@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>优惠券进阶 · 注册链接拼接优惠券码 · 交互原型（需求池 #31）</title>
+<style>
+:root{
+  --primary:#1677ff; --primary-dark:#0958d9; --primary-light:#e6f4ff;
+  --primary-grad:linear-gradient(135deg,#667eea,#764ba2);
+  --success:#52c41a; --warning:#fa8c16; --danger:#cf1322;
+  --coupon-grad:linear-gradient(135deg,#ff7a45,#cf1322);
+  --text:#222; --text-2:#555; --text-3:#888; --text-disabled:#bbb;
+  --border:#e8e8e8; --border-strong:#d9d9d9; --bg:#f5f7fa; --bg-card:#fff;
+  --bg-hover:#fafbff; --bg-dark:#001529;
+  --radius:8px; --radius-sm:5px; --radius-lg:12px;
+  --shadow:0 2px 8px rgba(0,0,0,.06); --shadow-lg:0 8px 32px rgba(0,0,0,.12); --shadow-modal:0 16px 48px rgba(0,0,0,.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;color:var(--text);background:var(--bg);line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select{font-family:inherit;font-size:inherit;outline:none}
+.demo-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#fff7e6,#ffe7ba);border-bottom:1px solid #ffd591;padding:8px 16px;font-size:12px;color:#874d00;display:flex;align-items:center;gap:16px;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.05);flex-wrap:wrap}
+.demo-banner .b-left{display:flex;align-items:center;gap:8px;font-weight:700;white-space:nowrap}
+.demo-banner .b-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.demo-banner .b-tab{padding:4px 11px;background:#fff;border:1px solid #ffd591;border-radius:14px;cursor:pointer;font-size:11.5px;color:#874d00;font-weight:500}
+.demo-banner .b-tab.on{background:#fa8c16;color:#fff;border-color:#fa8c16}
+.with-banner{padding-top:48px}
+.admin{display:flex;min-height:calc(100vh - 48px)}
+.admin-sider{width:200px;background:var(--bg-dark);color:#fff;flex-shrink:0;display:flex;flex-direction:column}
+.admin-logo{padding:16px 20px;font-size:15px;font-weight:700;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px}
+.admin-logo .l-dot{width:8px;height:8px;background:var(--primary);border-radius:50%;box-shadow:0 0 12px var(--primary)}
+.admin-menu{padding:8px 0;flex:1}
+.admin-menu-group{padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px}
+.admin-menu-item{padding:9px 20px;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;border-left:3px solid transparent}
+.admin-menu-item:hover{color:#fff;background:rgba(255,255,255,.04)}
+.admin-menu-item.on{color:#fff;background:rgba(22,119,255,.15);border-left-color:var(--primary)}
+.admin-main{flex:1;display:flex;flex-direction:column}
+.admin-header{height:52px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;justify-content:space-between;flex-shrink:0}
+.admin-breadcrumb{font-size:13px;color:var(--text-2)}
+.admin-breadcrumb .sep{margin:0 6px;color:var(--text-3)}
+.admin-breadcrumb .cur{color:var(--text);font-weight:600}
+.admin-user{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text-2)}
+.admin-user .avatar{width:28px;height:28px;border-radius:50%;background:var(--primary-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
+.admin-content{flex:1;padding:20px 24px}
+.mobile-stage{display:flex;flex-direction:column;align-items:center;padding:18px 20px 60px;min-height:calc(100vh - 48px);background:#eef1f6}
+.stage-cap{font-size:13px;color:var(--text-3);margin-bottom:10px;text-align:center}
+.stage-cap b{color:var(--text-2)}
+.demo-switch{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+.demo-switch .ds{padding:4px 10px;border:1px solid var(--border-strong);background:#fff;border-radius:14px;font-size:11.5px;color:var(--text-2);cursor:pointer}
+.demo-switch .ds.on{background:var(--text);color:#fff;border-color:var(--text)}
+.phone{width:390px;height:800px;background:#fff;border-radius:42px;box-shadow:0 30px 80px rgba(0,0,0,.18),0 0 0 12px #1e1e1e,0 0 0 13px #333;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.phone-notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:110px;height:26px;background:#1e1e1e;border-radius:14px;z-index:5}
+.phone-statusbar{height:42px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;font-size:13px;font-weight:600}
+.phone-navbar{height:44px;background:#fff;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;padding:0 16px;flex-shrink:0;justify-content:space-between}
+.phone-navbar .nav-title{font-size:16px;font-weight:600}
+.phone-navbar .nav-back{font-size:20px;color:var(--text-2)}
+.phone-body{flex:1;overflow-y:auto;background:#f5f7fa}
+.page-title{font-size:20px;font-weight:700;margin-bottom:6px}
+.page-subtitle{font-size:12.5px;color:var(--text-3);margin-bottom:20px}
+.card{background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.card-title{font-size:16px;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:32px;padding:0 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .12s;background:#fff;color:var(--text-2)}
+.btn:hover{border-color:var(--primary);color:var(--primary)}
+.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn.primary:hover{background:var(--primary-dark);border-color:var(--primary-dark);color:#fff}
+.btn.success{background:var(--success);color:#fff;border-color:var(--success)}
+.btn.danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn.coupon{background:var(--coupon-grad);color:#fff;border:none}
+.btn.ghost{background:transparent;border:1px solid var(--border-strong);color:var(--text-2)}
+.btn.lg{height:42px;padding:0 22px;font-size:14px}
+.btn.sm{height:26px;padding:0 12px;font-size:12px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.badge{display:inline-flex;align-items:center;padding:1px 8px;border-radius:11px;font-size:11px;font-weight:500;line-height:1.6;background:#f5f5f5;color:var(--text-2)}
+.badge.primary{background:var(--primary-light);color:var(--primary)}
+.badge.success{background:#f6ffed;color:var(--success);border:1px solid #b7eb8f}
+.badge.warning{background:#fff7e6;color:var(--warning);border:1px solid #ffd591}
+.badge.danger{background:#fff1f0;color:var(--danger);border:1px solid #ffa39e}
+.badge.gray{background:#f0f0f0;color:#999}
+.form-row{display:flex;align-items:center;gap:12px;margin-bottom:15px;flex-wrap:wrap}
+.form-label{font-size:12.5px;color:var(--text-2);min-width:100px;text-align:right}
+.input,.select{height:34px;padding:0 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:#fff;color:var(--text);min-width:120px}
+.input:focus,.select:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-light)}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.tbl thead th{background:#fafafa;padding:11px 12px;text-align:left;font-size:12px;color:var(--text-2);font-weight:600;border-bottom:1px solid var(--border)}
+.tbl tbody td{padding:11px 12px;font-size:12px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.tbl tbody tr:hover{background:var(--bg-hover)}
+.filter-bar{background:#fff;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.filter-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.filter-item{display:flex;align-items:center;gap:6px}
+.filter-item-label{font-size:12.5px;color:var(--text-2)}
+.filter-actions{margin-left:auto;display:flex;gap:8px}
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:var(--radius);width:440px;max-width:90vw;overflow:hidden;box-shadow:var(--shadow-modal)}
+.modal-head{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600}
+.modal-close{font-size:18px;color:var(--text-3);cursor:pointer}
+.modal-body{padding:18px 20px;font-size:13px;line-height:1.7}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+.toast-stack{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{padding:10px 18px;background:rgba(0,0,0,.82);color:#fff;border-radius:var(--radius-sm);font-size:13px;box-shadow:var(--shadow-lg);animation:toastIn .25s;display:flex;align-items:center;gap:7px}
+.toast.success{background:rgba(46,143,46,.95)}.toast.warning{background:rgba(212,123,0,.95)}.toast.danger{background:rgba(196,30,30,.95)}
+@keyframes toastIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.rules{background:#fafbff;border-left:3px solid var(--primary);padding:13px 15px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin:14px 0}
+.rules-title{font-weight:600;margin-bottom:7px;font-size:13px}
+.rules ul{list-style:none}
+.rules li{padding:3px 0 3px 16px;font-size:12.5px;color:var(--text-2);position:relative}
+.rules li::before{content:'•';position:absolute;left:4px;color:var(--primary);font-weight:bold}
+.text-muted{color:var(--text-3)}.text-sm{font-size:12px}.text-xs{font-size:11px}.fw-600{font-weight:600}.fw-700{font-weight:700}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mb-12{margin-bottom:12px}.flex{display:flex}.flex-1{flex:1}.gap-8{gap:8px}
+.radio-grp{display:flex;gap:10px;flex-wrap:wrap}
+.radio-opt{border:1px solid var(--border-strong);border-radius:8px;padding:9px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:500;color:var(--text-2);font-size:12.5px}
+.radio-opt.on{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+.radio-opt .rd{width:15px;height:15px;border-radius:50%;border:2px solid var(--border-strong)}
+.radio-opt.on .rd{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3px #fff}
+.preview-box{background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;padding:11px 14px;font-size:12.5px;color:#389e0d}
+/* 优惠券卡片 */
+.coupon-card{display:flex;border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);background:#fff;position:relative}
+.coupon-card .cc-left{width:104px;background:var(--coupon-grad);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;text-align:center}
+.coupon-card .cc-ratio{font-size:28px;font-weight:800;line-height:1}
+.coupon-card .cc-cap{font-size:11px;opacity:.92;margin-top:4px}
+.coupon-card .cc-right{flex:1;padding:11px 14px;display:flex;flex-direction:column;justify-content:center;gap:5px}
+.coupon-card .cc-name{font-weight:700;font-size:14px}
+.coupon-card .cc-meta{font-size:11.5px;color:var(--text-3)}
+.coupon-card .cc-act{position:absolute;right:12px;top:50%;transform:translateY(-50%)}
+/* 链接框 */
+.link-box{background:#f5f7fa;border:1px dashed var(--border-strong);border-radius:8px;padding:11px 14px;font-family:'SF Mono',Monaco,monospace;font-size:12px;color:var(--text-2);word-break:break-all;line-height:1.6}
+.link-box .hl{color:var(--danger);font-weight:700}
+.qr-ph{width:120px;height:120px;background:repeating-linear-gradient(45deg,#eee,#eee 6px,#fff 6px,#fff 12px);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:11px;margin:0 auto}
+/* 注册页 banner */
+.reg-banner{padding:14px 16px;color:#fff;background:var(--coupon-grad)}
+.reg-banner .rb-t{font-weight:700;font-size:15px}
+.reg-banner .rb-d{font-size:12px;opacity:.95;margin-top:4px}
+.reg-banner.dead{background:#8c8c8c}
+.reg-field{margin:0 16px 14px}
+.reg-field .lbl{font-size:12.5px;color:var(--text-2);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.reg-input{width:100%;height:48px;border:1px solid var(--border-strong);border-radius:10px;padding:0 14px;font-size:14px}
+.reg-input:disabled{background:#f5f5f5;color:var(--text-3)}
+.reg-head{background:linear-gradient(135deg,#ff8a6a,#f5535f);color:#fff;padding:16px 18px 18px}
+.reg-head .rh-top{display:flex;justify-content:space-between;align-items:center}
+.reg-head .rh-logo{font-size:19px;font-weight:800;letter-spacing:1px}
+.reg-head .rh-title{font-size:21px;font-weight:700;margin-top:10px}
+.reg-head .rh-sub{font-size:12px;opacity:.92;margin-top:3px}
+.reg-tabs{display:flex;background:#fff;border-bottom:1px solid #f0f0f4}
+.reg-tab{flex:1;text-align:center;padding:13px 0;font-size:14px;color:#999;cursor:pointer;border-bottom:2px solid transparent}
+.reg-tab.on{color:#f5535f;font-weight:700;border-bottom-color:#f5535f}
+.rf{margin:0 16px 12px}.rf .rl{font-size:13px;color:#444;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.rf .ri{display:flex;align-items:center;background:#f3f3f7;border-radius:10px;height:46px;padding:0 12px}
+.rf .ri input{flex:1;border:none;background:none;font-size:14px;color:#333}
+.rf .cc{color:#555;font-size:14px;margin-right:8px;white-space:nowrap}
+.rf .send{color:#f5535f;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;margin-left:8px}
+.rf .eye{color:#bbb;cursor:pointer;margin-left:8px}
+.reg-coupons{margin:0 16px 12px}.reg-coupons .rc-h{font-size:12.5px;color:#444;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.reg-cpscroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.reg-cpscroll::-webkit-scrollbar{height:0}
+.reg-cp{flex:0 0 auto;min-width:128px;border:1.5px solid #ffd4d0;border-radius:10px;background:#fff;cursor:pointer;overflow:hidden}
+.reg-cp.on{border-color:#f5535f;box-shadow:0 0 0 2px #ffe0dc}
+.reg-cp .rcp-t{background:linear-gradient(135deg,#ff8a6a,#f5535f);color:#fff;text-align:center;padding:8px}
+.reg-cp .rcp-t b{font-size:18px}.reg-cp .rcp-t span{font-size:10px;display:block;opacity:.95}
+.reg-cp .rcp-b{padding:6px 9px;font-size:10.5px;color:#888;text-align:center}
+.reg-agree{margin:4px 16px 14px;font-size:12px;color:#888;display:flex;align-items:center;gap:7px}
+.reg-agree .cb{width:16px;height:16px;border-radius:50%;border:1.5px solid #f5535f;flex-shrink:0}.reg-agree b{color:#f5535f}
+.reg-go{display:block;margin:0 16px;width:calc(100% - 32px);height:48px;border:none;border-radius:24px;background:linear-gradient(135deg,#ff8a6a,#f5535f);color:#fff;font-size:16px;font-weight:700;cursor:pointer}
+.reg-login{text-align:center;margin:14px 16px 18px;border:1.5px solid #ffd4d0;border-radius:24px;padding:12px;font-size:14px;color:#666}.reg-login b{color:#f5535f}
+.wl-item{padding:12px 14px;border-bottom:1px solid #f0f0f4;cursor:pointer;border-left:3px solid transparent}
+.wl-item:hover{background:#fafafe}
+.wl-item.on{background:#f0f6ff;border-left-color:#1677ff}
+.wl-item .wl-nm{font-weight:600;font-size:13.5px;color:#333}
+.wl-item .wl-meta{font-size:11.5px;color:#888;margin-top:3px}
+.wl-item .wl-code{font-size:11px;color:#1677ff;margin-top:3px}
+.poster-scroll{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory}
+.poster-scroll::-webkit-scrollbar{height:0}
+.poster{flex:0 0 87%;scroll-snap-align:center;border-radius:16px;overflow:hidden;color:#fff}
+.poster.p-red{background:linear-gradient(160deg,#ff7a59,#f5424f)}
+.poster.p-gold{background:linear-gradient(160deg,#ffa83d,#f5604a)}
+.poster.p-deep{background:linear-gradient(160deg,#f5535f,#b8224a)}
+.poster .pst-pad{padding:16px 16px 18px}
+.poster .pst-tags{display:flex;gap:8px}
+.poster .pst-tag{background:rgba(255,236,170,.95);color:#a8400f;font-size:11px;font-weight:700;padding:3px 9px;border-radius:5px}
+.poster .pst-title{font-size:21px;font-weight:800;margin-top:12px;line-height:1.22}
+.poster .pst-sub{font-size:12px;opacity:.95;margin-top:5px}
+.poster .pst-feats{display:flex;gap:8px;margin-top:13px}
+.poster .pst-feat{flex:1;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:8px;text-align:center;padding:8px 4px;font-size:11px}
+.poster .pst-feat b{display:block;font-size:12.5px;margin-bottom:2px}
+.poster .pst-hl{text-align:center;font-size:15px;font-weight:700;margin-top:14px}
+.poster .pst-hl b{font-size:26px;color:#fff3b0;margin:0 2px}
+.poster .pst-box{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px}
+.poster .pst-gift{font-size:52px;line-height:1}
+.poster .pst-qr{width:86px;height:86px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:11px;text-align:center;line-height:1.3}
+.poster .pst-code{text-align:center;margin-top:12px;font-size:12px;background:rgba(0,0,0,.18);border-radius:6px;padding:7px}
+.poster .pst-code b{color:#fff3b0;letter-spacing:1px}
+.soc-row{display:flex;justify-content:center;gap:20px;margin-top:14px}
+.soc{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:#888}
+.soc .si{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;font-weight:700}
+.soc .wa{background:#25d366}.soc .tg{background:#229ed9}.soc .fb{background:#1877f2}.soc .tw{background:#111}
+.reg-code-tip{margin:0 16px 14px;font-size:12px;color:#cf1322;background:#fff1f0;border:1px solid #ffa39e;border-radius:8px;padding:8px 12px}
+.progress{height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;width:90px;display:inline-block;vertical-align:middle;margin-right:6px}
+.progress>i{display:block;height:100%;background:var(--primary)}
+</style>
+</head>
+<body class="with-banner">
+
+<div class="demo-banner">
+  <div class="b-left">🎟 优惠券进阶 · 注册拼接 #31</div>
+  <div class="b-tabs">
+    <span class="b-tab on" onclick="showPage('p1',this)">🖥 运营·创建券码</span>
+    <span class="b-tab" onclick="showPage('p2',this)">🖥 运营·券码列表</span>
+    <span class="b-tab" onclick="showPage('p3',this)">📱 代理·邀请链接</span>
+    <span class="b-tab" onclick="showPage('p4',this)">📱 带券注册</span>
+    <span class="b-tab" onclick="showPage('p5',this)">📱 注册得券</span>
+    <span class="b-tab" onclick="showPage('p6',this)">🖥 运营·白名单管理</span>
+  </div>
+</div>
+
+<!-- ════ P1 · 运营创建优惠券码 ════ -->
+<div id="P-p1" class="page-block">
+  <div class="admin">
+    <aside class="admin-sider">
+      <div class="admin-logo"><span class="l-dot"></span>运营后台</div>
+      <div class="admin-menu">
+        <div class="admin-menu-group">活动管理</div>
+        <div class="admin-menu-item on">🎟 优惠券码</div>
+        <div class="admin-menu-item">🎫 优惠券管理</div>
+        <div class="admin-menu-item">✉️ 站内信</div>
+      </div>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-header">
+        <div class="admin-breadcrumb">活动管理 <span class="sep">/</span> 优惠券码 <span class="sep">/</span> <span class="cur">创建</span></div>
+        <div class="admin-user"><span>ops01</span><div class="avatar">O</div></div>
+      </header>
+      <div class="admin-content">
+        <div class="page-title">创建优惠券码</div>
+        <div class="page-subtitle">#31 — 运营创建、分配给代理；新用户通过带码邀请链接注册即得一张充值优惠券（含 #39 限制）</div>
+        <div class="card" style="max-width:720px">
+          <div class="form-row">
+            <span class="form-label">优惠券码</span>
+            <input class="input" id="cc-code" value="SUMMER10" style="width:180px">
+            <button class="btn ghost sm" onclick="genCode()">随机生成</button>
+          </div>
+          <div class="card-head" style="margin-top:6px"><div class="card-title" style="font-size:14px">券规格</div></div>
+          <div class="form-row"><span class="form-label">优惠比例</span><input class="input" id="cc-ratio" type="number" value="10" oninput="updatePreview()" style="width:110px"> <span class="text-sm text-muted">%</span></div>
+          <div class="form-row">
+            <span class="form-label">金额上限</span>
+            <div class="radio-grp">
+              <div class="radio-opt on" id="cap-limit" onclick="toggleCap('limit')"><span class="rd"></span>封顶 <input class="input" id="cc-cap" type="number" value="50" oninput="updatePreview()" style="width:80px;height:28px;margin:0 4px"> ₹</div>
+              <div class="radio-opt" id="cap-none" onclick="toggleCap('none')"><span class="rd"></span>不限</div>
+            </div>
+          </div>
+          <div class="form-row"><span class="form-label">券有效期</span><input class="input" type="number" value="7" style="width:110px"> <span class="text-sm text-muted">天（用户领取后）</span></div>
+          <div class="form-row"><span class="form-label">打码量设置</span><input class="input" type="number" value="1" style="width:110px"> <span class="text-sm text-muted">倍（彩金按打码倍数计入流水）</span></div>
+          <div class="form-row"><span class="form-label">码活动时段</span><input class="input" type="date" value="2026-06-20" style="width:150px"> <span class="text-muted">~</span> <input class="input" type="date" value="2026-06-20" style="width:150px"> <span class="text-xs text-muted">（起止同日=单日有效）</span></div>
+
+          <div class="card-head" style="margin-top:6px"><div class="card-title" style="font-size:14px">发放限制（#39）</div></div>
+          <div class="form-row"><span class="form-label">总次数上限</span><input class="input" type="number" value="1000" style="width:120px"> <span class="text-sm text-muted">张（发完即止）</span></div>
+          <div class="form-row"><span class="form-label">每手机号</span><span class="badge primary">限领 1 次</span> <span class="text-xs text-muted">（防同号多领）</span></div>
+          <div class="form-row">
+            <span class="form-label">手机号白名单</span>
+            <div class="radio-grp">
+              <div class="radio-opt on" id="wl-none" onclick="toggleWl('none')"><span class="rd"></span>不限制</div>
+              <div class="radio-opt" id="wl-on" onclick="toggleWl('on')"><span class="rd"></span>仅白名单可领</div>
+            </div>
+          </div>
+          <div class="form-row" id="wl-import" style="display:none"><span class="form-label">选择名单</span><select class="select" style="min-width:210px"><option>回归召回名单（10,000）</option><option>新客拉新名单（5,000）</option></select> <a onclick="showPage('p6',document.querySelectorAll('.b-tab')[5])" style="color:#1677ff;cursor:pointer;font-size:12px;margin-left:10px">＋ 去白名单库新建/导入</a> <span class="text-xs text-muted" style="margin-left:10px">引用库名单（单一数据源），仅名单内手机号注册才发券</span></div>
+
+          <div class="card-head" style="margin-top:6px"><div class="card-title" style="font-size:14px">分配</div></div>
+          <div class="form-row"><span class="form-label">分配给代理</span><input class="input flex-1" value="100000、100001" placeholder="代理ID，逗号分隔（如 100000、100001）" style="max-width:300px"> <button class="btn ghost sm" onclick="toast('已批量导入 50 个代理ID','success')">＋ 批量导入代理ID</button></div>
+          <div class="form-row"><span class="form-label">　</span><span class="text-xs text-muted">批量导入 CSV：单列「代理ID」，每行一个（不含子额度）</span></div>
+
+          <div class="form-row" style="align-items:flex-start"><span class="form-label">实时预览</span><div class="preview-box flex-1" id="cc-preview" style="max-width:420px"></div></div>
+          <div class="form-row"><span class="form-label">　</span><button class="btn primary" onclick="createCode()">创建优惠券码</button></div>
+        </div>
+        <div class="rules" style="max-width:720px">
+          <div class="rules-title">📋 规则</div>
+          <ul>
+            <li>码活动时段：仅此区间内用带码链接注册才发券（实现"单日有效"）；券有效期：券到用户手里后 N 天过期</li>
+            <li>发放受"总次数上限 + 每手机号 1 次 + 可选白名单"三重约束（#39）</li>
+            <li>发出的券为充值优惠券，使用与到账逻辑复用第 16 条</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ════ P2 · 券码列表 ════ -->
+<div id="P-p2" class="page-block" style="display:none">
+  <div class="admin">
+    <aside class="admin-sider">
+      <div class="admin-logo"><span class="l-dot"></span>运营后台</div>
+      <div class="admin-menu">
+        <div class="admin-menu-group">活动管理</div>
+        <div class="admin-menu-item on">🎟 优惠券码</div>
+        <div class="admin-menu-item">🎫 优惠券管理</div>
+        <div class="admin-menu-item">✉️ 站内信</div>
+      </div>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-header">
+        <div class="admin-breadcrumb">活动管理 <span class="sep">/</span> <span class="cur">优惠券码</span></div>
+        <div class="admin-user"><span>ops01</span><div class="avatar">O</div></div>
+      </header>
+      <div class="admin-content">
+        <div class="page-title">优惠券码</div>
+        <div class="page-subtitle">#31 — 管理已创建的优惠券码，监控发放进度、停用异常码</div>
+        <div class="filter-bar">
+          <div class="filter-row">
+            <div class="filter-item"><span class="filter-item-label">码</span><input class="input" placeholder="优惠券码" style="min-width:130px"></div>
+            <div class="filter-item"><span class="filter-item-label">状态</span><select class="select"><option>全部</option><option>进行中</option><option>已用完</option><option>已停用</option><option>已过期</option></select></div>
+            <div class="filter-actions"><button class="btn primary" onclick="toast('查询中...','info')">查询</button><button class="btn coupon" onclick="showPage('p1',document.querySelectorAll('.b-tab')[0])">+ 创建券码</button></div>
+          </div>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>优惠券码</th><th>券规格</th><th>码活动时段</th><th>发放进度</th><th>每手机号</th><th>白名单</th><th>分配代理</th><th>状态</th><th class="center">操作</th></tr></thead>
+          <tbody>
+            <tr id="cr-1"><td class="fw-600">SUMMER10</td><td>10% / 上限₹50</td><td>06-20 ~ 06-20<br><span class="text-xs text-muted">单日</span></td><td><span class="progress"><i style="width:15%"></i></span>150/1000</td><td>限1次</td><td>不限</td><td>网红A、代理001</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn danger sm" onclick="disableCode(1)">停用</button></td></tr>
+            <tr id="cr-2"><td class="fw-600">VIP20</td><td>20% / 上限₹100</td><td>06-01 ~ 06-30</td><td><span class="progress"><i style="width:95%"></i></span>95/100</td><td>限1次</td><td><span class="badge primary">白名单</span></td><td>代理002</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn danger sm" onclick="disableCode(2)">停用</button></td></tr>
+            <tr><td class="fw-600">NEW8</td><td>8% / 不限上限</td><td>06-15 ~ 06-22</td><td><span class="progress"><i style="width:100%;background:#cf1322"></i></span>1000/1000</td><td>限1次</td><td>不限</td><td>全体代理</td><td><span class="badge warning">已用完</span></td><td class="center"><button class="btn sm" disabled>停用</button></td></tr>
+            <tr><td class="fw-600">OLD5</td><td>5% / 上限₹20</td><td>05-01 ~ 05-31</td><td><span class="progress"><i style="width:16%"></i></span>320/2000</td><td>限1次</td><td>不限</td><td>代理003</td><td><span class="badge gray">已过期</span></td><td class="center"><button class="btn sm" disabled>停用</button></td></tr>
+          </tbody>
+        </table>
+        <div class="rules">
+          <div class="rules-title">📋 规则</div>
+          <ul>
+            <li>发放进度到达总次数上限 → 自动「已用完」；超出码活动时段 → 自动「已过期」</li>
+            <li>停用后该码立即失效，用带该码链接注册不再发券（仍可正常注册）</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ════ P3 · 代理邀请链接（截图样式·海报凸显优惠券） ════ -->
+<div id="P-p3" class="page-block" style="display:none">
+  <div class="mobile-stage">
+    <div class="stage-cap">代理端 H5 · <b>邀请海报（#31 海报凸显优惠券 + 选券自动拼券码到链接）</b></div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
+      <div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">邀请</span><span style="width:20px"></span></div>
+      <div class="phone-body">
+        <div style="padding:14px 14px 22px">
+          <div style="text-align:center;font-size:12.5px;color:#999;margin-bottom:12px">请左右滑动选择你喜欢的宣传图册</div>
+          <select class="select" id="cc-select" style="width:100%;margin-bottom:12px" onchange="renderPosters()">
+            <option value="SUMMER10|10%|₹50|850/1000">附带：SUMMER10 — 充值10%券·上限₹50（剩 850/1000）</option>
+            <option value="VIP20|20%|₹100|5/100">附带：VIP20 — 充值20%券·上限₹100（剩 5/100）</option>
+            <option value="">不附带（普通邀请海报）</option>
+          </select>
+          <div class="poster-scroll" id="poster-scroll"></div>
+          <div style="text-align:center;margin-top:8px;font-size:15px;font-weight:700;color:#333">邀请好友 · <span style="color:#f5424f" id="inv-slogan">注册即得专属优惠券</span></div>
+          <button class="btn coupon" style="width:100%;height:48px;border-radius:24px;margin-top:14px;font-size:15px" onclick="toast('已生成分享海报','success')">分享邀请海报</button>
+          <button style="width:100%;height:46px;border-radius:24px;margin-top:10px;background:#fff;border:1.5px solid #ffc9c4;color:#f5424f;font-size:14px;font-weight:600;cursor:pointer" onclick="copyLink('invite-link')">复制邀请链接</button>
+          <div class="link-box" id="invite-link" style="display:none"></div>
+          <div style="text-align:center;font-size:12px;color:#999;margin-top:18px">分享到其他应用邀请好友</div>
+          <div class="soc-row">
+            <div class="soc"><div class="si wa">✆</div>WhatsApp</div>
+            <div class="soc"><div class="si tg">✈</div>Telegram</div>
+            <div class="soc"><div class="si fb">f</div>Facebook</div>
+            <div class="soc"><div class="si tw">𝕏</div>Twitter</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ P4 · 带券注册 ════ -->
+<div id="P-p4" class="page-block" style="display:none">
+  <div class="mobile-stage">
+    <div class="stage-cap">会员端 H5 · <b>带券链接注册（#31）</b> — 解析 invitationCode 里的券码段</div>
+    <div class="demo-switch">
+      <span class="text-xs text-muted" style="align-self:center">演示链接：</span>
+      <span class="ds on" id="ds-valid" onclick="setRegDemo('valid')">有效券码</span>
+      <span class="ds" id="ds-expired" onclick="setRegDemo('expired')">码已过期</span>
+      <span class="ds" id="ds-limit" onclick="setRegDemo('limit')">已达上限</span>
+      <span class="ds" id="ds-none" onclick="setRegDemo('none')">无券链接</span>
+    </div>
+    <div class="stage-cap" id="reg-judge" style="margin:-2px 0 12px;color:#999;font-size:11.5px"></div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
+      <div class="phone-body" style="padding:0">
+        <div class="reg-head">
+          <div class="rh-top"><span class="rh-logo">LOGO</span><span style="font-size:12px">🇨🇳 ZH</span></div>
+          <div class="rh-title">注册</div>
+          <div class="rh-sub">请通过手机号码或者邮箱进行注册</div>
+        </div>
+        <div class="reg-tabs"><div class="reg-tab on">📱 手机注册</div><div class="reg-tab">✉️ 邮箱注册</div></div>
+        <div style="padding-top:14px">
+          <div class="rf"><div class="rl">📱 手机号</div><div class="ri"><span class="cc">+66 ▾</span><input placeholder="请输入手机号码"></div></div>
+          <div class="rf"><div class="rl">🔖 验证码</div><div class="ri"><input placeholder="请输入验证码"><span class="send">发送</span></div></div>
+          <div class="rf"><div class="rl">🔒 设置密码</div><div class="ri"><input type="password" placeholder="设置密码"><span class="eye">👁</span></div></div>
+          <div class="rf"><div class="rl">🔒 确认密码</div><div class="ri"><input type="password" placeholder="确认密码"><span class="eye">👁</span></div></div>
+          <div class="rf"><div class="rl">🎫 邀请码</div><div class="ri"><input id="reg-invite" value="118663914421" readonly style="color:#888"></div></div>
+          <div class="reg-coupons" id="reg-coupons">
+            <div class="rc-h">🎁 专属优惠券（<span id="rc-count">2</span> 张）· 注册即得</div>
+            <div class="reg-cpscroll" id="reg-cpscroll"></div>
+          </div>
+          <div class="reg-agree"><span class="cb"></span>我已阅读并同意 <b>《隐私协议》</b></div>
+          <button class="reg-go" onclick="doRegister()">注册</button>
+          <div class="reg-login">我有账号 <b>去登录</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ P5 · 注册得券 ════ -->
+<div id="P-p5" class="page-block" style="display:none">
+  <div class="mobile-stage">
+    <div class="stage-cap">会员端 H5 · <b>注册成功得券（#31）</b> — 券进入「我的优惠券」，去使用跳充值页（第16条）</div>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
+      <div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">我的优惠券</span><span style="width:20px"></span></div>
+      <div class="phone-body">
+        <div style="padding:16px">
+          <div class="card" style="text-align:center;padding:22px 18px">
+            <div style="font-size:40px">🎉</div>
+            <div class="fw-700" style="font-size:17px;margin-top:6px">注册成功</div>
+            <div class="text-sm" style="color:var(--coupon-grad);margin-top:4px"><span style="color:#cf1322;font-weight:600">已获得 1 张充值优惠券</span></div>
+          </div>
+          <div class="card-title mb-12" style="padding-left:2px">我的优惠券</div>
+          <div class="coupon-card">
+            <div class="cc-left"><div class="cc-ratio">10%</div><div class="cc-cap">上限 ₹50</div></div>
+            <div class="cc-right"><div class="cc-name">充值优惠券</div><div class="cc-meta">无门槛 · 有效期 7 天</div><div class="cc-meta">来源：注册赠送（SUMMER10）</div></div>
+            <div class="cc-act"><button class="btn coupon sm" onclick="toast('跳转充值页使用（由第16条充值页承载）','info')">去使用</button></div>
+          </div>
+          <div class="rules">
+            <div class="rules-title">📋 说明</div>
+            <ul>
+              <li>注册赠送的券与红包码 / 站内信领取的券同属「我的优惠券」，使用方式一致</li>
+              <li>去充值页勾选该券，按 min(充值×10%, ₹50) 赠彩金（第16条）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 停用确认 -->
+<div class="modal-mask" id="disable-modal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">停用优惠券码</div><span class="modal-close" onclick="closeModal('disable-modal')">✕</span></div>
+    <div class="modal-body">停用后该码立即失效，用带此码的链接注册将不再发券（用户仍可正常注册）。确认停用？</div>
+    <div class="modal-foot"><button class="btn ghost" onclick="closeModal('disable-modal')">取消</button><button class="btn danger" onclick="confirmDisable()">确认停用</button></div>
+  </div>
+</div>
+
+<!-- ════ P6 · 白名单管理（库+详情合一·主从） ════ -->
+<div id="P-p6" class="page-block" style="display:none">
+  <div class="admin">
+    <aside class="admin-sider">
+      <div class="admin-logo"><span class="l-dot"></span>运营后台</div>
+      <div class="admin-menu">
+        <div class="admin-menu-group">活动管理</div>
+        <div class="admin-menu-item" onclick="showPage('p1',document.querySelectorAll('.b-tab')[0])">🎟 优惠券码</div>
+        <div class="admin-menu-item on">📋 白名单管理</div>
+        <div class="admin-menu-item">✉️ 站内信</div>
+      </div>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-header"><div class="admin-breadcrumb">活动管理 <span class="sep">/</span> <span class="cur">白名单管理</span></div><div class="admin-user"><span>ops01</span><div class="avatar">O</div></div></header>
+      <div class="admin-content">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+          <div><div class="page-title">白名单管理 <span style="color:#f5222d;font-size:12px;font-weight:700;vertical-align:super">新</span></div><div class="page-subtitle">独立白名单库 + 转化追踪合一 —— 左选名单、右看转化（#39）</div></div>
+          <div style="display:flex;gap:10px">
+            <button class="btn primary" onclick="toast('新建白名单','info')">＋ 新建白名单</button>
+            <button class="btn ghost" onclick="toast('请先在左侧选中目标名单，再追加号码','info')">⬆ 导入手机号（CSV）</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;margin-top:16px;align-items:flex-start">
+          <div style="width:248px;flex-shrink:0;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden">
+            <div style="padding:10px 14px;font-size:12px;color:#999;border-bottom:1px solid #f0f0f4">全部名单（2）</div>
+            <div class="wl-item on" onclick="selectWl(0)"><div class="wl-nm">回归召回名单</div><div class="wl-meta">10,000 号码 · 已用券 1,200</div><div class="wl-code">SUMMER10、VIP20</div></div>
+            <div class="wl-item" onclick="selectWl(1)"><div class="wl-nm">新客拉新名单</div><div class="wl-meta">5,000 号码 · 已用券 600</div><div class="wl-code">NEW8</div></div>
+          </div>
+          <div style="flex:1;min-width:0" id="wl-detail"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+function showPage(key, el){
+  document.querySelectorAll('.page-block').forEach(b => b.style.display='none');
+  document.getElementById('P-'+key).style.display='';
+  document.querySelectorAll('.b-tab').forEach(t => t.classList.remove('on'));
+  if(el) el.classList.add('on');
+  if(key==='p3') renderPosters();
+  if(key==='p4') setRegDemo(regState);
+}
+function toast(msg, type='info', dur=2400){
+  const stack=document.getElementById('toast-stack');
+  const el=document.createElement('div');
+  el.className='toast '+(type!=='info'?type:'');
+  const ic={success:'✓',warning:'⚠',danger:'✕',info:'ⓘ'};
+  el.innerHTML=`<span>${ic[type]||''}</span>${msg}`;
+  stack.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateY(-8px)';el.style.transition='all .2s';setTimeout(()=>el.remove(),200);},dur);
+}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.modal-mask').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+
+/* —— P1 创建券码 —— */
+let capMode='limit', wlMode='none';
+function toggleCap(m){
+  capMode=m;
+  document.getElementById('cap-limit').classList.toggle('on',m==='limit');
+  document.getElementById('cap-none').classList.toggle('on',m==='none');
+  document.getElementById('cc-cap').disabled=(m==='none');
+  updatePreview();
+}
+function toggleWl(m){
+  wlMode=m;
+  document.getElementById('wl-none').classList.toggle('on',m==='none');
+  document.getElementById('wl-on').classList.toggle('on',m==='on');
+  document.getElementById('wl-import').style.display=m==='on'?'':'none';
+}
+function genCode(){
+  const s='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';
+  for(let i=0;i<6;i++)c+=s[Math.floor((i*7+document.getElementById('cc-code').value.length*3+3)%s.length)];
+  document.getElementById('cc-code').value=c;toast('已生成新券码 '+c,'success');
+}
+function updatePreview(){
+  const r=(parseFloat(document.getElementById('cc-ratio').value)||0)/100;
+  const cap=parseFloat(document.getElementById('cc-cap').value)||0;
+  const calc=a=>{const v=Math.floor(a*r);return capMode==='limit'?'得 ₹'+Math.min(v,cap):'得 ₹'+v;};
+  document.getElementById('cc-preview').innerHTML=
+    `券面：充值${document.getElementById('cc-ratio').value||0}%券`+(capMode==='limit'?`·上限₹${cap}`:'·不限上限')
+    +`<br>充 ₹100 ${calc(100)}　|　充 ₹500 ${calc(500)}　|　充 ₹1000 ${calc(1000)}`;
+}
+function createCode(){toast('优惠券码已创建并分配给代理','success');}
+
+/* —— P2 停用 —— */
+let disableId=null;
+function disableCode(id){disableId=id;openModal('disable-modal');}
+function confirmDisable(){
+  const row=document.getElementById('cr-'+disableId);
+  if(row){row.cells[7].innerHTML='<span class="badge gray">已停用</span>';row.cells[8].innerHTML='<button class="btn sm" disabled>停用</button>';}
+  closeModal('disable-modal');toast('已停用','success');
+}
+
+/* —— P3 邀请链接拼接已并入 renderPosters（旧 renderInvite 移除） —— */
+function copyLink(id){
+  const t=document.getElementById(id).textContent;
+  if(navigator.clipboard) navigator.clipboard.writeText(t).catch(()=>{});
+  toast('链接已复制','success');
+}
+
+/* —— P4 带券注册 —— */
+// grant=是否发券；banner=会员侧是否展示优惠。过期/达上限/无券 → 会员侧均无感知（banner=false,grant=false），
+// 仅"判定说明"给评审看（会员不可见）。
+const REG={
+  valid:  {grant:true,  judge:'券码有效 → 发券 + 展示优惠券（多张时滑动可选）'},
+  expired:{grant:false, judge:'券码已过期 → 静默不发券，会员侧无感知（与无券链接一致）'},
+  limit:  {grant:false, judge:'已达发放上限 → 静默不发券，会员侧无感知'},
+  none:   {grant:false, judge:'链接不含券码 → 普通注册'}
+};
+let regState='valid';
+function setRegDemo(s){
+  regState=s;
+  ['valid','expired','limit','none'].forEach(k=>document.getElementById('ds-'+k).classList.toggle('on',k===s));
+  const c=REG[s];
+  document.getElementById('reg-coupons').style.display = c.grant ? '' : 'none';
+  document.getElementById('reg-judge').innerHTML = '【评审视角 · 会员不可见】后端判定：' + c.judge;
+  if(c.grant) renderRegCoupons();
+}
+function renderRegCoupons(){
+  const list=[{r:10,cap:50,m:'无门槛 · 7天'},{r:15,cap:80,m:'满₹300 · 5天'}];
+  document.getElementById('rc-count').textContent=list.length;
+  document.getElementById('reg-cpscroll').innerHTML=list.map((c,i)=>`<div class="reg-cp ${i===0?'on':''}" onclick="this.parentElement.querySelectorAll('.reg-cp').forEach(x=>x.classList.remove('on'));this.classList.add('on')"><div class="rcp-t"><b>${c.r}%</b><span>上限₹${c.cap}</span></div><div class="rcp-b">${c.m}</div></div>`).join('');
+}
+function doRegister(){
+  const c=REG[regState];
+  toast('注册成功'+(c.grant?'，已发放优惠券':''),'success');
+  setTimeout(()=>{ if(c.grant){ showPage('p5', document.querySelectorAll('.b-tab')[4]); } else { toast('（普通注册，会员无任何券相关感知）','info'); } }, 700);
+}
+/* —— 白名单管理（主从：左选名单、右渲详情） —— */
+const WL=[
+  {name:'回归召回名单',imp:'10,000',reg:'3,200',regP:'32%',dep:'1,800',depP:'18%',use:'1,200',useP:'12%',rows:[
+    ['9188****539','success','已用券','06-20 18:20','₹500','₹50','SUMMER10（10%）'],
+    ['9170****014','success','已用券','06-20 18:19','₹300','₹30','SUMMER10（10%）'],
+    ['9177****001','warning','已充值未用券','06-21 10:05','₹300','—','—'],
+    ['9166****012','primary','已注册未充值','06-21 09:30','—','—','—'],
+    ['9155****888','gray','未注册','—','—','—','—']
+  ]},
+  {name:'新客拉新名单',imp:'5,000',reg:'1,800',regP:'36%',dep:'900',depP:'18%',use:'600',useP:'12%',rows:[
+    ['9133****210','success','已用券','06-19 12:00','₹200','₹16','NEW8（8%）'],
+    ['9144****555','warning','已充值未用券','06-19 14:20','₹150','—','—'],
+    ['9122****078','primary','已注册未充值','06-19 09:10','—','—','—'],
+    ['9111****900','gray','未注册','—','—','—','—']
+  ]}
+];
+function selectWl(i){
+  document.querySelectorAll('#P-p6 .wl-item').forEach((el,k)=>el.classList.toggle('on',k===i));
+  const w=WL[i];
+  const fl=(lb,v,p)=>`<div style="padding:2px 16px;border-left:1px solid #ffd5c4"><div style="font-size:11px;color:#a8622f">${lb}</div><div style="font-size:18px;font-weight:800;color:#c0390f">${v}${p?` <span style="font-size:11px;color:#e07a3f">${p}</span>`:''}</div></div>`;
+  const funnel=`<div style="background:linear-gradient(135deg,#fff4ef,#ffece4);border:1px solid #ffd5c4;border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span style="font-weight:700;color:#c0390f;margin-right:8px">🎯 转化漏斗</span>${fl('导入',w.imp)}${fl('已注册',w.reg,w.regP)}${fl('已充值',w.dep,w.depP)}${fl('已用券',w.use,w.useP)}</div>`;
+  const filter=`<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#fff;padding:14px 16px;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)"><span style="font-size:12.5px;color:#555">手机号 <input class="input" style="width:140px;height:30px" placeholder="手机号"></span><span style="font-size:12.5px;color:#555">状态 <select class="select" style="height:30px"><option>全部</option><option>未注册</option><option>已注册未充值</option><option>已充值未用券</option><option>已用券</option></select></span><button class="btn primary" onclick="toast('查询中…')">🔍 查询</button><button class="btn ghost" onclick="toast('已导出','success')">导出</button></div>`;
+  const rows=w.rows.map(r=>`<tr><td>${r[0]}</td><td><span class="badge ${r[1]}">${r[2]}</span></td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
+  const table=`<table class="tbl"><thead><tr><th>手机号</th><th>状态</th><th>注册时间</th><th>充值额</th><th>用券彩金</th><th>使用的券</th></tr></thead><tbody>${rows}</tbody></table>`;
+  const src=`<div class="rules"><div class="rules-title">📋 数据来源（落地需打通）</div><ul><li>是否注册：白名单手机号 匹配 <b>tab_Users</b></li><li>是否充值：该会员有无成功充值订单</li><li>是否用券：<b>tab_UserCoupon</b> 该会员的券是否"已使用"</li></ul></div>`;
+  document.getElementById('wl-detail').innerHTML=`<div class="page-title" style="font-size:17px;margin-bottom:4px">${w.name} · 转化追踪</div><div class="page-subtitle">谁注册了、谁充值了、谁用了券</div>`+funnel+filter+table+src;
+}
+selectWl(0);
+setRegDemo('valid');
+/* —— 邀请海报（凸显优惠券） —— */
+function renderPosters(){
+  const v=document.getElementById('cc-select').value;
+  const wc=v!=='';
+  let code='',ratio='',cap='';
+  if(wc){const p=v.split('|');code=p[0];ratio=p[1];cap=p[2];}
+  document.getElementById('inv-slogan').textContent=wc?'注册即得专属优惠券':'注册得新人好礼';
+  document.getElementById('invite-link').textContent=wc?`https://51game3.com/#/register?invitationCode=118663914421-${code}`:`https://51game3.com/#/register?invitationCode=118663914421`;
+  const styles=['p-red','p-gold','p-deep'];
+  document.getElementById('poster-scroll').innerHTML=styles.map(st=>posterHTML(st,wc,code,ratio,cap)).join('');
+}
+function posterHTML(st,wc,code,ratio,cap){
+  return `<div class="poster ${st}"><div class="pst-pad">`
+    +`<div class="pst-tags"><span class="pst-tag">🎁 注册即送</span><span class="pst-tag">⏰ 限时专属</span></div>`
+    +`<div class="pst-title">${wc?'注册领<br>专属充值优惠券':'注册领<br>新人专属好礼'}</div>`
+    +`<div class="pst-sub">${wc?'新用户首充立享返利，最高上限 '+cap:'扫码注册，惊喜连连'}</div>`
+    +`<div class="pst-feats"><div class="pst-feat"><b>🛡 资金安全</b>正规平台</div><div class="pst-feat"><b>⚡ 提现快</b>秒级到账</div></div>`
+    +(wc?`<div class="pst-hl">充值最高返 <b>${ratio}</b></div>`:`<div class="pst-hl">注册即享 <b>好礼</b></div>`)
+    +`<div class="pst-box"><div class="pst-gift">🎁</div><div class="pst-qr">扫码<br>注册</div></div>`
+    +(wc?`<div class="pst-code">优惠券码 <b>${code}</b> · 扫码注册即得</div>`:`<div class="pst-code">扫码注册 · 立得好礼</div>`)
+    +`</div></div>`;
+}
+renderPosters();
+
+/* init */
+updatePreview(); renderInvite(); setRegDemo('valid');
+</script>
+</body>
+</html>

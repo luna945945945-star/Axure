@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>渠道③ 人工充值发优惠券 · 前后台交互原型</title>
+<style>
+:root{
+  --primary:#1677ff;--primary-dark:#0958d9;--primary-light:#e6f4ff;--primary-grad:linear-gradient(135deg,#667eea,#764ba2);
+  --success:#52c41a;--warning:#fa8c16;--danger:#cf1322;--coupon-grad:linear-gradient(135deg,#ff7a45,#cf1322);
+  --text:#222;--text-2:#555;--text-3:#888;--border:#e8e8e8;--border-strong:#d9d9d9;--bg:#f5f7fa;--bg-card:#fff;--bg-hover:#fafbff;--bg-dark:#001529;
+  --radius:8px;--radius-sm:5px;--shadow:0 2px 8px rgba(0,0,0,.06);--shadow-lg:0 8px 32px rgba(0,0,0,.12);--shadow-modal:0 16px 48px rgba(0,0,0,.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;color:var(--text);background:var(--bg);line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select{font-family:inherit;font-size:inherit;outline:none}
+.demo-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#fff7e6,#ffe7ba);border-bottom:1px solid #ffd591;padding:8px 16px;font-size:12px;color:#874d00;display:flex;align-items:center;gap:16px;z-index:999;box-shadow:0 2px 8px rgba(0,0,0,.05);flex-wrap:wrap}
+.demo-banner .b-left{display:flex;align-items:center;gap:8px;font-weight:700;white-space:nowrap}
+.demo-banner .b-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.demo-banner .b-tab{padding:4px 11px;background:#fff;border:1px solid #ffd591;border-radius:14px;cursor:pointer;font-size:11.5px;color:#874d00;font-weight:500}
+.demo-banner .b-tab.on{background:#fa8c16;color:#fff;border-color:#fa8c16}
+.with-banner{padding-top:48px}
+.admin{display:flex;min-height:calc(100vh - 48px)}
+.admin-sider{width:200px;background:var(--bg-dark);color:#fff;flex-shrink:0;display:flex;flex-direction:column}
+.admin-logo{padding:16px 20px;font-size:15px;font-weight:700;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px}
+.admin-logo .l-dot{width:8px;height:8px;background:var(--primary);border-radius:50%;box-shadow:0 0 12px var(--primary)}
+.admin-menu{padding:8px 0;flex:1}
+.admin-menu-group{padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px}
+.admin-menu-item{padding:9px 20px;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;border-left:3px solid transparent}
+.admin-menu-item:hover{color:#fff;background:rgba(255,255,255,.04)}
+.admin-menu-item.on{color:#fff;background:rgba(22,119,255,.15);border-left-color:var(--primary)}
+.admin-main{flex:1;display:flex;flex-direction:column}
+.admin-header{height:52px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;justify-content:space-between;flex-shrink:0}
+.admin-breadcrumb{font-size:13px;color:var(--text-2)}.admin-breadcrumb .sep{margin:0 6px;color:var(--text-3)}.admin-breadcrumb .cur{color:var(--text);font-weight:600}
+.admin-user{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text-2)}
+.admin-user .avatar{width:28px;height:28px;border-radius:50%;background:var(--primary-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
+.admin-content{flex:1;padding:20px 24px}
+.mobile-stage{display:flex;flex-direction:column;align-items:center;padding:18px 20px 60px;min-height:calc(100vh - 48px);background:#eef1f6}
+.stage-cap{font-size:13px;color:var(--text-3);margin-bottom:12px;text-align:center}.stage-cap b{color:var(--text-2)}
+.phone{width:390px;height:800px;background:#fff;border-radius:42px;box-shadow:0 30px 80px rgba(0,0,0,.18),0 0 0 12px #1e1e1e,0 0 0 13px #333;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.phone-notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:110px;height:26px;background:#1e1e1e;border-radius:14px;z-index:5}
+.phone-statusbar{height:42px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;padding:0 28px 8px;font-size:13px;font-weight:600}
+.phone-navbar{height:44px;background:#fff;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;padding:0 16px;flex-shrink:0;justify-content:space-between}
+.phone-navbar .nav-title{font-size:16px;font-weight:600}.phone-navbar .nav-back{font-size:20px;color:var(--text-2)}
+.phone-body{flex:1;overflow-y:auto;background:#f5f7fa}
+.page-title{font-size:20px;font-weight:700;margin-bottom:6px}
+.page-subtitle{font-size:12.5px;color:var(--text-3);margin-bottom:20px}
+.card{background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.card-title{font-size:16px;font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:32px;padding:0 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .12s;background:#fff;color:var(--text-2)}
+.btn:hover{border-color:var(--primary);color:var(--primary)}
+.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn.primary:hover{background:var(--primary-dark);border-color:var(--primary-dark);color:#fff}
+.btn.coupon{background:var(--coupon-grad);color:#fff;border:none}
+.btn.purple{background:#722ed1;color:#fff;border:none}
+.btn.success{background:var(--success);color:#fff;border-color:var(--success)}
+.btn.ghost{background:transparent;border:1px solid var(--border-strong);color:var(--text-2)}
+.btn.danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn.lg{height:42px;padding:0 22px;font-size:14px}.btn.sm{height:26px;padding:0 12px;font-size:12px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.badge{display:inline-flex;align-items:center;padding:1px 8px;border-radius:11px;font-size:11px;font-weight:500;line-height:1.6;background:#f5f5f5;color:var(--text-2)}
+.badge.primary{background:var(--primary-light);color:var(--primary)}
+.badge.success{background:#f6ffed;color:var(--success);border:1px solid #b7eb8f}
+.badge.warning{background:#fff7e6;color:var(--warning);border:1px solid #ffd591}
+.badge.gray{background:#f0f0f0;color:#999}
+.badge.coupon{background:#fff1f0;color:#cf1322;border:1px solid #ffa39e}
+.form-row{display:flex;align-items:center;gap:12px;margin-bottom:15px;flex-wrap:wrap}
+.form-label{font-size:12.5px;color:var(--text-2);min-width:96px;text-align:right}
+.input,.select{height:34px;padding:0 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:#fff;color:var(--text);min-width:120px}
+.input:focus,.select:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-light)}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.tbl thead th{background:#fafafa;padding:11px 12px;text-align:left;font-size:12px;color:var(--text-2);font-weight:600;border-bottom:1px solid var(--border)}
+.tbl tbody td{padding:11px 12px;font-size:12px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+.tbl tbody tr:hover{background:var(--bg-hover)}
+.minfo{width:100%;border-collapse:collapse;margin-bottom:16px;max-width:560px}
+.minfo td{border:1px solid var(--border);padding:9px 12px;font-size:12.5px}
+.minfo .k{background:#fafafa;color:var(--text-2);width:110px}
+.minfo .hl{color:var(--danger);font-weight:700;font-size:15px}
+.toast-stack{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:2000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{padding:10px 18px;background:rgba(0,0,0,.82);color:#fff;border-radius:var(--radius-sm);font-size:13px;box-shadow:var(--shadow-lg);animation:toastIn .25s;display:flex;align-items:center;gap:7px}
+.toast.success{background:rgba(46,143,46,.95)}.toast.warning{background:rgba(212,123,0,.95)}
+@keyframes toastIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.rules{background:#fafbff;border-left:3px solid var(--primary);padding:13px 15px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin:14px 0}
+.rules-title{font-weight:600;margin-bottom:7px;font-size:13px}.rules ul{list-style:none}
+.rules li{padding:3px 0 3px 16px;font-size:12.5px;color:var(--text-2);position:relative}.rules li::before{content:'•';position:absolute;left:4px;color:var(--primary);font-weight:bold}
+.text-muted{color:var(--text-3)}.text-sm{font-size:12px}.text-xs{font-size:11px}.fw-600{font-weight:600}.fw-700{font-weight:700}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mb-12{margin-bottom:12px}.flex{display:flex}.flex-1{flex:1}.gap-8{gap:8px}
+.radio-grp{display:flex;gap:10px;flex-wrap:wrap}
+.radio-opt{border:1px solid var(--border-strong);border-radius:8px;padding:9px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:500;color:var(--text-2);font-size:12.5px}
+.radio-opt.on{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+.radio-opt .rd{width:15px;height:15px;border-radius:50%;border:2px solid var(--border-strong)}
+.radio-opt.on .rd{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3px #fff}
+.seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:7px;overflow:hidden}
+.seg span{padding:7px 16px;font-size:12.5px;cursor:pointer;color:var(--text-2)}
+.seg span.on{background:var(--primary);color:#fff}
+.coupon-card{display:flex;border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);background:#fff;position:relative}
+.coupon-card .cc-left{width:104px;background:var(--coupon-grad);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;text-align:center}
+.coupon-card .cc-ratio{font-size:28px;font-weight:800;line-height:1}.coupon-card .cc-cap{font-size:11px;opacity:.92;margin-top:4px}
+.coupon-card .cc-right{flex:1;padding:11px 14px;display:flex;flex-direction:column;justify-content:center;gap:5px}
+.coupon-card .cc-name{font-weight:700;font-size:14px}.coupon-card .cc-meta{font-size:11.5px;color:var(--text-3)}
+.coupon-card .cc-act{position:absolute;right:12px;top:50%;transform:translateY(-50%)}
+.coupon-card.gray .cc-left{background:#c4c4c4}.coupon-card.gray .cc-name{color:var(--text-3)}
+.tabs-m{display:flex;background:#fff;border-bottom:1px solid var(--border)}
+.tab-m{flex:1;text-align:center;padding:11px 0;font-size:13px;color:var(--text-2);cursor:pointer;border-bottom:2px solid transparent}
+.tab-m.on{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.amt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.amt{height:54px;border:1px solid var(--border-strong);border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:700;color:var(--text-2)}
+.amt.on{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+.use-coupon{border:1px solid var(--primary-light);background:#f7fbff;border-radius:10px;padding:14px;margin-top:14px}
+.uc-head{display:flex;align-items:center;justify-content:space-between}
+.uc-check{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--primary-dark);cursor:pointer}
+.uc-dot{width:18px;height:18px;border-radius:5px;border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;background:var(--primary)}
+.uc-pick{font-size:12.5px;color:var(--primary);cursor:pointer;border:1px solid var(--primary-light);background:#fff;padding:5px 10px;border-radius:6px}
+.uc-bonus{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px dashed #d6e4ff}
+.uc-bonus .v{font-size:22px;font-weight:800;color:var(--danger)}
+.uc-tip{font-size:11px;color:var(--text-3);margin-top:6px}
+.pick-row{display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;cursor:pointer}
+.pick-row:hover{border-color:var(--primary)}.pick-row .pr-bonus{font-weight:700;color:var(--danger)}
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:var(--radius);width:440px;max-width:90vw;overflow:hidden;box-shadow:var(--shadow-modal)}
+.modal-head{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:600}.modal-close{font-size:18px;color:var(--text-3);cursor:pointer}
+.modal-body{padding:18px 20px;font-size:13px;line-height:1.7}
+.reg-banner{padding:14px 16px;color:#fff;background:var(--coupon-grad)}.reg-banner .rb-t{font-weight:700;font-size:15px}.reg-banner .rb-d{font-size:12px;opacity:.95;margin-top:4px}
+.claim-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:24px}
+.claim-modal{background:#fff;border-radius:18px;width:100%;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.claim-top{background:var(--coupon-grad);color:#fff;text-align:center;padding:18px 16px 16px}
+.claim-top .claim-t{font-size:18px;font-weight:700;margin-top:2px}.claim-top .claim-s{font-size:12px;opacity:.95;margin-top:4px}
+.claim-list{padding:14px 14px 4px;display:flex;flex-direction:column;gap:10px;max-height:220px;overflow-y:auto}
+.claim-cp{display:flex;border:1px solid #ffd4d0;border-radius:10px;overflow:hidden}
+.claim-cp .ccp-l{width:86px;background:#fff3f2;color:#cf1322;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px}
+.claim-cp .ccp-l b{font-size:22px}.claim-cp .ccp-l span{font-size:10px;margin-top:2px}
+.claim-cp .ccp-r{flex:1;padding:10px 12px}.claim-cp .ccp-n{font-weight:700;font-size:13px}.claim-cp .ccp-m{font-size:11px;color:#888;margin-top:3px}
+.claim-go{display:block;margin:12px 14px 16px;width:calc(100% - 28px);height:46px;border:none;border-radius:24px;background:var(--coupon-grad);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+/* 红橙真实充值页（移植自 client 原型） */
+.nav-r{font-size:12.5px;color:#f5535f}
+.balance{background:linear-gradient(135deg,#ff8a6a,#f5535f);border-radius:16px;padding:16px 18px;color:#fff;margin:14px 14px 0}
+.balance .bl{font-size:13px;opacity:.95}.balance .bv{font-size:26px;font-weight:800;margin-top:4px}
+.ch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px}
+.ch{background:#fff;border:1.5px solid #f0f0f4;border-radius:10px;padding:10px 4px 8px;text-align:center;position:relative}
+.ch.on{border-color:#f5535f;background:#fff3f2}.ch .ci{font-size:18px}.ch .cn{font-size:10.5px;color:#555;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch .chtag{position:absolute;top:-7px;right:-4px;background:#f5535f;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;transform:scale(.92)}
+.dcard{background:#fff;border-radius:14px;padding:14px;margin:0 14px 12px}
+.seg-ch{display:flex;gap:10px}.seg-ch .sc{flex:1;border:1.5px solid #f0f0f4;border-radius:10px;padding:10px 12px;cursor:pointer;font-size:12px;color:#333}.seg-ch .sc.on{border-color:#f5535f;background:linear-gradient(135deg,#ff8a6a,#f5535f);color:#fff}.seg-ch .sc .bal{font-size:11px;opacity:.85;margin-top:2px}
+.amt-input{display:flex;align-items:center;border:1px solid #f0f0f4;border-radius:10px;padding:0 12px;height:46px;background:#fafafc}.amt-input .cur{color:#f5535f;font-weight:700;margin-right:8px}.amt-input input{border:none;background:none;flex:1;font-size:15px}
+.chips{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.chip{border:1px solid #eee;border-radius:16px;padding:6px 14px;font-size:13px;color:#555;cursor:pointer}.chip.on{border-color:#f5535f;background:#fff3f2;color:#f5535f;font-weight:600}
+.newwrap{border:1.5px dashed #fa541c;border-radius:12px;padding:7px 11px 8px;margin:16px 14px 12px;background:#fff8f4;position:relative}
+.newtag{font-size:10px;padding:1px 8px;top:-10px}
+.newtag{position:absolute;top:-11px;left:12px;background:#fa541c;color:#fff;font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px}
+.uc-row{display:flex;align-items:center;justify-content:space-between}
+.uc-check{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13px;color:#2b2b33}
+.uc-dot{width:18px;height:18px;border-radius:5px;background:#f5535f;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.uc-est{font-size:11.5px;color:#8a8a96}.uc-est .v{font-size:17px;font-weight:800;color:#f5535f;margin-left:4px}
+.cpscroll{display:flex;gap:7px;overflow-x:auto;padding:7px 2px 2px;margin-top:0}.cpscroll::-webkit-scrollbar{height:0}
+.cpchip{flex:0 0 auto;min-width:74px;border:1.5px solid #ffd4d0;background:#fff;border-radius:9px;padding:4px 7px;cursor:pointer;text-align:center}.cpchip.on{border-color:#f5535f;background:#fff3f2}.cpchip.dim{opacity:.4}
+.cpchip .r{font-weight:800;font-size:13px;color:#f5535f;line-height:1.1}.cpchip .m{font-size:9.5px;color:#999;margin:1px 0 0}.cpchip .pb{font-size:11px;font-weight:700;color:#f5535f}
+.uc-excl{font-size:11px;color:#c0390f;margin-top:8px;background:#fff3ee;border-radius:6px;padding:7px 10px;line-height:1.5}
+.instr{font-size:11.5px;color:#999;line-height:1.7}.instr .li{padding-left:14px;position:relative;margin-bottom:5px}.instr .li::before{content:'•';position:absolute;left:2px;color:#f5535f}
+.dep-foot{background:#fff;border-top:1px solid #f0f0f4;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dep-btn{background:linear-gradient(135deg,#ff8a6a,#f5535f);color:#fff;border-radius:24px;height:46px;padding:0 28px;font-weight:600;font-size:15px;cursor:pointer}
+.uc-q{display:inline-flex;width:14px;height:14px;border-radius:50%;background:#ffd4d0;color:#c0390f;font-size:10px;align-items:center;justify-content:center;margin-left:5px;cursor:pointer;font-weight:700}
+.uc-tipbox{display:none;background:#fff7f3;border:1px solid #ffd4d0;border-radius:7px;padding:6px 10px;margin:6px 0 0;font-size:10px;color:#666;line-height:1.55}
+.uc-tipbox.show{display:block}
+</style>
+</head>
+<body class="with-banner">
+
+<div class="demo-banner">
+  <div class="b-left">🛠 渠道③ 人工充值发优惠券</div>
+  <div class="b-tabs">
+    <span class="b-tab on" onclick="showPage('p1',this)">🖥 运营·人工充值发券</span>
+    <span class="b-tab" onclick="showPage('p2',this)">🖥 运营·发券审核</span>
+    <span class="b-tab" onclick="showPage('p3',this)">📱 会员·弹窗领取</span>
+    <span class="b-tab" onclick="showPage('p4',this)">📱 会员·我的优惠券</span>
+    <span class="b-tab" onclick="showPage('p5',this)">📱 会员·充值用券</span>
+  </div>
+</div>
+
+<!-- ════ P1 运营·人工充值发券 ════ -->
+<div id="P-p1" class="page-block">
+  <div class="admin">
+    <aside class="admin-sider">
+      <div class="admin-logo"><span class="l-dot"></span>运营后台</div>
+      <div class="admin-menu">
+        <div class="admin-menu-group">财务管理</div>
+        <div class="admin-menu-item">三方待入款</div>
+        <div class="admin-menu-item">提现锁定</div>
+        <div class="admin-menu-item on">人工充值</div>
+        <div class="admin-menu-item">对账提现订单</div>
+        <div class="admin-menu-group">活动管理</div>
+        <div class="admin-menu-item">优惠券码</div>
+      </div>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-header">
+        <div class="admin-breadcrumb">财务管理 <span class="sep">/</span> <span class="cur">人工充值</span></div>
+        <div class="admin-user"><span>luna</span><div class="avatar">L</div></div>
+      </header>
+      <div class="admin-content">
+        <div class="flex gap-8 mb-12">
+          <span class="seg"><span class="on" id="seg-single" onclick="segMode('single')">单个会员</span><span id="seg-batch" onclick="segMode('batch')">批量导入</span></span>
+        </div>
+        <div id="single-box">
+          <div class="form-row"><span class="form-label">会员ID</span><input class="input" value="100000" style="width:240px"><button class="btn ghost" onclick="toast('已查询','info')">查询</button></div>
+          <table class="minfo"><tbody>
+            <tr><td class="k">会员账户</td><td>9188****8666</td><td class="k">用户昵称</td><td>test002</td></tr>
+            <tr><td class="k">会员ID</td><td>100000</td><td class="k">手机/邮箱</td><td>9188****8666</td></tr>
+            <tr><td class="k">账户余额</td><td class="hl">122573250.38</td><td class="k">打码量</td><td>105219.89</td></tr>
+            <tr><td class="k">当日充值</td><td>1100</td><td class="k">当日彩金</td><td>0</td></tr>
+          </tbody></table>
+        </div>
+        <div id="batch-box" style="display:none">
+          <div class="form-row"><span class="form-label">导入名单</span><button class="btn ghost sm" onclick="toast('模板已下载','success')">⬇ 模板下载</button> <button class="btn success sm" onclick="openModal('import-modal')">☁ 上传Excel（会员ID列表）</button> <span class="text-xs text-muted">上传后进入校验界面，对名单内每个会员各发一张同规格券</span></div>
+        </div>
+
+        <div class="card" id="fund-card" style="max-width:620px">
+          <div class="form-row"><span class="form-label">存款类型</span>
+            <select class="select" id="fund-type" style="width:260px" onchange="changeFund(this.value)">
+              <option value="manual">人工存款（加存款）</option>
+              <option value="withdraw">人工提款（减存款）</option>
+              <option value="bonus">彩金充值（加彩金）</option>
+              <option value="usdt">USDT充值</option>
+              <option value="coupon">优惠券</option>
+            </select>
+          </div>
+          <div id="money-fields">
+            <div class="form-row"><span class="form-label">打码量设置</span><input class="input" value="1" style="width:120px"> <span class="text-sm text-muted">倍</span></div>
+            <div class="form-row"><span class="form-label">存款金额</span><input class="input" value="" placeholder="金额" style="width:200px"></div>
+          </div>
+          <div id="coupon-fields" style="display:none">
+            <div class="form-row"><span class="form-label">优惠比例</span><input class="input" id="cf-ratio" type="number" value="10" oninput="updatePreview()" style="width:100px"> <span class="text-sm text-muted">%</span></div>
+            <div class="form-row"><span class="form-label">金额上限</span>
+              <div class="radio-grp">
+                <div class="radio-opt on" id="cap-limit" onclick="toggleCap('limit')"><span class="rd"></span>封顶 <input class="input" id="cf-cap" type="number" value="50" oninput="updatePreview()" style="width:72px;height:28px;margin:0 4px"> ₹</div>
+                <div class="radio-opt" id="cap-none" onclick="toggleCap('none')"><span class="rd"></span>不限</div>
+              </div></div>
+            <div class="form-row"><span class="form-label">券有效期</span><input class="input" type="number" value="7" style="width:100px"> <span class="text-sm text-muted">天（领取后）</span></div>
+            <div class="form-row"><span class="form-label">最低门槛</span><input class="input" type="number" value="0" style="width:100px"> <span class="text-sm text-muted">₹（0=不限）</span></div>
+            <div class="form-row"><span class="form-label">奖励方式</span>
+              <div class="radio-grp"><div class="radio-opt on" id="rw-auto" onclick="toggleReward('auto')"><span class="rd"></span>自动领取</div><div class="radio-opt" id="rw-popup" onclick="toggleReward('popup')"><span class="rd"></span>弹窗领取</div></div></div>
+            <div class="form-row" style="align-items:flex-start"><span class="form-label">预览</span><div class="preview-box flex-1" id="cf-preview" style="background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;padding:11px 14px;font-size:12.5px;color:#389e0d;max-width:380px"></div></div>
+            <div class="form-row"><span class="form-label">打码量设置</span><input class="input" id="cf-wager" type="number" value="1" style="width:100px"> <span class="text-sm text-muted">倍（彩金按打码倍数计入流水）</span></div>
+          </div>
+          <div class="form-row"><span class="form-label">备注</span><input class="input flex-1" value="" placeholder="操作备注" style="max-width:320px"></div>
+          <div class="form-row"><span class="form-label">　</span><button class="btn purple" onclick="submitManual()" id="submit-btn">充值 / 发放</button></div>
+        </div>
+        <div class="rules" style="max-width:620px">
+          <div class="rules-title">📋 规则</div>
+          <ul>
+            <li>「存款类型」选"优惠券"：隐藏 存款金额/打码量，显示 券规格 + 奖励方式</li>
+            <li>奖励方式：自动领取（券直接入袋并通知）/ 弹窗领取（会员登录首页弹窗领取才入袋）</li>
+            <li>是否需审核由系统按操作人账号权限自动判断（不在发券表单手动勾选）</li>
+            <li>批量导入：对名单内每个会员各发一张同规格券</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ════ P2 运营·发券审核 ════ -->
+<div id="P-p2" class="page-block" style="display:none">
+  <div class="admin">
+    <aside class="admin-sider">
+      <div class="admin-logo"><span class="l-dot"></span>运营后台</div>
+      <div class="admin-menu">
+        <div class="admin-menu-group">财务管理</div>
+        <div class="admin-menu-item">人工充值</div>
+        <div class="admin-menu-item on">发放审核</div>
+      </div>
+    </aside>
+    <main class="admin-main">
+      <header class="admin-header"><div class="admin-breadcrumb">运营管理 <span class="sep">/</span> <span class="cur">后台操作审核记录</span></div><div class="admin-user"><span>boss</span><div class="avatar">B</div></div></header>
+      <div class="admin-content" style="overflow-x:auto">
+        <div class="page-title">后台操作审核记录</div>
+        <div class="page-subtitle">发券审核并入通用审核记录 —— 操作类型=人工充值、子类型=优惠券（仅子类型新增"优惠券"）</div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;background:#fff;padding:14px 16px;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+          <span style="font-size:12.5px;color:#555">会员ID <input class="input" style="width:110px;height:30px" placeholder="会员ID"></span>
+          <span style="font-size:12.5px;color:#555">操作类型 <select class="select" style="height:30px"><option>全部</option><option>人工充值</option></select></span>
+          <span style="font-size:12.5px;color:#555">子类型<span class="newb" style="color:#f5222d;font-size:10px;font-weight:700;vertical-align:super;margin-left:2px">新</span> <select class="select" style="height:30px"><option>全部</option><option>优惠券</option><option>人工存款</option><option>人工提款</option></select></span>
+          <span style="font-size:12.5px;color:#555">审核状态 <select class="select" style="height:30px"><option>全部</option><option>待审核</option><option>通过</option><option>拒绝</option></select></span>
+          <span style="font-size:12.5px;color:#555">操作人 <input class="input" style="width:90px;height:30px" placeholder="操作人"></span>
+          <span style="font-size:12.5px;color:#555">审核人 <input class="input" style="width:90px;height:30px" placeholder="审核人"></span>
+          <button class="btn purple" onclick="toast('查询中…')">🔍 查询</button><button class="btn ghost" onclick="toast('已重置')">重置</button><button class="btn purple" onclick="toast('已导出','success')">导出</button>
+        </div>
+        <table class="tbl" style="min-width:1180px">
+          <thead><tr><th>序号</th><th>会员账号</th><th>会员Id</th><th>操作类型</th><th>子类型<span class="newb" style="color:#f5222d;font-size:10px;font-weight:700;vertical-align:super;margin-left:2px">新</span></th><th>操作内容</th><th>审核状态</th><th>操作时间</th><th>操作人</th><th>审核时间</th><th>审核人</th><th>审核备注</th><th class="center">操作</th></tr></thead>
+          <tbody>
+            <tr id="au-1"><td>427500</td><td>9188****539</td><td>2250976</td><td>人工充值</td><td><span style="color:#cf1322;font-weight:600">优惠券</span></td><td>发优惠券：10% / 上限₹50 / 有效期7天 / 到账：弹窗领取 / 打码1倍</td><td><span class="badge warning">待审核</span></td><td>06-25 10:40</td><td>luna</td><td>—</td><td>—</td><td>—</td><td class="center"><button class="btn success sm" onclick="audit(1,1)">通过</button> <button class="btn danger sm" onclick="audit(1,0)">拒绝</button></td></tr>
+            <tr id="au-2"><td>427499</td><td>批量 320 人</td><td>—</td><td>人工充值</td><td><span style="color:#cf1322;font-weight:600">优惠券</span></td><td>批量发优惠券：15% / 不限上限 / 到账：入袋+通知 / 打码1倍</td><td><span class="badge warning">待审核</span></td><td>06-25 10:32</td><td>luna</td><td>—</td><td>—</td><td>—</td><td class="center"><button class="btn success sm" onclick="audit(2,1)">通过</button> <button class="btn danger sm" onclick="audit(2,0)">拒绝</button></td></tr>
+            <tr><td>427498</td><td>9188****539</td><td>2250976</td><td>人工充值</td><td>人工存款</td><td>充值金额：50000，全局打码：1倍，类型：人工存款，备注：1</td><td><span class="badge success">通过</span></td><td>06-25 10:35</td><td>org_figo</td><td>06-25 10:35</td><td>system</td><td>无需审核，自动通过</td><td class="center">—</td></tr>
+          </tbody>
+        </table>
+        <div class="rules"><div class="rules-title">📋 规则</div><ul><li>发券审核并入通用「后台操作审核记录」，对照现有字段<b>仅需新增子类型"优惠券"</b>（其余字段复用）</li><li>通过 → 调 CouponService 发券；拒绝 → 不发放、留痕</li></ul></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ════ P3 会员·弹窗领取 ════ -->
+<div id="P-p3" class="page-block" style="display:none">
+  <div class="mobile-stage">
+    <div class="stage-cap">会员端 H5 · <b>弹窗领取</b> — 发放即弹 / 登录即弹，多张合并一个弹窗，仅"立即领取"</div>
+    <div class="phone">
+      <div class="phone-notch"></div><div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
+      <div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">首页</span><span style="width:20px"></span></div>
+      <div class="phone-body" style="position:relative">
+        <div style="padding:14px;filter:blur(1.5px);opacity:.45">
+          <div class="card" style="height:120px;background:var(--coupon-grad)"></div>
+          <div class="card" style="height:70px"></div>
+          <div class="card" style="height:150px"></div>
+        </div>
+        <div class="claim-overlay" id="claim-overlay">
+          <div class="claim-modal">
+            <div class="claim-top"><div style="font-size:34px">🎁</div><div class="claim-t">专属优惠券到账</div><div class="claim-s">运营送您 2 张充值优惠券</div></div>
+            <div class="claim-list">
+              <div class="claim-cp"><div class="ccp-l"><b>10%</b><span>上限₹50</span></div><div class="ccp-r"><div class="ccp-n">充值优惠券</div><div class="ccp-m">无门槛 · 有效期 7 天</div></div></div>
+              <div class="claim-cp"><div class="ccp-l"><b>15%</b><span>上限₹80</span></div><div class="ccp-r"><div class="ccp-n">充值优惠券</div><div class="ccp-m">满 ₹300 · 有效期 5 天</div></div></div>
+            </div>
+            <button class="claim-go" id="claim-go" onclick="claimPopup()">立即领取（2 张）</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ P4 会员·我的优惠券 ════ -->
+<div id="P-p4" class="page-block" style="display:none">
+  <div class="mobile-stage">
+    <div class="stage-cap">会员端 H5 · <b>我的优惠券</b> — 来源标注「运营发放」</div>
+    <div class="phone">
+      <div class="phone-notch"></div><div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
+      <div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">我的优惠券</span><span style="width:20px"></span></div>
+      <div class="phone-body">
+        <div class="tabs-m"><div class="tab-m on" onclick="myTab(this,'mc-unused')">未使用 1</div><div class="tab-m" onclick="myTab(this,'mc-used')">已使用</div><div class="tab-m" onclick="myTab(this,'mc-expired')">已过期</div></div>
+        <div style="padding:14px">
+          <div id="mc-unused"><div class="coupon-card"><div class="cc-left"><div class="cc-ratio">10%</div><div class="cc-cap">上限 ₹50</div></div><div class="cc-right"><div class="cc-name">充值优惠券</div><div class="cc-meta">无门槛 · 剩 7 天</div><div class="cc-meta">来源：运营发放（人工充值）</div></div><div class="cc-act"><button class="btn coupon sm" onclick="showPage('p5',document.querySelectorAll('.b-tab')[4])">去使用</button></div></div></div>
+          <div id="mc-used" style="display:none"><div class="coupon-card gray"><div class="cc-left"><div class="cc-ratio">20%</div><div class="cc-cap">上限 ₹100</div></div><div class="cc-right"><div class="cc-name">充值优惠券</div><div class="cc-meta">已用于订单 CO...8842</div></div><div class="cc-act"><span class="badge gray">已使用</span></div></div></div>
+          <div id="mc-expired" style="display:none"><div class="coupon-card gray"><div class="cc-left"><div class="cc-ratio">5%</div><div class="cc-cap">上限 ₹20</div></div><div class="cc-right"><div class="cc-name">充值优惠券</div><div class="cc-meta">2026-06-15 已过期</div></div><div class="cc-act"><span class="badge gray">已过期</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ P5 会员·充值用券 ════ -->
+<div id="P-p5" class="page-block" style="display:none">
+  <div class="mobile-stage">
+    <div class="stage-cap">会员端 H5 · <b>充值页使用优惠券</b> — 还原真实充值页（三渠道共用·第16条）</div>
+    <div class="phone">
+      <div class="phone-notch"></div><div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
+      <div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">Deposit</span><span class="nav-r">Deposit history</span></div>
+      <div class="phone-body" style="padding-bottom:6px">
+        <div class="balance"><div class="bl">📋 Balance ⟳</div><div class="bv">₹122,573,252.38</div></div>
+        <div class="ch-grid">
+          <div class="ch"><div class="ci">🅰️</div><div class="cn">ARPay=66</div><span class="chtag">+9%</span></div>
+          <div class="ch"><div class="ci">🇮🇳</div><div class="cn">LocalUPI</div><span class="chtag">40%+8%</span></div>
+          <div class="ch"><div class="ci">💲</div><div class="cn">LocalUSDT</div><span class="chtag">40%+9%</span></div>
+          <div class="ch"><div class="ci">🏦</div><div class="cn">LocalBank</div><span class="chtag">40%+9%</span></div>
+          <div class="ch"><div class="ci">💵</div><div class="cn">USDT</div><span class="chtag">+9%</span></div>
+          <div class="ch"><div class="ci">🎁</div><div class="cn">fa 2=44</div></div>
+          <div class="ch on"><div class="ci">🔁</div><div class="cn">ArUpiPay=1</div><span class="chtag">+9%</span></div>
+          <div class="ch"><div class="ci">🔁</div><div class="cn">fa000</div><span class="chtag">+9%</span></div>
+        </div>
+        <div class="dcard"><div style="font-weight:700;font-size:13px;margin-bottom:10px">💳 Select channel</div>
+          <div class="seg-ch"><div class="sc on">ArUpiPay-26001<div class="bal">Balance:100 – 50K</div></div><div class="sc">ArUpiPay-26000<div class="bal">Balance:100 – 50K</div></div></div></div>
+        <div class="dcard"><div style="font-weight:700;font-size:13px;margin-bottom:10px">💰 Deposit amount</div>
+          <div class="amt-input"><span class="cur">₹</span><input id="amt-input" type="number" value="500" oninput="setAmt(+this.value||0)"></div>
+          <div class="chips" id="chips"><span class="chip" data-a="100" onclick="setAmt(100)">100</span><span class="chip on" data-a="500" onclick="setAmt(500)">500</span><span class="chip" data-a="1000" onclick="setAmt(1000)">1000</span><span class="chip" data-a="2000" onclick="setAmt(2000)">2000</span></div></div>
+        <div class="newwrap">
+          <div class="newtag">新增 · 使用优惠券 #16</div>
+          <div class="uc-row"><div class="uc-check" onclick="toggleUse()"><span class="uc-dot" id="uc-dot">✓</span>使用优惠券<span class="uc-q" onclick="event.stopPropagation();toggleTip()">?</span></div><div class="uc-est">预计彩金<b class="v" id="uc-bonus">+ ₹50</b></div></div>
+          <div class="uc-tipbox" id="uc-tipbox">• 若所选充值通道 / 大类本身有奖励，与优惠券<b>互斥，只能二选一</b><br>• 左右滑动选券，自动选预计彩金最高<br>• 到账后按打码倍数计入流水</div>
+          <div class="cpscroll" id="cpscroll"></div>
+        </div>
+        <div class="dcard"><div style="font-weight:700;font-size:13px;margin-bottom:8px">📋 Recharge instructions</div>
+          <div class="instr"><div class="li">If the transfer time is up, please fill out the deposit form again.</div><div class="li">Use coupon will not stack with system deposit bonus.</div></div></div>
+      </div>
+      <div class="dep-foot"><div style="font-size:11px;color:#888">Recharge Method:<br><b style="color:#333">ArUpiPay-26001</b></div><button class="dep-btn" id="dep-btn" onclick="toast('Deposit submitted · 券锁定','success')">Deposit ₹500</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-mask" id="pick-modal"><div class="modal"><div class="modal-head"><div class="modal-title">选择优惠券</div><span class="modal-close" onclick="closeModal('pick-modal')">✕</span></div><div class="modal-body" id="pick-list"></div></div></div>
+
+<!-- 批量导入·校验界面 -->
+<div class="modal-mask" id="import-modal"><div class="modal" style="width:940px;max-width:94vw">
+  <div class="modal-head"><div class="modal-title">导入界面</div><span class="modal-close" onclick="closeModal('import-modal')">✕</span></div>
+  <div class="modal-body" style="padding:18px 20px">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="btn ghost sm" onclick="toast('模板已下载','success')">⬇ 模板下载</button>
+      <button class="btn success sm" onclick="toast('Excel 已上传，校验完成','success')">☁ 上传Excel</button>
+      <span style="color:#f5222d;font-size:12px">（单次导入限制不超过 1万5千条，文件大小不超过 4M）（充值类型支持 优惠券 / 彩金充值，默认人工充值｜彩金扣除）</span>
+    </div>
+    <div style="font-size:13px;margin-bottom:3px">校验错误数量：<b style="color:#f5222d">1</b></div>
+    <div style="font-size:13px;margin-bottom:12px">总数：3</div>
+    <div style="overflow-x:auto"><table class="tbl" style="font-size:12.5px;min-width:840px">
+      <thead><tr><th>帐户类型</th><th>会员ID</th><th>充值金额</th><th>充值类型</th><th>打码量倍数</th><th>备注</th><th>校验信息</th><th>状态</th><th class="center">操作</th></tr></thead>
+      <tbody>
+        <tr><td>9188888…</td><td>100000</td><td>100</td><td>优惠券</td><td>0</td><td>—</td><td style="color:#f5222d">当前会员为黑名单会员，不进行发券；</td><td><span style="color:#f5222d;font-weight:600">校验失败</span></td><td class="center"><button class="btn ghost sm">查看</button> <button class="btn danger sm">删除</button></td></tr>
+        <tr><td>9122222…</td><td>2160646</td><td>100</td><td>优惠券</td><td>0</td><td>—</td><td style="color:#389e0d">校验通过</td><td><span style="color:#389e0d;font-weight:600">待执行</span></td><td class="center"><button class="btn ghost sm">查看</button> <button class="btn danger sm">删除</button></td></tr>
+        <tr><td>9122222…</td><td>2247609</td><td>100</td><td>优惠券</td><td>0</td><td>—</td><td style="color:#389e0d">校验通过</td><td><span style="color:#389e0d;font-weight:600">待执行</span></td><td class="center"><button class="btn ghost sm">查看</button> <button class="btn danger sm">删除</button></td></tr>
+      </tbody>
+    </table></div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0;font-size:12px;color:#888">共 3 条 · <button class="btn ghost sm">上一页</button> <span class="badge coupon">1</span> <button class="btn ghost sm">下一页</button> · 500 条/页 · 到第 1 页</div>
+    <div style="border:1.5px solid #f5535f;border-radius:8px;padding:14px 18px;margin-top:4px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed #eee;font-size:12px;color:#999">
+        <span>读取到的充值类型（演示切换）：</span>
+        <span class="radio-opt on" id="it-coupon" onclick="setImpType('coupon')" style="font-size:12px;padding:4px 10px"><span class="rd"></span>优惠券</span>
+        <span class="radio-opt" id="it-cash" onclick="setImpType('cash')" style="font-size:12px;padding:4px 10px"><span class="rd"></span>彩金/其他</span>
+      </div>
+      <div id="imp-coupon-spec">
+        <div class="form-row"><span class="form-label">优惠比例</span><input class="input" type="number" value="10" style="width:90px"> <span class="text-sm text-muted">%</span></div>
+        <div class="form-row"><span class="form-label">金额上限</span>
+          <div class="radio-grp"><div class="radio-opt on"><span class="rd"></span>封顶 <input class="input" type="number" value="50" style="width:64px;height:28px;margin:0 4px"> ₹</div><div class="radio-opt"><span class="rd"></span>不限</div></div></div>
+        <div class="form-row"><span class="form-label">券有效期</span><input class="input" type="number" value="7" style="width:90px"> <span class="text-sm text-muted">天（领取后）</span></div>
+        <div class="form-row"><span class="form-label">最低门槛</span><input class="input" type="number" value="0" style="width:90px"> <span class="text-sm text-muted">₹（0=不限）</span></div>
+      </div>
+      <div class="form-row" style="margin-bottom:0"><span class="form-label">奖励方式</span>
+        <div class="radio-grp"><div class="radio-opt on" id="ir-auto" onclick="toggleImpReward('auto')"><span class="rd"></span>自动领取</div><div class="radio-opt" id="ir-popup" onclick="toggleImpReward('popup')"><span class="rd"></span>弹窗领取</div></div></div>
+    </div>
+  </div>
+  <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px">
+    <button class="btn coupon" onclick="execImport()">开始执行</button>
+    <button class="btn ghost" onclick="closeModal('import-modal')">关闭</button>
+  </div>
+</div></div>
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+function showPage(key,el){document.querySelectorAll('.page-block').forEach(b=>b.style.display='none');document.getElementById('P-'+key).style.display='';document.querySelectorAll('.b-tab').forEach(t=>t.classList.remove('on'));if(el)el.classList.add('on');if(key==='p5')renderRC();}
+function toast(msg,type='info',dur=2400){const s=document.getElementById('toast-stack');const e=document.createElement('div');e.className='toast '+(type!=='info'?type:'');const ic={success:'✓',warning:'⚠',info:'ⓘ'};e.innerHTML=`<span>${ic[type]||''}</span>${msg}`;s.appendChild(e);setTimeout(()=>{e.style.opacity='0';e.style.transform='translateY(-8px)';e.style.transition='all .2s';setTimeout(()=>e.remove(),200);},dur);}
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.modal-mask').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+
+function segMode(m){document.getElementById('seg-single').classList.toggle('on',m==='single');document.getElementById('seg-batch').classList.toggle('on',m==='batch');document.getElementById('single-box').style.display=m==='single'?'':'none';document.getElementById('batch-box').style.display=m==='batch'?'':'none';document.getElementById('fund-card').style.display=m==='batch'?'none':'';}
+let capMode='limit',reward='auto',impReward='auto';
+function changeFund(v){const isC=v==='coupon';document.getElementById('coupon-fields').style.display=isC?'':'none';document.getElementById('money-fields').style.display=isC?'none':'';document.getElementById('submit-btn').className=isC?'btn coupon':'btn purple';if(isC)updatePreview();}
+function toggleCap(m){capMode=m;document.getElementById('cap-limit').classList.toggle('on',m==='limit');document.getElementById('cap-none').classList.toggle('on',m==='none');document.getElementById('cf-cap').disabled=(m==='none');updatePreview();}
+function toggleReward(m){reward=m;document.getElementById('rw-auto').classList.toggle('on',m==='auto');document.getElementById('rw-popup').classList.toggle('on',m==='popup');}
+function updatePreview(){const r=(parseFloat(document.getElementById('cf-ratio').value)||0)/100;const cap=parseFloat(document.getElementById('cf-cap').value)||0;const calc=a=>{const v=Math.floor(a*r);return capMode==='limit'?'得₹'+Math.min(v,cap):'得₹'+v;};document.getElementById('cf-preview').innerHTML=`券面：充值${document.getElementById('cf-ratio').value||0}%券`+(capMode==='limit'?`·上限₹${cap}`:'·不限上限')+`<br>充₹100 ${calc(100)}　|　充₹500 ${calc(500)}　|　充₹1000 ${calc(1000)}`;}
+function submitManual(){const d=reward==='popup'?'（弹窗领取）':'（自动领取）';toast('已发放优惠券'+d,'success');}
+function toggleImpReward(m){impReward=m;document.getElementById('ir-auto').classList.toggle('on',m==='auto');document.getElementById('ir-popup').classList.toggle('on',m==='popup');}
+function execImport(){toast('已开始执行：2 条待执行，1 条黑名单已跳过 · '+(impReward==='popup'?'弹窗领取':'自动领取'),'success');closeModal('import-modal');}
+function setImpType(t){document.getElementById('it-coupon').classList.toggle('on',t==='coupon');document.getElementById('it-cash').classList.toggle('on',t==='cash');document.getElementById('imp-coupon-spec').style.display=t==='coupon'?'':'none';}
+
+function audit(id,ok){const row=document.getElementById('au-'+id);if(row){row.cells[6].innerHTML=ok?'<span class="badge success">通过</span>':'<span class="badge gray">拒绝</span>';row.cells[9].textContent='06-25 10:45';row.cells[10].textContent='boss';row.cells[11].textContent=ok?'审核通过，已发券':'已拒绝，不发放';row.cells[12].innerHTML='<span class="text-xs text-muted">—</span>';}toast(ok?'审核通过，已发券':'已拒绝','success');}
+function claimPopup(){const g=document.getElementById('claim-go');g.textContent='✓ 已领取';g.style.opacity='.7';toast('领取成功！2 张券已存入「我的优惠券」','success');setTimeout(()=>{const o=document.getElementById('claim-overlay');if(o)o.style.display='none';},700);}
+function myTab(el,id){el.parentElement.querySelectorAll('.tab-m').forEach(t=>t.classList.remove('on'));el.classList.add('on');['mc-unused','mc-used','mc-expired'].forEach(x=>document.getElementById(x).style.display='none');document.getElementById(id).style.display='';}
+
+const COUPONS=[{id:1,r:.10,cap:50,th:0},{id:2,r:.20,cap:30,th:200},{id:3,r:.08,cap:100,th:0}];
+let dep={amt:500,use:true,sel:1};
+function bonus(c,a){return a>=c.th?Math.min(Math.floor(a*c.r),c.cap):null;}
+function best(a){let b=null,bv=-1;COUPONS.forEach(c=>{const v=bonus(c,a);if(v!=null&&v>bv){bv=v;b=c.id;}});return b;}
+function setAmt(a){dep.amt=a;document.querySelectorAll('#chips .chip').forEach(x=>x.classList.toggle('on',+x.dataset.a===a));if(dep.use){const nb=best(a);if(nb&&nb!==dep.sel){dep.sel=nb;toast('已切换为更优券','success');}}renderRC();}
+function toggleUse(){dep.use=!dep.use;if(dep.use&&!dep.sel)dep.sel=best(dep.amt);renderRC();}
+function pick(id){const c=COUPONS.find(x=>x.id===id);if(bonus(c,dep.amt)==null)return;dep.sel=id;dep.use=true;renderRC();}
+function renderRC(){const dot=document.getElementById('uc-dot');if(!dot)return;dot.style.background=dep.use?'#f5535f':'#ccc';dot.textContent=dep.use?'✓':'';const c=COUPONS.find(x=>x.id===dep.sel);const b=c?bonus(c,dep.amt):null;document.getElementById('uc-bonus').textContent=(dep.use&&c&&b!=null)?'+ ₹'+b:'+ ₹0';document.getElementById('dep-btn').textContent='Deposit ₹'+(dep.amt||0);document.getElementById('amt-input').value=dep.amt||'';const sc=document.getElementById('cpscroll');if(!sc)return;const list=COUPONS.map(c=>({c,b:bonus(c,dep.amt)})).sort((x,y)=>(y.b==null?-1:y.b)-(x.b==null?-1:x.b));sc.innerHTML=list.map(({c,b})=>{const usable=b!=null,sel=dep.use&&c.id===dep.sel;return `<div class="cpchip ${sel?'on':''} ${usable?'':'dim'}" ${usable?`onclick="pick(${c.id})"`:''}><div class="r">${Math.round(c.r*100)}%</div><div class="m">上限₹${c.cap}${c.th?' 满₹'+c.th:''}</div></div>`;}).join('');}
+function toggleTip(){document.getElementById('uc-tipbox').classList.toggle('show');}
+</script>
+</body>
+</html>
