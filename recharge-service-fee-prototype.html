@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>充值通道手续费展示 - 需求原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;background:#f4f6fa;color:#1f2329;line-height:1.55;padding:18px}
+.wrap{max-width:1280px;margin:0 auto}
+.page-head{margin-bottom:14px}
+.page-head h1{font-size:20px;font-weight:700;color:#1f2329;display:flex;align-items:center;gap:10px}
+.page-head .sub{color:#6b7280;font-size:12.5px;margin-top:6px}
+.tag-new{background:#ff4d4f;color:#fff;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;vertical-align:middle}
+
+/* 顶部主 tabs */
+.main-tabs{background:#fff;border-radius:10px;padding:6px;margin-bottom:14px;display:flex;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,.04);flex-wrap:wrap}
+.main-tabs .mt-btn{flex:1;min-width:150px;padding:10px 12px;border:none;background:transparent;cursor:pointer;font-family:inherit;font-size:13px;color:#666;border-radius:7px;font-weight:500;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.main-tabs .mt-btn:hover{background:#f5f7fa;color:#2470ff}
+.main-tabs .mt-btn.active{background:linear-gradient(135deg,#2470ff,#5a3ff8);color:#fff;font-weight:600;box-shadow:0 2px 8px rgba(36,112,255,.25)}
+.main-tabs .mt-btn .n{font-size:11px;background:#e6efff;color:#2470ff;border-radius:6px;padding:1px 6px;font-weight:700}
+.main-tabs .mt-btn.active .n{background:rgba(255,255,255,.25);color:#fff}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding:18px;margin-bottom:14px}
+.card h2{font-size:15px;font-weight:600;margin-bottom:4px;color:#1f2329;display:flex;align-items:center;gap:8px}
+.card .desc{color:#6b7280;font-size:12px;margin-bottom:14px}
+.hl{background:#fff7e6;color:#d46b08;border:1px solid #ffd591;padding:1px 6px;border-radius:5px;font-weight:600;font-size:11.5px}
+.hl-add{position:relative}
+.nw{color:#f5222d;font-size:10px;font-weight:700;margin-left:3px;vertical-align:super}
+
+/* 说明面板 */
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rule-box{background:#f8fafc;border:1px solid #eaeef3;border-radius:8px;padding:14px}
+.rule-box h3{font-size:13px;color:#2470ff;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.rule-box ul{list-style:none;font-size:12.5px;color:#444}
+.rule-box li{padding:4px 0 4px 16px;position:relative}
+.rule-box li:before{content:"›";position:absolute;left:0;color:#fa8c16;font-weight:700}
+.rule-box code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:11.5px;font-family:'SF Mono',Menlo,monospace}
+.formula{background:#0c1d33;color:#7ee787;font-family:'SF Mono',Menlo,monospace;font-size:12.5px;padding:10px 14px;border-radius:7px;margin-top:8px;line-height:1.9}
+.formula b{color:#ffd591}
+.q{background:#fff1f0;border:1px solid #ffccc7;color:#cf1322;padding:8px 12px;border-radius:7px;font-size:12px;margin-top:12px}
+
+/* ==== Admin 后台外壳 ==== */
+.admin{border:1px solid #e8eaed;border-radius:8px;overflow:hidden;background:#fff}
+.admin-bar{background:#fff;border-bottom:1px solid #eef0f3;padding:9px 16px;font-size:13px;color:#2470ff;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+.admin-bar .bc{color:#9aa1ab;font-weight:400;font-size:12px}
+.filters{padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;border-bottom:1px solid #f0f1f4;background:#fbfcfe}
+.filters .f{display:flex;align-items:center;gap:6px;font-size:12px;color:#555}
+.filters input,.filters select{border:1px solid #dcdfe4;border-radius:4px;padding:5px 8px;font-size:12px;width:130px;font-family:inherit}
+.filters .btns{display:flex;gap:6px;align-items:center}
+.filters .b{padding:6px 13px;border-radius:4px;border:none;font-size:12px;cursor:pointer;font-family:inherit;font-weight:500}
+.b-pri{background:#722ed1;color:#fff}.b-def{background:#fff;border:1px solid #dcdfe4;color:#555}
+
+.tbl-scroll{overflow-x:auto}
+table.dt{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+table.dt th{background:#f7f8fa;color:#5a6472;font-weight:600;padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid #eef0f3}
+table.dt td{padding:9px 10px;border-bottom:1px solid #f3f4f6;white-space:nowrap;color:#333}
+table.dt tr:hover td{background:#fafbff}
+.pill{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.p-on{background:#e6f7e9;color:#389e0d}.p-blue{color:#2470ff}.p-red{color:#cf1322}.p-orange{color:#fa8c16}
+.link{color:#2470ff;cursor:pointer}
+.act{color:#389e0d;cursor:pointer;margin-right:8px;font-size:11.5px}
+.fee-cell{font-weight:700;color:#d46b08;font-family:'SF Mono',Menlo,monospace}
+.fee-zero{color:#bbb;font-weight:400}
+
+/* ==== 常用修改弹窗 ==== */
+.popup-demo{background:#f0f2f7;border-radius:10px;padding:26px;display:flex;justify-content:center}
+.popup{background:#fff;border-radius:8px;width:640px;max-width:100%;box-shadow:0 8px 30px rgba(0,0,0,.12);overflow:hidden}
+.popup .ph{color:#2470ff;font-weight:600;padding:14px 20px;border-bottom:1px solid #eef0f3;font-size:14px}
+.popup .pb{padding:18px 26px}
+.frow{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.frow label{width:120px;text-align:right;color:#555;font-size:12.5px;flex-shrink:0}
+.frow .ctrl{flex:1;display:flex;align-items:center;gap:10px}
+.frow input[type=text],.frow input[type=number],.frow select{border:1px solid #dcdfe4;border-radius:5px;padding:7px 10px;font-size:12.5px;font-family:inherit;flex:1}
+.frow input:disabled{background:#f5f6f8;color:#9aa1ab}
+.frow .hint{color:#cf1322;font-size:11.5px}
+.chk{display:flex;align-items:center;gap:5px;font-size:12px;color:#555;white-space:nowrap}
+.suffix{color:#888;font-size:12px}
+.popup .pf{padding:14px 26px 22px;text-align:center;display:flex;gap:10px;justify-content:center}
+.popup .pf button{padding:8px 26px;border-radius:6px;border:none;font-size:13px;cursor:pointer;font-family:inherit;font-weight:600}
+
+/* ==== H5 手机 ==== */
+.phone-stage{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+.phone{width:300px;flex-shrink:0;border:9px solid #1a1a2e;border-radius:32px;overflow:hidden;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.ph-top{background:linear-gradient(135deg,#f5544a,#f0524a);color:#fff;padding:12px 15px 20px}
+.ph-nav{display:flex;justify-content:space-between;font-size:12px;align-items:center}
+.ph-bal{margin-top:12px;background:rgba(255,255,255,.16);border-radius:10px;padding:10px 13px}
+.ph-bal .l{font-size:11px;opacity:.9}.ph-bal .v{font-size:21px;font-weight:700;margin-top:2px}
+.ph-body{padding:12px;max-height:560px;overflow-y:auto}
+.sec-t{font-size:12.5px;font-weight:600;color:#333;margin:14px 0 8px;display:flex;align-items:center;gap:6px}
+.sec-t:first-child{margin-top:0}
+.chan-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.chan{border:1px solid #eceef1;border-radius:9px;padding:10px;cursor:pointer;transition:all .15s;position:relative;background:#fff}
+.chan:hover{border-color:#ffb3ae}
+.chan.sel{border:1.5px solid #f0524a;background:#fff5f4}
+.chan .nm{font-size:12.5px;font-weight:600;color:#222}
+.chan .rg{font-size:11px;color:#8a929c;margin-top:3px}
+.chan .fee-tag{margin-top:6px;display:inline-flex;align-items:center;gap:3px;font-size:10.5px;background:#fff7e6;color:#d46b08;border:1px solid #ffe0a6;padding:1px 7px;border-radius:6px;font-weight:600}
+.chan .bonus{position:absolute;top:-6px;right:-3px;background:#e8b23a;color:#5a3d00;font-size:9px;border-radius:6px;padding:1px 5px;font-weight:700}
+.amt-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.amt{border:1px solid #eceef1;border-radius:9px;padding:9px;text-align:center;cursor:pointer}
+.amt.sel{border:1.5px solid #f0524a;background:#fff5f4}
+.amt .a{font-size:14px;font-weight:700}.amt .b{font-size:10px;color:#8a929c}
+.amt-input{border:1px solid #eceef1;border-radius:9px;padding:10px 12px;display:flex;align-items:center;gap:8px;font-size:14px}
+.amt-input input{border:none;outline:none;flex:1;font-size:15px;font-family:inherit}
+/* 手续费明细卡 */
+.fee-detail{margin-top:10px;border:1px solid #ffe0a6;background:#fffbf2;border-radius:9px;padding:11px 13px;font-size:12px}
+.fee-detail .row{display:flex;justify-content:space-between;padding:3px 0;color:#6b5330}
+.fee-detail .row.total{border-top:1px dashed #ffd591;margin-top:5px;padding-top:7px;font-weight:700;color:#1f2329}
+.fee-detail .row.total .rv{color:#389e0d;font-size:15px}
+.fee-detail .row .rv{font-weight:600;color:#333}
+.fee-none{margin-top:10px;font-size:11.5px;color:#9aa1ab;padding:6px 2px}
+/* 紧凑单行手续费条（不换行） */
+.fee-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fffbf2;border:1px solid #ffe0a6;border-radius:9px;padding:8px 11px;margin-top:10px;white-space:nowrap;overflow:hidden;font-size:12px}
+.fee-strip .fs-l{color:#6b5330;overflow:hidden;text-overflow:ellipsis}
+.fee-strip .fs-l b{color:#389e0d;font-size:15px;font-weight:700;margin-left:3px}
+.fee-strip .fs-r{color:#a9791f;font-size:11px;flex-shrink:0}
+.fee-strip .fs-r .jsFee{color:#d46b08;font-weight:700}
+.fee-none2{margin-top:10px;font-size:11.5px;color:#9aa1ab;padding:2px}
+.phone-col{display:flex;flex-direction:column;gap:9px}
+.phone-cap{font-size:12px;color:#4b5563;font-weight:600;text-align:center;background:#eef2ff;border-radius:20px;padding:4px 0}
+.phone-cap.en{background:#f0f9f0;color:#2f7a3f}
+.phone-cap.bonus{background:#e6f6ee;color:#0f7a48}
+.lang-bar{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 16px;align-items:center}
+.lang-bar .lb-label{font-size:12px;color:#6b7280;margin-right:2px}
+.lang-btn{padding:6px 14px;border:1px solid #dcdfe4;border-radius:18px;background:#fff;font-size:12.5px;color:#555;cursor:pointer;font-family:inherit}
+.lang-btn:hover{border-color:#2470ff;color:#2470ff}
+.lang-btn.active{background:#2470ff;color:#fff;border-color:#2470ff;font-weight:600}
+/* 实际上分 · 单行绿条（无优惠场景） */
+.get-solo{display:flex;align-items:center;justify-content:space-between;background:#12a05f;color:#fff;border-radius:10px;padding:10px 13px;margin-top:10px;white-space:nowrap;font-size:12.5px}
+.get-solo b{font-size:16px;font-weight:700;margin-left:8px}
+/* 充值优惠明细卡（有优惠场景，对齐客户端绿色样式） */
+.getcard{border:1px solid #e6ebe8;border-radius:12px;overflow:hidden;margin-top:10px}
+.getcard .gc-head{display:flex;justify-content:space-between;align-items:center;background:#12a05f;color:#fff;padding:11px 13px;font-weight:700;white-space:nowrap;font-size:13px}
+.getcard .gc-head .gv{font-size:17px}
+.getcard .gc-row{display:flex;align-items:center;gap:8px;padding:9px 13px;font-size:12px;background:#f5f8f6;border-top:1px solid #ebf0ec;white-space:nowrap}
+.getcard .gc-row .lab{color:#5a6472;width:86px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis}
+.getcard .gc-row .bar{flex:1;height:6px;border-radius:6px;background:#e3e8e5;margin:0 4px;overflow:hidden;min-width:20px}
+.getcard .gc-row .bar>i{display:block;height:100%;background:#bcd3c6;border-radius:6px}
+.getcard .gc-row .val{font-weight:700;flex-shrink:0;text-align:right}
+.v-pos{color:#12a05f}.v-neg{color:#d4380d}.v-base{color:#333}
+/* 充值记录卡 */
+.rec-filter{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.rec-filter .rf{font-size:11px;padding:4px 12px;border-radius:14px;border:1px solid #eceef1;color:#8a929c}
+.rec-filter .rf.on{background:#fff0ef;border-color:#f5b3ae;color:#f0524a;font-weight:600}
+.rec-card{border:1px solid #eceef1;border-radius:12px;padding:12px;margin-bottom:11px;background:#fff}
+.rec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.rec-badge{background:#12a05f;color:#fff;font-size:11px;font-weight:600;padding:3px 12px;border-radius:5px}
+.rec-status{font-size:12px;font-weight:600}
+.rec-status.done{color:#12a05f}.rec-status.fail{color:#f0524a}
+.rec-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px}
+.rec-row .rl{color:#8a929c;flex-shrink:0}
+.rec-row .rv{color:#333;font-weight:600;text-align:right}
+.rec-row .rv.amt{color:#f0524a}
+.rec-row .rv.small{font-weight:400;color:#555;font-size:11px}
+.rec-sub{background:#f4fbf7;border:1px solid #dcefe4;border-radius:8px;padding:2px 9px;margin:5px 0}
+.rec-sub .rl{color:#5a7a68}
+.rec-sub .rv.neg{color:#d4380d}
+.rec-sub .rv.pos{color:#12a05f;font-size:13px}
+.note-box{border:1px solid #eceef1;border-radius:9px;padding:11px 12px;font-size:11px;color:#6b7280;line-height:1.7}
+.note-box .ni{display:flex;gap:6px;margin-bottom:5px}
+.note-box .ni:last-child{margin-bottom:0}
+/* 手续费说明卡（独立高亮，避免与普通条目混排） */
+.fee-note-card{display:flex;gap:8px;align-items:flex-start;background:#fff7e6;border:1px solid #ffe0a6;border-radius:9px;padding:10px 12px;margin-bottom:9px;font-size:11.5px;color:#8a5a12;line-height:1.75;letter-spacing:.1px}
+.fee-note-card b{color:#d46b08;font-weight:700}
+.fee-note-card .fi{font-style:normal;flex-shrink:0;margin-top:1px}
+.note-box .dot{color:#f0524a}
+.ph-foot{border-top:1px solid #f0f1f4;padding:10px 13px;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.ph-foot .pay{background:#f0524a;color:#fff;border-radius:8px;padding:8px 16px;font-weight:600}
+/* H5 说明 */
+.h5-notes{flex:1;min-width:260px}
+.callout{border-left:3px solid #fa8c16;background:#fffbf2;padding:10px 14px;border-radius:0 7px 7px 0;margin-bottom:10px;font-size:12.5px;color:#5a4520}
+.callout b{color:#d46b08}
+.marker{display:inline-flex;width:18px;height:18px;border-radius:50%;background:#fa8c16;color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;margin-right:6px;flex-shrink:0}
+.ctrl-row{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:12.5px;flex-wrap:wrap}
+.switch{position:relative;display:inline-block;width:40px;height:22px}
+.switch input{display:none}
+.slider{position:absolute;inset:0;background:#ccc;border-radius:22px;transition:.2s;cursor:pointer}
+.slider:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+.slider{background:#52c41a}
+.switch input:checked+.slider:before{transform:translateX(18px)}
+.mini-inp{width:70px;border:1px solid #dcdfe4;border-radius:5px;padding:5px 8px;font-size:12px;font-family:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="page-head">
+    <h1><span>💳 充值通道手续费展示改造</span><span class="tag-new">需求原型 v1</span></h1>
+    <div class="sub">当三方厂商通道收取手续费、后端下发手续费字段时，客户端需展示手续费并新增手续费说明；后台 5 个位置同步新增手续费字段。适用系统：V1（H5 套壳）+ V1 后台</div>
+  </div>
+
+  <div class="main-tabs">
+    <button class="mt-btn active" data-tab="rules">📋 需求规则</button>
+    <button class="mt-btn" data-tab="h5">① H5 充值页</button>
+    <button class="mt-btn" data-tab="list">② 充值通道列表</button>
+    <button class="mt-btn" data-tab="edit">③ 常用修改弹窗</button>
+    <button class="mt-btn" data-tab="wait">④ 三方待入款</button>
+    <button class="mt-btn" data-tab="record">⑤ 入款记录</button>
+  </div>
+
+  <!-- ================= 需求规则 ================= -->
+  <div class="tab-pane active" id="tab-rules">
+    <div class="card">
+      <h2>一、需求描述</h2>
+      <div class="desc" style="font-size:13px;line-height:1.95;color:#333">
+        部分三方厂商充值通道会对充值收取手续费（如越南、马来等充值通道）。目前手续费只在后端用于与三方结算，<b>会员充值时看不到、运营在后台记录里也查不到</b>：会员不清楚"充 ₹100 实际到账多少"，容易产生客诉；财务对账时缺少手续费维度，难以与三方结算单核对。
+        <br><br>
+        <b>需求来源：</b>运营 / 财务反馈 ＋ 新接入高手续费通道的上线需求。<br>
+        <b>需求目标：</b>让手续费在<b>会员端透明可见</b>（充多少、实际上分多少），并在<b>后台通道配置与充值记录</b>中可配置、可查询、可对账。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>二、改动清单</h2>
+      <div style="font-weight:600;margin:6px 0 8px;padding-left:9px;border-left:3px solid #12a05f;color:#0f7a48">📱 客户端（会员端 H5）</div>
+      <div class="tbl-scroll">
+      <table class="dt" style="min-width:560px">
+        <thead><tr><th style="width:130px">位置</th><th>改动点</th></tr></thead>
+        <tbody>
+          <tr><td>通道卡片</td><td>收手续费的通道，在通道上展示手续费比例（手续费 X%）</td></tr>
+          <tr><td>充值金额下方</td><td>展示「实际上分」金额 ＝ 充值金额 − 手续费（＋优惠）</td></tr>
+          <tr><td>充值说明</td><td>新增一条手续费说明文案</td></tr>
+          <tr><td>有优惠场景</td><td>金额下方展开明细：充值金额 ＋ 充值奖励 − 手续费 ＝ 实际上分</td></tr>
+          <tr><td>充值记录页</td><td>扣手续费的订单，展示 金额 / 手续费 / 实际上分；未扣费订单保持原样</td></tr>
+          <tr><td>多语言</td><td>手续费 / 实际上分 / 手续费说明 覆盖 中文 · 英语 · 印地语 · 越南语 等</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div style="font-weight:600;margin:16px 0 8px;padding-left:9px;border-left:3px solid #2470ff;color:#1554c9">🖥️ 后台（V1 后台）</div>
+      <div class="tbl-scroll">
+      <table class="dt" style="min-width:560px">
+        <thead><tr><th style="width:130px">页面</th><th>改动点</th></tr></thead>
+        <tbody>
+          <tr><td>充值通道列表</td><td>新增「手续费」列，查看各通道手续费</td></tr>
+          <tr><td>常用修改弹窗</td><td>新增「手续费率」可编辑字段（含"是否修改"勾选）</td></tr>
+          <tr><td>三方待入款</td><td>新增「手续费」列（下单时快照）</td></tr>
+          <tr><td>入款记录</td><td>新增「手续费」列，配合"实际充值金额"核对</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>三、需求说明（业务规则）</h2>
+      <ol style="padding-left:20px;font-size:13px;line-height:1.95;color:#333">
+        <li><b>手续费配置：</b>手续费比例在充值通道上配置，每个通道独立配置；填 0 表示该通道不收取手续费。</li>
+        <li><b>展示条件：</b>仅当通道手续费 <b>&gt; 0</b> 时，会员端才展示手续费及手续费说明；手续费 = 0 的通道页面与现状完全一致，会员无感。</li>
+        <li><b>到账口径：</b>手续费从会员到账中扣除——会员<b>实付 ＝ 充值金额</b>，<b>实际上分 ＝ 充值金额 − 手续费</b>；有优惠时 实际上分 ＝ 充值金额 − 手续费 ＋ 充值奖励。</li>
+        <li><b>场景一 · 有手续费无优惠：</b>通道展示"手续费 X%"，金额下方展示"实际上分"，充值说明区新增一条手续费文案。</li>
+        <li><b>场景二 · 无手续费：</b>通道不展示手续费标签，实际上分 ＝ 充值金额，说明区提示"不收手续费·全额到账"，不出现手续费文案。</li>
+        <li><b>场景三 · 有奖励＋手续费：</b>金额下方展开明细公式（充值金额 ＋ 充值奖励 − 手续费 ＝ 实际上分），奖励为正、手续费为负；多种奖励（充值奖励、首充奖励…）各占一行。</li>
+        <li><b>充值记录展示：</b>会员端"充值记录"里，若订单扣了手续费，展示 金额（充值金额）/ 手续费 / 实际上分 三项，让会员清楚"充了多少、实际到账多少"；未扣手续费的订单保持原样，不新增行。</li>
+        <li><b>实时联动：</b>会员切换通道、修改充值金额或选择快捷金额时，手续费与实际上分实时刷新。</li>
+        <li><b>多语言：</b>手续费、实际上分、手续费说明等文案随会员语言切换（中文 / 英语 / 印地语 / 越南语…），金额数值与货币符号格式保持一致。</li>
+        <li><b>后台配置与记录：</b>运营可在通道"常用修改"配置手续费率并在通道列表查看；三方待入款、入款记录展示每笔订单手续费（取<b>下单时快照</b>，通道费率后续调整不影响历史订单），供财务与三方结算对账。</li>
+        <li><b>边界与精度：</b>手续费导致到账出现小数时按币种精度处理（如 INR 保留 2 位小数），保证"充值金额 − 手续费 ＝ 实际上分"可对账；旧通道无手续费字段时默认视为 0，保持现状。</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h2>四、关联影响（后端需同步改造）</h2>
+      <div class="desc">口径已定：会员到账与下游统计 / 返佣 / 打码 / 活动阈值，<b>一律以「实际上分（＝ 充值金额 − 手续费）」为准</b>。引入手续费后「充值金额」与「实际上分」出现差额，以下模块（V 系统现多按充值金额计算）需按此口径同步改造：</div>
+      <div class="tbl-scroll">
+      <table class="dt" style="min-width:640px">
+        <thead><tr><th style="width:160px">模块</th><th>改造点</th><th style="width:80px">优先级</th></tr></thead>
+        <tbody>
+          <tr><td>财务报表 / 充值统计</td><td>充值日报·周报、充值总额、日/周奖励统计改按「实际上分」汇总（V1 部分现按充值金额，需一并调整）</td><td class="p-red">高</td></tr>
+          <tr><td>代理返佣 / 返水 / 分红</td><td>返佣基数改按「实际上分」，避免引入手续费后多付返佣成本</td><td class="p-red">高</td></tr>
+          <tr><td>打码量 / 流水稽核 / 提现条件</td><td>「产出与充值比」等稽核的充值基数改按「实际上分」</td><td class="p-red">高</td></tr>
+          <tr><td>充值活动 / 首充 / 累计充值 / VIP</td><td>达标阈值（累计充值满 X、首充满 X 等）改按「实际上分」判定</td><td class="p-orange">中</td></tr>
+          <tr><td>资金流水 / 上分对账</td><td>上分金额以「实际上分」入账（V2 中台已如此，V1 统一）</td><td class="p-orange">中</td></tr>
+          <tr><td>历史充值汇总表</td><td>会员历史充值总额统计表（AChartRecharge 等）口径统一为「实际上分」；历史数据是否回溯另行评估</td><td>低</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout" style="margin-top:14px"><b>口径统一原则：</b>会员到账、财务统计、代理返佣、打码稽核、活动阈值，全部以「实际上分（＝ 充值金额 − 手续费）」为口径；手续费按币种精度保留 2 位小数（如 INR），保证"充值金额 − 手续费 ＝ 实际上分"可对账。</div>
+    </div>
+  </div>
+
+  <!-- ================= 图一 H5 ================= -->
+  <div class="tab-pane" id="tab-h5">
+    <div class="card">
+      <h2>H5 充值页 · 三种通道场景 + 多语言</h2>
+      <div class="desc">四个场景并排：① 有手续费通道、② 无手续费通道（保持原样）、③ 有充值奖励+手续费通道、④ 充值记录（扣手续费）。手续费展示在<b>通道卡片上</b>，充值金额下方展示<b>实际上分</b>；充值记录里对扣费订单展示 金额 / 手续费 / 实际上分。点上方语言按钮可整体切换 中文 / English / हिन्दी / Tiếng Việt。</div>
+
+      <div class="lang-bar">
+        <span class="lb-label">🌐 语言</span>
+        <button class="lang-btn active" data-lang="zh" onclick="switchLang('zh')">中文</button>
+        <button class="lang-btn" data-lang="en" onclick="switchLang('en')">English</button>
+        <button class="lang-btn" data-lang="hi" onclick="switchLang('hi')">हिन्दी</button>
+        <button class="lang-btn" data-lang="vi" onclick="switchLang('vi')">Tiếng Việt</button>
+      </div>
+
+      <div class="phone-stage">
+
+        <!-- ===== 场景① 有手续费通道 ===== -->
+        <div class="phone-col">
+          <div class="phone-cap">① 有手续费通道</div>
+          <div class="phone">
+            <div class="ph-top">
+              <div class="ph-nav"><span>‹ <span data-i18n="nav_recharge">充值</span></span><span data-i18n="nav_records">充值记录</span></div>
+              <div class="ph-bal"><div class="l" data-i18n="balance">余额</div><div class="v">₹7,609.80</div></div>
+            </div>
+            <div class="ph-body">
+              <div class="sec-t">🏦 <span data-i18n="selectChannel">选择通道</span></div>
+              <div class="chan-grid">
+                <div class="chan sel">
+                  <div class="nm">123 (BullPay)</div>
+                  <div class="rg">10 – 100K</div>
+                  <div class="fee-tag">💠 <span data-i18n="feeLabel">手续费</span> 2%</div>
+                </div>
+                <div class="chan">
+                  <div class="nm">RAP-12184</div>
+                  <div class="rg">10 – 200M</div>
+                  <div class="fee-tag">💠 <span data-i18n="feeLabel">手续费</span> 3.5%</div>
+                </div>
+              </div>
+
+              <div class="sec-t">💰 <span data-i18n="amountSec">充值金额</span></div>
+              <div class="amt-grid">
+                <div class="amt sel"><div class="a">₹100</div></div>
+                <div class="amt"><div class="a">₹200</div></div>
+              </div>
+              <div class="amt-input">₹ <input type="number" value="100" readonly> <span style="color:#ccc">⊘</span></div>
+
+              <div class="get-solo"><span data-i18n="youGet">实际上分</span><b>₹98.00</b></div>
+
+              <div class="sec-t">📄 <span data-i18n="notesSec">充值说明</span></div>
+              <div class="note-box">
+                <div class="fee-note-card" data-note="feeNote"><span class="fi">💠</span><div>本通道收取 <b>2%</b> 手续费，已在实际上分中扣除。</div></div>
+                <div class="ni"><span class="dot">·</span> <span data-i18n="genNote1">如果转账已过期请重新生成充值订单。</span></div>
+                <div class="ni"><span class="dot">·</span> <span data-i18n="genNote2">转账金额必须与订单一致，否则无法成功入账。</span></div>
+              </div>
+            </div>
+            <div class="ph-foot">
+              <span style="color:#6b7280" data-i18n="channelWay">充值方式：123</span>
+              <span class="pay"><span data-i18n="payBtn">充值</span> ₹100.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 场景② 无手续费通道 ===== -->
+        <div class="phone-col">
+          <div class="phone-cap en">② 无手续费·无优惠（保持原样）</div>
+          <div class="phone">
+            <div class="ph-top">
+              <div class="ph-nav"><span>‹ <span data-i18n="nav_recharge">充值</span></span><span data-i18n="nav_records">充值记录</span></div>
+              <div class="ph-bal"><div class="l" data-i18n="balance">余额</div><div class="v">₹7,609.80</div></div>
+            </div>
+            <div class="ph-body">
+              <div class="sec-t">🏦 <span data-i18n="selectChannel">选择通道</span></div>
+              <div class="chan-grid">
+                <div class="chan sel">
+                  <div class="nm">RAP-12183</div>
+                  <div class="rg">10 – 100M</div>
+                </div>
+                <div class="chan">
+                  <div class="nm">YayaPay</div>
+                  <div class="rg">10 – 50K</div>
+                </div>
+              </div>
+
+              <div class="sec-t">💰 <span data-i18n="amountSec">充值金额</span></div>
+              <div class="amt-grid">
+                <div class="amt sel"><div class="a">₹100</div></div>
+                <div class="amt"><div class="a">₹200</div></div>
+              </div>
+              <div class="amt-input">₹ <input type="number" value="100" readonly> <span style="color:#ccc">⊘</span></div>
+
+              <div class="sec-t">📄 <span data-i18n="notesSec">充值说明</span></div>
+              <div class="note-box">
+                <div class="ni"><span class="dot">·</span> <span data-i18n="genNote1">如果转账已过期请重新生成充值订单。</span></div>
+                <div class="ni"><span class="dot">·</span> <span data-i18n="genNote2">转账金额必须与订单一致，否则无法成功入账。</span></div>
+              </div>
+            </div>
+            <div class="ph-foot">
+              <span style="color:#6b7280" data-i18n="channelWay">充值方式：123</span>
+              <span class="pay"><span data-i18n="payBtn">充值</span> ₹100.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 场景③ 有充值奖励 + 手续费 ===== -->
+        <div class="phone-col">
+          <div class="phone-cap bonus">③ 有充值奖励 + 手续费</div>
+          <div class="phone">
+            <div class="ph-top">
+              <div class="ph-nav"><span>‹ <span data-i18n="nav_recharge">充值</span></span><span data-i18n="nav_records">充值记录</span></div>
+              <div class="ph-bal"><div class="l" data-i18n="balance">余额</div><div class="v">₹7,609.80</div></div>
+            </div>
+            <div class="ph-body">
+              <div class="sec-t">🏦 <span data-i18n="selectChannel">选择通道</span></div>
+              <div class="chan-grid">
+                <div class="chan sel">
+                  <span class="bonus">+30%</span>
+                  <div class="nm">123 (BullPay)</div>
+                  <div class="rg">10 – 100K</div>
+                  <div class="fee-tag">💠 <span data-i18n="feeLabel">手续费</span> 2%</div>
+                </div>
+                <div class="chan">
+                  <span class="bonus">+30%</span>
+                  <div class="nm">RAP-12184</div>
+                  <div class="rg">10 – 200M</div>
+                </div>
+              </div>
+
+              <div class="sec-t">💰 <span data-i18n="amountSec">充值金额</span></div>
+              <div class="amt-grid">
+                <div class="amt sel"><div class="a">₹100</div></div>
+                <div class="amt"><div class="a">₹200</div></div>
+              </div>
+              <div class="amt-input">₹ <input type="number" value="100" readonly> <span style="color:#ccc">⊘</span></div>
+
+              <div class="getcard">
+                <div class="gc-head"><span data-i18n="youGet">实际上分</span><span class="gv">₹110.00</span></div>
+                <div class="gc-row"><span class="lab" data-i18n="amtPaidRow">充值金额</span><span class="bar"><i style="width:100%"></i></span><span class="val v-base">₹100.00</span></div>
+                <div class="gc-row"><span class="lab" data-i18n="bonusRow">充值奖励</span><span class="bar"><i style="width:30%"></i></span><span class="val v-pos">+₹30.00</span></div>
+                <div class="gc-row"><span class="lab" data-i18n="feeRow">手续费</span><span class="bar"><i style="width:20%"></i></span><span class="val v-neg">−₹20.00</span></div>
+              </div>
+
+              <div class="sec-t">📄 <span data-i18n="notesSec">充值说明</span></div>
+              <div class="note-box">
+                <div class="fee-note-card" data-note="bonusNote"><span class="fi">💠</span><div>实际上分 = 充值金额 + 充值优惠 − 手续费，请以实际上分为准。</div></div>
+              </div>
+            </div>
+            <div class="ph-foot">
+              <span style="color:#6b7280" data-i18n="channelWay">充值方式：123</span>
+              <span class="pay"><span data-i18n="payBtn">充值</span> ₹100.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 场景④ 充值记录（扣手续费） ===== -->
+        <div class="phone-col">
+          <div class="phone-cap bonus">④ 充值记录（扣手续费）</div>
+          <div class="phone">
+            <div class="ph-top" style="padding-bottom:14px">
+              <div class="ph-nav"><span>‹ <span data-i18n="nav_records">充值记录</span></span><span></span></div>
+            </div>
+            <div class="ph-body">
+              <div class="rec-filter">
+                <span class="rf on" data-i18n="rec_all">全部</span>
+                <span class="rf">ARPay</span>
+                <span class="rf">Local UPI</span>
+              </div>
+
+              <!-- 有手续费的订单：金额 / 手续费 / 实际上分 -->
+              <div class="rec-card">
+                <div class="rec-head"><span class="rec-badge" data-i18n="payBtn">充值</span><span class="rec-status done" data-i18n="rec_done">已完成</span></div>
+                <div class="rec-row"><span class="rl" data-i18n="rec_amount">金额</span><span class="rv amt">₹100.00</span></div>
+                <div class="rec-sub">
+                  <div class="rec-row"><span class="rl" data-i18n="feeLabel">手续费</span><span class="rv neg">−₹2.00</span></div>
+                  <div class="rec-row"><span class="rl" data-i18n="youGet">实际上分</span><span class="rv pos">₹98.00</span></div>
+                </div>
+                <div class="rec-row"><span class="rl" data-i18n="rec_type">类型</span><span class="rv">ArPayINR-26001</span></div>
+                <div class="rec-row"><span class="rl" data-i18n="rec_time">时间</span><span class="rv">2026-07-01 17:21:34</span></div>
+                <div class="rec-row"><span class="rl" data-i18n="rec_orderno">订单号</span><span class="rv small">RC20260701…001a</span></div>
+              </div>
+
+              <!-- 无手续费的订单：保持原样，不加行 -->
+              <div class="rec-card">
+                <div class="rec-head"><span class="rec-badge" data-i18n="payBtn">充值</span><span class="rec-status done" data-i18n="rec_done">已完成</span></div>
+                <div class="rec-row"><span class="rl" data-i18n="rec_amount">金额</span><span class="rv amt">₹100.00</span></div>
+                <div class="rec-row"><span class="rl" data-i18n="rec_type">类型</span><span class="rv">Local UPI</span></div>
+                <div class="rec-row"><span class="rl" data-i18n="rec_time">时间</span><span class="rv">2026-06-30 12:59:43</span></div>
+                <div class="rec-row"><span class="rl" data-i18n="rec_orderno">订单号</span><span class="rv small">RC20260630…051a</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rules" style="margin-top:18px">
+        <div class="rule-box"><h3>🧭 三种场景对照</h3><ul>
+          <li><b>① 有手续费</b>：通道显示「手续费 X%」，金额下方「实际上分 = 充值 − 手续费」，说明区一条手续费文案</li>
+          <li><b>② 无手续费无优惠</b>：与现状完全一致——不展示"实际上分"，也不加手续费说明，保持原样</li>
+          <li><b>③ 奖励+手续费</b>：金额下方展开明细卡「充值 + 奖励 − 手续费 = 实际上分」，奖励绿色、手续费红色</li>
+        </ul></div>
+        <div class="rule-box"><h3>🌐 多语言</h3><ul>
+          <li>手续费 / 实际上分 / 手续费说明 等文案随语言切换：中文 · English · हिन्दी(印地语) · Tiếng Việt(越南语)</li>
+          <li>货币符号 ₹、金额格式、数字在各语言下保持一致</li>
+          <li>点顶部语言按钮，三个场景整体切换</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 图二 列表 ================= -->
+  <div class="tab-pane" id="tab-list">
+    <div class="card">
+      <h2>② 充值通道列表 · 新增手续费列</h2>
+      <div class="desc">在通道列表新增「手续费」列。</div>
+      <div class="admin">
+        <div class="admin-bar">充值通道<span class="bc">支付管理 › 充值通道</span></div>
+        <div class="filters">
+          <div class="f">充值类型 <select><option>请选择</option></select></div>
+          <div class="f">前台显示名称 <input placeholder="名称"></div>
+          <div class="f">状态 <select><option>请选择</option></select></div>
+          <div class="btns"><button class="b b-pri">🔍 查询</button><button class="b b-def">↻ 重置</button><button class="b b-def">＋ 新增</button></div>
+        </div>
+        <div class="tbl-scroll">
+        <table class="dt" style="min-width:1050px">
+          <thead><tr>
+            <th>状态</th><th>ID</th><th>前台显示名称</th><th>充值类型</th><th>三方映射码</th>
+            <th>充值赠送比率</th><th>手续费<sup class="nw">新</sup></th><th>最小金额</th><th>最大金额</th><th>排序</th><th>操作</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span class="pill p-on">启用</span></td><td>26001</td><td>ArUpiPay-26001</td><td class="p-blue">ArUpiPay</td><td>ArPayINR</td><td>0.0000</td><td class="hl-add fee-cell">2.00%</td><td>300</td><td>500000</td><td>2000</td><td><span class="act">代收测试</span><span class="act">编辑</span></td></tr>
+            <tr><td><span class="pill p-on">启用</span></td><td>26000</td><td>ArUpiPay-26000</td><td class="p-blue">Bank Transfer</td><td>ArPayINR</td><td>0.0000</td><td class="hl-add fee-cell">2.00%</td><td>300</td><td>500000</td><td>2000</td><td><span class="act">代收测试</span><span class="act">编辑</span></td></tr>
+            <tr><td><span class="pill p-on">启用</span></td><td>10577</td><td>RupixPay - APP</td><td class="p-blue">Bank Transfer</td><td>BonusPayINR</td><td>0.1000</td><td class="hl-add fee-cell fee-zero">—</td><td>500</td><td>10000</td><td>1600</td><td><span class="act">代收测试</span><span class="act">编辑</span></td></tr>
+            <tr><td><span class="pill p-on">启用</span></td><td>10568</td><td>RupixPay - UPI</td><td class="p-blue">Bank Transfer</td><td>BonusPayINR</td><td>0.0000</td><td class="hl-add fee-cell">1.50%</td><td>500</td><td>50000</td><td>1600</td><td><span class="act">代收测试</span><span class="act">编辑</span></td></tr>
+            <tr><td><span class="pill p-on">启用</span></td><td>10321</td><td>BonusPay UPI &amp;#…</td><td class="p-blue">QRIS</td><td>FirePayINR</td><td>0.0100</td><td class="hl-add fee-cell">3.50%</td><td>100</td><td>50000</td><td>1503</td><td><span class="act">代收测试</span><span class="act">编辑</span></td></tr>
+            <tr><td><span class="pill p-on">启用</span></td><td>10725</td><td>YayaPay - Paytm</td><td class="p-blue">Bank Transfer</td><td>YayaPayINR</td><td>0.0000</td><td class="hl-add fee-cell fee-zero">—</td><td>300</td><td>50000</td><td>1498</td><td><span class="act">代收测试</span><span class="act">编辑</span></td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:14px"><b>展示规则：</b> 费率 > 0 显示「X.XX%」；费率 = 0 显示「—」灰字。列表数据来自 <code style="background:#eef2ff;padding:1px 5px;border-radius:4px">PayTypeEntity.ServiceFeeRate</code>，无需新增存储。</div>
+    </div>
+  </div>
+
+  <!-- ================= 图五 常用修改 ================= -->
+  <div class="tab-pane" id="tab-edit">
+    <div class="card">
+      <h2>③ 充值通道常用修改弹窗 · 新增手续费字段</h2>
+      <div class="desc">在「常用修改」弹窗新增「手续费率」字段，沿用与「充值赠送比率」一致的「是否修改」勾选交互（勾选后才可编辑并提交，避免误改）。</div>
+      <div class="popup-demo">
+        <div class="popup">
+          <div class="ph">充值通道常用修改</div>
+          <div class="pb">
+            <div class="frow"><label>充值类型：</label><div class="ctrl"><select><option>ArUpiPay</option></select></div></div>
+            <div class="frow"><label>前台显示名称：</label><div class="ctrl"><input type="text" value="ArUpiPay-26001"></div></div>
+            <div class="frow"><label>充值赠送比率：</label><div class="ctrl"><input type="text" value="0.0000" disabled><label class="chk"><input type="checkbox"> 是否修改</label></div></div>
+
+            <!-- 新增字段 -->
+            <div class="frow">
+              <label>手续费率：<sup class="nw">新</sup></label>
+              <div class="ctrl">
+                <input id="feeCfg" type="number" step="0.01" value="2.00" disabled>
+                <span class="suffix">% （0 表示不收取）</span>
+                <label class="chk"><input type="checkbox" id="feeCfgChk" onchange="document.getElementById('feeCfg').disabled=!this.checked"> 是否修改</label>
+              </div>
+            </div>
+
+            <div class="frow"><label>延迟发放时间：</label><div class="ctrl"><input type="number" value="0" style="max-width:120px"><span class="hint">(单位:天, 0 表示即时发放, 最大 7 天)</span></div></div>
+            <div class="frow"><label>单笔金额限制：</label><div class="ctrl"><input type="number" value="300" style="max-width:120px"> - <input type="number" value="500000" style="max-width:120px"></div></div>
+            <div class="frow"><label>排序：</label><div class="ctrl"><input type="text" value="2000"></div></div>
+          </div>
+          <div class="pf">
+            <button class="b-pri" onclick="alert('提交：手续费率='+document.getElementById('feeCfg').value+'%（仅勾选“是否修改”的字段会提交）')">修 改</button>
+            <button class="b-def">↩ 返回</button>
+          </div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:14px"><span class="marker">◐</span>提交时按 % → 小数转换（2% → 0.02）。</div>
+    </div>
+  </div>
+
+  <!-- ================= 图三 三方待入款 ================= -->
+  <div class="tab-pane" id="tab-wait">
+    <div class="card">
+      <h2>④ 三方待入款 · 新增手续费列</h2>
+      <div class="desc">待入款订单新增「手续费」列，展示该订单下单时计算出的手续费金额，便于财务核对。</div>
+      <div class="admin">
+        <div class="admin-bar">三方待入款<span class="bc">财务管理 › 三方待入款</span></div>
+        <div class="filters">
+          <div class="f">会员ID <input placeholder="会员ID"></div>
+          <div class="f">订单编号 <input placeholder="订单编号"></div>
+          <div class="f">充值方式 <select><option>选择</option></select></div>
+          <div class="btns"><button class="b b-pri">🔍 查询</button><button class="b b-def">导出</button><button class="b b-def">重置</button></div>
+        </div>
+        <div class="tbl-scroll">
+        <table class="dt" style="min-width:1000px">
+          <thead><tr>
+            <th>会员ID</th><th>订单号</th><th>充值方式</th><th>充值金额</th><th>手续费<sup class="nw">新</sup></th><th>状态</th><th>订单日期</th><th>操作</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="p-blue">100000</td><td>TestRC20260627180134482002088</td><td class="p-blue">BullPayINR-QR</td><td>2344.00</td><td class="hl-add fee-cell">46.88</td><td class="p-orange">Not Pay</td><td>2026-06-27 18:01:34</td><td class="link">详情</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC20260627131116042002084</td><td class="p-blue">BullPayINR-PaytmQR</td><td>202.00</td><td class="hl-add fee-cell">4.04</td><td class="p-orange">Not Pay</td><td>2026-06-27 13:11:16</td><td class="link">详情</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC20260626214341992002071</td><td class="p-blue">BullPayINR-PaytmQR</td><td>233.00</td><td class="hl-add fee-cell fee-zero">—</td><td class="p-orange">Not Pay</td><td>2026-06-26 21:34:31</td><td class="link">详情</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC20260626195914632002070</td><td class="p-blue">BullPayINR-QR</td><td>2342.00</td><td class="hl-add fee-cell">46.84</td><td class="p-orange">Not Pay</td><td>2026-06-26 19:59:14</td><td class="link">详情</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC20260625160023920002027</td><td class="p-blue">OmniPayPKR-Easy</td><td>850.00</td><td class="hl-add fee-cell">29.75</td><td class="p-orange">Not Pay</td><td>2026-06-25 16:20:02</td><td class="link">详情</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:14px"><b>手续费展示：</b> 展示<u>下单时</u>计算出的手续费<b>金额</b>（纯币种金额，不带百分比），费率在通道配置里查；即使之后通道费率调整，历史订单手续费不受影响，供财务与三方结算对账。</div>
+    </div>
+  </div>
+
+  <!-- ================= 图四 入款记录 ================= -->
+  <div class="tab-pane" id="tab-record">
+    <div class="card">
+      <h2>⑤ 入款记录 · 新增手续费列</h2>
+      <div class="desc">入款记录已有「实际充值金额」列，新增「手续费」列后可清晰核对：实际充值金额 = 充值金额 − 手续费。</div>
+      <div class="admin">
+        <div class="admin-bar">入款记录<span class="bc">财务管理 › 入款记录</span></div>
+        <div class="filters">
+          <div class="f">会员ID <input placeholder="会员ID"></div>
+          <div class="f">订单号 <input placeholder="订单号"></div>
+          <div class="f">充值状态 <select><option>请选择</option></select></div>
+          <div class="btns"><button class="b b-pri">🔍 查询</button><button class="b b-def">导出</button><button class="b b-def">重置</button></div>
+        </div>
+        <div class="tbl-scroll">
+        <table class="dt" style="min-width:1080px">
+          <thead><tr>
+            <th>会员ID</th><th>订单号</th><th>充值类型</th><th>充值金额</th><th>手续费<sup class="nw">新</sup></th><th>实际充值金额</th><th>状态</th><th>订单日期</th><th>到账日期</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="p-blue">100000</td><td>TestRC…482002088</td><td>Bank Transfer</td><td>2344.00</td><td class="hl-add fee-cell">46.88</td><td><b>0.00</b></td><td class="p-orange">已取消</td><td>06-27 18:01:34</td><td>----</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC…342002087</td><td>Bank Transfer</td><td>234.00</td><td class="hl-add fee-cell">4.68</td><td><b style="color:#389e0d">229.32</b></td><td class="p-on">已支付</td><td>06-27 16:11:51</td><td>16:13:22</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC…692002085</td><td>Bank Transfer</td><td>235.00</td><td class="hl-add fee-cell">4.70</td><td><b style="color:#389e0d">230.30</b></td><td class="p-on">已支付</td><td>06-27 15:32:36</td><td>15:45:08</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC…192002083</td><td>Bank Transfer</td><td>201.00</td><td class="hl-add fee-cell fee-zero">—</td><td><b style="color:#389e0d">201.00</b></td><td class="p-on">已支付</td><td>06-27 13:05:13</td><td>13:11:54</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC…842002082</td><td>Bank Transfer</td><td>211.00</td><td class="hl-add fee-cell">4.22</td><td><b style="color:#389e0d">206.78</b></td><td class="p-on">已支付</td><td>06-27 12:54:12</td><td>13:01:16</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:14px"><b>核对关系：</b> 实际充值金额 = 充值金额 − 手续费（到账口径）。已取消订单实际充值金额为 0，手续费列仍展示下单快照，供财务对账参考。</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// 主 tab 切换
+document.querySelectorAll('.mt-btn').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.mt-btn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('tab-'+b.dataset.tab).classList.add('active');
+  };
+});
+
+// ===== H5 多语言切换（3 场景整体切换）=====
+const I18N = {
+  zh:{
+    nav_recharge:'充值', nav_records:'充值记录', balance:'余额', selectChannel:'选择通道',
+    feeLabel:'手续费', amountSec:'充值金额', youGet:'实际上分', notesSec:'充值说明', bonusSec:'充值优惠',
+    amtPaidRow:'充值金额', bonusRow:'充值奖励', feeRow:'手续费', payBtn:'充值', channelWay:'充值方式：123',
+    rec_all:'全部', rec_amount:'金额', rec_type:'类型', rec_time:'时间', rec_orderno:'订单号', rec_done:'已完成',
+    bonusLine1:'₹100 – ₹999 充值奖励 30%', bonusLine2:'₹1000 以上 首充额外 +₹28',
+    genNote1:'如果转账已过期请重新生成充值订单。', genNote2:'转账金额必须与订单一致，否则无法成功入账。',
+    feeNote:'<span class="fi">💠</span><div>本通道收取 <b>2%</b> 手续费，已在实际上分中扣除。</div>',
+    noFeeNote:'<span class="fi">✅</span><div>本通道不收取手续费，实际上分 = 充值金额。</div>',
+    bonusNote:'<span class="fi">💠</span><div>实际上分 = 充值金额 + 充值优惠 − 手续费，请以实际上分为准。</div>'
+  },
+  en:{
+    nav_recharge:'Recharge', nav_records:'History', balance:'Balance', selectChannel:'Select channel',
+    feeLabel:'Fee', amountSec:'Amount', youGet:'You get', notesSec:'Notes', bonusSec:'Deposit bonus',
+    amtPaidRow:'Amount', bonusRow:'Bonus', feeRow:'Fee', payBtn:'Recharge', channelWay:'Channel: 123',
+    rec_all:'All', rec_amount:'Amount', rec_type:'Type', rec_time:'Time', rec_orderno:'Order No.', rec_done:'Completed',
+    bonusLine1:'₹100 – ₹999 · 30% bonus', bonusLine2:'₹1000+ · extra ₹28 on first deposit',
+    genNote1:'Regenerate the order if the transfer has expired.', genNote2:'Transfer the exact order amount, or it may not be credited.',
+    feeNote:'<span class="fi">💠</span><div>A <b>2%</b> fee applies and is deducted from the amount you get.</div>',
+    noFeeNote:'<span class="fi">✅</span><div>No fee on this channel · you get the full amount.</div>',
+    bonusNote:'<span class="fi">💠</span><div>You get = amount + bonus − fee. The final credited amount applies.</div>'
+  },
+  hi:{
+    nav_recharge:'रिचार्ज', nav_records:'इतिहास', balance:'बैलेंस', selectChannel:'चैनल चुनें',
+    feeLabel:'शुल्क', amountSec:'राशि', youGet:'प्राप्त राशि', notesSec:'नोट्स', bonusSec:'जमा बोनस',
+    amtPaidRow:'राशि', bonusRow:'बोनस', feeRow:'शुल्क', payBtn:'रिचार्ज', channelWay:'चैनल: 123',
+    rec_all:'सभी', rec_amount:'राशि', rec_type:'प्रकार', rec_time:'समय', rec_orderno:'ऑर्डर नं.', rec_done:'पूर्ण',
+    bonusLine1:'₹100 – ₹999 · 30% बोनस', bonusLine2:'₹1000+ · पहली जमा पर अतिरिक्त ₹28',
+    genNote1:'यदि ट्रांसफर समाप्त हो गया है तो ऑर्डर फिर से बनाएं।', genNote2:'ऑर्डर की सटीक राशि ट्रांसफर करें, अन्यथा क्रेडिट नहीं होगी।',
+    feeNote:'<span class="fi">💠</span><div>इस चैनल पर <b>2%</b> शुल्क लगता है, जो प्राप्त राशि से काट लिया गया है।</div>',
+    noFeeNote:'<span class="fi">✅</span><div>इस चैनल पर कोई शुल्क नहीं · पूरी राशि मिलेगी।</div>',
+    bonusNote:'<span class="fi">💠</span><div>प्राप्त राशि = राशि + बोनस − शुल्क। अंतिम जमा राशि मान्य होगी।</div>'
+  },
+  vi:{
+    nav_recharge:'Nạp tiền', nav_records:'Lịch sử', balance:'Số dư', selectChannel:'Chọn kênh',
+    feeLabel:'Phí', amountSec:'Số tiền', youGet:'Bạn nhận', notesSec:'Lưu ý', bonusSec:'Ưu đãi nạp',
+    amtPaidRow:'Số tiền nạp', bonusRow:'Thưởng', feeRow:'Phí', payBtn:'Nạp', channelWay:'Kênh: 123',
+    rec_all:'Tất cả', rec_amount:'Số tiền', rec_type:'Loại', rec_time:'Thời gian', rec_orderno:'Mã đơn', rec_done:'Hoàn tất',
+    bonusLine1:'₹100 – ₹999 · thưởng 30%', bonusLine2:'₹1000+ · nạp lần đầu thêm ₹28',
+    genNote1:'Tạo lại đơn nếu giao dịch đã hết hạn.', genNote2:'Chuyển đúng số tiền đơn hàng, nếu không sẽ không được ghi có.',
+    feeNote:'<span class="fi">💠</span><div>Kênh này thu phí <b>2%</b>, đã được trừ vào số tiền bạn nhận.</div>',
+    noFeeNote:'<span class="fi">✅</span><div>Kênh này miễn phí · bạn nhận đủ số tiền.</div>',
+    bonusNote:'<span class="fi">💠</span><div>Bạn nhận = số tiền + thưởng − phí. Số tiền ghi có cuối cùng được áp dụng.</div>'
+  }
+};
+function switchLang(lang){
+  const dict = I18N[lang]; if(!dict) return;
+  const root = document.getElementById('tab-h5');
+  root.querySelectorAll('[data-i18n]').forEach(el=>{ const v=dict[el.dataset.i18n]; if(v!=null) el.textContent=v; });
+  root.querySelectorAll('[data-note]').forEach(el=>{ const v=dict[el.dataset.note]; if(v!=null) el.innerHTML=v; });
+  root.querySelectorAll('.lang-btn').forEach(b=> b.classList.toggle('active', b.dataset.lang===lang));
+}
+switchLang('zh');
+</script>
+</body>
+</html>
