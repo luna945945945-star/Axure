@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会员层级 · 查询范围（是否包含上级）- 原型</title>
+<style>
+:root{
+  --primary:#7367f0;          /* 紫色主色（查询/所有按钮） */
+  --primary-dark:#5e50ee;
+  --link:#409eff;             /* 蓝色链接 */
+  --link-dark:#2d8cf0;
+  --red:#ea5455;             /* 合计红字 */
+  --side-bg:#10163a;         /* 深色侧栏 */
+  --side-bg2:#0b1030;
+  --side-hover:#1a2150;
+  --side-text:#b4b7c9;
+  --border:#e6e8ee;
+  --border-strong:#d5d8e0;
+  --text:#4b4b5a;
+  --text-2:#6e6b7b;
+  --text-3:#a3a3b3;
+  --th-bg:#f5f6fa;
+  --row-hover:#f6f7fb;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",-apple-system,sans-serif;font-size:12px;color:var(--text);background:#f0f1f6;line-height:1.5}
+a{color:var(--link);text-decoration:none;cursor:pointer}
+a:hover{color:var(--link-dark)}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select{font-family:inherit;font-size:inherit;outline:none}
+
+/* 演示提示条 */
+.demo-hint{position:fixed;left:0;right:0;bottom:0;background:#fffbe6;border-top:1px solid #ffe58f;color:#8a6d00;font-size:12px;padding:6px 16px;z-index:99;display:flex;align-items:center;gap:8px}
+.demo-hint b{color:#d48806}
+.demo-hint .x{margin-left:auto;cursor:pointer;color:#8a6d00}
+
+/* ===== 布局 ===== */
+.wrap{display:flex;min-height:100vh}
+
+/* 侧栏 */
+.side{width:212px;background:var(--side-bg);flex-shrink:0;color:var(--side-text);display:flex;flex-direction:column}
+.side-search{padding:10px 12px}
+.side-search input{width:100%;height:30px;border-radius:4px;border:none;background:var(--side-bg2);color:#cfd2e6;padding:0 30px 0 10px;font-size:12px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%237c80a0' viewBox='0 0 16 16'%3E%3Cpath d='M11.7 11l3 3-0.7 0.7-3-3a5 5 0 1 1 0.7-0.7zM7 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center}
+.side-menu{flex:1;overflow-y:auto}
+.side-menu::-webkit-scrollbar{width:6px}
+.side-menu::-webkit-scrollbar-thumb{background:#2a3160;border-radius:3px}
+.m-item{padding:9px 14px;font-size:13px;color:var(--side-text);cursor:pointer;display:flex;align-items:center;gap:9px}
+.m-item:hover{background:var(--side-hover);color:#fff}
+.m-item .ico{width:16px;text-align:center;font-size:13px;opacity:.9}
+.m-item .arr{margin-left:auto;font-size:10px;opacity:.5;transition:transform .15s}
+.m-item.open .arr{transform:rotate(90deg)}
+.m-item.group.active{color:#fff;background:var(--side-hover)}
+.sub{background:var(--side-bg2)}
+.sub .s-item{padding:8px 14px 8px 39px;font-size:12.5px;color:#8c90ab;cursor:pointer;display:block;position:relative}
+.sub .s-item:hover{color:#fff;background:var(--side-hover)}
+.sub .s-item.on{color:#fff;background:linear-gradient(90deg,rgba(115,103,240,.25),transparent);box-shadow:inset 3px 0 0 var(--primary)}
+
+/* 主区 */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;background:#f0f1f6}
+.topbar{height:46px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;justify-content:space-between;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.topbar .tb-title{font-size:14px;color:#5a5a6a;font-weight:600}
+.topbar .tb-user{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2)}
+.topbar .tb-user .av{width:26px;height:26px;border-radius:50%;background:#dfe1ee;display:flex;align-items:center;justify-content:center;font-size:11px;color:#7c80a0}
+.crumb{padding:8px 16px;font-size:12px;color:var(--text-3);background:#f0f1f6}
+.crumb .sep{margin:0 5px}
+.crumb .cur{color:var(--text-2)}
+.content{padding:0 12px 40px}
+
+/* 卡片 */
+.panel{background:#fff;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.04);border:1px solid #edeef3}
+
+/* 筛选条 */
+.filter{padding:14px 16px 12px;border-bottom:1px solid #f0f0f4}
+.frow{display:flex;align-items:center;gap:10px 22px;flex-wrap:wrap}
+.fitem{display:flex;align-items:center;gap:7px}
+.flabel{font-size:12px;color:var(--text-2);white-space:nowrap}
+.finput,.fselect{height:30px;border:1px solid var(--border-strong);border-radius:4px;padding:0 9px;font-size:12px;color:var(--text);background:#fff;min-width:150px}
+.finput:focus,.fselect:focus{border-color:var(--primary)}
+.fselect{min-width:130px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23a3a3b3' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
+
+/* 新增：查询范围 单选（样式与其他筛选项一致） */
+.range-item{display:flex;align-items:center;gap:10px}
+.new-flag{color:var(--red);font-weight:700;font-size:12px;margin-left:1px}
+.radio{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text-2);cursor:pointer;user-select:none}
+.radio input{accent-color:var(--primary);width:14px;height:14px;cursor:pointer;margin:0}
+.radio.disabled{opacity:.45;cursor:not-allowed}
+.range-tip{font-size:11px;color:#e6a23c;margin-left:2px;display:none}
+
+/* 按钮 */
+.btns{display:flex;gap:9px;margin-top:12px}
+.btn{height:30px;padding:0 16px;border-radius:4px;font-size:12px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid transparent}
+.btn.query{background:var(--primary);color:#fff}
+.btn.query:hover{background:var(--primary-dark)}
+.btn.reset{background:#fff;color:var(--text-2);border-color:var(--border-strong)}
+.btn.reset:hover{color:var(--primary);border-color:var(--primary)}
+
+/* 日期区间 pill */
+.daterange{display:flex;margin-left:auto;border:1px solid var(--border-strong);border-radius:4px;overflow:hidden}
+.daterange span{padding:0 13px;height:28px;display:flex;align-items:center;font-size:12px;color:var(--text-2);cursor:pointer;border-right:1px solid var(--border-strong)}
+.daterange span:last-child{border-right:none}
+.daterange span.on{background:var(--primary);color:#fff}
+
+/* 范围说明行 */
+.range-note{padding:8px 16px;font-size:12px;color:var(--text-2);background:#fafaff;border-bottom:1px solid #f0f0f4;display:flex;align-items:center;gap:6px}
+.range-note .k{font-weight:600}
+.range-note .k.all{color:var(--primary)}
+.range-note .k.excl{color:#67a352}
+.range-note .cut{color:var(--red);font-weight:600}
+
+/* 表格 */
+.tbl-scroll{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;min-width:1600px}
+.tbl th{background:var(--th-bg);color:#5a5a6a;font-weight:600;font-size:12px;padding:9px 8px;text-align:center;border:1px solid #ebedf3;white-space:nowrap}
+.tbl td{padding:8px;font-size:12px;text-align:center;border:1px solid #f0f1f6;white-space:nowrap;color:var(--text)}
+.tbl tbody tr:hover td{background:var(--row-hover)}
+.tbl td.l{text-align:left}
+.tbl .id-link{color:var(--link);font-weight:600}
+.tbl .amt{font-family:Consolas,Monaco,monospace}
+.tbl .sub-amt{color:var(--text-3);font-size:11px}
+.tbl .parent-link{color:var(--link)}
+.tbl tr.row-self td{background:#fff9e6}
+.tbl tr.row-self:hover td{background:#fff4d6}
+.tbl .id-link.self-mark{text-decoration:underline wavy var(--primary);text-underline-offset:4px;text-decoration-thickness:1.5px}
+.tbl tr.sum td{background:#fff;color:var(--red);font-weight:600;border-top:1px solid #ebedf3}
+.tbl tr.sum td.l{color:var(--text-2)}
+.hide{display:none}
+
+/* 分页占位 */
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:6px;padding:12px 16px;font-size:12px;color:var(--text-2)}
+.pager .pg{min-width:28px;height:28px;border:1px solid var(--border-strong);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;background:#fff;cursor:pointer}
+.pager .pg.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- ===== 侧栏 ===== -->
+  <aside class="side">
+    <div class="side-search"><input placeholder="搜索菜单"></div>
+    <div class="side-menu">
+      <div class="m-item"><span class="ico">🎡</span>大转盘<span class="arr">▶</span></div>
+      <div class="m-item"><span class="ico">🖥️</span>后台运营管理<span class="arr">▶</span></div>
+      <div class="m-item"><span class="ico">🗂️</span>新版运营管理<span class="arr">▶</span></div>
+      <div class="m-item group active open" onclick="toggleGroup(this)"><span class="ico">👥</span>会员管理<span class="arr">▶</span></div>
+      <div class="sub">
+        <a class="s-item">会员列表</a>
+        <a class="s-item on">会员层级</a>
+        <a class="s-item">下级会员列表</a>
+        <a class="s-item">昨日会员层级</a>
+        <a class="s-item">充值等级</a>
+        <a class="s-item">拒绝IP</a>
+        <a class="s-item">登录日志</a>
+        <a class="s-item">银行卡查询</a>
+        <a class="s-item">短信验证码查询</a>
+        <a class="s-item">用户USDT钱包</a>
+        <a class="s-item">用户电子钱包</a>
+        <a class="s-item">分红管理</a>
+        <a class="s-item">合伙人奖励</a>
+        <a class="s-item">代理推荐列表</a>
+        <a class="s-item">异常会员名单</a>
+        <a class="s-item">IP黑名单</a>
+      </div>
+      <div class="m-item"><span class="ico">🔢</span>会员洗码管理<span class="arr">▶</span></div>
+      <div class="m-item"><span class="ico">🎲</span>4D<span class="arr">▶</span></div>
+      <div class="m-item"><span class="ico">🎯</span>活动管理<span class="arr">▶</span></div>
+      <div class="m-item"><span class="ico">💱</span>转账费<span class="arr">▶</span></div>
+      <div class="m-item"><span class="ico">🎁</span>新会员礼包<span class="arr">▶</span></div>
+      <div class="m-item"><span class="ico">🛍️</span>积分商城<span class="arr">▶</span></div>
+      <div class="m-item"><span class="ico">🛡️</span>保险管理<span class="arr">▶</span></div>
+      <div class="m-item"><span class="ico">💎</span>会员VIP管理<span class="arr">▶</span></div>
+    </div>
+  </aside>
+
+  <!-- ===== 主区 ===== -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-title">会员层级</div>
+      <div class="tb-user"><span>wd</span><div class="av">wd</div></div>
+    </div>
+    <div class="crumb">会员管理 <span class="sep">/</span> 会员管理 <span class="sep">/</span> <span class="cur">会员层级</span></div>
+
+    <div class="content">
+      <div class="panel">
+        <!-- 筛选 -->
+        <div class="filter">
+          <div class="frow">
+            <div class="fitem"><span class="flabel">会员ID</span><input id="memberId" class="finput" value="2384" oninput="onIdInput()"></div>
+            <div class="fitem"><span class="flabel">代理类型</span>
+              <select class="fselect"><option>请选择</option><option>外部代理</option><option>内部代理</option><option>未开通</option></select>
+            </div>
+            <div class="fitem"><span class="flabel">绝对层级</span>
+              <select class="fselect"><option>请选择</option></select>
+            </div>
+            <!-- 新增：查询范围 -->
+            <div class="fitem range-item">
+              <span class="flabel">查询范围<span class="new-flag">新</span></span>
+              <label class="radio"><input type="radio" name="range" value="all" checked onchange="setRange('all')">包含上级</label>
+              <label class="radio"><input type="radio" name="range" value="excl" onchange="setRange('excl')">不含上级（仅本人及下级）</label>
+              <span id="rangeTip" class="range-tip">请先输入会员ID</span>
+            </div>
+
+            <!-- 日期区间 -->
+            <div class="daterange">
+              <span>日</span><span>日区间</span><span>月</span><span class="on">所有</span>
+            </div>
+          </div>
+          <div class="btns">
+            <button class="btn query" onclick="onQuery()">🔍 查询</button>
+            <button class="btn reset" onclick="onReset()">重置</button>
+          </div>
+        </div>
+
+        <!-- 当前范围说明 -->
+        <div id="rangeNote" class="range-note"></div>
+
+        <!-- 表格 -->
+        <div class="tbl-scroll">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>会员ID</th><th>注册手机号</th><th>上级ID</th><th>层级</th>
+                <th>直属下级</th><th>全部下级</th><th>代理</th><th>注册时间</th>
+                <th>投注(金额/笔)</th><th>中奖(金额/笔)</th><th>佣金</th>
+                <th>充值(金额/次)</th><th>提现(金额/次)</th><th>红包</th><th>签到</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pager">
+          <span>共 <b id="rowCount">0</b> 条</span>
+          <span class="pg on">1</span><span class="pg">下一页</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="demo-hint">
+  <span>🎨 原型演示</span>
+  <span>切换筛选条里的「<b>查询范围</b>」单选，观察上级行的显示/隐藏，以及底部<b>页面合计 / 总计</b>（红字）的联动变化。</span>
+  <span class="x" onclick="this.parentElement.remove()">✕ 关闭</span>
+</div>
+
+<script>
+/* 数据：role = up(上级链) / self(本人2384) / down(下级)，数值取自截图量级 */
+const DATA=[
+ {id:'535',   phone:'95535',      p:'',    lvl:0,ds:50591,as:253509,ag:'内部代理',reg:'2023-07-26 18:05:54',ba:2202930561.25,bc:25397,wa:2162906364.73,wc:10319,com:16497529.82,ra:0,       rc:0,  wda:2893796,   wdc:1,  red:9644,   sig:0,    role:'up'},
+ {id:'537',   phone:'9560****319',p:'535', lvl:1,ds:330,  as:170463,ag:'内部代理',reg:'2023-07-26 18:05:54',ba:1263977,      bc:794,  wa:1110392.12, wc:288,  com:8151814.89, ra:0,       rc:0,  wda:0,         wdc:0,  red:8695.4, sig:0,    role:'up'},
+ {id:'1822',  phone:'9594****319',p:'537', lvl:2,ds:22,   as:154025,ag:'内部代理',reg:'2023-08-24 20:40:47',ba:559921691.29, bc:100453,wa:2737892.53, wc:0,    com:0,          ra:559921,  rc:24, wda:178544,    wdc:255,red:4722,   sig:59900,role:'up'},
+ {id:'2169',  phone:'9592****953',p:'1822',lvl:3,ds:34,   as:153967,ag:'未开通',  reg:'2023-08-29 11:35:40',ba:150044260,    bc:303538,wa:145578500.6,wc:53846,com:4303697.76, ra:6961145, rc:80, wda:8889760,   wdc:98, red:35732.14,sig:13800,role:'up'},
+ {id:'2178',  phone:'9597****128',p:'2169',lvl:4,ds:67,   as:116080,ag:'内部代理',reg:'2023-08-29 12:28:56',ba:2249043,      bc:8732, wa:2074042.08, wc:2781, com:4639979.7,  ra:75000,   rc:4,  wda:4762902,   wdc:81, red:34159,  sig:600,  role:'up'},
+ {id:'2379',  phone:'9599****362',p:'2178',lvl:5,ds:105,  as:96238, ag:'未开通',  reg:'2023-08-30 05:18:28',ba:4770980.8,    bc:28867,wa:4637392.51, wc:7835, com:1917161.62, ra:21000,   rc:5,  wda:2624879,   wdc:81, red:53,     sig:600,  role:'up'},
+ {id:'2380',  phone:'9596****099',p:'2379',lvl:6,ds:7753, as:96111, ag:'外部代理',reg:'2023-08-30 05:23:18',ba:274227349,    bc:92750,wa:251688996.07,wc:17367,com:48062869.59,ra:555600,  rc:52, wda:59542750,  wdc:437,red:3155.98,sig:1600, role:'up'},
+ /* —— 本人 —— */
+ {id:'2384',  phone:'9596****078',p:'2380',lvl:7,ds:6972, as:65137, ag:'外部代理',reg:'2023-08-30 06:45:17',ba:3613602246.66,bc:273324,wa:3638886225.89,wc:61600,com:100838428.5,ra:1217000, rc:29, wda:117760959, wdc:315,red:17656,  sig:2000, role:'self'},
+ /* —— 下级 —— */
+ {id:'96563', phone:'9597****681',p:'2384',lvl:8,ds:7917, as:39477, ag:'未开通',  reg:'2024-08-16 13:28:23',ba:3933537385.1, bc:92987,wa:3891636256.56,wc:31858,com:129301507.04,ra:240736000,rc:548,wda:297451774, wdc:321,red:94,     sig:2200, role:'down'},
+ {id:'8502',  phone:'9599****648',p:'2384',lvl:8,ds:157,  as:4111,  ag:'内部代理',reg:'2023-09-27 23:34:41',ba:5566007.25,   bc:26669,wa:5126521.51, wc:5502, com:1571139.14, ra:1265030, rc:43, wda:2623286,   wdc:78, red:6880,   sig:300,  role:'down'},
+ {id:'22545', phone:'9592****412',p:'2384',lvl:8,ds:334,  as:4010,  ag:'未开通',  reg:'2023-11-12 11:08:43',ba:483030,       bc:1262, wa:430021.84,  wc:323,  com:25898.41,   ra:20000,   rc:3,  wda:15000,     wdc:3,  red:4588.59,sig:100,  role:'down'},
+ {id:'62394', phone:'9599****856',p:'2384',lvl:8,ds:8,    as:2485,  ag:'未开通',  reg:'2023-03-09 15:29:00',ba:2754934.5,    bc:17131,wa:2735695.38, wc:3158, com:579872.28,  ra:222000,  rc:16, wda:725000,    wdc:8,  red:0,      sig:400,  role:'down'},
+ {id:'3026',  phone:'9599****194',p:'2384',lvl:8,ds:427,  as:1842,  ag:'未开通',  reg:'2023-09-01 14:03:52',ba:16812763,     bc:28539,wa:15333132.7, wc:7081, com:1169471.58, ra:1141000, rc:15, wda:1371860,   wdc:25, red:0,      sig:300,  role:'down'},
+ {id:'71522', phone:'9599****158',p:'2384',lvl:8,ds:1444, as:1605,  ag:'未开通',  reg:'2024-05-05 13:10:30',ba:69866460.77,  bc:56422,wa:72358804.84,wc:13166,com:2669747.11, ra:13338000,rc:165,wda:19452100,  wdc:256,red:703.61, sig:18000,role:'down'},
+ {id:'144677',phone:'9599****125',p:'2384',lvl:8,ds:182,  as:579,   ag:'未开通',  reg:'2024-12-07 11:40:47',ba:3897353.75,   bc:11545,wa:3743816.85, wc:3900, com:536007.61,  ra:494100,  rc:55, wda:1009643,   wdc:59, red:2277,   sig:300,  role:'down'},
+ {id:'36638', phone:'9599****835',p:'2384',lvl:8,ds:277,  as:360,   ag:'未开通',  reg:'2023-12-05 14:12:39',ba:22668473.25,  bc:2957, wa:18115079.26,wc:3952, com:1160530.99, ra:3756900, rc:40, wda:1100481,   wdc:79, red:15000,  sig:300,  role:'down'},
+ {id:'80134', phone:'9596****734',p:'2384',lvl:8,ds:121,  as:280,   ag:'未开通',  reg:'2024-06-27 22:10:43',ba:5442679.25,   bc:114704,wa:53602086.74,wc:28038,com:423720.69,  ra:3232900, rc:164,wda:3746768,   wdc:101,red:7707.02,sig:15000,role:'down'},
+ {id:'8464',  phone:'9594****359',p:'2384',lvl:8,ds:103,  as:207,   ag:'未开通',  reg:'2023-09-27 19:00:03',ba:2835222.5,    bc:22120,wa:2794292.58, wc:5388, com:280987.69,  ra:302000,  rc:22, wda:742100,    wdc:29, red:0,      sig:200,  role:'down'},
+ {id:'79201', phone:'9597****872',p:'2384',lvl:8,ds:164,  as:175,   ag:'未开通',  reg:'2024-06-26 08:23:37',ba:12953684,     bc:23263,wa:13180198.86,wc:6563, com:115454.39,  ra:1785873, rc:66, wda:2282000,   wdc:28, red:600,    sig:300,  role:'down'},
+ {id:'80910', phone:'9592****771',p:'2384',lvl:8,ds:140,  as:161,   ag:'未开通',  reg:'2024-06-29 19:39:26',ba:12737575,     bc:9795, wa:12249754.02,wc:4923, com:39492.76,   ra:3379800, rc:347,wda:3219020,   wdc:186,red:93.75,  sig:31300,role:'down'},
+];
+
+let range='all', hasId=true;
+const n2=v=>Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const nc=v=>Number(v).toLocaleString('en-US');
+
+function amtCell(a,c){return `<span class="amt">${n2(a)}</span><span class="sub-amt">/${nc(c)}</span>`;}
+
+function render(){
+  const excl=(range==='excl')&&hasId;
+  const rows=DATA.filter(r=>excl?r.role!=='up':true);
+
+  let html='';
+  rows.forEach(r=>{
+    const self=r.role==='self';
+    html+=`<tr class="${self?'row-self':''}">
+      <td><a class="id-link${self?' self-mark':''}">${r.id}</a></td>
+      <td>${r.phone}</td>
+      <td>${r.p?'<a class="parent-link">'+r.p+'</a>':'-'}</td>
+      <td>${r.lvl}</td>
+      <td>${nc(r.ds)}</td>
+      <td>${nc(r.as)}</td>
+      <td>${r.ag}</td>
+      <td>${r.reg}</td>
+      <td>${amtCell(r.ba,r.bc)}</td>
+      <td>${amtCell(r.wa,r.wc)}</td>
+      <td><a class="amt">${n2(r.com)}</a></td>
+      <td>${amtCell(r.ra,r.rc)}</td>
+      <td>${amtCell(r.wda,r.wdc)}</td>
+      <td class="amt">${n2(r.red)}</td>
+      <td class="amt">${n2(r.sig)}</td>
+    </tr>`;
+  });
+
+  // 合计
+  const s=rows.reduce((a,r)=>({ba:a.ba+r.ba,bc:a.bc+r.bc,wa:a.wa+r.wa,wc:a.wc+r.wc,com:a.com+r.com,ra:a.ra+r.ra,rc:a.rc+r.rc,wda:a.wda+r.wda,wdc:a.wdc+r.wdc,red:a.red+r.red,sig:a.sig+r.sig}),
+    {ba:0,bc:0,wa:0,wc:0,com:0,ra:0,rc:0,wda:0,wdc:0,red:0,sig:0});
+  const sumRow=(label)=>`<tr class="sum">
+      <td class="l" colspan="8">${label}</td>
+      <td>${amtCell(s.ba,s.bc)}</td><td>${amtCell(s.wa,s.wc)}</td><td>${n2(s.com)}</td>
+      <td>${amtCell(s.ra,s.rc)}</td><td>${amtCell(s.wda,s.wdc)}</td><td>${n2(s.red)}</td><td>${n2(s.sig)}</td>
+    </tr>`;
+  html+=sumRow('页面合计')+sumRow('总计');
+  document.getElementById('tbody').innerHTML=html;
+  document.getElementById('rowCount').textContent=rows.length;
+
+  // 说明行
+  const upN=DATA.filter(r=>r.role==='up').length, downN=DATA.filter(r=>r.role==='down').length;
+  const upSum=DATA.filter(r=>r.role==='up').reduce((a,r)=>({ra:a.ra+r.ra,wda:a.wda+r.wda}),{ra:0,wda:0});
+  document.getElementById('rangeNote').innerHTML=excl
+    ? `当前查询范围：<span class="k excl">不含上级</span>　展示 本人 1 + 下级 ${downN}，已剔除上级链 <span class="cut">${upN}</span> 人（合计减少 充值 <span class="cut">${n2(upSum.ra)}</span>、提现 <span class="cut">${n2(upSum.wda)}</span>）`
+    : `当前查询范围：<span class="k all">包含上级</span>　展示 上级链 ${upN} + 本人 1 + 下级 ${downN}（合计含整条代理线）`;
+}
+
+function setRange(v){range=v;render();}
+function onIdInput(){
+  hasId=document.getElementById('memberId').value.trim().length>0;
+  document.querySelectorAll('.range-item .radio').forEach(l=>{
+    l.classList.toggle('disabled',!hasId);
+    l.querySelector('input').disabled=!hasId;
+  });
+  document.getElementById('rangeTip').style.display=hasId?'none':'inline';
+  if(!hasId){range='all';document.querySelector('input[name=range][value=all]').checked=true;}
+  render();
+}
+function onQuery(){render();}
+function onReset(){
+  document.getElementById('memberId').value='';
+  document.querySelectorAll('.fselect').forEach(s=>s.selectedIndex=0);
+  onIdInput();
+}
+function toggleGroup(el){el.classList.toggle('open');el.nextElementSibling.classList.toggle('hide');}
+
+render();
+</script>
+</body>
+</html>
