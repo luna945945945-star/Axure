@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V3中台 · 入款手续费与实际上分改造 - 需求原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;background:#f4f6fa;color:#1f2329;line-height:1.55;padding:18px}
+.wrap{max-width:1400px;margin:0 auto}
+.page-head{margin-bottom:14px}
+.page-head h1{font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px}
+.page-head .sub{color:#6b7280;font-size:12.5px;margin-top:6px}
+.tag-new{background:#ff4d4f;color:#fff;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;vertical-align:middle}
+.nw{color:#f5222d;font-size:10px;font-weight:700;margin-left:3px;vertical-align:super}
+
+.main-tabs{background:#fff;border-radius:10px;padding:6px;margin-bottom:14px;display:flex;gap:4px;box-shadow:0 1px 3px rgba(0,0,0,.04);flex-wrap:wrap}
+.main-tabs .mt-btn{flex:1;min-width:150px;padding:10px 12px;border:none;background:transparent;cursor:pointer;font-family:inherit;font-size:13px;color:#666;border-radius:7px;font-weight:500;transition:all .15s}
+.main-tabs .mt-btn:hover{background:#f5f7fa;color:#2470ff}
+.main-tabs .mt-btn.active{background:linear-gradient(135deg,#2470ff,#5a3ff8);color:#fff;font-weight:600;box-shadow:0 2px 8px rgba(36,112,255,.25)}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding:18px;margin-bottom:14px}
+.card h2{font-size:15px;font-weight:600;margin-bottom:4px}
+.card .desc{color:#6b7280;font-size:12.5px;margin-bottom:14px;line-height:1.7}
+.hl{background:#fff7e6;color:#d46b08;border:1px solid #ffd591;padding:1px 6px;border-radius:5px;font-weight:600;font-size:11.5px}
+.grp{font-weight:600;margin:16px 0 8px;padding-left:9px;border-left:3px solid #2470ff;color:#1554c9}
+.grp.g2{border-color:#12a05f;color:#0f7a48}
+.callout{border-left:3px solid #fa8c16;background:#fffbf2;padding:10px 14px;border-radius:0 7px 7px 0;font-size:12.5px;color:#5a4520;line-height:1.7}
+.rules-ol{list-style:none;counter-reset:r}
+.rules-ol li{position:relative;padding:7px 0 7px 30px;font-size:13px;border-bottom:1px dashed #eef0f3;line-height:1.7}
+.rules-ol li:before{counter-increment:r;content:counter(r);position:absolute;left:0;top:7px;width:20px;height:20px;background:#eef4ff;color:#2470ff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.rules-ol b{color:#1f2329}
+code{background:#eef2ff;color:#3730a3;padding:1px 5px;border-radius:4px;font-size:11.5px;font-family:'SF Mono',Menlo,monospace}
+
+/* admin 外壳 */
+.admin{border:1px solid #e8eaed;border-radius:8px;overflow:hidden;background:#fff}
+.admin-tabs{display:flex;gap:2px;padding:8px 12px 0;border-bottom:1px solid #eef0f3;background:#fbfcfe}
+.admin-tabs .at{padding:7px 16px;font-size:12.5px;color:#666;cursor:default;border-bottom:2px solid transparent}
+.admin-tabs .at.on{color:#2470ff;font-weight:600;border-bottom-color:#2470ff}
+.filters{padding:12px 16px;display:flex;flex-wrap:wrap;gap:10px;border-bottom:1px solid #f0f1f4}
+.filters .f{display:flex;align-items:center;gap:6px;font-size:12px;color:#555}
+.filters input,.filters select{border:1px solid #dcdfe4;border-radius:4px;padding:5px 8px;font-size:12px;width:120px;font-family:inherit}
+.filters .b{padding:6px 13px;border-radius:4px;border:none;font-size:12px;cursor:pointer;font-family:inherit;font-weight:500}
+.b-pri{background:#2470ff;color:#fff}.b-def{background:#fff;border:1px solid #dcdfe4;color:#555}
+.tip{padding:6px 16px;font-size:11.5px;color:#cf1322;background:#fff}
+
+.tbl-scroll{overflow-x:auto}
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt th{background:#f7f8fa;color:#5a6472;font-weight:600;padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid #eef0f3}
+table.dt td{padding:9px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top;color:#333}
+table.dt tr:hover td{background:#fafbff}
+.p-blue{color:#2470ff}
+.pill{padding:2px 9px;border-radius:11px;font-size:11px;font-weight:600;white-space:nowrap}
+.p-wait{background:#fff7e6;color:#d46b08}.p-ok{background:#e6f7e9;color:#389e0d}.p-cancel{background:#fff1f0;color:#cf1322}
+.link{color:#2470ff;cursor:pointer;white-space:nowrap}
+.mtag{background:#eef4ff;color:#2470ff;border-radius:5px;padding:1px 8px;font-size:11px}
+
+/* 会员信息堆叠 */
+.mi{line-height:1.6;font-size:11.5px;color:#8a929c;white-space:nowrap}
+.mi b{color:#333;font-weight:600}
+.mi .on{color:#389e0d}
+/* 金额堆叠 label：value */
+.cell2{line-height:1.65;font-size:12px;white-space:nowrap}
+.cell2 .r{display:block}
+.cell2 .r i{color:#8a929c;font-style:normal}
+.cell2 .r b{font-weight:600;color:#333;font-family:'SF Mono',Menlo,monospace}
+.cell2 .r.blue b{color:#2470ff}
+.cell2 .r.fee b{color:#d4380d}
+.cell2 .r.fee .rate{color:#9aa1ab;font-weight:400;font-family:inherit}
+.cell2 .r.nofee b{color:#bbb;font-weight:400}
+.up-amt{font-weight:700;color:#389e0d;font-family:'SF Mono',Menlo,monospace;font-size:13px}
+.cust{line-height:1.6;font-size:11.5px;color:#8a929c;white-space:nowrap}
+.cust b{color:#555;font-weight:400}
+/* 表尾合计 */
+.dt tfoot td{background:#eef1f6;color:#cf1322;padding:9px 10px;border-top:1px solid #dfe3ea;white-space:nowrap;font-weight:600}
+.dt tfoot .ftl{font-weight:700}
+.dt tfoot i{color:#cf1322;font-style:normal;font-weight:400}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:10px 16px;font-size:12px;color:#666}
+.pager .pg{border:1px solid #dcdfe4;border-radius:4px;padding:3px 9px;cursor:default}
+.pager .pg.on{background:#2470ff;color:#fff;border-color:#2470ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="page-head">
+    <h1><span>🏦 V3 中台 · 入款手续费与实际上分改造</span><span class="tag-new">需求原型 v1</span></h1>
+    <div class="sub">中台三方通道收取手续费时，「三方待入款」展示手续费率、「全部入款记录」展示手续费金额与实际上分金额；明确 上分金额 = 实付金额 − 手续费。适用系统：V3 中台（运营/财务）</div>
+  </div>
+
+  <div class="main-tabs">
+    <button class="mt-btn active" data-tab="rules">📋 需求规则</button>
+    <button class="mt-btn" data-tab="wait">① 三方待入款</button>
+    <button class="mt-btn" data-tab="all">② 全部入款记录</button>
+  </div>
+
+  <!-- ================= 需求规则 ================= -->
+  <div class="tab-pane active" id="tab-rules">
+    <div class="card">
+      <h2>一、需求描述</h2>
+      <div class="desc" style="color:#333;font-size:13px">
+        三方通道收取手续费时，中台入款页面需展示手续费与实际上分，口径统一为 <b>上分金额 = 实付金额 − 手续费</b>。
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>二、改动清单</h2>
+      <div class="grp g2">🖥️ 前端（V3 中台后台）</div>
+      <div class="tbl-scroll">
+      <table class="dt" style="min-width:720px">
+        <thead><tr><th style="width:150px">页面</th><th>改动点</th></tr></thead>
+        <tbody>
+          <tr><td>三方待入款</td><td>新增「手续费率」列，展示通道配置的手续费比例（%）；未支付订单实付未定，只显示比例</td></tr>
+          <tr><td>全部入款记录</td><td>「实际充值金额」<span class="hl">改名为"实付金额"</span>；实付金额格内增「手续费：金额（费率%）」；<span class="hl">新增"上分金额"列</span>；表尾页面总计/总计增加「上分金额」汇总</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>三、需求说明（业务规则）</h2>
+      <ol class="rules-ol">
+        <li><b>手续费来源：</b>手续费比例在充值<b>通道</b>上配置，每个通道独立；中台按通道下发。0% 表示该通道不收手续费。</li>
+        <li><b>手续费金额：</b>手续费金额 = <b>实付金额（实际充值金额）× 手续费比例</b>；费率取<b>下单时快照</b>，之后通道调费率不影响历史订单。</li>
+        <li><b>上分口径：</b><b>上分金额 = 实付金额 − 手续费</b>；无手续费（0% 或人工充值）时 上分金额 = 实付金额。</li>
+        <li><b>三方待入款（未支付）：</b>订单未支付、实付未定、手续费金额算不出，故只展示<b>手续费率（%）</b>；0%/未配置显示"—"。</li>
+        <li><b>全部入款记录（含已支付）：</b>展示手续费<b>金额（费率%）</b>与<b>上分金额</b>；未支付订单实付为 0、手续费显示"—"、上分为 0。</li>
+        <li><b>字段改名：</b>「实际充值金额」改为「实付金额」，语义不变（= 用户实际付款金额 ActualAmount）。</li>
+        <li><b>展示样式：</b>实付金额格内沿用中台「金额：/兑换比例：/USDT：」的标签堆叠样式，增加一行「手续费：」；「上分金额」单列加粗突出。</li>
+        <li><b>合计：</b>「页面总计 / 总计」在原「充值发起金额 / 实付金额」旁增加「上分金额」汇总。</li>
+        <li><b>精度：</b>按币种精度保留（如 INR 2 位小数），保证 实付金额 − 手续费 = 上分金额 可对账。</li>
+        <li><b>兼容：</b>手续费 = 0 或旧订单无手续费字段时，上分金额 = 实付金额，页面与现状一致。</li>
+        <li><b>口径统一：</b>中台报表 / 统计 / 代理返佣 / 打码稽核等下游一律以「上分金额」为准。</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ================= ① 三方待入款 ================= -->
+  <div class="tab-pane" id="tab-wait">
+    <div class="card">
+      <h2>① 三方待入款 · 新增手续费率列</h2>
+      <div class="desc">未支付订单，在「充值发起金额」右侧新增<b>「手续费率」列</b>，展示通道配置的手续费比例（%）。</div>
+      <div class="admin">
+        <div class="admin-tabs"><span class="at on">三方待入款</span><span class="at">本地待入款</span><span class="at">全部入款记录</span><span class="at">直充短信</span></div>
+        <div class="filters">
+          <div class="f">商户 <select><option>(2001)sit-inr</option></select></div>
+          <div class="f">会员ID <input placeholder="会员ID"></div>
+          <div class="f">订单号 <input placeholder="订单号"></div>
+          <div class="f">通道ID/名称 <input placeholder="通道"></div>
+          <div class="f">订单状态 <select><option>请选择</option></select></div>
+          <button class="b b-pri">🔍 搜索</button><button class="b b-def">重置</button>
+        </div>
+        <div class="tip">① 仅显示最近 60 天订单，更早请查"全部入款记录"</div>
+        <div class="tbl-scroll">
+        <table class="dt" style="min-width:1180px">
+          <thead><tr>
+            <th>商户</th><th>会员ID</th><th>会员信息</th><th>订单号</th><th>客户入款信息</th><th>通道名称</th><th>充值发起金额</th><th>手续费率<sup class="nw">新</sup></th><th>订单状态</th><th>下单时间</th><th>操作</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="mtag">(2001)sit-inr</span></td><td class="p-blue">600832</td>
+              <td><span class="mi">充值等级:<b>L7</b><br>VIP等级:<b>VIP10</b><br>会员状态:<b class="on">启用</b></span></td>
+              <td>RC2026070313204257…022a</td>
+              <td><span class="cust">持卡人：<b>--</b><br>银行卡号：<b>--</b></span></td>
+              <td>330115 → wallet 66</td>
+              <td><span class="cell2"><span class="r"><i>金额：</i><b>946.30</b></span><span class="r"><i>兑换比例：</i><b>94.63</b></span><span class="r"><i>USDT：</i><b>10</b></span></span></td>
+              <td class="hl-add"><b style="color:#d46b08;font-family:'SF Mono',Menlo,monospace">2%</b></td>
+              <td><span class="pill p-wait">待支付</span></td><td>2026-07-03 13:20:42</td><td class="link">确认补单</td>
+            </tr>
+            <tr>
+              <td><span class="mtag">(2001)sit-inr</span></td><td class="p-blue">600832</td>
+              <td><span class="mi">充值等级:<b>L7</b><br>VIP等级:<b>VIP10</b><br>会员状态:<b class="on">启用</b></span></td>
+              <td>RC2026070313070481…017a</td>
+              <td><span class="cust">持卡人：<b>--</b><br>银行卡号：<b>--</b></span></td>
+              <td>330115 → wallet 66</td>
+              <td><span class="cell2"><span class="r"><i>金额：</i><b>946.30</b></span><span class="r"><i>兑换比例：</i><b>94.63</b></span><span class="r"><i>USDT：</i><b>10</b></span></span></td>
+              <td class="hl-add"><b style="color:#d46b08;font-family:'SF Mono',Menlo,monospace">2%</b></td>
+              <td><span class="pill p-cancel">已取消</span></td><td>2026-07-03 13:07:04</td><td class="link">确认补单</td>
+            </tr>
+            <tr>
+              <td><span class="mtag">(2001)sit-inr</span></td><td class="p-blue">2250964</td>
+              <td><span class="mi">充值等级:<b>L5</b><br>VIP等级:<b>VIP5</b><br>会员状态:<b class="on">启用</b></span></td>
+              <td>RC2026070118285483…012a</td>
+              <td><span class="cust">持卡人：<b>--</b><br>银行卡号：<b>--</b></span></td>
+              <td>300015 → RAP-12183</td>
+              <td><span class="cell2"><span class="r blue"><i></i><b>200.00</b></span></span></td>
+              <td class="hl-add"><b style="color:#bbb;font-weight:400">—</b></td>
+              <td><span class="pill p-cancel">已取消</span></td><td>2026-07-01 18:28:54</td><td class="link">确认补单</td>
+            </tr>
+            <tr>
+              <td><span class="mtag">(2001)sit-inr</span></td><td class="p-blue">2250988</td>
+              <td><span class="mi">充值等级:<b>L1</b><br>VIP等级:<b>VIP5</b><br>会员状态:<b class="on">启用</b></span></td>
+              <td>RC2026070111080669…008a</td>
+              <td><span class="cust">持卡人：<b>--</b><br>银行卡号：<b>--</b></span></td>
+              <td>330115 → wallet 66</td>
+              <td><span class="cell2"><span class="r"><i>金额：</i><b>6,529.47</b></span><span class="r"><i>兑换比例：</i><b>94.63</b></span><span class="r"><i>USDT：</i><b>69</b></span></span></td>
+              <td class="hl-add"><b style="color:#d46b08;font-family:'SF Mono',Menlo,monospace">2%</b></td>
+              <td><span class="pill p-cancel">已取消</span></td><td>2026-07-01 11:08:06</td><td class="link">确认补单</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr><td class="ftl">页面总计</td><td></td><td></td><td></td><td></td><td></td><td><i>金额：</i>19,883.64 <i>U额：</i>208.00</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="ftl">总计</td><td></td><td></td><td></td><td></td><td></td><td><i>金额：</i>245,430,069,586.96 <i>U额：</i>499.00</td><td></td><td></td><td></td><td></td></tr>
+          </tfoot>
+        </table>
+        </div>
+        <div class="pager"><span>共 10603071 条</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span>10/页</span></div>
+      </div>
+      <div class="callout" style="margin-top:14px"><b>为什么待入款只显示费率：</b>订单未支付、实付金额未定，手续费金额算不出，故展示<b>通道配置的手续费比例（%）</b>；用户支付成功后进入「全部入款记录」，再按实付金额算出手续费<b>金额</b>与上分金额。0%/未配置显示"—"。</div>
+    </div>
+  </div>
+
+  <!-- ================= ② 全部入款记录 ================= -->
+  <div class="tab-pane" id="tab-all">
+    <div class="card">
+      <h2>② 全部入款记录 · 实付金额 + 手续费 + 上分金额</h2>
+      <div class="desc">「实际充值金额」<b>改名为"实付金额"</b>，格内增加「手续费：金额（费率%）」；<b>新增"上分金额"列</b>（= 实付金额 − 手续费）；表尾合计增加上分金额。无手续费订单（人工充值等）手续费显示"—"、上分 = 实付。</div>
+      <div class="admin">
+        <div class="admin-tabs"><span class="at">三方待入款</span><span class="at">本地待入款</span><span class="at on">全部入款记录</span><span class="at">直充短信</span></div>
+        <div class="filters">
+          <div class="f">商户 <select><option>(2001)sit-inr</option></select></div>
+          <div class="f">会员ID <input placeholder="会员ID"></div>
+          <div class="f">订单号 <input placeholder="订单号"></div>
+          <div class="f">充值大类 <select><option>请选择</option></select></div>
+          <div class="f">通道ID/名称 <input placeholder="通道"></div>
+          <div class="f">订单状态 <select><option>请选择</option></select></div>
+          <button class="b b-pri">🔍 搜索</button><button class="b b-def">重置</button>
+        </div>
+        <div class="tbl-scroll">
+        <table class="dt" style="min-width:1440px">
+          <thead><tr>
+            <th>商户</th><th>会员ID</th><th>会员信息</th><th>订单号</th><th>客户入款信息</th><th>充值大类</th><th>本地收款信息/通道名称</th><th>充值发起金额</th><th>实付金额 / 手续费<sup class="nw">新</sup></th><th>上分金额<sup class="nw">新</sup></th><th>充值次数</th><th>订单状态</th><th>下单时间</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="mtag">(2001)sit-inr</span></td><td class="p-blue">2250985</td>
+              <td><span class="mi">充值等级:<b>L5</b><br>VIP等级:<b>VIP0</b><br>会员状态:<b class="on">启用</b></span></td>
+              <td>RC2026070117215406…002a</td>
+              <td><span class="cust">持卡人：<b>--</b><br>银行卡号：<b>--</b></span></td>
+              <td>fa 2=44</td>
+              <td><span class="cust">通道名称：<b>300015 → RAP-12183</b><br>TransID：<b>C20260701…629</b></span></td>
+              <td><span class="cell2"><span class="r blue"><i></i><b>3,000.00</b></span></span></td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>3,000.00</b></span><span class="r fee"><i>手续费：</i><b>60.00</b> <span class="rate">(2%)</span></span></span></td>
+              <td class="hl-add"><span class="up-amt">2,940.00</span></td>
+              <td>0</td><td><span class="pill p-ok">已支付</span></td>
+              <td><span class="cust">下单：<b>07-01 17:21:54</b><br>完成：<b>07-01 17:22:22</b></span></td>
+            </tr>
+            <tr>
+              <td><span class="mtag">(2001)sit-inr</span></td><td class="p-blue">2243947</td>
+              <td><span class="mi">充值等级:<b>L6</b><br>VIP等级:<b>VIP5</b><br>会员状态:<b class="on">启用</b></span></td>
+              <td>RC2026070117213499…001a</td>
+              <td><span class="cust">持卡人：<b>--</b><br>银行卡号：<b>--</b></span></td>
+              <td>fa 2=44</td>
+              <td><span class="cust">通道名称：<b>330287 → 123</b><br>TransID：<b>UM260701…965</b></span></td>
+              <td><span class="cell2"><span class="r blue"><i></i><b>100.00</b></span></span></td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>100.00</b></span><span class="r fee"><i>手续费：</i><b>2.00</b> <span class="rate">(2%)</span></span></span></td>
+              <td class="hl-add"><span class="up-amt">98.00</span></td>
+              <td>0</td><td><span class="pill p-ok">已支付</span></td>
+              <td><span class="cust">下单：<b>07-01 17:21:34</b><br>完成：<b>07-01 17:21:36</b></span></td>
+            </tr>
+            <tr>
+              <td><span class="mtag">(2001)sit-inr</span></td><td class="p-blue">2250825</td>
+              <td><span class="mi">充值等级:<b>L0</b><br>VIP等级:<b>VIP0</b><br>会员状态:<b class="on">启用</b></span></td>
+              <td>RC2026070115071645…006</td>
+              <td><span class="cust">持卡人：<b>--</b><br>银行卡号：<b>--</b></span></td>
+              <td>--</td>
+              <td><span class="cust">通道名称：<b>300004 → Manual Recharge</b><br>TransID：<b>--</b></span></td>
+              <td><span class="cell2"><span class="r blue"><i></i><b>1,000.00</b></span></span></td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>1,000.00</b></span><span class="r nofee"><i>手续费：</i><b>—</b></span></span></td>
+              <td class="hl-add"><span class="up-amt">1,000.00</span></td>
+              <td>0</td><td><span class="pill p-ok">已支付</span></td>
+              <td><span class="cust">下单：<b>07-01 15:07:16</b><br>完成：<b>07-01 15:07:16</b></span></td>
+            </tr>
+            <tr>
+              <td><span class="mtag">(2001)sit-inr</span></td><td class="p-blue">2243947</td>
+              <td><span class="mi">充值等级:<b>L6</b><br>VIP等级:<b>VIP5</b><br>会员状态:<b class="on">启用</b></span></td>
+              <td>RC2026070117241557…003a</td>
+              <td><span class="cust">持卡人：<b>5</b><br>银行卡号：<b>5</b></span></td>
+              <td>LocalBank</td>
+              <td><span class="cust">银行名称：<b>SCB</b><br>TransID：<b>246567876545</b></span></td>
+              <td><span class="cell2"><span class="r blue"><i></i><b>100.00</b></span></span></td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>0.00</b></span><span class="r nofee"><i>手续费：</i><b>—</b></span></span></td>
+              <td class="hl-add"><span class="up-amt" style="color:#bbb">0.00</span></td>
+              <td>24</td><td><span class="pill p-wait">待支付</span></td>
+              <td><span class="cust">下单：<b>07-01 17:24:15</b><br>完成：<b>--</b></span></td>
+            </tr>
+            <tr>
+              <td><span class="mtag">(2001)sit-inr</span></td><td class="p-blue">2250831</td>
+              <td><span class="mi">充值等级:<b>L1</b><br>VIP等级:<b>VIP3</b><br>会员状态:<b class="on">启用</b></span></td>
+              <td>RC2026070111140832…012a</td>
+              <td><span class="cust">持卡人：<b>--</b><br>银行卡号：<b>--</b></span></td>
+              <td>fa 2=44</td>
+              <td><span class="cust">通道名称：<b>330287 → 123</b><br>TransID：<b>UM260701…950</b></span></td>
+              <td><span class="cell2"><span class="r blue"><i></i><b>200.00</b></span></span></td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>200.00</b></span><span class="r fee"><i>手续费：</i><b>7.00</b> <span class="rate">(3.5%)</span></span></span></td>
+              <td class="hl-add"><span class="up-amt">193.00</span></td>
+              <td>0</td><td><span class="pill p-ok">已支付</span></td>
+              <td><span class="cust">下单：<b>07-01 11:14:08</b><br>完成：<b>07-01 11:14:09</b></span></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr><td class="ftl">页面总计</td><td></td><td></td><td></td><td></td><td></td><td></td><td><i>金额：</i>4,400.00 <i>U额：</i>69.00</td><td><i>手续费：</i>69.00</td><td><i>上分：</i>4,231.00</td><td></td><td></td><td></td></tr>
+            <tr><td class="ftl">总计</td><td></td><td></td><td></td><td></td><td></td><td></td><td><i>金额：</i>44,829.47 <i>U额：</i>69.00</td><td><i>手续费：</i>897.00</td><td><i>上分：</i>43,932.47</td><td></td><td></td><td></td></tr>
+          </tfoot>
+        </table>
+        </div>
+        <div class="pager"><span>共 17 条</span><span class="pg on">1</span><span class="pg">2</span><span>10/页</span></div>
+      </div>
+      <div class="callout" style="margin-top:14px"><b>展示口径：</b>「实付金额」= 用户实际付款（原实际充值金额）；「手续费」= 实付 × 费率快照；「上分金额」= 实付 − 手续费，单列加粗突出。手续费展示<b>金额为主 + 括号内费率</b>。表尾「页面总计 / 总计」在金额、U额基础上增加「手续费、上分」汇总，供财务与三方结算对账。</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.querySelectorAll('.mt-btn').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.mt-btn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('tab-'+b.dataset.tab).classList.add('active');
+  };
+});
+</script>
+</body>
+</html>
