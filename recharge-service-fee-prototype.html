@@ -65,6 +65,19 @@ table.dt tr:hover td{background:#fafbff}
 .act{color:#389e0d;cursor:pointer;margin-right:8px;font-size:11.5px}
 .fee-cell{font-weight:700;color:#d46b08;font-family:'SF Mono',Menlo,monospace}
 .fee-zero{color:#bbb;font-weight:400}
+/* 多行单元格：借鉴"标签：值"堆叠样式（金额/手续费） */
+.cell2{line-height:1.65;font-size:12px}
+.cell2 .r{display:block;white-space:nowrap}
+.cell2 .r i{color:#8a929c;font-style:normal}
+.cell2 .r b{font-weight:600;color:#333;font-family:'SF Mono',Menlo,monospace}
+.cell2 .r.fee b{color:#d4380d}
+.cell2 .r.fee .rate{color:#9aa1ab;font-weight:400;font-family:inherit}
+.cell2 .r.nofee b{color:#bbb;font-weight:400}
+.up-amt{font-weight:700;color:#389e0d;font-family:'SF Mono',Menlo,monospace}
+/* 表尾合计 */
+.dt tfoot td{background:#eef1f6;color:#cf1322;padding:9px 10px;border-top:1px solid #dfe3ea;white-space:nowrap;font-weight:600}
+.dt tfoot .ftl{font-weight:700}
+.dt tfoot i{color:#cf1322;font-style:normal;font-weight:400}
 
 /* ==== 常用修改弹窗 ==== */
 .popup-demo{background:#f0f2f7;border-radius:10px;padding:26px;display:flex;justify-content:center}
@@ -238,7 +251,7 @@ table.dt tr:hover td{background:#fafbff}
           <tr><td>充值通道列表</td><td>新增「手续费」列，查看各通道手续费</td></tr>
           <tr><td>常用修改弹窗</td><td>新增「手续费率」可编辑字段（含"是否修改"勾选）</td></tr>
           <tr><td>三方待入款</td><td>新增「手续费」列（下单时快照）</td></tr>
-          <tr><td>入款记录</td><td>新增「手续费」列，配合"实际充值金额"核对</td></tr>
+          <tr><td>入款记录</td><td>新增「手续费」列，配合"实付金额"核对</td></tr>
         </tbody>
       </table>
       </div>
@@ -563,8 +576,8 @@ table.dt tr:hover td{background:#fafbff}
   <!-- ================= 图三 三方待入款 ================= -->
   <div class="tab-pane" id="tab-wait">
     <div class="card">
-      <h2>④ 三方待入款 · 新增手续费列</h2>
-      <div class="desc">待入款订单新增「手续费」列，展示该订单下单时计算出的手续费金额，便于财务核对。</div>
+      <h2>④ 三方待入款 · 新增手续费比例列</h2>
+      <div class="desc">待入款为<b>未支付</b>订单，手续费金额尚未最终确定，此处展示通道配置的<b>手续费比例（%）</b>；实际手续费金额在「入款记录」（已支付）里展示。</div>
       <div class="admin">
         <div class="admin-bar">三方待入款<span class="bc">财务管理 › 三方待入款</span></div>
         <div class="filters">
@@ -576,27 +589,27 @@ table.dt tr:hover td{background:#fafbff}
         <div class="tbl-scroll">
         <table class="dt" style="min-width:1000px">
           <thead><tr>
-            <th>会员ID</th><th>订单号</th><th>充值方式</th><th>充值金额</th><th>手续费<sup class="nw">新</sup></th><th>状态</th><th>订单日期</th><th>操作</th>
+            <th>会员ID</th><th>订单号</th><th>充值方式</th><th>充值金额</th><th>手续费比例<sup class="nw">新</sup></th><th>状态</th><th>订单日期</th><th>操作</th>
           </tr></thead>
           <tbody>
-            <tr><td class="p-blue">100000</td><td>TestRC20260627180134482002088</td><td class="p-blue">BullPayINR-QR</td><td>2344.00</td><td class="hl-add fee-cell">46.88</td><td class="p-orange">Not Pay</td><td>2026-06-27 18:01:34</td><td class="link">详情</td></tr>
-            <tr><td class="p-blue">100000</td><td>TestRC20260627131116042002084</td><td class="p-blue">BullPayINR-PaytmQR</td><td>202.00</td><td class="hl-add fee-cell">4.04</td><td class="p-orange">Not Pay</td><td>2026-06-27 13:11:16</td><td class="link">详情</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC20260627180134482002088</td><td class="p-blue">BullPayINR-QR</td><td>2344.00</td><td class="hl-add fee-cell">2%</td><td class="p-orange">Not Pay</td><td>2026-06-27 18:01:34</td><td class="link">详情</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC20260627131116042002084</td><td class="p-blue">BullPayINR-PaytmQR</td><td>202.00</td><td class="hl-add fee-cell">2%</td><td class="p-orange">Not Pay</td><td>2026-06-27 13:11:16</td><td class="link">详情</td></tr>
             <tr><td class="p-blue">100000</td><td>TestRC20260626214341992002071</td><td class="p-blue">BullPayINR-PaytmQR</td><td>233.00</td><td class="hl-add fee-cell fee-zero">—</td><td class="p-orange">Not Pay</td><td>2026-06-26 21:34:31</td><td class="link">详情</td></tr>
-            <tr><td class="p-blue">100000</td><td>TestRC20260626195914632002070</td><td class="p-blue">BullPayINR-QR</td><td>2342.00</td><td class="hl-add fee-cell">46.84</td><td class="p-orange">Not Pay</td><td>2026-06-26 19:59:14</td><td class="link">详情</td></tr>
-            <tr><td class="p-blue">100000</td><td>TestRC20260625160023920002027</td><td class="p-blue">OmniPayPKR-Easy</td><td>850.00</td><td class="hl-add fee-cell">29.75</td><td class="p-orange">Not Pay</td><td>2026-06-25 16:20:02</td><td class="link">详情</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC20260626195914632002070</td><td class="p-blue">BullPayINR-QR</td><td>2342.00</td><td class="hl-add fee-cell">2%</td><td class="p-orange">Not Pay</td><td>2026-06-26 19:59:14</td><td class="link">详情</td></tr>
+            <tr><td class="p-blue">100000</td><td>TestRC20260625160023920002027</td><td class="p-blue">OmniPayPKR-Easy</td><td>850.00</td><td class="hl-add fee-cell">3.5%</td><td class="p-orange">Not Pay</td><td>2026-06-25 16:20:02</td><td class="link">详情</td></tr>
           </tbody>
         </table>
         </div>
       </div>
-      <div class="callout" style="margin-top:14px"><b>手续费展示：</b> 展示<u>下单时</u>计算出的手续费<b>金额</b>（纯币种金额，不带百分比），费率在通道配置里查；即使之后通道费率调整，历史订单手续费不受影响，供财务与三方结算对账。</div>
+      <div class="callout" style="margin-top:14px"><b>为什么待入款显示比例：</b> 订单尚未支付、实付金额未定，手续费金额算不出，故展示<b>通道配置的手续费比例（%）</b>；待用户支付成功后，在「入款记录」按实付金额算出手续费<b>金额</b>并展示。0% 或未配置的通道显示"—"。</div>
     </div>
   </div>
 
   <!-- ================= 图四 入款记录 ================= -->
   <div class="tab-pane" id="tab-record">
     <div class="card">
-      <h2>⑤ 入款记录 · 新增手续费列</h2>
-      <div class="desc">入款记录已有「实际充值金额」列，新增「手续费」列后可清晰核对：实际充值金额 = 充值金额 − 手续费。</div>
+      <h2>⑤ 入款记录 · 手续费与实际上分</h2>
+      <div class="desc">「实付金额」列借鉴现有页面「金额：/兑换比例：/USDT：」的<b>标签：值堆叠样式</b>，展示 金额（实付）+ 手续费（金额+费率%）；并新增「实际上分」列。<b>实际上分 = 实际付款 − 手续费</b>。表尾「页面总计 / 总计」对「充值金额」与「实际上分」列汇总。</div>
       <div class="admin">
         <div class="admin-bar">入款记录<span class="bc">财务管理 › 入款记录</span></div>
         <div class="filters">
@@ -606,21 +619,35 @@ table.dt tr:hover td{background:#fafbff}
           <div class="btns"><button class="b b-pri">🔍 查询</button><button class="b b-def">导出</button><button class="b b-def">重置</button></div>
         </div>
         <div class="tbl-scroll">
-        <table class="dt" style="min-width:1080px">
+        <table class="dt" style="min-width:1000px">
           <thead><tr>
-            <th>会员ID</th><th>订单号</th><th>充值类型</th><th>充值金额</th><th>手续费<sup class="nw">新</sup></th><th>实际充值金额</th><th>状态</th><th>订单日期</th><th>到账日期</th>
+            <th>会员ID</th><th>订单号</th><th>充值类型</th><th>充值金额<br><span style="font-weight:400;color:#9aa1ab;font-size:11px">下单金额</span></th><th>实付金额 / 手续费<sup class="nw">新</sup></th><th>实际上分<sup class="nw">新</sup></th><th>状态</th><th>订单日期</th><th>到账日期</th>
           </tr></thead>
           <tbody>
-            <tr><td class="p-blue">100000</td><td>TestRC…482002088</td><td>Bank Transfer</td><td>2344.00</td><td class="hl-add fee-cell">46.88</td><td><b>0.00</b></td><td class="p-orange">已取消</td><td>06-27 18:01:34</td><td>----</td></tr>
-            <tr><td class="p-blue">100000</td><td>TestRC…342002087</td><td>Bank Transfer</td><td>234.00</td><td class="hl-add fee-cell">4.68</td><td><b style="color:#389e0d">229.32</b></td><td class="p-on">已支付</td><td>06-27 16:11:51</td><td>16:13:22</td></tr>
-            <tr><td class="p-blue">100000</td><td>TestRC…692002085</td><td>Bank Transfer</td><td>235.00</td><td class="hl-add fee-cell">4.70</td><td><b style="color:#389e0d">230.30</b></td><td class="p-on">已支付</td><td>06-27 15:32:36</td><td>15:45:08</td></tr>
-            <tr><td class="p-blue">100000</td><td>TestRC…192002083</td><td>Bank Transfer</td><td>201.00</td><td class="hl-add fee-cell fee-zero">—</td><td><b style="color:#389e0d">201.00</b></td><td class="p-on">已支付</td><td>06-27 13:05:13</td><td>13:11:54</td></tr>
-            <tr><td class="p-blue">100000</td><td>TestRC…842002082</td><td>Bank Transfer</td><td>211.00</td><td class="hl-add fee-cell">4.22</td><td><b style="color:#389e0d">206.78</b></td><td class="p-on">已支付</td><td>06-27 12:54:12</td><td>13:01:16</td></tr>
+            <tr><td class="p-blue">2235031</td><td>RC…25a</td><td>fa 3 · UmoneyPay</td><td>10000.00</td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>₹10000.00</b></span><span class="r fee"><i>手续费：</i><b>₹200.00</b> <span class="rate">(2%)</span></span></span></td>
+              <td class="hl-add"><span class="up-amt">₹9800.00</span></td><td class="p-on">已支付</td><td>07-02 10:57:26</td><td>10:57:30</td></tr>
+            <tr><td class="p-blue">2235030</td><td>RC…19a</td><td>fa 3 · RAPay-QR</td><td>200.00</td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>₹200.00</b></span><span class="r fee"><i>手续费：</i><b>₹4.00</b> <span class="rate">(2%)</span></span></span></td>
+              <td class="hl-add"><span class="up-amt">₹196.00</span></td><td class="p-on">已支付</td><td>07-02 10:17:42</td><td>10:17:51</td></tr>
+            <tr><td class="p-blue">2250963</td><td>RC…20a</td><td>LocalBank · SCB</td><td>2000.00</td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>₹2000.00</b></span><span class="r fee"><i>手续费：</i><b>₹70.00</b> <span class="rate">(3.5%)</span></span></span></td>
+              <td class="hl-add"><span class="up-amt">₹1930.00</span></td><td class="p-on">已支付</td><td>07-02 10:31:07</td><td>10:32:15</td></tr>
+            <tr><td class="p-blue">2250984</td><td>RC…01</td><td>人工充值</td><td>1000.00</td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>₹1000.00</b></span><span class="r nofee"><i>手续费：</i><b>—</b></span></span></td>
+              <td class="hl-add"><span class="up-amt">₹1000.00</span></td><td class="p-on">已支付</td><td>07-02 11:04:11</td><td>11:04:11</td></tr>
+            <tr><td class="p-blue">2235031</td><td>RC…01</td><td>人工充值</td><td>1233.00</td>
+              <td class="hl-add"><span class="cell2"><span class="r"><i>金额：</i><b>₹1233.00</b></span><span class="r nofee"><i>手续费：</i><b>—</b></span></span></td>
+              <td class="hl-add"><span class="up-amt">₹1233.00</span></td><td class="p-on">已支付</td><td>07-02 11:01:04</td><td>11:01:04</td></tr>
           </tbody>
+          <tfoot>
+            <tr><td class="ftl">页面总计</td><td></td><td></td><td><i>金额：</i>14,433.00</td><td><i>手续费：</i>274.00</td><td><i>实际上分：</i>14,159.00</td><td></td><td></td><td></td></tr>
+            <tr><td class="ftl">总计</td><td></td><td></td><td><i>金额：</i>3,570,728,954</td><td><i>手续费：</i>71,414,379</td><td><i>实际上分：</i>3,499,314,575</td><td></td><td></td><td></td></tr>
+          </tfoot>
         </table>
         </div>
       </div>
-      <div class="callout" style="margin-top:14px"><b>核对关系：</b> 实际充值金额 = 充值金额 − 手续费（到账口径）。已取消订单实际充值金额为 0，手续费列仍展示下单快照，供财务对账参考。</div>
+      <div class="callout" style="margin-top:14px"><b>说明：</b>「实付金额」列沿用现有「金额：/兑换比例：/USDT：」的标签堆叠样式，把「手续费：金额（费率%）」并入该格，少占一列；「实际上分」单列加粗突出最终进账，并在表尾「页面总计 / 总计」汇总（与「充值金额」列一致）。手续费展示<b>金额为主 + 括号内费率</b>，费率取下单时快照。</div>
     </div>
   </div>
 
