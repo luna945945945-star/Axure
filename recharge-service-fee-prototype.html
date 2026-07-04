@@ -276,21 +276,21 @@ table.dt tr:hover td{background:#fafbff}
 
     <div class="card">
       <h2>四、关联影响（后端需同步改造）</h2>
-      <div class="desc">口径已定：会员到账与下游统计 / 返佣 / 打码 / 活动阈值，<b>一律以「实际上分（＝ 充值金额 − 手续费）」为准</b>。引入手续费后「充值金额」与「实际上分」出现差额，以下模块（V 系统现多按充值金额计算）需按此口径同步改造：</div>
+      <div class="desc">口径拆两层：① <b>会员余额入账 = 上分金额（＝ 实付 − 手续费）</b>；② 财务统计 / 返佣 / 打码 / 活动阈值等下游<b>一律按用户「实付金额」计算（不扣手续费）</b>——手续费是平台与三方之间的成本，不应削减会员的充值贡献。以下模块需按此口径同步改造：</div>
       <div class="tbl-scroll">
       <table class="dt" style="min-width:640px">
         <thead><tr><th style="width:160px">模块</th><th>改造点</th><th style="width:80px">优先级</th></tr></thead>
         <tbody>
-          <tr><td>财务报表 / 充值统计</td><td>充值日报·周报、充值总额、日/周奖励统计改按「实际上分」汇总（V1 部分现按充值金额，需一并调整）</td><td class="p-red">高</td></tr>
-          <tr><td>代理返佣 / 返水 / 分红</td><td>返佣基数改按「实际上分」，避免引入手续费后多付返佣成本</td><td class="p-red">高</td></tr>
-          <tr><td>打码量 / 流水稽核 / 提现条件</td><td>「产出与充值比」等稽核的充值基数改按「实际上分」</td><td class="p-red">高</td></tr>
-          <tr><td>充值活动 / 首充 / 累计充值 / VIP</td><td>达标阈值（累计充值满 X、首充满 X 等）改按「实际上分」判定</td><td class="p-orange">中</td></tr>
-          <tr><td>资金流水 / 上分对账</td><td>上分金额以「实际上分」入账（V2 中台已如此，V1 统一）</td><td class="p-orange">中</td></tr>
-          <tr><td>历史充值汇总表</td><td>会员历史充值总额统计表（AChartRecharge 等）口径统一为「实际上分」；历史数据是否回溯另行评估</td><td>低</td></tr>
+          <tr><td>财务报表 / 充值统计</td><td>充值日报·周报、充值总额、日/周奖励统计按「<b>实付金额</b>」汇总（用户实际充值贡献，不扣手续费）</td><td class="p-red">高</td></tr>
+          <tr><td>代理返佣 / 返水 / 分红</td><td>返佣基数按「<b>实付金额</b>」，会员充多少即按多少返，不因手续费缩水</td><td class="p-red">高</td></tr>
+          <tr><td>打码量 / 流水稽核 / 提现条件</td><td>「产出与充值比」等稽核的充值基数按「<b>实付金额</b>」</td><td class="p-red">高</td></tr>
+          <tr><td>充值活动 / 首充 / 累计充值 / VIP</td><td>达标阈值（累计充值满 X、首充满 X 等）按「<b>实付金额</b>」判定</td><td class="p-orange">中</td></tr>
+          <tr><td>资金流水 / 上分对账</td><td>会员余额入账用「<b>上分金额</b>」（＝ 实付 − 手续费），此项与上面不同</td><td class="p-orange">中</td></tr>
+          <tr><td>历史充值汇总表</td><td>会员历史充值总额统计表（AChartRecharge 等）按「<b>实付金额</b>」；历史数据是否回溯另行评估</td><td>低</td></tr>
         </tbody>
       </table>
       </div>
-      <div class="callout" style="margin-top:14px"><b>口径统一原则：</b>会员到账、财务统计、代理返佣、打码稽核、活动阈值，全部以「实际上分（＝ 充值金额 − 手续费）」为口径；手续费按币种精度保留 2 位小数（如 INR），保证"充值金额 − 手续费 ＝ 实际上分"可对账。</div>
+      <div class="callout" style="margin-top:14px"><b>口径原则（两层，勿混）：</b>① 会员<b>余额入账</b> = 上分金额（实付 − 手续费）；② 财务统计、代理返佣、打码稽核、活动阈值等<b>下游一律用「实付金额」</b>（用户实际付款、不扣手续费）。手续费按币种精度保留 2 位小数（如 INR），保证 实付 − 手续费 ＝ 上分金额 可对账。</div>
     </div>
   </div>
 
