@@ -444,24 +444,24 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
       <div class="phone-body" style="padding:0">
         <div class="reg-head">
-          <div class="rh-top"><span class="rh-logo">LOGO</span><span style="font-size:12px">🇨🇳 ZH</span></div>
-          <div class="rh-title">注册</div>
-          <div class="rh-sub">请通过手机号码或者邮箱进行注册</div>
+          <div class="rh-top"><span class="rh-logo">LOGO</span><span style="display:flex;gap:5px"><span class="langbtn on" data-l="en" onclick="setLang('en')" style="cursor:pointer;font-size:11px;padding:2px 9px;border-radius:11px;background:rgba(255,255,255,.9);color:#f5535f;font-weight:600">EN</span><span class="langbtn" data-l="hi" onclick="setLang('hi')" style="cursor:pointer;font-size:11px;padding:2px 9px;border-radius:11px;background:rgba(255,255,255,.25);color:#fff">हिंदी</span><span class="langbtn" data-l="vi" onclick="setLang('vi')" style="cursor:pointer;font-size:11px;padding:2px 9px;border-radius:11px;background:rgba(255,255,255,.25);color:#fff">Tiếng Việt</span></span></div>
+          <div class="rh-title" data-t="regTitle">注册</div>
+          <div class="rh-sub" data-t="regSub">请通过手机号码或者邮箱进行注册</div>
         </div>
-        <div class="reg-tabs"><div class="reg-tab on">📱 手机注册</div><div class="reg-tab">✉️ 邮箱注册</div></div>
+        <div class="reg-tabs"><div class="reg-tab on" data-t="tabPhone">📱 手机注册</div><div class="reg-tab" data-t="tabEmail">✉️ 邮箱注册</div></div>
         <div style="padding-top:14px">
-          <div class="rf"><div class="rl">📱 手机号</div><div class="ri"><span class="cc">+66 ▾</span><input placeholder="请输入手机号码"></div></div>
-          <div class="rf"><div class="rl">🔖 验证码</div><div class="ri"><input placeholder="请输入验证码"><span class="send">发送</span></div></div>
-          <div class="rf"><div class="rl">🔒 设置密码</div><div class="ri"><input type="password" placeholder="设置密码"><span class="eye">👁</span></div></div>
-          <div class="rf"><div class="rl">🔒 确认密码</div><div class="ri"><input type="password" placeholder="确认密码"><span class="eye">👁</span></div></div>
-          <div class="rf"><div class="rl">🎫 邀请码</div><div class="ri"><input id="reg-invite" value="118663914421" readonly style="color:#888"></div></div>
+          <div class="rf"><div class="rl"><span data-t="lblPhone">📱 手机号</span></div><div class="ri"><span class="cc">+66 ▾</span><input data-tph="phPhone" placeholder="请输入手机号码"></div></div>
+          <div class="rf"><div class="rl"><span data-t="lblCode">🔖 验证码</span></div><div class="ri"><input data-tph="phCode" placeholder="请输入验证码"><span class="send" data-t="btnSend">发送</span></div></div>
+          <div class="rf"><div class="rl"><span data-t="lblPwd">🔒 设置密码</span></div><div class="ri"><input type="password" data-tph="phPwd" placeholder="设置密码"><span class="eye">👁</span></div></div>
+          <div class="rf"><div class="rl"><span data-t="lblPwd2">🔒 确认密码</span></div><div class="ri"><input type="password" data-tph="phPwd2" placeholder="确认密码"><span class="eye">👁</span></div></div>
+          <div class="rf"><div class="rl"><span data-t="lblInvite">🎫 邀请码</span></div><div class="ri"><input id="reg-invite" value="118663914421" readonly style="color:#888"></div></div>
           <div class="reg-coupons" id="reg-coupons">
-            <div class="rc-h">🎁 专属优惠券（<span id="rc-count">1</span> 张）· 注册即得</div>
+            <div class="rc-h"><span data-t="rcHead1">🎁 专属优惠券（</span><span id="rc-count">1</span><span data-t="rcHead2"> 张）· 注册即得</span></div>
             <div class="reg-cpscroll" id="reg-cpscroll"></div>
           </div>
-          <div class="reg-agree"><span class="cb"></span>我已阅读并同意 <b>《隐私协议》</b></div>
-          <button class="reg-go" onclick="doRegister()">注册</button>
-          <div class="reg-login">我有账号 <b>去登录</b></div>
+          <div class="reg-agree"><span class="cb"></span><span data-t="agreePre">我已阅读并同意 </span><b data-t="agreePolicy">《隐私协议》</b></div>
+          <button class="reg-go" onclick="doRegister()" data-t="btnRegister">注册</button>
+          <div class="reg-login"><span data-t="loginPre">我有账号 </span><b data-t="loginLink">去登录</b></div>
         </div>
       </div>
     </div>
@@ -619,14 +619,14 @@ function setRegDemo(s){
   if(c.grant) renderRegCoupons();
 }
 function renderRegCoupons(){
-  const list=[{r:10,cap:50,m:'无门槛 · 7天'}];
+  const list=[{r:10,cap:50,m:tt('cpNoThresh')+' · '+tt('cp7day')}];
   document.getElementById('rc-count').textContent=list.length;
-  document.getElementById('reg-cpscroll').innerHTML=list.map((c,i)=>`<div class="reg-cp ${i===0?'on':''}" onclick="this.parentElement.querySelectorAll('.reg-cp').forEach(x=>x.classList.remove('on'));this.classList.add('on')"><div class="rcp-t"><b>${c.r}%</b><span>上限₹${c.cap}</span></div><div class="rcp-b">${c.m}</div></div>`).join('');
+  document.getElementById('reg-cpscroll').innerHTML=list.map((c,i)=>`<div class="reg-cp ${i===0?'on':''}" onclick="this.parentElement.querySelectorAll('.reg-cp').forEach(x=>x.classList.remove('on'));this.classList.add('on')"><div class="rcp-t"><b>${c.r}%</b><span>${tt('cpCap')}₹${c.cap}</span></div><div class="rcp-b">${c.m}</div></div>`).join('');
 }
 function doRegister(){
   const c=REG[regState];
-  toast('注册成功'+(c.grant?'，已发放优惠券':''),'success');
-  setTimeout(()=>{ if(c.grant){ toast('券已进入会员「我的优惠券」，去使用可跳充值页（第16条）','success'); } else { toast('（普通注册，会员无任何券相关感知）','info'); } }, 700);
+  toast(tt('toastRegOk')+(c.grant?tt('toastRegGrant'):''),'success');
+  setTimeout(()=>{ if(c.grant){ toast(tt('toastCouponIn'),'success'); } else { toast(tt('toastPlainReg'),'info'); } }, 700);
 }
 /* —— 白名单管理（主从：左选名单、右渲详情） —— */
 const WL=[
@@ -682,7 +682,48 @@ function createWl(){
   toast('白名单已创建并展示在列表','success');
 }
 fillListOptions(); renderWl();
+/* —— P4 多语言 en(默认)/hi/vi —— */
+let LANG='en';
+const T={
+  regTitle:{en:'Register',hi:'रजिस्टर',vi:'Đăng ký'},
+  regSub:{en:'Please register with your mobile number or email',hi:'कृपया अपने मोबाइल नंबर या ईमेल से रजिस्टर करें',vi:'Vui lòng đăng ký bằng số điện thoại hoặc email'},
+  tabPhone:{en:'📱 Phone',hi:'📱 फ़ोन',vi:'📱 Điện thoại'},
+  tabEmail:{en:'✉️ Email',hi:'✉️ ईमेल',vi:'✉️ Email'},
+  lblPhone:{en:'📱 Mobile number',hi:'📱 मोबाइल नंबर',vi:'📱 Số điện thoại'},
+  phPhone:{en:'Enter mobile number',hi:'मोबाइल नंबर दर्ज करें',vi:'Nhập số điện thoại'},
+  lblCode:{en:'🔖 Verification code',hi:'🔖 सत्यापन कोड',vi:'🔖 Mã xác minh'},
+  phCode:{en:'Enter verification code',hi:'सत्यापन कोड दर्ज करें',vi:'Nhập mã xác minh'},
+  btnSend:{en:'Send',hi:'भेजें',vi:'Gửi'},
+  lblPwd:{en:'🔒 Set password',hi:'🔒 पासवर्ड सेट करें',vi:'🔒 Đặt mật khẩu'},
+  phPwd:{en:'Set password',hi:'पासवर्ड सेट करें',vi:'Đặt mật khẩu'},
+  lblPwd2:{en:'🔒 Confirm password',hi:'🔒 पासवर्ड की पुष्टि करें',vi:'🔒 Xác nhận mật khẩu'},
+  phPwd2:{en:'Confirm password',hi:'पासवर्ड की पुष्टि करें',vi:'Xác nhận mật khẩu'},
+  lblInvite:{en:'🎫 Invitation code',hi:'🎫 आमंत्रण कोड',vi:'🎫 Mã mời'},
+  rcHead1:{en:'🎁 Exclusive coupons (',hi:'🎁 विशेष कूपन (',vi:'🎁 Phiếu ưu đãi độc quyền ('},
+  rcHead2:{en:' )· Claim on register',hi:' )· रजिस्टर पर प्राप्त करें',vi:' )· Nhận khi đăng ký'},
+  agreePre:{en:'I have read and agree to ',hi:'मैंने पढ़ लिया है और सहमत हूँ ',vi:'Tôi đã đọc và đồng ý '},
+  agreePolicy:{en:'《Privacy Policy》',hi:'《गोपनीयता नीति》',vi:'《Chính sách bảo mật》'},
+  btnRegister:{en:'Register',hi:'रजिस्टर',vi:'Đăng ký'},
+  loginPre:{en:'Already have an account? ',hi:'पहले से खाता है? ',vi:'Đã có tài khoản? '},
+  loginLink:{en:'Log in',hi:'लॉग इन करें',vi:'Đăng nhập'},
+  cpCap:{en:'Up to ',hi:'अधिकतम ',vi:'Tối đa '},
+  cpNoThresh:{en:'No threshold',hi:'कोई शर्त नहीं',vi:'Không điều kiện'},
+  cp7day:{en:'7 days',hi:'7 दिन',vi:'7 ngày'},
+  toastRegOk:{en:'Registration successful',hi:'रजिस्ट्रेशन सफल',vi:'Đăng ký thành công'},
+  toastRegGrant:{en:', coupon issued',hi:', कूपन जारी किया गया',vi:', đã phát phiếu ưu đãi'},
+  toastCouponIn:{en:'Coupon added to "My Coupons"; tap to use and jump to the deposit page (Item 16)',hi:'कूपन "मेरे कूपन" में जोड़ा गया; उपयोग के लिए टैप करें और रिचार्ज पेज पर जाएं (आइटम 16)',vi:'Phiếu đã vào "Phiếu ưu đãi của tôi"; nhấn để dùng và chuyển đến trang nạp tiền (Điều 16)'},
+  toastPlainReg:{en:'(Standard registration, no coupon shown to member)',hi:'(सामान्य रजिस्ट्रेशन, सदस्य को कोई कूपन नहीं दिखता)',vi:'(Đăng ký thường, không hiển thị phiếu ưu đãi cho thành viên)'}
+};
+function tt(k){return (T[k]&&T[k][LANG])||k;}
+function setLang(l){
+  LANG=l;
+  document.querySelectorAll('#P-p4 .langbtn').forEach(function(b){var on=b.dataset.l===l;b.style.background=on?'rgba(255,255,255,.9)':'rgba(255,255,255,.25)';b.style.color=on?'#f5535f':'#fff';b.classList.toggle('on',on);});
+  document.querySelectorAll('#P-p4 [data-t]').forEach(function(e){var k=e.getAttribute('data-t');if(T[k])e.textContent=T[k][l];});
+  document.querySelectorAll('#P-p4 [data-tph]').forEach(function(e){var k=e.getAttribute('data-tph');if(T[k])e.placeholder=T[k][l];});
+  renderRegCoupons();
+}
 setRegDemo('valid');
+setLang('en');
 /* —— 邀请海报（凸显优惠券） —— */
 function renderPosters(){
   const v=document.getElementById('cc-select').value;
@@ -710,6 +751,8 @@ renderPosters();
 
 /* init */
 updatePreview();
+/* iframe 嵌入模式：读 hash 定位页面 + 隐藏自带 demo tab 栏 */
+(function(){function findTab(k){var ts=document.querySelectorAll('.b-tab');for(var i=0;i<ts.length;i++){if((ts[i].getAttribute('onclick')||'').indexOf("'"+k+"'")>=0)return ts[i];}return null;}function hideChrome(){['.demo-banner','.sider','.admin-sider'].forEach(function(s){document.querySelectorAll(s).forEach(function(el){el.style.display='none';});});document.body.classList.remove('with-banner');document.body.style.paddingTop='0';}function go(k){hideChrome();if(k&&document.getElementById('P-'+k)){try{showPage(k,findTab(k));}catch(e){}}}var h=(location.hash||'').replace('#','');if(h){go(h);}window.addEventListener('hashchange',function(){go((location.hash||'').replace('#',''));});})();
 </script>
 </body>
 </html>
