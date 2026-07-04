@@ -115,6 +115,10 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
 .radio-opt.on{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
 .radio-opt .rd{width:15px;height:15px;border-radius:50%;border:2px solid var(--border-strong)}
 .radio-opt.on .rd{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3px #fff}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-2);cursor:pointer;border:1px solid var(--border-strong);border-radius:7px;padding:7px 11px}
+.chk.on{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark)}
+.chk .bx{width:15px;height:15px;border-radius:4px;border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.chk.on .bx{background:var(--primary);border-color:var(--primary)}
 .preview-box{background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;padding:11px 14px;font-size:12.5px;color:#389e0d}
 /* 优惠券卡片 */
 .coupon-card{display:flex;border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);background:#fff;position:relative}
@@ -169,6 +173,12 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
 .wl-item .wl-nm{font-weight:600;font-size:13.5px;color:#333}
 .wl-item .wl-meta{font-size:11.5px;color:#888;margin-top:3px}
 .wl-item .wl-code{font-size:11px;color:#1677ff;margin-top:3px}
+.wl-tabs{display:flex;gap:12px;flex-wrap:wrap}
+.wl-tab{flex:1;min-width:240px;background:#fff;border:1.5px solid #eee;border-radius:10px;padding:12px 16px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.05);transition:.15s}
+.wl-tab:hover{border-color:#ffc9c4}
+.wl-tab.on{border-color:#f5535f;background:#fff6f5;box-shadow:0 0 0 2px #ffe0dc}
+.wl-tab .wl-nm{font-weight:600;font-size:14px;color:#333}
+.wl-tab .wl-meta{font-size:11.5px;color:#888;margin-top:3px}
 .poster-scroll{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory}
 .poster-scroll::-webkit-scrollbar{height:0}
 .poster{flex:0 0 87%;scroll-snap-align:center;border-radius:16px;overflow:hidden;color:#fff}
@@ -204,120 +214,169 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
 <div class="demo-banner">
   <div class="b-left">🎟 优惠券进阶 · 注册拼接 #31</div>
   <div class="b-tabs">
-    <span class="b-tab on" onclick="showPage('p1',this)">🖥 运营·创建券码</span>
-    <span class="b-tab" onclick="showPage('p2',this)">🖥 运营·券码列表</span>
+    <span class="b-tab on" onclick="showPage('p2',this)">🖥 V1·优惠券管理</span>
+    <span class="b-tab" onclick="showPage('p6',this)">🖥 V1·白名单管理</span>
+    <span class="b-tab" onclick="showPage('p7',this)">🖥 V1·渠道报表</span>
     <span class="b-tab" onclick="showPage('p3',this)">📱 代理·邀请链接</span>
     <span class="b-tab" onclick="showPage('p4',this)">📱 带券注册</span>
-    <span class="b-tab" onclick="showPage('p5',this)">📱 注册得券</span>
-    <span class="b-tab" onclick="showPage('p6',this)">🖥 运营·白名单管理</span>
   </div>
 </div>
 
 <!-- ════ P1 · 运营创建优惠券码 ════ -->
-<div id="P-p1" class="page-block">
-  <div class="admin">
-    <aside class="admin-sider">
-      <div class="admin-logo"><span class="l-dot"></span>运营后台</div>
-      <div class="admin-menu">
-        <div class="admin-menu-group">活动管理</div>
-        <div class="admin-menu-item on">🎟 优惠券码</div>
-        <div class="admin-menu-item">🎫 优惠券管理</div>
-        <div class="admin-menu-item">✉️ 站内信</div>
-      </div>
-    </aside>
-    <main class="admin-main">
-      <header class="admin-header">
-        <div class="admin-breadcrumb">活动管理 <span class="sep">/</span> 优惠券码 <span class="sep">/</span> <span class="cur">创建</span></div>
-        <div class="admin-user"><span>ops01</span><div class="avatar">O</div></div>
-      </header>
-      <div class="admin-content">
-        <div class="page-title">创建优惠券码</div>
-        <div class="page-subtitle">#31 — 运营创建、分配给代理；新用户通过带码邀请链接注册即得一张充值优惠券（含 #39 限制）</div>
-        <div class="card" style="max-width:720px">
-          <div class="form-row">
-            <span class="form-label">优惠券码</span>
-            <input class="input" id="cc-code" value="SUMMER10" style="width:180px">
-            <button class="btn ghost sm" onclick="genCode()">随机生成</button>
+<div class="modal-mask" id="create-code-modal">
+  <div class="modal" style="width:780px;max-width:94vw;max-height:94vh;overflow-y:auto">
+    <div class="modal-head"><div class="modal-title">创建优惠券码</div><span class="modal-close" onclick="closeModal('create-code-modal')">✕</span></div>
+    <div class="modal-body">
+      <style>
+#create-code-modal .modal-body{padding:14px 20px;line-height:1.4}
+#create-code-modal .form-row{margin-bottom:6px}
+#create-code-modal .card-head{margin:9px 0 7px!important;padding-bottom:6px}
+#create-code-modal .rules{margin:11px 0 0;padding:11px 14px}
+#create-code-modal .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 22px;align-items:start}
+#create-code-modal .grid2 .form-row{margin-bottom:0}
+#create-code-modal .preview-box{padding:6px 12px;font-size:11.5px;line-height:1.5}
+      </style>
+        <div class="card" style="max-width:100%;box-shadow:none;border:none;padding:0">
+          <div class="form-row" style="align-items:center"><span class="form-label">适用渠道</span>
+            <div class="radio-grp"><div class="radio-opt on" onclick="pickChan(this,'link')"><span class="rd"></span>代理邀请链接</div><div class="radio-opt" onclick="pickChan(this,'channel')"><span class="rd"></span>渠道注册码</div><div class="radio-opt" onclick="pickChan(this,'red')"><span class="rd"></span>代理红包码</div><div class="radio-opt" onclick="pickChan(this,'manual')"><span class="rd"></span>人工充值</div></div>
           </div>
+          <div class="form-row" style="margin:-4px 0 6px"><span class="form-label">　</span><span class="text-xs" id="chan-tip" style="color:#7c3aed">代理拼「邀请码-券码」链接拉新 · 有白名单 · 不设次数</span></div>
           <div class="card-head" style="margin-top:6px"><div class="card-title" style="font-size:14px">券规格</div></div>
-          <div class="form-row"><span class="form-label">优惠比例</span><input class="input" id="cc-ratio" type="number" value="10" oninput="updatePreview()" style="width:110px"> <span class="text-sm text-muted">%</span></div>
-          <div class="form-row">
-            <span class="form-label">金额上限</span>
-            <div class="radio-grp">
-              <div class="radio-opt on" id="cap-limit" onclick="toggleCap('limit')"><span class="rd"></span>封顶 <input class="input" id="cc-cap" type="number" value="50" oninput="updatePreview()" style="width:80px;height:28px;margin:0 4px"> ₹</div>
-              <div class="radio-opt" id="cap-none" onclick="toggleCap('none')"><span class="rd"></span>不限</div>
+          <div class="grid2">
+          <div class="form-row"><span class="form-label" style="min-width:118px">充值赠送比例</span><input class="input" id="cc-ratio" type="number" value="10" oninput="updatePreview()" style="width:76px"> <span class="text-sm text-muted">%</span></div>
+          <div class="form-row"><span class="form-label" style="min-width:76px">充值赠送上限</span><label style="cursor:pointer;font-size:12.5px;display:inline-flex;align-items:center;gap:4px"><input type="radio" name="capmode" checked onclick="toggleCap('limit')" style="accent-color:#1677ff"> 封顶</label><input class="input" id="cc-cap" type="number" value="50" oninput="updatePreview()" style="width:56px;height:28px;margin:0 2px 0 5px"> <span class="text-sm text-muted">₹</span><label style="cursor:pointer;font-size:12.5px;display:inline-flex;align-items:center;gap:4px;margin-left:14px"><input type="radio" name="capmode" onclick="toggleCap('none')" style="accent-color:#1677ff"> 不限</label></div>
+          <div class="form-row"><span class="form-label" style="min-width:118px">券有效期</span><input class="input" type="number" value="7" style="width:76px"> <span class="text-sm text-muted">天（领后）</span></div>
+          <div class="form-row"><span class="form-label" style="min-width:76px">打码量倍数</span><input class="input" type="number" value="1" style="width:76px"> <span class="text-sm text-muted">倍</span></div>
+          </div>
+          <div class="grid2">
+          <div class="form-row"><span class="form-label" style="min-width:118px">优惠券码有效期</span><input class="input" type="number" value="0" style="width:76px"> <span class="text-sm text-muted">天（0=不限）</span></div>
+          <div class="form-row"><span class="form-label" style="min-width:76px">通道赠金关系 <span class="newb">新</span></span><select class="select" style="min-width:150px;max-width:205px"><option>互斥·取高（默认）</option><option>叠加（券+通道都给）</option><option>互斥·优先券</option></select></div>
+          </div>
+          <div class="form-row" style="align-items:center;margin:12px 0 11px"><span class="form-label" style="min-width:118px">适用充值大类 <span class="newb">新</span></span>
+            <div style="display:flex;gap:28px;align-items:center;flex-wrap:wrap">
+              <label style="cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" checked style="accent-color:#1677ff;width:15px;height:15px"> UPI</label>
+              <label style="cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" checked style="accent-color:#1677ff;width:15px;height:15px"> 银行卡</label>
+              <label style="cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" checked style="accent-color:#1677ff;width:15px;height:15px"> USDT</label>
+              <label style="cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" style="accent-color:#1677ff;width:15px;height:15px"> E-Wallet</label>
+              <label style="cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" style="accent-color:#1677ff;width:15px;height:15px"> ARPay</label>
+              <span class="text-xs text-muted">不勾=全部</span>
             </div>
           </div>
-          <div class="form-row"><span class="form-label">券有效期</span><input class="input" type="number" value="7" style="width:110px"> <span class="text-sm text-muted">天（用户领取后）</span></div>
-          <div class="form-row"><span class="form-label">打码量设置</span><input class="input" type="number" value="1" style="width:110px"> <span class="text-sm text-muted">倍（彩金按打码倍数计入流水）</span></div>
-          <div class="form-row"><span class="form-label">码活动时段</span><input class="input" type="date" value="2026-06-20" style="width:150px"> <span class="text-muted">~</span> <input class="input" type="date" value="2026-06-20" style="width:150px"> <span class="text-xs text-muted">（起止同日=单日有效）</span></div>
 
-          <div class="card-head" style="margin-top:6px"><div class="card-title" style="font-size:14px">发放限制（#39）</div></div>
-          <div class="form-row"><span class="form-label">总次数上限</span><input class="input" type="number" value="1000" style="width:120px"> <span class="text-sm text-muted">张（发完即止）</span></div>
-          <div class="form-row"><span class="form-label">每手机号</span><span class="badge primary">限领 1 次</span> <span class="text-xs text-muted">（防同号多领）</span></div>
-          <div class="form-row">
-            <span class="form-label">手机号白名单</span>
-            <div class="radio-grp">
-              <div class="radio-opt on" id="wl-none" onclick="toggleWl('none')"><span class="rd"></span>不限制</div>
-              <div class="radio-opt" id="wl-on" onclick="toggleWl('on')"><span class="rd"></span>仅白名单可领</div>
-            </div>
+          <div id="dist-limit-block">
+          <div class="card-head" style="margin-top:6px;justify-content:flex-start;gap:10px"><div class="card-title" style="font-size:14px">发放限制</div><span class="text-xs text-muted">仅新客渠道（邀请链接 / 渠道注册码）</span></div>
+          <div class="form-row"><span class="form-label">每手机号</span><span class="badge primary">限领 1 次</span><span class="form-label" style="min-width:auto;margin-left:20px">白名单</span><div class="radio-grp"><div class="radio-opt on" id="wl-none" onclick="toggleWl('none')"><span class="rd"></span>不限制</div><div class="radio-opt" id="wl-on" onclick="toggleWl('on')"><span class="rd"></span>仅白名单可领</div></div></div>
+          <div class="form-row" style="margin-top:2px"><span class="form-label">　</span><span class="text-xs" style="color:#c0392b">⚠️ 仅手机号注册命中，邮箱注册不命中</span></div>
+          <div class="form-row" id="wl-import" style="display:none"><span class="form-label">选择名单</span><select class="select" style="min-width:210px"><option>新客拉新名单（5,000）</option></select> <a onclick="showPage('p6',document.querySelectorAll('.b-tab')[1])" style="color:#1677ff;cursor:pointer;font-size:12px;margin-left:10px">＋ 去白名单库</a></div>
           </div>
-          <div class="form-row" id="wl-import" style="display:none"><span class="form-label">选择名单</span><select class="select" style="min-width:210px"><option>回归召回名单（10,000）</option><option>新客拉新名单（5,000）</option></select> <a onclick="showPage('p6',document.querySelectorAll('.b-tab')[5])" style="color:#1677ff;cursor:pointer;font-size:12px;margin-left:10px">＋ 去白名单库新建/导入</a> <span class="text-xs text-muted" style="margin-left:10px">引用库名单（单一数据源），仅名单内手机号注册才发券</span></div>
-
-          <div class="card-head" style="margin-top:6px"><div class="card-title" style="font-size:14px">分配</div></div>
-          <div class="form-row"><span class="form-label">分配给代理</span><input class="input flex-1" value="100000、100001" placeholder="代理ID，逗号分隔（如 100000、100001）" style="max-width:300px"> <button class="btn ghost sm" onclick="toast('已批量导入 50 个代理ID','success')">＋ 批量导入代理ID</button></div>
-          <div class="form-row"><span class="form-label">　</span><span class="text-xs text-muted">批量导入 CSV：单列「代理ID」，每行一个（不含子额度）</span></div>
 
           <div class="form-row" style="align-items:flex-start"><span class="form-label">实时预览</span><div class="preview-box flex-1" id="cc-preview" style="max-width:420px"></div></div>
-          <div class="form-row"><span class="form-label">　</span><button class="btn primary" onclick="createCode()">创建优惠券码</button></div>
+          <div id="assign-agent-block">
+          <div class="card-head" style="margin-top:6px;justify-content:flex-start;gap:10px"><div class="card-title" style="font-size:14px">分配代理</div><span class="text-xs text-muted">授权代理推广此券码</span></div>
+          <div class="form-row"><span class="form-label">分配给代理</span><input class="input flex-1" value="100000、100001" placeholder="代理ID，逗号分隔" style="max-width:250px"> <button class="btn ghost sm" onclick="toast('已批量导入 50 个代理ID','success')">＋ 批量导入</button></div>
+          </div>
+          <div class="form-row" style="align-items:center"><span class="form-label">优惠券码</span><button class="btn primary" onclick="createCode()">创建优惠券码</button><input class="input" id="cc-code" value="" readonly placeholder="点击创建后自动生成" style="width:180px;background:#f5f5f5;color:#555;margin:0 8px;letter-spacing:.5px"><button class="btn ghost sm" id="cc-copy-btn" onclick="copyCcCode()" disabled><i class="ti ti-copy"></i> 复制</button> <span class="text-xs text-muted" style="margin-left:10px">创建时系统自动随机生成 · 不可更改</span></div>
         </div>
-        <div class="rules" style="max-width:720px">
-          <div class="rules-title">📋 规则</div>
-          <ul>
-            <li>码活动时段：仅此区间内用带码链接注册才发券（实现"单日有效"）；券有效期：券到用户手里后 N 天过期</li>
-            <li>发放受"总次数上限 + 每手机号 1 次 + 可选白名单"三重约束（#39）</li>
-            <li>发出的券为充值优惠券，使用与到账逻辑复用第 16 条</li>
-          </ul>
+        <!-- 规则说明：待原型评审后统一补写 -->
+    </div>
+  </div>
+</div>
+
+<!-- ════ 渠道报表 · 注册送彩金配置（报表管理→渠道报表→编辑渠道）════ -->
+<div class="modal-mask" id="chan-modal">
+  <div class="modal" style="width:640px;max-width:94vw;max-height:92vh;overflow-y:auto">
+    <div class="modal-head"><div class="modal-title">渠道更新 <span class="badge primary" style="margin-left:6px">渠道注册码</span></div><span class="modal-close" onclick="closeModal('chan-modal')">✕</span></div>
+    <div class="modal-body">
+      <div class="page-subtitle" style="margin:0 0 14px">V1 后台真实路径：报表管理 → 渠道报表 → 新增/编辑渠道；该渠道注册即送彩金，<b style="color:#7c3aed">#31 本次新增：可再叠加一张优惠券</b></div>
+      <div class="form-row"><span class="form-label">渠道名</span><input class="input" value="新春拉新渠道" style="max-width:300px"></div>
+      <div class="form-row"><span class="form-label">域名地址</span><input class="input" value="spring.example.com" style="max-width:300px"></div>
+      <div class="form-row"><span class="form-label">渠道编码</span><input class="input" value="CH-SPRING" style="max-width:200px"></div>
+      <div class="form-row"><span class="form-label">赠送金额</span><input class="input" type="number" value="18" style="width:110px"> <span class="text-sm text-muted">₹（彩金 · 注册即到账）</span></div>
+      <div class="form-row" style="align-items:flex-start;background:#f6f3ff;border:1px solid #d9c9ff;border-radius:8px;padding:11px 12px;margin:8px 0"><span class="form-label" style="color:#7c3aed">选择优惠券 <span class="newb">新</span></span>
+        <div style="flex:1;min-width:0">
+          <select class="select" style="min-width:300px;max-width:100%"><option>不送券（仅送彩金）</option><option>SUMMER10 · 充值10% / 上限₹50</option><option>SPRING15 · 充值15% / 上限₹80</option></select>
+          <div class="text-xs" style="margin-top:6px;color:#7c3aed;line-height:1.6"><b>#31 本次新增能力</b>：该渠道注册除送彩金外，可叠加一张「渠道注册码」类优惠券（取自优惠券库）；用户注册即入「我的优惠券」，使用与到账复用第 16 条。<b>不选 = 只送彩金</b></div>
         </div>
       </div>
-    </main>
+      <div class="form-row"><span class="form-label">打码量倍数</span><input class="input" type="number" value="1" style="width:110px"> <span class="text-sm text-muted">倍（彩金按打码倍数计入流水）</span></div>
+      <div class="form-row"><span class="form-label">手机号白名单</span><div class="radio-grp"><div class="radio-opt on" onclick="pickRadio(this)"><span class="rd"></span>不限制</div><div class="radio-opt" onclick="pickRadio(this)"><span class="rd"></span>仅白名单可领</div></div> <a onclick="closeModal('chan-modal');showPage('p6',document.querySelectorAll('.b-tab')[1])" style="color:#1677ff;cursor:pointer;font-size:12px;margin-left:8px">＋ 去白名单库</a> <span class="text-xs text-muted">（#39 防水军 · 可选）</span></div>
+      <div style="text-align:center;margin-top:18px"><button class="btn primary" onclick="closeModal('chan-modal');toast('渠道已保存（含优惠券配置）','success')">✓ 添加</button> <button class="btn ghost" onclick="closeModal('chan-modal')" style="margin-left:12px">↩ 返回</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 新建白名单弹窗 ════ -->
+<div class="modal-mask" id="wl-create-modal">
+  <div class="modal" style="width:560px;max-width:94vw">
+    <div class="modal-head"><div class="modal-title">新建白名单</div><span class="modal-close" onclick="closeModal('wl-create-modal')">✕</span></div>
+    <div class="modal-body">
+      <div class="form-row"><span class="form-label">名单名称</span><input class="input" placeholder="如：新春拉新名单" style="max-width:280px"></div>
+      <div class="form-row" style="align-items:flex-start"><span class="form-label">导入手机号</span>
+        <div style="flex:1;min-width:0">
+          <textarea class="input" rows="5" placeholder="每行一个手机号，或从 Excel 直接粘贴一列…" style="width:100%;resize:vertical;min-height:88px;padding:8px 10px;font-family:inherit"></textarea>
+          <div style="margin-top:6px"><button class="btn ghost sm" onclick="toast('已上传，解析 2,000 个号码','success')">📄 上传 CSV / Excel</button> <span class="text-xs text-muted" style="margin-left:8px">支持粘贴或上传 · 导入后自动去重</span></div>
+        </div>
+      </div>
+      <div class="form-row"><span class="form-label">适用场景</span><span class="text-xs text-muted">注册场景专用号码池：仅手机号注册命中；被「注册券码 / 渠道注册送」共用</span></div>
+      <div style="text-align:right;margin-top:14px"><button class="btn ghost" onclick="closeModal('wl-create-modal')">取消</button> <button class="btn primary" onclick="createWl()" style="margin-left:8px">创建名单</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 复制券码弹窗 ════ -->
+<div class="modal-mask" id="copy-modal">
+  <div class="modal" style="width:520px;max-width:94vw">
+    <div class="modal-head"><div class="modal-title">复制券码</div><span class="modal-close" onclick="closeModal('copy-modal')">✕</span></div>
+    <div class="modal-body">
+      <div class="form-row"><span class="form-label">来源券码</span><span id="cp-src" class="text-sm" style="color:#333;font-weight:500"></span></div>
+      <div class="form-row"><span class="form-label">新券码名</span><input class="input" id="cp-name" style="max-width:240px"></div>
+      <div class="form-row"><span class="form-label">　</span><span class="text-xs text-muted">以来源券规格为模板复制一份、可改名；确认后系统生成新券码，独立管理与统计</span></div>
+      <div style="text-align:right;margin-top:14px"><button class="btn ghost" onclick="closeModal('copy-modal')">取消</button> <button class="btn primary" onclick="closeModal('copy-modal');toast('已复制为新券码','success')" style="margin-left:8px">确认复制</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ 停用确认弹窗 ════ -->
+<div class="modal-mask" id="disable-modal">
+  <div class="modal" style="width:440px;max-width:94vw">
+    <div class="modal-head"><div class="modal-title">停用券码</div><span class="modal-close" onclick="closeModal('disable-modal')">✕</span></div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:#333;line-height:1.7">确定停用该优惠券码？<br><span class="text-xs text-muted">停用后该码立即失效，用带此码的链接注册将不再发券（仍可正常注册）；已发放到用户手里的券不受影响。</span></div>
+      <div style="text-align:right;margin-top:18px"><button class="btn ghost" onclick="closeModal('disable-modal')">取消</button> <button class="btn danger" onclick="confirmDisable()" style="margin-left:8px">确认停用</button></div>
+    </div>
   </div>
 </div>
 
 <!-- ════ P2 · 券码列表 ════ -->
-<div id="P-p2" class="page-block" style="display:none">
+<div id="P-p2" class="page-block">
   <div class="admin">
-    <aside class="admin-sider">
-      <div class="admin-logo"><span class="l-dot"></span>运营后台</div>
-      <div class="admin-menu">
-        <div class="admin-menu-group">活动管理</div>
-        <div class="admin-menu-item on">🎟 优惠券码</div>
-        <div class="admin-menu-item">🎫 优惠券管理</div>
-        <div class="admin-menu-item">✉️ 站内信</div>
-      </div>
-    </aside>
     <main class="admin-main">
       <header class="admin-header">
-        <div class="admin-breadcrumb">活动管理 <span class="sep">/</span> <span class="cur">优惠券码</span></div>
+        <div class="admin-breadcrumb">活动管理 <span class="sep">/</span> <span class="cur">优惠券管理</span></div>
         <div class="admin-user"><span>ops01</span><div class="avatar">O</div></div>
       </header>
       <div class="admin-content">
-        <div class="page-title">优惠券码</div>
+        <div class="page-title">优惠券管理</div>
         <div class="page-subtitle">#31 — 管理已创建的优惠券码，监控发放进度、停用异常码</div>
         <div class="filter-bar">
           <div class="filter-row">
-            <div class="filter-item"><span class="filter-item-label">码</span><input class="input" placeholder="优惠券码" style="min-width:130px"></div>
+            <div class="filter-item"><span class="filter-item-label">优惠券码</span><input class="input" placeholder="优惠券码" style="min-width:130px"></div>
+            <div class="filter-item"><span class="filter-item-label">代理ID</span><input class="input" placeholder="代理ID" style="min-width:120px"></div>
+            <div class="filter-item"><span class="filter-item-label">适用渠道</span><select class="select"><option>全部</option><option>代理邀请链接</option><option>渠道注册码</option><option>代理红包码</option><option>人工充值</option></select></div>
             <div class="filter-item"><span class="filter-item-label">状态</span><select class="select"><option>全部</option><option>进行中</option><option>已用完</option><option>已停用</option><option>已过期</option></select></div>
-            <div class="filter-actions"><button class="btn primary" onclick="toast('查询中...','info')">查询</button><button class="btn coupon" onclick="showPage('p1',document.querySelectorAll('.b-tab')[0])">+ 创建券码</button></div>
           </div>
         </div>
+        <div style="display:flex;gap:8px;margin:0 0 12px;align-items:center"><button class="btn primary" onclick="toast('查询中...','info')"><i class="ti ti-search"></i> 查询</button><button class="btn ghost" onclick="toast('已重置')"><i class="ti ti-refresh"></i> 重置</button><button class="btn coupon" onclick="openModal('create-code-modal')"><i class="ti ti-plus"></i> 新增券码</button></div>
         <table class="tbl">
-          <thead><tr><th>优惠券码</th><th>券规格</th><th>码活动时段</th><th>发放进度</th><th>每手机号</th><th>白名单</th><th>分配代理</th><th>状态</th><th class="center">操作</th></tr></thead>
+          <thead><tr><th>优惠券码</th><th>适用渠道 <span class="newb">新</span></th><th>券规格</th><th>上级代理ID <span class="newb">新</span></th><th>发放进度</th><th>券码有效期</th><th>白名单</th><th>状态</th><th class="center">操作</th></tr></thead>
           <tbody>
-            <tr id="cr-1"><td class="fw-600">SUMMER10</td><td>10% / 上限₹50</td><td>06-20 ~ 06-20<br><span class="text-xs text-muted">单日</span></td><td><span class="progress"><i style="width:15%"></i></span>150/1000</td><td>限1次</td><td>不限</td><td>网红A、代理001</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn danger sm" onclick="disableCode(1)">停用</button></td></tr>
-            <tr id="cr-2"><td class="fw-600">VIP20</td><td>20% / 上限₹100</td><td>06-01 ~ 06-30</td><td><span class="progress"><i style="width:95%"></i></span>95/100</td><td>限1次</td><td><span class="badge primary">白名单</span></td><td>代理002</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn danger sm" onclick="disableCode(2)">停用</button></td></tr>
-            <tr><td class="fw-600">NEW8</td><td>8% / 不限上限</td><td>06-15 ~ 06-22</td><td><span class="progress"><i style="width:100%;background:#cf1322"></i></span>1000/1000</td><td>限1次</td><td>不限</td><td>全体代理</td><td><span class="badge warning">已用完</span></td><td class="center"><button class="btn sm" disabled>停用</button></td></tr>
-            <tr><td class="fw-600">OLD5</td><td>5% / 上限₹20</td><td>05-01 ~ 05-31</td><td><span class="progress"><i style="width:16%"></i></span>320/2000</td><td>限1次</td><td>不限</td><td>代理003</td><td><span class="badge gray">已过期</span></td><td class="center"><button class="btn sm" disabled>停用</button></td></tr>
+            <tr id="cr-1"><td class="fw-600">SUMMER10</td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">注册链接</span></td><td>10% / 上限₹50</td><td class="fw-600">100000</td><td>已发 90</td><td>至 07-31</td><td>不限</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制</button> <button class="btn danger sm" onclick="disableCode(1)">停用</button></td></tr>
+            <tr id="cr-2"><td style="color:#bbb">SUMMER10</td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">注册链接</span></td><td style="color:#bbb">10% / 上限₹50</td><td class="fw-600">100001</td><td>已发 60</td><td style="color:#bbb">至 07-31</td><td>不限</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制</button> <button class="btn danger sm" onclick="disableCode(2)">停用</button></td></tr>
+            <tr id="cr-3"><td class="fw-600">SPRING15</td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">注册链接</span></td><td>15% / 上限₹80</td><td class="fw-600">100002</td><td>已发 600</td><td>至 07-15</td><td><span class="badge primary">白名单·新客</span></td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制</button> <button class="btn danger sm" onclick="disableCode(3)">停用</button></td></tr>
+            <tr id="cr-4"><td class="fw-600">REDBAG20</td><td><span class="badge" style="background:#fff1ed;color:#8f3a22">红包码</span></td><td>20% / 上限₹100</td><td class="fw-600">100000</td><td><span class="progress"><i style="width:95%"></i></span>95/100</td><td>30 天</td><td>—</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制</button> <button class="btn danger sm" onclick="disableCode(4)">停用</button></td></tr>
+            <tr id="cr-5"><td class="fw-600">REDBAG10</td><td><span class="badge" style="background:#fff1ed;color:#8f3a22">红包码</span></td><td>10% / 上限₹50</td><td class="fw-600">100003</td><td><span class="progress"><i style="width:15%"></i></span>150/1000</td><td>30 天</td><td>—</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制</button> <button class="btn danger sm" onclick="disableCode(5)">停用</button></td></tr>
+            <tr id="cr-6"><td class="fw-600">MANUAL8</td><td><span class="badge" style="background:#fff7e6;color:#875612">人工充值</span></td><td>8% / 上限₹40</td><td>— <span class="text-xs text-muted">直发·无代理</span></td><td>1,200 已发</td><td>15 天</td><td>—</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制</button> <button class="btn danger sm" onclick="disableCode(6)">停用</button></td></tr>
+            <tr id="cr-7"><td class="fw-600">MANUAL5</td><td><span class="badge" style="background:#fff7e6;color:#875612">人工充值</span></td><td>5% / 上限₹20</td><td>— <span class="text-xs text-muted">直发·无代理</span></td><td>320 已发</td><td>30 天</td><td>—</td><td><span class="badge gray">已过期</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制</button> <button class="btn sm" disabled>停用</button></td></tr>
           </tbody>
         </table>
         <div class="rules">
@@ -344,10 +403,12 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <div style="padding:14px 14px 22px">
           <div style="text-align:center;font-size:12.5px;color:#999;margin-bottom:12px">请左右滑动选择你喜欢的宣传图册</div>
           <select class="select" id="cc-select" style="width:100%;margin-bottom:12px" onchange="renderPosters()">
-            <option value="SUMMER10|10%|₹50|850/1000">附带：SUMMER10 — 充值10%券·上限₹50（剩 850/1000）</option>
-            <option value="VIP20|20%|₹100|5/100">附带：VIP20 — 充值20%券·上限₹100（剩 5/100）</option>
+            <option value="SUMMER10|10%|₹50|07-31">附带：SUMMER10 — 充值10%券·上限₹50（有效期至 07-31）</option>
+            <option value="SPRING15|15%|₹80|07-15|soon">附带：SPRING15 — 充值15%券·上限₹80（有效期至 07-15）</option>
+            <option value="OLDLINK|5%|₹20|expired" disabled>附带：OLDLINK — 充值5%券·上限₹20（已过期 · 不可选）</option>
             <option value="">不附带（普通邀请海报）</option>
           </select>
+          <div id="cc-warn" style="display:none;background:#fff1f0;border:1px solid #ffccc7;border-radius:7px;padding:7px 10px;margin:0 0 12px;font-size:11px;color:#cf1322">⚠️ 该券码即将到期，到期后此推广链接注册将<b>无优惠</b>，请及时换用有效期内的券码</div>
           <div class="poster-scroll" id="poster-scroll"></div>
           <div style="text-align:center;margin-top:8px;font-size:15px;font-weight:700;color:#333">邀请好友 · <span style="color:#f5424f" id="inv-slogan">注册即得专属优惠券</span></div>
           <button class="btn coupon" style="width:100%;height:48px;border-radius:24px;margin-top:14px;font-size:15px" onclick="toast('已生成分享海报','success')">分享邀请海报</button>
@@ -395,7 +456,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           <div class="rf"><div class="rl">🔒 确认密码</div><div class="ri"><input type="password" placeholder="确认密码"><span class="eye">👁</span></div></div>
           <div class="rf"><div class="rl">🎫 邀请码</div><div class="ri"><input id="reg-invite" value="118663914421" readonly style="color:#888"></div></div>
           <div class="reg-coupons" id="reg-coupons">
-            <div class="rc-h">🎁 专属优惠券（<span id="rc-count">2</span> 张）· 注册即得</div>
+            <div class="rc-h">🎁 专属优惠券（<span id="rc-count">1</span> 张）· 注册即得</div>
             <div class="reg-cpscroll" id="reg-cpscroll"></div>
           </div>
           <div class="reg-agree"><span class="cb"></span>我已阅读并同意 <b>《隐私协议》</b></div>
@@ -407,78 +468,54 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
   </div>
 </div>
 
-<!-- ════ P5 · 注册得券 ════ -->
-<div id="P-p5" class="page-block" style="display:none">
-  <div class="mobile-stage">
-    <div class="stage-cap">会员端 H5 · <b>注册成功得券（#31）</b> — 券进入「我的优惠券」，去使用跳充值页（第16条）</div>
-    <div class="phone">
-      <div class="phone-notch"></div>
-      <div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
-      <div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">我的优惠券</span><span style="width:20px"></span></div>
-      <div class="phone-body">
-        <div style="padding:16px">
-          <div class="card" style="text-align:center;padding:22px 18px">
-            <div style="font-size:40px">🎉</div>
-            <div class="fw-700" style="font-size:17px;margin-top:6px">注册成功</div>
-            <div class="text-sm" style="color:var(--coupon-grad);margin-top:4px"><span style="color:#cf1322;font-weight:600">已获得 1 张充值优惠券</span></div>
-          </div>
-          <div class="card-title mb-12" style="padding-left:2px">我的优惠券</div>
-          <div class="coupon-card">
-            <div class="cc-left"><div class="cc-ratio">10%</div><div class="cc-cap">上限 ₹50</div></div>
-            <div class="cc-right"><div class="cc-name">充值优惠券</div><div class="cc-meta">无门槛 · 有效期 7 天</div><div class="cc-meta">来源：注册赠送（SUMMER10）</div></div>
-            <div class="cc-act"><button class="btn coupon sm" onclick="toast('跳转充值页使用（由第16条充值页承载）','info')">去使用</button></div>
-          </div>
-          <div class="rules">
-            <div class="rules-title">📋 说明</div>
-            <ul>
-              <li>注册赠送的券与红包码 / 站内信领取的券同属「我的优惠券」，使用方式一致</li>
-              <li>去充值页勾选该券，按 min(充值×10%, ₹50) 赠彩金（第16条）</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 停用确认 -->
-<div class="modal-mask" id="disable-modal">
-  <div class="modal">
-    <div class="modal-head"><div class="modal-title">停用优惠券码</div><span class="modal-close" onclick="closeModal('disable-modal')">✕</span></div>
-    <div class="modal-body">停用后该码立即失效，用带此码的链接注册将不再发券（用户仍可正常注册）。确认停用？</div>
-    <div class="modal-foot"><button class="btn ghost" onclick="closeModal('disable-modal')">取消</button><button class="btn danger" onclick="confirmDisable()">确认停用</button></div>
-  </div>
-</div>
+<!-- 白名单 = 通用号码池/过滤器（#39）：被 注册券码 / 红包码 / 注册送彩金渠道 三类引用、限制可领手机号；本页不发券。回归召回不做 -->
 
 <!-- ════ P6 · 白名单管理（库+详情合一·主从） ════ -->
 <div id="P-p6" class="page-block" style="display:none">
   <div class="admin">
-    <aside class="admin-sider">
-      <div class="admin-logo"><span class="l-dot"></span>运营后台</div>
-      <div class="admin-menu">
-        <div class="admin-menu-group">活动管理</div>
-        <div class="admin-menu-item" onclick="showPage('p1',document.querySelectorAll('.b-tab')[0])">🎟 优惠券码</div>
-        <div class="admin-menu-item on">📋 白名单管理</div>
-        <div class="admin-menu-item">✉️ 站内信</div>
-      </div>
-    </aside>
     <main class="admin-main">
       <header class="admin-header"><div class="admin-breadcrumb">活动管理 <span class="sep">/</span> <span class="cur">白名单管理</span></div><div class="admin-user"><span>ops01</span><div class="avatar">O</div></div></header>
       <div class="admin-content">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
-          <div><div class="page-title">白名单管理 <span style="color:#f5222d;font-size:12px;font-weight:700;vertical-align:super">新</span></div><div class="page-subtitle">独立白名单库 + 转化追踪合一 —— 左选名单、右看转化（#39）</div></div>
-          <div style="display:flex;gap:10px">
-            <button class="btn primary" onclick="toast('新建白名单','info')">＋ 新建白名单</button>
-            <button class="btn ghost" onclick="toast('请先在左侧选中目标名单，再追加号码','info')">⬆ 导入手机号（CSV）</button>
-          </div>
+          <div><div class="page-title">白名单管理 <span style="color:#f5222d;font-size:12px;font-weight:700;vertical-align:super">新</span></div><div class="page-subtitle">独立白名单库 + 转化追踪合一 —— 下拉切名单批次、所有号码合并看转化（#39）</div></div>
         </div>
-        <div style="display:flex;gap:16px;margin-top:16px;align-items:flex-start">
-          <div style="width:248px;flex-shrink:0;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);overflow:hidden">
-            <div style="padding:10px 14px;font-size:12px;color:#999;border-bottom:1px solid #f0f0f4">全部名单（2）</div>
-            <div class="wl-item on" onclick="selectWl(0)"><div class="wl-nm">回归召回名单</div><div class="wl-meta">10,000 号码 · 已用券 1,200</div><div class="wl-code">SUMMER10、VIP20</div></div>
-            <div class="wl-item" onclick="selectWl(1)"><div class="wl-nm">新客拉新名单</div><div class="wl-meta">5,000 号码 · 已用券 600</div><div class="wl-code">NEW8</div></div>
-          </div>
-          <div style="flex:1;min-width:0" id="wl-detail"></div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;background:#fff;padding:14px 16px;border-radius:8px;margin:16px 0;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+          <span style="font-size:12.5px;color:#555">名单批次 <select id="wl-filter-list" class="select" style="height:30px;min-width:160px" onchange="renderWl()"><option value="__all__">全部名单</option></select></span>
+          <span style="font-size:12.5px;color:#555">手机号 <input id="wl-filter-phone" class="input" style="width:140px;height:30px" placeholder="手机号"></span>
+          <span style="font-size:12.5px;color:#555">状态 <select id="wl-filter-state" class="select" style="height:30px" onchange="renderWl()"><option>全部</option><option>未注册</option><option>已注册未充值</option><option>已充值未用券</option><option>已用券</option></select></span>
+          <button class="btn primary" onclick="renderWl()">🔍 查询</button>
+          <button class="btn coupon" onclick="openModal('wl-create-modal')">＋ 新建白名单</button>
+          <button class="btn ghost" onclick="toast('已导出','success')">导出</button>
+        </div>
+        <div id="wl-detail"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ════ P7 · V1 渠道报表 ════ -->
+<div id="P-p7" class="page-block" style="display:none">
+  <div class="admin">
+    <main class="admin-main">
+      <header class="admin-header"><div class="admin-breadcrumb">报表管理 <span class="sep">/</span> <span class="cur">渠道报表</span></div><div class="admin-user"><span>ops01</span><div class="avatar">O</div></div></header>
+      <div class="admin-content">
+        <div class="page-title">渠道报表</div>
+        <div class="page-subtitle">管理注册渠道（渠道注册码）；每个渠道注册即送彩金，<b style="color:#7c3aed">#31 起可再叠加一张优惠券</b></div>
+        <div style="display:flex;gap:8px;margin:14px 0 12px;align-items:center"><button class="btn primary" onclick="toast('查询中...','info')"><i class="ti ti-search"></i> 查询</button><button class="btn ghost" onclick="toast('已重置')"><i class="ti ti-refresh"></i> 重置</button><button class="btn coupon" onclick="openModal('chan-modal')"><i class="ti ti-plus"></i> 新增渠道</button></div>
+        <table class="tbl">
+          <thead><tr><th>渠道名</th><th>域名地址</th><th>渠道编码</th><th>赠送彩金</th><th style="color:#7c3aed">送的优惠券 <span class="newb">新</span></th><th>手机号白名单</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td><b>新春拉新渠道</b></td><td>spring.example.com</td><td>CH-SPRING</td><td>₹18</td><td><span class="badge primary">SPRING15 · 15%</span></td><td>新客拉新名单</td><td><button class="btn ghost sm" onclick="openModal('chan-modal')">编辑</button></td></tr>
+            <tr><td><b>双十一渠道</b></td><td>dd.example.com</td><td>CH-1111</td><td>₹20</td><td><span class="badge" style="background:#f0f0f0;color:#999">不送券</span></td><td>不限</td><td><button class="btn ghost sm" onclick="openModal('chan-modal')">编辑</button></td></tr>
+            <tr><td><b>老带新渠道</b></td><td>refer.example.com</td><td>CH-REFER</td><td>₹10</td><td><span class="badge primary">SUMMER10 · 10%</span></td><td>不限</td><td><button class="btn ghost sm" onclick="openModal('chan-modal')">编辑</button></td></tr>
+          </tbody>
+        </table>
+        <div class="rules" style="margin-top:16px">
+          <div class="rules-title">📋 说明</div>
+          <ul>
+            <li><b>渠道注册码</b> = 新客渠道：用户经该渠道域名注册即送彩金；<b style="color:#7c3aed">#31 本次新增「送的优惠券」列</b> —— 可叠加一张「渠道注册码」类券，注册即入用户「我的优惠券」</li>
+            <li>点「新增渠道 / 编辑」打开 <b>渠道更新</b> 页，在「选择优惠券」处配置券与彩金</li>
+          </ul>
         </div>
       </div>
     </main>
@@ -513,17 +550,18 @@ document.querySelectorAll('.modal-mask').forEach(m=>m.addEventListener('click',e
 let capMode='limit', wlMode='none';
 function toggleCap(m){
   capMode=m;
-  document.getElementById('cap-limit').classList.toggle('on',m==='limit');
-  document.getElementById('cap-none').classList.toggle('on',m==='none');
   document.getElementById('cc-cap').disabled=(m==='none');
   updatePreview();
 }
+function pickChan(el,chan){el.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('on'));el.classList.add('on');const assign=document.getElementById('assign-agent-block'),limit=document.getElementById('dist-limit-block');const isNew=(chan==='link'||chan==='channel');if(assign)assign.style.display=chan==='link'?'':'none';if(limit)limit.style.display=isNew?'':'none';const tips={link:'代理拼「邀请码-券码」链接拉新 · 有白名单 · 不设次数',channel:'渠道配置注册送（新客）· 有白名单 · 无需分配代理',red:'发红包给下级会员 · 授权次数在会员列表配 · 无需白名单',manual:'直接发/批量导入给会员 · 按次直发 · 无需白名单'};document.getElementById('chan-tip').textContent=tips[chan];}
+function copyCode(el){const tr=el.closest('tr');document.getElementById('cp-src').textContent=tr.cells[0].textContent+'（'+tr.cells[1].textContent.trim()+' · '+tr.cells[2].textContent+'）';document.getElementById('cp-name').value=tr.cells[0].textContent+'_2';openModal('copy-modal');}
 function toggleWl(m){
   wlMode=m;
   document.getElementById('wl-none').classList.toggle('on',m==='none');
   document.getElementById('wl-on').classList.toggle('on',m==='on');
   document.getElementById('wl-import').style.display=m==='on'?'':'none';
 }
+function copyCcCode(){const c=document.getElementById('cc-code');toast('券码已复制：'+c.value,'success');}
 function genCode(){
   const s='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let c='';
   for(let i=0;i<6;i++)c+=s[Math.floor((i*7+document.getElementById('cc-code').value.length*3+3)%s.length)];
@@ -537,7 +575,14 @@ function updatePreview(){
     `券面：充值${document.getElementById('cc-ratio').value||0}%券`+(capMode==='limit'?`·上限₹${cap}`:'·不限上限')
     +`<br>充 ₹100 ${calc(100)}　|　充 ₹500 ${calc(500)}　|　充 ₹1000 ${calc(1000)}`;
 }
-function createCode(){toast('优惠券码已创建并分配给代理','success');}
+function createCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code='';for(let i=0;i<7;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById('cc-code').value=code;
+  const btn=document.getElementById('cc-copy-btn'); if(btn)btn.disabled=false;
+  toast('优惠券码已创建：'+code+'（已分配给代理）','success');
+}
+function pickRadio(el){el.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
 
 /* —— P2 停用 —— */
 let disableId=null;
@@ -559,7 +604,7 @@ function copyLink(id){
 // grant=是否发券；banner=会员侧是否展示优惠。过期/达上限/无券 → 会员侧均无感知（banner=false,grant=false），
 // 仅"判定说明"给评审看（会员不可见）。
 const REG={
-  valid:  {grant:true,  judge:'券码有效 → 发券 + 展示优惠券（多张时滑动可选）'},
+  valid:  {grant:true,  judge:'券码有效 → 发券 + 展示优惠券（一码一券，注册即得）'},
   expired:{grant:false, judge:'券码已过期 → 静默不发券，会员侧无感知（与无券链接一致）'},
   limit:  {grant:false, judge:'已达发放上限 → 静默不发券，会员侧无感知'},
   none:   {grant:false, judge:'链接不含券码 → 普通注册'}
@@ -574,43 +619,69 @@ function setRegDemo(s){
   if(c.grant) renderRegCoupons();
 }
 function renderRegCoupons(){
-  const list=[{r:10,cap:50,m:'无门槛 · 7天'},{r:15,cap:80,m:'满₹300 · 5天'}];
+  const list=[{r:10,cap:50,m:'无门槛 · 7天'}];
   document.getElementById('rc-count').textContent=list.length;
   document.getElementById('reg-cpscroll').innerHTML=list.map((c,i)=>`<div class="reg-cp ${i===0?'on':''}" onclick="this.parentElement.querySelectorAll('.reg-cp').forEach(x=>x.classList.remove('on'));this.classList.add('on')"><div class="rcp-t"><b>${c.r}%</b><span>上限₹${c.cap}</span></div><div class="rcp-b">${c.m}</div></div>`).join('');
 }
 function doRegister(){
   const c=REG[regState];
   toast('注册成功'+(c.grant?'，已发放优惠券':''),'success');
-  setTimeout(()=>{ if(c.grant){ showPage('p5', document.querySelectorAll('.b-tab')[4]); } else { toast('（普通注册，会员无任何券相关感知）','info'); } }, 700);
+  setTimeout(()=>{ if(c.grant){ toast('券已进入会员「我的优惠券」，去使用可跳充值页（第16条）','success'); } else { toast('（普通注册，会员无任何券相关感知）','info'); } }, 700);
 }
 /* —— 白名单管理（主从：左选名单、右渲详情） —— */
 const WL=[
-  {name:'回归召回名单',imp:'10,000',reg:'3,200',regP:'32%',dep:'1,800',depP:'18%',use:'1,200',useP:'12%',rows:[
-    ['9188****539','success','已用券','06-20 18:20','₹500','₹50','SUMMER10（10%）'],
-    ['9170****014','success','已用券','06-20 18:19','₹300','₹30','SUMMER10（10%）'],
-    ['9177****001','warning','已充值未用券','06-21 10:05','₹300','—','—'],
-    ['9166****012','primary','已注册未充值','06-21 09:30','—','—','—'],
-    ['9155****888','gray','未注册','—','—','—','—']
-  ]},
-  {name:'新客拉新名单',imp:'5,000',reg:'1,800',regP:'36%',dep:'900',depP:'18%',use:'600',useP:'12%',rows:[
-    ['9133****210','success','已用券','06-19 12:00','₹200','₹16','NEW8（8%）'],
-    ['9144****555','warning','已充值未用券','06-19 14:20','₹150','—','—'],
-    ['9122****078','primary','已注册未充值','06-19 09:10','—','—','—'],
-    ['9111****900','gray','未注册','—','—','—','—']
+  {name:'新客拉新名单',code:'NEW8',refBy:['注册券码 SPRING15','注册送彩金·新春渠道'],imp:'5,000',reg:'1,800',regP:'36%',dep:'900',depP:'18%',use:'600',useP:'12%',rows:[
+    ['9133****210','100000','success','已用券','06-19 12:00','₹200','₹16','NEW8（8%）'],
+    ['9144****555','100001','warning','已充值未用券','06-19 14:20','₹150','—','—'],
+    ['9122****078','100000','primary','已注册未充值','06-19 09:10','—','—','—'],
+    ['9111****900','—','gray','未注册','—','—','—','—']
   ]}
 ];
-function selectWl(i){
-  document.querySelectorAll('#P-p6 .wl-item').forEach((el,k)=>el.classList.toggle('on',k===i));
-  const w=WL[i];
-  const fl=(lb,v,p)=>`<div style="padding:2px 16px;border-left:1px solid #ffd5c4"><div style="font-size:11px;color:#a8622f">${lb}</div><div style="font-size:18px;font-weight:800;color:#c0390f">${v}${p?` <span style="font-size:11px;color:#e07a3f">${p}</span>`:''}</div></div>`;
-  const funnel=`<div style="background:linear-gradient(135deg,#fff4ef,#ffece4);border:1px solid #ffd5c4;border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span style="font-weight:700;color:#c0390f;margin-right:8px">🎯 转化漏斗</span>${fl('导入',w.imp)}${fl('已注册',w.reg,w.regP)}${fl('已充值',w.dep,w.depP)}${fl('已用券',w.use,w.useP)}</div>`;
-  const filter=`<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:#fff;padding:14px 16px;border-radius:8px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06)"><span style="font-size:12.5px;color:#555">手机号 <input class="input" style="width:140px;height:30px" placeholder="手机号"></span><span style="font-size:12.5px;color:#555">状态 <select class="select" style="height:30px"><option>全部</option><option>未注册</option><option>已注册未充值</option><option>已充值未用券</option><option>已用券</option></select></span><button class="btn primary" onclick="toast('查询中…')">🔍 查询</button><button class="btn ghost" onclick="toast('已导出','success')">导出</button></div>`;
-  const rows=w.rows.map(r=>`<tr><td>${r[0]}</td><td><span class="badge ${r[1]}">${r[2]}</span></td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td><td>${r[6]}</td></tr>`).join('');
-  const table=`<table class="tbl"><thead><tr><th>手机号</th><th>状态</th><th>注册时间</th><th>充值额</th><th>用券彩金</th><th>使用的券</th></tr></thead><tbody>${rows}</tbody></table>`;
-  const src=`<div class="rules"><div class="rules-title">📋 数据来源（落地需打通）</div><ul><li>是否注册：白名单手机号 匹配 <b>tab_Users</b></li><li>是否充值：该会员有无成功充值订单</li><li>是否用券：<b>tab_UserCoupon</b> 该会员的券是否"已使用"</li></ul></div>`;
-  document.getElementById('wl-detail').innerHTML=`<div class="page-title" style="font-size:17px;margin-bottom:4px">${w.name} · 转化追踪</div><div class="page-subtitle">谁注册了、谁充值了、谁用了券</div>`+funnel+filter+table+src;
+function chanWl(m,el){el.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('on'));el.classList.add('on');document.getElementById('chan-wl-pick').style.display=m==='on'?'':'none';}
+function fillListOptions(){
+  const sel=document.getElementById('wl-filter-list'); if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="__all__">全部名单</option>'+WL.map(w=>`<option>${w.name}</option>`).join('');
+  sel.value=cur||'__all__';
 }
-selectWl(0);
+function renderWl(){
+  const fsel=document.getElementById('wl-filter-list');
+  const pick=fsel?fsel.value:'__all__';
+  const lists=(pick==='__all__')?WL:WL.filter(w=>w.name===pick);
+  const num=s=>parseInt(String(s||'').replace(/[^0-9]/g,''))||0;
+  const sum=k=>lists.reduce((a,w)=>a+num(w[k]),0);
+  const imp=sum('imp'),reg=sum('reg'),dep=sum('dep'),use=sum('use');
+  const pct=(a,b)=>b?Math.round(a/b*100)+'%':'0%';
+  const fl=(lb,v,p)=>`<div style="padding:2px 16px;border-left:1px solid #ffd5c4"><div style="font-size:11px;color:#a8622f">${lb}</div><div style="font-size:18px;font-weight:800;color:#c0390f">${v}${p?` <span style="font-size:11px;color:#e07a3f">${p}</span>`:''}</div></div>`;
+  const funnel=`<div style="background:linear-gradient(135deg,#fff4ef,#ffece4);border:1px solid #ffd5c4;border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span style="font-weight:700;color:#c0390f;margin-right:8px">🎯 转化漏斗</span>${fl('导入',imp.toLocaleString())}${fl('已注册',reg.toLocaleString(),pct(reg,imp))}${fl('已充值',dep.toLocaleString(),pct(dep,imp))}${fl('已用券',use.toLocaleString(),pct(use,imp))}</div>`;
+  let pool=[]; lists.forEach(w=>w.rows.forEach(r=>pool.push([w.name].concat(r))));
+  const ph=((document.getElementById('wl-filter-phone')||{}).value||'').trim();
+  if(ph) pool=pool.filter(p=>p[1].includes(ph));
+  const st=(document.getElementById('wl-filter-state')||{}).value||'全部';
+  if(st!=='全部') pool=pool.filter(p=>p[4]===st);
+  const sumDep=pool.reduce((a,p)=>a+num(p[6]),0),sumBonus=pool.reduce((a,p)=>a+num(p[7]),0);
+  const rows=pool.map(p=>`<tr><td><span class="badge gray">${p[0]}</span></td><td>${p[1]}</td><td>${p[2]}</td><td><span class="badge ${p[3]}">${p[4]}</span></td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td></tr>`).join('')||`<tr><td colspan="8" style="text-align:center;color:#999;padding:18px">无匹配号码</td></tr>`;
+  const table=`<table class="tbl"><thead><tr><th>所属名单</th><th>手机号</th><th>上级ID</th><th>状态</th><th>注册时间</th><th>充值额</th><th>用券彩金</th><th>使用的券</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="font-weight:700;background:#fafafa"><td colspan="5" style="text-align:right">合计</td><td>₹${sumDep}</td><td>₹${sumBonus}</td><td>—</td></tr></tfoot></table>`;
+  const src=`<div class="rules"><div class="rules-title">📋 白名单定位 & 数据来源（落地需打通）</div><ul><li><b>手机号白名单 = 注册场景专用号码池</b>（#39）：服务 <b>注册优惠券码 / 注册送彩金活动</b>（拉新，注册即匹配手机号）；<b>仅对手机号注册用户命中</b>，邮箱注册不命中。红包码限领已改走<b>会员维度</b>（会员ID/分组，不走手机号池）；本页只管圈人 + 看转化，<b>不在此发券</b></li><li><b>所属名单 / 批次</b>：导入的手机号按批次归类，用上方「名单批次」下拉切换；选「全部名单」看汇总</li><li><b>上级ID</b>：该手机号注册后绑定的上级代理（邀请码归因），未注册显示「—」</li></ul></div>`;
+  const refBox=(pick!=='__all__'&&lists[0]&&lists[0].refBy&&lists[0].refBy.length)?`<div style="background:#f6f3ff;border:1px solid #e6ddff;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#555">🔗 <b>本名单被引用于</b>：${lists[0].refBy.map(r=>{const clk=r.includes('注册送彩金');return `<span class="badge primary" style="margin-right:6px;${clk?'cursor:pointer;text-decoration:underline':''}" ${clk?"onclick=\"openModal('chan-modal')\"":''}>${r}${clk?' ⚙':''}</span>`;}).join('')}<span class="text-xs text-muted">— 同一号码池，多活动共用（#39）；点「注册送彩金」看渠道配置</span></div>`:'';
+  document.getElementById('wl-detail').innerHTML=funnel+refBox+table+src;
+}
+function createWl(){
+  const inp=document.querySelector('#wl-create-modal input');
+  const nm=(inp&&inp.value.trim())||('新名单'+WL.length);
+  WL.push({name:nm,code:'—',imp:'2,000',reg:'0',regP:'0%',dep:'0',depP:'0%',use:'0',useP:'0%',rows:[
+    ['9100****001','—','gray','未注册','—','—','—','—'],
+    ['9100****002','—','gray','未注册','—','—','—','—'],
+    ['9100****003','—','gray','未注册','—','—','—','—']
+  ]});
+  if(inp)inp.value='';
+  closeModal('wl-create-modal');
+  fillListOptions();
+  const fsel=document.getElementById('wl-filter-list'); if(fsel)fsel.value=nm;
+  renderWl();
+  toast('白名单已创建并展示在列表','success');
+}
+fillListOptions(); renderWl();
 setRegDemo('valid');
 /* —— 邀请海报（凸显优惠券） —— */
 function renderPosters(){
@@ -618,6 +689,7 @@ function renderPosters(){
   const wc=v!=='';
   let code='',ratio='',cap='';
   if(wc){const p=v.split('|');code=p[0];ratio=p[1];cap=p[2];}
+  (function(){const warn=document.getElementById('cc-warn');if(!warn)return;const soon=wc&&(v.split('|')[4]==='soon');warn.style.display=soon?'':'none';})();
   document.getElementById('inv-slogan').textContent=wc?'注册即得专属优惠券':'注册得新人好礼';
   document.getElementById('invite-link').textContent=wc?`https://51game3.com/#/register?invitationCode=118663914421-${code}`:`https://51game3.com/#/register?invitationCode=118663914421`;
   const styles=['p-red','p-gold','p-deep'];
@@ -637,7 +709,7 @@ function posterHTML(st,wc,code,ratio,cap){
 renderPosters();
 
 /* init */
-updatePreview(); renderInvite(); setRegDemo('valid');
+updatePreview();
 </script>
 </body>
 </html>
