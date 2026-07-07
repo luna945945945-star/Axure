@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>协议多语言配置 · 后台原型</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'PingFang SC','Helvetica Neue',Arial,sans-serif; }
+  body { background:#f0f2f5; padding:32px 24px 60px; }
+  h1 { text-align:center; font-size:22px; color:#1f4e78; margin-bottom:6px; }
+  .sub { text-align:center; color:#888; font-size:13px; margin-bottom:24px; }
+  .wrap { max-width:1080px; margin:0 auto; }
+  .card { background:#fff; border-radius:12px; padding:20px 24px; margin-bottom:18px; }
+  .card h2 { font-size:16px; color:#1f4e78; margin-bottom:12px; }
+  .card h2 span { font-size:12px; color:#999; font-weight:400; margin-left:8px; }
+
+  /* ── 前台参数配置模拟 ── */
+  .lang-config { display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size:13.5px; color:#444; }
+  .lang-config label { cursor:pointer; user-select:none; background:#fafafa; border:1px solid #e8e8e8;
+                       border-radius:8px; padding:7px 12px; display:flex; align-items:center; gap:6px; }
+  .lang-config label.def { border-color:#91caff; background:#e6f7ff; }
+  .lang-config .dtag { font-size:10px; color:#fff; background:#1f8fff; border-radius:3px; padding:1px 5px; }
+
+  /* ── 后台编辑区（还原截图） ── */
+  .form-row { display:flex; gap:16px; margin-bottom:26px; }
+  .form-label { width:88px; text-align:right; font-size:14px; color:#333; font-weight:600; padding-top:8px; flex-shrink:0; }
+  .editor-box { flex:1; min-width:0; }
+
+  .lang-tabs { display:flex; gap:6px; margin-bottom:0; flex-wrap:wrap; }
+  .lang-tabs .tab { padding:8px 16px 7px; font-size:13px; color:#555; background:#f0f0f0;
+                    border:1px solid #ddd; border-bottom:none; border-radius:8px 8px 0 0; cursor:pointer;
+                    display:flex; align-items:center; gap:6px; position:relative; top:1px; }
+  .lang-tabs .tab.on { background:#fff; color:#1f8fff; font-weight:600; border-color:#ccc; }
+  .lang-tabs .tab .dot { width:7px; height:7px; border-radius:50%; background:#d9d9d9; }
+  .lang-tabs .tab .dot.done { background:#52c41a; }
+  .lang-tabs .tab .dot.dirty { background:#faad14; }
+  .lang-tabs .tab .dtag { font-size:10px; color:#fff; background:#1f8fff; border-radius:3px; padding:0 4px; }
+
+  .editor { border:1px solid #ccc; border-radius:0 8px 8px 8px; background:#fff; overflow:hidden; }
+  .toolbar { display:flex; gap:4px; flex-wrap:wrap; padding:8px 10px; border-bottom:1px solid #e5e5e5; background:#fcfcfc; }
+  .toolbar b { display:inline-flex; align-items:center; justify-content:center; min-width:30px; height:28px;
+               padding:0 7px; border:1px solid #ddd; border-radius:4px; background:#fff; font-size:12.5px;
+               color:#444; font-weight:600; cursor:default; }
+  .content { min-height:220px; max-height:340px; overflow-y:auto; padding:14px 16px; font-size:13.5px;
+             color:#333; line-height:1.7; outline:none; }
+  .content:empty::before { content:attr(data-ph); color:#bbb; }
+  .fallback-hint { font-size:11.5px; color:#d46b08; background:#fffbe6; border:1px solid #ffe58f;
+                   border-radius:6px; padding:5px 10px; margin-top:8px; display:none; }
+  .fallback-hint.show { display:block; }
+
+  .btn-bar { text-align:center; margin:6px 0 30px; }
+  .btn { background:#5bc0de; color:#fff; border:none; border-radius:6px; padding:10px 30px;
+         font-size:15px; cursor:pointer; }
+  .btn:hover { background:#46b8da; }
+  .toast { position:fixed; left:50%; top:60px; transform:translateX(-50%); background:rgba(0,0,0,.78);
+           color:#fff; font-size:13px; padding:10px 20px; border-radius:20px; display:none; z-index:99; }
+
+  /* ── 规则区 ── */
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th { background:#1f4e78; color:#fff; padding:7px 9px; text-align:left; font-weight:600; }
+  td { border:1px solid #e8e8e8; padding:7px 9px; color:#444; line-height:1.6; vertical-align:top; }
+  code { background:#f5f5f5; border-radius:4px; padding:1px 6px; font-size:11.5px; color:#c41d7f; }
+  .info { background:#e6f7ff; border:1px solid #91caff; border-radius:8px; padding:10px 14px;
+          color:#0958d9; font-size:12.5px; margin-top:12px; line-height:1.7; }
+  .warn { background:#fff1f0; border:1px solid #ffa39e; border-radius:8px; padding:10px 14px;
+          color:#cf1322; font-size:13px; font-weight:600; margin-top:12px; line-height:1.7; }
+</style>
+</head>
+<body>
+
+<h1>隐私协议 / 风险协议 · 多语言配置</h1>
+
+<div class="wrap">
+
+  <!-- ═══ 模拟前台参数配置 ═══ -->
+  <div class="card">
+    <h2>前台参数配置 · 语言勾选<span>模拟联动：勾选变化 → 下方协议编辑区语言 Tab 动态增减</span></h2>
+    <div class="lang-config" id="langConfig"></div>
+  </div>
+
+  <!-- ═══ 协议编辑区 ═══ -->
+  <div class="card">
+    <h2>协议编辑<span>文本框上方新增语言切换 Tab · 绿点=已配置 / 灰点=未配置 / 橙点=未保存</span></h2>
+
+    <div class="form-row">
+      <div class="form-label">隐私协议：</div>
+      <div class="editor-box" id="box-privacy"></div>
+    </div>
+    <div class="btn-bar"><button class="btn" onclick="saveModule('privacy')">修 改</button></div>
+
+    <div class="form-row">
+      <div class="form-label">风险协议：</div>
+      <div class="editor-box" id="box-risk"></div>
+    </div>
+    <div class="btn-bar"><button class="btn" onclick="saveModule('risk')">修 改</button></div>
+
+    <div style="text-align:center; font-size:12px; color:#999">「修改」提交该协议的<b>全部语言</b>内容（含留空语言）；切换语言 Tab 仅暂存不保存，最终以点击「修改」为准</div>
+  </div>
+
+  <!-- ═══ 规则说明 ═══ -->
+  <div class="card">
+    <h2>功能规则</h2>
+    <table>
+      <tr><th style="width:130px">项</th><th>规则</th></tr>
+      <tr><td><b>Tab 来源</b></td><td>读取「前台参数配置」勾选的语言（<code>WebLanguages</code>），动态生成语言 Tab；<b>默认语言（<code>DefaultLanguage</code>）恒排第一并标"默认"</b>，不可取消</td></tr>
+      <tr><td><b>独立存储</b></td><td>每个语言一份独立 HTML 内容；两个协议（隐私/风险）互不影响</td></tr>
+      <tr><td><b>状态标识</b></td><td>Tab 圆点：绿=已配置（有内容）、灰=未配置（空）、橙=本次编辑未保存</td></tr>
+      <tr><td><b>保存行为</b></td><td>「修改」按钮一次性保存当前协议模块全部语言；允许部分语言留空</td></tr>
+      <tr><td><b>客户端展示</b></td><td>客户端按当前 App 语言请求（现有 <code>ApiRequest.Language</code> 参数，无需客户端改造）；返回对应语言内容</td></tr>
+      <tr><td><b>回退链</b></td><td>请求语言无内容 → 回退默认语言内容 → 仍无则回退 <code>tab_Sites</code> 原单语字段（存量兜底），保证任何情况有内容展示</td></tr>
+      <tr><td><b>取消勾选语言</b></td><td>前台参数取消某语言后，Tab 隐藏但<b>已配置内容保留不删</b>；重新勾选后恢复显示</td></tr>
+      <tr><td><b>存量迁移</b></td><td>上线时将 <code>tab_Sites.Protocols / Agreement</code> 现有内容自动作为<b>默认语言</b>的初始内容，后台打开即可见，无需重新录入</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ 语言全集（demo 取 LanguageEnum 常用子集）═══
+const ALL_LANGS = [
+  { code:'en',  id:0,  label:'英文版',   native:'English',   def:true },
+  { code:'hd',  id:9,  label:'印地语版', native:'हिन्दी' },
+  { code:'cn',  id:5,  label:'中文版',   native:'中文' },
+  { code:'bra', id:3,  label:'葡语版',   native:'Português' },
+  { code:'tha', id:4,  label:'泰语版',   native:'ไทย' },
+];
+let enabled = new Set(['en','hd','cn']);
+
+// 每协议 × 每语言的内容仓库（en 预填存量迁移效果）
+const store = {
+  privacy: { en: 'This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.<br><br><b>Interpretation and Definitions</b><br>The words of which the initial letter is capitalized have meanings defined under the following conditions...' },
+  risk:    { en: '' },
+};
+const dirty = { privacy:{}, risk:{} };
+const curLang = { privacy:'en', risk:'en' };
+
+function langsEnabled(){
+  return ALL_LANGS.filter(l => enabled.has(l.code))
+                  .sort((a,b) => (b.def?1:0) - (a.def?1:0));
+}
+
+// ═══ 前台参数配置区 ═══
+function renderConfig(){
+  document.getElementById('langConfig').innerHTML = ALL_LANGS.map(l => `
+    <label class="${l.def?'def':''}">
+      <input type="checkbox" ${enabled.has(l.code)?'checked':''} ${l.def?'disabled':''}
+             onchange="toggleLang('${l.code}', this.checked)">
+      ${l.label}（${l.native}）${l.def?'<span class="dtag">默认</span>':''}
+    </label>`).join('');
+}
+function toggleLang(code, on){
+  if (on) enabled.add(code); else enabled.delete(code);
+  for (const key of ['privacy','risk'])
+    if (!enabled.has(curLang[key])) curLang[key] = 'en';
+  renderEditor('privacy'); renderEditor('risk');
+  showToast(on ? '已启用语言，Tab 已加入（内容待配置）' : '已停用语言，Tab 隐藏（已配置内容保留）');
+}
+
+// ═══ 编辑器区 ═══
+const TOOL = ['B','U','A','≡','⊞','🔗','🖼','&lt;/&gt;'];
+function renderEditor(key){
+  const cl = curLang[key];
+  const tabs = langsEnabled().map(l => {
+    const has = (store[key][l.code] || '').trim() !== '';
+    const dot = dirty[key][l.code] ? 'dirty' : (has ? 'done' : '');
+    return `<div class="tab ${l.code===cl?'on':''}" onclick="switchLang('${key}','${l.code}')">
+      <span class="dot ${dot}"></span>${l.label}${l.def?'<span class="dtag">默认</span>':''}</div>`;
+  }).join('');
+  const isEmpty = (store[key][cl] || '').trim() === '';
+  const defHasContent = (store[key]['en'] || '').trim() !== '';
+  document.getElementById('box-' + key).innerHTML = `
+    <div class="lang-tabs">${tabs}</div>
+    <div class="editor">
+      <div class="toolbar">${TOOL.map(t=>`<b>${t}</b>`).join('')}</div>
+      <div class="content" contenteditable="true" id="ed-${key}"
+           data-ph="请输入该语言的协议内容（可留空，客户端将按回退链展示）"
+           oninput="markDirty('${key}')">${store[key][cl] || ''}</div>
+    </div>
+    <div class="fallback-hint ${isEmpty && defHasContent ? 'show' : ''}">
+      ⚠ 该语言暂未配置：客户端选择此语言时将回退展示「默认语言」内容
+    </div>`;
+}
+function switchLang(key, code){
+  store[key][curLang[key]] = document.getElementById('ed-' + key).innerHTML; // 切换前暂存
+  curLang[key] = code;
+  renderEditor(key);
+}
+function markDirty(key){
+  dirty[key][curLang[key]] = true;
+  const tabs = document.querySelectorAll('#box-' + key + ' .tab');
+  const idx = langsEnabled().findIndex(l => l.code === curLang[key]);
+  if (tabs[idx]) tabs[idx].querySelector('.dot').className = 'dot dirty';
+}
+function saveModule(key){
+  store[key][curLang[key]] = document.getElementById('ed-' + key).innerHTML;
+  dirty[key] = {};
+  renderEditor(key);
+  showToast((key === 'privacy' ? '隐私协议' : '风险协议') + '：已保存全部语言内容 ✓');
+}
+let toastTimer;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.style.display = 'none', 2200);
+}
+renderConfig(); renderEditor('privacy'); renderEditor('risk');
+</script>
+</body>
+</html>
