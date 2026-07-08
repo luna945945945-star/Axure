@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提现姓名一致性锁定 · 银行卡 & UPI · 交互原型</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'PingFang SC','Helvetica Neue',Arial,sans-serif; }
+  body { background:#eef0f5; padding:28px 22px 56px; }
+  h1 { text-align:center; font-size:22px; color:#1f4e78; margin-bottom:6px; }
+  .sub { text-align:center; color:#888; font-size:13px; margin-bottom:22px; }
+
+  /* ── 演示控制条 ── */
+  .demo-ctrl { max-width:820px; margin:0 auto 18px; background:#fff; border-radius:12px; padding:12px 18px;
+               font-size:13px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .demo-ctrl b { color:#1f4e78; }
+  .st { display:inline-block; padding:2px 10px; border-radius:10px; font-size:12px; font-weight:600; }
+  .st-free { background:#f6ffed; color:#389e0d; }
+  .st-lock { background:#fff1f0; color:#cf1322; }
+  .demo-ctrl a { color:#1f8fff; font-size:12px; text-decoration:none; cursor:pointer; margin-left:auto; }
+  .demo-ctrl .hint { flex-basis:100%; color:#999; font-size:11.5px; }
+  .lang-pill { border:1px solid #dcdfe6; background:#fff; color:#555; border-radius:15px;
+               padding:4px 13px; font-size:12.5px; cursor:pointer; }
+  .lang-pill.on { background:#1f8fff; color:#fff; border-color:#1f8fff; font-weight:600; }
+
+  /* ── 双机演示区 ── */
+  .stage { display:flex; gap:34px; justify-content:center; flex-wrap:wrap; margin-bottom:30px; }
+  .col-title { text-align:center; font-size:13px; color:#555; margin-top:12px; line-height:1.7; }
+  .col-title b { color:#1f4e78; }
+
+  /* ── 手机壳 · 按真机截图风格 ── */
+  .phone { width:360px; height:720px; background:#f2f3fb; border:3px solid #2b2b2f; border-radius:28px;
+           overflow:hidden; position:relative; box-shadow:0 10px 30px rgba(0,0,0,.14);
+           display:flex; flex-direction:column; }
+  .navbar { background:#fff; height:52px; display:flex; align-items:center; justify-content:center;
+            font-size:17px; font-weight:700; color:#1a1a2e; position:relative; flex-shrink:0; }
+  .navbar .back { position:absolute; left:16px; font-size:20px; font-weight:400; color:#333; }
+  .screen { flex:1; overflow-y:auto; padding:16px 16px 0; }
+
+  .fld { margin-bottom:16px; }
+  .fld .lb { font-size:16px; font-weight:700; color:#1a1a2e; margin-bottom:9px; display:flex; align-items:center; gap:9px; }
+  .fld .lb .ico { width:26px; height:26px; border-radius:6px; background:#ffe3e3; color:#ff4d4f;
+                  display:inline-flex; align-items:center; justify-content:center; font-size:14px; }
+  .fld input { width:100%; height:50px; background:#fff; border:none; border-radius:12px; padding:0 16px;
+               font-size:15px; color:#333; outline:none; }
+  .fld input::placeholder { color:#b9bdd0; }
+  .fld.locked input { color:#9aa; background:#f2f2f7; padding-right:42px; cursor:not-allowed; }
+  .lock-wrap { position:relative; }
+  .lock-ico { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:15px; display:none; }
+  .locked .lock-ico { display:block; }
+  .red-hint { font-size:12.5px; color:#ff4d4f; line-height:1.5; margin-top:8px; }
+  .lock-tip { background:#fffbe6; border:1px solid #ffe58f; border-radius:10px; padding:8px 12px;
+              font-size:12px; color:#874d00; line-height:1.55; margin-top:8px; display:none; cursor:pointer; }
+  .locked-show { display:block; }
+  .first-tip { background:#f6ffed; border:1px solid #b7eb8f; border-radius:10px; padding:8px 12px;
+               font-size:12px; color:#389e0d; line-height:1.55; margin-top:8px; }
+
+  .upi-title { display:flex; align-items:center; gap:6px; font-size:21px; font-weight:800; color:#1a1a2e; margin:2px 0 20px; }
+  .upi-logo { font-style:italic; font-weight:900; letter-spacing:-1px; }
+  .upi-logo .u1 { color:#8a8f9c; } .upi-logo .u2 { color:#ff9933; } .upi-logo .u3 { color:#138808; }
+  .sec-notice { font-size:12.5px; color:#ff4d4f; line-height:1.55; margin:2px 0 16px; }
+
+  .warn-banner { background:#fff; border-radius:24px; padding:12px 16px; display:flex; gap:9px;
+                 align-items:flex-start; margin-bottom:18px; }
+  .warn-banner .wi { color:#ff4d4f; font-size:15px; border:1.5px solid #ff4d4f; border-radius:50%;
+                     width:19px; height:19px; line-height:16px; text-align:center; flex-shrink:0; font-weight:700; }
+  .warn-banner span { color:#ff4d4f; font-size:13.5px; font-weight:600; line-height:1.45; }
+  .bank-sel { width:100%; height:52px; border:none; border-radius:12px; color:#fff; font-size:15px; font-weight:700;
+              background:linear-gradient(90deg,#f4574d,#ff9585); display:flex; align-items:center;
+              justify-content:space-between; padding:0 16px; cursor:pointer; }
+
+  .save-bar { padding:14px 16px 20px; flex-shrink:0; }
+  .save { width:100%; height:52px; border:none; border-radius:26px; background:#c9cbda; color:#fff;
+          font-size:17px; font-weight:700; letter-spacing:4px; cursor:pointer; }
+  .save.ready { background:linear-gradient(90deg,#f4574d,#ff9585); }
+
+  .mask { position:absolute; inset:0; background:rgba(0,0,0,.45); display:none;
+          align-items:center; justify-content:center; z-index:10; }
+  .dialog { width:82%; background:#fff; border-radius:16px; padding:24px 18px 18px; text-align:center; }
+  .dialog .ico { width:46px; height:46px; border-radius:50%; background:#faad14; color:#fff;
+                 font-size:25px; font-weight:700; line-height:46px; margin:0 auto 10px; }
+  .dialog h3 { font-size:16.5px; color:#1a1a2e; margin-bottom:8px; }
+  .dialog p { font-size:12.5px; color:#666; line-height:1.7; margin-bottom:16px; }
+  .dialog .row { display:flex; gap:10px; }
+  .dialog .row button { flex:1; height:40px; border-radius:20px; font-size:13.5px; cursor:pointer; }
+  .b-cancel { background:#fff; border:1px solid #d9d9d9; color:#666; }
+  .b-cs { background:linear-gradient(90deg,#f4574d,#ff9585); border:none; color:#fff; font-weight:600; }
+  .toast { position:fixed; left:50%; top:60px; transform:translateX(-50%); background:rgba(0,0,0,.78);
+           color:#fff; font-size:13px; padding:10px 20px; border-radius:20px; display:none; z-index:99; }
+
+  /* ── 规则说明 ── */
+  .notes { max-width:1060px; margin:0 auto; }
+  .card { background:#fff; border-radius:12px; padding:20px 24px; margin-bottom:18px; }
+  .card h2 { font-size:16px; color:#1f4e78; margin-bottom:12px; }
+  .card h2 span { font-size:12px; color:#999; font-weight:400; margin-left:8px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th { background:#1f4e78; color:#fff; padding:7px 9px; text-align:left; font-weight:600; }
+  td { border:1px solid #e8e8e8; padding:7px 9px; color:#444; line-height:1.6; vertical-align:top; }
+  tr.dim td { color:#999; background:#fafafa; }
+  .ok { color:#389e0d; font-weight:600; } .no { color:#cf1322; font-weight:600; } .mid { color:#d46b08; font-weight:600; }
+  code { background:#f5f5f5; border-radius:4px; padding:1px 6px; font-size:11.5px; color:#c41d7f; }
+  .info { background:#e6f7ff; border:1px solid #91caff; border-radius:8px; padding:10px 14px;
+          color:#0958d9; font-size:12.5px; margin-top:12px; line-height:1.7; }
+</style>
+</head>
+<body>
+
+<h1>提现收款人姓名一致性锁定 · 银行卡 &amp; UPI</h1>
+<div class="sub">BINDNAME-001 · V1 玩家端 H5 · 本期范围：银行卡 + UPI 三代 · 首绑即锁 / 自动填充不可改</div>
+
+<div class="demo-ctrl">
+  <b>演示状态：</b><span id="stBadge" class="st st-free">未绑定任何收款账户（首绑）</span>
+  <span style="color:#e0e0e0">|</span>
+  <b>App 语言：</b>
+  <span id="langPills"></span>
+  <a onclick="resetDemo()">↺ 重置演示</a>
+  <span class="hint">在任意一台手机上填写姓名并保存，另一台的姓名字段将立即自动填充并锁定；点击锁定字段弹出客服引导。默认中文，可切换英语 / 印地语 / 越南语，两屏界面文案整体切换。</span>
+</div>
+
+<div class="stage">
+  <!-- ═══ 屏1 · UPI 绑定页 ═══ -->
+  <div>
+    <div class="phone">
+      <div class="navbar"><span class="back">‹</span><span id="t-upiNav"></span></div>
+      <div class="screen">
+        <div class="upi-title"><span class="upi-logo"><span class="u1">U</span><span class="u2">P</span><span class="u3">I</span>⫸</span><span id="t-infoUpi"></span></div>
+
+        <div class="fld" id="upi-name-fld">
+          <div class="lb" id="t-upiName"></div>
+          <div class="lock-wrap">
+            <input id="upi-name" oninput="syncSave()">
+            <span class="lock-ico">🔒</span>
+          </div>
+          <div class="lock-tip" id="upi-tip" onclick="showDlg('upi')"></div>
+          <div class="first-tip" id="upi-first"></div>
+        </div>
+
+        <div class="fld">
+          <div class="lb" id="t-upiPhone"></div>
+          <input id="upi-phone">
+          <div class="red-hint" id="t-phoneHint"></div>
+        </div>
+
+        <div class="fld">
+          <div class="lb">UPI ID</div>
+          <input id="upi-id">
+        </div>
+
+        <div class="fld">
+          <div class="lb" id="t-confirmId"></div>
+          <input id="upi-cid">
+        </div>
+
+        <div class="sec-notice" id="t-secNotice"></div>
+      </div>
+      <div class="save-bar"><button class="save" id="upi-save" onclick="doSave('upi')"></button></div>
+      <div class="mask" id="dlg-upi"></div>
+    </div>
+    <div class="col-title"><b>UPI 绑定页</b><br>UPI Name = 姓名锁定字段</div>
+  </div>
+
+  <!-- ═══ 屏2 · 银行卡绑定页 ═══ -->
+  <div>
+    <div class="phone">
+      <div class="navbar"><span class="back">‹</span><span id="t-bankNav"></span></div>
+      <div class="screen">
+        <div class="warn-banner"><span class="wi">!</span><span id="t-bankWarn"></span></div>
+
+        <div class="fld">
+          <div class="lb"><span class="ico">🏦</span><span id="t-chooseBank"></span></div>
+          <div class="bank-sel"><span id="t-selectBank"></span><span>›</span></div>
+        </div>
+
+        <div class="fld" id="bank-name-fld">
+          <div class="lb"><span class="ico">👤</span><span id="t-recvName"></span></div>
+          <div class="lock-wrap">
+            <input id="bank-name" oninput="syncSave()">
+            <span class="lock-ico">🔒</span>
+          </div>
+          <div class="lock-tip" id="bank-tip" onclick="showDlg('bank')"></div>
+          <div class="first-tip" id="bank-first"></div>
+        </div>
+
+        <div class="fld">
+          <div class="lb"><span class="ico">💳</span><span id="t-bankAcc"></span></div>
+          <input id="bank-acc">
+        </div>
+
+        <div class="fld">
+          <div class="lb"><span class="ico">📱</span><span id="t-bankPhone"></span></div>
+          <input id="bank-phone">
+        </div>
+
+        <div class="fld">
+          <div class="lb"><span class="ico">🔑</span><span id="t-ifsc"></span></div>
+          <input id="bank-ifsc">
+        </div>
+      </div>
+      <div class="save-bar"><button class="save" id="bank-save" onclick="doSave('bank')"></button></div>
+      <div class="mask" id="dlg-bank"></div>
+    </div>
+    <div class="col-title"><b>银行卡绑定页</b><br>Full recipient's name = 姓名锁定字段</div>
+  </div>
+</div>
+
+<!-- ═══ 规则说明 ═══ -->
+<div class="notes">
+
+  <div class="card">
+    <h2>一、核心规则<span>首绑即锁 · 银行卡 + UPI 三代</span></h2>
+    <table>
+      <tr><th style="width:130px">项</th><th>规则</th></tr>
+      <tr><td><b>锁定时机</b></td><td>账号<b>第一个绑定成功的收款账户</b>（不管是银行卡还是 UPI），它的收款人姓名就是这个账号以后固定的姓名</td></tr>
+      <tr><td><b>锁定效果</b></td><td>之后再绑银行卡 / UPI / NewUPI / FastUPI 里的任何一种，姓名都<b>自动填好、不能改</b>；就算有人绕过页面直接调接口改名，后端也会拒绝</td></tr>
+      <tr><td><b>怎么算"同名"</b></td><td>不区分大小写、忽略首尾空格；除此之外差一个字都算不同名</td></tr>
+      <tr><td><b>删卡不解锁</b></td><td>客户端目前可以删除银行卡（UPI 没有删除功能）。<b>就算把账户全删光，姓名照样锁定</b>——不给"删卡→换个名字重新绑"留空子。<b>注意：只限制用户自助操作，后台不受锁定限制</b>——用户填错姓名时联系客服，核实后由后台修改，这是唯一的更改路径</td></tr>
+      <tr><td><b>老用户怎么办</b></td><td>已经绑好的账户一律不动、姓名也不改。从上线后<b>下一次绑新账户</b>开始生效：名下有银行卡的，按银行卡的姓名锁；只有 UPI 的，按 UPI 的姓名锁。对新注册用户来说就是最简单的一句话——<b>第一个绑谁，就锁谁的姓名</b></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>二、生效范围<span>WithType 全枚举 · 15 类逐一明确</span></h2>
+    <table>
+      <tr><th style="width:56px">WithType</th><th style="width:110px">类型</th><th style="width:150px">绑定接口</th><th style="width:90px">是否参与锁定</th><th>说明</th></tr>
+      <tr><td>1</td><td>银行卡</td><td><code>SetWithdrawalBankCard</code></td><td class="ok">✓ 本期改造</td><td>已有校验，基准查询补 UPI 兜底（解决先绑 UPI 场景）</td></tr>
+      <tr><td>2</td><td>UPI（旧版）</td><td><code>SetWithdrawalUPI</code></td><td class="ok">✓ 本期改造</td><td>老版本入口，仍在使用，保留兼容，同样补校验 + 前端锁定</td></tr>
+      <tr><td>20</td><td>NewUPI</td><td><code>SetWithdrawalNewUPI</code></td><td class="ok">✓ 本期改造</td><td>旧版 UPI 的升级版（流程更简洁），当前主推入口</td></tr>
+      <tr><td>27</td><td>FastUPI</td><td><code>SetWithdrawalFastUPI</code></td><td class="ok">✓ 本期改造</td><td>快捷提现专用（需选银行 + PIN），补校验 + 前端锁定</td></tr>
+      <tr class="dim"><td>4/6/8/23/24</td><td>E-Wallet 系<br>（WavePay/KBZPay/Easypaisa/JAZZCASH）</td><td><code>SetWithdrawalWallet</code></td><td class="mid">— 维持现状</td><td>自身已有姓名校验（钱包↔银行卡已闭环），本期不动</td></tr>
+      <tr class="dim"><td>5</td><td>PIX（巴西）</td><td><code>SetWithdrawalCpf</code></td><td class="no">× 本期不考虑</td><td>无一致性校验（仅已实名用户被实名信息约束），风险已知，后续单独立项</td></tr>
+      <tr class="dim"><td>3 / 10</td><td>USDT / USDT2</td><td><code>SetWithdrawalUsdt</code></td><td class="no">× 不涉及</td><td>绑定仅填地址 + 备注，无真实姓名字段</td></tr>
+      <tr class="dim"><td>22</td><td>RSN 钱包</td><td><code>SetWithdrawalWallet</code></td><td class="no">× 不涉及</td><td>现状明确豁免姓名校验，维持豁免</td></tr>
+      <tr class="dim"><td>7 / 21</td><td>TRX / ARPay</td><td>无绑定接口</td><td class="no">× 不涉及</td><td>无绑定入口，无需处理</td></tr>
+    </table>
+    <div class="info">📌 一句话：<b>本期只改银行卡 + UPI 三代四个入口；E-Wallet 已闭环不动，PIX 等其余类型暂不考虑。</b></div>
+  </div>
+
+  <div class="card">
+    <h2>三、前端交互说明<span>对照上方两屏</span></h2>
+    <table>
+      <tr><th style="width:150px">场景</th><th>说明</th></tr>
+      <tr><td>改哪里</td><td>只改两个页面上的<b>姓名输入框</b>：UPI 绑定页的「UPI Name」、银行卡绑定页的「收款人姓名」（NewUPI / FastUPI 页同样处理）。页面其他字段、布局一律不动</td></tr>
+      <tr><td>还没绑过账户</td><td>姓名随便填。输入框下面有一行绿色提示，告诉用户：保存之后这个姓名就固定了，以后所有提现方式都用它</td></tr>
+      <tr><td>已经绑过账户</td><td>打开页面姓名已经自动填好，灰色、点不动，右边有把小锁 🔒；下面一行黄色提示写明原因</td></tr>
+      <tr><td>用户想改名</td><td>点姓名框会弹窗：「姓名已锁定，如需修改请联系客服」；点「联系客服」直接跳到现有客服入口，客服核实身份后由后台统一改</td></tr>
+      <tr><td>保存之后</td><td>第一次绑定保存成功的那一刻，所有绑定页面的姓名就都变成锁定状态；之后的保存照常进行，姓名用锁定的值提交</td></tr>
+      <tr><td>兜底</td><td>就算有人用旧缓存页面绕过前端，把别的名字提交上来，后端也会拒绝，并提示「收款人姓名需与已绑定账户一致，如需修改请联系客服」（多语言）</td></tr>
+      <tr><td>要不要发版</td><td>不用。V1 是 H5 套壳，这些改动都在 H5 里，随时上线</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ 多语言文案（默认中文；对应 LanguageEnum：zh/en/hd/vi）═══
+const I18N = {
+  cn: { name:'中文',
+    upiNav:'支付方式', infoUpi:'UPI 信息', upiName:'UPI 姓名', upiNamePh:'请输入 UPI 姓名',
+    phone:'手机号', phonePh:'请输入手机号',
+    phoneHint:'ⓘ 为了您的账户安全，请填写您本人的真实手机号',
+    upiIdPh:'请输入您的 UPI ID', confirmId:'确认 UPI ID',
+    secNotice:'安全提示：为了您的安全，请勿使用手机号作为 UPI ID，以免带来欺诈风险；请勿向任何自称客服的陌生人分享验证码或转账。',
+    save:'保 存',
+    bankNav:'添加银行卡', bankWarn:'为保障资金安全，请绑定您本人的银行账户',
+    chooseBank:'选择银行', selectBank:'请选择银行',
+    recvName:'收款人姓名', recvNamePh:'请输入收款人姓名',
+    bankAcc:'银行卡号', bankAccPh:'请输入您的银行卡号', bankPhonePh:'请输入手机号',
+    ifsc:'IFSC 编码', ifscPh:'请输入 IFSC 编码',
+    firstTip:'✓ 这是您的首个收款账户，保存后姓名将锁定，后续所有提现方式须使用同一姓名',
+    lockTip:'ⓘ 姓名已锁定为您首个收款账户的姓名，如需修改请点此联系客服',
+    dlgTitle:'姓名已锁定',
+    dlgBody:'该姓名已与您的首个收款账户绑定，<br>如需修改请联系客服处理。',
+    cancel:'取消', cs:'联系客服' },
+  en: { name:'English',
+    upiNav:'Payment method', infoUpi:'Information UPI', upiName:'UPI Name', upiNamePh:'Please enter UPI name',
+    phone:'phone number', phonePh:'Please enter the phone number',
+    phoneHint:'ⓘ For the security of your account, please fill in your real mobile phone number',
+    upiIdPh:'Please enter your UPI ID', confirmId:'Confirm UPI ID',
+    secNotice:'Security Notice: For your safety, please avoid using your phone number as your UPI ID. This may expose you to potential fraud risks. Do not share OTPs or make any payments to unsolicited contacts claiming to be support.',
+    save:'Save',
+    bankNav:'Add a bank account number', bankWarn:'To ensure the safety of your funds, please bind your bank account',
+    chooseBank:'Choose a bank', selectBank:'Please select a bank',
+    recvName:"Full recipient's name", recvNamePh:"Please enter the recipient's name",
+    bankAcc:'Bank account number', bankAccPh:'Please enter your bank account number', bankPhonePh:'Please enter your phone number',
+    ifsc:'IFSC code', ifscPh:'Please enter IFSC code',
+    firstTip:'✓ First withdrawal account — the name you save will be locked for all future accounts',
+    lockTip:'ⓘ Name is locked to your first withdrawal account. Tap to contact support if you need to change it.',
+    dlgTitle:'Name Locked',
+    dlgBody:'The name is bound to your first withdrawal account.<br>Please contact customer service to modify it.',
+    cancel:'Cancel', cs:'Contact CS' },
+  hd: { name:'हिन्दी',
+    upiNav:'भुगतान विधि', infoUpi:'UPI जानकारी', upiName:'UPI नाम', upiNamePh:'कृपया UPI नाम दर्ज करें',
+    phone:'फ़ोन नंबर', phonePh:'कृपया फ़ोन नंबर दर्ज करें',
+    phoneHint:'ⓘ आपके खाते की सुरक्षा के लिए कृपया अपना असली मोबाइल नंबर भरें',
+    upiIdPh:'कृपया अपना UPI ID दर्ज करें', confirmId:'UPI ID की पुष्टि करें',
+    secNotice:'सुरक्षा सूचना: अपनी सुरक्षा के लिए फ़ोन नंबर को UPI ID के रूप में उपयोग न करें। किसी भी अजनबी से OTP साझा न करें या भुगतान न करें।',
+    save:'सहेजें',
+    bankNav:'बैंक खाता जोड़ें', bankWarn:'आपके धन की सुरक्षा के लिए कृपया अपना बैंक खाता लिंक करें',
+    chooseBank:'बैंक चुनें', selectBank:'कृपया बैंक चुनें',
+    recvName:'प्राप्तकर्ता का पूरा नाम', recvNamePh:'कृपया प्राप्तकर्ता का नाम दर्ज करें',
+    bankAcc:'बैंक खाता संख्या', bankAccPh:'कृपया अपना बैंक खाता नंबर दर्ज करें', bankPhonePh:'कृपया फ़ोन नंबर दर्ज करें',
+    ifsc:'IFSC कोड', ifscPh:'कृपया IFSC कोड दर्ज करें',
+    firstTip:'✓ यह आपका पहला निकासी खाता है — सहेजने के बाद नाम लॉक हो जाएगा',
+    lockTip:'ⓘ नाम आपके पहले खाते के अनुसार लॉक है। बदलने के लिए ग्राहक सेवा से संपर्क करें।',
+    dlgTitle:'नाम लॉक है',
+    dlgBody:'यह नाम आपके पहले निकासी खाते से जुड़ा है।<br>बदलने के लिए कृपया ग्राहक सेवा से संपर्क करें।',
+    cancel:'रद्द करें', cs:'ग्राहक सेवा' },
+  vi: { name:'Tiếng Việt',
+    upiNav:'Phương thức thanh toán', infoUpi:'Thông tin UPI', upiName:'Tên UPI', upiNamePh:'Vui lòng nhập tên UPI',
+    phone:'Số điện thoại', phonePh:'Vui lòng nhập số điện thoại',
+    phoneHint:'ⓘ Vì an toàn tài khoản, vui lòng điền số điện thoại thật của bạn',
+    upiIdPh:'Vui lòng nhập UPI ID của bạn', confirmId:'Xác nhận UPI ID',
+    secNotice:'Lưu ý an toàn: Vì an toàn của bạn, không dùng số điện thoại làm UPI ID; không chia sẻ OTP hoặc chuyển tiền cho người lạ tự xưng là CSKH.',
+    save:'Lưu',
+    bankNav:'Thêm tài khoản ngân hàng', bankWarn:'Để đảm bảo an toàn tiền của bạn, vui lòng liên kết tài khoản ngân hàng',
+    chooseBank:'Chọn ngân hàng', selectBank:'Vui lòng chọn ngân hàng',
+    recvName:'Tên người nhận', recvNamePh:'Vui lòng nhập tên người nhận',
+    bankAcc:'Số tài khoản ngân hàng', bankAccPh:'Vui lòng nhập số tài khoản', bankPhonePh:'Vui lòng nhập số điện thoại',
+    ifsc:'Mã IFSC', ifscPh:'Vui lòng nhập mã IFSC',
+    firstTip:'✓ Đây là tài khoản rút tiền đầu tiên — tên sẽ bị khóa sau khi lưu',
+    lockTip:'ⓘ Tên đã bị khóa theo tài khoản đầu tiên của bạn. Nhấn để liên hệ CSKH nếu cần thay đổi.',
+    dlgTitle:'Tên đã bị khóa',
+    dlgBody:'Tên này đã gắn với tài khoản rút tiền đầu tiên của bạn.<br>Vui lòng liên hệ CSKH để thay đổi.',
+    cancel:'Hủy', cs:'Liên hệ CSKH' },
+};
+let lang = 'cn';
+let locked = false, lockedName = '';
+
+function T(){ return I18N[lang]; }
+
+function applyLang(){
+  const t = T();
+  // 语言胶囊
+  document.getElementById('langPills').innerHTML = Object.keys(I18N).map(c =>
+    `<button class="lang-pill ${c===lang?'on':''}" onclick="setLang('${c}')">${I18N[c].name}</button>`).join(' ');
+  // UPI 页
+  document.getElementById('t-upiNav').textContent = t.upiNav;
+  document.getElementById('t-infoUpi').textContent = t.infoUpi;
+  document.getElementById('t-upiName').textContent = t.upiName;
+  document.getElementById('upi-name').placeholder = t.upiNamePh;
+  document.getElementById('t-upiPhone').textContent = t.phone;
+  document.getElementById('upi-phone').placeholder = t.phonePh;
+  document.getElementById('t-phoneHint').textContent = t.phoneHint;
+  document.getElementById('upi-id').placeholder = t.upiIdPh;
+  document.getElementById('t-confirmId').textContent = t.confirmId;
+  document.getElementById('upi-cid').placeholder = t.upiIdPh;
+  document.getElementById('t-secNotice').textContent = t.secNotice;
+  document.getElementById('upi-save').textContent = t.save;
+  document.getElementById('upi-first').textContent = t.firstTip;
+  document.getElementById('upi-tip').textContent = t.lockTip;
+  // 银行卡页
+  document.getElementById('t-bankNav').textContent = t.bankNav;
+  document.getElementById('t-bankWarn').textContent = t.bankWarn;
+  document.getElementById('t-chooseBank').textContent = t.chooseBank;
+  document.getElementById('t-selectBank').textContent = t.selectBank;
+  document.getElementById('t-recvName').textContent = t.recvName;
+  document.getElementById('bank-name').placeholder = t.recvNamePh;
+  document.getElementById('t-bankAcc').textContent = t.bankAcc;
+  document.getElementById('bank-acc').placeholder = t.bankAccPh;
+  document.getElementById('t-bankPhone').textContent = t.phone;
+  document.getElementById('bank-phone').placeholder = t.bankPhonePh;
+  document.getElementById('t-ifsc').textContent = t.ifsc;
+  document.getElementById('bank-ifsc').placeholder = t.ifscPh;
+  document.getElementById('bank-save').textContent = t.save;
+  document.getElementById('bank-first').textContent = t.firstTip;
+  document.getElementById('bank-tip').textContent = t.lockTip;
+}
+function setLang(c){ lang = c; applyLang(); }
+
+function render(){
+  const badge = document.getElementById('stBadge');
+  badge.className = 'st ' + (locked ? 'st-lock' : 'st-free');
+  badge.textContent = locked ? `已锁定：${lockedName}` : '未绑定任何收款账户（首绑）';
+
+  for (const key of ['upi','bank']) {
+    const fld = document.getElementById(key + '-name-fld');
+    const inp = document.getElementById(key + '-name');
+    const tip = document.getElementById(key + '-tip');
+    const first = document.getElementById(key + '-first');
+    if (locked) {
+      fld.classList.add('locked');
+      inp.value = lockedName; inp.readOnly = true;
+      inp.onclick = () => showDlg(key);
+      tip.classList.add('locked-show');
+      first.style.display = 'none';
+    } else {
+      fld.classList.remove('locked');
+      inp.value = ''; inp.readOnly = false; inp.onclick = null;
+      tip.classList.remove('locked-show');
+      first.style.display = 'block';
+    }
+  }
+  syncSave();
+}
+
+function syncSave(){
+  for (const key of ['upi','bank']) {
+    const v = document.getElementById(key + '-name').value.trim();
+    document.getElementById(key + '-save').classList.toggle('ready', !!v);
+  }
+}
+
+function doSave(key){
+  if (locked) { showToast('绑定成功（姓名保持锁定，其余字段正常提交）'); return; }
+  const v = document.getElementById(key + '-name').value.trim();
+  if (!v) { showToast(key === 'upi' ? T().upiNamePh : T().recvNamePh); return; }
+  locked = true; lockedName = v.toUpperCase();
+  render();
+  showToast('首绑成功，姓名已锁定 🔒 另一页面已自动填充');
+}
+
+function showDlg(key){
+  const t = T();
+  const m = document.getElementById('dlg-' + key);
+  m.innerHTML = `<div class="dialog">
+    <div class="ico">!</div>
+    <h3>${t.dlgTitle}</h3>
+    <p>${t.dlgBody}</p>
+    <div class="row">
+      <button class="b-cancel" onclick="hideDlg('${key}')">${t.cancel}</button>
+      <button class="b-cs" onclick="hideDlg('${key}');showToast('→ 跳转现有客服入口')">${t.cs}</button>
+    </div></div>`;
+  m.style.display = 'flex';
+}
+function hideDlg(key){ document.getElementById('dlg-' + key).style.display = 'none'; }
+function resetDemo(){ locked = false; lockedName = ''; render(); }
+
+let toastTimer;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.style.display = 'none', 2400);
+}
+applyLang(); render();
+</script>
+</body>
+</html>
