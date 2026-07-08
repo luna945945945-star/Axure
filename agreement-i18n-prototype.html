@@ -55,6 +55,19 @@
   .toast { position:fixed; left:50%; top:60px; transform:translateX(-50%); background:rgba(0,0,0,.78);
            color:#fff; font-size:13px; padding:10px 20px; border-radius:20px; display:none; z-index:99; }
 
+  /* ── 顶层页面 Tab（隐私协议 / 风险协议 两个独立页面）── */
+  .page-tabs { display:flex; gap:6px; margin-bottom:14px; }
+  .page-tabs .ptab { padding:10px 26px; font-size:14px; border:1px solid #e0e4e8; background:#fff;
+                     color:#555; border-radius:10px; cursor:pointer; font-weight:500; }
+  .page-tabs .ptab:hover { color:#1f8fff; }
+  .page-tabs .ptab.on { background:#1f8fff; color:#fff; border-color:#1f8fff; font-weight:600;
+                        box-shadow:0 2px 8px rgba(31,143,255,.25); }
+  .page-pane { display:none; }
+  .page-pane.on { display:block; }
+  .crumb { font-size:13px; color:#1f8fff; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid #f0f0f0; }
+  .crumb b { color:#333; }
+  .save-note { text-align:center; font-size:12px; color:#999; margin-top:4px; }
+
   /* ── 规则区 ── */
   table { width:100%; border-collapse:collapse; font-size:12.5px; }
   th { background:#1f4e78; color:#fff; padding:7px 9px; text-align:left; font-weight:600; }
@@ -78,23 +91,38 @@
     <div class="lang-config" id="langConfig"></div>
   </div>
 
-  <!-- ═══ 协议编辑区 ═══ -->
-  <div class="card">
-    <h2>协议编辑<span>文本框上方新增语言切换 Tab · 绿点=已配置 / 灰点=未配置 / 橙点=未保存</span></h2>
+  <!-- ═══ 协议编辑区 · 两个独立后台页面 ═══ -->
+  <div class="page-tabs">
+    <button class="ptab on" data-page="privacy">隐私协议</button>
+    <button class="ptab" data-page="risk">风险协议</button>
+  </div>
 
-    <div class="form-row">
-      <div class="form-label">隐私协议：</div>
-      <div class="editor-box" id="box-privacy"></div>
+  <!-- 页面一：协议管理 / 隐私协议 -->
+  <div class="page-pane on" id="page-privacy">
+    <div class="card">
+      <div class="crumb">协议管理 › <b>隐私协议</b></div>
+      <h2>协议编辑<span>文本框上方语言切换 Tab · 绿点=已配置 / 灰点=未配置 / 橙点=未保存</span></h2>
+      <div class="form-row">
+        <div class="form-label">隐私协议：</div>
+        <div class="editor-box" id="box-privacy"></div>
+      </div>
+      <div class="btn-bar"><button class="btn" onclick="saveModule('privacy')">修 改</button></div>
+      <div class="save-note">「修改」提交<b>隐私协议</b>的<b>全部语言</b>内容（含留空语言）；切换语言 Tab 仅暂存不保存，最终以点击「修改」为准</div>
     </div>
-    <div class="btn-bar"><button class="btn" onclick="saveModule('privacy')">修 改</button></div>
+  </div>
 
-    <div class="form-row">
-      <div class="form-label">风险协议：</div>
-      <div class="editor-box" id="box-risk"></div>
+  <!-- 页面二：协议管理 / 风险协议 -->
+  <div class="page-pane" id="page-risk">
+    <div class="card">
+      <div class="crumb">协议管理 › <b>风险协议</b></div>
+      <h2>协议编辑<span>文本框上方语言切换 Tab · 绿点=已配置 / 灰点=未配置 / 橙点=未保存</span></h2>
+      <div class="form-row">
+        <div class="form-label">风险协议：</div>
+        <div class="editor-box" id="box-risk"></div>
+      </div>
+      <div class="btn-bar"><button class="btn" onclick="saveModule('risk')">修 改</button></div>
+      <div class="save-note">「修改」提交<b>风险协议</b>的<b>全部语言</b>内容（含留空语言）；切换语言 Tab 仅暂存不保存，最终以点击「修改」为准</div>
     </div>
-    <div class="btn-bar"><button class="btn" onclick="saveModule('risk')">修 改</button></div>
-
-    <div style="text-align:center; font-size:12px; color:#999">「修改」提交该协议的<b>全部语言</b>内容（含留空语言）；切换语言 Tab 仅暂存不保存，最终以点击「修改」为准</div>
   </div>
 
   <!-- ═══ 规则说明 ═══ -->
@@ -102,7 +130,8 @@
     <h2>功能规则</h2>
     <table>
       <tr><th style="width:130px">项</th><th>规则</th></tr>
-      <tr><td><b>Tab 来源</b></td><td>读取「前台参数配置」勾选的语言（<code>WebLanguages</code>），动态生成语言 Tab；<b>默认语言（<code>DefaultLanguage</code>）恒排第一并标"默认"</b>，不可取消</td></tr>
+      <tr><td><b>Tab 来源</b></td><td>读取「前台参数配置」勾选的语言（<code>WebLanguages</code>），动态生成语言 Tab</td></tr>
+      <tr><td><b>默认语言</b></td><td><b>默认语言为「英语（English）」，必填、不可取消</b>；恒排第一并标"默认"，前台参数里其勾选框锁定为选中状态，不能取消；存量单语内容上线时迁移为英语内容，作为回退兜底的最终来源</td></tr>
       <tr><td><b>独立存储</b></td><td>每个语言一份独立 HTML 内容；两个协议（隐私/风险）互不影响</td></tr>
       <tr><td><b>状态标识</b></td><td>Tab 圆点：绿=已配置（有内容）、灰=未配置（空）、橙=本次编辑未保存</td></tr>
       <tr><td><b>保存行为</b></td><td>「修改」按钮一次性保存当前协议模块全部语言；允许部分语言留空</td></tr>
@@ -118,23 +147,28 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══ 语言全集（demo 取 LanguageEnum 常用子集）═══
+// ═══ 语言全集（默认中文 cn=DefaultLanguage；对应 LanguageEnum：zh=5/en=0/hd=9/vi=2）═══
+const DEF = 'en';
 const ALL_LANGS = [
-  { code:'en',  id:0,  label:'英文版',   native:'English',   def:true },
-  { code:'hd',  id:9,  label:'印地语版', native:'हिन्दी' },
-  { code:'cn',  id:5,  label:'中文版',   native:'中文' },
-  { code:'bra', id:3,  label:'葡语版',   native:'Português' },
-  { code:'tha', id:4,  label:'泰语版',   native:'ไทย' },
+  { code:'en', id:0, label:'英文版',   native:'English',     def:true },
+  { code:'cn', id:5, label:'中文版',   native:'中文' },
+  { code:'hd', id:9, label:'印地语版', native:'हिन्दी' },
+  { code:'vi', id:2, label:'越南语版', native:'Tiếng Việt' },
 ];
-let enabled = new Set(['en','hd','cn']);
+let enabled = new Set(['en','cn','hd','vi']);
 
-// 每协议 × 每语言的内容仓库（en 预填存量迁移效果）
+// 每协议 × 每语言的内容仓库（cn 预填 = 存量迁移为默认语言；en 已翻译；hd/vi 未配置演示回退）
 const store = {
-  privacy: { en: 'This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.<br><br><b>Interpretation and Definitions</b><br>The words of which the initial letter is capitalized have meanings defined under the following conditions...' },
-  risk:    { en: '' },
+  privacy: {
+    en: 'This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.<br><br><b>Interpretation and Definitions</b><br>The words of which the initial letter is capitalized have meanings defined under the following conditions...',
+    cn: '本隐私协议说明了您使用本服务时，我们对您的信息的收集、使用与披露的政策和流程，并告知您的隐私权利以及法律如何保护您。<br><br><b>释义与定义</b><br>首字母大写的词语，其含义按以下条件定义……',
+  },
+  risk: {
+    en: 'Participating in the platform games involves risk. Please play rationally after fully understanding the rules. Do not invest funds beyond your means. Minors are prohibited from participating...',
+  },
 };
 const dirty = { privacy:{}, risk:{} };
-const curLang = { privacy:'en', risk:'en' };
+const curLang = { privacy:DEF, risk:DEF };
 
 function langsEnabled(){
   return ALL_LANGS.filter(l => enabled.has(l.code))
@@ -153,7 +187,7 @@ function renderConfig(){
 function toggleLang(code, on){
   if (on) enabled.add(code); else enabled.delete(code);
   for (const key of ['privacy','risk'])
-    if (!enabled.has(curLang[key])) curLang[key] = 'en';
+    if (!enabled.has(curLang[key])) curLang[key] = DEF;
   renderEditor('privacy'); renderEditor('risk');
   showToast(on ? '已启用语言，Tab 已加入（内容待配置）' : '已停用语言，Tab 隐藏（已配置内容保留）');
 }
@@ -169,7 +203,7 @@ function renderEditor(key){
       <span class="dot ${dot}"></span>${l.label}${l.def?'<span class="dtag">默认</span>':''}</div>`;
   }).join('');
   const isEmpty = (store[key][cl] || '').trim() === '';
-  const defHasContent = (store[key]['en'] || '').trim() !== '';
+  const defHasContent = (store[key][DEF] || '').trim() !== '';
   document.getElementById('box-' + key).innerHTML = `
     <div class="lang-tabs">${tabs}</div>
     <div class="editor">
@@ -199,6 +233,7 @@ function saveModule(key){
   renderEditor(key);
   showToast((key === 'privacy' ? '隐私协议' : '风险协议') + '：已保存全部语言内容 ✓');
 }
+
 let toastTimer;
 function showToast(msg){
   const el = document.getElementById('toast');
@@ -206,6 +241,16 @@ function showToast(msg){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.style.display = 'none', 2200);
 }
+// ═══ 顶层页面 Tab 切换（隐私协议 / 风险协议）═══
+document.querySelectorAll('.ptab').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.ptab').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('.page-pane').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    document.getElementById('page-' + b.dataset.page).classList.add('on');
+  };
+});
+
 renderConfig(); renderEditor('privacy'); renderEditor('risk');
 </script>
 </body>
