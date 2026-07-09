@@ -337,7 +337,8 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           <div class="card-head" style="margin-top:6px;justify-content:flex-start;gap:10px"><div class="card-title" style="font-size:14px">发放限制</div><span class="text-xs text-muted">白名单属<b>券规格</b>，在此设定（<b style="color:#7c3aed">渠道注册码 / 代理邀请链接均在此设</b>）；渠道报表引用该券时<b>只读</b></span></div>
           <div class="form-row"><span class="form-label">每手机号</span><span class="badge primary">限领 1 次</span><span class="form-label" style="min-width:auto;margin-left:20px">白名单</span><div class="radio-grp"><div class="radio-opt on" id="wl-none" onclick="toggleWl('none')"><span class="rd"></span>不限制</div><div class="radio-opt" id="wl-on" onclick="toggleWl('on')"><span class="rd"></span>仅白名单可领</div></div></div>
           <div class="form-row" style="margin-top:2px"><span class="form-label">　</span><span class="text-xs" style="color:#c0392b">⚠️ 仅手机号注册命中，邮箱注册不命中</span></div>
-          <div class="form-row" id="wl-import" style="display:none"><span class="form-label">选择名单</span><select class="select" style="min-width:210px"><option>新客拉新名单（5,000）</option></select> <a onclick="showPage('p6',document.querySelectorAll('.b-tab')[1])" style="color:#1677ff;cursor:pointer;font-size:12px;margin-left:10px">＋ 去白名单库</a></div>
+          <div class="form-row" id="wl-import" style="display:none"><span class="form-label">选择名单</span><select id="cc-wl-list" class="select" style="min-width:230px"><option>新客拉新名单（5,000）</option></select> <a onclick="goWlLib('create-code-modal')" style="color:#1677ff;cursor:pointer;font-size:12px;margin-left:10px">＋ 去白名单库</a></div>
+          <div class="form-row" id="wl-import-hint" style="display:none;margin-top:-4px"><span class="form-label">　</span><span class="text-xs text-muted">仅列<b id="cc-wl-chan">渠道注册</b>归属的白名单（跟随「适用渠道」自动过滤）</span></div>
           </div>
 
           <div class="form-row" style="align-items:flex-start"><span class="form-label">实时预览</span><div class="preview-box flex-1" id="cc-preview" style="max-width:420px"></div></div>
@@ -370,7 +371,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         </div>
       </div>
       <div class="form-row"><span class="form-label">打码量倍数</span><input class="input" type="number" value="1" style="width:110px"> <span class="text-sm text-muted">倍（彩金按打码倍数计入流水）</span></div>
-      <div class="form-row"><span class="form-label">手机号白名单</span><div class="radio-grp" id="chan-wl-grp"><div class="radio-opt on" data-wl="none" onclick="chanWl('none',this)"><span class="rd"></span>不限制</div><div class="radio-opt" data-wl="on" onclick="chanWl('on',this)"><span class="rd"></span>仅白名单可领</div></div> <a id="chan-wl-link" onclick="closeModal('chan-modal');showPage('p6',document.querySelectorAll('.b-tab')[1])" style="color:#1677ff;cursor:pointer;font-size:12px;margin-left:8px">＋ 去白名单库</a> <span id="chan-wl-ro" class="text-xs" style="display:none;color:#7c3aed;margin-left:8px">🔒 由所选券券规格决定 · 只读</span></div>
+      <div class="form-row"><span class="form-label">手机号白名单</span><div class="radio-grp" id="chan-wl-grp"><div class="radio-opt on" data-wl="none" onclick="chanWl('none',this)"><span class="rd"></span>不限制</div><div class="radio-opt" data-wl="on" onclick="chanWl('on',this)"><span class="rd"></span>仅白名单可领</div></div> <a id="chan-wl-link" onclick="goWlLib('chan-modal')" style="color:#1677ff;cursor:pointer;font-size:12px;margin-left:8px">＋ 去白名单库</a> <span id="chan-wl-ro" class="text-xs" style="display:none;color:#7c3aed;margin-left:8px">🔒 由所选券券规格决定 · 只读</span></div>
       <div class="form-row" id="chan-wl-pick" style="display:none"><span class="form-label">选择名单</span><select class="select" style="min-width:260px"><option>新客拉新名单（5,000）</option><option>上月活动参与名单（8,000）</option><option>流失VIP名单（2,000）</option></select> <span class="text-xs text-muted" style="margin-left:8px">仅名单内手机号注册可领本渠道</span></div>
       <div class="form-row"><span class="form-label">　</span><span class="text-xs text-muted">（选券后白名单<b>按券规格只读</b>；「不送券·仅彩金」时可自定义 · 可选）</span></div>
       <div style="text-align:center;margin-top:18px"><button class="btn primary" onclick="closeModal('chan-modal');toast('渠道已保存（含充值优惠券配置）','success')">✓ 添加</button> <button class="btn ghost" onclick="closeModal('chan-modal')" style="margin-left:12px">↩ 返回</button></div>
@@ -384,6 +385,8 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
     <div class="modal-head"><div class="modal-title">新建白名单</div><span class="modal-close" onclick="closeModal('wl-create-modal')">✕</span></div>
     <div class="modal-body">
       <div class="form-row"><span class="form-label">名单名称</span><input class="input" placeholder="如：新春拉新名单" style="max-width:280px"></div>
+      <div class="form-row"><span class="form-label">适用渠道归属</span><div class="radio-grp"><div class="radio-opt on" onclick="pickRadio(this)"><span class="rd"></span>渠道注册</div><div class="radio-opt" onclick="pickRadio(this)"><span class="rd"></span>代理邀请注册</div></div></div>
+      <div class="form-row" style="margin-top:-4px"><span class="form-label">　</span><span class="text-xs text-muted">标明该名单归属的<b>充值优惠券适用渠道</b>（渠道注册码 / 代理邀请链接），二选一</span></div>
       <div class="form-row" style="align-items:flex-start"><span class="form-label">导入手机号</span>
         <div style="flex:1;min-width:0">
           <textarea class="input" rows="5" placeholder="每行一个手机号，或从 Excel 直接粘贴一列…" style="width:100%;resize:vertical;min-height:88px;padding:8px 10px;font-family:inherit"></textarea>
@@ -986,7 +989,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <table class="t">
         <tr><th style="width:82px">端</th><th style="width:130px">页面 / 模块</th><th style="width:62px">类型</th><th>核心内容</th></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>充值优惠券管理</td><td><span class="tag t-new">新增</span></td><td>券码列表（券码×代理粒度）+ 创建券码弹窗 + 复制新建 / 停用 / 发放·使用明细</td></tr>
-        <tr><td><span class="tag t-v1">V1后台</span></td><td>白名单管理</td><td><span class="tag t-new">新增</span></td><td>注册场景手机号池 + 导入→注册→充值→用券转化漏斗</td></tr>
+        <tr><td><span class="tag t-v1">V1后台</span></td><td>白名单管理</td><td><span class="tag t-new">新增</span></td><td>注册场景手机号池 + <b>适用渠道归属</b> + 导入→注册→充值→用券转化漏斗</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>渠道报表</td><td><span class="tag t-mod">改造</span></td><td>渠道维度统计（注册 / 首充 / 二充 / 充值 / 提现 / 送券）+ 渠道更新弹窗</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>资金账变</td><td><span class="tag t-mod">改造</span></td><td>账变类型新增「充值优惠券」，充值优惠券到账可查</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>会员详情</td><td><span class="tag t-mod">改造</span></td><td>「充值提现」区并入充值优惠券奖金（仅金额，不含币种 / 张数）</td></tr>
@@ -1018,7 +1021,8 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="h2">4.2 白名单管理（V1后台）</div>
       <ul class="l">
         <li>手机号按「名单 / 批次」归类；顶部漏斗展示 <b>导入 → 已注册 → 已充值 → 已用券</b> 及各级转化率。</li>
-        <li>明细列：所属名单 / 手机号 / 上级ID（邀请码归因）/ 状态 / 注册时间 / 充值额 / 用券彩金 / 使用的券。</li>
+        <li><b>新建名单需选「适用渠道归属」</b>（渠道注册 / 代理邀请注册，单选）——标明该名单归属的充值优惠券适用渠道；名单批次下拉与明细列均展示归属渠道。</li>
+        <li>明细列：所属名单 / <b>归属渠道</b> / 手机号 / 上级ID（邀请码归因）/ 状态 / 注册时间 / 充值额 / 用券彩金 / 使用的券。</li>
         <li>本页只圈人 + 看转化，<b>不在此发券</b>；被哪些券码 / 活动引用会标注。</li>
       </ul>
 
@@ -1115,7 +1119,7 @@ function toggleCap(m){
   document.getElementById('cc-cap').disabled=(m==='none');
   updatePreview();
 }
-function pickChan(el,chan){el.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('on'));el.classList.add('on');const assign=document.getElementById('assign-agent-block'),limit=document.getElementById('dist-limit-block');if(assign)assign.style.display=(chan==='link'||chan==='red')?'':'none';if(limit)limit.style.display=(chan==='link'||chan==='channel')?'':'none';const tips={link:'代理拼「邀请码-券码」链接拉新 · 有白名单 · 不设次数',channel:'渠道配置注册送（新客）· 白名单属券规格·在下方设定 · 无需分配代理',red:'发红包给下级会员 · 授权次数在会员列表配 · 无需白名单',manual:'直接发/批量导入给会员 · 按次直发 · 无需白名单'};document.getElementById('chan-tip').textContent=tips[chan];}
+function pickChan(el,chan){el.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('on'));el.classList.add('on');const assign=document.getElementById('assign-agent-block'),limit=document.getElementById('dist-limit-block');if(assign)assign.style.display=(chan==='link'||chan==='red')?'':'none';if(limit)limit.style.display=(chan==='link'||chan==='channel')?'':'none';if(chan==='link'||chan==='channel')fillCcWl(chan);const tips={link:'代理拼「邀请码-券码」链接拉新 · 有白名单 · 不设次数',channel:'渠道配置注册送（新客）· 白名单属券规格·在下方设定 · 无需分配代理',red:'发红包给下级会员 · 授权次数在会员列表配 · 无需白名单',manual:'直接发/批量导入给会员 · 按次直发 · 无需白名单'};document.getElementById('chan-tip').textContent=tips[chan];}
 function toggleAllCat(el){document.querySelectorAll('#create-code-modal .cat-item').forEach(function(c){c.checked=el.checked;});}
 function catSync(){var items=[].slice.call(document.querySelectorAll('#create-code-modal .cat-item'));var on=items.filter(function(c){return c.checked;}).length;document.getElementById('cat-all').checked=(on===items.length);if(on===0)toast('必须至少勾选 1 个充值大类','warning');}
 let copySrcRow=null, copyAssignType='agent';
@@ -1178,6 +1182,7 @@ function toggleWl(m){
   document.getElementById('wl-none').classList.toggle('on',m==='none');
   document.getElementById('wl-on').classList.toggle('on',m==='on');
   document.getElementById('wl-import').style.display=m==='on'?'':'none';
+  var h=document.getElementById('wl-import-hint');if(h)h.style.display=m==='on'?'':'none';
 }
 function copyCcCode(){const c=document.getElementById('cc-code');toast('券码已复制：'+c.value,'success');}
 function genCode(){
@@ -1315,11 +1320,15 @@ function doRegister(){
 }
 /* —— 白名单管理（主从：左选名单、右渲详情） —— */
 const WL=[
-  {name:'新客拉新名单',code:'NEW8',refBy:['注册券码 SPRING15','注册送彩金·新春渠道'],imp:'5,000',reg:'1,800',regP:'36%',dep:'900',depP:'18%',use:'600',useP:'12%',rows:[
+  {name:'新客拉新名单',chan:'渠道注册',code:'NEW8',refBy:['注册券码 SPRING15','注册送彩金·新春渠道'],imp:'5,000',reg:'1,800',regP:'36%',dep:'900',depP:'18%',use:'600',useP:'12%',rows:[
     ['9133****210','100000','success','已用券','06-19 12:00','₹200','₹16','NEW8（8%）'],
     ['9144****555','100001','warning','已充值未用券','06-19 14:20','₹150','—','—'],
     ['9122****078','100000','primary','已注册未充值','06-19 09:10','—','—','—'],
     ['9111****900','—','gray','未注册','—','—','—','—']
+  ]},
+  {name:'代理邀请回流名单',chan:'代理邀请注册',code:'BACK5',refBy:['代理邀请链接 SPRING15'],imp:'3,000',reg:'1,200',regP:'40%',dep:'700',depP:'23%',use:'450',useP:'15%',rows:[
+    ['9166****321','100017','success','已用券','06-20 10:00','₹300','₹24','BACK5（8%）'],
+    ['9177****654','100017','primary','已注册未充值','06-20 11:30','—','—','—']
   ]}
 ];
 function chanWl(m,el){if(document.getElementById('chan-wl-grp').classList.contains('ro'))return;el.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('on'));el.classList.add('on');document.getElementById('chan-wl-pick').style.display=m==='on'?'':'none';}
@@ -1328,9 +1337,17 @@ function chanCouponChange(sel){var opt=sel.options[sel.selectedIndex];var grp=do
 function fillListOptions(){
   const sel=document.getElementById('wl-filter-list'); if(!sel)return;
   const cur=sel.value;
-  sel.innerHTML='<option value="__all__">全部名单</option>'+WL.map(w=>`<option>${w.name}</option>`).join('');
+  sel.innerHTML='<option value="__all__">全部名单</option>'+WL.map(w=>`<option value="${w.name}">${w.name}（${w.chan}）</option>`).join('');
   sel.value=cur||'__all__';
 }
+function fillCcWl(chan){
+  const sel=document.getElementById('cc-wl-list'); if(!sel)return;
+  const want=(chan==='link')?'代理邀请注册':'渠道注册';
+  const chanEl=document.getElementById('cc-wl-chan'); if(chanEl)chanEl.textContent=want;
+  const list=WL.filter(w=>w.chan===want);
+  sel.innerHTML=list.length?list.map(w=>`<option>${w.name}（${w.imp}）</option>`).join(''):'<option value="">该渠道暂无白名单 · 请去白名单库新建</option>';
+}
+function goWlLib(modalId){if(modalId)closeModal(modalId);const t=[].slice.call(document.querySelectorAll('.b-tab')).find(x=>(x.getAttribute('onclick')||'').indexOf("'p6'")>=0);showPage('p6',t);}
 function renderWl(){
   const fsel=document.getElementById('wl-filter-list');
   const pick=fsel?fsel.value:'__all__';
@@ -1347,8 +1364,9 @@ function renderWl(){
   const st=(document.getElementById('wl-filter-state')||{}).value||'全部';
   if(st!=='全部') pool=pool.filter(p=>p[4]===st);
   const sumDep=pool.reduce((a,p)=>a+num(p[6]),0),sumBonus=pool.reduce((a,p)=>a+num(p[7]),0);
-  const rows=pool.map(p=>`<tr><td><span class="badge gray">${p[0]}</span></td><td>${p[1]}</td><td>${p[2]}</td><td><span class="badge ${p[3]}">${p[4]}</span></td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td></tr>`).join('')||`<tr><td colspan="8" style="text-align:center;color:#999;padding:18px">无匹配号码</td></tr>`;
-  const table=`<table class="tbl"><thead><tr><th>所属名单</th><th>手机号</th><th>上级ID</th><th>状态</th><th>注册时间</th><th>充值额</th><th>用券彩金</th><th>使用的券</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="font-weight:700;background:#fafafa"><td colspan="5" style="text-align:right">合计</td><td>₹${sumDep}</td><td>₹${sumBonus}</td><td>—</td></tr></tfoot></table>`;
+  const chanOf=n=>{const w=WL.find(x=>x.name===n);return w?w.chan:'—';};
+  const rows=pool.map(p=>`<tr><td><span class="badge gray">${p[0]}</span></td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">${chanOf(p[0])}</span></td><td>${p[1]}</td><td>${p[2]}</td><td><span class="badge ${p[3]}">${p[4]}</span></td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td></tr>`).join('')||`<tr><td colspan="9" style="text-align:center;color:#999;padding:18px">无匹配号码</td></tr>`;
+  const table=`<table class="tbl"><thead><tr><th>所属名单</th><th>归属渠道 <span class="newb">新</span></th><th>手机号</th><th>上级ID</th><th>状态</th><th>注册时间</th><th>充值额</th><th>用券彩金</th><th>使用的券</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="font-weight:700;background:#fafafa"><td colspan="6" style="text-align:right">合计</td><td>₹${sumDep}</td><td>₹${sumBonus}</td><td>—</td></tr></tfoot></table>`;
   const src=`<div class="rules"><div class="rules-title">📋 白名单定位 & 数据来源（落地需打通）</div><ul><li><b>手机号白名单 = 注册场景专用号码池</b>：服务 <b>注册充值优惠券码 / 注册送彩金活动</b>（拉新，注册即匹配手机号）；<b>仅对手机号注册用户命中</b>，邮箱注册不命中。红包码限领已改走<b>会员维度</b>（会员ID/分组，不走手机号池）；本页只管圈人 + 看转化，<b>不在此发券</b></li><li><b>所属名单 / 批次</b>：导入的手机号按批次归类，用上方「名单批次」下拉切换；选「全部名单」看汇总</li><li><b>上级ID</b>：该手机号注册后绑定的上级代理（邀请码归因），未注册显示「—」</li></ul></div>`;
   const refBox=(pick!=='__all__'&&lists[0]&&lists[0].refBy&&lists[0].refBy.length)?`<div style="background:#f6f3ff;border:1px solid #e6ddff;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#555">🔗 <b>本名单被引用于</b>：${lists[0].refBy.map(r=>{const clk=r.includes('注册送彩金');return `<span class="badge primary" style="margin-right:6px;${clk?'cursor:pointer;text-decoration:underline':''}" ${clk?"onclick=\"openModal('chan-modal')\"":''}>${r}${clk?' ⚙':''}</span>`;}).join('')}<span class="text-xs text-muted">— 同一号码池，多活动共用；点「注册送彩金」看渠道配置</span></div>`:'';
   document.getElementById('wl-detail').innerHTML=funnel+refBox+table+src;
@@ -1356,7 +1374,9 @@ function renderWl(){
 function createWl(){
   const inp=document.querySelector('#wl-create-modal input');
   const nm=(inp&&inp.value.trim())||('新名单'+WL.length);
-  WL.push({name:nm,code:'—',imp:'2,000',reg:'0',regP:'0%',dep:'0',depP:'0%',use:'0',useP:'0%',rows:[
+  const chanEl=document.querySelector('#wl-create-modal .radio-opt.on');
+  const chan=chanEl?chanEl.textContent.trim():'渠道注册';
+  WL.push({name:nm,chan:chan,code:'—',imp:'2,000',reg:'0',regP:'0%',dep:'0',depP:'0%',use:'0',useP:'0%',rows:[
     ['9100****001','—','gray','未注册','—','—','—','—'],
     ['9100****002','—','gray','未注册','—','—','—','—'],
     ['9100****003','—','gray','未注册','—','—','—','—']
@@ -1368,7 +1388,7 @@ function createWl(){
   renderWl();
   toast('白名单已创建并展示在列表','success');
 }
-fillListOptions(); renderWl();
+fillListOptions(); renderWl(); fillCcWl('channel');
 /* —— P4 多语言 en(默认)/hi/vi —— */
 let LANG='en';
 const T={
