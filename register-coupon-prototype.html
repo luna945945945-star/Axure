@@ -306,7 +306,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
             <div class="radio-grp"><div class="radio-opt on" onclick="pickChan(this,'channel')"><span class="rd"></span>渠道注册码</div><div class="radio-opt" onclick="pickChan(this,'manual')"><span class="rd"></span>人工充值</div><div class="radio-opt" onclick="pickChan(this,'link')"><span class="rd"></span>代理邀请链接</div><div class="radio-opt" onclick="pickChan(this,'red')"><span class="rd"></span>代理红包码</div></div>
           </div>
           <div class="form-row" style="margin:-4px 0 6px"><span class="form-label">　</span><span class="text-xs" id="chan-tip" style="color:#7c3aed">渠道配置注册送（新客）· 白名单属券规格·在下方设定 · 无需分配代理</span></div>
-          <style>.tip-ic{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:7px;border-radius:50%;background:#b8c2d0;color:#fff;font-size:11px;font-weight:700;cursor:help;position:relative;vertical-align:middle;font-style:normal}.tip-ic:hover{background:#1677ff}.tip-ic:hover::after{content:attr(data-tip);position:absolute;left:23px;top:50%;transform:translateY(-50%);width:274px;background:#2b2b33;color:#fff;padding:9px 12px;border-radius:7px;font-size:12px;font-weight:400;line-height:1.65;z-index:9999;box-shadow:0 6px 22px rgba(0,0,0,.28);text-align:left;white-space:normal}.tip-ic:hover::before{content:'';position:absolute;left:17px;top:50%;transform:translateY(-50%);border:6px solid transparent;border-right-color:#2b2b33;z-index:9999}</style>
+          <style>.tip-ic{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:7px;border-radius:50%;background:#b8c2d0;color:#fff;font-size:11px;font-weight:700;cursor:help;position:relative;vertical-align:middle;font-style:normal}.tip-ic:hover{background:#1677ff}.tip-ic:hover::after{content:attr(data-tip);position:absolute;left:23px;top:50%;transform:translateY(-50%);width:274px;background:#2b2b33;color:#fff;padding:9px 12px;border-radius:7px;font-size:12px;font-weight:400;line-height:1.65;z-index:9999;box-shadow:0 6px 22px rgba(0,0,0,.28);text-align:left;white-space:normal}.tip-ic:hover::before{content:'';position:absolute;left:17px;top:50%;transform:translateY(-50%);border:6px solid transparent;border-right-color:#2b2b33;z-index:9999}.tip-ic.tl:hover::after{left:auto;right:23px}.tip-ic.tl:hover::before{left:auto;right:17px;border-right-color:transparent;border-left-color:#2b2b33}</style>
           <div class="form-row" style="align-items:center;margin:2px 0 10px"><span class="form-label" style="min-width:118px">券码发放上限</span><input class="input" id="cc-quota" type="number" value="0" style="width:96px"> <span class="text-sm text-muted">次（0 ＝ 不限制）</span><i class="tip-ic" data-tip="达到发放上限后，券码自动失效并置为「已停用」；此后在分配代理、渠道配置等所有联动下拉中都不再出现该券码。">?</i></div>
           <div class="card-head" style="margin-top:6px"><div class="card-title" style="font-size:14px">券规格</div></div>
           <div class="grid2">
@@ -317,8 +317,9 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           </div>
           <div class="grid2">
           <div class="form-row"><span class="form-label" style="min-width:118px">未领取券有效期</span><input class="input" type="number" value="0" style="width:76px"> <span class="text-sm text-muted">天（0=不限）</span></div>
-          <div class="form-row"><span class="form-label" style="min-width:76px">通道赠金关系</span><select class="select" style="min-width:150px;max-width:205px"><option>互斥·取高（默认）</option><option>叠加（券+通道都给）</option><option>互斥·优先券</option></select></div>
+          <div class="form-row"><span class="form-label" style="min-width:76px">通道赠金关系</span><select class="select" style="min-width:150px;max-width:205px"><option>互斥·取高（默认）</option><option>叠加（券+通道都给）</option><option>互斥·优先券</option></select><i class="tip-ic tl" data-tip="「通道赠金」含三类：充值通道赠金 / VIP 等级充值奖励 / 快捷金额充值奖励。本项设定它们与券的关系 —— 互斥·取高：只发更高者；互斥·优先券：只发券；叠加：券与通道赠金都发。">?</i></div>
           </div>
+          <div class="form-row"><span class="form-label" style="min-width:118px">最低充值门槛</span><input class="input" id="cc-min" type="number" value="0" oninput="updatePreview()" style="width:76px"> <span class="text-sm text-muted">₹（0 = 不限；单笔充值 ≥ 此额才可用券）</span></div>
           <div class="form-row" style="align-items:center;margin:12px 0 11px"><span class="form-label" style="min-width:118px">适用充值大类</span>
             <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
               <label style="cursor:pointer;font-size:13px;font-weight:600;color:#1677ff;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="cat-all" checked onclick="toggleAllCat(this)" style="accent-color:#1677ff;width:15px;height:15px"> 全选</label>
@@ -971,7 +972,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="h1">二、名词术语</div>
       <table class="t">
         <tr><th style="width:148px">术语</th><th>定义</th></tr>
-        <tr><td>充值优惠券码</td><td>可拼接进注册链接 / 渠道域名的字符码，携带券规格（比例 / 上限 / 已领取·未领取券有效期 / 打码量 / 适用充值大类 / 白名单），用户注册命中即发券。</td></tr>
+        <tr><td>充值优惠券码</td><td>可拼接进注册链接 / 渠道域名的字符码，携带券规格（比例 / 上限 / 门槛 / 已领取·未领取券有效期 / 打码量 / 适用充值大类 / 白名单），用户注册命中即发券。</td></tr>
         <tr><td>适用渠道</td><td>券码的发放场景，共 4 类：渠道注册码、人工充值、代理邀请链接、代理红包码。</td></tr>
         <tr><td>券码 × 代理粒度</td><td>同一券码授权给多个代理时，每个代理一行记录，可按代理ID 单独追溯发放进度。</td></tr>
         <tr><td>手机号白名单</td><td>注册场景专用号码池，仅对手机号注册用户命中，用于定向拉新与防水军。</td></tr>
@@ -1004,7 +1005,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <table class="t">
         <tr><th style="width:128px">字段</th><th style="width:56px">必填</th><th>说明 / 取值</th></tr>
         <tr><td>适用渠道</td><td>是</td><td>单选：渠道注册码 / 人工充值 / 代理邀请链接 / 代理红包码</td></tr>
-        <tr><td>券规格</td><td>是</td><td>充值比例% + 上限₹（可选不限）+ <b>已领取券有效期</b>（领后 N 天）+ <b>未领取券有效期</b>（0=不限）+ 打码量倍数</td></tr>
+        <tr><td>券规格</td><td>是</td><td>充值比例% + 上限₹（可选不限）+ <b>最低充值门槛</b>（0=不限，满额才可用券）+ <b>已领取券有效期</b>（领后 N 天）+ <b>未领取券有效期</b>（0=不限）+ 打码量倍数</td></tr>
         <tr><td>适用充值大类</td><td>是</td><td><b>多选·至少勾 1 个</b>，提供「全选」快捷框；充值时按大类校验</td></tr>
         <tr><td>券 vs 通道赠金关系</td><td>是</td><td>互斥·取高（默认）/ 叠加 / 互斥·优先券</td></tr>
         <tr><td>发放限制</td><td>是</td><td>每手机号限领 1 次；<b>白名单（渠道注册码 / 代理邀请链接均在此设，属券规格）</b></td></tr>
@@ -1187,9 +1188,10 @@ function genCode(){
 function updatePreview(){
   const r=(parseFloat(document.getElementById('cc-ratio').value)||0)/100;
   const cap=parseFloat(document.getElementById('cc-cap').value)||0;
-  const calc=a=>{const v=Math.floor(a*r);return capMode==='limit'?'得 ₹'+Math.min(v,cap):'得 ₹'+v;};
+  const min=parseFloat((document.getElementById('cc-min')||{}).value)||0;
+  const calc=a=>{if(min>0&&a<min)return '<span style="color:#bbb">未达门槛</span>';const v=Math.floor(a*r);return capMode==='limit'?'得 ₹'+Math.min(v,cap):'得 ₹'+v;};
   document.getElementById('cc-preview').innerHTML=
-    `券面：充值${document.getElementById('cc-ratio').value||0}%券`+(capMode==='limit'?`·上限₹${cap}`:'·不限上限')
+    `券面：充值${document.getElementById('cc-ratio').value||0}%券`+(capMode==='limit'?`·上限₹${cap}`:'·不限上限')+(min>0?`·满₹${min}可用`:'')
     +`<br>充 ₹100 ${calc(100)}　|　充 ₹500 ${calc(500)}　|　充 ₹1000 ${calc(1000)}`;
 }
 function createCode(){
