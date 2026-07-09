@@ -277,7 +277,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
   <div class="b-left">🎟 充值优惠券进阶 · 注册拼接</div>
   <div class="b-tabs">
     <span class="b-tab on" onclick="showPage('preq',this)">📋 需求说明书</span>
-    <span class="b-tab" onclick="showPage('p2',this)">🖥 V1·充值优惠券管理</span>
+    <span class="b-tab" onclick="showPage('p2',this)">🖥 V1·优惠券管理</span>
     <span class="b-tab" onclick="showPage('p6',this)">🖥 V1·白名单管理</span>
     <span class="b-tab" onclick="showPage('p7',this)">🖥 V1·渠道报表</span>
     <span class="b-tab" onclick="showPage('p8',this)">🖥 V1·资金账变</span>
@@ -315,11 +315,8 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           <div class="form-row"><span class="form-label" style="min-width:118px">已领取券有效期</span><input class="input" type="number" value="7" style="width:76px"> <span class="text-sm text-muted">天</span></div>
           <div class="form-row"><span class="form-label" style="min-width:76px">打码量倍数</span><input class="input" type="number" value="1" style="width:76px"> <span class="text-sm text-muted">倍</span></div>
           </div>
-          <div class="grid2">
-          <div class="form-row"><span class="form-label" style="min-width:118px">未领取券有效期</span><input class="input" type="number" value="0" style="width:76px"> <span class="text-sm text-muted">天（0=不限）</span></div>
-          <div class="form-row"><span class="form-label" style="min-width:76px">通道赠金关系</span><select class="select" style="min-width:150px;max-width:205px"><option>互斥·取高（默认）</option><option>叠加（券+通道都给）</option><option>互斥·优先券</option></select><i class="tip-ic tl" data-tip="「通道赠金」含三类：充值通道赠金 / VIP 等级充值奖励 / 快捷金额充值奖励。本项设定它们与券的关系 —— 互斥·取高：只发更高者；互斥·优先券：只发券；叠加：券与通道赠金都发。">?</i></div>
-          </div>
-          <div class="form-row"><span class="form-label" style="min-width:118px">最低充值门槛</span><input class="input" id="cc-min" type="number" value="0" oninput="updatePreview()" style="width:76px"> <span class="text-sm text-muted">₹（0 = 不限；单笔充值 ≥ 此额才可用券）</span></div>
+          <div class="form-row"><span class="form-label" style="min-width:118px">通道赠金关系</span><select class="select" style="min-width:150px;max-width:205px"><option>互斥·取高（默认）</option><option>叠加（券+通道都给）</option><option>互斥·优先券</option></select><i class="tip-ic tl" data-tip="「通道赠金」含三类：充值通道赠金 / VIP 等级充值奖励 / 快捷金额充值奖励。本项设定它们与券的关系 —— 互斥·取高：只发更高者；互斥·优先券：只发券；叠加：券与通道赠金都发。">?</i></div>
+          <div class="form-row"><span class="form-label" style="min-width:118px">最低充值门槛</span><input class="input" id="cc-min" type="number" value="0" oninput="updatePreview()" style="width:76px"> <span class="text-sm text-muted" style="white-space:nowrap">₹（0 = 不限；单笔充值 ≥ 此额才可用券）</span></div>
           <div class="form-row" style="align-items:center;margin:12px 0 11px"><span class="form-label" style="min-width:118px">适用充值大类</span>
             <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
               <label style="cursor:pointer;font-size:13px;font-weight:600;color:#1677ff;display:inline-flex;align-items:center;gap:5px"><input type="checkbox" id="cat-all" checked onclick="toggleAllCat(this)" style="accent-color:#1677ff;width:15px;height:15px"> 全选</label>
@@ -389,8 +386,9 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="form-row" style="margin-top:-4px"><span class="form-label">　</span><span class="text-xs text-muted">标明该名单归属的<b>充值优惠券适用渠道</b>（渠道注册码 / 代理邀请链接），二选一</span></div>
       <div class="form-row" style="align-items:flex-start"><span class="form-label">导入手机号</span>
         <div style="flex:1;min-width:0">
-          <textarea class="input" rows="5" placeholder="每行一个手机号，或从 Excel 直接粘贴一列…" style="width:100%;resize:vertical;min-height:88px;padding:8px 10px;font-family:inherit"></textarea>
-          <div style="margin-top:6px"><button class="btn ghost sm" onclick="toast('已上传，解析 2,000 个号码','success')">📄 上传 CSV / Excel</button> <span class="text-xs text-muted" style="margin-left:8px">支持粘贴或上传 · 导入后自动去重</span></div>
+          <textarea id="wl-imp-text" class="input" rows="5" oninput="wlPhoneCheck()" placeholder="每行一个，格式：区号 + 手机号（纯数字），如 9188888888666" style="width:100%;resize:vertical;min-height:88px;padding:8px 10px;font-family:inherit"></textarea>
+          <div style="margin-top:6px"><button class="btn ghost sm" onclick="mockWlUpload()">📄 上传 CSV / Excel</button> <span class="text-xs text-muted" style="margin-left:8px" id="wl-imp-stat">支持粘贴或上传 · 导入后自动去重</span></div>
+          <div class="text-xs" style="color:#8a9099;margin-top:5px;line-height:1.6">📋 格式：<b>国际区号 + 手机号</b>（纯数字，10–15 位），如 <span style="background:#f2f3f5;padding:0 5px;border-radius:3px;font-family:ui-monospace,Menlo,monospace">9188888888666</span>（91 = 印度区号）；<b>导入 / 导出同格式</b>，不符格式的行会标为错误、创建时自动剔除</div>
         </div>
       </div>
       <div class="form-row"><span class="form-label">适用场景</span><span class="text-xs text-muted">注册场景专用号码池：仅手机号注册命中；被「注册券码 / 渠道注册送」共用</span></div>
@@ -420,7 +418,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
   <div class="modal" style="width:440px;max-width:94vw">
     <div class="modal-head"><div class="modal-title">停用券码</div><span class="modal-close" onclick="closeModal('disable-modal')">✕</span></div>
     <div class="modal-body">
-      <div style="font-size:13px;color:#333;line-height:1.7">确定停用该充值优惠券码？<br><span class="text-xs text-muted">停用后该码立即失效，用带此码的链接注册将不再发券（仍可正常注册）；已发放到用户手里的券不受影响。</span></div>
+      <div style="font-size:13px;color:#333;line-height:1.7">确定停用该充值优惠券码？<br><span class="text-xs text-muted">手动点击停用后，未使用的券码立即过期（带此码链接注册不再发券，但仍可正常注册）；已发放到用户手里的券不受影响。</span></div>
       <div style="text-align:right;margin-top:18px"><button class="btn ghost" onclick="closeModal('disable-modal')">取消</button> <button class="btn danger" onclick="confirmDisable()" style="margin-left:8px">确认停用</button></div>
     </div>
   </div>
@@ -490,11 +488,11 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
   <div class="admin">
     <main class="admin-main">
       <header class="admin-header">
-        <div class="admin-breadcrumb">活动管理 <span class="sep">/</span> <span class="cur">充值优惠券管理</span></div>
+        <div class="admin-breadcrumb">活动管理 <span class="sep">/</span> <span class="cur">优惠券管理</span></div>
         <div class="admin-user"><span>ops01</span><div class="avatar">O</div></div>
       </header>
       <div class="admin-content">
-        <div class="page-title">充值优惠券管理</div>
+        <div class="page-title">优惠券管理</div>
         <div class="page-subtitle">管理已创建的充值优惠券码，监控发放进度、停用异常码</div>
         <div class="filter-bar">
           <div class="filter-row">
@@ -506,24 +504,24 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         </div>
         <div style="display:flex;gap:8px;margin:0 0 12px;align-items:center"><button class="btn primary" onclick="toast('查询中...','info')"><i class="ti ti-search"></i> 查询</button><button class="btn ghost" onclick="toast('已重置')"><i class="ti ti-refresh"></i> 重置</button><button class="btn coupon" onclick="openModal('create-code-modal')"><i class="ti ti-plus"></i> 新增券码</button></div>
         <table class="tbl">
-          <thead><tr><th>充值优惠券码</th><th>适用渠道</th><th>券规格</th><th>上级代理ID</th><th>发放进度</th><th>券码使用进度</th><th>券码有效期</th><th>白名单</th><th>状态</th><th class="center">操作</th></tr></thead>
+          <thead><tr><th>充值优惠券码</th><th>适用渠道</th><th>券规格</th><th>上级代理ID</th><th>发放进度</th><th>券码使用进度</th><th>白名单</th><th>状态</th><th class="center">操作</th></tr></thead>
           <tbody id="coupon-tbody">
-            <tr id="cr-1"><td class="fw-600">SUMMER10</td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">注册链接</span></td><td>10% / 上限₹50</td><td class="fw-600">100000</td><td>已发 <a onclick="showGrantDetail('SUMMER10','100000',90)" style="color:#1677ff;cursor:pointer;text-decoration:underline">90</a></td><td>已用 <a onclick="showUseDetail('SUMMER10','100000',62)" style="color:#1677ff;cursor:pointer;text-decoration:underline">62</a></td><td>至 07-31</td><td>不限</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(1)">停用</button></td></tr>
-            <tr id="cr-2"><td style="color:#bbb">SUMMER10</td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">注册链接</span></td><td style="color:#bbb">10% / 上限₹50</td><td class="fw-600">100001</td><td>已发 <a onclick="showGrantDetail('SUMMER10','100001',60)" style="color:#1677ff;cursor:pointer;text-decoration:underline">60</a></td><td style="color:#bbb">已用 <a onclick="showUseDetail('SUMMER10','100001',41)" style="color:#1677ff;cursor:pointer;text-decoration:underline">41</a></td><td style="color:#bbb">至 07-31</td><td>不限</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(2)">停用</button></td></tr>
-            <tr id="cr-3"><td class="fw-600">SPRING15</td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">注册链接</span></td><td>15% / 上限₹80</td><td class="fw-600">100002</td><td>已发 <a onclick="showGrantDetail('SPRING15','100002',600)" style="color:#1677ff;cursor:pointer;text-decoration:underline">600</a></td><td>已用 <a onclick="showUseDetail('SPRING15','100002',380)" style="color:#1677ff;cursor:pointer;text-decoration:underline">380</a></td><td>至 07-15</td><td><span class="badge primary">白名单·新客</span></td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(3)">停用</button></td></tr>
-            <tr id="cr-8"><td class="fw-600">CHAN15</td><td><span class="badge" style="background:#f3ecff;color:#7c3aed">渠道注册码</span></td><td>15% / 上限₹80</td><td>— <span class="text-xs text-muted">渠道·CH-SPRING</span></td><td>已发 <a onclick="showGrantDetail('CHAN15','CH-SPRING',450)" style="color:#1677ff;cursor:pointer;text-decoration:underline">450</a></td><td>已用 <a onclick="showUseDetail('CHAN15','CH-SPRING',300)" style="color:#1677ff;cursor:pointer;text-decoration:underline">300</a></td><td>至 07-31</td><td><span class="badge primary">白名单·新客</span></td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(8)">停用</button></td></tr>
-            <tr id="cr-9"><td class="fw-600">CHAN10</td><td><span class="badge" style="background:#f3ecff;color:#7c3aed">渠道注册码</span></td><td>10% / 上限₹50</td><td>— <span class="text-xs text-muted">渠道·CH-1111</span></td><td>已发 <a onclick="showGrantDetail('CHAN10','CH-1111',120)" style="color:#1677ff;cursor:pointer;text-decoration:underline">120</a></td><td>已用 <a onclick="showUseDetail('CHAN10','CH-1111',78)" style="color:#1677ff;cursor:pointer;text-decoration:underline">78</a></td><td>至 07-20</td><td>不限</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(9)">停用</button></td></tr>
-            <tr id="cr-4"><td class="fw-600">REDBAG20</td><td><span class="badge" style="background:#fff1ed;color:#8f3a22">红包码</span></td><td>20% / 上限₹100</td><td class="fw-600">100000</td><td><span class="progress"><i style="width:95%"></i></span>已发 <a onclick="showGrantDetail('REDBAG20','100000',95)" style="color:#1677ff;cursor:pointer;text-decoration:underline">95</a>/100</td><td>已用 <a onclick="showUseDetail('REDBAG20','100000',60)" style="color:#1677ff;cursor:pointer;text-decoration:underline">60</a></td><td>30 天</td><td>—</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(4)">停用</button></td></tr>
-            <tr id="cr-5"><td class="fw-600">REDBAG10</td><td><span class="badge" style="background:#fff1ed;color:#8f3a22">红包码</span></td><td>10% / 上限₹50</td><td class="fw-600">100003</td><td><span class="progress"><i style="width:15%"></i></span>已发 <a onclick="showGrantDetail('REDBAG10','100003',150)" style="color:#1677ff;cursor:pointer;text-decoration:underline">150</a>/1000</td><td>已用 <a onclick="showUseDetail('REDBAG10','100003',88)" style="color:#1677ff;cursor:pointer;text-decoration:underline">88</a></td><td>30 天</td><td>—</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(5)">停用</button></td></tr>
-            <tr id="cr-6"><td class="fw-600">MANUAL8</td><td><span class="badge" style="background:#fff7e6;color:#875612">人工充值</span></td><td>8% / 上限₹40</td><td>— <span class="text-xs text-muted">直发·无代理</span></td><td>已发 <a onclick="showGrantDetail('MANUAL8','直发',1200)" style="color:#1677ff;cursor:pointer;text-decoration:underline">1,200</a></td><td>已用 <a onclick="showUseDetail('MANUAL8','直发',760)" style="color:#1677ff;cursor:pointer;text-decoration:underline">760</a></td><td>15 天</td><td>—</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(6)">停用</button></td></tr>
-            <tr id="cr-7"><td class="fw-600">MANUAL5</td><td><span class="badge" style="background:#fff7e6;color:#875612">人工充值</span></td><td>5% / 上限₹20</td><td>— <span class="text-xs text-muted">直发·无代理</span></td><td>已发 <a onclick="showGrantDetail('MANUAL5','直发',320)" style="color:#1677ff;cursor:pointer;text-decoration:underline">320</a></td><td style="color:#bbb">已用 <a onclick="showUseDetail('MANUAL5','直发',210)" style="color:#1677ff;cursor:pointer;text-decoration:underline">210</a></td><td>30 天</td><td>—</td><td><span class="badge gray">已过期</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn sm" disabled>停用</button></td></tr>
+            <tr id="cr-1"><td class="fw-600">SUMMER10</td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">注册链接</span></td><td>10% / 上限₹50</td><td class="fw-600">100000</td><td>已发 <a onclick="showGrantDetail('SUMMER10','100000',90)" style="color:#1677ff;cursor:pointer;text-decoration:underline">90</a></td><td>已用 <a onclick="showUseDetail('SUMMER10','100000',62)" style="color:#1677ff;cursor:pointer;text-decoration:underline">62</a></td><td>不限</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(1)">停用</button></td></tr>
+            <tr id="cr-2"><td style="color:#bbb">SUMMER10</td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">注册链接</span></td><td style="color:#bbb">10% / 上限₹50</td><td class="fw-600">100001</td><td>已发 <a onclick="showGrantDetail('SUMMER10','100001',60)" style="color:#1677ff;cursor:pointer;text-decoration:underline">60</a></td><td style="color:#bbb">已用 <a onclick="showUseDetail('SUMMER10','100001',41)" style="color:#1677ff;cursor:pointer;text-decoration:underline">41</a></td><td>不限</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(2)">停用</button></td></tr>
+            <tr id="cr-3"><td class="fw-600">SPRING15</td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">注册链接</span></td><td>15% / 上限₹80</td><td class="fw-600">100002</td><td>已发 <a onclick="showGrantDetail('SPRING15','100002',600)" style="color:#1677ff;cursor:pointer;text-decoration:underline">600</a></td><td>已用 <a onclick="showUseDetail('SPRING15','100002',380)" style="color:#1677ff;cursor:pointer;text-decoration:underline">380</a></td><td><span class="badge primary">白名单·新客</span></td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(3)">停用</button></td></tr>
+            <tr id="cr-8"><td class="fw-600">CHAN15</td><td><span class="badge" style="background:#f3ecff;color:#7c3aed">渠道注册码</span></td><td>15% / 上限₹80</td><td>— <span class="text-xs text-muted">渠道·CH-SPRING</span></td><td>已发 <a onclick="showGrantDetail('CHAN15','CH-SPRING',450)" style="color:#1677ff;cursor:pointer;text-decoration:underline">450</a></td><td>已用 <a onclick="showUseDetail('CHAN15','CH-SPRING',300)" style="color:#1677ff;cursor:pointer;text-decoration:underline">300</a></td><td><span class="badge primary">白名单·新客</span></td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(8)">停用</button></td></tr>
+            <tr id="cr-9"><td class="fw-600">CHAN10</td><td><span class="badge" style="background:#f3ecff;color:#7c3aed">渠道注册码</span></td><td>10% / 上限₹50</td><td>— <span class="text-xs text-muted">渠道·CH-1111</span></td><td>已发 <a onclick="showGrantDetail('CHAN10','CH-1111',120)" style="color:#1677ff;cursor:pointer;text-decoration:underline">120</a></td><td>已用 <a onclick="showUseDetail('CHAN10','CH-1111',78)" style="color:#1677ff;cursor:pointer;text-decoration:underline">78</a></td><td>不限</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(9)">停用</button></td></tr>
+            <tr id="cr-4"><td class="fw-600">REDBAG20</td><td><span class="badge" style="background:#fff1ed;color:#8f3a22">红包码</span></td><td>20% / 上限₹100</td><td class="fw-600">100000</td><td><span class="progress"><i style="width:95%"></i></span>已发 <a onclick="showGrantDetail('REDBAG20','100000',95)" style="color:#1677ff;cursor:pointer;text-decoration:underline">95</a>/100</td><td>已用 <a onclick="showUseDetail('REDBAG20','100000',60)" style="color:#1677ff;cursor:pointer;text-decoration:underline">60</a></td><td>—</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(4)">停用</button></td></tr>
+            <tr id="cr-5"><td class="fw-600">REDBAG10</td><td><span class="badge" style="background:#fff1ed;color:#8f3a22">红包码</span></td><td>10% / 上限₹50</td><td class="fw-600">100003</td><td><span class="progress"><i style="width:15%"></i></span>已发 <a onclick="showGrantDetail('REDBAG10','100003',150)" style="color:#1677ff;cursor:pointer;text-decoration:underline">150</a>/1000</td><td>已用 <a onclick="showUseDetail('REDBAG10','100003',88)" style="color:#1677ff;cursor:pointer;text-decoration:underline">88</a></td><td>—</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(5)">停用</button></td></tr>
+            <tr id="cr-6"><td class="fw-600">MANUAL8</td><td><span class="badge" style="background:#fff7e6;color:#875612">人工充值</span></td><td>8% / 上限₹40</td><td>— <span class="text-xs text-muted">直发·无代理</span></td><td>已发 <a onclick="showGrantDetail('MANUAL8','直发',1200)" style="color:#1677ff;cursor:pointer;text-decoration:underline">1,200</a></td><td>已用 <a onclick="showUseDetail('MANUAL8','直发',760)" style="color:#1677ff;cursor:pointer;text-decoration:underline">760</a></td><td>—</td><td><span class="badge success">进行中</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn danger sm" onclick="disableCode(6)">停用</button></td></tr>
+            <tr id="cr-7"><td class="fw-600">MANUAL5</td><td><span class="badge" style="background:#fff7e6;color:#875612">人工充值</span></td><td>5% / 上限₹20</td><td>— <span class="text-xs text-muted">直发·无代理</span></td><td>已发 <a onclick="showGrantDetail('MANUAL5','直发',320)" style="color:#1677ff;cursor:pointer;text-decoration:underline">320</a></td><td style="color:#bbb">已用 <a onclick="showUseDetail('MANUAL5','直发',210)" style="color:#1677ff;cursor:pointer;text-decoration:underline">210</a></td><td>—</td><td><span class="badge gray">已过期</span></td><td class="center"><button class="btn ghost sm" onclick="copyCode(this)">复制新建</button> <button class="btn sm" disabled>停用</button></td></tr>
           </tbody>
         </table>
         <div class="rules">
           <div class="rules-title">📋 规则</div>
           <ul>
             <li>发放进度到达总次数上限 → 自动「已用完」；超出码活动时段 → 自动「已过期」</li>
-            <li>停用后该码立即失效，用带该码链接注册不再发券（仍可正常注册）</li>
+            <li>手动点击停用后，未使用的券码立即过期（带此码链接注册不再发券，但仍可正常注册）</li>
           </ul>
         </div>
       </div>
@@ -625,7 +623,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           <span style="font-size:12.5px;color:#555">状态 <select id="wl-filter-state" class="select" style="height:30px" onchange="renderWl()"><option>全部</option><option>未注册</option><option>已注册未充值</option><option>已充值未用券</option><option>已用券</option></select></span>
           <button class="btn primary" onclick="renderWl()">🔍 查询</button>
           <button class="btn coupon" onclick="openModal('wl-create-modal')">＋ 新建白名单</button>
-          <button class="btn ghost" onclick="toast('已导出','success')">导出</button>
+          <button class="btn ghost" onclick="toast('已导出：区号+手机号 纯数字格式（与导入一致）','success')">导出</button>
         </div>
         <div id="wl-detail"></div>
       </div>
@@ -728,7 +726,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <button class="btn primary" onclick="toast('查询中...','info')"><i class="ti ti-search"></i> 查询</button>
             <button class="btn ghost" onclick="toast('已重置')"><i class="ti ti-refresh"></i> 重置</button>
-            <button class="btn ghost" onclick="toast('已导出','success')">导出</button>
+            <button class="btn ghost" onclick="toast('已导出：区号+手机号 纯数字格式（与导入一致）','success')">导出</button>
             <div class="radio-grp" style="margin-left:auto"><div class="radio-opt" onclick="pickRadio(this)">今天</div><div class="radio-opt" onclick="pickRadio(this)">昨天</div><div class="radio-opt" onclick="pickRadio(this)">本周</div><div class="radio-opt on" onclick="pickRadio(this)">上周</div><div class="radio-opt" onclick="pickRadio(this)">本月</div><div class="radio-opt" onclick="pickRadio(this)">上月</div><div class="radio-opt" onclick="pickRadio(this)">所有</div></div>
           </div>
         </div>
@@ -975,7 +973,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="h1">二、名词术语</div>
       <table class="t">
         <tr><th style="width:148px">术语</th><th>定义</th></tr>
-        <tr><td>充值优惠券码</td><td>可拼接进注册链接 / 渠道域名的字符码，携带券规格（比例 / 上限 / 门槛 / 已领取·未领取券有效期 / 打码量 / 适用充值大类 / 白名单），用户注册命中即发券。</td></tr>
+        <tr><td>充值优惠券码</td><td>可拼接进注册链接 / 渠道域名的字符码，携带券规格（比例 / 上限 / 门槛 / 已领取券有效期 / 打码量 / 适用充值大类 / 白名单），用户注册命中即发券。</td></tr>
         <tr><td>适用渠道</td><td>券码的发放场景，共 4 类：渠道注册码、人工充值、代理邀请链接、代理红包码。</td></tr>
         <tr><td>券码 × 代理粒度</td><td>同一券码授权给多个代理时，每个代理一行记录，可按代理ID 单独追溯发放进度。</td></tr>
         <tr><td>手机号白名单</td><td>注册场景专用号码池，仅对手机号注册用户命中，用于定向拉新与防水军。</td></tr>
@@ -988,7 +986,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="h1">三、需求范围（页面清单）</div>
       <table class="t">
         <tr><th style="width:82px">端</th><th style="width:130px">页面 / 模块</th><th style="width:62px">类型</th><th>核心内容</th></tr>
-        <tr><td><span class="tag t-v1">V1后台</span></td><td>充值优惠券管理</td><td><span class="tag t-new">新增</span></td><td>券码列表（券码×代理粒度）+ 创建券码弹窗 + 复制新建 / 停用 / 发放·使用明细</td></tr>
+        <tr><td><span class="tag t-v1">V1后台</span></td><td>优惠券管理</td><td><span class="tag t-new">新增</span></td><td>券码列表（券码×代理粒度）+ 创建券码弹窗 + 复制新建 / 停用 / 发放·使用明细</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>白名单管理</td><td><span class="tag t-new">新增</span></td><td>注册场景手机号池 + <b>适用渠道归属</b> + 导入→注册→充值→用券转化漏斗</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>渠道报表</td><td><span class="tag t-mod">改造</span></td><td>渠道维度统计（注册 / 首充 / 二充 / 充值 / 提现 / 送券）+ 渠道更新弹窗</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>资金账变</td><td><span class="tag t-mod">改造</span></td><td>账变类型新增「充值优惠券」，充值优惠券到账可查</td></tr>
@@ -1002,13 +1000,13 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
     <div class="sec">
       <div class="h1">四、功能详述</div>
 
-      <div class="h2">4.1 充值优惠券管理（V1后台）</div>
+      <div class="h2">4.1 优惠券管理（V1后台）</div>
       <p>券码列表以「券码 × 代理」为一行；顶部支持券码 / 代理ID / 适用渠道 / 状态筛选；「新增券码」打开创建弹窗。</p>
       <p><b>创建券码弹窗字段：</b></p>
       <table class="t">
         <tr><th style="width:128px">字段</th><th style="width:56px">必填</th><th>说明 / 取值</th></tr>
         <tr><td>适用渠道</td><td>是</td><td>单选：渠道注册码 / 人工充值 / 代理邀请链接 / 代理红包码</td></tr>
-        <tr><td>券规格</td><td>是</td><td>充值比例% + 上限₹（可选不限）+ <b>最低充值门槛</b>（0=不限，满额才可用券）+ <b>已领取券有效期</b>（领后 N 天）+ <b>未领取券有效期</b>（0=不限）+ 打码量倍数</td></tr>
+        <tr><td>券规格</td><td>是</td><td>充值比例% + 上限₹（可选不限）+ <b>最低充值门槛</b>（0=不限，满额才可用券）+ <b>已领取券有效期</b>（领后 N 天）+ 打码量倍数</td></tr>
         <tr><td>适用充值大类</td><td>是</td><td><b>多选·至少勾 1 个</b>，提供「全选」快捷框；充值时按大类校验</td></tr>
         <tr><td>券 vs 通道赠金关系</td><td>是</td><td>互斥·取高（默认）/ 叠加 / 互斥·优先券</td></tr>
         <tr><td>发放限制</td><td>是</td><td>每手机号限领 1 次；<b>白名单（渠道注册码 / 代理邀请链接均在此设，属券规格）</b></td></tr>
@@ -1023,6 +1021,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <li>手机号按「名单 / 批次」归类；顶部漏斗展示 <b>导入 → 已注册 → 已充值 → 已用券</b> 及各级转化率。</li>
         <li><b>新建名单需选「适用渠道归属」</b>（渠道注册 / 代理邀请注册，单选）——标明该名单归属的充值优惠券适用渠道；名单批次下拉与明细列均展示归属渠道。</li>
         <li>明细列：所属名单 / <b>归属渠道</b> / 手机号 / 上级ID（邀请码归因）/ 状态 / 注册时间 / 充值额 / 用券彩金 / 使用的券。</li>
+        <li><b>导入格式校验</b>：手机号 = 国际区号 + 手机号纯数字（10–15 位，如 <span style="font-family:ui-monospace,Menlo,monospace">9188888888666</span>，91=印度区号）；<b>导入 / 导出同格式</b>，粘贴 / 上传时实时校验，不符格式的行标错、创建时自动剔除并去重。</li>
         <li>本页只圈人 + 看转化，<b>不在此发券</b>；被哪些券码 / 活动引用会标注。</li>
       </ul>
 
@@ -1061,8 +1060,8 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="h2">6.1 券码状态</div>
       <ul class="l">
         <li><b>进行中</b>：活动时段内、未停用，可正常发券。</li>
-        <li><b>已停用</b>：运营手动停用后<b>立即失效</b>（带此码链接注册不再发券，但仍可正常注册）。</li>
-        <li><b>已过期</b>：超出活动时段自动置为过期。</li>
+        <li><b>已停用</b>：运营手动点击停用后，<b>未使用的券码立即过期</b>（带此码链接注册不再发券，但仍可正常注册）。</li>
+        <li><b>已过期</b>：<b>手动停用</b>的未使用的券；<b>已领取</b>的券超出<b>已领取券有效期</b>自动置为过期。</li>
       </ul>
       <div class="h2">6.2 带券注册判定矩阵（后端判定，会员侧无感知）</div>
       <table class="t">
@@ -1366,7 +1365,7 @@ function renderWl(){
   const sumDep=pool.reduce((a,p)=>a+num(p[6]),0),sumBonus=pool.reduce((a,p)=>a+num(p[7]),0);
   const chanOf=n=>{const w=WL.find(x=>x.name===n);return w?w.chan:'—';};
   const rows=pool.map(p=>`<tr><td><span class="badge gray">${p[0]}</span></td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">${chanOf(p[0])}</span></td><td>${p[1]}</td><td>${p[2]}</td><td><span class="badge ${p[3]}">${p[4]}</span></td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td></tr>`).join('')||`<tr><td colspan="9" style="text-align:center;color:#999;padding:18px">无匹配号码</td></tr>`;
-  const table=`<table class="tbl"><thead><tr><th>所属名单</th><th>归属渠道 <span class="newb">新</span></th><th>手机号</th><th>上级ID</th><th>状态</th><th>注册时间</th><th>充值额</th><th>用券彩金</th><th>使用的券</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="font-weight:700;background:#fafafa"><td colspan="6" style="text-align:right">合计</td><td>₹${sumDep}</td><td>₹${sumBonus}</td><td>—</td></tr></tfoot></table>`;
+  const table=`<table class="tbl"><thead><tr><th>所属名单</th><th>归属渠道</th><th>手机号</th><th>上级ID</th><th>状态</th><th>注册时间</th><th>充值额</th><th>用券彩金</th><th>使用的券</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="font-weight:700;background:#fafafa"><td colspan="6" style="text-align:right">合计</td><td>₹${sumDep}</td><td>₹${sumBonus}</td><td>—</td></tr></tfoot></table>`;
   const src=`<div class="rules"><div class="rules-title">📋 白名单定位 & 数据来源（落地需打通）</div><ul><li><b>手机号白名单 = 注册场景专用号码池</b>：服务 <b>注册充值优惠券码 / 注册送彩金活动</b>（拉新，注册即匹配手机号）；<b>仅对手机号注册用户命中</b>，邮箱注册不命中。红包码限领已改走<b>会员维度</b>（会员ID/分组，不走手机号池）；本页只管圈人 + 看转化，<b>不在此发券</b></li><li><b>所属名单 / 批次</b>：导入的手机号按批次归类，用上方「名单批次」下拉切换；选「全部名单」看汇总</li><li><b>上级ID</b>：该手机号注册后绑定的上级代理（邀请码归因），未注册显示「—」</li></ul></div>`;
   const refBox=(pick!=='__all__'&&lists[0]&&lists[0].refBy&&lists[0].refBy.length)?`<div style="background:#f6f3ff;border:1px solid #e6ddff;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#555">🔗 <b>本名单被引用于</b>：${lists[0].refBy.map(r=>{const clk=r.includes('注册送彩金');return `<span class="badge primary" style="margin-right:6px;${clk?'cursor:pointer;text-decoration:underline':''}" ${clk?"onclick=\"openModal('chan-modal')\"":''}>${r}${clk?' ⚙':''}</span>`;}).join('')}<span class="text-xs text-muted">— 同一号码池，多活动共用；点「注册送彩金」看渠道配置</span></div>`:'';
   document.getElementById('wl-detail').innerHTML=funnel+refBox+table+src;
@@ -1389,6 +1388,21 @@ function createWl(){
   toast('白名单已创建并展示在列表','success');
 }
 fillListOptions(); renderWl(); fillCcWl('channel');
+function wlPhoneCheck(){
+  var t=document.getElementById('wl-imp-text');if(!t)return;
+  var lines=t.value.split(/[\s,，、;；]+/).map(function(x){return x.trim();}).filter(Boolean);
+  var valid=0,bad=[];
+  lines.forEach(function(p){if(/^\d{10,15}$/.test(p))valid++;else bad.push(p);});
+  var el=document.getElementById('wl-imp-stat');if(!el)return;
+  if(lines.length===0){el.textContent='支持粘贴或上传 · 导入后自动去重';el.style.color='';return;}
+  el.innerHTML='识别 <b style="color:#389e0d">'+valid+'</b> 个有效号码'+(bad.length?' · <b style="color:#cf1322">'+bad.length+'</b> 个格式错误（'+bad.slice(0,2).join('、')+(bad.length>2?' …':'')+'）':' · 全部合格');
+}
+function mockWlUpload(){
+  var s=[];for(var i=0;i<8;i++)s.push('9188'+(80000000+i));s.push('91-abc-123');
+  var t=document.getElementById('wl-imp-text');if(t)t.value=s.join('\n');
+  wlPhoneCheck();
+  toast('已解析文件，请查看下方校验结果','success');
+}
 /* —— P4 多语言 en(默认)/hi/vi —— */
 let LANG='en';
 const T={
