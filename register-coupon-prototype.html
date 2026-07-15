@@ -315,7 +315,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           <div class="form-row"><span class="form-label" style="min-width:118px">已领取券有效期</span><input class="input" type="number" value="7" style="width:76px"> <span class="text-sm text-muted">天</span></div>
           <div class="form-row"><span class="form-label" style="min-width:76px">打码量倍数</span><input class="input" type="number" value="1" style="width:76px"> <span class="text-sm text-muted">倍</span></div>
           </div>
-          <div class="form-row"><span class="form-label" style="min-width:118px">通道赠金关系</span><select class="select" style="min-width:150px;max-width:205px"><option>互斥·取高（默认）</option><option>叠加（券+通道都给）</option><option>互斥·优先券</option></select><i class="tip-ic tl" data-tip="「通道赠金」含三类：充值通道赠金 / VIP 等级充值奖励 / 快捷金额充值奖励。本项设定它们与券的关系 —— 互斥·取高：只发更高者；互斥·优先券：只发券；叠加：券与通道赠金都发。">?</i></div>
+          <div class="form-row"><span class="form-label" style="min-width:118px">通道赠金关系</span><select id="cc-relation" class="select" onchange="updatePreview()" style="min-width:150px;max-width:205px"><option>互斥·取高（默认）</option><option>叠加（券+通道都给）</option><option>互斥·优先券</option></select><i class="tip-ic tl" data-tip="「通道赠金」含三类：充值通道赠金 / VIP 等级充值奖励 / 快捷金额充值奖励。本项设定它们与券的关系 —— 互斥·取高：只发更高者；互斥·优先券：只发券；叠加：券与通道赠金都发。">?</i></div>
           <div class="form-row"><span class="form-label" style="min-width:118px">最低充值门槛</span><input class="input" id="cc-min" type="number" value="0" oninput="updatePreview()" style="width:76px"> <span class="text-sm text-muted" style="white-space:nowrap">₹（0 = 不限；单笔充值 ≥ 此额才可用券）</span></div>
           <div class="form-row" style="align-items:center;margin:12px 0 11px"><span class="form-label" style="min-width:118px">适用充值大类</span>
             <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
@@ -329,6 +329,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
               <span class="text-xs text-muted" style="color:#c0392b">必须至少勾选 1 个大类</span>
             </div>
           </div>
+          <div class="form-row" style="align-items:center;margin:-2px 0 10px"><span class="form-label" style="min-width:118px">券使用限制</span><label style="cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="cc-firstonly" style="accent-color:#1677ff;width:15px;height:15px"> 仅首充有效</label><span class="text-xs text-muted" style="margin-left:12px">勾选后该券仅用户<b>首次充值</b>时可用（非首充置灰）</span></div>
 
           <div id="dist-limit-block">
           <div class="card-head" style="margin-top:6px;justify-content:flex-start;gap:10px"><div class="card-title" style="font-size:14px">发放限制</div><span class="text-xs text-muted">白名单属<b>券规格</b>，在此设定（<b style="color:#7c3aed">渠道注册码 / 代理邀请链接均在此设</b>）；渠道报表引用该券时<b>只读</b></span></div>
@@ -1196,7 +1197,8 @@ function updatePreview(){
   const calc=a=>{if(min>0&&a<min)return '<span style="color:#bbb">未达门槛</span>';const v=Math.floor(a*r);return capMode==='limit'?'得 ₹'+Math.min(v,cap):'得 ₹'+v;};
   document.getElementById('cc-preview').innerHTML=
     `券面：充值${document.getElementById('cc-ratio').value||0}%券`+(capMode==='limit'?`·上限₹${cap}`:'·不限上限')+(min>0?`·满₹${min}可用`:'')
-    +`<br>充 ₹100 ${calc(100)}　|　充 ₹500 ${calc(500)}　|　充 ₹1000 ${calc(1000)}`;
+    +`<br>充 ₹100 ${calc(100)}　|　充 ₹500 ${calc(500)}　|　充 ₹1000 ${calc(1000)}`
+    +`<br>通道赠金关系：<b>${(document.getElementById('cc-relation')||{}).value||'互斥·取高（默认）'}</b>`;
 }
 function createCode(){
   const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
