@@ -1047,13 +1047,13 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
 </div></div>
 
 <!-- 接受范围明细弹窗 -->
-<div class="modal-mask" id="scope-detail-modal"><div class="cmodal" style="width:680px">
+<div class="modal-mask" id="scope-detail-modal"><div class="cmodal" style="width:560px">
   <div class="cmhead"><span class="t">接受范围明细 <span id="sd-code" class="tag" style="background:#f3ecff;color:#7c3aed;font-weight:600;vertical-align:middle">红包 —</span></span><span class="x" onclick="closeModal('scope-detail-modal')">×</span></div>
   <div class="cmbody">
     <div style="font-size:12.5px;color:var(--ink2);margin:2px 0 12px">该红包指定的子代理 —— 共 <b id="sd-total" style="color:#7c3aed">—</b> 个</div>
     <div style="overflow-x:auto">
       <table class="tbl">
-        <thead><tr><th>子代理ID</th><th>昵称</th><th>状态</th><th>下级会员数</th><th>加入时间</th></tr></thead>
+        <thead><tr><th>子代理ID</th><th>领取状态</th><th>领取时间</th></tr></thead>
         <tbody id="sd-body"></tbody>
       </table>
     </div>
@@ -1225,12 +1225,12 @@ function submitRp(){const cash=document.getElementById('rp-mode-cash').classList
 
 /* 接受范围明细弹窗 */
 var SCOPE_SAMPLE=[
-  {id:'100017',nick:'Agent17',status:1,subs:320,join:'2026-05-20 10:12'},
-  {id:'100021',nick:'Agent21',status:1,subs:180,join:'2026-05-22 15:40'},
-  {id:'100033',nick:'Agent33',status:0,subs:96,join:'2026-05-25 09:05'},
-  {id:'100048',nick:'Agent48',status:1,subs:254,join:'2026-06-01 18:33'},
-  {id:'100052',nick:'Agent52',status:1,subs:410,join:'2026-06-03 11:20'},
-  {id:'100066',nick:'Agent66',status:0,subs:132,join:'2026-06-08 20:47'}
+  {id:'100017',claimed:1,time:'2026-06-10 09:12'},
+  {id:'100021',claimed:1,time:'2026-06-11 14:05'},
+  {id:'100033',claimed:0,time:''},
+  {id:'100048',claimed:1,time:'2026-06-12 20:31'},
+  {id:'100052',claimed:0,time:''},
+  {id:'100066',claimed:1,time:'2026-06-13 08:47'}
 ];
 function showScopeDetail(code,total){
   document.getElementById('sd-code').textContent='红包 '+code;
@@ -1238,8 +1238,8 @@ function showScopeDetail(code,total){
   document.getElementById('sd-total').textContent=t;
   document.getElementById('sd-total2').textContent=t;
   document.getElementById('sd-body').innerHTML=SCOPE_SAMPLE.map(function(a){
-    var st=a.status?'<span class="tag" style="background:#f6ffed;color:#52a022;border:1px solid #c4e8a0">正常</span>':'<span class="tag" style="background:#f0f0f3;color:#999">已停用</span>';
-    return '<tr><td class="mono">'+a.id+'</td><td>'+a.nick+'</td><td>'+st+'</td><td>'+a.subs+'</td><td>'+a.join+'</td></tr>';
+    var st=a.claimed?'<span class="tag" style="background:#f6ffed;color:#52a022;border:1px solid #c4e8a0">已领取</span>':'<span class="tag" style="background:#f0f0f3;color:#999">未领取</span>';
+    return '<tr><td class="mono">'+a.id+'</td><td>'+st+'</td><td>'+(a.time||'<span style="color:#bbb">—</span>')+'</td></tr>';
   }).join('');
   openModal('scope-detail-modal');
 }
