@@ -45,6 +45,11 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
 .tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:500}
 .tag.cash{background:#f0f0f3;color:#666}.tag.coupon{background:#fff1f0;color:#cf1322;border:1px solid #ffc9c4}
 .tag.used{background:#f6ffed;color:#52a022;border:1px solid #c4e8a0}.tag.unused{background:#fff7e6;color:#d48806;border:1px solid #ffe0a3}
+/* 红包码四态（BR-06）：进行中 / 已抢完 / 已取消 / 已过期 */
+.tag.st-run{background:#e6f4ff;color:#1677ff;border:1px solid #91caff}
+.tag.st-done{background:#f6ffed;color:#52a022;border:1px solid #c4e8a0}
+.tag.st-cancel{background:#f2f3f5;color:#8a8a96;border:1px solid #e0e1e6}
+.tag.st-expired{background:#fff7e6;color:#d48806;border:1px solid #ffe0a3}
 .newcol{color:var(--new);font-weight:600}.newb{display:inline-block;background:#f5222d;color:#fff;font-size:9px;font-weight:700;line-height:1.1;padding:1px 4px;border-radius:3px;margin-left:3px;vertical-align:super;letter-spacing:.4px}
 .foot{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:14px 4px;color:var(--ink2);font-size:12.5px}
 .pg{width:28px;height:28px;border:1px solid #dcdfe6;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff}.pg.on{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -269,9 +274,9 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
       <div class="it">🏠 首页</div><div class="it">📣 我的推广</div><div class="it">👤 用户 ▾</div><div class="it">🎮 游戏 ▾</div>
       <div class="it">📦 活动管理 ▴</div>
       <div class="sub on">红包派送</div>
-      <div class="sub" onclick="showPage('p2',document.querySelectorAll('.b-tab')[1])">红包领取记录</div>
-      <div class="sub" onclick="showPage('p3',document.querySelectorAll('.b-tab')[2])">赠金记录</div>
-      <div class="sub" onclick="showPage('p8',document.querySelectorAll('.b-tab')[7])">代理红包账变</div>
+      <div class="sub" onclick="goTab('p2')">红包领取记录</div>
+      <div class="sub" onclick="goTab('p3')">赠金记录</div>
+      <div class="sub" onclick="goTab('p8')">代理红包账变</div>
       <div class="it">📈 统计 ▾</div><div class="it">⚙️ 设置 ▾</div>
     </aside>
     <div class="main"><div class="main-body">
@@ -284,16 +289,17 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
         <button class="btn amt">赠金余额 580.00</button>
       </div>
       <table class="tbl">
-        <thead><tr><th>ID</th><th>红包编码</th><th>激活码类型</th><th class="newcol">奖励类型<span class="newb">NEW</span></th><th>金额 / <span class="newcol">券规格<span class="newb">NEW</span></span></th><th>数量</th><th>剩余</th><th>已抢完</th><th>接受范围 <span class="newb">NEW</span></th><th>接收条件</th><th>创建时间</th><th>操作</th></tr></thead>
+        <thead><tr><th>ID</th><th>红包编码</th><th>激活码类型</th><th class="newcol">奖励类型<span class="newb">NEW</span></th><th>金额 / <span class="newcol">券规格<span class="newb">NEW</span></span></th><th>数量</th><th>剩余</th><th>状态</th><th>接受范围 <span class="newb">NEW</span></th><th>接收条件</th><th>创建时间</th><th>操作</th></tr></thead>
         <tbody id="p1-body">
-          <tr data-rt="coupon"><td>100336</td><td class="mono">6D3AB85…7B065</td><td>固定激活码</td><td><span class="tag coupon">充值券</span></td><td class="newcol">10% · 上限₹50</td><td>100</td><td>62</td><td>否</td><td><span class="tag" style="background:#f3ecff;color:#7c3aed">指定子代理ID · <a onclick="showScopeDetail('100336',2000)" style="color:#7c3aed;cursor:pointer;text-decoration:underline;font-weight:600">2,000</a> 人</span></td><td>无规则</td><td>06-09 16:50</td><td><button class="btn link sm">红包链接</button> <button class="btn link sm" onclick="showPage('p2',document.querySelectorAll('.b-tab')[1])">获取记录</button></td></tr>
-          <tr data-rt="coupon"><td>100335</td><td class="mono">A11C92…E5D12</td><td>固定激活码</td><td><span class="tag coupon">充值券</span></td><td class="newcol">20% · 上限₹100</td><td>50</td><td>50</td><td>否</td><td><span class="tag" style="background:#f3ecff;color:#7c3aed">指定子代理ID · <a onclick="showScopeDetail('100335',8000)" style="color:#7c3aed;cursor:pointer;text-decoration:underline;font-weight:600">8,000</a> 人</span></td><td>7日内存款≥₹500</td><td>06-08 10:20</td><td><button class="btn link sm">红包链接</button> <button class="btn ghost sm">取消红包码</button> <button class="btn link sm" onclick="showPage('p2',document.querySelectorAll('.b-tab')[1])">获取记录</button></td></tr>
-          <tr data-rt="cash"><td>100307</td><td class="mono">87A348…C9AB90</td><td>固定激活码</td><td><span class="tag cash">现金</span></td><td>₹50 固定</td><td>10</td><td>9</td><td>否</td><td>无规则</td><td>无规则</td><td>02-11 11:59</td><td><button class="btn link sm">红包链接</button> <button class="btn ghost sm">取消红包码</button> <button class="btn link sm">获取记录</button></td></tr>
-          <tr data-rt="cash"><td>100303</td><td class="mono">F4799D…CAEAF4</td><td>固定激活码</td><td><span class="tag cash">现金</span></td><td>₹20 固定</td><td>20</td><td>19</td><td>否</td><td>无规则</td><td>无规则</td><td>01-22 17:46</td><td><button class="btn link sm">红包链接</button> <button class="btn ghost sm">取消红包码</button> <button class="btn link sm">获取记录</button></td></tr>
-          <tr data-rt="cash"><td>100312</td><td class="mono">83B384…2D76D5</td><td>随机激活码</td><td><span class="tag cash">现金</span></td><td>随机 ₹2.29</td><td>1</td><td>0</td><td>是</td><td>无规则</td><td>无规则</td><td>02-11 12:00</td><td><button class="btn link sm">红包链接</button> <button class="btn link sm">获取记录</button></td></tr>
+          <tr data-rt="coupon"><td>100336</td><td class="mono">6D3AB85…7B065</td><td>固定激活码</td><td><span class="tag coupon">充值券</span></td><td class="newcol">10% · 上限₹50</td><td>100</td><td>62</td><td><span class="tag st-run">进行中</span></td><td><span class="tag" style="background:#f3ecff;color:#7c3aed">指定子代理ID · <a onclick="showScopeDetail('100336',2000)" style="color:#7c3aed;cursor:pointer;text-decoration:underline;font-weight:600">2,000</a> 个</span></td><td>无规则</td><td>06-09 16:50</td><td><button class="btn link sm">红包链接</button> <button class="btn ghost sm">取消红包码</button> <button class="btn link sm" onclick="goTab('p2')">获取记录</button></td></tr>
+          <tr data-rt="coupon"><td>100335</td><td class="mono">A11C92…E5D12</td><td>固定激活码</td><td><span class="tag coupon">充值券</span></td><td class="newcol">20% · 上限₹100</td><td>50</td><td>50</td><td><span class="tag st-run">进行中</span></td><td><span class="tag" style="background:#f3ecff;color:#7c3aed">指定子代理ID · <a onclick="showScopeDetail('100335',8000)" style="color:#7c3aed;cursor:pointer;text-decoration:underline;font-weight:600">8,000</a> 个</span></td><td>7日内存款≥₹500</td><td>06-08 10:20</td><td><button class="btn link sm">红包链接</button> <button class="btn ghost sm">取消红包码</button> <button class="btn link sm" onclick="goTab('p2')">获取记录</button></td></tr>
+          <tr data-rt="coupon"><td>100320</td><td class="mono">C7E5F1…3A9B44</td><td>固定激活码</td><td><span class="tag coupon">充值券</span></td><td class="newcol">20% · 上限₹80</td><td>30</td><td>12</td><td><span class="tag st-expired">已过期</span></td><td><span class="tag" style="background:#f3ecff;color:#7c3aed">指定子代理ID · <a onclick="showScopeDetail('100320',500)" style="color:#7c3aed;cursor:pointer;text-decoration:underline;font-weight:600">500</a> 个</span></td><td>无规则</td><td>05-28 09:15</td><td><button class="btn link sm">红包链接</button> <button class="btn link sm" onclick="goTab('p2')">获取记录</button></td></tr>
+          <tr data-rt="cash"><td>100307</td><td class="mono">87A348…C9AB90</td><td>固定激活码</td><td><span class="tag cash">现金</span></td><td>₹50 固定</td><td>10</td><td>9</td><td><span class="tag st-run">进行中</span></td><td>无规则</td><td>无规则</td><td>02-11 11:59</td><td><button class="btn link sm">红包链接</button> <button class="btn ghost sm">取消红包码</button> <button class="btn link sm">获取记录</button></td></tr>
+          <tr data-rt="cash"><td>100303</td><td class="mono">F4799D…CAEAF4</td><td>固定激活码</td><td><span class="tag cash">现金</span></td><td>₹20 固定</td><td>20</td><td>19</td><td><span class="tag st-cancel">已取消</span></td><td>无规则</td><td>无规则</td><td>01-22 17:46</td><td><button class="btn link sm">红包链接</button> <button class="btn link sm">获取记录</button></td></tr>
+          <tr data-rt="cash"><td>100312</td><td class="mono">83B384…2D76D5</td><td>随机激活码</td><td><span class="tag cash">现金</span></td><td>随机 ₹2.29</td><td>1</td><td>0</td><td><span class="tag st-done">已抢完</span></td><td>无规则</td><td>无规则</td><td>02-11 12:00</td><td><button class="btn link sm">红包链接</button> <button class="btn link sm">获取记录</button></td></tr>
         </tbody>
       </table>
-      <div class="note">充值券类与现金类红包在同一列表，按「奖励类型」区分/筛选；点「＋新增」弹出创建红包弹窗；点「获取记录」看该红包的领取与<b>转化效果</b>。</div>
+      <div class="note">充值券类与现金类红包在同一列表，按「奖励类型」区分/筛选；点「＋新增」弹出创建红包弹窗；点「获取记录」看该红包的领取与<b>转化效果</b>；点「接受范围」的人数看<b>指定子代理明细</b>（可导出）。<b>状态</b>四态：进行中 / 已抢完 / 已取消 / 已过期（见 BR-06），<b>仅「进行中」可「取消红包码」</b>。</div>
       <div class="foot">总共 14 条 <span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">›</span> <select class="sel"><option>10 条/页</option></select></div>
     </div></div>
   </div>
@@ -305,15 +311,15 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
     <aside class="sider">
       <div class="it">🏠 首页</div><div class="it">📣 我的推广</div><div class="it">👤 用户 ▾</div><div class="it">🎮 游戏 ▾</div>
       <div class="it">📦 活动管理 ▴</div>
-      <div class="sub" onclick="showPage('p1',document.querySelectorAll('.b-tab')[0])">红包派送</div>
+      <div class="sub" onclick="goTab('p1')">红包派送</div>
       <div class="sub on">红包领取记录</div>
-      <div class="sub" onclick="showPage('p3',document.querySelectorAll('.b-tab')[2])">赠金记录</div>
-      <div class="sub" onclick="showPage('p8',document.querySelectorAll('.b-tab')[7])">代理红包账变</div>
+      <div class="sub" onclick="goTab('p3')">赠金记录</div>
+      <div class="sub" onclick="goTab('p8')">代理红包账变</div>
       <div class="it">📈 统计 ▾</div><div class="it">⚙️ 设置 ▾</div>
     </aside>
     <div class="main"><div class="main-body">
       <div class="bar">
-        <div class="fld"><label>会员ID：</label><input class="inp" placeholder="会员ID" style="min-width:140px"></div>
+        <div class="fld"><label>子代理ID：</label><input class="inp" placeholder="子代理ID" style="min-width:140px"></div>
         <div class="fld"><label>红包ID：</label><input class="inp" value="100336" style="min-width:140px"></div>
         <div class="fld"><label>使用状态<span class="newb">NEW</span></label><select class="sel"><option>全部</option><option>已使用</option><option>未使用</option></select></div>
         <button class="btn blue" onclick="toast('查询中…')">🔍 查询</button><button class="btn ghost" onclick="toast('已重置')">↻ 重置</button>
@@ -327,16 +333,16 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
         <div class="m"><span class="k">彩金成本</span><span class="v">₹620</span></div>
       </div>
       <table class="tbl">
-        <thead><tr><th>用户ID</th><th>红包码</th><th>用户昵称</th><th>注册手机</th><th class="newcol">领到<span class="newb">NEW</span></th><th>收集时间</th><th class="newcol">使用状态<span class="newb">NEW</span></th><th class="newcol">用券充值额<span class="newb">NEW</span></th><th class="newcol">获得彩金<span class="newb">NEW</span></th></tr></thead>
+        <thead><tr><th>子代理ID</th><th>红包码</th><th>子代理昵称</th><th>注册手机</th><th class="newcol">领到<span class="newb">NEW</span></th><th>收集时间</th><th class="newcol">使用状态<span class="newb">NEW</span></th><th class="newcol">用券充值额<span class="newb">NEW</span></th><th class="newcol">获得彩金<span class="newb">NEW</span></th></tr></thead>
         <tbody>
-          <tr><td>600874</td><td class="mono">6D3AB85…7B065</td><td>MemberNNGW5GRH</td><td>669****016</td><td class="newcol">10%券·上限₹50</td><td>06-09 18:20</td><td><span class="tag used">已使用</span></td><td class="newcol">₹500</td><td class="newcol">₹50</td></tr>
-          <tr><td>600866</td><td class="mono">6D3AB85…7B065</td><td>MemberNNGMBHEA</td><td>669****014</td><td class="newcol">10%券·上限₹50</td><td>06-09 18:19</td><td><span class="tag used">已使用</span></td><td class="newcol">₹300</td><td class="newcol">₹30</td></tr>
-          <tr><td>600838</td><td class="mono">6D3AB85…7B065</td><td>MemberNNGW8B9L</td><td>669****012</td><td class="newcol">10%券·上限₹50</td><td>06-09 18:18</td><td><span class="tag unused">未使用</span></td><td class="newcol">—</td><td class="newcol">—</td></tr>
-          <tr><td>600878</td><td class="mono">6D3AB85…7B065</td><td>MemberNNGOYE5G</td><td>669****018</td><td class="newcol">10%券·上限₹50</td><td>06-09 17:59</td><td><span class="tag used">已使用</span></td><td class="newcol">₹1000</td><td class="newcol">₹50</td></tr>
-          <tr><td>600836</td><td class="mono">6D3AB85…7B065</td><td>MemberNNG1WIHW</td><td>669****011</td><td class="newcol">10%券·上限₹50</td><td>06-09 17:34</td><td><span class="tag unused">未使用</span></td><td class="newcol">—</td><td class="newcol">—</td></tr>
+          <tr><td>100071</td><td class="mono">6D3AB85…7B065</td><td>Agent71</td><td>669****011</td><td class="newcol">10%券·上限₹50</td><td>06-13 19:22</td><td><span class="tag unused">未使用</span></td><td class="newcol">—</td><td class="newcol">—</td></tr>
+          <tr><td>100066</td><td class="mono">6D3AB85…7B065</td><td>Agent66</td><td>669****018</td><td class="newcol">10%券·上限₹50</td><td>06-13 08:47</td><td><span class="tag unused">未使用</span></td><td class="newcol">—</td><td class="newcol">—</td></tr>
+          <tr><td>100048</td><td class="mono">6D3AB85…7B065</td><td>Agent48</td><td>669****012</td><td class="newcol">10%券·上限₹50</td><td>06-12 20:31</td><td><span class="tag used">已使用</span></td><td class="newcol">₹1000</td><td class="newcol">₹50</td></tr>
+          <tr><td>100021</td><td class="mono">6D3AB85…7B065</td><td>Agent21</td><td>669****014</td><td class="newcol">10%券·上限₹50</td><td>06-11 14:05</td><td><span class="tag used">已使用</span></td><td class="newcol">₹300</td><td class="newcol">₹30</td></tr>
+          <tr><td>100017</td><td class="mono">6D3AB85…7B065</td><td>Agent17</td><td>669****016</td><td class="newcol">10%券·上限₹50</td><td>06-10 09:12</td><td><span class="tag used">已使用</span></td><td class="newcol">₹500</td><td class="newcol">₹50</td></tr>
         </tbody>
       </table>
-      <div class="note"><b>看效果就看这页</b>：现金红包"领了即到账"，充值券要"领取→用券充值"才有价值。新增「使用状态/用券充值额/获得彩金」列 + 效果概览，代理一眼看清这批券领多少、用多少、撬动多少充值。</div>
+      <div class="note"><b>看效果就看这页</b>：现金红包"领了即到账"，充值券要"领取→用券充值"才有价值。新增「使用状态/用券充值额/获得彩金」列 + 效果概览，代理一眼看清这批券领多少、用多少、撬动多少充值。<br>📌 本红包接受范围 = <b>指定子代理ID</b>，故领取人即<b>名单内的子代理本人</b>（代理体系中代理亦是会员，其以<b>会员身份</b>兑换、持券并在充值时使用）——名单见「红包派送」列表「接受范围」明细。</div>
       <div class="foot">总共 38 条 <span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">›</span> <select class="sel"><option>10 条/页</option></select></div>
     </div></div>
   </div>
@@ -348,10 +354,10 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
     <aside class="sider">
       <div class="it">🏠 首页</div><div class="it">📣 我的推广</div><div class="it">👤 用户 ▾</div><div class="it">🎮 游戏 ▾</div>
       <div class="it">📦 活动管理 ▴</div>
-      <div class="sub" onclick="showPage('p1',document.querySelectorAll('.b-tab')[0])">红包派送</div>
-      <div class="sub" onclick="showPage('p2',document.querySelectorAll('.b-tab')[1])">红包领取记录</div>
+      <div class="sub" onclick="goTab('p1')">红包派送</div>
+      <div class="sub" onclick="goTab('p2')">红包领取记录</div>
       <div class="sub on">赠金记录</div>
-      <div class="sub" onclick="showPage('p8',document.querySelectorAll('.b-tab')[7])">代理红包账变</div>
+      <div class="sub" onclick="goTab('p8')">代理红包账变</div>
       <div class="it">📈 统计 ▾</div><div class="it">⚙️ 设置 ▾</div>
     </aside>
     <div class="main"><div class="main-body">
@@ -377,9 +383,9 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
     <aside class="sider">
       <div class="it">🏠 首页</div><div class="it">📣 我的推广</div><div class="it">👤 用户 ▾</div><div class="it">🎮 游戏 ▾</div>
       <div class="it">📦 活动管理 ▴</div>
-      <div class="sub" onclick="showPage('p1',document.querySelectorAll('.b-tab')[4])">红包派送</div>
-      <div class="sub" onclick="showPage('p2',document.querySelectorAll('.b-tab')[5])">红包领取记录</div>
-      <div class="sub" onclick="showPage('p3',document.querySelectorAll('.b-tab')[6])">赠金记录</div>
+      <div class="sub" onclick="goTab('p1')">红包派送</div>
+      <div class="sub" onclick="goTab('p2')">红包领取记录</div>
+      <div class="sub" onclick="goTab('p3')">赠金记录</div>
       <div class="sub on">代理红包账变</div>
       <div class="it">📈 统计 ▾</div><div class="it">⚙️ 设置 ▾</div>
     </aside>
@@ -438,7 +444,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
           <div class="coupon-card" style="margin-bottom:0">
             <div class="cc-left"><div class="cc-ratio">10%</div><div class="cc-cap"><span data-t="capLimit">上限</span> ₹50</div></div>
             <div class="cc-right"><div class="cc-name" data-t="rechargeCoupon">充值优惠券</div><div class="cc-meta" data-t="p4NoThresh7d">无门槛 · 有效期 7 天</div><div class="cc-meta" data-t="p4Source">来源：红包码 FUDAI10</div></div>
-            <div class="cc-act"><button class="btn coupon sm" onclick="showPage('p6',document.querySelectorAll('.b-tab')[5])" data-t="goUse">去使用</button></div>
+            <div class="cc-act"><button class="btn coupon sm" onclick="goTab('p6')" data-t="goUse">去使用</button></div>
           </div>
         </div>
         <div class="rules"><div class="rules-title" data-t="p4RulesTitle">📋 说明</div><ul><li data-t="p4Rule1">红包码可由你的上级代理发放</li><li data-t="p4Rule2">兑换的充值券进入「我的充值优惠券」，充值时使用</li></ul></div>
@@ -457,7 +463,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
       <div class="phone-body">
         <div class="tabs-m"><div class="tab-m on" onclick="myTab(this,'mc-unused')"><span data-t="unused">未使用</span> 1</div><div class="tab-m" onclick="myTab(this,'mc-used')" data-t="used">已使用</div><div class="tab-m" onclick="myTab(this,'mc-expired')" data-t="expired">已过期</div></div>
         <div style="padding:14px">
-          <div id="mc-unused"><div class="coupon-card"><div class="cc-left"><div class="cc-ratio">10%</div><div class="cc-cap"><span data-t="capLimit">上限</span> ₹50</div></div><div class="cc-right"><div class="cc-name" data-t="rechargeCoupon">充值优惠券</div><div class="cc-meta" data-t="p5NoThresh7dLeft">无门槛 · 剩 7 天</div><div class="cc-meta" data-t="p4Source">来源：红包码 FUDAI10</div></div><div class="cc-act"><button class="btn coupon sm" onclick="showPage('p6',document.querySelectorAll('.b-tab')[5])" data-t="goUse">去使用</button></div></div></div>
+          <div id="mc-unused"><div class="coupon-card"><div class="cc-left"><div class="cc-ratio">10%</div><div class="cc-cap"><span data-t="capLimit">上限</span> ₹50</div></div><div class="cc-right"><div class="cc-name" data-t="rechargeCoupon">充值优惠券</div><div class="cc-meta" data-t="p5NoThresh7dLeft">无门槛 · 剩 7 天</div><div class="cc-meta" data-t="p4Source">来源：红包码 FUDAI10</div></div><div class="cc-act"><button class="btn coupon sm" onclick="goTab('p6')" data-t="goUse">去使用</button></div></div></div>
           <div id="mc-used" style="display:none"><div class="coupon-card gray"><div class="cc-left"><div class="cc-ratio">20%</div><div class="cc-cap"><span data-t="capLimit">上限</span> ₹100</div></div><div class="cc-right"><div class="cc-name" data-t="rechargeCoupon">充值优惠券</div><div class="cc-meta" data-t="p5UsedOrder">已用于订单 CO…8842</div></div><div class="cc-act"><span class="badge gray" data-t="used">已使用</span></div></div></div>
           <div id="mc-expired" style="display:none"><div class="coupon-card gray"><div class="cc-left"><div class="cc-ratio">5%</div><div class="cc-cap"><span data-t="capLimit">上限</span> ₹20</div></div><div class="cc-right"><div class="cc-name" data-t="rechargeCoupon">充值优惠券</div><div class="cc-meta" data-t="p5ExpiredOn">2026-06-15 已过期</div></div><div class="cc-act"><span class="badge gray" data-t="expired">已过期</span></div></div></div>
         </div>
@@ -641,13 +647,17 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
           <div class="instr"><div class="li">If the transfer time is up, please fill out the deposit form again.</div><div class="li">Use coupon will not stack with system deposit bonus.</div></div></div>
         <div id="rd-panel" style="border:1px solid #e6ebe8;border-radius:12px;overflow:hidden;margin:2px 0 0">
           <div style="background:#12a05f;color:#fff;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:15px"><span data-t="actualCredit">实际上分</span><b id="rd-get">₹0</b></div>
-          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6"><span style="color:#5a6472;width:66px;flex-shrink:0" id="rd-amt-lbl" data-t="amount">充值金额</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i style="display:block;height:100%;background:#bcd3c6;width:100%"></i></span><span style="font-weight:700;color:#333;font-family:'SF Mono',Menlo,monospace" id="rd-amt">₹0</span></div>
-          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6;border-top:1px solid #ebf0ec"><span style="color:#5a6472;width:66px;flex-shrink:0" id="rd-award-lbl">奖励</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i id="rd-bar-award" style="display:block;height:100%;background:#8fd3ac;width:0"></i></span><span style="font-weight:700;color:#12a05f;font-family:'SF Mono',Menlo,monospace" id="rd-award">+₹0</span></div>
-          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6;border-top:1px solid #ebf0ec"><span style="color:#5a6472;width:66px;flex-shrink:0" id="rd-fee-lbl">手续费</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i id="rd-bar-fee" style="display:block;height:100%;background:#e8b3a6;width:0"></i></span><span style="font-weight:700;color:#f5535f;font-family:'SF Mono',Menlo,monospace" id="rd-fee">-₹0</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6"><span style="color:#5a6472;width:78px;line-height:1.25;flex-shrink:0" id="rd-amt-lbl" data-t="amount">充值金额</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i style="display:block;height:100%;background:#bcd3c6;width:100%"></i></span><span style="font-weight:700;color:#333;font-family:'SF Mono',Menlo,monospace" id="rd-amt">₹0</span></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6;border-top:1px solid #ebf0ec"><span style="color:#5a6472;width:78px;line-height:1.25;flex-shrink:0" id="rd-award-lbl">奖励</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i id="rd-bar-award" style="display:block;height:100%;background:#8fd3ac;width:0"></i></span><span style="font-weight:700;color:#12a05f;font-family:'SF Mono',Menlo,monospace" id="rd-award">+₹0</span></div>
+          <!-- 叠加关系专用第二行：与上一行逐行相加 = 奖励总额（BR-07 铁律）；互斥时隐藏 -->
+          <div id="rd-row2" style="display:none;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6;border-top:1px solid #ebf0ec"><span style="color:#5a6472;width:78px;line-height:1.25;flex-shrink:0" id="rd-award2-lbl">充值优惠券彩金</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i id="rd-bar-award2" style="display:block;height:100%;background:#8fd3ac;width:0"></i></span><span style="font-weight:700;color:#12a05f;font-family:'SF Mono',Menlo,monospace" id="rd-award2">+₹0</span></div>
+          <!-- 互斥关系专用来源标注（券赢 / 券落败·券未扣除已退回）；叠加时隐藏 -->
+          <div id="rd-src" style="display:none;padding:0 14px 9px 92px;font-size:11px;color:#8a929c;line-height:1.45;background:#f5f8f6"></div>
+          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6;border-top:1px solid #ebf0ec"><span style="color:#5a6472;width:78px;line-height:1.25;flex-shrink:0" id="rd-fee-lbl">手续费</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i id="rd-bar-fee" style="display:block;height:100%;background:#e8b3a6;width:0"></i></span><span style="font-weight:700;color:#f5535f;font-family:'SF Mono',Menlo,monospace" id="rd-fee">-₹0</span></div>
           <div style="font-size:11px;color:#12a05f;padding:6px 14px 10px;background:#f5f8f6" id="rd-note">💠 实际上分 = 充值金额 + 奖励 － 手续费</div>
         </div>
       </div>
-      <div class="dep-foot"><div style="font-size:11px;color:#888">Recharge Method:<br><b style="color:#333">ArUpiPay-26001</b></div><button class="dep-btn" id="dep-btn" onclick="toast('Deposit submitted · 券锁定','success')">Deposit ₹500</button></div>
+      <div class="dep-foot"><div style="font-size:11px;color:#888">Recharge Method:<br><b style="color:#333">ArUpiPay-26001</b></div><button class="dep-btn" id="dep-btn" onclick="submitDeposit()">Deposit ₹500</button></div>
     </div>
   </div>
 </div>
@@ -674,7 +684,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
           </div>
           <div class="pc-quick">
             <div class="qk" onclick="toast('AR钱包')"><div class="qk-i">🧧</div><span data-t="p7ArWallet">AR钱包</span></div>
-            <div class="qk" onclick="showPage('p6',document.querySelectorAll('.b-tab')[5])"><div class="pc-bubble" data-t="p7Bubble">🎁 充₹500返₹50</div><div class="qk-i">💰</div><span data-t="deposit">充值</span></div>
+            <div class="qk" onclick="goTab('p6')"><div class="pc-bubble" data-t="p7Bubble">🎁 充₹500返₹50</div><div class="qk-i">💰</div><span data-t="deposit">充值</span></div>
             <div class="qk" onclick="toast('提现')"><div class="qk-i">💳</div><span data-t="withdraw">提现</span></div>
             <div class="qk" onclick="toast('VIP')"><div class="qk-i">👑</div><span data-t="p7Vip">VIP</span></div>
           </div>
@@ -688,7 +698,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
         <div class="pc-list">
           <div class="li" onclick="toast('通知')"><span class="li-i">🔔</span><span data-t="p7Notice">通知</span><span class="li-arr">›</span></div>
           <div class="li" onclick="toast('礼物兑换')"><span class="li-i">🎁</span><span data-t="p7GiftEx">礼物兑换</span><span class="li-arr">›</span></div>
-          <div class="li li-new" onclick="showPage('p5',document.querySelectorAll('.b-tab')[4])"><span class="li-i">🎟️</span><span data-t="p5NavTitle">我的充值优惠券</span><span class="pc-newbadge" data-t="newBadge">NEW</span><span class="li-arr">›</span></div>
+          <div class="li li-new" onclick="goTab('p5')"><span class="li-i">🎟️</span><span data-t="p5NavTitle">我的充值优惠券</span><span class="pc-newbadge" data-t="newBadge">NEW</span><span class="li-arr">›</span></div>
           <div class="li" onclick="toast('我的锦标赛')"><span class="li-i">🚩</span><span data-t="p7Tournament">我的锦标赛</span><span class="li-arr">›</span></div>
           <div class="li" onclick="toast('游戏统计')"><span class="li-i">📊</span><span data-t="p7GameStats">游戏统计</span><span class="li-arr">›</span></div>
           <div class="li" onclick="toast('语言变更')"><span class="li-i">🌐</span><span data-t="p7LangChange">语言变更</span><span style="margin-left:auto;color:#999;font-size:12px" data-t="p7LangValue">中文</span><span class="li-arr" style="margin-left:6px">›</span></div>
@@ -744,7 +754,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
       <span class="v3-tab" onclick="toast('该页不在本原型范围')">快捷工作台</span>
       <span class="v3-tab" onclick="toast('该页不在本原型范围')">充值订单管理</span>
       <span class="v3-tab on">会员列表</span>
-      <span class="v3-tab" onclick="showPage('v3f',document.querySelectorAll('.b-tab')[3])">资金账变</span>
+      <span class="v3-tab" onclick="goTab('v3f')">资金账变</span>
       <span class="v3-tab" onclick="toast('该页不在本原型范围')">会员层级</span>
     </div>
     <div class="v3-body">
@@ -866,7 +876,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
     <div class="v3-tabs">
       <span class="v3-tab" onclick="toast('该页不在本原型范围')">快捷工作台</span>
       <span class="v3-tab" onclick="toast('该页不在本原型范围')">充值订单管理</span>
-      <span class="v3-tab" onclick="showPage('v3m',document.querySelectorAll('.b-tab')[2])">会员列表</span>
+      <span class="v3-tab" onclick="goTab('v3m')">会员列表</span>
       <span class="v3-tab on">资金账变</span>
       <span class="v3-tab" onclick="toast('该页不在本原型范围')">会员层级</span>
     </div>
@@ -1024,13 +1034,13 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
       <input id="scope-agent" placeholder="输入直属代理ID" style="display:none;margin-top:8px">
       <div id="scope-mid" style="display:none;margin-top:8px">
         <div style="border:1px solid #e0e0e0;border-radius:8px;overflow:hidden;background:#fff" onfocusin="this.style.borderColor='#1677ff'" onfocusout="this.style.borderColor='#e0e0e0'">
-          <textarea id="scope-mids" oninput="countMids()" placeholder="输入或粘贴子代理ID，逗号 / 空格 / 换行分隔（如 100336, 100307, 100312）" style="width:100%;height:auto;min-height:72px;border:none;border-radius:0;padding:10px 12px;resize:none;box-sizing:border-box;display:block;font-family:inherit"></textarea>
+          <textarea id="scope-mids" oninput="countMids()" placeholder="输入或粘贴子代理ID，逗号 / 空格 / 换行分隔（如 100017, 100021, 100033）" style="width:100%;height:auto;min-height:72px;border:none;border-radius:0;padding:10px 12px;resize:none;box-sizing:border-box;display:block;font-family:inherit"></textarea>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#fafbff;border-top:1px solid #f0f2f5">
             <label style="cursor:pointer;color:#1677ff;font-size:12.5px;font-weight:500;display:inline-flex;align-items:center;gap:5px">📄 上传 CSV / Excel<input type="file" style="display:none" onchange="onMidUpload()"></label>
-            <span style="font-size:12.5px;color:#8a93a3">已识别 <b id="mid-count" style="color:#1677ff;font-size:13px">0</b> 个会员ID</span>
+            <span style="font-size:12.5px;color:#8a93a3">已识别 <b id="mid-count" style="color:#1677ff;font-size:13px">0</b> 个子代理ID</span>
           </div>
         </div>
-        <div style="font-size:12px;color:#999;margin-top:7px;line-height:1.6">🔒 按 <b style="color:#1677ff">会员ID 精准匹配</b>，<b style="color:#cf1322">且必须是本代理下级</b>——仅名单内的下级会员可领本红包，非下级 ID 自动剔除</div>
+        <div style="font-size:12px;color:#999;margin-top:7px;line-height:1.6">🔒 按 <b style="color:#1677ff">子代理ID 精准匹配</b>，<b style="color:#cf1322">且必须是本代理下级</b>——仅名单内的子代理可领本红包，非下级 ID 自动剔除</div>
       </div>
     </div>
     <div class="ff"><label>接收条件</label><select id="cond1" onchange="toggleCond()"><option value="">无规则</option><option value="deposit">存款条件</option><option value="bet">投注条件</option><option value="loss">亏损条件</option></select><div id="cond2-wrap" style="display:none;margin-top:8px"><select id="cond2"></select><input id="cond-val" placeholder="填写数值（天数 / 金额 / 次数）" style="margin-top:8px"></div></div>
@@ -1090,6 +1100,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
     #P-preq .br .no{flex-shrink:0;background:#1677ff;color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:11px;height:fit-content;letter-spacing:.5px}
     #P-preq .tag{display:inline-block;border-radius:4px;padding:1px 8px;font-size:11.5px;font-weight:600;margin-right:4px;white-space:nowrap}
     #P-preq .t-v1{background:#e6f4ff;color:#1677ff}
+    #P-preq .t-v3{background:#e6fffb;color:#08979c}
     #P-preq .t-ag{background:#f3ecff;color:#7c3aed}
     #P-preq .t-cl{background:#fff7e6;color:#ad6800}
     #P-preq .t-new{background:#fff1f0;color:#cf1322}
@@ -1101,68 +1112,60 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
     <div class="cover">
       <span class="doc-badge">PRD · 需求规格说明书</span>
       <div class="doc-t">红包码充值优惠券系统</div>
-      <div class="doc-sub">Red-Packet Coupon · 代理红包码可发充值优惠券 + 会员定向发放</div>
-    </div>
-    <div class="sec">
-      <div class="h1">一、需求背景与目标</div>
-      <div class="h2">1.1 背景与痛点</div>
-      <ul class="l">
-        <li>代理红包<b>只能发现金</b>，无法发充值优惠券，拉新 / 促活钩子单一。</li>
-        <li>会员定向发券缺少手段：原红包接受范围<b>只有代理下级维度</b>，无法精准发给指定下级会员。</li>
-      </ul>
-      <div class="h2">1.2 需求目标</div>
-      <ul class="l">
-        <li>红包码<b>可发充值优惠券</b>，券进「我的充值优惠券」，充值时使用。</li>
-        <li>接受范围新增<b>会员维度</b>（指定子代理ID / 导入会员ID）。</li>
-        <li><b>运营前置授权</b>：代理只能在授权额度 / 次数内派券，券规格由运营设定、代理不可改。</li>
-      </ul>
+      <div class="doc-sub">Red-Packet Coupon · 代理红包码可发充值优惠券 + 子代理定向发放</div>
     </div>
 
     <div class="sec">
-      <div class="h1">二、名词术语</div>
+      <div class="h1">一、名词术语</div>
       <table class="t">
         <tr><th style="width:148px">术语</th><th>定义</th></tr>
         <tr><td>红包码</td><td>代理派发的兑换码，用户输码兑换后得到现金或充值优惠券。</td></tr>
         <tr><td>奖励类型</td><td>红包发放的奖励种类：现金 / 充值优惠券（本期新增）。</td></tr>
-        <tr><td>接受范围</td><td>红包发给谁：代理维度（下级）或会员维度（<b>本代理下级的指定子代理ID</b>），二选一互斥。</td></tr>
+        <tr><td>接受范围</td><td>红包发给谁：代理维度（下级）或<b>子代理维度</b>（<b>本代理下级的指定子代理ID</b>），二选一互斥。子代理维度<b>按子代理ID 逐个枚举</b>，区别于粗粒度的「全部下级 / 单个直属代理」。<br>领取者 = <b>被指定的子代理本人</b>（代理体系中代理亦是会员，故其以<b>会员身份</b>兑换、持券并在充值时使用），非其下级会员。</td></tr>
         <tr><td>发券前置授权</td><td>给<b>指定代理</b>配置可发的<b>充值优惠券码 + 可用次数（配额）</b>。次数有<b>两个来源、两者累加</b>：<br><b>① 创建券码时</b>：在 V1 后台建券码时<b>绑定到指定代理</b>并配一个次数；<br><b>② 会员列表·红包充值</b>：运营在该页给代理<b>追加</b>某券码的次数。<br>两处次数<b>累加（不是覆盖）</b> = 该代理该券码的总可发次数。此后代理在「红包派送」创建红包时，<b>「选择充值优惠券码」下拉仅列出授权给他的券码</b>，并<b>在剩余次数范围内</b>发放。</td></tr>
         <tr><td>券规格（只读）</td><td>券的比例 / 上限 / 已领取券有效期 / 未领取券有效期（过期时间）/ 门槛 / <b>券 vs 通道赠金关系</b>，均取自 V1 后台券码库、由运营<b>创建券码时设定</b>，代理不可改。</td></tr>
-        <tr><td>券 vs 通道赠金关系</td><td>用券充值时券赠金与通道赠金的计算关系：互斥·取高 / 叠加 / 互斥·优先券。</td></tr>
+        <tr><td>券 vs 通道赠金关系</td><td>券规格的一项配置，决定<b>用券充值时券赠金与通道赠金谁生效、是否相加</b>，三选一：<b>互斥·取高</b>（两者只取金额高的一方，平局取券，券落败则不消耗、退回券包）/ <b>叠加</b>（两者全给、相加）/ <b>互斥·优先券</b>（无条件只给券赠金、完全不比通道）。计算口径见「3.7 赠金计算规则（券 vs 通道赠金）」。</td></tr>
         <tr><td>红包码状态</td><td>红包码的生命周期：进行中 / 已抢完（剩余数量=0）/ 已取消（手动取消）/ <b>已过期</b>（券红包超过未领取券有效期自动置）。</td></tr>
       </table>
     </div>
 
     <div class="sec">
-      <div class="h1">三、需求范围（页面清单）</div>
+      <div class="h1">二、需求范围（页面清单）</div>
       <table class="t">
         <tr><th style="width:82px">端</th><th style="width:158px">页面 / 模块</th><th style="width:62px">类型</th><th>核心内容</th></tr>
         <tr><td><span class="tag t-ag">代理端</span></td><td>红包派送</td><td><span class="tag t-mod">改造</span></td><td>现金红包与充值优惠券红包同一列表，按奖励类型区分 / 筛选；＋新增打开创建弹窗</td></tr>
         <tr><td><span class="tag t-ag">代理端</span></td><td>领取记录·效果</td><td><span class="tag t-mod">改造</span></td><td>红包领取统计 + 转化效果（核销率等）</td></tr>
         <tr><td><span class="tag t-ag">代理端</span></td><td>赠金记录</td><td><span class="tag t-mod">改造</span></td><td>代理赠金账变（现金红包扣款、券红包零扣）</td></tr>
+        <tr><td><span class="tag t-ag">代理端</span></td><td>代理红包账变</td><td><span class="tag t-new">新增</span></td><td>代理<b>赠金余额</b>（现金）+ <b>前置授权券次数</b>双维度账变流水，含起止时间筛选与分页</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>会员列表·红包充值</td><td><span class="tag t-mod">改造</span></td><td>运营对单代理充现金红包额度 + 前置授权充值优惠券码 + 总次数</td></tr>
+        <tr><td><span class="tag t-v3">V3中台后台</span></td><td>会员列表</td><td><span class="tag t-mod">改造</span></td><td>新增「红包 / 券 剩余额度」列（红包剩余金额 + 券剩余次数），并计入页面 / 全部总计</td></tr>
+        <tr><td><span class="tag t-v3">V3中台后台</span></td><td>资金账变</td><td><span class="tag t-mod">改造</span></td><td>「账变类型」枚举新增<b>「充值优惠券」</b>，可按该类型筛选与导出券彩金到账流水</td></tr>
         <tr><td><span class="tag t-cl">客户端</span></td><td>输码兑换 / 我的充值优惠券 / 充值用券 / 个人中心</td><td><span class="tag t-new">新增</span></td><td>兑换红包码得券、券包、充值用券（多语言：英 / 印地 / 越南等）</td></tr>
       </table>
     </div>
 
     <div class="sec">
-      <div class="h1">四、功能详述</div>
+      <div class="h1">三、功能详述</div>
 
-      <div class="h2">4.1 红包派送（代理端 · 改造）</div>
-      <p>现金红包与充值优惠券红包<b>同一列表</b>，按「奖励类型」区分 / 筛选；点「＋新增」打开创建红包弹窗。列表含<b>「已抢完」状态列</b>与<b>「取消红包码」操作</b>（状态与取消规则见 BR-06）。</p>
+      <div class="h2">3.1 红包派送（代理端 · 改造）</div>
+      <p>现金红包与充值优惠券红包<b>同一列表</b>，按「奖励类型」区分 / 筛选；点「＋新增」打开创建红包弹窗。列表含<b>「状态」列</b>（<b>进行中 / 已抢完 / 已取消 / 已过期</b> 四态徽标，与 BR-06 一一对应）与<b>「取消红包码」操作</b>——<b>仅「进行中」的红包码展示「取消红包码」按钮</b>，已抢完 / 已取消 / 已过期均不可再取消（状态流转与取消规则见 BR-06）。</p>
       <p><b>创建红包弹窗字段：</b></p>
       <table class="t">
         <tr><th style="width:118px">字段</th><th style="width:56px">必填</th><th>说明 / 取值</th></tr>
+        <tr><td>激活码类型</td><td>是</td><td>固定激活码 / 随机激活码（<b>沿用现有红包逻辑</b>；与每人限领规则相关，见「五、限制条件与校验」）</td></tr>
         <tr><td>奖励类型</td><td>是</td><td>现金 / <b>充值优惠券（新）</b></td></tr>
         <tr><td>选择充值优惠券码</td><td>条件</td><td>奖励类型=充值优惠券时必填，下拉<b>仅列运营前置授权</b>的券码；选后展示券规格（只读）</td></tr>
-        <tr><td>接受范围</td><td>是</td><td>代理维度 或 会员维度（指定子代理ID / 导入会员ID），<b>二选一互斥</b></td></tr>
+        <tr><td>接受范围</td><td>是</td><td>代理维度 或 <b>子代理维度</b>（指定子代理ID / 导入子代理ID），<b>二选一互斥</b></td></tr>
         <tr><td>接收条件</td><td>否</td><td>存款 / 投注 / 亏损（多少天内或历史累计）；<b>判定时机与阈值录入沿用现有红包逻辑</b></td></tr>
-        <tr><td>数量 / 金额类型</td><td>是</td><td>红包个数、固定 / 随机金额（<b>随机金额沿用现有红包逻辑</b>；券红包为按张发）</td></tr>
+        <tr><td>数量 / 金额类型</td><td>是</td><td>红包个数、固定金额 / 随机金额 / <b>区间随机金额</b>（三选一，<b>沿用现有红包逻辑</b>；券红包为按张发、无金额类型）</td></tr>
+        <tr><td>备注</td><td>条件</td><td>文本，<b>最长 150 字</b>；<b>红包数量 &gt; 1 时必填</b>（沿用现有红包逻辑）</td></tr>
       </table>
 
-      <div class="h2">4.2 接受范围（改造）</div>
-      <p>在原「代理下级维度」（直属下级 / 佣金下级 / 全部下级 / 指定直属代理）基础上，<b>新增会员维度</b>：指定子代理ID（手填，逗号分隔）/ 导入会员ID（CSV），也可从会员白名单库选名单。<b style="color:#cf1322">所填 / 导入的会员ID 必须属于本代理的下级</b>（非任意会员）——系统按「代理-下级」归属校验，非本代理下级的 ID 自动剔除、不发放；<b>校验后提示「剔除 N 个（非下级 / 黑名单 / 重复）、有效 M 个」</b>，仅对有效 ID 发放。</p>
+      <div class="h2">3.2 接受范围（改造）</div>
+      <p>在原「代理下级维度」（直属下级 / 佣金下级 / 全部下级 / 指定直属代理）基础上，<b>新增子代理维度</b>：指定子代理ID（手填，<b>逗号 / 中文逗号 / 顿号 / 空格 / 换行均可</b>分隔）/ 导入子代理ID（<b>CSV / Excel</b>）。<b style="color:#cf1322">所填 / 导入的子代理ID 必须属于本代理的下级</b>——系统按「代理-下级」归属校验，非本代理下级的 ID 自动剔除、不发放；<b>校验后提示「剔除 N 个（非下级 / 黑名单 / 重复）、有效 M 个」</b>，仅对有效 ID 发放。</p>
+      <p><b>接受范围明细：</b>「红包派送」列表「接受范围」列的<b>数字（子代理个数）可点击</b>，打开<b>「接受范围明细」弹窗</b>，展示该红包所指定的子代理名单：<b>子代理ID / 领取状态（已领取 · 未领取）/ 领取时间</b>；弹窗内仅展示前若干条，支持<b>导出完整名单</b>。据此可对照「红包领取记录」，看清名单内谁已领、谁未领。</p>
 
-      <div class="h2">4.3 会员列表·红包充值（V1后台 · 改造）</div>
+      <div class="h2">3.3 会员列表·红包充值（V1后台 · 改造）</div>
       <p>运营在会员列表对<b>单个代理</b>操作，配置项与新增列如下：</p>
       <table class="t">
         <tr><th style="width:132px">配置 / 项</th><th style="width:56px">类型</th><th>说明</th></tr>
@@ -1172,35 +1175,95 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
         <tr><td>生效前提</td><td><span class="tag t-mod">规则</span></td><td>代理<b>获授权后</b>，才能在「红包派送」下拉选到该券码、派发对应券红包</td></tr>
       </table>
 
-      <div class="h2">4.4 领取记录·效果 / 赠金记录（代理端 · 改造）</div>
-      <p>领取记录·效果：红包领取统计 + 转化效果（核销率等）。赠金记录：代理赠金账变，现金红包扣款、<b>券红包零扣</b>（券彩金成本由<b>平台承担</b>，统一计入账变「充值优惠券奖励」，代理后台暂不体现）。</p>
+      <div class="h2">3.4 领取记录·效果 / 赠金记录（代理端 · 改造）</div>
+      <p>领取记录·效果：红包领取统计 + 转化效果（核销率等）。赠金记录：代理赠金账变，现金红包扣款、<b>券红包零扣</b>（券彩金成本由<b>平台承担</b>，统一计入账变「充值优惠券」，代理后台暂不体现）。</p>
 
-      <div class="h2">4.5 客户端（新增 · 多语言）</div>
+      <div class="h2">3.5 代理红包账变（代理端 · 新增）</div>
+      <p>代理端新增页面，展示该代理<b>红包赠金余额（现金）</b>与<b>前置授权充值优惠券次数</b>的<b>双维度</b>账变流水。列：<b>账变时间 / 账变前金额·券次数 / 账变金额·券次数 / 账变后金额·券次数 / 操作人</b>；支持<b>起止时间筛选</b>与<b>分页</b>。</p>
+      <ul class="l">
+        <li><b>现金账变</b>：来自<b>红包创建 / 取消</b>对代理<b>赠金余额</b>的加减（创建现金红包扣减、取消按现有逻辑处理，见 BR-08），以及运营的红包充值（加）。</li>
+        <li><b>券次数账变</b>：来自<b>运营的前置授权次数调整</b>（在「会员列表·红包充值」追加次数，或创建券码时绑定次数），以及券红包发放预扣 / 取消退回（BR-08）。</li>
+      </ul>
+      <p>两个维度<b>合并在同一行的「/券次数」列</b>展示：现金账变行券次数为 0，授权调整行则体现券次数增减，<b>操作人</b>区分是代理本人操作（手机号账号）还是运营后台账号（如 admin）。</p>
+
+      <div class="h2">3.6 客户端（新增 · 多语言）</div>
       <p>输码兑换（输红包码得券）/ 我的充值优惠券（券包）/ 充值用券 / 个人中心；均支持<b>多语言</b>（当前英 / 印地 / 越南，可扩展）。</p>
       <p><b>个人中心「充值」按钮气泡</b>：动态展示当前可享的<b>最高充值奖励</b>（如「充 ₹500 返 ₹50」），随可用优惠实时更新。换算规则：从会员当前<b>所有可用充值优惠券 / 通道充值奖励</b>中取<b>彩金上限最高的一档</b>（单档，不算叠加组合），按 <b>Y（返）= 该档彩金上限 ₹C</b>、<b>X（充）= max( ⌈C ÷ 比例%⌉ , 门槛 )</b> 换算成「充 X 返 Y」。示例：<code>10% · 上限₹50 · 无门槛 → 充 ₹500 返 ₹50</code>；<code>20% · 上限₹30 · 满₹200 → 充 ₹200 返 ₹30</code>。多档时先比 Y 取最大、Y 相同再取 X 最小（更易达成）；<b>无上限的奖励不进气泡</b>、<b>无可用奖励不展示气泡</b>。「我的充值优惠券」入口带 NEW 标识、可点击进入券包。</p>
+
+      <div class="h2">3.7 赠金计算规则（券 vs 通道赠金）</div>
+      <p>本节是券赠金与通道赠金的<b>唯一计算口径</b>，#31 / #16 / #20 三份需求共用；其余章节与业务规则<b>只引用本节、不重复算式</b>。</p>
+
+      <p><b>① 输入量</b></p>
+      <table class="t">
+        <tr><th style="width:150px">符号</th><th>含义</th></tr>
+        <tr><td><code>A</code></td><td>充值本金（<b>门槛 / 比例 / 手续费都基于它</b>）</td></tr>
+        <tr><td><code>r</code> / <code>cap</code> / <code>th</code></td><td>券比例 / 券上限 / 券门槛（<code>th = 0</code> 表示无门槛）</td></tr>
+        <tr><td><code>chPct1</code> / <code>chPct2</code> / <code>chPct3</code></td><td>三类通道奖励费率：<b>充值通道赠金</b> / <b>VIP等级充值奖励</b> / <b>快捷金额充值奖励</b></td></tr>
+        <tr><td><code>feePct</code></td><td>手续费率</td></tr>
+        <tr><td><code>m_券</code> / <code>m_通道</code></td><td>打码倍数（券 / 通道）</td></tr>
+      </table>
+
+      <p><b>② 算式</b></p>
+      <table class="t">
+        <tr><th style="width:120px">步骤</th><th>算式</th></tr>
+        <tr><td>① 券可用性</td><td><code>usable = (A &gt;= th)</code> —— <b>含等于</b></td></tr>
+        <tr><td>② 券赠金</td><td><code>cpAward = min( floor(A × r), cap )</code> —— <b>先取整、再封顶</b></td></tr>
+        <tr><td>③ 通道候选</td><td><code>ch1 = floor(A × chPct1)</code> —— 充值通道赠金<br><code>ch2 = floor(A × chPct2)</code> —— VIP等级充值奖励<br><code>ch3 = floor(A × chPct3)</code> —— 快捷金额充值奖励</td></tr>
+        <tr><td>④ 关系裁决</td><td>见下方「③ 三种关系」表</td></tr>
+        <tr><td>⑤ 手续费</td><td><code>fee = floor(A × feePct)</code></td></tr>
+        <tr><td>⑥ 实际上分</td><td><code>youGet = A + award − fee</code></td></tr>
+      </table>
+      <p><b>取整一律 floor（向下取整），精度到整数 ₹；四个候选（cpAward / ch1 / ch2 / ch3）各自独立取整后再参与裁决</b>（不是先加后取整）。</p>
+
+      <p><b>③ 三种关系</b></p>
+      <table class="t">
+        <tr><th style="width:104px">关系</th><th style="width:224px">算式</th><th style="width:206px">券消耗</th><th>明细</th></tr>
+        <tr><td><b>互斥·取高</b><br>（默认）</td><td><code>award = max(cpAward, ch1, ch2, ch3)</code>，<b>平局取券</b></td><td>券赢 → 消耗；<b>券落败 → 不消耗、退回券包，「已使用」不计数</b></td><td>1 行 + 来源标注</td></tr>
+        <tr><td><b>叠加</b></td><td><code>award = cpAward + ch1 + ch2 + ch3</code>（四者全给）</td><td>消耗</td><td><b>2 行</b>：「充值奖励」(= ch1+ch2+ch3) ＋「充值优惠券彩金」(= cpAward)；铁律 —— <b>逐行相加 = award</b></td></tr>
+        <tr><td><b>互斥·优先券</b></td><td><code>award = cpAward</code>，<b>无条件用券、完全不比通道</b></td><td>消耗</td><td>1 行 + 来源标注</td></tr>
+      </table>
+
+      <p><b>④ 打码量</b>（各算各的）：互斥 → <code>award × m_赢家倍数</code>；叠加 → <code>cpAward × m_券 + (ch1+ch2+ch3) × m_通道</code>。</p>
+
+      <p><b>⑤ 来源标注文案</b>（明细为 1 行时<b>必须带</b>）：</p>
+      <ul class="l">
+        <li>券赢 → <code>奖励 +₹50（充值优惠券 10%，取高 ＞ 通道 ₹45）</code></li>
+        <li>券落败 → <code>奖励 +₹90（VIP等级奖励，取高 ＞ 券 ₹50，券未扣除已退回）</code></li>
+      </ul>
+
+      <p><b>⑥ 算例</b>（供验算；券 <b>10%·上限₹50·无门槛</b>，通道 <b>9%</b>，手续费 <b>2%</b>）：</p>
+      <table class="t">
+        <tr><th style="width:66px">充值</th><th>cpAward</th><th>ch（通道9%）</th><th>取高</th><th style="width:52px">叠加</th><th style="width:58px">优先券</th><th>上分（取高）</th></tr>
+        <tr><td>₹500</td><td>min(50,50)=50</td><td>45</td><td><b>50</b>（券赢）</td><td>95</td><td>50</td><td>500+50−10=<b>540</b></td></tr>
+        <tr><td>₹1000</td><td>min(100,50)=<b>50</b>（封顶）</td><td>90</td><td><b>90</b>（通道赢，券退回）</td><td>140</td><td>50</td><td>1000+90−20=<b>1070</b></td></tr>
+        <tr><td>₹333</td><td>floor(33.3)=<b>33</b></td><td>floor(29.97)=<b>29</b></td><td>33</td><td>62</td><td>33</td><td>333+33−6=<b>360</b></td></tr>
+      </table>
+      <div class="note">📌 上表为<b>单通道候选</b>场景（<code>chPct1 = 9%</code>、<code>chPct2 = chPct3 = 0</code>），故「叠加」列 = <code>cpAward + ch1</code>；多候选时按 ② 的 ③ 全量代入。</div>
     </div>
 
     <div class="sec">
-      <div class="h1">五、业务规则</div>
+      <div class="h1">四、业务规则</div>
       <div class="br"><span class="no">BR-01</span><div><b>红包码可发充值优惠券</b>：券进用户「我的充值优惠券」，使用与到账<b>复用现有充值优惠券逻辑</b>。</div></div>
-      <div class="br"><span class="no">BR-02</span><div><b>接受范围 = 单选</b>：代理维度（直属 / 佣金 / 全部下级 / 指定直属代理）<b>或</b>会员维度（指定 / 导入会员ID），二选一互斥。</div></div>
-      <div class="br"><span class="no">BR-03</span><div><b>会员维度按「会员ID 精准匹配」</b>；<b>指定 / 导入的会员ID 必须是本代理的下级</b>（非任意会员，按「代理-下级」归属校验，非下级 ID 自动剔除）；支持手填ID / 批量导入 CSV / 从会员白名单库选名单。</div></div>
-      <div class="br"><span class="no">BR-04</span><div><b>券 vs 通道赠金关系</b>：互斥·取高（默认）/ 叠加 / 互斥·优先券；<b>在 V1 后台创建充值优惠券码时配置</b>（属券规格、代理不可改），充值页按此计算与展示（见 BR-07）。</div></div>
+      <div class="br"><span class="no">BR-02</span><div><b>接受范围 = 单选</b>：代理维度（直属 / 佣金 / 全部下级 / 指定直属代理）<b>或</b>子代理维度（指定 / 导入子代理ID），二选一互斥。</div></div>
+      <div class="br"><span class="no">BR-03</span><div><b>子代理维度按「子代理ID 精准匹配」</b>——按 ID <b>逐个枚举</b>指定子代理（区别于粗粒度的全部下级 / 单个直属代理）；<b>指定 / 导入的子代理ID 必须是本代理的下级</b>（按「代理-下级」归属校验，非下级 ID 自动剔除）；支持<b>手填 ID</b>（逗号 / 中文逗号 / 顿号 / 空格 / 换行分隔）与<b>批量导入 CSV / Excel</b>。<b>领取者为被指定的子代理本人</b>（其以会员身份兑换、持券、用券充值），而非该子代理的下级会员。</div></div>
+      <div class="br"><span class="no">BR-04</span><div><b>券 vs 通道赠金关系</b>：互斥·取高（默认）/ 叠加 / 互斥·优先券，三选一；<b>在 V1 后台创建充值优惠券码时配置</b>（属券规格、代理不可改）。<b>计算口径见「3.7 赠金计算规则（券 vs 通道赠金）」</b>，本条不另立算式；充值页的明细展示形态见 BR-07。</div></div>
       <div class="br"><span class="no">BR-05</span><div><b>运营前置授权</b>：代理只能在授权额度 / 次数内派券，券规格由运营在券码库设定、<b>代理不可改</b>。</div></div>
       <div class="br"><span class="no">BR-06</span><div><b>红包码状态与取消</b>：状态分 <b>进行中 / 已抢完</b>（剩余数量=0 自动置）/ <b>已取消</b>（手动「取消红包码」）。取消或抢完后<b>立即停止发放</b>（新用户不能再领 / 兑换），但<b>已领到用户手里的红包 / 券不受影响</b>、可正常使用与到账；已抢完 / 已取消的码不可再次发放。券红包另有 <b>「已过期」</b>：过期时间 = <b>创建充值优惠券时配置的未领取券有效期</b>，到期自动置过期，行为同已取消（停止发放 / 兑换，已领不受影响）。</div></div>
-      <div class="br"><span class="no">BR-07</span><div><b>充值页「实际上分」明细展示（随赠金关系动态）</b>：<b>叠加</b>时，充值优惠券彩金与通道充值奖励都到账，明细<b>拆成「充值奖励」+「充值优惠券彩金」两条</b>分别相加（如 500+45+50−10 = 585）；<b>互斥·取高 / 互斥·优先券</b>时只有一个生效，<b>合并为一条「奖励」</b>（如 500+50−10 = 540）。铁律：<b>每一行都必须真正计入实际上分，逐行相加 = 实际上分</b>，互斥时不得并列两条「+」以免误导。</div></div>
+      <div class="br"><span class="no">BR-07</span><div><b>充值页「实际上分」明细展示（随赠金关系动态）</b>：<b>叠加</b>时，充值优惠券彩金与通道充值奖励都到账，明细<b>拆成「充值奖励」+「充值优惠券彩金」两条</b>分别相加（如 500+45+50−10 = 585）；<b>互斥·取高 / 互斥·优先券</b>时只有一个生效，<b>合并为一条「奖励」+ 来源标注</b>（如 500+50−10 = 540）。铁律：<b>每一行都必须真正计入实际上分，逐行相加 = 实际上分</b>，互斥时不得并列两条「+」以免误导。<b>各行金额的计算口径见「3.7 赠金计算规则（券 vs 通道赠金）」</b>——本条只管展示形态，不另立算式（上述 585 / 540 两例即 3.7 算例表 ₹500 行的「叠加」与「取高」结果）。</div></div>
       <div class="br"><span class="no">BR-08</span><div><b>授权次数扣减与退回</b>：券红包在<b>发放（创建）时按发放数量一次性预扣授权次数</b>（复用现有红包「发放预扣」机制）；红包码<b>取消 / 过期后，未被领取的次数退回代理授权额度</b>。<b>现金红包</b>沿用现有逻辑：发放时预扣全额、取消<b>不退回</b>（维持现状不动）。</div></div>
       <div class="br"><span class="no">BR-09</span><div><b>多语言</b>：客户端（输码兑换 / 我的充值优惠券 / 充值用券 / 个人中心）与<b>代理后台</b>（红包派送 / 领取记录 / 赠金记录等）均按<b>现有多语言机制</b>支持多语言（默认中文，可切 英 / 印地 / 越南…）。</div></div>
       <div class="br"><span class="no">BR-10</span><div><b>券码停用联动</b>：在 V1 后台「券码列表」<b>停用某充值优惠券码</b>后，<b>选用该券码的红包码同步失效</b>（停止发放 / 兑换，行为同已取消 / 已过期）；<b>已领到用户手里的券不受影响</b>、可正常使用与到账，未领次数按 BR-08 退回代理配额。（授权无需单独"撤销"——停用券码即达到停用其红包码的效果。）</div></div>
     </div>
 
     <div class="sec">
-      <div class="h1">六、限制条件与校验</div>
+      <div class="h1">五、限制条件与校验</div>
       <ul class="l">
         <li>红包数量 <b>≤ 5 万个</b>。</li>
         <li>派发数量 <b>≤ 授权剩余次数</b>（超出不可发）。</li>
-        <li>校验：会员ID 重复 → 自动去重忽略；黑名单 / 已持同券 → 失败；<b>单次限同一奖励类型</b>。</li>
-        <li>红包码限领走<b>会员维度</b>（会员ID / 分组）。</li>
+        <li>校验：<b>子代理ID 重复</b> → <b>自动去重</b>（保留一条，不报错）。</li>
+        <li>校验：<b>被指定的子代理账号</b>处于<b>黑名单</b>，或<b>已持有同一张券</b> → 该 ID <b>校验失败、不发放</b>（计入「剔除 N 个」提示）。</li>
+        <li><b>单次限同一奖励类型</b>（一个红包码不可混发现金与充值优惠券）。</li>
+        <li>红包码限领走<b>子代理维度</b>（子代理ID 名单），<b>不走手机号池</b>。</li>
         <li><b>每人限领</b>沿用现有：<b>固定码每人限 1 次</b>、<b>随机码一码限 1 次</b>（无需新增）。</li>
         <li>充值页<b>每次充值只能使用 1 张充值优惠券</b>（不叠加多张券）。</li>
       </ul>
@@ -1213,6 +1276,8 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
 
 <script>
 function showPage(k,el){document.querySelectorAll('.page-block').forEach(b=>b.style.display='none');document.getElementById('P-'+k).style.display='';document.querySelectorAll('.b-tab').forEach(t=>t.classList.remove('on'));if(el)el.classList.add('on');if(k==='p6')renderRC();}
+/* 按 onclick 内容定位顶部 tab，避免硬编码索引（新增/调整 tab 时不会错位） */
+function goTab(k){const t=[...document.querySelectorAll('.b-tab')].find(x=>(x.getAttribute('onclick')||'').includes("'"+k+"'"));showPage(k,t);}
 function v3quick(el,label){el.parentElement.querySelectorAll('span').forEach(s=>s.classList.remove('on'));el.classList.add('on');toast('时间范围：'+label);}
 function toast(m){const s=document.getElementById('toast-stack');const e=document.createElement('div');e.style.cssText='padding:10px 18px;background:rgba(0,0,0,.82);color:#fff;border-radius:6px;font-size:13px';e.textContent=m;s.appendChild(e);setTimeout(()=>{e.style.opacity=0;e.style.transition='.2s';setTimeout(()=>e.remove(),200)},1900);}
 function openModal(id){document.getElementById(id).classList.add('show')}
@@ -1268,6 +1333,17 @@ function toggleUse(){dep.use=!dep.use;if(dep.use&&!dep.sel)dep.sel=best(dep.amt)
 function pick(id){const c=COUPONS.find(x=>x.id===id);if(bonus(c,dep.amt)==null)return;dep.sel=id;dep.use=true;renderRC();}
 let LANG='en';
 const T={balance:{zh:'余额',en:'Balance',hi:'शेष',vi:'Số dư'},selectCh:{zh:'选择通道',en:'Select channel',hi:'चैनल चुनें',vi:'Chọn kênh'},depAmt:{zh:'充值金额',en:'Deposit amount',hi:'जमा राशि',vi:'Số tiền nạp'},useCoupon:{zh:'使用充值优惠券',en:'Use coupon',hi:'कूपन उपयोग करें',vi:'Dùng phiếu ưu đãi'},estBonus:{zh:'预计彩金',en:'Est. bonus',hi:'अनुमानित बोनस',vi:'Thưởng dự kiến'},actualCredit:{zh:'实际上分',en:'Actual credit',hi:'वास्तविक क्रेडिट',vi:'Thực nhận'},amount:{zh:'充值金额',en:'Amount',hi:'राशि',vi:'Số tiền'},bonus:{zh:'奖励',en:'Bonus',hi:'बोनस',vi:'Thưởng'},channelBonus:{zh:'充值奖励',en:'Deposit bonus',hi:'जमा बोनस',vi:'Thưởng nạp'},couponBonus:{zh:'充值优惠券彩金',en:'Coupon bonus',hi:'कूपन बोनस',vi:'Thưởng phiếu'},fee:{zh:'手续费',en:'Fee',hi:'शुल्क',vi:'Phí'},instr:{zh:'充值说明',en:'Recharge instructions',hi:'रिचार्ज निर्देश',vi:'Hướng dẫn nạp'},formula:{zh:'实际上分 = 充值金额 + 奖励 − 手续费',en:'Actual = Amount + Bonus − Fee',hi:'वास्तविक = राशि + बोनस − शुल्क',vi:'Thực nhận = Số tiền + Thưởng − Phí'},formulaStack:{zh:'实际上分 = 充值金额 + 充值奖励 + 充值优惠券彩金 − 手续费',en:'Actual = Amount + Deposit bonus + Coupon − Fee',hi:'वास्तविक = राशि + जमा बोनस + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Thưởng nạp + Phiếu − Phí'},formula2:{zh:'实际上分 = 充值金额 + 充值优惠券彩金 − 手续费',en:'Actual = Amount + Coupon − Fee',hi:'वास्तविक = राशि + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Phiếu − Phí'},formula3:{zh:'实际上分 = 充值金额 + 充值优惠券彩金',en:'Actual = Amount + Coupon',hi:'वास्तविक = राशि + कूपन',vi:'Thực nhận = Số tiền + Phiếu'},cap1:{zh:'① 充值优惠券 + 充值奖励 + 手续费（叠加）',en:'① Coupon + Deposit bonus + Fee (stack)',hi:'① कूपन + जमा बोनस + शुल्क',vi:'① Phiếu + Thưởng nạp + Phí'},cap2:{zh:'② 充值优惠券 + 手续费（无通道奖励）',en:'② Coupon + Fee (no channel bonus)',hi:'② कूपन + शुल्क',vi:'② Phiếu + Phí'},cap3:{zh:'③ 只有充值优惠券（无手续费·无奖励）',en:'③ Coupon only (no fee/bonus)',hi:'③ केवल कूपन',vi:'③ Chỉ phiếu'},threshold:{zh:'满',en:'Min',hi:'न्यूनतम',vi:'Tối thiểu'},depositBtn:{zh:'充值',en:'Deposit',hi:'जमा करें',vi:'Nạp'},navDep:{zh:'充值',en:'Deposit',hi:'जमा',vi:'Nạp tiền'},navHist:{zh:'充值记录',en:'History',hi:'इतिहास',vi:'Lịch sử'},
+/* —— 赠金计算规则（PRD 3.7）· 三类通道候选名 + 来源标注 + 券消耗提示 —— */
+rkCoupon:{zh:'充值优惠券',en:'Recharge coupon',hi:'रिचार्ज कूपन',vi:'Phiếu nạp tiền'},
+rkChDeposit:{zh:'充值通道赠金',en:'Channel bonus',hi:'चैनल बोनस',vi:'Thưởng kênh nạp'},
+rkChVip:{zh:'VIP等级充值奖励',en:'VIP level bonus',hi:'VIP स्तर बोनस',vi:'Thưởng cấp VIP'},
+rkChQuick:{zh:'快捷金额充值奖励',en:'Quick amount bonus',hi:'त्वरित राशि बोनस',vi:'Thưởng mức nhanh'},
+rkSrcCpWin:{zh:'{cp} {p}，取高 ＞ 通道 ₹{v}',en:'{cp} {p}, higher-of ＞ channel ₹{v}',hi:'{cp} {p}, अधिक वाला ＞ चैनल ₹{v}',vi:'{cp} {p}, lấy cao hơn ＞ kênh ₹{v}'},
+rkSrcCpLose:{zh:'{ch}，取高 ＞ 券 ₹{v}，券未扣除已退回',en:'{ch}, higher-of ＞ coupon ₹{v}, coupon not consumed & returned',hi:'{ch}, अधिक वाला ＞ कूपन ₹{v}, कूपन कटा नहीं, वापस कर दिया',vi:'{ch}, lấy cao hơn ＞ phiếu ₹{v}, phiếu chưa trừ, đã hoàn lại'},
+rkSrcOnly:{zh:'{cp} {p}，优先券·完全不比通道',en:'{cp} {p}, coupon-first · channels ignored',hi:'{cp} {p}, कूपन प्राथमिकता · चैनल नहीं',vi:'{cp} {p}, ưu tiên phiếu · bỏ qua kênh'},
+rkDepCpUsed:{zh:'充值已提交 · 券已锁定',en:'Deposit submitted · coupon locked',hi:'जमा सबमिट · कूपन लॉक',vi:'Đã gửi nạp · phiếu đã khoá'},
+rkDepCpKept:{zh:'充值已提交 · 券未扣除，已退回券包',en:'Deposit submitted · coupon not consumed, returned to wallet',hi:'जमा सबमिट · कूपन कटा नहीं, वॉलेट में वापस',vi:'Đã gửi nạp · phiếu chưa trừ, đã hoàn về ví'},
+rkDepNoCp:{zh:'充值已提交',en:'Deposit submitted',hi:'जमा सबमिट',vi:'Đã gửi nạp'},
 /* —— 共用术语 —— */
 capLimit:{zh:'上限',en:'Up to',hi:'अधिकतम',vi:'Tối đa'},
 rechargeCoupon:{en:'Recharge coupon',hi:'रिचार्ज कूपन',vi:'Phiếu nạp tiền'},
@@ -1323,7 +1399,60 @@ p7Promo:{en:'Promote',hi:'प्रचार',vi:'Quảng bá'},
 p7Mine:{en:'Mine',hi:'मेरा',vi:'Của tôi'}};
 function tt(k){return (T[k]&&T[k][LANG])||k;}
 function setLang(l){LANG=l;document.querySelectorAll('#P-p6 .langbtn').forEach(b=>{const on=b.dataset.l===l;b.style.background=on?'#f5535f':'#f0f0f0';b.style.color=on?'#fff':'#666';b.classList.toggle('on',on);});document.querySelectorAll('#P-p6 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k]&&T[k][l]!=null)el.textContent=T[k][l];});document.querySelectorAll('#P-p4 [data-t],#P-p5 [data-t],#P-p7 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k]&&T[k][l]!=null)el.textContent=T[k][l];});document.querySelectorAll('#P-p4 [data-thtml],#P-p5 [data-thtml],#P-p7 [data-thtml]').forEach(el=>{const k=el.dataset.thtml;if(T[k]&&T[k][l]!=null)el.innerHTML=T[k][l];});document.querySelectorAll('#P-p4 [data-tph],#P-p5 [data-tph],#P-p7 [data-tph]').forEach(el=>{const k=el.dataset.tph;if(T[k]&&T[k][l]!=null)el.placeholder=T[k][l];});renderRC();}
-function renderRewardDetail(){const rp=document.getElementById('rd-panel');if(!rp)return;const c=COUPONS.find(x=>x.id===dep.sel);const b=c?bonus(c,dep.amt):null;const amt=dep.amt||0;const chPct=0.09,feePct=0.02;const chAward=Math.floor(amt*chPct);const cpAward=(dep.use&&c&&b!=null)?b:0;const rule=c?(c.rule||'high'):'high';let award=chAward,src='通道 +'+Math.round(chPct*100)+'%';if(dep.use&&cpAward>0){const p=Math.round(c.r*100)+'%';if(rule==='stack'){award=chAward+cpAward;src='券'+p+' ＋ 通道+'+Math.round(chPct*100)+'% 叠加';}else if(rule==='only'){award=cpAward;src='充值优惠券 '+p+'（优先·不计通道）';}else{if(cpAward>=chAward){award=cpAward;src='充值优惠券 '+p+'（取高·＞通道 ₹'+chAward+'）';}else{award=chAward;src='通道 +'+Math.round(chPct*100)+'%（取高·＞券 ₹'+cpAward+'）';}}}const fee=Math.floor(amt*feePct);const youGet=amt+award-fee;const amtEl=document.getElementById('rd-amt');if(amtEl)amtEl.textContent='₹'+amt;document.getElementById('rd-award').textContent='+₹'+award;document.getElementById('rd-award-lbl').textContent=tt('bonus');document.getElementById('rd-fee').textContent='-₹'+fee;document.getElementById('rd-fee-lbl').innerHTML=tt('fee')+'<span style="color:#999;font-size:11px"> ('+Math.round(feePct*100)+'%)</span>';document.getElementById('rd-get').textContent='₹'+youGet;const wA=amt>0?Math.min(award/amt*100,100):0,wF=amt>0?Math.min(fee/amt*100,100):0;const ba=document.getElementById('rd-bar-award');if(ba)ba.style.width=wA+'%';const bf=document.getElementById('rd-bar-fee');if(bf)bf.style.width=wF+'%';var rn=document.getElementById('rd-note');if(rn)rn.textContent='💠 '+tt('formula');}
+/* ══════ 赠金计算规则（券 vs 通道赠金）—— 唯一口径见 PRD「赠金计算规则（券 vs 通道赠金）」小节 ══════
+   #16 / #20 两份原型此块保持同源（逐字相同）；取整一律 floor，精度到整数 ₹。
+   demo 常量：三类通道奖励费率（真实环境由后端按 通道 / VIP等级 / 快捷金额 下发）+ 手续费率 */
+const CH_PCTS=[{k:'rkChDeposit',p:.09},{k:'rkChVip',p:.05},{k:'rkChQuick',p:.03}];
+const FEE_PCT=.02;
+/* cpAward / ch1 / ch2 / ch3 四个候选各自独立 floor 后再参与裁决（不是先加后取整） */
+function calcReward(){
+  const amt=dep.amt||0,c=COUPONS.find(x=>x.id===dep.sel),b=c?bonus(c,amt):null;/* ① usable=(A>=th) ② cpAward=min(floor(A×r),cap) */
+  const useCp=!!(dep.use&&c&&b!=null&&b>0),cpAward=useCp?b:0;
+  const chList=CH_PCTS.map(x=>({k:x.k,p:x.p,v:Math.floor(amt*x.p)}));/* ③ ch1/ch2/ch3=floor(A×chPct1/2/3) */
+  const chTotal=chList.reduce((s,x)=>s+x.v,0),chBest=chList.reduce((m,x)=>x.v>m.v?x:m,chList[0]);
+  const rule=useCp?(c.rule||'high'):'high';
+  let award,cpWin=false,mode;/* ④ 关系裁决 */
+  if(!useCp){award=chBest.v;mode='chOnly';}/* 未用券：只在通道候选间取高 */
+  else if(rule==='stack'){award=cpAward+chTotal;cpWin=true;mode='stack';}/* 叠加：四者全给 */
+  else if(rule==='only'){award=cpAward;cpWin=true;mode='only';}/* 互斥·优先券：无条件用券、完全不比通道 */
+  else{cpWin=cpAward>=chBest.v;award=cpWin?cpAward:chBest.v;mode='high';}/* 互斥·取高：max(cpAward,ch1,ch2,ch3)，平局取券 */
+  const fee=Math.floor(amt*FEE_PCT);/* ⑤ fee=floor(A×feePct) */
+  return {amt,c,rule,mode,useCp,cpWin,cpAward,chList,chTotal,chBest,award,fee,youGet:amt+award-fee};/* ⑥ youGet=A+award−fee */
+}
+/* 来源标注：明细为 1 行（互斥）时必带；券落败必须告知「券未扣除已退回」 */
+function rewardSrc(R){
+  if(R.mode==='chOnly')return tt(R.chBest.k);
+  const p=Math.round(R.c.r*100)+'%';
+  if(R.mode==='only')return tt('rkSrcOnly').replace('{cp}',tt('rkCoupon')).replace('{p}',p);
+  if(R.cpWin)return tt('rkSrcCpWin').replace('{cp}',tt('rkCoupon')).replace('{p}',p).replace('{v}',R.chBest.v);
+  return tt('rkSrcCpLose').replace('{ch}',tt(R.chBest.k)).replace('{v}',R.cpAward);
+}
+function rdTxt(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function rdBar(id,v,amt){const el=document.getElementById(id);if(el)el.style.width=(amt>0?Math.min(v/amt*100,100):0)+'%';}
+function renderRewardDetail(){
+  const rp=document.getElementById('rd-panel');if(!rp)return;
+  const R=calcReward(),stack=R.mode==='stack';
+  rdTxt('rd-amt','₹'+R.amt);
+  const row2=document.getElementById('rd-row2'),src=document.getElementById('rd-src');
+  if(stack){
+    /* 叠加 → 明细 2 行：「充值奖励」(ch1+ch2+ch3) +「充值优惠券彩金」(cpAward)；铁律：逐行相加 = award */
+    rdTxt('rd-award-lbl',tt('channelBonus'));rdTxt('rd-award','+₹'+R.chTotal);rdBar('rd-bar-award',R.chTotal,R.amt);
+    rdTxt('rd-award2-lbl',tt('couponBonus'));rdTxt('rd-award2','+₹'+R.cpAward);rdBar('rd-bar-award2',R.cpAward,R.amt);
+    if(row2)row2.style.display='flex';
+    if(src)src.style.display='none';
+  }else{
+    /* 互斥 → 明细 1 行「奖励」+ 来源标注 */
+    rdTxt('rd-award-lbl',tt('bonus'));rdTxt('rd-award','+₹'+R.award);rdBar('rd-bar-award',R.award,R.amt);
+    if(row2)row2.style.display='none';
+    if(src){src.textContent='('+rewardSrc(R)+')';src.style.display='block';}
+  }
+  rdTxt('rd-fee','-₹'+R.fee);rdBar('rd-bar-fee',R.fee,R.amt);
+  const fl=document.getElementById('rd-fee-lbl');if(fl)fl.innerHTML=tt('fee')+' <span style="color:#999;font-size:11px">('+Math.round(FEE_PCT*100)+'%)</span>';
+  rdTxt('rd-get','₹'+R.youGet);
+  rdTxt('rd-note','💠 '+tt(stack?'formulaStack':'formula'));
+}
+/* 券消耗提示：互斥·取高且券落败时券未扣除 → 不得提示「券已锁定」 */
+function submitDeposit(){const R=calcReward();toast(!R.useCp?tt('rkDepNoCp'):(R.cpWin?tt('rkDepCpUsed'):tt('rkDepCpKept')),'success');}
 function renderRC(){const dot=document.getElementById('uc-dot');if(!dot)return;dot.style.background=dep.use?'#f5535f':'#ccc';dot.textContent=dep.use?'✓':'';const c=COUPONS.find(x=>x.id===dep.sel);const b=c?bonus(c,dep.amt):null;document.getElementById('uc-bonus').textContent=(dep.use&&c&&b!=null)?'+ ₹'+b:'+ ₹0';renderRewardDetail();document.getElementById('dep-btn').textContent='Deposit ₹'+(dep.amt||0);document.getElementById('amt-input').value=dep.amt||'';const sc=document.getElementById('cpscroll');if(!sc)return;const list=COUPONS.map(c=>({c,b:bonus(c,dep.amt)})).sort((x,y)=>(y.b==null?-1:y.b)-(x.b==null?-1:x.b));sc.innerHTML=list.map(({c,b})=>{const usable=b!=null,sel=dep.use&&c.id===dep.sel;return `<div class="cpchip ${sel?'on':''} ${usable?'':'dim'}" ${usable?`onclick="pick(${c.id})"`:''}><div class="r">${Math.round(c.r*100)}%</div><div class="m">上限₹${c.cap}${c.th?' 满₹'+c.th:''}</div></div>`;}).join('');}
 function toggleTip(){var t=document.getElementById('uc-tipbox');if(t)t.classList.toggle('show');}
 updatePreview();try{setLang('zh');}catch(e){}

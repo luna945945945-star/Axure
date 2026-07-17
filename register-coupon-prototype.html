@@ -172,6 +172,18 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
 .reg-agree .cb{width:16px;height:16px;border-radius:50%;border:1.5px solid #f5535f;flex-shrink:0}.reg-agree b{color:#f5535f}
 .reg-go{display:block;margin:0 16px;width:calc(100% - 32px);height:48px;border:none;border-radius:24px;background:linear-gradient(135deg,#ff8a6a,#f5535f);color:#fff;font-size:16px;font-weight:700;cursor:pointer}
 .reg-login{text-align:center;margin:14px 16px 18px;border:1.5px solid #ffd4d0;border-radius:24px;padding:12px;font-size:14px;color:#666}.reg-login b{color:#f5535f}
+/* 白名单券码 · 注册成功后首次登录「已发券」告知弹窗（通知型） */
+/* 白名单券·发券弹窗 —— 直接复用 #20「弹窗领取」组件（manual-coupon-prototype 同款，改样式请两边同步，勿各自演化） */
+.claim-overlay{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:24px}
+.claim-modal{background:#fff;border-radius:18px;width:100%;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.claim-top{background:var(--coupon-grad);color:#fff;text-align:center;padding:18px 16px 16px}
+.claim-top .claim-t{font-size:18px;font-weight:700;margin-top:2px}.claim-top .claim-s{font-size:12px;opacity:.95;margin-top:4px}
+.claim-list{padding:14px 14px 4px;display:flex;flex-direction:column;gap:10px;max-height:220px;overflow-y:auto}
+.claim-cp{display:flex;border:1px solid #ffd4d0;border-radius:10px;overflow:hidden}
+.claim-cp .ccp-l{width:86px;background:#fff3f2;color:#cf1322;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px}
+.claim-cp .ccp-l b{font-size:22px}.claim-cp .ccp-l span{font-size:10px;margin-top:2px}
+.claim-cp .ccp-r{flex:1;padding:10px 12px}.claim-cp .ccp-n{font-weight:700;font-size:13px}.claim-cp .ccp-m{font-size:11px;color:#888;margin-top:3px}
+.claim-go{display:block;margin:12px 14px 16px;width:calc(100% - 28px);height:46px;border:none;border-radius:24px;background:var(--coupon-grad);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
 .wl-item{padding:12px 14px;border-bottom:1px solid #f0f0f4;cursor:pointer;border-left:3px solid transparent}
 .wl-item:hover{background:#fafafe}
 .wl-item.on{background:#f0f6ff;border-left-color:#1677ff}
@@ -542,12 +554,13 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <div style="padding:14px 14px 22px">
           <div style="text-align:center;font-size:12.5px;color:#999;margin-bottom:12px">请左右滑动选择你喜欢的宣传图册</div>
           <select class="select" id="cc-select" style="width:100%;margin-bottom:12px" onchange="renderPosters()">
-            <option value="SUMMER10|10%|₹50|07-31">附带：SUMMER10 — 充值10%券·上限₹50（有效期至 07-31）</option>
-            <option value="SPRING15|15%|₹80|07-15|soon">附带：SPRING15 — 充值15%券·上限₹80（有效期至 07-15）</option>
+            <option value="SUMMER10|10%|₹50|07-31">附带：SUMMER10 — 充值10%券·上限₹50（有效期至 07-31）· 不限名单</option>
+            <option value="SPRING15|15%|₹80|07-15|soon|新客拉新名单">附带：SPRING15 — 充值15%券·上限₹80（有效期至 07-15）· 🔒限白名单</option>
             <option value="OLDLINK|5%|₹20|expired" disabled>附带：OLDLINK — 充值5%券·上限₹20（已过期 · 不可选）</option>
             <option value="">不附带（普通邀请海报）</option>
           </select>
           <div id="cc-warn" style="display:none;background:#fff1f0;border:1px solid #ffccc7;border-radius:7px;padding:7px 10px;margin:0 0 12px;font-size:11px;color:#cf1322">⚠️ 该券码即将到期，到期后此推广链接注册将<b>无优惠</b>，请及时换用有效期内的券码</div>
+          <div id="cc-wl" style="display:none;background:#f6f0ff;border:1px solid #e3d3ff;border-radius:7px;padding:7px 10px;margin:0 0 12px;font-size:11px;color:#6b28d9;line-height:1.65">🔒 <b>此券限白名单</b> —— 仅「<b id="cc-wl-name">新客拉新名单</b>」内的手机号注册可领。名单外的人注册<b>不发券</b>，且落地页<b>不展示券</b>（对方全程无感知）；<b>发给名单外＝白发</b>，请先确认邀请对象在名单内。</div>
           <div class="poster-scroll" id="poster-scroll"></div>
           <div style="text-align:center;margin-top:8px;font-size:15px;font-weight:700;color:#333">邀请好友 · <span style="color:#f5424f" id="inv-slogan">注册即得专属充值优惠券</span></div>
           <button class="btn coupon" style="width:100%;height:48px;border-radius:24px;margin-top:14px;font-size:15px" onclick="toast('已生成分享海报','success')">分享邀请海报</button>
@@ -572,7 +585,8 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
     <div class="stage-cap">会员端 H5 · <b>带券链接注册</b> — 解析 invitationCode 里的券码段</div>
     <div class="demo-switch">
       <span class="text-xs text-muted" style="align-self:center">演示链接：</span>
-      <span class="ds on" id="ds-valid" onclick="setRegDemo('valid')">有效券码</span>
+      <span class="ds on" id="ds-valid" onclick="setRegDemo('valid')">有效券码·无白名单</span>
+      <span class="ds" id="ds-wl" onclick="setRegDemo('wl')">白名单券码</span>
       <span class="ds" id="ds-expired" onclick="setRegDemo('expired')">码已过期</span>
       <span class="ds" id="ds-limit" onclick="setRegDemo('limit')">已达上限</span>
       <span class="ds" id="ds-none" onclick="setRegDemo('none')">无券链接</span>
@@ -603,11 +617,21 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           <div class="reg-login"><span data-t="loginPre">我有账号 </span><b data-t="loginLink">去登录</b></div>
         </div>
       </div>
+      <!-- 白名单券码命中名单：注册成功 → 首次登录弹窗告知（通知型，券已入袋，关闭不丢；弹一次即止，站内信兜底） -->
+      <!-- 白名单券·发券弹窗：与 #20「弹窗领取」同一组件（无 ✕，仅「立即领取」） -->
+      <div class="claim-overlay" id="wl-pop" style="display:none">
+        <div class="claim-modal">
+          <div class="claim-top"><div style="font-size:34px">🎁</div><div class="claim-t" data-t="popTitle">专属充值优惠券到账</div><div class="claim-s" data-t="popSub">注册成功，送您 1 张充值优惠券</div></div>
+          <div class="claim-list" id="wlp-cp"></div>
+          <button class="claim-go" onclick="claimWlPop()" data-t="popGo">立即领取（1 张）</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- 白名单 = 通用号码池/过滤器：被 注册券码 / 红包码 / 注册送彩金渠道 三类引用、限制可领手机号；本页不发券。回归召回不做 -->
+<!-- 白名单 = 注册场景专用号码池：被 注册券码 / 注册送彩金渠道 两类引用、限制可领手机号；本页不发券。回归召回不做。
+     注意：红包码限领已改走子代理维度（不走手机号池），故不在引用方之列——建券时红包码那档也渲染不出白名单字段。 -->
 
 <!-- ════ P6 · 白名单管理（库+详情合一·主从） ════ -->
 <div id="P-p6" class="page-block" style="display:none">
@@ -953,25 +977,9 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="doc-t">注册拼接充值优惠券系统</div>
     </div>
 
-    <div class="sec">
-      <div class="h1">一、需求背景与目标</div>
-      <div class="h2">1.1 背景与痛点</div>
-      <ul class="l">
-        <li>渠道 / 代理投放拉新缺少「注册即得券」钩子，发券依赖人工，<b>无法与注册链路自动绑定</b>。</li>
-        <li>投放数据无法按渠道归因：注册数、首充、二充、送券量<b>散落各处、无统一渠道报表</b>。</li>
-        <li>短信拉新名单（手机号）在注册环节<b>无法防水军 / 薅羊毛</b>，投放 ROI 难评估。</li>
-      </ul>
-      <div class="h2">1.2 需求目标</div>
-      <ul class="l">
-        <li>充值优惠券接入注册链路，支持 <b>4 类适用渠道</b>注册发券。</li>
-        <li>券码以「<b>券码 × 代理</b>」粒度发放并<b>逐笔可追溯</b>。</li>
-        <li>建立<b>渠道报表</b>，统一统计注册 / 首充 / 二充 / 充值 / 提现 / 送券。</li>
-        <li>建立<b>手机号白名单</b>（注册场景号码池）实现圈人 + 转化漏斗追踪，防拉新水军。</li>
-      </ul>
-    </div>
 
     <div class="sec">
-      <div class="h1">二、名词术语</div>
+      <div class="h1">一、名词术语</div>
       <table class="t">
         <tr><th style="width:148px">术语</th><th>定义</th></tr>
         <tr><td>充值优惠券码</td><td>可拼接进注册链接 / 渠道域名的字符码，携带券规格（比例 / 上限 / 门槛 / 已领取券有效期 / 打码量 / 适用充值大类 / 白名单），用户注册命中即发券。</td></tr>
@@ -979,12 +987,12 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <tr><td>券码 × 代理粒度</td><td>同一券码授权给多个代理时，每个代理一行记录，可按代理ID 单独追溯发放进度。</td></tr>
         <tr><td>手机号白名单</td><td>注册场景专用号码池，仅对手机号注册用户命中，用于定向拉新与防水军。</td></tr>
         <tr><td>适用充值大类</td><td>券可用于哪些充值通道大类；充值时按本单大类校验，不符则该券置灰。</td></tr>
-        <tr><td>券 vs 通道赠金关系</td><td>用券充值时券赠金与通道赠金的计算关系：互斥·取高 / 叠加 / 互斥·优先券。</td></tr>
+        <tr><td>券 vs 通道赠金关系</td><td>券规格的一项配置，决定<b>用券充值时券赠金与通道赠金谁生效、是否相加</b>，三选一：<b>互斥·取高</b>（两者只取金额高的一方，平局取券，券落败则不消耗、退回券包）/ <b>叠加</b>（两者全给、相加）/ <b>互斥·优先券</b>（无条件只给券赠金、完全不比通道）。计算口径见「3.9 赠金计算规则（券 vs 通道赠金）」。</td></tr>
       </table>
     </div>
 
     <div class="sec">
-      <div class="h1">三、需求范围（页面清单）</div>
+      <div class="h1">二、需求范围（页面清单）</div>
       <table class="t">
         <tr><th style="width:82px">端</th><th style="width:130px">页面 / 模块</th><th style="width:62px">类型</th><th>核心内容</th></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>优惠券管理</td><td><span class="tag t-new">新增</span></td><td>券码列表（券码×代理粒度）+ 创建券码弹窗 + 复制新建 / 停用 / 发放·使用明细</td></tr>
@@ -999,9 +1007,9 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
     </div>
 
     <div class="sec">
-      <div class="h1">四、功能详述</div>
+      <div class="h1">三、功能详述</div>
 
-      <div class="h2">4.1 优惠券管理（V1后台）</div>
+      <div class="h2">3.1 优惠券管理（V1后台）</div>
       <p>券码列表以「券码 × 代理」为一行；顶部支持券码 / 代理ID / 适用渠道 / 状态筛选；「新增券码」打开创建弹窗。</p>
       <p><b>创建券码弹窗字段：</b></p>
       <table class="t">
@@ -1017,7 +1025,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <p><b>列表新增字段：</b>适用渠道、上级代理ID、<b>发放进度</b>（点数字看逐笔<b>发放明细</b>：会员 / 手机号 / 时间 / 领取 / 使用状态）、<b>券码使用进度</b>（点数字看逐笔<b>使用明细</b>：会员 / 充值金额 / 用券彩金 / 到账时间）。发放明细、使用明细均<b>支持导出</b>。</p>
       <p><b>列表操作：</b><b>复制新建</b>——以来源券的规格 / 有效期 / 白名单为模板克隆一张新券，券码<b>重新自动生成</b>、上级代理 / 渠道<b>不继承需重新分配</b>（按券类型自适应），作为独立一条加入列表；<b>停用</b>——立即失效（带此码链接注册不再发券）。</p>
 
-      <div class="h2">4.2 白名单管理（V1后台）</div>
+      <div class="h2">3.2 白名单管理（V1后台）</div>
       <ul class="l">
         <li>手机号按「名单 / 批次」归类；顶部漏斗展示 <b>导入 → 已注册 → 已充值 → 已用券</b> 及各级转化率。</li>
         <li><b>新建名单需选「适用渠道归属」</b>（渠道注册 / 代理邀请注册，单选）——标明该名单归属的充值优惠券适用渠道；名单批次下拉与明细列均展示归属渠道。</li>
@@ -1026,48 +1034,102 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <li>本页只圈人 + 看转化，<b>不在此发券</b>；被哪些券码 / 活动引用会标注。</li>
       </ul>
 
-      <div class="h2">4.3 渠道报表（V1后台）</div>
+      <div class="h2">3.3 渠道报表（V1后台）</div>
       <p>渠道维度统计表（支持 日 / 日区间 / 月 / 所有 切换）：渠道名 / 域名 / 编码 / <b>注册送金·券</b>（编码右侧，彩金 + 充值优惠券合一列）/ 总人数 / 首充人数 / 首充金额 / 二充人数 / 二充金额 / 总充值 / 总提现 / 今日各项 等；行内「渠道更新」弹窗可配置：<b>选择充值优惠券 + 赠送彩金 + 手机号白名单（选券后按券规格<span style="color:#7c3aed">只读</span>；不送券·仅彩金时可自定义）</b>。</p>
 
-      <div class="h2">4.4 资金账变（V1后台 · 改造）</div>
+      <div class="h2">3.4 资金账变（V1后台 · 改造）</div>
       <p>账变类型多选新增「<b>充值优惠券</b>」；充值优惠券到账作为一种账变类型可查，其余字段复用现有账变。</p>
 
-      <div class="h2">4.5 会员详情（V1后台 · 改造）</div>
+      <div class="h2">3.5 会员详情（V1后台 · 改造）</div>
       <p>「充值提现」区新增<b>充值优惠券奖金总额</b>（仅金额，不含币种 / 张数 = 会员使用充值优惠券获得的奖金累计），并入会员账户全景展示。</p>
 
-      <div class="h2">4.6 邀请链接（代理端）</div>
+      <div class="h2">3.6 邀请链接（代理端）</div>
       <p>代理将「邀请码-券码」拼成推广链接 / 海报拉新；仅推广运营授权（分配代理）给自己的券码。</p>
 
-      <div class="h2">4.7 带券注册（客户端 · 改造）</div>
-      <p>注册页解析 <code>invitationCode</code> 中的券码段，按后端判定发券（见「六、状态与判定」）；支持<b>多语言</b>（当前英 / 印地 / 越南，可扩展）。</p>
+      <div class="h2">3.7 带券注册（客户端 · 改造）</div>
+      <p>注册页解析 <code>invitationCode</code> 中的券码段，按后端判定发券（见「五、状态与判定」）；支持<b>多语言</b>（当前英 / 印地 / 越南，可扩展）。</p>
 
-      <div class="h2">4.8 数据统计（V1后台 · 改造）</div>
+      <div class="h2">3.8 数据统计（V1后台 · 改造）</div>
       <p>数据统计页「活动」模块下方新增<b>「充值优惠券」统计块</b>，汇总充值优惠券相关数据（发放 / 使用 / 到账金额、人数等）；统计口径与「资金账变」的「充值优惠券」账变一致。</p>
+
+      <div class="h2">3.9 赠金计算规则（券 vs 通道赠金）</div>
+      <p>本节是券赠金与通道赠金的<b>唯一计算口径</b>，#31 / #16 / #20 三份需求共用；其余章节与业务规则<b>只引用本节、不重复算式</b>。</p>
+
+      <p><b>① 输入量</b></p>
+      <table class="t">
+        <tr><th style="width:150px">符号</th><th>含义</th></tr>
+        <tr><td><code>A</code></td><td>充值本金（<b>门槛 / 比例 / 手续费都基于它</b>）</td></tr>
+        <tr><td><code>r</code> / <code>cap</code> / <code>th</code></td><td>券比例 / 券上限 / 券门槛（<code>th = 0</code> 表示无门槛）</td></tr>
+        <tr><td><code>chPct1</code> / <code>chPct2</code> / <code>chPct3</code></td><td>三类通道奖励费率：<b>充值通道赠金</b> / <b>VIP等级充值奖励</b> / <b>快捷金额充值奖励</b></td></tr>
+        <tr><td><code>feePct</code></td><td>手续费率</td></tr>
+        <tr><td><code>m_券</code> / <code>m_通道</code></td><td>打码倍数（券 / 通道）</td></tr>
+      </table>
+
+      <p><b>② 算式</b></p>
+      <table class="t">
+        <tr><th style="width:120px">步骤</th><th>算式</th></tr>
+        <tr><td>① 券可用性</td><td><code>usable = (A &gt;= th)</code> —— <b>含等于</b></td></tr>
+        <tr><td>② 券赠金</td><td><code>cpAward = min( floor(A × r), cap )</code> —— <b>先取整、再封顶</b></td></tr>
+        <tr><td>③ 通道候选</td><td><code>ch1 = floor(A × chPct1)</code> —— 充值通道赠金<br><code>ch2 = floor(A × chPct2)</code> —— VIP等级充值奖励<br><code>ch3 = floor(A × chPct3)</code> —— 快捷金额充值奖励</td></tr>
+        <tr><td>④ 关系裁决</td><td>见下方「③ 三种关系」表</td></tr>
+        <tr><td>⑤ 手续费</td><td><code>fee = floor(A × feePct)</code></td></tr>
+        <tr><td>⑥ 实际上分</td><td><code>youGet = A + award − fee</code></td></tr>
+      </table>
+      <p><b>取整一律 floor（向下取整），精度到整数 ₹；四个候选（cpAward / ch1 / ch2 / ch3）各自独立取整后再参与裁决</b>（不是先加后取整）。</p>
+
+      <p><b>③ 三种关系</b></p>
+      <table class="t">
+        <tr><th style="width:104px">关系</th><th style="width:224px">算式</th><th style="width:206px">券消耗</th><th>明细</th></tr>
+        <tr><td><b>互斥·取高</b><br>（默认）</td><td><code>award = max(cpAward, ch1, ch2, ch3)</code>，<b>平局取券</b></td><td>券赢 → 消耗；<b>券落败 → 不消耗、退回券包，「已使用」不计数</b></td><td>1 行 + 来源标注</td></tr>
+        <tr><td><b>叠加</b></td><td><code>award = cpAward + ch1 + ch2 + ch3</code>（四者全给）</td><td>消耗</td><td><b>2 行</b>：「充值奖励」(= ch1+ch2+ch3) ＋「充值优惠券彩金」(= cpAward)；铁律 —— <b>逐行相加 = award</b></td></tr>
+        <tr><td><b>互斥·优先券</b></td><td><code>award = cpAward</code>，<b>无条件用券、完全不比通道</b></td><td>消耗</td><td>1 行 + 来源标注</td></tr>
+      </table>
+
+      <p><b>④ 打码量</b>（各算各的）：互斥 → <code>award × m_赢家倍数</code>；叠加 → <code>cpAward × m_券 + (ch1+ch2+ch3) × m_通道</code>。</p>
+
+      <p><b>⑤ 来源标注文案</b>（明细为 1 行时<b>必须带</b>）：</p>
+      <ul class="l">
+        <li>券赢 → <code>奖励 +₹50（充值优惠券 10%，取高 ＞ 通道 ₹45）</code></li>
+        <li>券落败 → <code>奖励 +₹90（VIP等级奖励，取高 ＞ 券 ₹50，券未扣除已退回）</code></li>
+      </ul>
+
+      <p><b>⑥ 算例</b>（供验算；券 <b>10%·上限₹50·无门槛</b>，通道 <b>9%</b>，手续费 <b>2%</b>）：</p>
+      <table class="t">
+        <tr><th style="width:66px">充值</th><th>cpAward</th><th>ch（通道9%）</th><th>取高</th><th style="width:52px">叠加</th><th style="width:58px">优先券</th><th>上分（取高）</th></tr>
+        <tr><td>₹500</td><td>min(50,50)=50</td><td>45</td><td><b>50</b>（券赢）</td><td>95</td><td>50</td><td>500+50−10=<b>540</b></td></tr>
+        <tr><td>₹1000</td><td>min(100,50)=<b>50</b>（封顶）</td><td>90</td><td><b>90</b>（通道赢，券退回）</td><td>140</td><td>50</td><td>1000+90−20=<b>1070</b></td></tr>
+        <tr><td>₹333</td><td>floor(33.3)=<b>33</b></td><td>floor(29.97)=<b>29</b></td><td>33</td><td>62</td><td>33</td><td>333+33−6=<b>360</b></td></tr>
+      </table>
+      <div class="note">📌 上表为<b>单通道候选</b>场景（<code>chPct1 = 9%</code>、<code>chPct2 = chPct3 = 0</code>），故「叠加」列 = <code>cpAward + ch1</code>；多候选时按 ② 的 ③ 全量代入。</div>
     </div>
 
     <div class="sec">
-      <div class="h1">五、业务规则</div>
+      <div class="h1">四、业务规则</div>
       <div class="br"><span class="no">BR-01</span><div><b>4 类适用渠道</b>：渠道注册码（渠道域名注册送）/ 人工充值 / 代理邀请链接（代理拼链接）/ 代理红包码（发给已注册会员）。</div></div>
       <div class="br"><span class="no">BR-02</span><div><b>分配代理</b>仅「代理邀请链接 / 代理红包码」需要（授权哪些代理可推广 / 发放）；渠道注册码、人工充值无需。</div></div>
       <div class="br"><span class="no">BR-03</span><div><b>手机号白名单归位</b>：白名单属<b>券规格</b>，渠道注册码 / 代理邀请链接均在「建券弹窗」设定；渠道报表引用该券时，白名单按券规格<b>固定为只读</b>，不再在渠道配置单独设。</div></div>
       <div class="br"><span class="no">BR-04</span><div><b>适用充值大类必勾</b>：至少勾 1 个（全选=全部大类可用）；不再是"不勾=全部"。充值页按本单大类校验，不符则该券置灰。</div></div>
-      <div class="br"><span class="no">BR-05</span><div><b>券 vs 通道赠金关系</b>：互斥·取高（默认）/ 叠加 / 互斥·优先券，三选一。</div></div>
+      <div class="br"><span class="no">BR-05</span><div><b>券 vs 通道赠金关系</b>：互斥·取高（默认）/ 叠加 / 互斥·优先券，三选一。<b>计算口径见「3.9 赠金计算规则（券 vs 通道赠金）」</b>，本条不另立算式。</div></div>
       <div class="br"><span class="no">BR-06</span><div><b>券码 × 代理粒度</b>：一码多代理 = 多行，可按代理ID 追溯单代理发放进度；可选设「<b>券码发放上限</b>」（0 = 不限，达上限自动置为「已停用」），未设则仅按券码有效期控制。</div></div>
       <div class="br"><span class="no">BR-07</span><div><b>充值优惠券到账逻辑复用现有充值优惠券系统</b>：发出的券进「我的充值优惠券」，充值使用与到账口径与现有充值优惠券系统一致。</div></div>
+      <div class="br"><span class="no">BR-08</span><div><b>白名单券码不在注册页展示</b>：注册页无法在输入手机号前判定名单归属，故绑白名单的券码<b>注册页不展示券区</b>（不锁态、不占位）；命中名单的手机号注册成功后<b>券自动入袋</b> + <b>首次登录弹窗告知</b>——弹窗<b>直接复用 #20「弹窗领取」组件</b>（同一套 UI，不另设计）；<b>但语义按 #20 口径「注册得券一律自动入袋」</b>：券在注册成功时已入袋，弹窗仅为到账告知，<b>不点 / 未弹到也不影响券归属</b>，<b>无「领取截止」、无额度退回</b>（此为与 #20 人工发放的弹窗领取模式的唯一差异）；弹一次即止，站内信兜底；<b>未命中不拦截注册</b>，仅不发券；<b>前端不提供白名单实时查询接口</b>，避免手机号在名单内与否被枚举探测。</div></div>
+      <div class="br"><span class="no">BR-09</span><div><b>代理选券时必须标注白名单归属</b>：代理端「邀请海报」选券下拉需逐条注明<b>「🔒限白名单」/「不限名单」</b>；选中绑白名单的券后，页面显式提示<b>所限名单名称</b>及后果——名单外的人注册<b>不发券</b>、落地页<b>不展示券</b>（对方全程无感知），<b>发给名单外＝白发</b>。与「即将到期」提示<b>可并存</b>（同一张券可能既绑名单又临近到期）。目的：避免代理误把定向券当通用券群发。</div></div>
     </div>
 
     <div class="sec">
-      <div class="h1">六、状态与判定</div>
-      <div class="h2">6.1 券码状态</div>
+      <div class="h1">五、状态与判定</div>
+      <div class="h2">5.1 券码状态</div>
       <ul class="l">
         <li><b>进行中</b>：活动时段内、未停用，可正常发券。</li>
         <li><b>已停用</b>：运营手动点击停用后，<b>未使用的券码立即过期</b>（带此码链接注册不再发券，但仍可正常注册）。</li>
         <li><b>已过期</b>：<b>手动停用</b>的未使用的券；<b>已领取</b>的券超出<b>已领取券有效期</b>自动置为过期。</li>
       </ul>
-      <div class="h2">6.2 带券注册判定矩阵（后端判定，会员侧无感知）</div>
+      <div class="h2">5.2 带券注册判定矩阵（后端判定，会员侧无感知）</div>
       <table class="t">
         <tr><th style="width:168px">场景</th><th>会员侧表现</th><th style="width:82px">是否发券</th></tr>
-        <tr><td>券码有效</td><td>注册成功 + 展示 / 发放充值优惠券（一码一券）</td><td>发券</td></tr>
+        <tr><td>券码有效 · <b>未绑白名单</b></td><td><b>注册页带券展示</b>；注册成功 + 发放充值优惠券（一码一券）</td><td>发券</td></tr>
+        <tr><td>券码绑白名单 · 手机号命中</td><td>注册页<b>不展示券</b>（此时无手机号、判不了）；注册成功 → 首次登录<b>弹窗告知</b>（券已自动入袋，关闭不丢）</td><td>发券</td></tr>
+        <tr><td>券码绑白名单 · 未命中 / 邮箱注册</td><td>静默普通注册，无弹窗、无感知</td><td>不发</td></tr>
         <tr><td>券码已过期</td><td>与无券链接一致，静默普通注册</td><td>不发</td></tr>
         <tr><td>已达发放上限</td><td>静默普通注册，无感知</td><td>不发</td></tr>
         <tr><td>链接不含券码</td><td>普通注册</td><td>不发</td></tr>
@@ -1075,7 +1137,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
     </div>
 
     <div class="sec">
-      <div class="h1">七、限制条件与校验</div>
+      <div class="h1">六、限制条件与校验</div>
       <ul class="l">
         <li><b>手机号白名单仅手机号注册命中</b>（RegType=手机），邮箱注册不命中（针对短信拉新防水军）。</li>
         <li>每手机号<b>限领 1 次</b>。</li>
@@ -1292,22 +1354,47 @@ function copyLink(id){
 }
 
 /* —— P4 带券注册 —— */
-// grant=是否发券；banner=会员侧是否展示优惠。过期/达上限/无券 → 会员侧均无感知（banner=false,grant=false），
-// 仅"判定说明"给评审看（会员不可见）。
+// banner=注册页是否展示券区；grant=是否发券；popup=注册成功后首次登录是否弹窗告知。三者拆开，不再混用 grant。
+// 绑白名单的券码：注册页无手机号、判不了名单归属 → banner=false（不展示、不锁态、不占位）；命中名单则 grant=true + popup=true。
+// 过期/达上限/无券 → 会员侧均无感知（banner=false,grant=false），仅"判定说明"给评审看（会员不可见）。
 const REG={
-  valid:  {grant:true,  judge:'券码有效 → 发券 + 展示充值优惠券（一码一券，注册即得）'},
-  expired:{grant:false, judge:'券码已过期 → 静默不发券，会员侧无感知（与无券链接一致）'},
-  limit:  {grant:false, judge:'已达发放上限 → 静默不发券，会员侧无感知'},
-  none:   {grant:false, judge:'链接不含券码 → 普通注册'}
+  valid:  {banner:true,  grant:true,  popup:false, judge:'券码有效（未绑白名单）→ 注册页带券展示 + 注册即发（一码一券）'},
+  wl:     {banner:false, grant:true,  popup:true,  judge:'券码绑白名单 → 注册页不展示券（此时无手机号、判不了名单）；手机号命中名单 → 券自动入袋，注册成功后首次登录弹窗告知；未命中 / 邮箱注册 → 无弹窗、静默普通注册'},
+  expired:{banner:false, grant:false, popup:false, judge:'券码已过期 → 静默不发券，会员侧无感知（与无券链接一致）'},
+  limit:  {banner:false, grant:false, popup:false, judge:'已达发放上限 → 静默不发券，会员侧无感知'},
+  none:   {banner:false, grant:false, popup:false, judge:'链接不含券码 → 普通注册'}
 };
 let regState='valid';
+let wlPopShown=false;   // 「弹一次即止」标记 —— 须早于 setRegDemo 首次调用求值
 function setRegDemo(s){
   regState=s;
-  ['valid','expired','limit','none'].forEach(k=>document.getElementById('ds-'+k).classList.toggle('on',k===s));
+  closeWlPop(true);   // 切档先静默关掉弹窗
+  wlPopShown=false;   // 切档重置「弹一次即止」标记
+  ['valid','wl','expired','limit','none'].forEach(k=>document.getElementById('ds-'+k).classList.toggle('on',k===s));
   const c=REG[s];
-  document.getElementById('reg-coupons').style.display = c.grant ? '' : 'none';
+  document.getElementById('reg-coupons').style.display = c.banner ? '' : 'none';
   document.getElementById('reg-judge').innerHTML = '【评审视角 · 会员不可见】后端判定：' + c.judge;
-  if(c.grant) renderRegCoupons();
+  if(c.banner) renderRegCoupons();
+}
+/* —— 白名单券码 · 发券弹窗（复用 #20「弹窗领取」组件：无 ✕，仅「立即领取」） ——
+   注意：按 #20 口径「注册得券一律自动入袋」，此弹窗是到账告知 + 仪式感，券在注册成功时已入袋，
+   故无「领取截止」、无额度退回（区别于 #20 人工发放的弹窗领取模式）。 */
+function renderWlPopCoupon(){
+  const el=document.getElementById('wlp-cp'); if(!el) return;
+  el.innerHTML=`<div class="claim-cp"><div class="ccp-l"><b>10%</b><span>${tt('popCap')}</span></div><div class="ccp-r"><div class="ccp-n">${tt('popCpName')}</div><div class="ccp-m">${tt('popMeta')}</div></div></div>`;
+}
+function openWlPop(){
+  renderWlPopCoupon();
+  document.getElementById('wl-pop').style.display='';
+  wlPopShown=true;   // 弹一次即止，后续靠站内信兜底
+}
+function closeWlPop(silent){
+  const p=document.getElementById('wl-pop'); if(!p) return;
+  p.style.display='none';
+}
+function claimWlPop(){
+  closeWlPop(true);
+  toast(tt('toastPopClaimed'),'success');
 }
 function renderRegCoupons(){
   const list=[{r:10,cap:50,m:tt('cpNoThresh')+' · '+tt('cp7day')}];
@@ -1316,6 +1403,15 @@ function renderRegCoupons(){
 }
 function doRegister(){
   const c=REG[regState];
+  if(c.popup){   // 白名单券码 · 手机号命中名单：注册成功 → 首次登录弹窗告知
+    toast(tt('toastRegOk'),'success');
+    if(wlPopShown){
+      setTimeout(()=>toast('【评审视角】弹窗弹一次即止 · 券已入袋不受影响，后续靠站内信兜底（切换演示档可重置）','info'),700);
+    }else{
+      setTimeout(()=>openWlPop(),800);
+    }
+    return;
+  }
   toast(tt('toastRegOk')+(c.grant?tt('toastRegGrant'):''),'success');
   setTimeout(()=>{ if(c.grant){ toast(tt('toastCouponIn'),'success'); } else { toast(tt('toastPlainReg'),'info'); } }, 700);
 }
@@ -1435,7 +1531,15 @@ const T={
   toastRegOk:{en:'Registration successful',hi:'रजिस्ट्रेशन सफल',vi:'Đăng ký thành công'},
   toastRegGrant:{en:', coupon issued',hi:', कूपन जारी किया गया',vi:', đã phát phiếu ưu đãi'},
   toastCouponIn:{en:'Coupon added to "My Coupons"; tap to use and jump to the deposit page (Item 16)',hi:'कूपन "मेरे कूपन" में जोड़ा गया; उपयोग के लिए टैप करें और रिचार्ज पेज पर जाएं (आइटम 16)',vi:'Phiếu đã vào "Phiếu ưu đãi của tôi"; nhấn để dùng và chuyển đến trang nạp tiền (Điều 16)'},
-  toastPlainReg:{en:'(Standard registration, no coupon shown to member)',hi:'(सामान्य रजिस्ट्रेशन, सदस्य को कोई कूपन नहीं दिखता)',vi:'(Đăng ký thường, không hiển thị phiếu ưu đãi cho thành viên)'}
+  toastPlainReg:{en:'(Standard registration, no coupon shown to member)',hi:'(सामान्य रजिस्ट्रेशन, सदस्य को कोई कूपन नहीं दिखता)',vi:'(Đăng ký thường, không hiển thị phiếu ưu đãi cho thành viên)'},
+  // 弹窗文案与 #20「弹窗领取」保持同一套译法（p3Title/p3CpName/p3Cap50/p3Meta1 同源），仅副标题按注册场景改写
+  popTitle:{en:'Exclusive coupons received',hi:'विशेष कूपन प्राप्त हुए',vi:'Đã nhận phiếu ưu đãi độc quyền'},
+  popSub:{en:'Registration successful — 1 deposit coupon for you',hi:'रजिस्ट्रेशन सफल — आपके लिए 1 रिचार्ज कूपन',vi:'Đăng ký thành công — 1 phiếu ưu đãi nạp tiền cho bạn'},
+  popCpName:{en:'Deposit coupon',hi:'रिचार्ज कूपन',vi:'Phiếu ưu đãi nạp tiền'},
+  popCap:{en:'Max ₹50',hi:'अधिकतम ₹50',vi:'Tối đa ₹50'},
+  popMeta:{en:'No threshold · Valid 7 days',hi:'कोई सीमा नहीं · 7 दिन वैध',vi:'Không điều kiện · Hiệu lực 7 ngày'},
+  popGo:{en:'Claim now (1)',hi:'अभी प्राप्त करें (1)',vi:'Nhận ngay (1)'},
+  toastPopClaimed:{en:'Claimed — check "My Coupons"',hi:'प्राप्त हो गया — "मेरे कूपन" देखें',vi:'Đã nhận — xem "Phiếu ưu đãi của tôi"'}
 };
 function tt(k){return (T[k]&&T[k][LANG])||k;}
 function setLang(l){
@@ -1444,6 +1548,7 @@ function setLang(l){
   document.querySelectorAll('#P-p4 [data-t]').forEach(function(e){var k=e.getAttribute('data-t');if(T[k])e.textContent=T[k][l];});
   document.querySelectorAll('#P-p4 [data-tph]').forEach(function(e){var k=e.getAttribute('data-tph');if(T[k])e.placeholder=T[k][l];});
   renderRegCoupons();
+  renderWlPopCoupon();   // 弹窗内券卡跟随语言重渲（弹窗未开也安全）
 }
 setRegDemo('valid');
 setLang('en');
@@ -1454,7 +1559,10 @@ function renderPosters(){
   let code='',ratio='',cap='';
   if(wc){const p=v.split('|');code=p[0];ratio=p[1];cap=p[2];}
   (function(){const warn=document.getElementById('cc-warn');if(!warn)return;const soon=wc&&(v.split('|')[4]==='soon');warn.style.display=soon?'':'none';})();
-  document.getElementById('inv-slogan').textContent=wc?'注册即得专属充值优惠券':'注册得新人好礼';
+  // 第6段=白名单名单名（空/缺省=不限名单）。绑白名单的券发给名单外＝白发，故代理选券时必须显式提示。
+  const wlName=wc?(v.split('|')[5]||''):'';
+  (function(){const w=document.getElementById('cc-wl');if(!w)return;w.style.display=wlName?'':'none';const n=document.getElementById('cc-wl-name');if(wlName&&n)n.textContent=wlName;})();
+  document.getElementById('inv-slogan').textContent=wc?(wlName?'名单内好友注册可领专属券':'注册即得专属充值优惠券'):'注册得新人好礼';
   document.getElementById('invite-link').textContent=wc?`https://51game3.com/#/register?invitationCode=118663914421-${code}`:`https://51game3.com/#/register?invitationCode=118663914421`;
   const styles=['p-red','p-gold','p-deep'];
   document.getElementById('poster-scroll').innerHTML=styles.map(st=>posterHTML(st,wc,code,ratio,cap)).join('');
