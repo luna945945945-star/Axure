@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>充值大类奖励 / 充值通道奖励配置 · 交互原型</title>
+<style>
+:root{--ink:#1d2129;--bg:#f5f7fa;--line:#e5e6eb;--sub:#4e5969;--pri:#165dff;--gray:#86909c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;color:var(--ink);background:var(--bg);line-height:1.5}
+body.with-banner{padding-top:46px}
+
+/* ============ demo banner ============ */
+.demo-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#fff7e6,#ffe7ba);border-bottom:1px solid #ffd591;padding:7px 16px;font-size:12px;color:#874d00;display:flex;align-items:center;gap:12px;z-index:999;flex-wrap:wrap}
+.b-left{font-weight:600;white-space:nowrap}
+.b-tabs{display:flex;gap:5px;flex-wrap:wrap}
+.b-tabs .grp{font-size:10.5px;color:#ad6800;opacity:.8;align-self:center;margin-left:6px}
+.b-tab{padding:4px 11px;background:#fff;border:1px solid #ffd591;border-radius:14px;cursor:pointer;font-size:11.5px;color:#874d00;font-weight:500}
+.b-tab.on{background:#fa8c16;color:#fff;border-color:#fa8c16}
+.newb{background:#f5222d;color:#fff;font-size:8.5px;border-radius:6px;padding:0 4px;margin-left:4px;vertical-align:top}
+
+/* NEW 标记 */
+.newf{background:#f5222d;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:1px 4px;margin-left:5px;letter-spacing:.3px;vertical-align:1px;white-space:nowrap}
+
+.page-block{padding:14px 18px}
+
+/* ============ V3 中台外壳 ============ */
+.pg-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin-bottom:14px;background:#fff;border-radius:6px 6px 0 0;padding:0 6px}
+.pg-tab{padding:10px 16px;font-size:13.5px;color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.pg-tab.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:600}
+.v3-panel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px}
+.v3-filter{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:10px}
+.v3-fi{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);white-space:nowrap}
+.v3-fi .rq{color:#f5222d}
+.v3-inp,.v3-sel{height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:0 9px;font-size:12.5px;min-width:172px;background:#fff;color:var(--ink)}
+.v3-sel{color:var(--gray)}
+.v3-btn{height:32px;padding:0 14px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid #dcdfe6;background:#fff;color:var(--sub)}
+.v3-btn:hover{color:var(--pri);border-color:var(--pri)}
+.v3-btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.v3-btn.pri:hover{opacity:.88;color:#fff}
+.v3-btn.txt{border:none;background:none;color:var(--sub);padding:0 8px}
+.f-right{margin-left:auto;display:flex;gap:8px}
+.v3-tools{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.v3-tools .hint-s{font-size:11px;color:var(--gray)}
+.v3-tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.v3-tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.v3-tbl th{background:#f7f8fa;color:var(--sub);font-weight:600;text-align:center;padding:9px 10px;border-bottom:1px solid var(--line);border-right:1px solid #f0f1f3}
+.v3-tbl td{padding:9px 10px;border-bottom:1px solid #f2f3f5;border-right:1px solid #f7f8fa;color:var(--ink);text-align:center;vertical-align:middle}
+.v3-tbl tr:last-child td{border-bottom:none}
+.v3-tbl tr:hover td{background:#fafbfc}
+.v3-tbl td.l,.v3-tbl th.l{text-align:left}
+.lnk{color:var(--pri);cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.lnk.del{color:#f5222d}
+.v3-note{background:#f0f7ff;border:1px solid #d6e7ff;border-radius:5px;padding:9px 12px;font-size:12px;color:#1c4c8c;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start;line-height:1.65}
+.v3-note code{background:#dbeafe;padding:1px 4px;border-radius:3px}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 4px 2px;font-size:12px;color:var(--sub)}
+.pg-n{min-width:26px;height:26px;border:1px solid #dcdfe6;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff}
+.pg-n.on{background:var(--pri);border-color:var(--pri);color:#fff}
+
+/* pills */
+.pill{display:inline-block;font-size:11px;padding:1.5px 8px;border-radius:10px;white-space:nowrap}
+.pill.mch{background:#eaf3ff;color:#2d6cdf;border:1px solid #d3e3ff}
+.pill.sys{background:#e9f9ee;color:#0f9d58;border:1px solid #cdeeda}
+.pill.map{background:#eaf3ff;color:#2d6cdf}
+.pill.cur{background:#f2f3f5;color:var(--sub)}
+.pill.ok{background:#e9f9ee;color:#0f9d58}
+.pill.bad{background:#fff1f0;color:#cf1322}
+.pill.lv{background:#f2f3f5;color:var(--sub)}
+.ico-c{display:inline-flex;gap:7px;align-items:center;justify-content:center}
+.ico-b{width:24px;height:24px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;background:#f2f3f5}
+.ci{text-align:left;font-size:11.5px;line-height:1.75;color:var(--sub)}
+.ci b{color:var(--ink);font-weight:600}
+.rate0{color:#f5222d}
+
+/* 奖励专用 */
+.rw{font-weight:700;font-size:13px}
+.rw.cat{color:#165dff}
+.rw.chan{color:#7c3aed}
+.rw.off{color:#c9cdd4;font-weight:400;font-size:12px}
+.src{font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px;font-weight:500;vertical-align:1px;white-space:nowrap}
+.src.cat{background:#eaf3ff;color:#165dff}
+.src.chan{background:#f3ecff;color:#7c3aed}
+/* 奖励列：对齐「轮询权重/实时权重」的配置→实际双行范式 */
+.ci .rw{font-size:12.5px}
+.ci .rw.off{font-size:11.5px}
+.nf{color:#cf1322;background:#fff1f0;font-size:10px;border-radius:3px;padding:0 4px;margin-left:4px;white-space:nowrap;cursor:help}
+.dash{color:#c9cdd4}
+
+/* switch */
+.sw{position:relative;display:inline-block;width:38px;height:20px;flex:0 0 38px}
+.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;background:#c9cdd4;border-radius:10px;transition:.2s;cursor:pointer}
+.sw i:before{content:"";position:absolute;width:16px;height:16px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+i{background:var(--pri)}
+.sw input:checked+i:before{transform:translateX(18px)}
+
+/* ============ modal ============ */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:50px 16px 30px;overflow-y:auto}
+.modal-mask.show{display:flex}
+.modal{background:#fff;border-radius:8px;width:100%;max-width:660px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.modal.wide{max-width:760px}
+.modal-head{padding:15px 20px 12px;font-size:15px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.modal-x{cursor:pointer;color:var(--gray);font-size:18px;line-height:1}
+.modal-body{padding:4px 20px 8px;max-height:70vh;overflow-y:auto}
+.modal-foot{padding:12px 20px 16px;display:flex;justify-content:flex-end;gap:9px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
+.g1{grid-column:1 / -1}
+.fi{display:flex;flex-direction:column;gap:5px}
+.fi>label{font-size:12.5px;color:var(--ink)}
+.fi>label .rq{color:#f5222d;margin-left:2px}
+.fi .sub{font-size:11px;color:var(--gray)}
+.inp{height:34px;border:1px solid #dcdfe6;border-radius:4px;padding:0 10px;font-size:13px;width:100%;background:#fff;color:var(--ink)}
+.inp:disabled{background:#f7f8fa;color:var(--gray)}
+.inp:focus{border-color:var(--pri);outline:none}
+.stp{display:flex;align-items:center;border:1px solid #dcdfe6;border-radius:4px;height:34px;overflow:hidden}
+.stp input{flex:1;border:none;height:100%;padding:0 10px;font-size:13px;outline:none;min-width:0;background:transparent}
+.stp .sb{width:30px;height:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--sub);border-left:1px solid #f0f1f3;user-select:none}
+.stp .sb:hover{color:var(--pri)}
+.up-box{width:64px;height:64px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:26px;background:#fafbfc}
+.card-sw{border:1px solid var(--line);border-radius:6px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.card-sw .t{font-size:13px;font-weight:500}
+.card-sw .d{font-size:11px;color:var(--gray);margin-top:2px;line-height:1.5}
+.card-sw.hl{border-color:#adc6ff;background:#f5f9ff}
+.qk-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.qk-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.qk-row .lb{font-size:12px;color:var(--sub);width:44px;flex:0 0 44px}
+.qk-row .inp{flex:1}
+.qk-row select{height:34px;border:1px solid #dcdfe6;border-radius:4px;padding:0 8px;font-size:12.5px;flex:0 0 118px}
+.hint{font-size:11px;color:var(--gray);line-height:1.55}
+.pct-in{display:flex;align-items:center;gap:0;border:1px solid #dcdfe6;border-radius:4px;height:34px;overflow:hidden}
+.pct-in input{flex:1;border:none;height:100%;padding:0 10px;font-size:13px;outline:none;min-width:0}
+.pct-in .u{padding:0 11px;background:#f7f8fa;color:var(--sub);font-size:12.5px;height:100%;display:flex;align-items:center;border-left:1px solid #dcdfe6}
+.radio-line{display:flex;gap:18px;align-items:center;height:34px}
+.radio-line label{display:flex;gap:5px;align-items:center;font-size:12.5px;cursor:pointer}
+.ro-box{background:#f7f8fa;border:1px dashed #dcdfe6;border-radius:4px;padding:0 12px;height:34px;display:flex;align-items:center;gap:6px;font-size:13px}
+.eff{background:#f6ffed;border:1px solid #b7eb8f;border-radius:4px;padding:8px 11px;font-size:12px;color:#237804;line-height:1.6}
+.eff b{font-size:14px}
+.dead{background:#fff1f0;border:1px solid #ffccc7;border-radius:4px;padding:8px 11px;font-size:11.5px;color:#a8071a;line-height:1.6;margin-top:7px}
+.rw-card{border:1px solid #adc6ff;background:#f5f9ff;border-radius:6px;padding:12px 14px}
+.rw-card>.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:10px}
+.rw-card>.hd .t{font-size:13px;font-weight:600}
+/* 是否修改 + 谷歌码（对齐 V1「充值赠送比率」交互） */
+.chk{display:flex;gap:6px;align-items:center;font-size:12.5px;cursor:pointer;color:#7c3aed;font-weight:500;white-space:nowrap;flex:0 0 auto}
+.chk input{accent-color:#7c3aed;width:15px;height:15px;cursor:pointer}
+.rw-line{display:flex;gap:10px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
+.rw-lb{font-size:12.5px;color:var(--sub);width:92px;flex:0 0 92px;text-align:right}
+.eq{font-size:13.5px;font-weight:700;color:var(--pri);background:#e8f1ff;border-radius:4px;padding:2px 9px}
+.eq.off{color:var(--gray);background:#f2f3f5}
+.lock{font-size:11px;color:var(--gray);display:flex;align-items:center;gap:4px}
+.g-wrap{display:inline-flex;align-items:center;gap:7px}
+/* 快捷金额卡片 */
+.qk-card{border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.qk-card>.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px}
+.qk-card>.hd .t{font-size:13px;font-weight:600}
+
+/* ============ 客户端 ============ */
+.cl-wrap{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+.cl-col{width:308px;flex:0 0 auto}
+.cl-cap{text-align:center;font-size:12.5px;font-weight:600;padding:6px 0;border-radius:18px;margin-bottom:9px}
+.cl-cap.c1{background:#e6f6ee;color:#0f7a48}
+.cl-cap.c2{background:#eef2ff;color:#3a49b8}
+.phone{border:8px solid #16181f;border-radius:26px;overflow:hidden;background:#fff}
+.ph-top{background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;padding:11px 13px 14px}
+.ph-nav{display:flex;justify-content:space-between;font-size:12px}
+.ph-bal{margin-top:9px;background:rgba(255,255,255,.16);border-radius:10px;padding:8px 11px}
+.ph-bal .l{font-size:10.5px;opacity:.9}
+.ph-bal .v{font-size:18px;font-weight:700}
+.ph-body{padding:11px;min-height:340px}
+.ph-st{font-size:12px;font-weight:600;margin:0 0 8px}
+.cats{display:flex;gap:8px;margin-bottom:14px}
+.cat-i{flex:1;border:1.5px solid #eceef1;border-radius:10px;padding:11px 3px 8px;text-align:center;position:relative;cursor:pointer;background:#fff}
+.cat-i.on{border-color:#f0524a;background:#fff6f5}
+.cat-i .ico{font-size:18px;line-height:1}
+.cat-i .nm{font-size:9.5px;margin-top:4px;color:#4e5969;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-i.on .nm{color:#f0524a;font-weight:600}
+.badge{position:absolute;top:-8px;right:-3px;background:linear-gradient(135deg,#ffa940,#fa8c16);color:#fff;font-size:9px;font-weight:700;border-radius:7px;padding:1.5px 5px;white-space:nowrap;box-shadow:0 1px 4px rgba(250,140,22,.4)}
+.chan-c{border:1px solid #eceef1;border-radius:10px;padding:9px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.chan-c.on{border:1.5px solid #f0524a;background:#fff6f5}
+.chan-c .nm{font-size:12.5px;font-weight:600}
+.chan-c .rg{font-size:10.5px;color:var(--gray);margin-top:2px}
+.chan-c .bo{background:#eaa93a;color:#5a3d00;font-size:9.5px;font-weight:700;border-radius:6px;padding:1px 7px}
+.ph-note{background:#f7f8fa;border-radius:8px;padding:9px 10px;font-size:10.5px;color:var(--gray);line-height:1.65;margin-top:10px}
+.mem-bar{display:flex;gap:7px;justify-content:center;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.mem-bar span.lb{font-size:11.5px;color:var(--gray)}
+.mem-btn{font-size:11.5px;padding:4px 12px;border-radius:13px;background:#f0f0f0;color:#666;cursor:pointer;border:none}
+.mem-btn.on{background:#f5535f;color:#fff}
+
+/* ============ PRD ============ */
+#P-preq{background:#eef0f3;padding:22px 16px}
+#P-preq .doc{max-width:1000px;margin:0 auto;background:#fff;padding:44px 52px 60px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-radius:3px}
+#P-preq .cover{text-align:center;padding-bottom:26px;border-bottom:3px solid var(--pri);margin-bottom:26px}
+#P-preq .badge2{display:inline-block;background:var(--pri);color:#fff;font-size:11px;padding:3px 12px;border-radius:3px;letter-spacing:1px;margin-bottom:14px}
+#P-preq .cover h1{font-size:25px;letter-spacing:1px;margin-bottom:8px}
+#P-preq .cover .en{font-size:12px;color:var(--gray);letter-spacing:1px}
+#P-preq .cover .meta{font-size:11.5px;color:var(--gray);margin-top:12px}
+#P-preq .h1{font-size:17px;font-weight:700;margin:32px 0 12px;padding-left:10px;border-left:4px solid var(--pri)}
+#P-preq .h2{font-size:14px;font-weight:600;margin:20px 0 8px;color:#1c4c8c}
+#P-preq p,#P-preq li{font-size:13px;line-height:1.85;color:#333}
+#P-preq ul,#P-preq ol{padding-left:22px;margin:6px 0}
+#P-preq table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+#P-preq table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:8px 10px;text-align:left;font-weight:600;color:#1c4c8c}
+#P-preq table.t td{border:1px solid #e5e8ec;padding:8px 10px;vertical-align:top;line-height:1.7}
+#P-preq .tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:9px;margin-right:3px}
+#P-preq .t-v1{background:#eaf3ff;color:#165dff}
+#P-preq .t-cl{background:#fff4e6;color:#ad4e00}
+#P-preq .t-new{background:#fff1f0;color:#cf1322}
+#P-preq .t-mod{background:#e8f9ee;color:#0f7a48}
+/* 规则条：核心(key)=蓝底蓝徽章 / 细则=灰底灰徽章，一眼分级 */
+#P-preq .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0}
+#P-preq .br b{color:#1c4c8c}
+#P-preq .br.key{background:#f4f8ff;border-left:4px solid var(--pri)}
+#P-preq .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace;letter-spacing:.3px}
+#P-preq .br.key .bn{background:var(--pri);color:#fff}
+#P-preq .br .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+/* 规则分组标题 */
+#P-preq .grp{display:flex;align-items:baseline;gap:9px;margin:24px 0 9px;font-size:13.5px;font-weight:700;color:#1c4c8c}
+#P-preq .grp .gn{background:#1c4c8c;color:#fff;width:19px;height:19px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;flex:0 0 19px;align-self:center}
+#P-preq .grp .gd{font-weight:400;font-size:11.5px;color:#86909c}
+/* 核心速览卡片 */
+#P-preq .keybox{background:linear-gradient(135deg,#f0f7ff,#eef1ff);border:1px solid #adc6ff;border-radius:8px;padding:16px 20px 14px;margin:12px 0 4px}
+#P-preq .keybox .kt{font-size:11.5px;color:var(--pri);font-weight:700;letter-spacing:1.5px;margin-bottom:11px}
+#P-preq .keybox .kf{font-size:13.5px;color:#0b2e6b;background:#fff;border:1px solid #d6e4ff;border-radius:5px;padding:9px 13px;margin-bottom:7px;line-height:1.6}
+#P-preq .keybox .kf em{font-style:normal;color:var(--pri);font-weight:700}
+#P-preq .keybox .kn{font-size:11.5px;color:#5a7fc4;margin-top:3px}
+/* 弱化的考证依据（次要信息，不与规则正文抢视线） */
+#P-preq .ref{background:#fff;border:1px dashed #dbe2ea;border-radius:5px;padding:8px 12px;margin-top:8px;font-size:11.5px;color:#6b7280;line-height:1.75}
+#P-preq .ref b{color:#4e5969}
+#P-preq .ref code{background:#f2f3f5;font-size:11px}
+/* 规则内嵌小表 */
+#P-preq table.t.mini{margin:9px 0 2px;font-size:12px}
+#P-preq table.t.mini th{padding:6px 9px}
+#P-preq table.t.mini td{padding:6px 9px}
+#P-preq .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+#P-preq code{background:#f2f3f5;padding:1px 5px;border-radius:3px;font-size:12px;font-family:Menlo,Consolas,monospace}
+
+#toast{position:fixed;bottom:34px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;padding:9px 18px;border-radius:5px;font-size:12.5px;z-index:2000;display:none;max-width:80vw;text-align:center}
+</style>
+</head>
+<body class="with-banner">
+
+<div class="demo-banner">
+  <div class="b-left">💰 充值大类奖励 / 充值通道奖励配置 · 原型</div>
+  <div class="b-tabs">
+    <span class="grp">📄 文档</span>
+    <span class="b-tab on" onclick="showPage('preq',this)">需求说明书</span>
+    <span class="grp">🖥 V3中台 · 财务管理/充值配置</span>
+    <span class="b-tab" onclick="showPage('p1',this)">充值大类<span class="newb">改</span></span>
+    <span class="b-tab" onclick="showPage('p2',this)">充值通道<span class="newb">改</span></span>
+    <span class="grp">📱 客户端</span>
+    <span class="b-tab" onclick="showPage('p3',this)">充值页角标<span class="newb">改</span></span>
+  </div>
+</div>
+
+<!-- ==================== PRD ==================== -->
+<div id="P-preq" class="page-block">
+<div class="doc">
+  <div class="cover">
+    <div class="badge2">PRD · 需求规格说明书</div>
+    <h1>充值大类奖励 / 充值通道奖励配置</h1>
+    <div class="en">Recharge Category &amp; Channel Reward Configuration</div>
+    <div class="meta">V3 中台 · 财务管理 → 充值配置　|　客户端 · 充值页　|　两级继承 · 取高生效 · 角标区间</div>
+  </div>
+
+  <div class="h1">一、需求改造页面与字段</div>
+  <div class="note">📌 <b>本说明书只写原型看不出来的东西</b> —— 算法规则、数据契约、后端改造、边界限制。<br>
+  字段长什么样、放在哪一行、点了什么反应、各状态如何回显 —— <b>直接看原型对应页签</b>，本文不再重复描述。</div>
+
+  <div class="h2">1.1 改造页面清单</div>
+  <table class="t">
+    <tr><th style="width:70px">端</th><th style="width:210px">页面</th><th style="width:60px">类型</th><th>改动点</th></tr>
+    <tr><td><span class="tag t-v1">V3中台</span></td><td>财务管理 → 充值配置 → <b>充值大类</b></td><td><span class="tag t-mod">改造</span></td><td>编辑弹窗新增「<b>充值大类奖励</b>」；列表新增同名列</td></tr>
+    <tr><td><span class="tag t-v1">V3中台</span></td><td>财务管理 → 充值配置 → <b>充值通道</b></td><td><span class="tag t-mod">改造</span></td><td>编辑弹窗新增「<b>充值通道奖励</b>」（奖励来源 ＋ 比率）；列表新增同名列</td></tr>
+    <tr><td><span class="tag t-cl">客户端</span></td><td>充值页 · <b>大类角标</b></td><td><span class="tag t-mod">改造</span></td><td>角标由<b>单值</b>改为<b>区间值</b></td></tr>
+  </table>
+
+  <div class="h2">1.2 新增 / 改造字段清单</div>
+  <table class="t">
+    <tr><th style="width:172px">字段</th><th style="width:180px">所在位置</th><th style="width:56px">类型</th><th style="width:104px">必填</th><th>格式 / 取值 / 存储</th></tr>
+    <tr><td><b>充值大类奖励</b><br><span style="color:#86909c">（充值赠送比率）</span></td><td>充值大类 · 弹窗 ＋ 列表列</td><td><span class="tag t-new">新增</span></td><td>是</td><td>原始比率、四位小数（<code>0.0200</code> = 2%）；<code>0</code> = 该大类不发奖励（见 BR-13）</td></tr>
+    <tr><td><b>充值通道奖励 · 奖励来源</b></td><td>充值通道 · 弹窗</td><td><span class="tag t-new">新增</span></td><td>是</td><td>单选：跟随大类（默认）/ 自定义</td></tr>
+    <tr><td><b>充值通道奖励 · 比率</b></td><td>充值通道 · 弹窗 ＋ 列表列</td><td><span class="tag t-new">新增</span></td><td>选「自定义」时</td><td>格式同上；须 &gt; 0（否则应改选「跟随大类」）</td></tr>
+    <tr><td><b>是否修改</b></td><td>大类 / 通道 · 弹窗<span style="color:#86909c">（各一）</span></td><td><span class="tag t-new">新增</span></td><td>否</td><td><b>不入库</b> —— 校验闸门，见 BR-11</td></tr>
+    <tr><td><b>谷歌效验码</b></td><td>大类 / 通道 · 弹窗<span style="color:#86909c">（各一）</span></td><td><span class="tag t-new">新增</span></td><td>勾「是否修改」时</td><td>6 位，<b>不入库</b></td></tr>
+    <tr><td><b>大类角标</b></td><td>客户端 · 充值页</td><td><span class="tag t-mod">改造</span></td><td>—</td><td>单值 → <b>区间双值</b>（口径见 BR-04 / BR-05）</td></tr>
+    <tr><td><b>比率快照</b></td><td>充值订单表<span style="color:#86909c">（后端，无界面）</span></td><td><span class="tag t-new">新增</span></td><td>—</td><td>下单时写入当时的生效比率，到账按快照计算 —— 见 BR-10</td></tr>
+  </table>
+
+  <div class="h2">1.3 后端改造点</div>
+  <table class="t">
+    <tr><th style="width:150px">位置</th><th>改动</th></tr>
+    <tr><td>V3 · 大类</td><td>大类奖励建议直接<b>启用已预埋但从未接线的「比例类型 / 比例配置」两个字段</b>（表结构已有，接口层被写死为固定值、请求参数里也没有），无需新增列，只需把它们接通</td></tr>
+    <tr><td>V3 · 通道</td><td>新增奖励字段（通道现有的费率类字段只有「手续费」）</td></tr>
+    <tr><td><b>双写 V1</b><span class="tag t-new">重点</span></td><td>大类奖励 → 写入 <b>V1 大类表</b>（<b>该表需新增字段</b>）；通道奖励 → 写入 <b>V1 通道的「充值赠送比率」</b>（<b>现在 V3 对 V1 只有「软删除」一条双写，写入链路需新建</b>）</td></tr>
+    <tr><td>V1 · 到账计算</td><td>充值到账的<b>核心存储过程</b>需增加「大类兜底 + 取高」逻辑。<b>⚠ 该存储过程内有两段重复查询通道配置、并重复计算奖励额，须一并改</b> —— 只改一处会导致口径不一致</td></tr>
+    <tr><td>V1 · 客户端接口</td><td>客户端大类列表接口的「最高优惠比例」字段由<b>单值扩为区间双值</b>。现有实现是取该大类下通道的最大值、<b>且已按会员等级过滤</b>，区间可直接复用同一套过滤口径，无需另造</td></tr>
+    <tr><td>V1 · 充值订单</td><td>新增比率快照字段（见 BR-10）</td></tr>
+  </table>
+  <div class="ref"><b>为何必须双写</b>：配置在 V3 中台，但<b>奖励的实际计算在 V1、客户端充值页的接口也在 V1</b>（V3 目前没有客户端充值接口）。这是本需求主要工作量与风险所在。</div>
+
+  <div class="h1">二、字段定义与名词术语</div>
+  <table class="t">
+    <tr><th style="width:150px">术语</th><th>说明</th></tr>
+    <tr><td>充值大类 / 充值通道</td><td>财务管理 → 充值配置 下的两级配置对象。大类按商户建，其下挂多条通道；通道是真正发起支付的对象。</td></tr>
+    <tr><td><b>充值大类奖励</b></td><td>配在大类上的统一奖励比率，该大类下所有通道<b>默认享有</b>。</td></tr>
+    <tr><td><b>充值通道奖励</b></td><td>配在单条通道上的奖励比率，用于对<b>个别通道加码</b>。</td></tr>
+    <tr><td><b>生效奖励</b></td><td><code>max(充值大类奖励, 充值通道奖励)</code>。<b>实际发放</b>给会员的比率。</td></tr>
+    <tr><td><b>跟随大类 / 跟随通道</b></td><td>生效奖励的<b>来源标识</b>。通道奖励未配或不高于大类 → 跟随大类；高于大类 → 跟随通道。</td></tr>
+    <tr><td>角标</td><td>客户端大类图标右上角的奖励标签，本次由单值改为区间值。</td></tr>
+    <tr><td>原始比率</td><td>比率的存储与录入格式，四位小数，<code>0.0200</code> = 2%。与 V1 通道的「充值赠送比率」、以及通道现有的「手续费」格式一致。</td></tr>
+  </table>
+
+  <div class="h1">三、功能描述与业务规则</div>
+
+  <div class="keybox">
+    <div class="kt">🎯 三个公式，先记这个</div>
+    <div class="kf">生效奖励 ＝ <em>max</em>( 充值大类奖励 , 充值通道奖励 )</div>
+    <div class="kf">角标区间 ＝ [ <em>充值大类奖励</em> , 该会员<em>可见通道</em>中的最高生效奖励 ]</div>
+    <div class="kf">实得赠送 ＝ 生效奖励 ＋ 快捷档位 ＋ VIP/等级奖励　<em>（配了即叠加，不互斥）</em></div>
+    <div class="kn">下方 BR-01～BR-15 为细则；<b>蓝色为核心规则</b>，灰色为边界约定。</div>
+  </div>
+
+  <div class="h2">3.1 生效奖励算法 · 取高</div>
+  <div class="br key"><span class="bn">BR-01</span><b>取高生效</b><span class="kb">核心</span>：单笔充值的通道赠金 = <code>max(充值大类奖励, 该充值通道奖励)</code>。通道奖励高于大类则走通道，否则一律走大类。<b>不存在</b>「通道低于大类仍按通道发」的情况。</div>
+  <div class="br key"><span class="bn">BR-02</span><b>引用而非快照</b><span class="kb">核心</span>：通道对大类奖励是<b>引用</b>关系。大类比率变更后，所有跟随通道的生效奖励<b>实时跟随</b>，无需重新保存通道；原本高于旧大类值的通道，若新大类值反超，也自动改为跟随大类。</div>
+  <div class="br"><span class="bn">BR-03</span><b>低于大类可存不生效</b>：通道奖励低于大类时<b>允许保存</b>，仅不生效。保留该值的意义：日后大类比率调低后<b>自动转为生效</b>，运营可提前布局。</div>
+
+  <p style="margin-top:12px"><b>算法真值表</b>（以大类 2% 为例）：</p>
+  <table class="t">
+    <tr><th style="width:180px">通道配置</th><th style="width:130px">生效奖励</th><th style="width:120px">来源标识</th><th>备注</th></tr>
+    <tr><td>跟随大类</td><td><b>2%</b></td><td>跟随大类</td><td>—</td></tr>
+    <tr><td>自定义 <b>3%</b>（＞大类）</td><td><b>3%</b></td><td>跟随通道</td><td>—</td></tr>
+    <tr><td>自定义 <b>1%</b>（＜大类）</td><td><b>2%</b></td><td>跟随大类</td><td><span style="color:#cf1322">配置值 1% 可保存但不生效</span>（BR-03）</td></tr>
+    <tr><td>大类未配 ＋ 通道 3%</td><td><b>3%</b></td><td>跟随通道</td><td>—</td></tr>
+    <tr><td>两级均未配</td><td>无奖励</td><td>—</td><td>—</td></tr>
+  </table>
+
+  <div class="h2">3.2 客户端 · 角标口径</div>
+  <div class="br key"><span class="bn">BR-04</span><b>角标口径</b><span class="kb">核心</span>：角标区间必须基于<b>该会员当下真实可见可用</b>的通道集合计算。
+    <table class="t mini">
+      <tr><th style="width:200px">通道可见性条件</th><th>是否计入角标</th></tr>
+      <tr><td>三端状态全启用</td><td>✅ 计入</td></tr>
+      <tr><td>当前时间 ∈ 可用时间段</td><td>✅ 计入</td></tr>
+      <tr><td>会员充值等级 ∈ 可见充值等级</td><td>✅ 计入</td></tr>
+      <tr><td>轮询权重 &gt; 0</td><td>✅ 计入</td></tr>
+      <tr><td>充值金额 ∈ 充值金额区间</td><td><b>❌ 不计入</b> —— 角标在用户输入金额<b>之前</b>就要展示，故忽略金额维度</td></tr>
+    </table>
+    <div class="ref">违反本条（如把仅 VIP3 可见的 3% 通道算进普通会员角标）→ 会员看到「2%～3%」点进去只有 2% 的通道。<b>这是本需求最主要的投诉风险点。</b></div>
+  </div>
+  <div class="br"><span class="bn">BR-05</span><b>角标退化</b>：区间<b>上下限相等</b>→ 显示单值；<b>大类未配</b>（仅通道有）→ 显示「最高 X%」；<b>两级均未配</b> → 不展示角标。<span style="color:#86909c">（四种形态的实际样式见原型「客户端 · 充值页角标」页签）</span></div>
+
+  <div class="h2">3.3 奖励结算 · 叠加</div>
+  <div class="br key"><span class="bn">BR-06</span><b>叠加口径</b><span class="kb">核心</span>：<b>无独立叠加开关，配了即叠加、彼此不互斥</b>。单笔充值的奖励结算顺序：
+    <table class="t mini">
+      <tr><th style="width:30px">#</th><th style="width:210px">奖励层</th><th style="width:180px">配置位置</th><th>关系</th></tr>
+      <tr><td>①</td><td><b>通道赠金</b> = max(大类, 通道)</td><td><span class="tag t-new">本次新增</span></td><td>取高，见 BR-01</td></tr>
+      <tr><td>②</td><td>＋ 快捷金额档位赠送</td><td>大类「快捷金额配置」<span class="tag t-mod">现有</span></td><td>命中该档位即叠加</td></tr>
+      <tr><td>③</td><td>＋ VIP 等级 / 充值等级奖励</td><td>大类「VIP充值赠送」开关<span class="tag t-mod">现有</span></td><td>已开启即叠加</td></tr>
+      <tr><td>④</td><td>合计再与<b>充值优惠券</b>结算</td><td>券的「通道赠金关系」</td><td>互斥取高 / 叠加 / 互斥优先券</td></tr>
+    </table>
+    <div class="ref"><b>已核实 —— 叠加即 V1 现状，本次不引入「互斥取高」。</b> V1 实为<b>四层全叠加、无任何互斥判断</b>：①通道比例 ＋ ②快捷档位 在存储过程内<b>相加</b>（充值金额 × 通道比率 ＋ 快捷档位赠送额），合并为<b>同一条「充值赠送」账变</b>；③充值等级奖励 与 ④VIP 等级奖励各写<b>自己的一条账变</b>，由同一个方法<b>串行调用、各自独立事务独立加余额</b>，二者之间亦不互斥，各自独立封顶。</div>
+  </div>
+
+  <div class="h2">3.4 发放约定 · 均维持现状</div>
+  <table class="t">
+    <tr><th style="width:64px">编号</th><th style="width:140px">规则</th><th>说明</th></tr>
+    <tr><td><b>BR-07</b></td><td>不设赠送上限</td><td>本次<b>不引入封顶</b>（现状通道赠送亦无上限）。上限仅存在于充值等级 / VIP 等级两条独立线上。</td></tr>
+    <tr><td><b>BR-08</b></td><td>打码倍数</td><td>沿用 V1 现有的<b>全站</b>「充值赠送打码量倍数」设置，<b>不新增</b>大类级 / 通道级字段。打码量 = 全站倍数 × 赠送总额。</td></tr>
+    <tr><td><b>BR-09</b></td><td>延迟发放</td><td>仍为<b>通道级</b>、仍在 <b>V1 后台</b>配置（充值通道列表 →「常用修改」→「延迟发放时间」），<b>V3 中台无此字段</b>。0 = 即时到账，N = N 天后零点由定时任务派发。</td></tr>
+    <tr><td><b>BR-10</b></td><td>比率变更的<br>订单口径</td><td><b>已下单未提交三方</b>按<b>原比率</b>，新发起的按新比率。<br><span style="color:#cf1322">⚠ 需新增字段</span>：现状充值订单<b>没有比率快照</b>，奖励是<b>到账回调时现读配置</b>算的（即当前行为 = 按到账时的最新比率）。须在下单时把生效比率快照下来，到账时读快照。</td></tr>
+  </table>
+
+  <div class="h2">3.5 录入 · 防护 · 权限</div>
+  <div class="br key"><span class="bn">BR-11</span><b>修改防护 =「是否修改」校验闸门</b><span class="kb">核心</span>：比率属资金字段，<b>完全沿用 V1 既有防护机制</b>。
+    <table class="t mini">
+      <tr><th style="width:92px">要素</th><th>规则</th></tr>
+      <tr><td><b>是否修改</b></td><td><b>只是校验闸门，不是业务开关</b>。不勾选时，提交后<b>该字段的新值一律被忽略</b>（原值不动）—— 防止编辑其它字段时误改比率。</td></tr>
+      <tr><td><b>谷歌效验码</b></td><td>勾选后必须输入 <b>6 位</b>方可提交，校验失败不予保存。</td></tr>
+      <tr><td><b>作用域</b></td><td>大类 = 仅「充值赠送比率」（与 V1 一致）；通道 = 「奖励来源 ＋ 比率」。<b>「快捷金额配置」不加保护</b>（V1 该页亦无此字段）。</td></tr>
+    </table>
+    <div class="ref"><b>V1 现有实现</b>（后台「充值设置」页）：勾选「是否修改」后，比率输入框解除只读，同时置上一个「需校验谷歌码」的标记提交给后端，由后端据此决定是否校验。<br><b>为何通道也必须保护</b>：通道奖励双写的正是 V1 通道的「充值赠送比率」—— 即 V1「是否修改」原本保护的那个字段。V3 侧若去掉，会造成「同一个字段，V1 改要谷歌码、V3 改不要」的<b>绕过口子</b>，属防护降级。</div>
+  </div>
+  <table class="t">
+    <tr><th style="width:64px">编号</th><th style="width:140px">规则</th><th>说明</th></tr>
+    <tr><td><b>BR-12</b></td><td>比率格式</td><td><b>存储/录入用原始值、展示用百分比</b>：存 <code>0.0200</code>，列表列与客户端角标显示 <code>2%</code>（＝ 原始值 × 100）—— 与现有「手续费」列 <code>0.9000</code> 显示为 <code>90%</code> 的口径一致。</td></tr>
+    <tr><td><b>BR-13</b></td><td>不设独立<br>「奖励开关」</td><td>是否发奖励<b>由比率值本身表达</b>：<code>0</code> = 不配，<code>&gt; 0</code> = 生效。理由：① V1 本就没有这个开关，比率填 0 即无优惠；② 到账计算是「充值金额 × 比率」，比率 0 天然不发；③「开关关闭」与「比率填 0」是<b>同一个业务状态</b>，两个控件表达一个状态会造成配置歧义。</td></tr>
+    <tr><td><b>BR-14</b></td><td>权限与审计</td><td>不新增独立权限码，有<b>充值大类编辑权限</b>即可改；变更<b>记操作日志</b>（操作人 / 时间 / 原值 → 新值），复用列表「最后修改人 / 最后修改时间」。</td></tr>
+    <tr><td><b>BR-15</b></td><td>配置粒度</td><td><b>商户级</b>（大类按商户建，通道按商户绑定），各商户独立，无跨商户统一配置。</td></tr>
+  </table>
+
+  <div class="h1">四、限制条件</div>
+  <table class="t">
+    <tr><th style="width:130px">项</th><th>说明</th></tr>
+    <tr><td><b>比率校验</b></td><td>非负数、四位小数；<code>0</code> 为<b>合法值</b>（= 不发奖励），无「必填且不可为 0」限制；通道选「自定义」时须 &gt; 0。</td></tr>
+    <tr><td><b>准入过滤优先</b></td><td>通道的「优惠可用等级」「优惠可用设备」白名单<b>不匹配时，该会员在该通道不享受任何奖励</b>（比率清零）。此规则<b>优先于</b>本次取高逻辑，且<b>角标计算须一并遵守</b>。</td></tr>
+    <tr><td><b>本次不做</b></td><td>赠送上限、大类/通道级打码倍数、大类级延迟发放天数、奖励活动有效期、按会员分层的差异化奖励、奖励层之间的互斥取高。</td></tr>
+  </table>
+</div>
+</div>
+
+<!-- ==================== P1 充值大类 ==================== -->
+<div id="P-p1" class="page-block" style="display:none">
+  <div class="pg-tabs">
+    <div class="pg-tab on">充值大类</div>
+    <div class="pg-tab" onclick="showPage('p2',document.querySelectorAll('.b-tab')[2])">充值通道</div>
+  </div>
+  <div class="v3-note"><span>💡</span><div><b>本次改造</b>：列表新增「充值大类奖励」列；编辑弹窗新增「充值大类奖励」开关 + 比率（位于「VIP充值赠送」下方）。该大类下所有通道默认按此比例发放，为<b>引用</b>关系 —— 改大类即时影响全部跟随通道。<br>试试把 <b>Jazzcash</b> 的奖励从 2% 改成 <b>4%</b>，再去「充值通道」页看那条 3% 的通道如何被反超、自动转为跟随大类。</div></div>
+  <div class="v3-panel">
+    <div class="v3-filter">
+      <div class="v3-fi"><span>商户<span class="rq">*</span></span><select class="v3-sel" style="color:var(--ink)"><option>(2001)sit-inr</option></select></div>
+      <div class="v3-fi"><span>充值大类</span><select class="v3-sel"><option>请选择前台显示名称</option></select></div>
+      <div class="f-right">
+        <button class="v3-btn pri" onclick="toast('演示原型，查询未接后端')">🔍 搜索</button>
+        <button class="v3-btn" onclick="toast('已重置')">↻ 重置</button>
+      </div>
+    </div>
+    <div class="v3-tools">
+      <button class="v3-btn pri" onclick="toast('演示原型：新增大类流程不在本次范围')">新增</button>
+      <div class="f-right"><button class="v3-btn txt">⚙ 自定义列</button></div>
+    </div>
+    <div class="v3-tablewrap">
+      <table class="v3-tbl">
+        <thead><tr>
+          <th style="width:104px">商户</th>
+          <th style="width:64px">ID</th>
+          <th style="width:120px">选中前图标/选中后图标</th>
+          <th style="width:110px">充值大类</th>
+          <th style="width:106px">内置充值大类</th>
+          <th style="width:120px">会员最大待支付单数</th>
+          <th style="width:132px">快捷充值金额</th>
+          <th style="width:118px;background:#fff1f0;color:#cf1322">充值大类奖励<span class="newf">NEW</span></th>
+          <th style="width:64px">状态</th>
+          <th style="width:88px">VIP充值赠送</th>
+          <th style="width:74px">排序</th>
+          <th style="width:96px">最后修改人</th>
+          <th style="width:148px">最后修改时间 (UTC+5:30)</th>
+          <th style="width:150px">操作</th>
+        </tr></thead>
+        <tbody id="cat-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== P2 充值通道 ==================== -->
+<div id="P-p2" class="page-block" style="display:none">
+  <div class="pg-tabs">
+    <div class="pg-tab" onclick="showPage('p1',document.querySelectorAll('.b-tab')[1])">充值大类</div>
+    <div class="pg-tab on">充值通道</div>
+  </div>
+  <div class="v3-note"><span>💡</span><div><b>本次改造</b>：列表新增「充值通道奖励」列；编辑弹窗新增「充值通道奖励」两态字段 —— <b>跟随大类</b> / <b>自定义</b>。生效奖励 = <code>max(大类, 通道)</code>。<br>注意 <b>Speed2PayINR-唤醒</b> 配了 1% 但低于大类 2% —— <b>可保存但不生效</b>，列表按实际生效的 2% 展示并给出红字提示。</div></div>
+  <div class="v3-panel">
+    <div class="v3-filter">
+      <div class="v3-fi"><span>商户<span class="rq">*</span></span><select class="v3-sel" style="color:var(--ink)"><option>(2001)sit-inr</option></select></div>
+      <div class="v3-fi"><span>三方映射码</span><select class="v3-sel"><option>请选择三方映射码</option></select></div>
+      <div class="v3-fi"><span>通道ID/名称</span><select class="v3-sel"><option>请选择通道ID/名称</option></select></div>
+      <div class="v3-fi"><span>三方商户简称/商户号</span><select class="v3-sel"><option>请选择三方商户简称/商户号</option></select></div>
+      <div class="v3-fi"><span>充值大类</span><select class="v3-sel" id="f-cat" onchange="renderChans()" style="color:var(--ink)"><option value="0">请选择充值大类</option></select></div>
+      <div class="v3-fi"><span>通道币种</span><select class="v3-sel"><option>请选择通道币种</option></select></div>
+      <div class="v3-fi"><span>状态</span><select class="v3-sel"><option>请选择状态</option></select></div>
+      <div class="f-right">
+        <button class="v3-btn pri" onclick="renderChans()">🔍 搜索</button>
+        <button class="v3-btn" onclick="document.getElementById('f-cat').value='0';renderChans()">↻ 重置</button>
+        <button class="v3-btn txt">^ 收起</button>
+      </div>
+    </div>
+    <div class="v3-tools">
+      <button class="v3-btn pri" onclick="toast('演示原型：新增通道流程不在本次范围')">新增</button>
+      <span class="hint-s">成功率统计 = 近10分钟/近30分钟/近1小时/近24小时 [成功订单状态数/所有支付状态数]</span>
+      <div class="f-right"><button class="v3-btn txt">⚙ 自定义列</button></div>
+    </div>
+    <div class="v3-tablewrap">
+      <table class="v3-tbl" style="min-width:2180px">
+        <thead><tr>
+          <th style="width:100px">商户</th>
+          <th class="l" style="width:216px">通道信息</th>
+          <th class="l" style="width:170px">三方商户简称/商户号</th>
+          <th style="width:72px">通道币种</th>
+          <th class="l" style="width:118px">三方通道编码 ?</th>
+          <th class="l" style="width:170px">成功率统计</th>
+          <th class="l" style="width:112px">轮询</th>
+          <th style="width:96px">充值大类</th>
+          <th style="width:96px">内置充值大类</th>
+          <th class="l" style="width:168px;background:#fff1f0;color:#cf1322">充值通道奖励<span class="newf">NEW</span></th>
+          <th style="width:62px">状态</th>
+          <th style="width:96px">状态</th>
+          <th style="width:96px">可见充值等级</th>
+          <th style="width:106px">可用时间段</th>
+          <th style="width:112px">充值金额区间</th>
+          <th style="width:72px">手续费</th>
+          <th style="width:70px">备注</th>
+          <th style="width:92px">最后修改人</th>
+          <th style="width:148px">最后修改时间 (UTC+5:30)</th>
+          <th style="width:150px">操作</th>
+        </tr></thead>
+        <tbody id="chan-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span>共 36 条</span>
+      <span class="pg-n">‹</span><span class="pg-n on">1</span><span class="pg-n">2</span><span class="pg-n">3</span><span class="pg-n">4</span><span class="pg-n">›</span>
+      <span>10 / 页</span><span>跳至</span><span class="pg-n">1</span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== P3 客户端 ==================== -->
+<div id="P-p3" class="page-block" style="display:none">
+  <div class="v3-note" style="max-width:1000px;margin:0 auto 14px"><span>💡</span><div><b>本次改造</b>：大类角标由「单值最高比例」改为<b>区间值</b>。区间必须按<b>该会员当下真实可见可用</b>的通道算 —— 切换下方会员充值等级看效果：<b>OX2PayINR-扫码</b>（3%）仅 <b>L3</b> 可见，L1 会员看不到它，角标随之从 <code>2%～3%</code> 收敛为 <code>2%</code>。</div></div>
+
+  <div class="mem-bar">
+    <span class="lb">模拟会员充值等级：</span>
+    <button class="mem-btn on" onclick="setLv(1,this)">L1</button>
+    <button class="mem-btn" onclick="setLv(3,this)">L3</button>
+  </div>
+
+  <div class="cl-wrap">
+    <div class="cl-col">
+      <div class="cl-cap c1">① 真实数据联动（Jazzcash 大类 2% + 通道加码 3%）</div>
+      <div class="phone">
+        <div class="ph-top">
+          <div class="ph-nav"><span>‹ 充值</span><span>⋯</span></div>
+          <div class="ph-bal"><div class="l">Balance</div><div class="v">₹ 1,280.00</div></div>
+        </div>
+        <div class="ph-body">
+          <div class="ph-st">选择充值方式</div>
+          <div class="cats" id="cl-cats"></div>
+          <div class="ph-st">可用通道</div>
+          <div id="cl-chans"></div>
+          <div class="ph-note" id="cl-note"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cl-col">
+      <div class="cl-cap c2">② 角标四种形态对照</div>
+      <div class="phone">
+        <div class="ph-top">
+          <div class="ph-nav"><span>‹ 充值</span><span>⋯</span></div>
+          <div class="ph-bal"><div class="l">Balance</div><div class="v">₹ 1,280.00</div></div>
+        </div>
+        <div class="ph-body">
+          <div class="ph-st">BR-05 角标退化规则</div>
+          <div class="cats" style="flex-wrap:wrap;gap:16px 8px">
+            <div class="cat-i" style="flex:0 0 46%"><span class="badge">2%～3%</span><div class="ico">💳</div><div class="nm">大类2%+通道3%</div></div>
+            <div class="cat-i" style="flex:0 0 46%"><span class="badge">2%</span><div class="ico">🏦</div><div class="nm">全部通道2%</div></div>
+            <div class="cat-i" style="flex:0 0 46%"><span class="badge">最高 3%</span><div class="ico">₮</div><div class="nm">大类未配·通道3%</div></div>
+            <div class="cat-i" style="flex:0 0 46%"><div class="ico">👛</div><div class="nm">全无奖励·无角标</div></div>
+          </div>
+          <div class="ph-note">
+            · 上下限相等 → 单值「2%」<br>
+            · 大类未配、仅通道有 → 「最高 3%」<br>
+            · 无任何奖励 → 不展示角标<br>
+            · <b>区间下限恒为充值大类奖励</b>（任何通道至少拿大类奖）<br>
+            · 不可见通道（等级不符 / 权重=0 / 三方商户关闭）<b>不计入</b>区间
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 编辑充值大类 ==================== -->
+<div class="modal-mask" id="cat-modal">
+  <div class="modal">
+    <div class="modal-head"><span>编辑充值大类</span><span class="modal-x" onclick="closeModal('cat-modal')">✕</span></div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="fi"><label>选中前图标<span class="rq">*</span></label>
+          <div class="up-box" id="cm-ico1">💳</div>
+          <div class="sub">尺寸：70px * 70px，格式：jpg/png/webp</div></div>
+        <div class="fi"><label>选中后图标<span class="rq">*</span></label>
+          <div class="up-box" id="cm-ico2">💳</div>
+          <div class="sub">尺寸：70px * 70px，格式：jpg/png/webp</div></div>
+
+        <div class="fi"><label>商户<span class="rq">*</span></label><input class="inp" value="(2001)sit-inr" disabled></div>
+        <div class="fi"><label>内置充值大类<span class="rq">*</span></label><input class="inp" id="cm-sys" disabled></div>
+
+        <div class="fi"><label>充值大类<span class="rq">*</span></label><input class="inp" id="cm-name"></div>
+        <div class="fi"><label>排序<span class="rq">*</span></label>
+          <div class="stp"><input id="cm-sort" type="number"><span class="sb" onclick="step('cm-sort',-1)">−</span><span class="sb" onclick="step('cm-sort',1)">＋</span></div></div>
+
+        <div class="fi g1"><label>会员最大待支付单数 <span class="sub">(0 表示不限制)</span><span class="rq">*</span></label>
+          <div class="stp"><input id="cm-pend" type="number"><span class="sb" onclick="step('cm-pend',-1)">−</span><span class="sb" onclick="step('cm-pend',1)">＋</span></div></div>
+
+        <div class="g1"><div class="card-sw">
+          <div><div class="t">状态</div><div class="d">开启后该充值类型可用</div></div>
+          <label class="sw"><input type="checkbox" id="cm-state"><i></i></label>
+        </div></div>
+
+        <div class="g1"><div class="card-sw">
+          <div><div class="t">VIP充值赠送</div><div class="d">开启后该充值大类按全局 VIP 充值赠送规则发放赠送</div></div>
+          <label class="sw"><input type="checkbox" id="cm-vip"><i></i></label>
+        </div></div>
+
+        <!-- ===== NEW ===== -->
+        <div class="g1"><div class="rw-card">
+          <div class="hd">
+            <div><div class="t">充值大类奖励<span class="newf">NEW</span></div>
+              <div class="d" style="font-size:11px;color:var(--gray);margin-top:2px">该大类下<b>所有通道</b>默认按此比率发放（通道可单独加码，取高生效）</div></div>
+          </div>
+
+          <!-- 行内布局对齐 V1：比率 → 是否修改 → 谷歌效验码，连读成一句 -->
+          <div class="rw-line">
+            <span class="rw-lb">充值赠送比率：</span>
+            <input class="inp" id="cm-pct" type="number" step="0.0001" min="0" style="width:150px" oninput="catPreview()" readonly>
+            <span class="eq" id="cm-eq">= 2%</span>
+            <label class="chk"><input type="checkbox" id="cm-edit" onchange="catEdit()"><span>✓ 是否修改</span></label>
+            <span class="g-wrap" id="cm-g-line" style="display:none">
+              <span style="font-size:12.5px;color:var(--sub)">谷歌效验码：</span>
+              <input class="inp" id="cm-gcode" placeholder="请输入谷歌效验码" style="width:150px" maxlength="6">
+            </span>
+            <span class="lock" id="cm-lock">🔒 勾选「是否修改」后方可编辑</span>
+          </div>
+
+          <div class="hint" style="margin:0 0 8px 102px">比率为<b>原始值</b>（0.0200 = 2%），与手续费同格式；<b>0 = 该大类不配统一奖励</b>（充值大类奖励视为 0，各通道仅按自身配置发放）。此为<b>引用</b>关系 —— 修改后全部跟随通道立即生效新值，无需逐条改通道。</div>
+          <div class="eff" id="cm-eff"></div>
+        </div></div>
+
+        <!-- 快捷金额配置：现有字段，无「是否修改」保护（与 V1 一致，V1 该页亦无此字段） -->
+        <div class="g1"><div class="qk-card">
+          <div class="hd">
+            <div class="t">快捷金额配置</div>
+            <button class="v3-btn" style="height:26px;padding:0 10px;font-size:12px;color:var(--pri);border-color:#adc6ff" onclick="qkAdd()">新增</button>
+          </div>
+          <div id="cm-quick"></div>
+          <div class="hint" style="margin-top:6px"><b>BR-06 ②</b>：配了即叠加 —— 命中该档位时，实得 = 生效奖励 ＋ 档位赠送。<b>赠送方式</b>：固定金额 = 直接送该金额；赠送比率 = 按该档金额 × 比率。</div>
+        </div></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="v3-btn" onclick="closeModal('cat-modal')">取消</button>
+      <button class="v3-btn pri" onclick="saveCat()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 编辑充值通道 ==================== -->
+<div class="modal-mask" id="chan-modal">
+  <div class="modal wide">
+    <div class="modal-head"><span id="hm-title">编辑充值通道 -330354</span><span class="modal-x" onclick="closeModal('chan-modal')">✕</span></div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="fi"><label>商户<span class="rq">*</span></label><input class="inp" value="(2001)sit-inr" disabled></div>
+        <div class="fi"><label>三方映射码<span class="rq">*</span></label><input class="inp" id="hm-map" disabled></div>
+
+        <div class="fi g1"><label>通道名称</label><input class="inp" id="hm-cname" disabled></div>
+
+        <div class="fi"><label>通道币种</label><input class="inp" id="hm-cur" disabled></div>
+        <div class="fi"><label>充值大类</label><input class="inp" id="hm-cat" disabled></div>
+
+        <div class="fi"><label>前台显示名称<span class="rq">*</span></label><input class="inp" id="hm-fname"></div>
+        <div class="fi"><label>三方通道编码<span class="rq">*</span></label><input class="inp" id="hm-code"></div>
+
+        <div class="fi"><label>轮询权重<span class="rq">*</span></label>
+          <div style="display:flex;gap:8px">
+            <div class="stp" style="flex:1"><input id="hm-weight" type="number"><span class="sb" onclick="step('hm-weight',-1)">−</span><span class="sb" onclick="step('hm-weight',1)">＋</span></div>
+            <input class="inp" id="hm-rweight" style="flex:1" disabled>
+          </div></div>
+        <div class="fi"><label>可见充值等级</label><input class="inp" id="hm-level"></div>
+
+        <div class="fi"><label>可用时间段<span class="rq">*</span></label>
+          <div style="display:flex;gap:8px;align-items:center"><input class="inp" id="hm-t1" style="flex:1"><span style="color:var(--gray)">~</span><input class="inp" id="hm-t2" style="flex:1"></div></div>
+        <div class="fi"><label>充值金额区间<span class="rq">*</span></label>
+          <div style="display:flex;gap:8px;align-items:center"><input class="inp" id="hm-a1" style="flex:1"><span style="color:var(--gray)">~</span><input class="inp" id="hm-a2" style="flex:1"></div></div>
+
+        <div class="fi g1"><label>手续费 ?</label>
+          <div class="stp" style="max-width:calc(50% - 10px)"><input id="hm-fee" type="number" step="0.0001"><span class="sb" onclick="step('hm-fee',-1)">−</span><span class="sb" onclick="step('hm-fee',1)">＋</span></div></div>
+
+        <!-- ===== NEW ===== -->
+        <div class="g1"><div class="rw-card">
+          <div class="hd">
+            <div><div class="t">充值通道奖励<span class="newf">NEW</span><span style="color:#f5222d;margin-left:3px">*</span></div>
+              <div class="d" style="font-size:11px;color:var(--gray);margin-top:2px">生效奖励 = <b>max(充值大类奖励, 充值通道奖励)</b></div></div>
+          </div>
+
+          <!-- 「奖励来源」切换同样改变生效奖励，故与比率一并受「是否修改」保护 -->
+          <div class="rw-line">
+            <span class="rw-lb">奖励来源：</span>
+            <div class="radio-line" style="height:auto">
+              <label><input type="radio" name="hm-mode" value="follow" onchange="chanMode('follow')" disabled> 跟随大类</label>
+              <label><input type="radio" name="hm-mode" value="custom" onchange="chanMode('custom')" disabled> 自定义</label>
+            </div>
+            <label class="chk"><input type="checkbox" id="hm-edit" onchange="chanEdit()"><span>✓ 是否修改</span></label>
+            <span class="lock" id="hm-lock">🔒 勾选后方可编辑</span>
+          </div>
+
+          <div id="hm-follow-box">
+            <div class="rw-line">
+              <span class="rw-lb">生效奖励：</span>
+              <div class="ro-box"><b class="rw cat" id="hm-follow-val">2%</b><span class="src cat">跟随大类</span></div>
+            </div>
+            <div class="hint" style="margin-left:102px">比率取自所属大类 <b id="hm-follow-cat"></b>，<b>随大类变动自动跟随</b>，无需手动维护。</div>
+          </div>
+
+          <div id="hm-custom-box" style="display:none">
+            <div class="rw-line">
+              <span class="rw-lb">充值赠送比率：</span>
+              <input class="inp" id="hm-pct" type="number" step="0.0001" min="0" style="width:150px" oninput="chanPreview()" readonly>
+              <span class="eq" id="hm-eq">= 3%</span>
+              <span class="g-wrap" id="hm-g-line" style="display:none">
+                <span style="font-size:12.5px;color:var(--sub)">谷歌效验码：</span>
+                <input class="inp" id="hm-gcode" placeholder="请输入谷歌效验码" style="width:150px" maxlength="6">
+              </span>
+            </div>
+            <div class="hint" style="margin:0 0 8px 102px">比率为<b>原始值</b>（0.0300 = 3%）。低于大类的值<b>允许保存但不生效</b>，日后大类调低后会自动转为生效。</div>
+            <div class="eff" id="hm-eff"></div>
+            <div class="dead" id="hm-dead" style="display:none"></div>
+          </div>
+        </div></div>
+
+        <div class="fi"><label>备注</label><textarea class="inp" id="hm-remark" style="height:70px;padding:8px 10px;resize:vertical"></textarea></div>
+        <div class="fi"><label>状态</label>
+          <div class="radio-line">
+            <label><input type="radio" name="hm-state" value="1"> 启用</label>
+            <label><input type="radio" name="hm-state" value="0"> 禁用</label>
+          </div></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="v3-btn" onclick="closeModal('chan-modal')">取消</button>
+      <button class="v3-btn pri" onclick="saveChan()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==================== 数据（按真实后台截图还原） ==================== */
+/* ⚠️ pct / val 一律存「原始比率」（0.02 = 2%），与 tab_PayType.RechargeRifts、手续费 ServiceFeeRate 同格式 */
+var CATS = [
+  {id:100014,name:'ARPay999',     sys:'ARPay',      ico:'🔶',pend:'1',   quick:'5 / 100',                state:1,vip:1,sort:199993,man:'org_raymond',t:'2026-07-13 20:49:15', pct:0, qk:[]},
+  {id:100013,name:'LocalUSDT',    sys:'本地USDT',    ico:'💠',pend:'2',   quick:'10 / 222',               state:1,vip:1,sort:9996,  man:'org_len',    t:'2026-06-16 15:40:57', pct:0, qk:[]},
+  {id:100008,name:'LocalBank',    sys:'本地银行卡',   ico:'🏦',pend:'22',  quick:'100 / 200',              state:1,vip:1,sort:9995,  man:'org_len',    t:'2026-06-16 15:40:54', pct:0.02, qk:[{a:'100.00',t:1,v:'100.00'},{a:'200.00',t:2,v:'10.00'}]},
+  {id:100012,name:'LocalE-Wallet',sys:'本地电子钱包', ico:'👛',pend:'不限制',quick:'--',                    state:1,vip:1,sort:9994,  man:'figo01',     t:'2026-07-03 18:07:18', pct:0, qk:[]},
+  {id:100009,name:'USDT',         sys:'三方Usdt',    ico:'₮', pend:'不限制',quick:'10 / 20 / 30 / 40 / 57 / 100',state:1,vip:1,sort:2001,man:'milozz01',t:'2026-07-15 11:30:12', pct:0, qk:[]},
+  {id:100011,name:'ThirdBankCard',sys:'三方银行卡',   ico:'💳',pend:'不限制',quick:'--',                    state:1,vip:1,sort:98,    man:'org_len',    t:'2026-06-16 15:41:02', pct:0, qk:[]},
+  {id:100003,name:'Figotest',     sys:'三方法币',     ico:'🟪',pend:'不限制',quick:'--',                    state:1,vip:1,sort:25,    man:'figo01',     t:'2026-06-20 10:23:42', pct:0, qk:[]},
+  {id:100000,name:'Jazzcash',     sys:'三方法币',     ico:'💳',pend:'10',  quick:'100 / 200',              state:1,vip:1,sort:14,    man:'org_milo',   t:'2026-07-16 10:59:32', pct:0.02, qk:[{a:'100.00',t:1,v:'100.00'},{a:'200.00',t:2,v:'10.00'}]},
+  {id:100001,name:'DDD',          sys:'三方法币',     ico:'🟨',pend:'不限制',quick:'100 / 200',             state:1,vip:1,sort:8,     man:'lisazg',     t:'2026-07-15 11:32:06', pct:0, qk:[]},
+  {id:100015,name:'ArUpiPay',     sys:'ArUpiPay',   ico:'🔁',pend:'不限制',quick:'1',                     state:1,vip:1,sort:1,     man:'lisazg',     t:'2026-07-14 17:11:01', pct:0, qk:[]}
+];
+var CHANS = [
+  {id:330354,catId:100000,cname:'[12217]OX2PayINR-PaytmQR',fname:'OX2PayINR-唤醒',map:'OX2PayINR',mAbbr:'OX2PayINR_测试户',mNo:'M20260622124404811...',cur:'INR',ctype:'动态',code:'3333333',
+   w:0,rw:0,state:1,sysState:'可用',level:'L1',lvArr:[1],t1:'00:00',t2:'23:59',a1:'1.00',a2:'8.00',fee:'0.9000',remark:'1222',man:'milozz01',t:'2026-07-09 12:17:55', mode:'follow',val:null},
+  {id:330353,catId:100000,cname:'[12216]OX2PayINR-QR',fname:'OX2PayINR-扫码',map:'OX2PayINR',mAbbr:'OX2PayINR_测试户',mNo:'M20260622124404811...',cur:'INR',ctype:'动态',code:'44444',
+   w:8,rw:8,state:1,sysState:'可用',level:'L3',lvArr:[3],t1:'00:00',t2:'23:59',a1:'3.00',a2:'44.00',fee:'0',remark:'--',man:'org_sam',t:'2026-06-23 17:24:55', mode:'custom',val:0.03},
+  {id:330350,catId:100000,cname:'[12215]Speed2PayINR-PaytmQR',fname:'Speed2PayINR-唤醒',map:'Speed2PayINR',mAbbr:'Speed2PayINR_测试01户',mNo:'19',cur:'INR',ctype:'固定',code:'3021',
+   w:5,rw:5,state:1,sysState:'可用',level:'L1,L2,L3',lvArr:[1,2,3],t1:'00:00',t2:'23:59',a1:'100.00',a2:'100000.00',fee:'0',remark:'--',man:'figo01',t:'2026-06-30 15:28:06', mode:'custom',val:0.01},
+  {id:330349,catId:100000,cname:'[12214]Speed2PayINR-QR',fname:'Speed2PayINR-扫码',map:'Speed2PayINR',mAbbr:'Speed2PayINR_测试01户',mNo:'19',cur:'INR',ctype:'固定',code:'3021',
+   w:4,rw:4,state:1,sysState:'可用',level:'',lvArr:[],t1:'00:00',t2:'23:59',a1:'100.00',a2:'100000.00',fee:'0',remark:'--',man:'org_raymond',t:'2026-07-03 22:19:33', mode:'follow',val:null},
+  {id:330347,catId:100000,cname:'[12168]AntPayINR-QR',fname:'antpayinr-qr',map:'AntPayINR',mAbbr:'ant',mNo:'1OdOZogePVZa7ecS67j...',cur:'INR',ctype:'动态',code:'123456',
+   w:3,rw:3,state:0,sysState:'三方商户关闭',level:'',lvArr:[],t1:'00:00',t2:'23:59',a1:'1.00',a2:'100000000.00',fee:'0',remark:'--',man:'figo01',t:'2026-06-20 10:29:03', mode:'follow',val:null},
+  {id:330342,catId:100008,cname:'[12160]LocalBank-A',fname:'本地卡-A',map:'LocalBank',mAbbr:'本地收款',mNo:'—',cur:'INR',ctype:'固定',code:'9001',
+   w:6,rw:6,state:1,sysState:'可用',level:'',lvArr:[],t1:'00:00',t2:'23:59',a1:'100.00',a2:'200000.00',fee:'0',remark:'--',man:'org_len',t:'2026-06-16 15:40:54', mode:'follow',val:null},
+  {id:330341,catId:100008,cname:'[12159]LocalBank-B',fname:'本地卡-B',map:'LocalBank',mAbbr:'本地收款',mNo:'—',cur:'INR',ctype:'固定',code:'9002',
+   w:4,rw:4,state:1,sysState:'可用',level:'',lvArr:[],t1:'00:00',t2:'23:59',a1:'100.00',a2:'200000.00',fee:'0',remark:'--',man:'org_len',t:'2026-06-16 15:40:54', mode:'follow',val:null},
+  {id:330338,catId:100009,cname:'[12150]USDT-TRC20',fname:'USDT-TRC20',map:'USDTPay',mAbbr:'USDT_测试户',mNo:'U8823',cur:'USDT',ctype:'动态',code:'7001',
+   w:9,rw:9,state:1,sysState:'可用',level:'',lvArr:[],t1:'00:00',t2:'23:59',a1:'10.00',a2:'100000.00',fee:'0',remark:'--',man:'milozz01',t:'2026-07-15 11:30:12', mode:'custom',val:0.03},
+  {id:330336,catId:100012,cname:'[12140]Paytm-Wallet',fname:'Paytm钱包',map:'PaytmW',mAbbr:'Paytm_测试户',mNo:'PW10',cur:'INR',ctype:'动态',code:'6001',
+   w:5,rw:5,state:1,sysState:'可用',level:'',lvArr:[],t1:'00:00',t2:'23:59',a1:'50.00',a2:'50000.00',fee:'1.0000',remark:'--',man:'figo01',t:'2026-07-03 18:07:18', mode:'follow',val:null}
+];
+var curCat=null, curChan=null, curLv=1;
+
+/* ==================== 核心规则 ==================== */
+function catOf(id){ return CATS.find(function(c){return c.id===id}); }
+/* 比率 0 = 该大类不配统一奖励（对齐 V1：无独立开关，RechargeRifts=0 即无优惠） */
+function catPct(c){ return c ? Number(c.pct)||0 : 0; }
+function chanRaw(ch){ return ch.mode==='custom' ? (Number(ch.val)||0) : 0; }
+
+/* BR-01 取高：生效奖励 = max(大类, 通道) */
+function effect(ch){
+  var cp=catPct(catOf(ch.catId)), hp=chanRaw(ch);
+  return { val:Math.max(cp,hp), src:(hp>cp?'chan':'cat'), dead:(ch.mode==='custom'&&hp>0&&hp<=cp) };
+}
+/* BR-04 可见性：三端状态 / 可见充值等级 / 权重>0（不含金额维度） */
+function visible(ch,lv){
+  if(ch.state!==1) return false;
+  if(ch.sysState!=='可用') return false;
+  if(ch.w<=0) return false;
+  if(ch.lvArr.length && ch.lvArr.indexOf(lv)<0) return false;
+  return true;
+}
+/* BR-04/05 角标 */
+function badgeOf(catId,lv){
+  var c=catOf(catId);
+  var list=CHANS.filter(function(x){return x.catId===catId && visible(x,lv)});
+  if(!list.length) return '';
+  var mx=Math.max.apply(null,list.map(function(x){return effect(x).val}));
+  if(mx<=0) return '';
+  var mn=catPct(c);
+  if(mn<=0) return '最高 '+fmt(mx)+'%';
+  return mn>=mx ? fmt(mn)+'%' : fmt(mn)+'%～'+fmt(mx)+'%';
+}
+/* fmt(): 原始比率 → 百分比数字（0.02 → "2"）。列表/角标/客户端一律用它 */
+function fmt(n){ return (Math.round(n*10000)/100).toString(); }
+/* rawv(): 原始比率 → 4 位小数编辑值（0.02 → "0.0200"）。仅编辑框用 */
+function rawv(n){ return (Number(n)||0).toFixed(4); }
+
+/* ==================== P1 大类列表 ==================== */
+function renderCats(){
+  var h='';
+  CATS.forEach(function(c){
+    var rw = catPct(c)>0 ? '<span class="rw cat">'+fmt(c.pct)+'%</span>' : '<span class="rw off">未配置</span>';
+    h+='<tr>'
+      +'<td><span class="pill mch">(2001)sit-inr</span></td>'
+      +'<td>'+c.id+'</td>'
+      +'<td><span class="ico-c"><span class="ico-b">'+c.ico+'</span><span class="ico-b">'+c.ico+'</span></span></td>'
+      +'<td>'+c.name+'</td>'
+      +'<td><span class="pill sys">'+c.sys+'</span></td>'
+      +'<td>'+c.pend+'</td>'
+      +'<td>'+c.quick+'</td>'
+      +'<td style="background:#fffafa">'+rw+'</td>'
+      +'<td><label class="sw"><input type="checkbox" '+(c.state?'checked':'')+' onclick="return false"><i></i></label></td>'
+      +'<td><label class="sw"><input type="checkbox" '+(c.vip?'checked':'')+' onclick="return false"><i></i></label></td>'
+      +'<td>'+c.sort+'</td>'
+      +'<td>'+c.man+'</td>'
+      +'<td>'+c.t+'</td>'
+      +'<td><span class="lnk" onclick="openCat('+c.id+')">编辑</span>　<span class="lnk" onclick="goChan('+c.id+')">充值通道管理</span></td>'
+      +'</tr>';
+  });
+  document.getElementById('cat-tbody').innerHTML=h;
+  var s=document.getElementById('f-cat'), v=s.value;
+  s.innerHTML='<option value="0">请选择充值大类</option>'+CATS.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>'}).join('');
+  s.value=v||'0';
+}
+function goChan(id){
+  showPage('p2',document.querySelectorAll('.b-tab')[2]);
+  document.getElementById('f-cat').value=id; renderChans();
+}
+
+/* ==================== 大类弹窗 ==================== */
+function openCat(id){
+  curCat=catOf(id);
+  document.getElementById('cm-ico1').textContent=curCat.ico;
+  document.getElementById('cm-ico2').textContent=curCat.ico;
+  document.getElementById('cm-sys').value=curCat.sys;
+  document.getElementById('cm-name').value=curCat.name;
+  document.getElementById('cm-sort').value=curCat.sort;
+  document.getElementById('cm-pend').value=curCat.pend==='不限制'?0:curCat.pend;
+  document.getElementById('cm-state').checked=curCat.state===1;
+  document.getElementById('cm-vip').checked=curCat.vip===1;
+  document.getElementById('cm-pct').value=rawv(curCat.pct);
+  document.getElementById('cm-edit').checked=false;
+  document.getElementById('cm-gcode').value='';
+  renderQk();
+  document.getElementById('cm-gcode').value='';
+  catEdit(); catPreview(); openModal('cat-modal');
+}
+/* ===== 快捷金额配置（同为赠送类资金字段，纳入同一套「是否修改」保护） ===== */
+function renderQk(){
+  var d='';
+  document.getElementById('cm-quick').innerHTML = curCat.qk.length
+    ? curCat.qk.map(function(q,i){
+        return '<div class="qk-row"><span class="lb">金额'+(i+1)+':</span>'
+          +'<input class="inp" value="'+q.a+'" oninput="qkSet('+i+',\'a\',this.value)"'+d+'>'
+          +'<select onchange="qkSet('+i+',\'t\',this.value)"'+d+'>'
+            +'<option value="1"'+(q.t===1?' selected':'')+'>固定金额</option>'
+            +'<option value="2"'+(q.t===2?' selected':'')+'>赠送比率</option></select>'
+          +'<input class="inp" value="'+q.v+'" oninput="qkSet('+i+',\'v\',this.value)"'+d+'>'
+          +'<span class="lnk del" onclick="qkDel('+i+')">删除</span></div>';
+      }).join('')
+    : '<div style="font-size:12px;color:#c9cdd4;padding:4px 0">未配置快捷金额</div>';
+}
+function qkSet(i,k,v){ curCat.qk[i][k] = (k==='t')?Number(v):v; }
+function qkAdd(){ curCat.qk.push({a:'',t:1,v:''}); renderQk(); }
+function qkDel(i){ curCat.qk.splice(i,1); renderQk(); }
+
+/* 「是否修改」= 纯校验闸门（对齐 V1 RechargeSetOpt:508）：① 解锁比率框 ② 触发谷歌码校验。不做业务开关。 */
+function catEdit(){
+  var on=document.getElementById('cm-edit').checked;
+  document.getElementById('cm-pct').readOnly=!on;
+  document.getElementById('cm-lock').style.display=on?'none':'flex';
+  document.getElementById('cm-g-line').style.display=on?'inline-flex':'none';
+  if(!on) document.getElementById('cm-gcode').value='';
+}
+function catPreview(){
+  if(!curCat) return;
+  var p=Number(document.getElementById('cm-pct').value)||0;
+  var eq=document.getElementById('cm-eq');
+  eq.textContent='= '+fmt(p)+'%'; eq.className='eq'+(p>0?'':' off');
+  var subs=CHANS.filter(function(x){return x.catId===curCat.id});
+  if(!subs.length){ document.getElementById('cm-eff').innerHTML='📌 该大类下暂无通道。'; return; }
+  if(p<=0){ document.getElementById('cm-eff').innerHTML='📌 比率为 0 = 该大类不配统一奖励，'+subs.length+' 条通道仅按自身配置发放。'; return; }
+  var follow=subs.filter(function(x){return chanRaw(x)<=p}).length;
+  var over=subs.filter(function(x){return chanRaw(x)>p});
+  var t='📌 保存后：该大类 <b>'+subs.length+'</b> 条通道中，<b>'+follow+'</b> 条按 <b>'+fmt(p)+'%</b> 发放（跟随大类）';
+  if(over.length) t+='；<b>'+over.length+'</b> 条走各自更高的充值通道奖励（'+over.map(function(x){return x.fname+' '+fmt(chanRaw(x))+'%'}).join('、')+'）';
+  t+='。';
+  document.getElementById('cm-eff').innerHTML=t;
+}
+function saveCat(){
+  var edit=document.getElementById('cm-edit').checked;
+  var p=Number(document.getElementById('cm-pct').value)||0;
+  if(curCat.qk.some(function(q){return !q.a||!q.v})){ toast('快捷金额配置：金额与赠送数额均不可为空'); return; }
+  if(edit){
+    if(p<0){ toast('充值赠送比率不可为负数'); return; }
+    if(!/^\d{6}$/.test(document.getElementById('cm-gcode').value)){ toast('修改充值大类奖励需输入 6 位谷歌效验码'); return; }
+  }else{ p=curCat.pct; }   // 未勾「是否修改」→ 比率原样保留（IsCheckGoogle=false）
+  var old=curCat.pct;
+  curCat.pct=p;
+  curCat.name=document.getElementById('cm-name').value;
+  curCat.sort=Number(document.getElementById('cm-sort').value)||0;
+  curCat.state=document.getElementById('cm-state').checked?1:0;
+  curCat.vip=document.getElementById('cm-vip').checked?1:0;
+  curCat.man='当前操作人'; curCat.t='2026-07-16 18:00:00';
+  renderCats(); renderChans(); renderClient(); closeModal('cat-modal');
+  toast('已保存　·　BR-14 操作日志：'+curCat.name+' 充值大类奖励 '+fmt(old)+'% → '+fmt(curCat.pct)+'%');
+}
+
+/* ==================== P2 通道列表 ==================== */
+function renderChans(){
+  var f=Number(document.getElementById('f-cat').value)||0;
+  var list=CHANS.filter(function(x){return !f||x.catId===f});
+  var h='';
+  list.forEach(function(ch){
+    var e=effect(ch), c=catOf(ch.catId), raw=chanRaw(ch);
+    /* 双行范式（对齐「轮询权重 / 实时权重」）：上=本通道配置值，下=取高后的实际生效值 */
+    var cfg = ch.mode==='custom'
+      ? '<b>'+fmt(raw)+'%</b>'+(e.dead?'<span class="nf" title="低于所属大类的充值大类奖励 '+fmt(catPct(c))+'%，取高后不生效；日后大类调低至 '+fmt(raw)+'% 以下将自动生效">⚠不生效</span>':'')
+      : '<span class="dash">—</span>';
+    var eff = e.val<=0
+      ? '<span class="rw off">无奖励</span>'
+      : '<b class="rw '+(e.src==='chan'?'chan':'cat')+'">'+fmt(e.val)+'%</b>'
+        +'<span class="src '+(e.src==='chan'?'chan':'cat')+'">'+(e.src==='chan'?'跟随通道':'跟随大类')+'</span>';
+    var cell='<div class="ci">通道奖励：'+cfg+'<br>生效奖励：'+eff+'</div>';
+    h+='<tr>'
+      +'<td><span class="pill mch">(2001)sit-inr</span></td>'
+      +'<td class="l"><div class="ci">通道ID：<b>'+ch.id+'</b><br>通道名称：<b>'+ch.cname+'</b><br>前台显示名称：'+ch.fname+'<br>三方映射码：<span class="pill map">'+ch.map+'</span></div></td>'
+      +'<td class="l"><div class="ci">简称：'+ch.mAbbr+'<br>商户号：'+ch.mNo+'</div></td>'
+      +'<td><span class="pill cur">'+ch.cur+'</span></td>'
+      +'<td class="l"><div class="ci">类型：'+ch.ctype+'<br>编码：'+ch.code+'</div></td>'
+      +'<td class="l"><div class="ci">近10分钟：<span class="rate0">0%</span>　近30分钟：<span class="rate0">0%</span><br>近1小时：<span class="rate0">0%</span>　近24小时：<span class="rate0">0%</span></div></td>'
+      +'<td class="l"><div class="ci">轮询权重：'+ch.w+'<br>实时权重：'+ch.rw+'</div></td>'
+      +'<td>'+c.name+'</td>'
+      +'<td><span class="pill sys">'+c.sys+'</span></td>'
+      +'<td class="l" style="background:#fffafa">'+cell+'</td>'
+      +'<td><label class="sw"><input type="checkbox" '+(ch.state?'checked':'')+' onclick="return false"><i></i></label></td>'
+      +'<td><span class="pill '+(ch.sysState==='可用'?'ok':'bad')+'">'+ch.sysState+'</span></td>'
+      +'<td>'+(ch.level?'<span class="pill lv">'+ch.level+'</span>':'全部')+'</td>'
+      +'<td>'+ch.t1+'~'+ch.t2+'</td>'
+      +'<td>'+parseFloat(ch.a1)+'~'+parseFloat(ch.a2)+'</td>'
+      +'<td>'+fmt(parseFloat(ch.fee)||0)+'%</td>'
+      +'<td>'+ch.remark+'</td>'
+      +'<td>'+ch.man+'</td>'
+      +'<td>'+ch.t+'</td>'
+      +'<td><span class="lnk">代收测试</span>　<span class="lnk" onclick="openChan('+ch.id+')">编辑</span>　<span class="lnk del">删除</span></td>'
+      +'</tr>';
+  });
+  document.getElementById('chan-tbody').innerHTML=h||'<tr><td colspan="20" style="text-align:center;color:#c9cdd4;padding:26px">暂无数据</td></tr>';
+}
+
+/* ==================== 通道弹窗 ==================== */
+function openChan(id){
+  curChan=CHANS.find(function(x){return x.id===id});
+  var c=catOf(curChan.catId);
+  document.getElementById('hm-title').textContent='编辑充值通道 -'+curChan.id;
+  document.getElementById('hm-map').value=curChan.map;
+  document.getElementById('hm-cname').value=curChan.cname;
+  document.getElementById('hm-cur').value=curChan.cur;
+  document.getElementById('hm-cat').value=c.name;
+  document.getElementById('hm-fname').value=curChan.fname;
+  document.getElementById('hm-code').value=curChan.code;
+  document.getElementById('hm-weight').value=curChan.w;
+  document.getElementById('hm-rweight').value='实时权重：'+curChan.rw;
+  document.getElementById('hm-level').value=curChan.level||'全部';
+  document.getElementById('hm-t1').value=curChan.t1;
+  document.getElementById('hm-t2').value=curChan.t2;
+  document.getElementById('hm-a1').value=curChan.a1;
+  document.getElementById('hm-a2').value=curChan.a2;
+  document.getElementById('hm-fee').value=curChan.fee;
+  document.getElementById('hm-remark').value=curChan.remark==='--'?'':curChan.remark;
+  document.querySelector('input[name="hm-state"][value="'+curChan.state+'"]').checked=true;
+  document.getElementById('hm-follow-cat').textContent=c.name+'（'+(catPct(c)>0?fmt(c.pct)+'%':'未配置')+'）';
+  document.querySelector('input[name="hm-mode"][value="'+curChan.mode+'"]').checked=true;
+  document.getElementById('hm-pct').value = curChan.mode==='custom'?rawv(curChan.val):'';
+  document.getElementById('hm-edit').checked=false;
+  document.getElementById('hm-gcode').value='';
+  chanMode(curChan.mode); chanEdit(); openModal('chan-modal');
+}
+/* 「是否修改」守卫：不勾 = 整个奖励区只读（对齐 V1 充值赠送比率交互） */
+function chanEdit(){
+  var on=document.getElementById('hm-edit').checked;
+  document.querySelectorAll('input[name="hm-mode"]').forEach(function(r){r.disabled=!on});
+  document.getElementById('hm-pct').readOnly=!on;
+  document.getElementById('hm-lock').style.display=on?'none':'flex';
+  document.getElementById('hm-g-line').style.display=on?'inline-flex':'none';
+  if(!on) document.getElementById('hm-gcode').value='';
+}
+function chanMode(m){
+  var c=catOf(curChan.catId);
+  document.getElementById('hm-follow-box').style.display = m==='follow'?'block':'none';
+  document.getElementById('hm-custom-box').style.display = m==='custom'?'block':'none';
+  if(m==='follow'){
+    var fv=document.getElementById('hm-follow-val');
+    if(catPct(c)>0){ fv.textContent=fmt(c.pct)+'%'; fv.className='rw cat'; }
+    else { fv.textContent='未配置（无奖励）'; fv.className='rw off'; }
+  }else{
+    if(!document.getElementById('hm-pct').value) document.getElementById('hm-pct').value = rawv(catPct(c)>0?Number(c.pct)+0.01:0.03);
+    chanPreview();
+  }
+}
+function chanPreview(){
+  var c=catOf(curChan.catId), cp=catPct(c);
+  var v=Number(document.getElementById('hm-pct').value)||0;
+  var eff=Math.max(cp,v), src=v>cp?'chan':'cat';
+  var eq=document.getElementById('hm-eq');
+  eq.textContent='= '+fmt(v)+'%'; eq.className='eq'+(v>0?'':' off');
+  var box=document.getElementById('hm-eff'), dead=document.getElementById('hm-dead');
+  if(eff<=0){
+    box.innerHTML='生效奖励：<b>无</b>（大类未配、通道为 0）';
+    box.style.background='#f7f8fa'; box.style.borderColor='#e5e6eb'; box.style.color='#86909c';
+    dead.style.display='none'; return;
+  }
+  box.style.background='#f6ffed'; box.style.borderColor='#b7eb8f'; box.style.color='#237804';
+  box.innerHTML='生效奖励：<b>'+fmt(eff)+'%</b> <span class="src '+(src==='chan'?'chan':'cat')+'">'+(src==='chan'?'跟随通道':'跟随大类')+'</span>'
+    +'<div style="font-size:11px;color:#5b8c00;margin-top:3px">生效奖励 = max(大类 '+fmt(cp)+'%, 通道 '+fmt(v)+'%) = <b>'+fmt(eff)+'%</b></div>';
+  if(v>0 && v<=cp){
+    dead.style.display='block';
+    dead.innerHTML='⚠ 配置值 <b>'+fmt(v)+'%</b> 低于大类 <b>'+fmt(cp)+'%</b>，当前<b>不生效</b>，实际按 <b>'+fmt(cp)+'%</b> 发放。<br>该值可正常保存 —— 日后大类比例调低至 '+fmt(v)+'% 以下时将自动转为生效。';
+  }else dead.style.display='none';
+}
+function saveChan(){
+  var edit=document.getElementById('hm-edit').checked;
+  var m=document.querySelector('input[name="hm-mode"]:checked').value;
+  var v=Number(document.getElementById('hm-pct').value)||0;
+  if(edit){
+    if(m==='custom' && v<=0){ toast('选择「自定义」时，充值赠送比率必填且需大于 0'); return; }
+    if(!/^\d{6}$/.test(document.getElementById('hm-gcode').value)){ toast('修改充值通道奖励需输入 6 位谷歌效验码'); return; }
+  }else{ m=curChan.mode; v=curChan.val||0; }   // 未勾「是否修改」→ 奖励字段原样保留
+  curChan.mode=m; curChan.val = m==='custom'?v:null;
+  curChan.state=Number(document.querySelector('input[name="hm-state"]:checked').value);
+  curChan.fname=document.getElementById('hm-fname').value;
+  curChan.w=Number(document.getElementById('hm-weight').value)||0;
+  curChan.man='当前操作人'; curChan.t='2026-07-16 18:00:00';
+  renderChans(); renderClient(); closeModal('chan-modal');
+  var e=effect(curChan);
+  toast('已保存　·　'+curChan.fname+' 生效奖励 '+fmt(e.val)+'%（'+(e.src==='chan'?'跟随通道':'跟随大类')+'）'+(e.dead?' · 配置值不生效':''));
+}
+
+/* ==================== P3 客户端 ==================== */
+function setLv(lv,el){
+  curLv=lv;
+  document.querySelectorAll('.mem-btn').forEach(function(b){b.classList.remove('on')});
+  el.classList.add('on'); renderClient();
+}
+var CL_CATS=[100000,100008,100009,100012];
+function renderClient(){
+  var h='';
+  CL_CATS.forEach(function(id){
+    var c=catOf(id); if(!c||c.state!==1) return;
+    var b=badgeOf(id,curLv);
+    h+='<div class="cat-i'+(id===100000?' on':'')+'" onclick="toast(\''+c.name+'：'+(b||'无奖励')+'\')">'
+      +(b?'<span class="badge">'+b+'</span>':'')
+      +'<div class="ico">'+c.ico+'</div><div class="nm">'+c.name+'</div></div>';
+  });
+  document.getElementById('cl-cats').innerHTML=h;
+
+  var list=CHANS.filter(function(x){return x.catId===100000 && visible(x,curLv)});
+  var ch='';
+  list.forEach(function(x,i){
+    var e=effect(x);
+    ch+='<div class="chan-c'+(i===0?' on':'')+'">'
+      +'<div><div class="nm">'+x.fname+'</div><div class="rg">₹'+parseFloat(x.a1)+' – ₹'+parseFloat(x.a2)+(parseFloat(x.fee)?'　手续费 '+fmt(parseFloat(x.fee))+'%':'')+'</div></div>'
+      +(e.val>0?'<span class="bo">+'+fmt(e.val)+'%</span>':'')+'</div>';
+  });
+  document.getElementById('cl-chans').innerHTML=ch||'<div style="color:#c9cdd4;font-size:12px;padding:14px 0;text-align:center">当前等级无可用通道</div>';
+
+  var c1=catOf(100000), bd=badgeOf(100000,curLv);
+  var hid=CHANS.filter(function(x){return x.catId===100000 && !visible(x,curLv)});
+  var n='<b>Jazzcash 角标：'+(bd||'不展示')+'</b><br>充值大类奖励 '+(catPct(c1)>0?fmt(c1.pct)+'%':'未配置')+'　·　当前可见通道 '+list.length+' 条<br>';
+  n+=list.map(function(x){var e=effect(x);return '· '+x.fname+'：'+fmt(e.val)+'%（'+(e.src==='chan'?'跟随通道':'跟随大类')+'）'+(e.dead?' ⚠配置'+fmt(chanRaw(x))+'%不生效':'')}).join('<br>');
+  if(hid.length) n+='<br><span style="color:#f5222d">不可见（不计入角标）：<br>· '+hid.map(function(x){
+      var why = x.state!==1||x.sysState!=='可用' ? x.sysState : (x.w<=0?'轮询权重=0':'等级 '+x.level+' 不符');
+      return x.fname+'（'+why+'，'+fmt(effect(x).val)+'%）';
+    }).join('<br>· ')+'</span>';
+  document.getElementById('cl-note').innerHTML=n;
+}
+
+/* ==================== 通用 ==================== */
+function step(id,d){ var el=document.getElementById(id); el.value=(Number(el.value)||0)+d; if(el.oninput) el.oninput(); }
+function showPage(id,el){
+  document.querySelectorAll('.page-block').forEach(function(p){p.style.display='none'});
+  var t=document.getElementById('P-'+id); if(t) t.style.display='block';
+  if(el){ document.querySelectorAll('.b-tab').forEach(function(b){b.classList.remove('on')}); el.classList.add('on'); }
+  window.scrollTo(0,0);
+}
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+var tmr;
+function toast(m){
+  var t=document.getElementById('toast'); t.innerHTML=m; t.style.display='block';
+  clearTimeout(tmr); tmr=setTimeout(function(){t.style.display='none'},3200);
+}
+document.querySelectorAll('.modal-mask').forEach(function(m){
+  m.addEventListener('click',function(e){ if(e.target===m) m.classList.remove('show'); });
+});
+document.getElementById('cm-pct').oninput=catPreview;
+document.getElementById('hm-pct').oninput=chanPreview;
+
+renderCats(); renderChans(); renderClient();
+</script>
+</body>
+</html>
