@@ -1,0 +1,995 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会员回归奖励 V2 · 指定ID增强 原型</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;font-size:13px;color:#303133;background:#f4f6fa}
+button{font-family:inherit}
+a{text-decoration:none;color:inherit}
+
+/* 顶部 demo bar */
+.demo-bar{height:32px;background:linear-gradient(90deg,#fff,#f9faff);border-bottom:1px solid #eef0f3;display:flex;align-items:center;padding:0 18px;font-size:12px;color:#666;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.demo-bar .demo-tag{background:linear-gradient(135deg,#ff6b35,#ff4d4f);color:#fff;font-size:10px;padding:2px 7px;border-radius:3px;margin-right:10px;font-weight:700;letter-spacing:.5px;box-shadow:0 1px 3px rgba(255,107,53,.3)}
+.demo-bar .ttl{font-weight:600;color:#222}
+.demo-bar .sub{margin-left:14px;color:#909399}
+
+/* 主 Tab */
+.main-tabs{background:#fff;border-bottom:1px solid #eef0f3;display:flex;padding:0 18px;height:42px;box-shadow:0 1px 3px rgba(0,0,0,.02)}
+.main-tabs .mt-btn{padding:11px 18px;background:transparent;border:none;cursor:pointer;font-size:13.5px;color:#606266;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;display:inline-flex;align-items:center;gap:6px;font-weight:500}
+.main-tabs .mt-btn:hover{color:#7c5cfa}
+.main-tabs .mt-btn.active{color:#7c5cfa;font-weight:600;border-bottom-color:#7c5cfa}
+.new-mark{display:inline-block;background:#ff5566;color:#fff !important;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700;margin-left:3px;letter-spacing:.3px;vertical-align:middle;line-height:1.4}
+
+.page{padding:18px 22px}
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;padding:4px 2px}
+.page-header .left{display:flex;flex-direction:column;gap:6px}
+.page-ttl{font-size:18px;color:#1f2329;font-weight:600;display:flex;align-items:center;gap:10px;letter-spacing:.3px}
+.page-ttl::before{content:'';display:inline-block;width:4px;height:18px;background:linear-gradient(180deg,#7c5cfa,#5a32d6);border-radius:2px}
+.page-desc{font-size:12px;color:#909399;line-height:1.5;padding-left:14px}
+.page-notice{margin-left:14px;margin-top:4px;background:#fafbfc;border:1px solid #e4e7ed;border-radius:6px;padding:8px 14px;max-width:960px;display:flex;flex-direction:column;gap:5px}
+.page-notice .ntc-item{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#5a6071;line-height:1.55}
+.page-notice .ntc-ic{font-size:13px;flex-shrink:0;line-height:1.4}
+.page-notice .ntc-item b{color:#1f2329;font-weight:600}
+.page-notice .ntc-item .em{color:#cf1322;font-weight:600}
+
+.card{background:#fff;border-radius:6px;padding:18px 20px;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid #eef0f3;margin-bottom:16px}
+.card-ttl{font-size:14px;font-weight:600;color:#1f2329;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-ttl::before{content:'';display:inline-block;width:3px;height:14px;background:#7c5cfa;border-radius:2px}
+
+.btn{padding:0 16px;height:32px;border:1px solid transparent;border-radius:4px;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;background:#fff;font-weight:500;white-space:nowrap}
+.btn-pp{background:linear-gradient(135deg,#7c5cfa,#6a47e8);color:#fff;box-shadow:0 2px 5px rgba(124,92,250,.25)}
+.btn-pp:hover{background:linear-gradient(135deg,#6a47e8,#5a32d6);transform:translateY(-1px)}
+.btn-d{background:#fff;color:#606266;border-color:#dcdfe6}
+.btn-d:hover{color:#7c5cfa;border-color:#7c5cfa;background:#f8f6ff}
+.btn-sm{height:26px;padding:0 10px;font-size:11.5px;border-radius:3px}
+
+.tbl{width:100%;border-collapse:collapse;background:#fff;font-size:12.5px;border-radius:4px;overflow:hidden}
+.tbl th{background:#f7f9fc;font-weight:600;color:#5a6071;padding:11px 12px;text-align:left;border-bottom:1px solid #e4e7ed;white-space:nowrap}
+.tbl td{padding:12px;border-bottom:1px solid #f0f2f5;color:#303133;vertical-align:middle;white-space:nowrap}
+.tbl tbody tr:hover td{background:#fafbff}
+.tbl tbody tr:last-child td{border-bottom:none}
+
+.tag{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:3px;font-size:11px;line-height:18px;white-space:nowrap}
+.tag.green{background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
+.tag.blue{background:#ecf5ff;color:#409eff;border:1px solid #d9ecff}
+.tag.orange{background:#fdf6ec;color:#e6a23c;border:1px solid #faecd8}
+.tag.red{background:#fef0f0;color:#f56c6c;border:1px solid #fbc4c4}
+.tag.gray{background:#f4f4f5;color:#909399;border:1px solid #e9e9eb}
+.tag.purple{background:#f5f0ff;color:#7c5cfa;border:1px solid #e1d3ff}
+
+/* 表单 */
+.frm-sec{margin-bottom:6px}
+.sec-hd{display:flex;align-items:center;gap:10px;padding:9px 12px;background:linear-gradient(90deg,#f7f4ff,#fbfaff);border-left:3px solid #7c5cfa;border-radius:4px;margin:16px 0 12px;font-weight:600;color:#4a3d8f;font-size:13px}
+.sec-hd .cfg-state{font-weight:500}
+.frm-row{display:flex;align-items:flex-start;margin-bottom:12px}
+.frm-row label.lb{width:190px;text-align:right;padding-right:14px;padding-top:7px;color:#5a6071;font-size:12.5px;flex-shrink:0;line-height:1.4}
+.lb .req{color:#f56c6c;margin-right:2px}
+.lb .req.off{visibility:hidden}
+.frm-ct{flex:1;max-width:520px}
+.ipt{width:100%;height:32px;padding:0 12px;border:1px solid #dcdfe6;border-radius:4px;font-size:12.5px;color:#303133;outline:none;transition:border-color .15s;background:#fff}
+.ipt:focus{border-color:#7c5cfa;box-shadow:0 0 0 2px rgba(124,92,250,.08)}
+.ipt.err{border-color:#f56c6c;background:#fffafa}
+.ipt::placeholder{color:#c0c4cc}
+.hint{font-size:11.5px;color:#67c23a;margin-top:5px;line-height:1.55}
+.hint.gray{color:#909399}
+.hint.warn{color:#e6a23c}
+.err-msg{font-size:11.5px;color:#f56c6c;margin-top:4px;display:none}
+.err-msg.show{display:block}
+
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:rgba(15,18,30,.45);display:none;align-items:flex-start;justify-content:center;z-index:100;overflow:auto;padding:30px 0 60px}
+.mask.open{display:flex}
+.modal{background:#fff;border-radius:8px;width:860px;max-width:94vw;box-shadow:0 10px 40px rgba(0,0,0,.2);animation:pop .18s ease}
+@keyframes pop{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-hd{padding:15px 20px;border-bottom:1px solid #eef0f3;display:flex;align-items:center;justify-content:space-between}
+.modal-hd .t{font-size:15px;font-weight:600;color:#1f2329}
+.modal-hd .x{border:none;background:none;font-size:18px;color:#909399;cursor:pointer}
+.modal-bd{padding:18px 24px;max-height:70vh;overflow:auto}
+.modal-ft{padding:13px 20px;border-top:1px solid #eef0f3;display:flex;justify-content:flex-end;gap:10px;align-items:center}
+.modal.sm{width:520px}
+
+/* 名单tab */
+.id-tabs{display:flex;gap:0;border:1px solid #e4e7ed;border-radius:4px;overflow:hidden;width:fit-content;margin-bottom:10px}
+.id-tabs .it{padding:6px 16px;font-size:12px;background:#fff;border:none;cursor:pointer;color:#606266;border-right:1px solid #e4e7ed}
+.id-tabs .it:last-child{border-right:none}
+.id-tabs .it.on{background:#7c5cfa;color:#fff;font-weight:600}
+
+/* 进度条 */
+.prog{height:8px;background:#eef0f3;border-radius:4px;overflow:hidden;margin:6px 0}
+.prog .bar{height:100%;background:linear-gradient(90deg,#7c5cfa,#9d7bff);border-radius:4px;transition:width .3s;width:0}
+.prog-txt{font-size:11.5px;color:#7c5cfa;font-weight:600}
+
+/* 统计块 */
+.imp-stats{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}
+.imp-stat{flex:1;min-width:110px;background:#fafbfc;border:1px solid #eef0f3;border-radius:6px;padding:10px 12px;text-align:center}
+.imp-stat .n{font-size:18px;font-weight:700;color:#1f2329;font-family:Menlo,monospace}
+.imp-stat .l{font-size:11px;color:#909399;margin-top:3px}
+.imp-stat.ok .n{color:#67c23a}
+.imp-stat.warn .n{color:#e6a23c}
+.imp-stat.bad .n{color:#f56c6c}
+
+/* 流程图 */
+.flow{display:flex;align-items:stretch;gap:0;margin:10px 0;flex-wrap:wrap}
+.flow .fnode{background:#f8f6ff;border:1px solid #e1d3ff;border-radius:6px;padding:10px 14px;font-size:12px;color:#4a3d8f;line-height:1.5;min-width:150px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.flow .fnode b{color:#7c5cfa;display:block;margin-bottom:2px}
+.flow .fnode.hl{background:#fff7e6;border-color:#ffd591}
+.flow .fnode.hl b{color:#d46b08}
+.flow .farr{display:flex;align-items:center;padding:0 8px;color:#b8a8f5;font-size:16px;font-weight:700}
+
+/* toast */
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#1f2329;color:#fff;padding:10px 22px;border-radius:6px;font-size:13px;z-index:300;display:none;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.toast.show{display:block;animation:pop .2s}
+.toast.ok{background:#67c23a}
+.toast.err{background:#f56c6c}
+
+/* ============ 手机演示 ============ */
+.demo-wrap{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+.phone{width:375px;height:730px;background:#fff;border-radius:36px;border:10px solid #1f2329;position:relative;overflow:hidden;flex-shrink:0;box-shadow:0 16px 48px rgba(0,0,0,.18)}
+.ph-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:24px;background:#1f2329;border-radius:0 0 14px 14px;z-index:50}
+.ph-scr{width:100%;height:100%;background:#f5f6fa;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.ph-hd{background:linear-gradient(135deg,#5a32d6,#7c5cfa);color:#fff;padding:34px 16px 14px;flex-shrink:0}
+.ph-hd .logo{font-weight:800;font-size:16px;letter-spacing:.5px}
+.ph-hd .bal{margin-top:10px;font-size:12px;opacity:.85}
+.ph-hd .bal b{font-size:20px;display:block;margin-top:2px;font-family:Menlo,monospace}
+.ph-body{flex:1;overflow:auto;padding:12px;position:relative}
+.ph-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ph-game{background:#fff;border-radius:10px;padding:14px 6px;text-align:center;font-size:11px;color:#5a6071;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.ph-game .ic{font-size:26px;margin-bottom:6px}
+.ph-tabbar{height:54px;background:#fff;border-top:1px solid #eef0f3;display:flex;flex-shrink:0}
+.ph-tabbar .ti{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;color:#909399;gap:2px}
+.ph-tabbar .ti .ic{font-size:18px}
+.ph-tabbar .ti.on{color:#7c5cfa;font-weight:600}
+
+/* H5 弹窗（按线上真实样式：紫色吊牌 · 限时活动充值返利） */
+.h5-mask{position:absolute;inset:0;background:rgba(10,8,30,.6);z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column}
+.h5-mask.open{display:flex}
+.h5-pop{width:300px;animation:pop .25s ease;position:relative}
+.pop-tag{position:relative;background:linear-gradient(165deg,#d9a4f7 0%,#a76ef5 38%,#8f5bef 100%);border-radius:14px;padding:34px 14px 14px;box-shadow:0 10px 34px rgba(80,30,160,.45)}
+.pop-tag::before{content:'';position:absolute;top:-26px;left:50%;transform:translateX(-50%);border-left:64px solid transparent;border-right:64px solid transparent;border-bottom:28px solid #d9a4f7}
+.pop-hole{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:16px;height:16px;background:#3a2a55;border-radius:50%;box-shadow:inset 0 2px 4px rgba(0,0,0,.5);z-index:3}
+.pop-pct{position:absolute;top:-14px;right:6px;font-size:34px;font-weight:900;background:linear-gradient(135deg,#ffb37a,#e0556f);-webkit-background-clip:text;background-clip:text;color:transparent;transform:rotate(12deg);text-shadow:none;z-index:3}
+.pop-conf{position:absolute;font-size:13px;z-index:3;pointer-events:none}
+.h5-pop .big{font-size:21px;font-weight:800;letter-spacing:1px;color:#fff;text-align:center;line-height:1.35;text-shadow:0 2px 6px rgba(90,40,170,.5)}
+.h5-pop .sm2{font-size:11.5px;color:rgba(255,255,255,.92);margin:8px 2px 12px;text-align:left}
+.prize-row{display:flex;gap:10px;margin-bottom:12px}
+.prize-card{flex:1;border-radius:12px;padding:22px 8px 14px;text-align:center;position:relative}
+.prize-card.cream{background:linear-gradient(180deg,#fffdf4,#fff3dc)}
+.prize-card.pp{background:linear-gradient(180deg,#9d6bf7,#7c3fe8);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.prize-card .pz-n{font-size:30px;font-weight:900;font-family:Menlo,monospace;line-height:1.1}
+.prize-card.cream .pz-n{color:#e8443d}
+.prize-card.pp .pz-n{color:#fff}
+.prize-card .pz-l{font-size:11px;margin-top:6px;font-weight:600}
+.prize-card.cream .pz-l{color:#a04a2a}
+.prize-card.pp .pz-l{color:rgba(255,255,255,.95)}
+.burst{position:absolute;top:-12px;left:50%;transform:translateX(-50%) rotate(-4deg);font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px 3px 10px 3px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.burst.b1{background:#fff;color:#7c3fe8;border:2px solid #7c3fe8}
+.burst.b2{background:#fff;color:#ff6a2b;border:2px solid #ff8a3d}
+.pop-lower{background:linear-gradient(180deg,#fff6ea,#ffffff);border-radius:12px;padding:12px 12px 14px;text-align:center}
+.cd-lbl{font-size:12.5px;color:#ff4d6a;font-weight:700;margin-bottom:8px}
+.cd{display:flex;gap:5px;justify-content:center;font-family:Menlo,monospace;align-items:center}
+.cd span{background:#fff;color:#e8443d;border:1.5px solid #ff5f6d;border-radius:6px;padding:4px 0;font-size:18px;font-weight:800;width:30px;box-shadow:0 2px 4px rgba(232,68,61,.15)}
+.cd i{font-style:normal;color:#e8443d;font-weight:800;font-size:16px}
+.cd-note{font-size:9.5px;color:#c9a98c;margin-top:6px}
+.h5-pop .cta{margin-top:12px;width:100%;height:46px;border:none;border-radius:23px;background:linear-gradient(90deg,#b16cf5,#e95fd0,#ff5fa2);color:#fff;font-size:17px;font-weight:800;cursor:pointer;box-shadow:0 5px 14px rgba(233,95,208,.45);letter-spacing:2px}
+.h5-pop .cta:active{transform:scale(.97)}
+.pop-x{margin:16px auto 0;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.35);border:1.5px solid rgba(255,255,255,.7);color:#fff;font-size:15px;cursor:pointer}
+
+/* 右侧悬浮活动图标（按线上真实样式：Return to benefits + 倒计时） */
+.fball{position:absolute;right:6px;top:34%;width:62px;z-index:55;cursor:pointer;display:none;text-align:center;animation:pop .3s}
+.fball.show{display:block}
+.fball .fb-ic{width:54px;height:54px;margin:0 auto;background:linear-gradient(150deg,#c780f5,#8f5bef 55%,#6e3fd8);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(110,63,216,.5);border:1.5px solid rgba(255,255,255,.55);position:relative;color:#fff}
+.fball .fb-ic .em{font-size:18px;line-height:1}
+.fball .fb-ic .tx{font-size:7px;font-weight:700;line-height:1.15;margin-top:2px;text-shadow:0 1px 2px rgba(60,20,130,.6)}
+.fball .fb-ic::after{content:'';position:absolute;inset:-4px;border-radius:16px;border:2px solid rgba(178,124,246,.55);animation:pulse 1.6s infinite}
+@keyframes pulse{0%{transform:scale(.92);opacity:1}100%{transform:scale(1.22);opacity:0}}
+.fball .fb-cd{margin-top:2px;background:rgba(30,20,50,.85);color:#ffd34d;font-size:9.5px;border-radius:7px;padding:1px 5px;font-family:Menlo,monospace;font-weight:700;display:inline-block}
+
+/* 充值结果小抽屉 */
+.h5-sheet{position:absolute;left:0;right:0;bottom:-100%;background:#fff;border-radius:16px 16px 0 0;z-index:70;transition:bottom .3s ease;box-shadow:0 -6px 24px rgba(0,0,0,.15)}
+.h5-sheet.open{bottom:0}
+.h5-sheet .sh-hd{padding:14px 16px 6px;text-align:center;font-weight:700;color:#1f2329;font-size:14px}
+.h5-sheet .sh-bd{padding:6px 18px 20px}
+.cmp-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px dashed #eef0f3;font-size:12.5px;color:#5a6071}
+.cmp-row b{font-family:Menlo,monospace;font-size:13.5px;color:#1f2329}
+.cmp-row.win b{color:#ff5f3d}
+.cmp-row .strike{text-decoration:line-through;color:#b9bec7}
+.cmp-final{display:flex;justify-content:space-between;align-items:center;padding:12px 0 2px;font-size:13.5px;font-weight:700;color:#1f2329}
+.cmp-final b{color:#67c23a;font-size:18px;font-family:Menlo,monospace}
+
+/* 演示控制面板 */
+.ctrl-panel{flex:1;min-width:340px;max-width:520px}
+.ctrl-panel .cp-sec{margin-bottom:14px}
+.ctrl-btn{display:block;width:100%;text-align:left;background:#fff;border:1px solid #e4e7ed;border-radius:8px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:all .15s;font-size:13px}
+.ctrl-btn:hover{border-color:#7c5cfa;background:#faf8ff;transform:translateX(2px)}
+.ctrl-btn b{display:block;color:#1f2329;margin-bottom:3px;font-size:13px}
+.ctrl-btn span{color:#909399;font-size:11.5px;line-height:1.5;display:block}
+.ctrl-btn .step-no{display:inline-flex;width:18px;height:18px;background:#7c5cfa;color:#fff;border-radius:50%;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-right:6px}
+
+/* 需求说明抽屉 */
+.doc-trigger{position:fixed;right:0;top:45%;background:linear-gradient(135deg,#7c5cfa,#5a32d6);color:#fff;writing-mode:vertical-rl;padding:14px 8px;border-radius:8px 0 0 8px;cursor:pointer;font-size:12.5px;letter-spacing:3px;z-index:90;box-shadow:-2px 2px 10px rgba(90,50,214,.3)}
+.doc-drawer{position:fixed;top:0;right:-640px;width:620px;max-width:92vw;height:100vh;background:#fff;z-index:200;box-shadow:-8px 0 30px rgba(0,0,0,.15);transition:right .25s ease;display:flex;flex-direction:column}
+.doc-drawer.open{right:0}
+.doc-hd{padding:16px 20px;border-bottom:1px solid #eef0f3;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.doc-hd .t{font-weight:700;font-size:15px;color:#1f2329}
+.doc-bd{flex:1;overflow:auto;padding:16px 22px 40px}
+.doc-sec{margin-bottom:22px}
+.doc-sec .ds-t{font-size:13.5px;font-weight:700;color:#4a3d8f;padding:7px 10px;background:#f7f4ff;border-left:3px solid #7c5cfa;border-radius:3px;margin-bottom:10px}
+.doc-sec p{font-size:12.5px;color:#5a6071;line-height:1.75;margin:6px 0}
+.doc-sec b{color:#1f2329}
+.doc-tbl{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.doc-tbl th{background:#f7f9fc;padding:7px 10px;text-align:left;border:1px solid #e4e7ed;color:#5a6071;white-space:nowrap}
+.doc-tbl td{padding:7px 10px;border:1px solid #e4e7ed;color:#303133;line-height:1.6}
+.doc-sec .em{color:#cf1322;font-weight:600}
+
+.pane{display:none}
+.pane.active{display:block}
+.mini-note{background:#fff7e6;border:1px solid #ffd591;border-radius:5px;padding:8px 12px;font-size:11.5px;color:#874d00;line-height:1.6;margin-top:8px}
+.switch{position:relative;display:inline-block;width:36px;height:20px;vertical-align:middle}
+.switch input{display:none}
+.switch .sl{position:absolute;inset:0;background:#dcdfe6;border-radius:10px;transition:.2s;cursor:pointer}
+.switch .sl::before{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch input:checked + .sl{background:#7c5cfa}
+.switch input:checked + .sl::before{left:18px}
+.switch input:disabled + .sl{background:#f0f0f0;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <span class="demo-tag">交互原型 V2</span>
+  <span class="ttl">老会员回归奖励 · 指定ID增强（5万导入 / 互斥取高 / 2选1必填 / 登录主动弹窗 / 活动名称）</span>
+  <span class="sub">仅供需求评审 · 数据为演示数据</span>
+</div>
+
+<div class="main-tabs">
+  <button class="mt-btn active" onclick="switchPane(this,'pane-admin')">🖥️ 后台配置改造</button>
+  <button class="mt-btn" onclick="switchPane(this,'pane-h5')">📱 用户端演示（H5） <span class="new-mark">NEW</span></button>
+</div>
+
+<!-- ================= Tab 1 后台 ================= -->
+<div class="pane active" id="pane-admin">
+<div class="page">
+  <div class="page-header">
+    <div class="left">
+      <div class="page-ttl">活动奖励 › 会员回归奖励（V2 改造）</div>
+      <div class="page-notice">
+        <div class="ntc-item"><span class="ntc-ic">1️⃣</span><div><b>指定ID导入上限提升至 5 万</b>：手动输入 / 单次导入均 ≤ <span class="em">50,000</span>，单条规则累计 ≤ 50,000。</div></div>
+        <div class="ntc-item"><span class="ntc-ic">2️⃣</span><div><b>与通道奖励发放规则（仅指定ID模式，下拉可配）</b>：<span class="em">互斥取高</span>（默认，按封顶后实际金额取高只发一笔）/ <span class="em">回归新充值奖励优先</span>（只发回归不发通道）/ <span class="em">叠加</span>（现状），充值回调<b>前置判断</b>。</div></div>
+        <div class="ntc-item"><span class="ntc-ic">3️⃣</span><div><b>2选1必填</b>：累充奖励 / 新充值赠送<b>至少完整配置一项</b>即可保存；未配置的区块对应活动开关置灰。</div></div>
+        <div class="ntc-item"><span class="ntc-ic">4️⃣</span><div><b>登录主动弹窗</b>：指定ID命中且新充值开关=开，<b>未完成新充值前每次登录主动弹出</b>活动弹窗；有效期<span class="em">首次登录激活</span>。</div></div>
+        <div class="ntc-item"><span class="ntc-ic">5️⃣</span><div><b>活动名称</b>：新增必填字段，仅后台使用不下发前端。</div></div>
+      </div>
+    </div>
+    <button class="btn btn-pp" onclick="openEdit()">＋ 新增会员回归奖励</button>
+  </div>
+
+  <!-- 列表片段 -->
+  <div class="card">
+    <div class="card-ttl">规则列表（改造点：活动名称列 + 互斥取高标识）</div>
+    <div style="overflow-x:auto">
+    <table class="tbl">
+      <thead><tr>
+        <th>ID</th><th>活动名称 <span class="new-mark">NEW</span></th><th>适用对象</th><th>累充奖励</th><th>新充值赠送</th>
+        <th>累充活动状态</th><th>新充值活动状态</th><th>操作</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td>23</td>
+          <td><b>7月大R召回·第一批</b></td>
+          <td><span class="tag purple">🎯 指定 48,650 人</span></td>
+          <td>固定₨200 + 1.5%</td>
+          <td>8% · 上限₨500 · 72h <span class="tag orange" title="与通道奖励互斥取高">互斥取高</span></td>
+          <td><span class="tag green">开启</span></td>
+          <td><span class="tag green">开启</span></td>
+          <td><button class="btn btn-d btn-sm" onclick="openEdit()">编辑</button><button class="btn btn-d btn-sm">名单</button></td>
+        </tr>
+        <tr>
+          <td>22</td>
+          <td><b>流失渠道用户挽回</b></td>
+          <td><span class="tag purple">🎯 指定 5,000 人</span></td>
+          <td style="color:#c0c4cc">— 未配置</td>
+          <td>10% · 不限 · 48h <span class="tag blue" title="只发回归奖励，通道奖励本单不发">回归优先</span></td>
+          <td><span class="tag gray" title="累充未配置，开关置灰">未配置</span></td>
+          <td><span class="tag green">开启</span></td>
+          <td><button class="btn btn-d btn-sm" onclick="openEdit()">编辑</button><button class="btn btn-d btn-sm">名单</button></td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td><b>回归奖励-10（存量回填）</b></td>
+          <td><span class="tag blue">🌐 全员（条件匹配）</span></td>
+          <td>固定₨100 + 1%</td>
+          <td>5% · 上限₨200 · 72h</td>
+          <td><span class="tag green">开启</span></td>
+          <td><span class="tag red">关闭</span></td>
+          <td><button class="btn btn-d btn-sm" onclick="openEdit()">编辑</button></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="mini-note">💡 <b>与通道奖励发放规则标识</b>：仅指定ID规则的「新充值赠送」列展示，对应规则内下拉配置：<span class="tag orange">互斥取高</span>按封顶后实际金额取高只发一笔；<span class="tag blue">回归优先</span>只发回归奖励不发通道奖励；<span class="tag gray">叠加</span>两者同发（现状）。全员规则无此标识。</div>
+  </div>
+
+  <!-- 领取记录改造 -->
+  <div class="card">
+    <div class="card-ttl">回归奖励领取记录（改造点：活动名称 筛选 + 列表字段）<span class="new-mark">NEW</span></div>
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;padding:12px 14px;background:#fafbfc;border:1px solid #eef0f3;border-radius:5px">
+      <div style="display:flex;align-items:center;gap:8px"><label style="color:#606266;font-size:12.5px">会员ID</label><input class="ipt" style="width:140px" placeholder="输入会员ID"></div>
+      <div style="display:flex;align-items:center;gap:8px"><label style="color:#606266;font-size:12.5px">活动名称 <span class="new-mark">NEW</span></label>
+        <select class="ipt" style="width:200px">
+          <option>全部</option>
+          <option selected>7月大R召回·第一批</option>
+          <option>流失渠道用户挽回</option>
+          <option>回归奖励-10（存量回填）</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px"><label style="color:#606266;font-size:12.5px">奖励类型</label>
+        <select class="ipt" style="width:130px"><option>全部</option><option>回归奖励（累充）</option><option>新充值赠送</option></select>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px"><label style="color:#606266;font-size:12.5px">状态</label>
+        <select class="ipt" style="width:110px"><option>全部</option><option>未领取</option><option>已领取</option><option>已过期</option></select>
+      </div>
+      <button class="btn btn-pp btn-sm">查询</button>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="tbl">
+      <thead><tr>
+        <th>序号</th><th>会员ID</th><th>活动名称 <span class="new-mark">NEW</span></th><th>来源类型</th><th>奖励类型</th><th>充值订单号</th><th>奖励金额</th><th>状态</th><th>时间</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td>1</td><td>2247648</td><td><b>7月大R召回·第一批</b></td><td><span class="tag purple">🎯 指定ID</span></td><td>新充值赠送</td><td style="font-family:Menlo,monospace;font-size:11.5px">R2026071711023301</td><td>₨ 80.00</td><td><span class="tag green">已完成</span></td><td>07-17 14:32</td>
+        </tr>
+        <tr>
+          <td>2</td><td>2247650</td><td><b>7月大R召回·第一批</b></td><td><span class="tag purple">🎯 指定ID</span></td><td>回归奖励（累充）</td><td>—</td><td>₨ 356.00</td><td><span class="tag orange">未领取</span></td><td>07-17 10:05</td>
+        </tr>
+        <tr>
+          <td>3</td><td>2251102</td><td><b>流失渠道用户挽回</b></td><td><span class="tag purple">🎯 指定ID</span></td><td>新充值赠送</td><td style="font-family:Menlo,monospace;font-size:11.5px">R2026071620887put</td><td>₨ 50.00</td><td><span class="tag green">已完成</span></td><td>07-16 20:41</td>
+        </tr>
+        <tr>
+          <td>4</td><td>2199887</td><td><b>回归奖励-10（存量回填）</b></td><td><span class="tag blue">🌐 系统自动</span></td><td>回归奖励（累充）</td><td>—</td><td>₨ 120.00</td><td><span class="tag gray">已过期</span></td><td>07-12 09:20</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="mini-note">💡 <b>活动名称</b>：筛选为下拉（含已删除规则，标记「已删除」）；列表新增「活动名称」列，点击可跳转对应规则编辑页。</div>
+  </div>
+
+  <!-- 互斥取高流程说明 -->
+  <div class="card">
+    <div class="card-ttl">与通道奖励发放规则 · 充值回调前置判断流程（仅指定ID模式，示例为「互斥取高」）<span class="new-mark">NEW</span></div>
+    <div class="flow">
+      <div class="fnode"><b>① 充值成功回调</b>订单金额 ₨1,000<br>通道赠送比率 3%</div>
+      <div class="farr">→</div>
+      <div class="fnode"><b>② 命中判断</b>用户在生效中的<br>指定ID新充值记录？</div>
+      <div class="farr">→</div>
+      <div class="fnode hl"><b>③ 前置比较（封顶后实际金额）</b>通道奖励 = ₨30<br>回归奖励 = min(1000×8%, 累计上限剩余500) = ₨80</div>
+      <div class="farr">→</div>
+      <div class="fnode"><b>④ 只发一笔</b>发放较高者 ₨80<br>另一项本单不发</div>
+    </div>
+    <div class="mini-note">⚠️ 发放规则由规则内下拉「与通道奖励发放规则」控制（默认互斥取高，仅指定ID模式可配）：<b>互斥取高</b>=按封顶后实际金额比较只发较高一项（比例高但被上限砍掉后可能反而低）；<b>回归新充值奖励优先</b>=跳过比较只发回归奖励，通道奖励本单不发；<b>叠加</b>=两者同发（现状）。未命中指定ID记录的用户、「按条件全员」模式均维持现状。取回归奖励时按回归打码倍数计打码，并计入"新充值赠送上限（每会员累计）"；互斥取高下取通道奖励时，该笔回归记录置为「已过期/已取消」，不再参与后续充值判断。</div>
+  </div>
+</div>
+</div>
+
+<!-- ================= Tab 2 H5 ================= -->
+<div class="pane" id="pane-h5">
+<div class="page">
+  <div class="page-header">
+    <div class="left">
+      <div class="page-ttl">用户端演示 · 登录主动弹窗 + 首登激活倒计时</div>
+      <div class="page-desc">点击右侧步骤按钮驱动手机演示。改动核心：指定ID命中用户<b>登录即主动弹窗</b>（原来需要手动点悬浮球才出现），倒计时自<b>首次登录</b>激活。</div>
+    </div>
+  </div>
+
+  <div class="demo-wrap">
+    <!-- 手机 -->
+    <div class="phone">
+      <div class="ph-notch"></div>
+      <div class="ph-scr">
+        <div class="ph-hd">
+          <div class="logo">AR LOTTERY</div>
+          <div class="bal">Balance<b id="phBal">₨ 0.00</b></div>
+        </div>
+        <div class="ph-body">
+          <div class="ph-grid">
+            <div class="ph-game"><div class="ic">🎰</div>Slots</div>
+            <div class="ph-game"><div class="ic">🏏</div>Cricket</div>
+            <div class="ph-game"><div class="ic">🎡</div>Wheel</div>
+            <div class="ph-game"><div class="ic">🃏</div>Rummy</div>
+            <div class="ph-game"><div class="ic">✈️</div>Aviator</div>
+            <div class="ph-game"><div class="ic">🎲</div>Lottery</div>
+          </div>
+
+          <!-- 右侧悬浮活动图标（Return to benefits） -->
+          <div class="fball" id="fball" onclick="openH5Pop()">
+            <div class="fb-ic"><span class="em">🧧</span><span class="tx">Return to<br>benefits</span></div>
+            <div class="fb-cd" id="fbCd">71:59:59</div>
+          </div>
+        </div>
+        <div class="ph-tabbar">
+          <div class="ti on"><span class="ic">🏠</span>Home</div>
+          <div class="ti"><span class="ic">🎯</span>Activity</div>
+          <div class="ti"><span class="ic">💰</span>Deposit</div>
+          <div class="ti"><span class="ic">👤</span>Mine</div>
+        </div>
+
+        <!-- 活动弹窗（线上真实样式：限时活动·充值返利） -->
+        <div class="h5-mask" id="h5Mask">
+          <div class="h5-pop">
+            <div class="pop-tag">
+              <div class="pop-hole"></div>
+              <div class="pop-pct">％</div>
+              <span class="pop-conf" style="top:6px;left:10px">✨</span>
+              <span class="pop-conf" style="top:52px;right:16px">🎊</span>
+              <span class="pop-conf" style="bottom:8px;left:6px">🎉</span>
+              <div class="big">限时活动<br>充值返利</div>
+              <div class="sm2">一旦错过，就再也回不来了</div>
+              <div class="prize-row">
+                <div class="prize-card cream">
+                  <div class="burst b1">💥 限时活动</div>
+                  <div class="pz-n">8%</div>
+                  <div class="pz-l">充值的奖金百分比</div>
+                </div>
+                <div class="prize-card pp">
+                  <div class="burst b2">💥 限时活动</div>
+                  <div class="pz-n">500</div>
+                  <div class="pz-l">最高奖金金额</div>
+                </div>
+              </div>
+              <div class="pop-lower">
+                <div class="cd-lbl">剩余时间</div>
+                <div class="cd">
+                  <span id="cdH1">7</span><span id="cdH2">1</span><i>:</i>
+                  <span id="cdM1">5</span><span id="cdM2">9</span><i>:</i>
+                  <span id="cdS1">5</span><span id="cdS2">9</span>
+                </div>
+                <div class="cd-note">（演示注：有效期自首次登录激活）</div>
+                <button class="cta" onclick="ctaDeposit()">立即充值 ✨</button>
+              </div>
+            </div>
+            <div class="pop-x" onclick="closeH5Pop()">✕</div>
+          </div>
+        </div>
+
+        <!-- 充值到账明细 -->
+        <div class="h5-sheet" id="h5Sheet">
+          <div class="sh-hd">✅ 充值成功 · 到账明细</div>
+          <div class="sh-bd">
+            <div class="cmp-row"><span>充值本金</span><b>₨ 1,000.00</b></div>
+            <div class="cmp-row"><span>通道赠送 3%</span><b class="strike">₨ 30.00</b></div>
+            <div class="cmp-row win"><span>回归充值加赠 8%（互斥取高 ✓）</span><b>+₨ 80.00</b></div>
+            <div class="cmp-final"><span>实际到账</span><b>₨ 1,080.00</b></div>
+            <div class="mini-note" style="margin-top:10px">两项奖励互斥，系统按封顶后实际金额自动发放较高一项（演示信息，线上用户侧只展示最终到账，不展示对比）。</div>
+            <button class="cta" style="margin-top:12px" onclick="closeSheet()">好的</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="ctrl-panel">
+      <div class="card">
+        <div class="card-ttl">演示步骤（按顺序点击）</div>
+        <button class="ctrl-btn" onclick="simFirstLogin()">
+          <b><span class="step-no">1</span>指定ID用户 · 首次登录</b>
+          <span>命中名单且新充值开关=开 → <b>主动弹出</b>活动弹窗（无需点悬浮球）；同时激活有效期倒计时（72h 从此刻起算），悬浮球常驻显示剩余时间。</span>
+        </button>
+        <button class="ctrl-btn" onclick="simAgainLogin()">
+          <b><span class="step-no">2</span>指定ID用户 · 再次登录</b>
+          <span><b>未完成新充值 → 每次登录仍主动弹出</b>；完成新充值后登录不再弹窗。悬浮球常驻，可随时手动唤起。（先点本步=未充值仍弹；做完步骤3再点本步=不再弹）</span>
+        </button>
+        <button class="ctrl-btn" onclick="simRecharge()">
+          <b><span class="step-no">3</span>模拟充值 ₨1,000（互斥取高）</b>
+          <span>通道赠送3%=₨30 vs 回归加赠8%封顶后=₨80 → 前置判断只发较高者 ₨80。完成新充值后活动结束：后续登录不再弹窗，悬浮球隐藏。</span>
+        </button>
+        <button class="ctrl-btn" onclick="simNormal()">
+          <b><span class="step-no">4</span>普通用户登录（对照）</b>
+          <span>未命中指定ID：不弹窗、无悬浮球，充值仅享通道赠送，全部维持现状。</span>
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-ttl">交互规则摘要</div>
+        <table class="doc-tbl">
+          <tr><th style="width:130px">触发条件</th><td>指定ID命中 + 该规则「新充值活动状态=开」+ 记录未过期未完成</td></tr>
+          <tr><th>弹窗时机</th><td>记录生效且<b>未完成新充值：每次登录主动弹出</b>；完成新充值/到期后不再弹出；其余时间通过悬浮球手动唤起</td></tr>
+          <tr><th>倒计时起点</th><td><b>首次登录激活</b>：导入时只写资格，首次登录才写入 ActiveStart/EndTime</td></tr>
+          <tr><th>悬浮球</th><td>常驻显示剩余时间；完成新充值、到期或达上限后隐藏，弹窗不再触发</td></tr>
+          <tr><th>去充值</th><td>CTA 直接跳转充值页（保持现有充值流程）</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ================= 新增/编辑弹窗 ================= -->
+<div class="mask" id="modalEdit">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="t">新增会员回归奖励</div>
+      <button class="x" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="modal-bd">
+
+      <!-- 活动名称 -->
+      <div class="frm-row">
+        <label class="lb"><span class="req">*</span>活动名称 <span class="new-mark">NEW</span></label>
+        <div class="frm-ct">
+          <input class="ipt" id="fName" placeholder="必填，≤50字，仅后台使用不下发前端" value="">
+          <div class="err-msg" id="eName">请输入活动名称</div>
+          <div class="hint gray">用于列表/领取记录/操作日志展示，如「7月大R召回·第一批」。存量规则按「回归奖励-{ID}」回填。</div>
+        </div>
+      </div>
+
+      <!-- 适用对象 -->
+      <div class="frm-row">
+        <label class="lb"><span class="req">*</span>适用对象</label>
+        <div class="frm-ct">
+          <label style="margin-right:18px;font-size:12.5px"><input type="radio" name="scope" > 按条件全员</label>
+          <label style="font-size:12.5px"><input type="radio" name="scope" checked> 指定/导入 ID</label>
+        </div>
+      </div>
+
+      <!-- ID 名单 -->
+      <div class="frm-row">
+        <label class="lb"><span class="req">*</span>会员 ID 列表</label>
+        <div class="frm-ct">
+          <div class="id-tabs">
+            <button class="it">手动输入（≤50,000）</button>
+            <button class="it on" onclick="openImport();return false">批量导入</button>
+            <button class="it">下载模板</button>
+          </div>
+          <div style="border:1px solid #e4e7ed;border-radius:5px;padding:10px 12px;background:#fafbfc;font-size:12px;color:#5a6071">
+            已确认名单：<b style="color:#7c5cfa;font-family:Menlo,monospace">48,650</b> 个
+            <button class="btn btn-d btn-sm" style="margin-left:8px" onclick="openImport()">重新导入</button>
+          </div>
+          <div class="hint">单次导入上限 <b style="color:#cf1322">50,000</b>（原5,000），单条规则累计 ≤ 50,000。<span class="new-mark">NEW</span></div>
+        </div>
+      </div>
+
+      <!-- 累充奖励配置 -->
+      <div class="sec-hd">
+        <span>▎累充奖励配置</span>
+        <span class="tag purple">累充活动状态=开 时生效</span>
+        <span class="cfg-state" id="stA"><span class="tag gray">未配置</span></span>
+        <span style="margin-left:auto;font-size:11px;color:#909399">与下方「新充值赠送」<b style="color:#cf1322">至少完整配置一项</b> <span class="new-mark">2选1</span></span>
+      </div>
+      <div class="frm-row">
+        <label class="lb"><span class="req" id="rqA1">*</span>累充固定奖金</label>
+        <div class="frm-ct">
+          <input class="ipt" id="fFixed" placeholder="留空=不配置累充奖励；填写后本区块整体必填" oninput="onBlockInput()">
+          <div class="err-msg" id="eA1">已填写累充区块，固定奖金必填（可为0，但不能与百分比同为0）</div>
+        </div>
+      </div>
+      <div class="frm-row">
+        <label class="lb"><span class="req" id="rqA2">*</span>累充百分比奖金(%)</label>
+        <div class="frm-ct">
+          <input class="ipt" id="fPct" placeholder="留空=不配置累充奖励；填写后本区块整体必填" oninput="onBlockInput()">
+          <div class="err-msg" id="eA2">已填写累充区块，百分比必填（可为0，但不能与固定同为0）</div>
+          <div class="hint">输入值1即1%：会员历史总充值100元获得1元回归奖励（固定与百分比不能同为0）。</div>
+        </div>
+      </div>
+      <div class="frm-row">
+        <label class="lb"><span class="req off">*</span>累充赠送上限</label>
+        <div class="frm-ct">
+          <input class="ipt" placeholder="选填，不填或填0时不限制（固定+百分比两项总和封顶值）">
+        </div>
+      </div>
+
+      <!-- 新充值赠送配置 -->
+      <div class="sec-hd">
+        <span>▎新充值赠送配置</span>
+        <span class="tag purple">新充值活动状态=开 时生效</span>
+        <span class="cfg-state" id="stB"><span class="tag gray">未配置</span></span>
+      </div>
+      <div class="frm-row">
+        <label class="lb"><span class="req" id="rqB1">*</span>新充值赠送比例(%)</label>
+        <div class="frm-ct">
+          <input class="ipt" id="fRate" placeholder="留空=不配置新充值赠送；填写后本区块整体必填（>0且≤100）" oninput="onBlockInput()">
+          <div class="err-msg" id="eB1">已填写新充值区块，赠送比例必填且需 >0 ≤100</div>
+        </div>
+      </div>
+      <div class="frm-row">
+        <label class="lb"><span class="req off">*</span>新充值赠送上限（每会员累计）</label>
+        <div class="frm-ct">
+          <input class="ipt" placeholder="选填，累计达到则该会员失效，不填或填0时不限制">
+        </div>
+      </div>
+      <div class="frm-row">
+        <label class="lb"><span class="req" id="rqB2">*</span>回归赠送有效期(小时)</label>
+        <div class="frm-ct">
+          <input class="ipt" id="fValid" placeholder="1~168 小时（最长7天）" oninput="onBlockInput()">
+          <div class="err-msg" id="eB2">已填写新充值区块，有效期必填（1~168）</div>
+          <div class="hint">指定ID模式下有效期自会员<b style="color:#cf1322">首次登录激活</b>（导入时仅写资格，登录才起算倒计时）。<span class="new-mark">NEW</span></div>
+        </div>
+      </div>
+      <div class="frm-row">
+        <label class="lb"><span class="req">*</span>与通道奖励发放规则 <span class="new-mark">NEW</span></label>
+        <div class="frm-ct">
+          <select class="ipt" id="fMutexSel" onchange="onMutexSelChange()">
+            <option value="max" selected>互斥取高（默认）</option>
+            <option value="return">回归新充值奖励优先</option>
+            <option value="stack">叠加</option>
+          </select>
+          <div class="hint" id="mutexHint">互斥取高：充值回调按封顶后实际金额比较「回归奖励 vs 通道奖励」，只发较高一项。</div>
+          <div class="hint warn">⚠️ 仅「指定/导入 ID」模式显示；「按条件全员」模式无此配置（维持叠加现状）。</div>
+        </div>
+      </div>
+
+      <div class="mini-note" id="blockRule">
+        📌 <b>2选1必填规则</b>：① 两个区块<b>至少完整配置一项</b>，两块全空禁止保存；② 某区块只要填写了任一字段，该区块内必填项整体生效；③ 未配置的区块对应活动开关自动置灰不可开启（后端同步兜底校验）。
+      </div>
+    </div>
+    <div class="modal-ft">
+      <span style="margin-right:auto;font-size:12px;color:#909399">开关联动预览：
+        累充 <label class="switch"><input type="checkbox" id="swA" disabled><span class="sl"></span></label>
+        &nbsp;新充值 <label class="switch"><input type="checkbox" id="swB" disabled><span class="sl"></span></label>
+      </span>
+      <button class="btn btn-d" onclick="closeEdit()">取消</button>
+      <button class="btn btn-pp" onclick="trySave()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 批量导入弹窗 ================= -->
+<div class="mask" id="modalImport">
+  <div class="modal sm">
+    <div class="modal-hd"><div class="t">批量导入会员 ID（单次 ≤ 50,000）<span class="new-mark">NEW</span></div><button class="x" onclick="closeImport()">✕</button></div>
+    <div class="modal-bd">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-d">📥 下载模板</button>
+        <button class="btn btn-pp" onclick="mockUpload(50000)">📤 上传 Excel（演示：5万条）</button>
+        <button class="btn btn-d" onclick="mockUpload(52000)">演示：超限 5.2万条</button>
+      </div>
+      <div id="impIdle" style="font-size:12px;color:#909399;background:#fafbfc;border:1px dashed #dcdfe6;border-radius:6px;padding:18px;text-align:center">
+        支持 .xlsx / .csv · 单次最多 <b style="color:#cf1322">50,000</b> 条 · 单条规则累计 ≤ 50,000<br>
+        <span style="font-size:11.5px">上传后解析校验：存在性 / 黑名单 / 跨规则冲突</span>
+      </div>
+      <div id="impParsing" style="display:none;text-align:center;padding:14px 0">
+        <div class="prog" style="max-width:320px;margin:0 auto"><div class="bar" id="impBar"></div></div>
+        <div class="prog-txt" id="impPct">解析校验中… 0%</div>
+      </div>
+      <div id="impDone" style="display:none">
+        <div class="imp-stats">
+          <div class="imp-stat"><div class="n">50,000</div><div class="l">上传总数</div></div>
+          <div class="imp-stat ok"><div class="n">48,650</div><div class="l">✅ 有效</div></div>
+          <div class="imp-stat warn"><div class="n">860</div><div class="l">⚠ 重复(自动去重)</div></div>
+          <div class="imp-stat bad"><div class="n">340</div><div class="l">❌ 不存在</div></div>
+          <div class="imp-stat bad"><div class="n">150</div><div class="l">🚫 已在其他规则</div></div>
+        </div>
+        <div style="font-size:12px;color:#5a6071">不存在/冲突明细可 <a href="#" style="color:#7c5cfa">下载查看</a>；冲突ID默认跳过，可选覆盖到本规则。</div>
+      </div>
+      <div id="impOver" style="display:none;background:#fef0f0;border:1px solid #fbc4c4;border-radius:6px;padding:14px;font-size:12.5px;color:#cf1322">
+        ❌ 上传共 <b>52,000</b> 条，超过单次导入上限 <b>50,000</b> 条，请拆分文件后重新上传。
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-d" onclick="closeImport()">关闭</button>
+      <button class="btn btn-pp" onclick="confirmImport()" id="impOkBtn" style="display:none">确认导入 48,650 个</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 保存前金额预估确认 ================= -->
+<div class="mask" id="modalEst">
+  <div class="modal sm">
+    <div class="modal-hd"><div class="t">⚠️ 保存确认 · 累充奖励支出预估 <span class="new-mark">NEW</span></div><button class="x" onclick="closeEst()">✕</button></div>
+    <div class="modal-bd">
+      <p style="font-size:13px;color:#5a6071;line-height:1.7;margin-top:0">本规则为<b>指定ID模式</b>且已配置累充奖励，保存后将按名单会员当前历史累充<b>立即结算</b>累充奖励并写入领取记录，预估如下：</p>
+      <table class="doc-tbl">
+        <tr><th>名单人数</th><td><b style="font-family:Menlo,monospace">48,650</b> 人</td></tr>
+        <tr><th>计算公式</th><td>固定 ₨200 + 历史累充 × 1.5%（单人封顶 ₨2,000）</td></tr>
+        <tr><th>预估总支出</th><td><b style="color:#cf1322;font-size:16px;font-family:Menlo,monospace">≈ ₨ 18,462,300</b></td></tr>
+      </table>
+      <div class="mini-note">已通过「按条件全员」规则领取过累充奖励的会员将自动跳过，不重复发放。</div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-d" onclick="closeEst()">再想想</button>
+      <button class="btn btn-pp" onclick="doSave()">确认金额，保存并开始结算</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 需求说明抽屉 -->
+<div class="doc-trigger" onclick="document.getElementById('docDrawer').classList.add('open')">需求说明</div>
+<div class="doc-drawer" id="docDrawer">
+  <div class="doc-hd">
+    <div class="t">📋 需求说明 · 会员回归奖励 V2（5项改造）</div>
+    <button class="x" style="border:none;background:none;font-size:17px;color:#909399;cursor:pointer" onclick="document.getElementById('docDrawer').classList.remove('open')">✕</button>
+  </div>
+  <div class="doc-bd">
+
+    <div class="doc-sec">
+      <div class="ds-t">1. 指定ID导入上限提升至 5 万</div>
+      <table class="doc-tbl">
+        <tr><th style="width:150px">项</th><th>原值</th><th>新值</th></tr>
+        <tr><td>手动输入</td><td>≤500</td><td class="em">≤50,000</td></tr>
+        <tr><td>单次导入</td><td>≤5,000</td><td class="em">≤50,000</td></tr>
+        <tr><td>单条规则累计</td><td>≤10,000</td><td class="em">≤50,000</td></tr>
+      </table>
+      <p>连带改造：</p>
+      <p>① <b>保存前金额预估确认</b>：指定ID+配置累充时，保存前弹总支出预估二次确认（5万人量级支出大，必须确认）。</p>
+    </div>
+
+    <div class="doc-sec">
+      <div class="ds-t">2. 新充值奖励 vs 通道奖励 · 发放规则下拉（前置判断 · 仅指定ID模式）</div>
+      <p><b>新增规则级配置</b>：新充值赠送区块「回归赠送有效期」下方增加下拉「与通道奖励发放规则」（仅指定/导入ID模式显示），三个选项：</p>
+      <table class="doc-tbl">
+        <tr><th style="width:150px">选项</th><th>发放行为（充值成功回调时）</th></tr>
+        <tr><td><b>互斥取高</b>（默认）</td><td>计算两项<b>封顶后实际金额</b>：通道奖励=充值额×通道比率；回归奖励=min(充值额×回归比例, 每会员累计上限的剩余额度)，<b>只发较高一项</b>，账变一笔</td></tr>
+        <tr><td><b>回归新充值奖励优先</b></td><td>跳过金额比较，<b>只发回归奖励</b>，通道奖励本单不发</td></tr>
+        <tr><td><b>叠加</b></td><td>回归奖励与通道奖励同时发放（维持现状）</td></tr>
+      </table>
+      <p>通用规则：<br>
+      ① 前置条件：用户存在<b>生效中的指定ID新充值奖励记录</b>，用户进行首充时需要<b>前置判断与对应所选通道的通道奖励是否互斥</b>；若无命中生效中的指定ID记录，则正常走通道奖励；<br>
+      ② 发放回归奖励时：按回归打码倍数计打码，计入「新充值赠送上限（每会员累计）」；<br>
+      ③ 互斥取高下取通道奖励时：该笔回归新充值奖励记录置为<b>「已过期/已取消」</b>，不再参与后续充值判断。</p>
+      <p class="em">范围：仅「指定/导入ID」模式；「按条件全员」模式维持现状（可叠加），两种模式行为差异已与运营确认。</p>
+      <p>⚠️ 开发注意：V1 充值回调发放通道赠送在存储过程内，本改动需在回调链路增加前置判断分支，涉及核心资金链路，需重点回归测试（普通用户充值、全员模式用户充值不受影响）。</p>
+    </div>
+
+    <div class="doc-sec">
+      <div class="ds-t">3. 累充奖励 / 新充值赠送 · 2选1必填</div>
+      <table class="doc-tbl">
+        <tr><th style="width:170px">场景</th><th>行为</th></tr>
+        <tr><td>两区块全空</td><td>保存报错「至少配置累充奖励或新充值赠送其中一项」</td></tr>
+        <tr><td>某区块填了任一字段</td><td>该区块内原必填规则整体生效（累充：固定+百分比必填且不同为0；新充值：比例+有效期必填）</td></tr>
+        <tr><td>仅配置一个区块</td><td>允许保存；未配置区块对应活动开关<b>置灰不可开启</b>，列表对应列显示「—/未配置」</td></tr>
+        <tr><td>编辑存量规则清空某区块</td><td>允许；同时强制关闭对应开关并提示</td></tr>
+        <tr><td>后端兜底</td><td>开关=开时对应区块字段必须有值，防绕过前端</td></tr>
+      </table>
+    </div>
+
+    <div class="doc-sec">
+      <div class="ds-t">4. 指定ID命中 · 登录主动弹窗 + 首登激活</div>
+      <p><b>现状</b>：登录接口已下发回归新充值奖励数据，但前端仅悬浮球展示，需手动点击才出弹窗；有效期从后台保存时刻起算。</p>
+      <p><b>改造</b>：</p>
+      <p>① <b>首登激活</b>：导入保存时只写「资格」（无起止时间）；会员首次登录时激活记录，写入 ActiveStartTime=登录时刻、ActiveEndTime=登录时刻+配置有效期；<br>
+      ② <b>主动弹窗</b>：命中资格（开关=开、记录生效中）时，<b>若未完成新充值，每次登录均主动弹出</b>活动弹窗（比例、上限、倒计时、去充值CTA）；未完成期间悬浮球常驻，可随时手动唤起；<br>
+      ③ 完成新充值、到期或达累计上限后：弹窗与悬浮球均不再展示；<br>
+      ④ 弹窗文案复用现有多语言，活动名称不下发（见第5条）。</p>
+      <p>与现有全员模式的关系：全员模式维持现状（保存即计时、悬浮球手动唤起）；仅指定ID记录走「首登激活+主动弹窗」。接口需在记录上增加「来源类型」区分。</p>
+    </div>
+
+    <div class="doc-sec">
+      <div class="ds-t">5. 活动名称</div>
+      <p>① 表新增 ActivityName（nvarchar(100)，必填，≤50字）；新增/编辑弹窗置顶第一个字段；<br>
+      ② 展示位置：规则列表、名单抽屉标题、操作日志；<br>
+      ③ <b>回归奖励领取记录页</b>：筛选条新增「活动名称」下拉（含已删除规则，标记「已删除」）；列表新增「活动名称」列，点击可跳转对应规则；<br>
+      ④ <b>仅后台使用，不下发前端</b>（避免多语言问题），前端弹窗维持现有固定多语言文案；<br>
+      ⑤ 存量规则脚本回填「回归奖励-{Id}」，存量领取记录按规则ID关联带出名称。</p>
+    </div>
+
+    <div class="doc-sec">
+      <div class="ds-t">6. 已确认决策记录</div>
+      <table class="doc-tbl">
+        <tr><th style="width:200px">决策点</th><th>结论</th></tr>
+        <tr><td>与通道奖励发放规则</td><td>充值回调前置判断 · 仅指定ID模式 · 下拉三选项：互斥取高（默认）/ 回归新充值奖励优先 / 叠加</td></tr>
+        <tr><td>导入上限</td><td>手动输入 / 单次导入 / 单条规则累计 均 ≤50,000（不做异步分批/结算进度展示）</td></tr>
+        <tr><td>倒计时起点</td><td>首次登录激活</td></tr>
+        <tr><td>弹窗策略</td><td>指定ID命中：未完成新充值前每次登录主动弹出，完成后不再弹出；原悬浮球手动唤起保留</td></tr>
+        <tr><td>活动名称</td><td>仅后台使用，不下发前端</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ Tab 切换 ============ */
+function switchPane(btn,id){
+  document.querySelectorAll('.main-tabs .mt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ============ toast ============ */
+let toastTimer=null;
+function toast(msg,cls){
+  const t=document.getElementById('toast');
+  t.className='toast show '+(cls||'');
+  t.textContent=msg;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+/* ============ 编辑弹窗 & 2选1校验 ============ */
+function openEdit(){document.getElementById('modalEdit').classList.add('open')}
+function closeEdit(){document.getElementById('modalEdit').classList.remove('open')}
+
+function blockAState(){
+  const f=document.getElementById('fFixed').value.trim(), p=document.getElementById('fPct').value.trim();
+  if(f===''&&p==='') return 'empty';
+  if(f===''||p==='') return 'partial';
+  if(parseFloat(f)===0&&parseFloat(p)===0) return 'zero';
+  return 'ok';
+}
+function blockBState(){
+  const r=document.getElementById('fRate').value.trim(), v=document.getElementById('fValid').value.trim();
+  if(r===''&&v==='') return 'empty';
+  if(r===''||v==='') return 'partial';
+  const rv=parseFloat(r), vv=parseFloat(v);
+  if(!(rv>0&&rv<=100)||!(vv>=1&&vv<=168)) return 'bad';
+  return 'ok';
+}
+function onBlockInput(){
+  const a=blockAState(), b=blockBState();
+  document.getElementById('stA').innerHTML = a==='empty'?'<span class="tag gray">未配置</span>':(a==='ok'?'<span class="tag green">已配置 ✓</span>':'<span class="tag orange">填写中（区块内必填生效）</span>');
+  document.getElementById('stB').innerHTML = b==='empty'?'<span class="tag gray">未配置</span>':(b==='ok'?'<span class="tag green">已配置 ✓</span>':'<span class="tag orange">填写中（区块内必填生效）</span>');
+  // 必填星号: 区块为空时星号隐藏（选填态）,动了任一字段则显示
+  document.getElementById('rqA1').className='req'+(a==='empty'?' off':'');
+  document.getElementById('rqA2').className='req'+(a==='empty'?' off':'');
+  document.getElementById('rqB1').className='req'+(b==='empty'?' off':'');
+  document.getElementById('rqB2').className='req'+(b==='empty'?' off':'');
+  // 开关联动
+  const swA=document.getElementById('swA'), swB=document.getElementById('swB');
+  swA.disabled = a!=='ok'; swB.disabled = b!=='ok';
+  if(a==='ok') swA.checked=true; else swA.checked=false;
+  if(b==='ok') swB.checked=true; else swB.checked=false;
+  // 清错误态
+  ['eA1','eA2','eB1','eB2'].forEach(i=>document.getElementById(i).classList.remove('show'));
+  ['fFixed','fPct','fRate','fValid'].forEach(i=>document.getElementById(i).classList.remove('err'));
+}
+function trySave(){
+  const name=document.getElementById('fName').value.trim();
+  const eName=document.getElementById('eName');
+  if(!name){eName.classList.add('show');document.getElementById('fName').classList.add('err');toast('请填写活动名称','err');return}
+  eName.classList.remove('show');document.getElementById('fName').classList.remove('err');
+
+  const a=blockAState(), b=blockBState();
+  if(a==='empty'&&b==='empty'){
+    toast('❌ 至少配置「累充奖励」或「新充值赠送」其中一项','err');
+    document.getElementById('blockRule').style.borderColor='#f56c6c';
+    document.getElementById('blockRule').style.background='#fef0f0';
+    setTimeout(()=>{document.getElementById('blockRule').style.borderColor='#ffd591';document.getElementById('blockRule').style.background='#fff7e6'},2200);
+    return;
+  }
+  let bad=false;
+  if(a==='partial'||a==='zero'){
+    if(document.getElementById('fFixed').value.trim()===''){document.getElementById('eA1').classList.add('show');document.getElementById('fFixed').classList.add('err')}
+    if(document.getElementById('fPct').value.trim()===''){document.getElementById('eA2').classList.add('show');document.getElementById('fPct').classList.add('err')}
+    if(a==='zero'){document.getElementById('eA1').classList.add('show');document.getElementById('eA2').classList.add('show');document.getElementById('fFixed').classList.add('err');document.getElementById('fPct').classList.add('err')}
+    bad=true;
+  }
+  if(b==='partial'||b==='bad'){
+    if(document.getElementById('fRate').value.trim()===''||b==='bad'){document.getElementById('eB1').classList.add('show');document.getElementById('fRate').classList.add('err')}
+    if(document.getElementById('fValid').value.trim()===''||b==='bad'){document.getElementById('eB2').classList.add('show');document.getElementById('fValid').classList.add('err')}
+    bad=true;
+  }
+  if(bad){toast('存在未完成的区块配置，请补全或清空该区块','err');return}
+
+  // 指定ID + 配置了累充 → 金额预估确认
+  if(a==='ok'){
+    closeEdit();
+    document.getElementById('modalEst').classList.add('open');
+  }else{
+    doSave();
+  }
+}
+function closeEst(){document.getElementById('modalEst').classList.remove('open');openEdit()}
+function doSave(){
+  document.getElementById('modalEst').classList.remove('open');
+  document.getElementById('modalEdit').classList.remove('open');
+  toast('✅ 保存成功，累充奖励已结算并写入领取记录','ok');
+}
+
+/* ============ 导入弹窗 ============ */
+function openImport(){
+  document.getElementById('modalImport').classList.add('open');
+  resetImp();
+}
+function closeImport(){document.getElementById('modalImport').classList.remove('open')}
+function resetImp(){
+  ['impParsing','impDone','impOver'].forEach(i=>document.getElementById(i).style.display='none');
+  document.getElementById('impIdle').style.display='block';
+  document.getElementById('impOkBtn').style.display='none';
+}
+function mockUpload(n){
+  resetImp();
+  document.getElementById('impIdle').style.display='none';
+  if(n>50000){
+    document.getElementById('impOver').style.display='block';
+    return;
+  }
+  document.getElementById('impParsing').style.display='block';
+  let p=0;
+  const bar=document.getElementById('impBar'), pct=document.getElementById('impPct');
+  const iv=setInterval(()=>{
+    p+=Math.random()*22+8;
+    if(p>=100){p=100;clearInterval(iv);
+      setTimeout(()=>{
+        document.getElementById('impParsing').style.display='none';
+        document.getElementById('impDone').style.display='block';
+        document.getElementById('impOkBtn').style.display='inline-flex';
+      },300);
+    }
+    bar.style.width=p+'%';
+    pct.textContent='解析校验中… '+Math.floor(p)+'%';
+  },350);
+}
+function confirmImport(){
+  closeImport();
+  toast('✅ 已确认导入 48,650 个有效 ID','ok');
+}
+
+/* ============ H5 演示 ============ */
+let cdTimer=null, cdSec=72*3600-1, activated=false, recharged=false;
+function fmtCd(){
+  const h=String(Math.floor(cdSec/3600)).padStart(2,'0');
+  const m=String(Math.floor(cdSec%3600/60)).padStart(2,'0');
+  const s=String(cdSec%60).padStart(2,'0');
+  document.getElementById('cdH1').textContent=h[0];
+  document.getElementById('cdH2').textContent=h[1];
+  document.getElementById('cdM1').textContent=m[0];
+  document.getElementById('cdM2').textContent=m[1];
+  document.getElementById('cdS1').textContent=s[0];
+  document.getElementById('cdS2').textContent=s[1];
+  document.getElementById('fbCd').textContent=h+':'+m+':'+s;
+}
+function startCd(){
+  if(cdTimer) return;
+  fmtCd();
+  cdTimer=setInterval(()=>{cdSec=Math.max(0,cdSec-1);fmtCd()},1000);
+}
+function openH5Pop(){document.getElementById('h5Mask').classList.add('open')}
+function closeH5Pop(){document.getElementById('h5Mask').classList.remove('open')}
+function closeSheet(){document.getElementById('h5Sheet').classList.remove('open')}
+
+function simFirstLogin(){
+  activated=true; recharged=false;
+  cdSec=72*3600-1;
+  document.getElementById('fball').classList.add('show');
+  startCd();
+  closeSheet();
+  openH5Pop();
+  toast('首次登录：激活72h倒计时 + 主动弹出活动弹窗','ok');
+}
+function simAgainLogin(){
+  if(!activated){toast('请先执行步骤1（首次登录激活）','err');return}
+  closeSheet();
+  if(!recharged){
+    openH5Pop();
+    toast('未完成新充值：再次登录仍主动弹出活动弹窗');
+  }else{
+    closeH5Pop();
+    toast('已完成新充值：登录不再弹窗，悬浮球已隐藏');
+  }
+}
+function simRecharge(){
+  if(!activated){toast('请先执行步骤1（首次登录激活）','err');return}
+  closeH5Pop();
+  recharged=true;
+  document.getElementById('fball').classList.remove('show');
+  document.getElementById('phBal').textContent='₨ 1,080.00';
+  document.getElementById('h5Sheet').classList.add('open');
+  toast('充值回调前置判断：回归₨80 > 通道₨30，只发回归奖励；活动完成，弹窗/悬浮球不再展示','ok');
+}
+function simNormal(){
+  activated=false; recharged=false; closeH5Pop(); closeSheet();
+  clearInterval(cdTimer); cdTimer=null;
+  document.getElementById('fball').classList.remove('show');
+  document.getElementById('phBal').textContent='₨ 0.00';
+  toast('普通用户：不弹窗、无悬浮球，充值仅享通道奖励（现状不变）');
+}
+
+/* 与通道奖励发放规则 下拉 */
+function onMutexSelChange(){
+  const v=document.getElementById('fMutexSel').value;
+  const txt={
+    max:'互斥取高：充值回调按封顶后实际金额比较「回归奖励 vs 通道奖励」，只发较高一项。',
+    return:'回归新充值奖励优先：名单用户充值只发回归奖励，通道奖励本单不发（不比较金额）。',
+    stack:'叠加：回归奖励与通道奖励同时发放（维持现状）。'
+  };
+  document.getElementById('mutexHint').textContent=txt[v];
+}
+
+/* 初始化开关状态 */
+onBlockInput();
+</script>
+</body>
+</html>
