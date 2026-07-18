@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会员列表 · 新增字段与导出 交互原型（一比一还原）</title>
+<style>
+:root{
+  --pri:#7c4dff;--pri2:#6a3ff0;--pri-d:#5b2ee0;--pri-l:#f3eeff;--pri-bd:#d9caff;
+  --ink:#1f2329;--ink2:#555;--ink3:#8a929c;--line:#edeef1;--bd:#dcdfe4;--bg:#eef0f4;
+  --green:#12a05f;--red:#e53935;--orange:#fa8c16;--blue:#2f7bff;
+  --new:#ff4d4f;--new-bg:#fff4e6;--new-bd:#ffd591;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;color:var(--ink);background:var(--bg);line-height:1.5;padding:14px}
+.wrap{max-width:100%;margin:0 auto}
+.head{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:8px;padding:12px 18px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.head h1{font-size:16px;font-weight:700;color:var(--pri-d)}
+.crumb{font-size:12.5px;color:var(--ink3)}.crumb b{color:var(--ink2)}
+.banner{background:#fff8ee;border:1px solid var(--new-bd);border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:12px;color:#8a5a00}
+.banner b{color:#c0390f}
+.tag-new{background:var(--new);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:7px;vertical-align:middle;letter-spacing:.3px;margin-left:3px}
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding:14px 16px;margin-bottom:12px}
+/* 问号公式：JS 驱动的全局 fixed 浮层，避免被 overflow 容器裁剪 */
+.q{display:inline-flex;width:14px;height:14px;border-radius:50%;background:#e6ebf2;color:#5a6472;font-size:10px;font-weight:700;align-items:center;justify-content:center;cursor:help;margin-left:4px;vertical-align:middle}
+.q .tipsrc{display:none}
+#gtip{position:fixed;display:none;background:#2b2440;color:#fff;font-size:11px;font-weight:400;padding:8px 11px;border-radius:6px;width:250px;line-height:1.6;z-index:5000;box-shadow:0 8px 24px rgba(0,0,0,.3);text-align:left;pointer-events:none}
+#gtip.show{display:block}
+#gtip code{background:rgba(255,255,255,.15);color:#ffd591;padding:0 3px;border-radius:3px}
+#gtip b{color:#ffd591}
+#gtip::after{content:'';position:absolute;left:var(--ax,50%);transform:translateX(-50%);border:6px solid transparent}
+#gtip.up::after{top:100%;border-top-color:#2b2440}
+#gtip.down::after{bottom:100%;border-bottom-color:#2b2440}
+/* 筛选区 */
+.filters{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:11px 16px}
+.filters.more{margin-top:11px;padding-top:12px;border-top:1px dashed var(--line)}
+.filters.more.hide{display:none}
+.more-tgl{display:inline-flex;align-items:center;gap:5px;margin-top:11px;font-size:12.5px;color:var(--pri-d);cursor:pointer;font-weight:600;user-select:none}
+.more-tgl .arw{transition:transform .2s}.more-tgl.open .arw{transform:rotate(180deg)}
+.more-tgl .cnt{color:var(--ink3);font-weight:400}
+.fld{display:flex;align-items:center;gap:8px;min-width:0}
+.fld>label{font-size:12.5px;color:var(--ink2);white-space:nowrap;min-width:66px;text-align:right;flex-shrink:0}
+.fld input,.fld select{flex:1;height:30px;padding:0 8px;border:1px solid var(--bd);border-radius:4px;font-size:12px;font-family:inherit;background:#fff;min-width:0}
+.fld .opsel{flex:0 0 44px;padding:0 4px;text-align:center;font-weight:700}
+.fld input:focus,.fld select:focus{border-color:var(--pri);outline:none;box-shadow:0 0 0 2px var(--pri-l)}
+.fld.new{background:var(--new-bg);border:1px solid var(--new-bd);border-radius:6px;padding:4px 8px;margin:-4px -2px}
+.fld.new>label{color:#a35200;font-weight:700}
+.fld.new .suf{font-size:11px;color:#a35200;white-space:nowrap}
+.btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#8a6bff,#7c4dff);color:#fff}
+.btn.pri{background:linear-gradient(135deg,var(--pri),var(--pri2))}
+.btn.exp{background:linear-gradient(135deg,#12a05f,#0d8a4f)}
+.btn.gho{background:#fff;border:1px solid var(--bd);color:var(--ink2)}
+.btn.sm{height:25px;padding:0 9px;font-size:11.5px}
+.btn.gold{background:linear-gradient(135deg,#f5a623,#e8930f)}
+/* 列表 */
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:12px;flex-wrap:wrap}
+.bar .n{font-size:12.5px;color:var(--ink2)}.bar .n b{color:var(--pri-d)}
+.bar-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+/* 快捷日期 */
+.dq{display:flex;border:1px solid var(--bd);border-radius:5px;overflow:hidden}
+.dq-b{padding:5px 11px;font-size:12px;color:var(--ink2);cursor:pointer;border-right:1px solid var(--line);background:#fff}
+.dq-b:last-child{border-right:none}.dq-b.on{background:var(--pri);color:#fff}
+.dq-b:hover:not(.on){background:var(--pri-l)}
+/* 自定义列（竖向列表 · 拖拽排序 · 勾选显隐 · 星标置顶） */
+.colbtn-wrap{position:relative}
+.colcnt{color:var(--pri-d);font-weight:700}
+.colpanel{display:none;position:absolute;top:calc(100% + 6px);right:0;width:236px;background:#fff;border:1px solid var(--bd);border-radius:10px;box-shadow:0 14px 44px rgba(0,0,0,.2);z-index:300}
+.colpanel.show{display:block}
+.cp-h{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line)}
+.cp-all{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;cursor:pointer;user-select:none}
+.cp-all input{width:15px;height:15px;accent-color:var(--pri)}
+.cp-reset{font-size:12.5px;color:var(--ink3);cursor:pointer}.cp-reset:hover{color:var(--pri-d)}
+.cp-list{padding:5px;max-height:388px;overflow-y:auto}
+.cp-row{display:flex;align-items:center;gap:8px;padding:7px 6px 7px 4px;border-radius:6px}
+.cp-row:hover{background:#f7f6fb}
+.cp-row.drag{opacity:.35}
+.cp-row.over{box-shadow:inset 0 2px 0 var(--pri);background:var(--pri-l)}
+.cp-grip{color:#c2c7d0;cursor:grab;font-size:14px;line-height:.7;flex-shrink:0;width:12px;text-align:center}
+.cp-grip:active{cursor:grabbing}
+.cp-row input.cpk{width:15px;height:15px;accent-color:var(--pri);flex-shrink:0;cursor:pointer}
+.cp-lbl{flex:1;font-size:12.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.cp-row.off .cp-lbl{color:var(--ink3)}
+.cp-star{flex-shrink:0;color:#cfd4dc;cursor:pointer;font-size:14px;line-height:1;width:16px;text-align:center}
+.cp-star:hover{color:#faad14}.cp-star.on{color:#faad14}
+.cp-row.lock input.cpk{opacity:.5;cursor:not-allowed}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;font-size:11.5px;white-space:nowrap}
+th{background:#f7f8fa;color:#5a6472;font-weight:600;padding:8px 9px;text-align:left;border-bottom:1px solid var(--line);border-right:1px solid #f0f1f3}
+th.new{background:var(--new-bg);color:#a35200}
+td{padding:7px 9px;border-bottom:1px solid var(--line);border-right:1px solid #f5f6f8}
+td.new{background:#fffdf8}
+tr:hover td{background:#fbfaff}tr:hover td.new{background:#fff8ee}
+.uid{color:var(--blue);font-weight:600;cursor:pointer}
+.g{color:var(--green);font-weight:600}.r{color:var(--red);font-weight:600}.mut{color:#9aa1ab}
+.mono{font-family:'SF Mono',Menlo,monospace}.num{text-align:right;font-family:'SF Mono',Menlo,monospace}
+/* 多张银行卡展开 */
+.bk-tgl{display:inline-flex;align-items:center;gap:2px;margin-left:6px;font-size:10px;color:var(--pri-d);cursor:pointer;background:var(--pri-l);border:1px solid var(--pri-bd);border-radius:9px;padding:0 6px;font-family:"PingFang SC",sans-serif;user-select:none;vertical-align:middle}
+.bk-tgl .arw{display:inline-block;transition:transform .15s;font-size:8px}.bk-tgl.open .arw{transform:rotate(180deg)}
+.bk-list{margin-top:4px;padding-top:4px;border-top:1px dashed var(--bd)}
+.bk-item{padding:2px 0;color:var(--ink2)}
+.prof-p{color:var(--green);font-weight:700;font-family:'SF Mono',Menlo,monospace}.prof-n{color:var(--red);font-weight:700;font-family:'SF Mono',Menlo,monospace}
+.mult{font-weight:700;color:var(--pri-d);font-family:'SF Mono',Menlo,monospace}
+.op{color:var(--pri);cursor:pointer;margin-right:5px}.op:hover{text-decoration:underline}
+.ck{width:14px;height:14px;accent-color:var(--pri)}
+.tg{width:30px;height:16px;border-radius:9px;background:var(--green);position:relative;display:inline-block;cursor:pointer}
+.tg::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:2px;right:2px}
+.tg.off{background:#d0d3d9}.tg.off::after{right:auto;left:2px}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:10px 4px 0;font-size:12px;color:var(--ink3)}
+.pg{border:1px solid var(--bd);border-radius:4px;padding:3px 9px;background:#fff}.pg.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:rgba(30,20,60,.5);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 16px;overflow-y:auto}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:12px;width:760px;max-width:96vw;box-shadow:0 24px 60px rgba(0,0,0,.3);overflow:hidden}
+.modal-h{background:linear-gradient(135deg,#12a05f,#0d8a4f);color:#fff;padding:13px 20px;display:flex;justify-content:space-between;align-items:center}
+.modal-h .t{font-size:15px;font-weight:700}.modal-h .x{cursor:pointer;font-size:18px}
+.modal-b{padding:18px 20px}
+.modal-f{padding:13px 20px;border-top:1px solid var(--line);display:flex;align-items:center;gap:12px;background:#fafafd}
+.exp-top{background:#f6ffed;border:1px solid #b7eb8f;border-radius:7px;padding:10px 14px;font-size:12.5px;color:#237804;margin-bottom:14px}.exp-top b{font-size:15px}
+.sec-t{font-size:12.5px;font-weight:700;color:var(--ink2);margin:6px 0 9px}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 10px}
+.col{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:11.5px}
+.col.new{background:var(--new-bg);border-color:var(--new-bd)}
+.col .cc{width:14px;height:14px;border-radius:4px;border:2px solid var(--pri);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:9px;background:var(--pri)}
+.col.off .cc{background:#fff;border-color:var(--bd);color:transparent}
+.foot{font-size:12px;color:var(--ink2)}.foot b{color:#237804}
+.note{background:#f6f4ff;border:1px solid var(--pri-bd);border-radius:7px;padding:10px 13px;font-size:11.5px;color:#4a3a7a;margin-top:12px;line-height:1.7}.note code{background:#f2eefb;color:#6a3ff0;padding:0 4px;border-radius:3px}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(30,20,60,.9);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:2000;opacity:0;transition:opacity .2s}.toast.show{opacity:1}
+/* 右侧需求说明抽屉 */
+.spec-tab{position:fixed;top:50%;right:0;transform:translateY(-50%);writing-mode:vertical-rl;background:linear-gradient(180deg,var(--pri),var(--pri2));color:#fff;padding:14px 8px;border-radius:8px 0 0 8px;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;z-index:900;box-shadow:-2px 2px 10px rgba(124,77,255,.35);user-select:none}
+.spec-mask{position:fixed;inset:0;background:rgba(30,20,60,.25);z-index:950;opacity:0;visibility:hidden;transition:.25s}
+.spec-mask.open{opacity:1;visibility:visible}
+.spec{position:fixed;top:0;right:0;height:100vh;width:780px;max-width:96vw;background:#fff;z-index:1000;box-shadow:-10px 0 40px rgba(0,0,0,.22);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.spec.open{transform:translateX(0)}
+.spec-hd{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;padding:15px 22px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.spec-hd .t{font-size:15px;font-weight:700}.spec-hd .t small{display:block;font-size:11px;font-weight:400;opacity:.85;margin-top:2px}
+.spec-hd .x{cursor:pointer;font-size:20px;line-height:1}
+/* 内容：无底色，正文浅黑，标题与重点加粗 */
+.spec-bd{padding:18px 22px;overflow-y:auto;flex:1;font-size:12.5px;line-height:1.65;color:var(--ink2)}
+.spec-sec{margin-bottom:22px}
+.spec-sec>h3{font-size:14px;font-weight:800;color:var(--ink);padding-bottom:7px;border-bottom:1px solid var(--bd);margin-bottom:12px}
+.sp-item{padding:8px 0 10px;margin-bottom:2px;border-bottom:1px dashed var(--line)}
+.sp-item:last-child{border-bottom:none}
+.sp-h{display:flex;align-items:center;gap:7px;font-weight:700;font-size:13px;color:var(--ink);margin-bottom:5px;flex-wrap:wrap}
+.sp-n{width:18px;height:18px;border-radius:50%;background:#e6e8ec;color:var(--ink);font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.sp-tag{font-size:10px;font-weight:700;padding:1px 7px;border-radius:9px;letter-spacing:.3px}
+.sp-tag.rt{background:#e3f7ec;color:#12a05f}
+.sp-tag.t1{background:#fff2e0;color:#d97706}
+.sp-def,.sp-lim{margin-top:3px;color:var(--ink2);text-align:left}
+.sp-def b,.sp-lim b{color:var(--ink);font-weight:700}
+.sp-lim{margin-top:4px}
+.spec-bd ul{margin:4px 0 0 2px;list-style:none}
+.spec-bd ul li{position:relative;padding-left:15px;margin-bottom:5px;color:var(--ink2)}
+.spec-bd ul li::before{content:'▸';position:absolute;left:0;color:var(--ink3)}
+.spec-bd ul li b,.spec-bd .hint b{color:var(--ink);font-weight:700}
+.spec-bd code{background:#f2f3f5;color:var(--ink);padding:0 4px;border-radius:3px;font-size:11.5px;overflow-wrap:anywhere;word-break:break-all}
+.spec-bd .hint{border-left:2px solid var(--bd);padding:2px 0 2px 10px;color:var(--ink2);font-size:11.5px;line-height:1.7;margin-top:10px}
+.spec-note{padding:2px 0 10px 10px;border-left:2px solid var(--bd);color:var(--ink2);font-size:11.5px;line-height:1.6;margin-bottom:16px}
+.spec-note b{color:var(--ink);font-weight:700}
+/* 落地要点表格 */
+.spec-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:2px;table-layout:fixed}
+.spec-tbl th,.spec-tbl td{border:1px solid var(--bd);padding:7px 10px;text-align:left;vertical-align:top;color:var(--ink2);white-space:normal;word-break:normal;overflow-wrap:anywhere}
+.spec-tbl code,.spec-bd code{white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.spec-tbl th{font-weight:700;color:var(--ink);border-bottom:2px solid var(--bd)}
+.spec-tbl td:first-child{font-weight:700;color:var(--ink);white-space:normal;width:88px}
+.spec-tbl b{color:var(--ink);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><h1>会员列表</h1><div class="crumb">会员管理 › <b>会员列表</b> › 会员列表</div></div>
+  <div class="banner">🧪 交互原型 · 已<b>一比一还原</b>现有会员列表筛选与列表字段；<b>本期新增字段带 <span class="tag-new">NEW</span></b>；<b>计算/口径字段表头带 ?</b>（悬停看公式）。流程：① 设筛选 → ② 查询列表 → ③ 导出结果。</div>
+
+  <!-- ① 筛选区（一比一还原 + 新增） -->
+  <div class="card">
+    <!-- 全部筛选一次性展示（一比一还原 + 本期新增） -->
+    <div class="filters">
+      <div class="fld"><label>会员ID</label><input placeholder="会员ID"></div>
+      <div class="fld"><label>代理ID</label><input placeholder="代理ID"></div>
+      <div class="fld"><label>会员账号</label><input placeholder="会员账号"></div>
+      <div class="fld"><label>注册IP</label><input placeholder="注册IP"></div>
+      <div class="fld"><label>备注</label><input placeholder="备注"></div>
+      <div class="fld"><label>渠道</label><input value="test01"></div>
+
+      <div class="fld"><label>注册设备</label><select><option>请选择</option><option>iOS</option><option>Android</option><option>PC</option></select></div>
+      <div class="fld"><label>用户状态</label><select><option>请选择</option><option>启用</option><option>禁用</option></select></div>
+      <div class="fld"><label>代理状态</label><select><option>请选择</option></select></div>
+      <div class="fld"><label>邀请码</label><input placeholder="邀请码"></div>
+      <div class="fld"><label>余额排序</label><select><option>请选择</option><option>升序</option><option>降序</option></select></div>
+      <div class="fld"><label>VIP等级</label><select><option>请选择</option><option>L0</option><option>L1+</option></select></div>
+
+      <div class="fld"><label>注册时间</label><input placeholder="开始日期"></div>
+      <div class="fld"><label>结束时间</label><input placeholder="结束日期"></div>
+      <div class="fld"><label>在线时间</label><input placeholder="开始时间"></div>
+      <div class="fld"><label>结束时间</label><input placeholder="结束时间"></div>
+      <div class="fld"><label>会员分组</label><select><option>请选择</option><option>默认</option></select></div>
+      <div class="fld"><label>保险箱排序</label><select><option>请选择</option><option>升序</option><option>降序</option></select></div>
+
+      <div class="fld"><label>注册指纹</label><input placeholder="注册浏览器指纹"></div>
+      <div class="fld"><label>黑名单状态</label><select><option>全部</option><option>正常</option><option>已拉黑</option></select></div>
+      <div class="fld"><label>活动黑名单</label><select><option>全部</option><option>是</option><option>否</option></select></div>
+
+      <!-- ↓↓↓ 本期新增筛选 ↓↓↓ -->
+      <div class="fld new"><label>充值总次数 ≥<span class="tag-new">NEW</span><span class="q">?<span class="tipsrc">按累计成功充值笔数筛选；<b>填 0 = 未充值会员</b>，填 N（≥1）= 充值笔数 ≥ N</span></span></label><input type="number" placeholder="如 0"><span class="suf">次</span></div>
+      <div class="fld new"><label>未登录天数 ≥<span class="tag-new">NEW</span><span class="q">?<span class="tipsrc">填 N，可筛出"距最后在线已达 N 天及以上"的会员（按最后在线/活跃时间计算）</span></span></label><input type="number" placeholder="如 7"><span class="suf">天</span></div>
+      <div class="fld new"><label>流水倍数 ≥<span class="tag-new">NEW</span><span class="q">?<span class="tipsrc">流水倍数 = 有效投注 ÷ 总充值；填 N，可筛出"倍数≥N"的会员</span></span></label><input type="number" placeholder="如 3"><span class="suf">倍</span></div>
+      <div class="fld new"><label>总盈亏<span class="tag-new">NEW</span><span class="q">?<span class="tipsrc">选 ≥ 或 ≤ 再填数值：<b>≥N</b> 筛盈亏不低于 N（找盈利/巨赢，如 ≥1000）；<b>≤N</b> 筛盈亏不高于 N（找亏损，填负数，如 ≤ -1000 = 亏损达 1000 及以上）；正数=会员盈利、负数=会员亏损</span></span></label><select class="opsel"><option>≥</option><option>≤</option></select><input type="number" placeholder="如 0"></div>
+      <div class="fld new"><label>银行卡绑定<span class="tag-new">NEW</span></label><select><option>不限</option><option>已绑定</option><option>未绑定</option></select></div>
+    </div>
+
+    <div class="btns">
+      <button class="btn pri" onclick="query()">🔍 查询</button>
+      <button class="btn gho" onclick="toast('已重置')">重置</button>
+      <button class="btn exp" onclick="openExp()">⬇ 导出</button>
+      <button class="btn">批量拉黑</button><button class="btn">批量拉白</button><button class="btn">批量禁用</button><button class="btn">批量启用</button>
+      <button class="btn">批量转内部代理</button><button class="btn">批量转外部代理</button><button class="btn">批量分组</button>
+      <button class="btn">导入批量操作</button><button class="btn">批量添加用户</button><button class="btn">批量隐藏</button>
+      <button class="btn">批量转移渠道</button><button class="btn">批量删除用户备注</button><button class="btn">批量重置Google验证码</button>
+      <button class="btn gold">批量操作是否给上级返佣 ▾</button>
+    </div>
+  </div>
+
+  <!-- ② 列表（一比一还原 + 新增列） -->
+  <div class="card">
+    <div class="bar">
+      <div class="n">查询结果 共 <b>48,205</b> 条　<span class="mut">（橙色表头为本期新增列；表头带 ? 悬停看公式/口径）</span></div>
+      <div class="bar-r">
+        <div class="colbtn-wrap">
+          <button class="btn gho sm" onclick="toggleColPanel(event)">⚙ 自定义列 <span class="colcnt" id="colCnt"></span> ▾</button>
+          <div class="colpanel" id="colPanel" onclick="event.stopPropagation()">
+            <div class="cp-h">
+              <label class="cp-all"><input type="checkbox" id="cpAllChk" onchange="cpToggleAll(this.checked)"><span>列展示</span></label>
+              <span class="cp-reset" onclick="cpReset()">重置</span>
+            </div>
+            <div class="cp-list" id="cpList"></div>
+          </div>
+        </div>
+        <div class="dq">
+          <span class="dq-b">今天</span><span class="dq-b">昨天</span><span class="dq-b">本周</span><span class="dq-b">上周</span><span class="dq-b">本月</span><span class="dq-b">上月</span><span class="dq-b on">所有</span>
+        </div>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr id="thead"></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table></div>
+    <div class="pager"><span>共 48,205 条</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span>20/页</span></div>
+  </div>
+</div>
+
+<!-- 导出弹窗 -->
+<div class="mask" id="M-exp"><div class="modal">
+  <div class="modal-h"><span class="t">⬇ 导出会员数据</span><span class="x" onclick="closeExp()">✕</span></div>
+  <div class="modal-b">
+    <div class="exp-top">将导出<b>当前筛选条件</b>下的会员数据 · 共 <b>48,205</b> 条 · 格式 <b>CSV</b> · 单次上限 <b>20 万</b></div>
+    <div class="sec-t">选择导出字段（默认全选，新增字段已勾选）</div>
+    <div class="cols" id="expcols"></div>
+    <div class="note">🔒 手机号 / 银行卡类字段：无查看手机号权限的账号导出后自动打码。<b>总流水 / 盈亏 / 倍数统计到昨天为止。</b></div>
+  </div>
+  <div class="modal-f"><span class="foot">已选 <b id="selN">—</b> 个字段</span><span style="margin-left:auto"></span>
+    <button class="btn gho" onclick="closeExp()">取消</button><button class="btn exp" onclick="doExp()">开始导出</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+<div id="gtip"></div>
+
+<!-- 右侧需求说明抽屉 -->
+<div class="spec-tab" onclick="toggleSpec()">📋 需求说明</div>
+<div class="spec-mask" id="specMask" onclick="toggleSpec()"></div>
+<aside class="spec" id="spec">
+  <div class="spec-hd">
+    <span class="t">会员列表扩展 · 需求说明<small>会员管理 › 会员列表　｜　交互原型配套</small></span>
+    <span class="x" onclick="toggleSpec()">✕</span>
+  </div>
+  <div class="spec-bd">
+    <div class="spec-note">📌 标 <span class="sp-tag rt">实时</span> 的字段查询即时生效；标 <span class="sp-tag t1">T+1</span> 的字段由每日跑批统计到<b>昨天</b>为止，当天数据次日才更新，筛选/展示均为"截止昨天"口径。<b>累计类字段（充值总次数/流水/盈亏/倍数）均为全时段累计，不随日期筛选与快捷日期变化。</b>时间/跨天口径统一以系统时区为准。快捷日期条（今天/昨天/本周…）为<b>既有功能、沿用现状</b>，本期不改。</div>
+
+    <!-- 一、新增筛选项 -->
+    <div class="spec-sec">
+      <h3>一、新增筛选项（5 项）</h3>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">1</span>充值总次数 ≥ N <span class="sp-tag rt">实时</span></div>
+        <div class="sp-def"><b>定义：</b>按会员累计成功充值笔数筛选（全时段累计，不随日期/快捷日期变化）。</div>
+        <div class="sp-lim"><b>规范/限制：</b>入参整数 <b>N≥0</b>；<b>填 0 特指"未充值(=0)"会员</b>，填 N（≥1）按"充值笔数 ≥ N"处理；只统计<b>充值成功（已到账）</b>的订单，不含赠送/后台加币/红包等非充值入账；空值不参与筛选。</div>
+      </div>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">2</span>未登录天数 ≥ N <span class="sp-tag rt">实时</span></div>
+        <div class="sp-def"><b>定义：</b>筛出"距最后一次<b>在线/活跃</b>已达 N 天及以上"的会员；天数 = 今天 − 最后在线日期（<b>今天在线过 = 0 天</b>）。</div>
+        <div class="sp-lim"><b>规范/限制：</b>入参正整数（N≥1）；<b>从未在线过</b>的会员视为"未登录天数 = ∞"，满足任意 ≥N；查询按"最后在线日期 ≤ 今天−N"处理走索引；<b>口径统一取"最后在线/活跃时间"</b>，与列表"最后在线"列同源。</div>
+      </div>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">3</span>流水倍数 ≥ N <span class="sp-tag t1">T+1</span></div>
+        <div class="sp-def"><b>定义：</b>筛出"流水倍数 ≥ N"的会员；倍数 = 有效投注 ÷ 总充值（均为全时段累计）。</div>
+        <div class="sp-lim"><b>规范/限制：</b>入参支持小数（如 1.5）；<b>无充值（分母为 0）的会员不计入</b>、列表显示"—"（如需排查<b>有投注、零充值</b>的会员，请改用"充值总次数 = 0 且 总流水 > 0"筛选）；比较用<b>精确值</b>（非显示舍入值）；分子分母均取 T+1 口径。</div>
+      </div>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">4</span>总盈亏 <span class="sp-tag t1">T+1</span></div>
+        <div class="sp-def"><b>定义：</b><b>操作符（≥ / ≤）可切换 + 填数值</b>：<b>≥N</b> 筛盈亏不低于 N（找盈利/巨赢，如 ≥1000）；<b>≤N</b> 筛盈亏不高于 N（找亏损，填负数，如 ≤ -1000 = 亏损达 1000 及以上）。</div>
+        <div class="sp-lim"><b>规范/限制：</b>入参<b>支持负数与小数</b>；正数=会员盈利、负数=会员亏损（会员视角）；口径为"真实输赢"、按有效投注、T+1 截止昨天。<b>⚠️</b> 约定<b>正数 = 会员盈利</b>，开发须核对统计字段正负方向与此一致（平台视角相反需取负）。</div>
+      </div>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">5</span>银行卡绑定（已绑定 / 未绑定 / 不限）<span class="sp-tag rt">实时</span></div>
+        <div class="sp-def"><b>定义：</b>按会员<b>当前</b>是否绑定提现<b>银行卡</b>筛选。</div>
+        <div class="sp-lim"><b>规范/限制：</b>"已绑定" = 当前存在<b>有效</b>的银行卡绑定（<b>解绑后视为未绑定</b>，按当前状态而非历史）；一人多卡任一有效即算已绑定；只统计银行卡类型（须排除钱包/UPI 等其他提现方式）；与列表"银行卡绑定手机号"显示同口径。</div>
+      </div>
+    </div>
+
+    <!-- 二、新增自定义列 -->
+    <div class="spec-sec">
+      <h3>二、新增「自定义列」功能</h3>
+      <div class="sp-item">
+        <div class="sp-def"><b>入口：</b>列表工具栏、快捷日期条（今天/昨天…）<b>左侧</b>的"⚙ 自定义列"按钮，实时显示"已显示 X/N"。</div>
+        <ul>
+          <li><b>勾选显隐</b>：竖向列表逐项勾选，勾掉即从列表移除，即时生效。</li>
+          <li><b>拖拽排序</b>：拖左侧手柄调整列先后顺序。</li>
+          <li><b>星标置顶</b>：点 ☆ 将该列固定排到最前。</li>
+          <li><b>重置</b>：一键恢复默认列顺序与显隐。</li>
+          <li><b>会员ID 必显锁定</b>，不可取消勾选。</li>
+          <li><b>偏好本地保存</b>：存浏览器本地（localStorage），下次打开自动套用；<b>纯前端、不改后端、换设备不同步</b>。</li>
+        </ul>
+        <div class="hint">⚙️ 纯前端视图层，不改后端查询，约 1 人日。<br>⚠️ 若列表底部有"合计/总计"行，金额合计格须随对应列一起隐藏，避免错位。</div>
+      </div>
+    </div>
+
+    <!-- 三、新增列表字段 -->
+    <div class="spec-sec">
+      <h3>三、新增列表字段（5 列）</h3>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">1</span>银行卡绑定手机号 <span class="sp-tag rt">实时</span></div>
+        <div class="sp-def"><b>定义：</b>会员绑定提现银行卡时预留的手机号。</div>
+        <div class="sp-lim"><b>规范/限制：</b>绑定多张时默认只显示主卡，行内 <b>▾N张</b> 点开按<b>绑定时间倒序</b>列出其余（默认收起）；<b>主卡 = 最近一次绑定的银行卡</b>；已解绑的卡不显示；只取银行卡类型；按权限脱敏。</div>
+      </div>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">2</span>未登录天数 <span class="sp-tag rt">实时</span></div>
+        <div class="sp-def"><b>定义：</b>会员距最后一次<b>在线/活跃</b>已过去的天数（= 今天 − 最后在线日期）。</div>
+        <div class="sp-lim"><b>规范/限制：</b>与筛选项 2 <b>同源</b>（最后在线/活跃时间），与列表"最后在线"列一致；<b>从未在线</b>的会员显示"未登录"（筛选中视为满足任意 ≥N）；今天在线过显示 0。</div>
+      </div>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">3</span>总流水（有效投注）<span class="sp-tag t1">T+1</span></div>
+        <div class="sp-def"><b>定义：</b>会员累计<b>有效投注</b>金额（不含撤单、无效局等），全时段累计。</div>
+        <div class="sp-lim"><b>规范/限制：</b>统计到昨天为止；无投注会员按 0 显示；金额保留 2 位小数、千分位。</div>
+      </div>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">4</span>总盈亏 <span class="sp-tag t1">T+1</span></div>
+        <div class="sp-def"><b>定义：</b>会员累计输赢，<b>正数盈利、负数亏损（会员视角）</b>，按有效投注计算。</div>
+        <div class="sp-lim"><b>规范/限制：</b>统计到昨天为止；正绿负红，<b>=0（含无投注）显示中性色</b>；正负方向与筛选项 4 一致。</div>
+      </div>
+
+      <div class="sp-item new-c">
+        <div class="sp-h"><span class="sp-n">5</span>流水倍数 <span class="sp-tag t1">T+1</span></div>
+        <div class="sp-def"><b>定义：</b>有效投注 ÷ 总充值，衡量会员投注活跃度。</div>
+        <div class="sp-lim"><b>规范/限制：</b>无充值（分母 0）显示"—"；<b>保留 1 位小数</b>，筛选比较用精确值；T+1，与筛选项 3 同口径。</div>
+      </div>
+    </div>
+
+    <!-- 四、导出说明 -->
+    <div class="spec-sec">
+      <h3>四、导出说明</h3>
+      <div class="sp-item">
+        <ul>
+          <li>导出<b>当前筛选条件下的全量数据</b>，与列表共用同一套查询条件，新增筛选/字段对导出自动生效。</li>
+          <li>格式 CSV；导出字段含全部新增列。</li>
+          <li>手机号 / 银行卡类字段按操作人权限自动脱敏（<b>无权限时带 * 脱敏，非置空</b>）。</li>
+          <li><b>多张银行卡绑定手机号</b>：导出无展开/收起，<b>同一单元格内用「；」拼接全部卡号</b>（每个仍按权限脱敏），主卡排首位；不拆多列、不拆多行。</li>
+          <li>T+1 字段（总流水/总盈亏/流水倍数）导出同为"截止昨天"口径。</li>
+          <li>单次导出<b>上限 20 万条</b>；接近上限时走流式写盘，避免内存压力。</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 五、权限控制 -->
+    <div class="spec-sec">
+      <h3>五、权限控制</h3>
+      <div class="sp-item">
+        <ul>
+          <li>复用现有<b>按钮级权限体系</b>控制敏感字段的查看与导出。</li>
+          <li><b>查看手机号</b>：无权限时列表打星脱敏；<b>导出手机号</b>：无权限时导出<b>同样带 * 脱敏</b>（与列表打星同规则，非置空）。</li>
+          <li>银行卡绑定手机号沿用同一套脱敏规则（新增权限点或复用现有手机号权限，待定）。</li>
+          <li>批量操作按钮（拉黑/禁用/转代理等）权限沿用现状，本期不改。</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 六、开发落地要点 -->
+    <div class="spec-sec">
+      <h3>六、开发落地要点（建议）</h3>
+      <table class="spec-tbl">
+        <thead><tr><th>要点</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>数据源</td><td>已现成，<b>无需新增字段/回填</b>：有效投注 = <code>tab_A_Chart_Lottery.LotteryRealAmount_All</code>、盈亏 = <code>ProfitAmount_All</code>（按会员累计，主键 UserID）；总充值 = <code>tab_A_Chart_Recharge.RechargeAmount_All</code>。</td></tr>
+          <tr><td>跨库 join</td><td>视图 <code>vw_tab_Users</code> 当前未接统计库，需新增 <code>LEFT JOIN lottery_Chart.dbo.tab_A_Chart_Lottery ON UserID</code>（与主库<b>同实例，可行</b>）；列表与导出共用条件，一处改两处生效。</td></tr>
+          <tr><td>T+1 不可绕</td><td>统计表由每日跑批 truncate 重建、取数"时间 &lt; 今天"，<b>当天数据次日才有</b>；产品需向运营明示。</td></tr>
+          <tr><td>空值处理</td><td>无投注/无充值会员在统计表无记录，join 后按 <code>ISNULL(x,0)</code> 归零；倍数分母为 0 显示"—"。</td></tr>
+          <tr><td>口径一致</td><td>流水倍数分子分母<b>都取 T+1 统计值</b>，勿混用实时充值额。</td></tr>
+          <tr><td>筛选性能</td><td>未登录天数转成日期阈值走索引；盈亏/倍数因统计表每人一行，join 后直接 WHERE，<b>不扫原始注单</b>。</td></tr>
+          <tr><td>自定义列</td><td>纯前端视图层（约 1 人日），注意合计行随列同步隐藏。</td></tr>
+        </tbody>
+      </table>
+      <div class="hint">🔍 以上数据源、字段语义、T+1 均已在 V1 库结构与存储过程中核实；"有效投注"语义与后台注单报表口径一致。</div>
+    </div>
+  </div>
+</aside>
+
+<script>
+/* 列定义：一比一还原图二既有列顺序 + 新增列(nw) + 公式(fx)。列顺序/显隐由「自定义列」面板控制 */
+const COLS=[
+ {k:'ck',n:''},
+ {k:'id',n:'会员ID'},
+ {k:'nick',n:'昵称'},
+ {k:'box',n:'保险箱余额'},
+ {k:'acc',n:'会员账号'},
+ {k:'bank',n:'银行卡绑定手机号',nw:1,fx:'会员绑定提现银行卡时预留的手机号；绑定多张卡时默认显示主卡，点<b>▾</b>可展开全部；无查看手机号权限的账号自动打码'},
+ {k:'bal',n:'余额'},
+ {k:'third',n:'三方余额'},
+ {k:'redpkg',n:'红包/券 剩余额度'},
+ {k:'invite',n:'邀请码'},
+ {k:'ch',n:'渠道号'},
+ {k:'ip',n:'注册IP'},
+ {k:'dev',n:'注册设备'},
+ {k:'code',n:'打码量',fx:'会员当前<b>还需完成</b>的打码金额，随投注逐步减少；它<b>不等于总流水</b>，两者别混用'},
+ {k:'grp',n:'分组'},
+ {k:'type',n:'类型'},
+ {k:'blk',n:'黑名单'},
+ {k:'st',n:'状态'},
+ {k:'on',n:'在线状态'},
+ {k:'laston',n:'最后在线'},
+ {k:'nolar',n:'未登录天数',nw:1,fx:'会员距最后一次<b>在线/活跃</b>已过去的天数（今天在线过=0；从未在线显示"未登录"）'},
+ {k:'supid',n:'上级代理id'},
+ {k:'agent',n:'代理'},
+ {k:'canreb',n:'是否可领取返佣'},
+ {k:'giveup',n:'是否给上级返佣'},
+ {k:'fg',n:'前台谷歌数'},
+ {k:'bg',n:'后台谷歌数'},
+ {k:'firstlogin',n:'首次登录时间'},
+ {k:'reg',n:'注册时间'},
+ {k:'vip',n:'VIP等级'},
+ {k:'rt',n:'充值总次数'},
+ {k:'ra',n:'充值金额',fx:'会员累计充值总金额，数据统计到<b>昨天</b>为止'},
+ {k:'flow',n:'总流水',nw:1,fx:'会员累计<b>有效投注</b>金额（不含撤单、无效局等），数据统计到<b>昨天</b>为止'},
+ {k:'prof',n:'总盈亏',nw:1,fx:'会员累计输赢，按<b>有效投注</b>计算：正数为盈利、负数为亏损，数据统计到<b>昨天</b>为止'},
+ {k:'mul',n:'流水倍数',nw:1,fx:'有效投注 ÷ 总充值；没有充值时显示 —'},
+ {k:'firstat',n:'首充时间'},
+ {k:'lastat',n:'最后充值时间'},
+ {k:'op',n:'操作'},
+ {k:'note',n:'备注'},
+];
+const DATA=[
+ {id:2251044,nick:'MemberNNGSPSWC',box:'0.00',acc:'6695270509',bank:'6695**0509',bal:'666.00',third:'0.0',point:0,redpkg:'红包 0.00',invite:'513652251044',ch:'20001',ip:'8.211.42.128',dev:'iOS',code:'3996.00',grp:'默认',type:'真实用户',blk:'正常',st:'启用',on:'离线',laston:'2026-07-17 19:18:45',nolar:1,supid:'100016',agent:'未开通',canreb:1,giveup:1,fg:'未绑定',bg:'',firstlogin:'',reg:'2026-07-17',vip:'L0',rt:0,ra:'0.00',flow:'0.00',prof:'0.00',mul:null,firstat:'',lastat:''},
+ {id:2251043,nick:'MemberNNGVC4IU',box:'0.00',acc:'6677777767',bank:'6677**7767',banks:['6677**7767','6612**3344'],bal:'22167.22',third:'0.0',point:0,redpkg:'红包 0.00',invite:'na3Od2251043',ch:'20008',ip:'8.211.42.128',dev:'PC',code:'43234.44',grp:'默认',type:'真实用户',blk:'正常',st:'启用',on:'离线',laston:'2026-07-17 16:45:33',nolar:1,supid:'2251043',agent:'',canreb:1,giveup:1,fg:'',bg:'',firstlogin:'2026-07-17',reg:'2026-07-17',vip:'L0',rt:2,ra:'2000.00',flow:'8600.00',prof:'-1240.00',mul:'4.3',firstat:'2026-07-17',lastat:'2026-07-17'},
+ {id:2251042,nick:'MemberNNGG3CCZ',box:'0.00',acc:'fesada2823@gicont.com',bank:'未绑定',bal:'866.00',third:'0.0',point:0,redpkg:'红包 0.00',invite:'uu9oK2251042',ch:'20001',ip:'8.211.42.128',dev:'PC',code:'3996.00',grp:'默认',type:'真实用户',blk:'正常',st:'启用',on:'离线',laston:'2026-07-16 18:22:05',nolar:2,supid:'2251042',agent:'',canreb:1,giveup:1,fg:'解除绑定',bg:'',firstlogin:'2026-07-16',reg:'2026-07-16',vip:'L0',rt:0,ra:'0.00',flow:'0.00',prof:'0.00',mul:null,firstat:'',lastat:''},
+ {id:2251041,nick:'MemberNNGR6RKW',box:'0.00',acc:'6688888811',bank:'6688**8811',banks:['6688**8811','6690**2210','6701**5567'],bal:'21667.53',third:'0.0',point:0,redpkg:'红包 0.00',invite:'884162251041',ch:'20001',ip:'8.211.42.128',dev:'PC',code:'45999.06',grp:'默认',type:'真实用户',blk:'正常',st:'启用',on:'离线',laston:'2026-07-17 17:37:49',nolar:1,supid:'2251022',agent:'',canreb:1,giveup:1,fg:'',bg:'',firstlogin:'2026-07-16',reg:'2026-07-16',vip:'L0',rt:1,ra:'1000.00',flow:'5200.00',prof:'+820.00',mul:'5.2',firstat:'2026-07-17',lastat:'2026-07-17'},
+ {id:2251040,nick:'MemberNNGRJLP4',box:'890.59',acc:'6688888810',bank:'6688**8810',bal:'0.00',third:'0.0',point:0,redpkg:'红包 0.00',invite:'CNnCl2251040',ch:'20001',ip:'8.211.42.128',dev:'PC',code:'4273.18',grp:'默认',type:'真实用户',blk:'正常',st:'启用',on:'离线',laston:'2026-07-16 16:00:11',nolar:2,supid:'2251040',agent:'',canreb:1,giveup:1,fg:'',bg:'',firstlogin:'2026-07-16',reg:'2026-07-16',vip:'L0',rt:1,ra:'200.00',flow:'900.00',prof:'-150.00',mul:'4.5',firstat:'2026-07-16',lastat:'2026-07-16'},
+ {id:2251037,nick:'MemberNNGF3RAX',box:'0.00',acc:'911345566779',bank:'未绑定',bal:'866.00',third:'0.0',point:0,redpkg:'红包 0.00',invite:'T9mdf2251037',ch:'20001',ip:'86.98.87.195',dev:'PC',code:'3996.00',grp:'默认',type:'真实用户',blk:'正常',st:'启用',on:'离线',laston:'2026-07-15 17:32:10',nolar:3,supid:'2251037',agent:'',canreb:1,giveup:1,fg:'',bg:'',firstlogin:'2026-07-15',reg:'2026-07-15',vip:'L0',rt:3,ra:'3500.00',flow:'22400.00',prof:'+3100.00',mul:'6.4',firstat:'2026-07-15',lastat:'2026-07-15'},
+ {id:2251031,nick:'MemberNNGT6HZT',box:'0.00',acc:'918745125963',bank:'9187**5963',bal:'866.00',third:'0.0',point:0,redpkg:'红包 0.00',invite:'WyH6S2251031',ch:'20001',ip:'8.211.42.128',dev:'PC',code:'4196.00',grp:'默认',type:'真实用户',blk:'已拉黑',st:'禁用',on:'离线',laston:'2026-07-18 12:11:52',nolar:0,supid:'2251031',agent:'',canreb:0,giveup:0,fg:'',bg:'',firstlogin:'2026-07-15',reg:'2026-07-15',vip:'L0',rt:5,ra:'8200.00',flow:'11500.00',prof:'-2400.00',mul:'1.4',firstat:'2026-07-16',lastat:'2026-07-18'},
+];
+
+/* 自定义列状态：order=当前列顺序(可拖拽)，hidden=隐藏列，pinned=星标置顶列 */
+const COL=Object.fromEntries(COLS.map(c=>[c.k,c]));
+const DEF_ORDER=COLS.filter(c=>c.k!=='ck').map(c=>c.k);   // 原始默认顺序
+const LOCKED=new Set(['id']);                             // 会员ID 必显（不可取消勾选）
+let order=DEF_ORDER.slice();
+let hidden=new Set();
+let pinned=new Set();
+
+/* 星标列优先排到最前，其余保持拖拽顺序 */
+function effOrder(){ return [...order.filter(k=>pinned.has(k)), ...order.filter(k=>!pinned.has(k))]; }
+function visCols(){ return [COL.ck, ...effOrder().filter(k=>!hidden.has(k)).map(k=>COL[k])]; }
+
+/* 渲染表头（按可见列） */
+function renderHead(){
+ document.getElementById('thead').innerHTML = visCols().map(c=>{
+  if(c.k==='ck') return '<th><input type="checkbox" class="ck"></th>';
+  const nw = c.nw?'<span class="tag-new">NEW</span>':'';
+  const q = c.fx?`<span class="q">?<span class="tipsrc">${c.fx}</span></span>`:'';
+  return `<th class="${c.nw?'new':''}">${c.n}${nw}${q}</th>`;
+ }).join('');
+}
+
+/* 单元格渲染 */
+function cell(c,d){
+  const v=d[c.k];
+  switch(c.k){
+    case 'ck': return '<td><input type="checkbox" class="ck"></td>';
+    case 'id': return `<td><span class="uid">${d.id}</span></td>`;
+    case 'bank': {
+      const banks = d.banks || (v==='未绑定'||!v?[]:[v]);
+      if(!banks.length) return `<td class="new mono"><span class="r">未绑定</span></td>`;
+      if(banks.length===1) return `<td class="new mono">${banks[0]}</td>`;
+      const rid='bk'+d.id;
+      const more = banks.slice(1).map(b=>`<div class="bk-item">${b}</div>`).join('');
+      return `<td class="new mono"><span class="bk-main">${banks[0]}</span>`
+        +`<span class="bk-tgl" onclick="toggleBank('${rid}',this)"><span class="arw">▾</span>${banks.length}张</span>`
+        +`<div class="bk-list" id="${rid}" style="display:none">${more}</div></td>`;
+    }
+    case 'bal': case 'box': case 'third': case 'ra': return `<td class="num">${v}</td>`;
+    case 'code': return `<td class="num mut">${v}</td>`;
+    case 'type': return `<td class="g">${v}</td>`;
+    case 'blk': return `<td>${v==='已拉黑'?'<span class="r">已拉黑</span>':'<span class="g">正常</span>'}</td>`;
+    case 'st': return `<td>${v==='禁用'?'<span class="r">禁用</span>':'<span class="g">启用</span>'}</td>`;
+    case 'on': case 'laston': case 'firstlogin': case 'reg': case 'firstat': case 'lastat': return `<td class="mut">${v||'—'}</td>`;
+    case 'nolar': return `<td class="new num">${v==null||v===''?'<span class="r">未登录</span>':v}</td>`;
+    case 'agent': return `<td>${v==='未开通'?'<span class="r">未开通</span>':(v||'')}</td>`;
+    case 'canreb': case 'giveup': return `<td><span class="tg ${v?'':'off'}"></span></td>`;
+    case 'fg': return `<td>${v?('<span class="r">'+v+'</span>'):''}</td>`;
+    case 'flow': return `<td class="new num">${v}</td>`;
+    case 'prof': return `<td class="new">${v==='0.00'?'<span class="mut mono">0.00</span>':(v.startsWith('-')?'<span class="prof-n">'+v+'</span>':'<span class="prof-p">'+v+'</span>')}</td>`;
+    case 'mul': return `<td class="new num">${v?'<span class="mult">'+v+'x</span>':'<span class="mut">—</span>'}</td>`;
+    case 'op': return `<td><span class="op">修改密码</span><span class="op">删除</span><span class="op">三方信息</span></td>`;
+    case 'note': return `<td class="mut"></td>`;
+    default: return `<td>${v==null?'':v}</td>`;
+  }
+}
+function renderBody(){
+ document.getElementById('tbody').innerHTML = DATA.map(d=>'<tr>'+visCols().map(c=>cell(c,d)).join('')+'</tr>').join('');
+}
+function renderTable(){ renderHead(); renderBody(); updateColCnt(); }
+function updateColCnt(){
+ const shown=COLS.filter(c=>c.k!=='ck'&&!hidden.has(c.k)).length, total=COLS.filter(c=>c.k!=='ck').length;
+ document.getElementById('colCnt').textContent=`已显示 ${shown}/${total}`;
+}
+
+/* ===== 自定义列面板（竖向列表 · 即时生效） ===== */
+function buildList(){
+ document.getElementById('cpList').innerHTML = order.map(k=>{
+   const c=COL[k], off=hidden.has(k), lock=LOCKED.has(k), pin=pinned.has(k);
+   return `<div class="cp-row ${off?'off':''} ${lock?'lock':''}" draggable="true" data-k="${k}">
+     <span class="cp-grip">⠿</span>
+     <input type="checkbox" class="cpk" ${off?'':'checked'} ${lock?'disabled':''} onchange="cpTog('${k}')">
+     <span class="cp-lbl" onclick="cpTog('${k}')">${c.n}${c.nw?'<span class="tag-new">NEW</span>':''}</span>
+     <span class="cp-star ${pin?'on':''}" onclick="cpPin('${k}')" title="星标置顶到最前">${pin?'★':'☆'}</span>
+   </div>`;
+ }).join('');
+ bindDrag();
+ document.getElementById('cpAllChk').checked = order.every(k=>!hidden.has(k));
+}
+function cpTog(k){ if(LOCKED.has(k)){buildList();return;} hidden.has(k)?hidden.delete(k):hidden.add(k); buildList(); renderTable(); }
+function cpPin(k){ pinned.has(k)?pinned.delete(k):pinned.add(k); buildList(); renderTable(); }
+function cpToggleAll(on){ hidden = on?new Set():new Set(order.filter(k=>!LOCKED.has(k))); buildList(); renderTable(); }
+function cpReset(){ order=DEF_ORDER.slice(); hidden=new Set(); pinned=new Set(); buildList(); renderTable(); toast('已重置为默认列'); }
+function toggleColPanel(e){ e.stopPropagation(); const p=document.getElementById('colPanel'); if(p.classList.contains('show')){closeColPanel();return;} buildList(); p.classList.add('show'); }
+function closeColPanel(){ document.getElementById('colPanel').classList.remove('show'); }
+document.addEventListener('click',()=>closeColPanel());
+
+/* 拖拽排序 */
+let dragK=null;
+function bindDrag(){
+ document.querySelectorAll('#cpList .cp-row').forEach(row=>{
+   row.addEventListener('dragstart',()=>{dragK=row.dataset.k;row.classList.add('drag');});
+   row.addEventListener('dragend',()=>{row.classList.remove('drag');document.querySelectorAll('#cpList .cp-row').forEach(r=>r.classList.remove('over'));});
+   row.addEventListener('dragover',e=>{e.preventDefault();if(row.dataset.k!==dragK)row.classList.add('over');});
+   row.addEventListener('dragleave',()=>row.classList.remove('over'));
+   row.addEventListener('drop',e=>{e.preventDefault();const to=row.dataset.k;if(dragK&&dragK!==to){order.splice(order.indexOf(dragK),1);order.splice(order.indexOf(to),0,dragK);buildList();renderTable();}});
+ });
+}
+
+renderTable();
+
+/* 多张银行卡展开/收起 */
+function toggleBank(id,el){ const box=document.getElementById(id); const open=box.style.display==='none'; box.style.display=open?'block':'none'; el.classList.toggle('open',open); }
+
+/* 导出字段（含新增，NEW标） */
+const EXP=COLS.filter(c=>c.k!=='ck'&&c.k!=='op'&&c.k!=='note');
+document.getElementById('expcols').innerHTML = EXP.map(c=>`<div class="col ${c.nw?'new':''}" onclick="tog(this)"><span class="cc">✓</span>${c.n}${c.nw?'<span class="tag-new">NEW</span>':''}</div>`).join('');
+document.getElementById('selN').textContent = EXP.length;
+
+/* 右侧需求说明抽屉 */
+function toggleSpec(){ document.getElementById('spec').classList.toggle('open'); document.getElementById('specMask').classList.toggle('open'); }
+
+/* 全局公式浮层：fixed 定位，跨 overflow 容器不被裁剪 */
+const gtip=document.getElementById('gtip');
+document.addEventListener('mouseover',e=>{
+  const q=e.target.closest('.q'); if(!q) return;
+  const src=q.querySelector('.tipsrc'); if(!src) return;
+  gtip.innerHTML=src.innerHTML;
+  gtip.classList.add('show');
+  const r=q.getBoundingClientRect(), gw=250, m=8;
+  let left=r.left+r.width/2-gw/2;
+  left=Math.max(m,Math.min(left,innerWidth-gw-m));
+  gtip.style.left=left+'px'; gtip.style.width=gw+'px';
+  const gh=gtip.offsetHeight;
+  if(r.top-gh-10>0){ gtip.style.top=(r.top-gh-10)+'px'; gtip.classList.add('up'); gtip.classList.remove('down'); }
+  else { gtip.style.top=(r.bottom+10)+'px'; gtip.classList.add('down'); gtip.classList.remove('up'); }
+  gtip.style.setProperty('--ax',(r.left+r.width/2-left)+'px');
+});
+document.addEventListener('mouseout',e=>{ if(e.target.closest('.q')) gtip.classList.remove('show'); });
+
+function query(){toast('已按当前筛选查询，共 48,205 条');}
+function openExp(){document.getElementById('M-exp').classList.add('show');}
+function closeExp(){document.getElementById('M-exp').classList.remove('show');}
+function tog(el){el.classList.toggle('off');document.getElementById('selN').textContent=document.querySelectorAll('#expcols .col:not(.off)').length;}
+function doExp(){closeExp();toast('✅ 导出任务已提交（当前筛选 48,205 条 · CSV）');}
+let tmr;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tmr);tmr=setTimeout(()=>t.classList.remove('show'),1900);}
+document.getElementById('M-exp').addEventListener('click',e=>{if(e.target.id==='M-exp')closeExp();});
+</script>
+</body>
+</html>
