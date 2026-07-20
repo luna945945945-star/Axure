@@ -51,6 +51,22 @@ a{text-decoration:none;color:inherit}
 .tbl td{padding:12px;border-bottom:1px solid #f0f2f5;color:#303133;vertical-align:middle;white-space:nowrap}
 .tbl tbody tr:hover td{background:#fafbff}
 .tbl tbody tr:last-child td{border-bottom:none}
+/* 活动列表：本期新增列(nc) / 状态列(sc) / 不适用(—) */
+.lst-full{font-size:12px;overflow:visible}   /* 覆盖 .tbl 的 overflow:hidden，否则冻结列失效 */
+.lst-full th,.lst-full td{padding:9px 10px}
+.lst-full th.nc{background:#fff4e6;color:#a35200}
+.lst-full td.nc{background:#fffdf8}
+.lst-full th.sc{background:#eef5ff;color:#3a6ea5}
+.lst-full tbody tr:hover td.nc{background:#fff8ee}
+.dash{color:#c0c4cc}
+.sub-sum{font-size:10.5px;color:#909399;margin-top:3px;font-weight:400}
+/* 冻结前两列（活动ID / 活动名称），横向滚动时保持可见 */
+.lst-full th:nth-child(1),.lst-full td:nth-child(1){position:sticky;left:0;z-index:3;width:60px;background:#fff}
+.lst-full th:nth-child(2),.lst-full td:nth-child(2){position:sticky;left:60px;z-index:3;width:150px;box-shadow:2px 0 4px rgba(0,0,0,.05)}
+.lst-full th:nth-child(1){background:#f7f9fc}
+.lst-full th:nth-child(2){background:#fff4e6}
+.lst-full td:nth-child(2){background:#fffdf8}
+.lst-full tbody tr:hover td:nth-child(1){background:#fafbff}
 
 .tag{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:3px;font-size:11px;line-height:18px;white-space:nowrap}
 .tag.green{background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
@@ -72,12 +88,41 @@ a{text-decoration:none;color:inherit}
 .ipt{width:100%;height:32px;padding:0 12px;border:1px solid #dcdfe6;border-radius:4px;font-size:12.5px;color:#303133;outline:none;transition:border-color .15s;background:#fff}
 .ipt:focus{border-color:#7c5cfa;box-shadow:0 0 0 2px rgba(124,92,250,.08)}
 .ipt.err{border-color:#f56c6c;background:#fffafa}
+.ipt:disabled{background:#f5f7fa;color:#c0c4cc;cursor:not-allowed;border-color:#e4e7ed}
 .ipt::placeholder{color:#c0c4cc}
 .hint{font-size:11.5px;color:#67c23a;margin-top:5px;line-height:1.55}
 .hint.gray{color:#909399}
 .hint.warn{color:#e6a23c}
 .err-msg{font-size:11.5px;color:#f56c6c;margin-top:4px;display:none}
 .err-msg.show{display:block}
+
+/* VIP 等级多选（改造点6） */
+.vipbox{position:relative}
+.vipsel{min-height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:4px 28px 4px 8px;background:#fff;cursor:pointer;display:flex;flex-wrap:wrap;gap:4px;align-items:center;position:relative}
+.vipsel:hover{border-color:#7c5cfa}
+.vipsel.on{border-color:#7c5cfa;box-shadow:0 0 0 2px rgba(124,92,250,.08)}
+.vipsel .ph{color:#c0c4cc;font-size:12.5px}
+.vipsel .arw{position:absolute;right:10px;top:9px;color:#c0c4cc;font-size:10px}
+.vt{display:inline-flex;align-items:center;gap:4px;background:#f5f0ff;color:#7c5cfa;border:1px solid #e1d3ff;font-size:11.5px;font-weight:600;padding:1px 6px;border-radius:3px}
+.vt .x{cursor:pointer;font-size:11px}
+.vt .x:hover{color:#f56c6c}
+.vpanel{display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;background:#fff;border:1px solid #dcdfe6;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.14);z-index:60;padding:10px 12px}
+.vpanel.show{display:block}
+.vp-quick{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:9px;margin-bottom:9px;border-bottom:1px dashed #ebeef5}
+.qk{font-size:11.5px;padding:3px 10px;border:1px solid #e1d3ff;color:#7c5cfa;background:#f5f0ff;border-radius:11px;cursor:pointer;font-weight:600}
+.qk:hover{background:#7c5cfa;color:#fff}
+.qk.gray{background:#f4f4f5;border-color:#e9e9eb;color:#909399}
+.qk.gray:hover{background:#909399;color:#fff}
+.vp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.vi{display:flex;align-items:center;gap:5px;font-size:12px;padding:5px 7px;border:1px solid #ebeef5;border-radius:4px;cursor:pointer;user-select:none}
+.vi.on{border-color:#e1d3ff;background:#f5f0ff;color:#7c5cfa;font-weight:600}
+.vi.dup{border-color:#ffd591;background:#fffaf3}
+.vi.dup.on{border-color:#e1d3ff;background:#f5f0ff}
+.dup-dot{margin-left:auto;color:#fa8c16;font-weight:700}
+.vip-warn{display:none;background:#fffaf2;border:1px solid #ffd591;border-radius:4px;padding:7px 10px;font-size:11.5px;color:#8a5a00;margin-top:6px;line-height:1.65}
+.vi input{accent-color:#7c5cfa;width:13px;height:13px;pointer-events:none}
+.vip-err{background:#fef0f0;border:1px solid #fbc4c4;border-radius:4px;padding:7px 10px;font-size:11.5px;color:#cf1322;margin-top:6px;display:none;line-height:1.6}
+.vip-err.show{display:block}
 
 /* 弹窗 */
 .mask{position:fixed;inset:0;background:rgba(15,18,30,.45);display:none;align-items:flex-start;justify-content:center;z-index:100;overflow:auto;padding:30px 0 60px}
@@ -261,55 +306,102 @@ a{text-decoration:none;color:inherit}
         <div class="ntc-item"><span class="ntc-ic">3️⃣</span><div><b>2选1必填</b>：累充奖励 / 新充值赠送<b>至少完整配置一项</b>即可保存；未配置的区块对应活动开关置灰。</div></div>
         <div class="ntc-item"><span class="ntc-ic">4️⃣</span><div><b>登录主动弹窗</b>：指定ID命中且新充值开关=开，<b>未完成新充值前每次登录主动弹出</b>活动弹窗；有效期<span class="em">首次登录激活</span>。</div></div>
         <div class="ntc-item"><span class="ntc-ic">5️⃣</span><div><b>活动名称</b>：新增必填字段，仅后台使用不下发前端。</div></div>
+        <div class="ntc-item"><span class="ntc-ic">6️⃣</span><div><b>VIP等级过滤（按条件全员）</b>：条件过滤新增 <span class="em">VIP等级多选</span>，不选=不限；运营的分档（普通会员/VIP1-2/VIP3-4/VIP5以上）= <b>建多条规则</b>各设范围与奖励；<b>等级允许重叠</b>，会员同时命中多条时<b>只发奖励最高的一条</b>。</div></div>
       </div>
     </div>
     <button class="btn btn-pp" onclick="openEdit()">＋ 新增会员回归奖励</button>
   </div>
 
-  <!-- 列表片段 -->
+  <!-- 列表片段：一比一还原现有列 + 本期新增列(NEW) -->
   <div class="card">
-    <div class="card-ttl">规则列表（改造点：活动名称列 + 互斥取高标识）</div>
+    <div class="card-ttl">活动列表 <span style="font-weight:400;color:#909399;font-size:12px">（橙色表头为本期新增列）</span></div>
     <div style="overflow-x:auto">
-    <table class="tbl">
+    <table class="tbl lst-full">
       <thead><tr>
-        <th>ID</th><th>活动名称 <span class="new-mark">NEW</span></th><th>适用对象</th><th>累充奖励</th><th>新充值赠送</th>
-        <th>累充活动状态</th><th>新充值活动状态</th><th>操作</th>
+        <th>活动ID</th>
+        <th class="nc">活动名称 <span class="new-mark">NEW</span></th>
+        <th>适用对象</th>
+        <th class="nc">VIP等级 <span class="new-mark">NEW</span></th>
+        <th>会员离线天数</th>
+        <th>会员历史累计充值金额</th>
+        <th>累计总充值次数</th>
+        <th>累计充提差</th>
+        <th>累充固定奖金</th>
+        <th>累充百分比奖金(%)</th>
+        <th>累充赠送上限</th>
+        <th class="sc">累充活动状态</th>
+        <th>新充值赠送比例（%）</th>
+        <th>新充值赠送上限（每会员）</th>
+        <th>回归赠送有效期（h）</th>
+        <th class="nc">与通道奖励发放规则 <span class="new-mark">NEW</span></th>
+        <th class="sc">新充值活动状态</th>
+        <th>操作人</th><th>操作时间</th><th>创建日期</th><th>操作</th>
       </tr></thead>
       <tbody>
+        <!-- 存量全员规则 -->
+        <tr>
+          <td>1</td>
+          <td class="nc"><b>回归奖励-1</b></td>
+          <td>全员<div class="sub-sum">离线&gt;7天 · 累充≥10000</div></td>
+          <td class="nc"><span class="tag purple">普通会员</span></td>
+          <td>7</td><td>10000</td><td>1</td><td>不限制</td>
+          <td>50</td><td>0</td><td>不限制</td>
+          <td class="sc"><span class="tag gray">关闭</span></td>
+          <td>1</td><td>不限制</td><td>1</td>
+          <td class="nc"><span class="dash">—</span></td>
+          <td class="sc"><span class="tag gray">关闭</span></td>
+          <td>luna</td><td>2026-07-20 10:36</td><td>2026-07-20 10:36</td>
+          <td><button class="btn btn-pp btn-sm" onclick="openEdit(1)">编辑</button> <button class="btn btn-d btn-sm" onclick="copyRule(1)">复制</button> <button class="btn btn-d btn-sm" data-on="0" onclick="toggleRule(this,1)">启用</button></td>
+        </tr>
+        <!-- 本期新增：全员按VIP分档 -->
         <tr>
           <td>23</td>
-          <td><b>7月大R召回·第一批</b></td>
-          <td><span class="tag purple">🎯 指定 48,650 人</span></td>
-          <td>固定₨200 + 1.5%</td>
-          <td>8% · 上限₨500 · 72h <span class="tag orange" title="与通道奖励互斥取高">互斥取高</span></td>
-          <td><span class="tag green">开启</span></td>
-          <td><span class="tag green">开启</span></td>
-          <td><button class="btn btn-d btn-sm" onclick="openEdit()">编辑</button><button class="btn btn-d btn-sm">名单</button></td>
+          <td class="nc"><b>7月VIP召回·VIP1-2</b></td>
+          <td>全员<div class="sub-sum">离线&gt;12天 · 累充不限</div></td>
+          <td class="nc"><span class="tag purple">VIP1–VIP2</span></td>
+          <td>12</td><td>0</td><td>0</td><td>不限制</td>
+          <td>38</td><td>0</td><td>不限制</td>
+          <td class="sc"><span class="tag green">开启</span></td>
+          <td>10</td><td>500</td><td>72</td>
+          <td class="nc"><span class="dash">—</span></td>
+          <td class="sc"><span class="tag green">开启</span></td>
+          <td>luna</td><td>2026-07-20 11:02</td><td>2026-07-20 11:02</td>
+          <td><button class="btn btn-pp btn-sm" onclick="openEdit(23)">编辑</button> <button class="btn btn-d btn-sm" onclick="copyRule(23)">复制</button> <button class="btn btn-d btn-sm" data-on="1" onclick="toggleRule(this,23)">停用</button></td>
         </tr>
+        <!-- 指定ID：条件过滤整组不适用 -->
+        <tr>
+          <td>24</td>
+          <td class="nc"><b>7月大R召回·第一批</b></td>
+          <td><span class="tag purple">指定 48,650 人</span><div class="sub-sum">跳过条件过滤</div></td>
+          <td class="nc"><span class="dash">—</span></td>
+          <td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td>
+          <td>200</td><td>1.5</td><td>不限制</td>
+          <td class="sc"><span class="tag green">开启</span></td>
+          <td>8</td><td>500</td><td>72</td>
+          <td class="nc"><span class="tag orange">互斥取高</span></td>
+          <td class="sc"><span class="tag green">开启</span></td>
+          <td>luna</td><td>2026-07-20 14:32</td><td>2026-07-17 09:10</td>
+          <td><button class="btn btn-pp btn-sm" onclick="openEdit(24)">编辑</button> <button class="btn btn-d btn-sm" onclick="copyRule(24)">复制</button> <button class="btn btn-d btn-sm" onclick="toast('名单抽屉：查看/追加本规则已导入的会员ID')">名单</button> <button class="btn btn-d btn-sm" data-on="1" onclick="toggleRule(this,24)">停用</button></td>
+        </tr>
+        <!-- 指定ID：仅配新充值（2选1） -->
         <tr>
           <td>22</td>
-          <td><b>流失渠道用户挽回</b></td>
-          <td><span class="tag purple">🎯 指定 5,000 人</span></td>
-          <td style="color:#c0c4cc">— 未配置</td>
-          <td>10% · 不限 · 48h <span class="tag blue" title="只发回归奖励，通道奖励本单不发">回归优先</span></td>
-          <td><span class="tag gray" title="累充未配置，开关置灰">未配置</span></td>
-          <td><span class="tag green">开启</span></td>
-          <td><button class="btn btn-d btn-sm" onclick="openEdit()">编辑</button><button class="btn btn-d btn-sm">名单</button></td>
-        </tr>
-        <tr>
-          <td>10</td>
-          <td><b>回归奖励-10（存量回填）</b></td>
-          <td><span class="tag blue">🌐 全员（条件匹配）</span></td>
-          <td>固定₨100 + 1%</td>
-          <td>5% · 上限₨200 · 72h</td>
-          <td><span class="tag green">开启</span></td>
-          <td><span class="tag red">关闭</span></td>
-          <td><button class="btn btn-d btn-sm" onclick="openEdit()">编辑</button></td>
+          <td class="nc"><b>流失渠道用户挽回</b></td>
+          <td><span class="tag purple">指定 5,000 人</span><div class="sub-sum">跳过条件过滤</div></td>
+          <td class="nc"><span class="dash">—</span></td>
+          <td class="dash">—</td><td class="dash">—</td><td class="dash">—</td><td class="dash">—</td>
+          <td class="dash">未配置</td><td class="dash">未配置</td><td class="dash">—</td>
+          <td class="sc"><span class="tag gray">未配置</span></td>
+          <td>10</td><td>不限制</td><td>48</td>
+          <td class="nc"><span class="tag blue">回归优先</span></td>
+          <td class="sc"><span class="tag green">开启</span></td>
+          <td>luna</td><td>2026-07-18 16:20</td><td>2026-07-18 16:20</td>
+          <td><button class="btn btn-pp btn-sm" onclick="openEdit(22)">编辑</button> <button class="btn btn-d btn-sm" onclick="copyRule(22)">复制</button> <button class="btn btn-d btn-sm" onclick="toast('名单抽屉：查看/追加本规则已导入的会员ID')">名单</button> <button class="btn btn-d btn-sm" data-on="1" onclick="toggleRule(this,22)">停用</button></td>
         </tr>
       </tbody>
     </table>
     </div>
-    <div class="mini-note">💡 <b>与通道奖励发放规则标识</b>：仅指定ID规则的「新充值赠送」列展示，对应规则内下拉配置：<span class="tag orange">互斥取高</span>按封顶后实际金额取高只发一笔；<span class="tag blue">回归优先</span>只发回归奖励不发通道奖励；<span class="tag gray">叠加</span>两者同发（现状）。全员规则无此标识。</div>
+    <div class="mini-note">💡 <b>列说明</b>：<b>VIP等级</b> 仅「全员」规则有值，不选时显示「不限」；「指定 ID」规则跳过全部条件过滤，条件类列统一显示「—」。<b>与通道奖励发放规则</b> 仅「指定 ID」规则有值：<span class="tag orange">互斥取高</span> 只发较高一项 / <span class="tag blue">回归优先</span> 只发回归奖励 / <span class="tag gray">叠加</span> 两者同发。未配置的奖励区块对应状态显示「未配置」且开关不可开启。</div>
   </div>
 
   <!-- 领取记录改造 -->
@@ -514,27 +606,68 @@ a{text-decoration:none;color:inherit}
     </div>
     <div class="modal-bd">
 
+      <!-- 适用对象（先选模式，下方字段随之联动） -->
+      <div class="frm-row">
+        <label class="lb"><span class="req">*</span>适用对象</label>
+        <div class="frm-ct">
+          <label style="margin-right:18px;font-size:12.5px"><input type="radio" name="scope" value="all" onchange="onScope()"> 按条件全员</label>
+          <label style="font-size:12.5px"><input type="radio" name="scope" value="ids" checked onchange="onScope()"> 指定/导入 ID</label>
+        </div>
+      </div>
+
       <!-- 活动名称 -->
       <div class="frm-row">
         <label class="lb"><span class="req">*</span>活动名称 <span class="new-mark">NEW</span></label>
         <div class="frm-ct">
-          <input class="ipt" id="fName" placeholder="必填，≤50字，仅后台使用不下发前端" value="">
+          <input class="ipt" id="fName" placeholder="必填，最多 50 字，如「7月大R召回·第一批」" value="">
           <div class="err-msg" id="eName">请输入活动名称</div>
-          <div class="hint gray">用于列表/领取记录/操作日志展示，如「7月大R召回·第一批」。存量规则按「回归奖励-{ID}」回填。</div>
         </div>
       </div>
 
-      <!-- 适用对象 -->
-      <div class="frm-row">
-        <label class="lb"><span class="req">*</span>适用对象</label>
-        <div class="frm-ct">
-          <label style="margin-right:18px;font-size:12.5px"><input type="radio" name="scope" > 按条件全员</label>
-          <label style="font-size:12.5px"><input type="radio" name="scope" checked> 指定/导入 ID</label>
+      <!-- ▼▼▼ 改造点6：条件过滤 · VIP等级（仅按条件全员模式） ▼▼▼ -->
+      <div id="blkCond" style="display:none">
+        <div class="sec-hd">
+          <span>▎条件过滤</span>
+          <span style="margin-left:auto;font-size:11px;color:#909399">同时满足以下条件的会员才会命中本规则</span>
+        </div>
+        <div class="frm-row">
+          <label class="lb"><span class="req">*</span>会员离线天数 &gt;</label>
+          <div class="frm-ct"><input class="ipt" id="fDays" placeholder="必填，且只能输入 >0"></div>
+        </div>
+        <div class="frm-row">
+          <label class="lb">VIP等级 <span class="new-mark">NEW</span></label>
+          <div class="frm-ct">
+            <div class="vipbox">
+              <div class="vipsel" id="vipSel" onclick="toggleVip(event)"><span class="ph">不限（对全部等级生效）</span><span class="arw">▾</span></div>
+              <div class="vpanel" id="vPanel" onclick="event.stopPropagation()">
+                <div class="vp-quick">
+                  <span class="qk gray" onclick="qk('all')">全选</span>
+                  <span class="qk gray" onclick="qk('none')">清空</span>
+                  <span style="margin-left:auto;font-size:11px;color:#909399;align-self:center">带 • 的等级已被其他规则使用，仍可选</span>
+                </div>
+                <div class="vp-grid" id="vGrid"></div>
+              </div>
+            </div>
+            <div class="vip-warn" id="vipWarn"></div>
+            <div class="hint gray">VIP等级可多选；按会员<b>发放当时</b>的等级判定。</div>
+          </div>
+        </div>
+        <div class="frm-row">
+          <label class="lb"><span class="req">*</span>会员历史累充金额 &gt;=</label>
+          <div class="frm-ct"><input class="ipt" id="fAmt" placeholder="必填，填 0 = 不限累充金额"></div>
+        </div>
+        <div class="frm-row">
+          <label class="lb"><span class="req">*</span>会员历史累充次数 &gt;=</label>
+          <div class="frm-ct"><input class="ipt" id="fCnt" placeholder="必填，填 0 = 不限；填 1 = 只召回充值过的会员"></div>
+        </div>
+        <div class="frm-row">
+          <label class="lb">会员历史累计充提差 &gt;=</label>
+          <div class="frm-ct"><input class="ipt" id="fDiff" placeholder="选填，留空或 0 = 不限充提差（充值 − 提现）"></div>
         </div>
       </div>
 
       <!-- ID 名单 -->
-      <div class="frm-row">
+      <div class="frm-row" id="blkIds">
         <label class="lb"><span class="req">*</span>会员 ID 列表</label>
         <div class="frm-ct">
           <div class="id-tabs">
@@ -546,7 +679,7 @@ a{text-decoration:none;color:inherit}
             已确认名单：<b style="color:#7c5cfa;font-family:Menlo,monospace">48,650</b> 个
             <button class="btn btn-d btn-sm" style="margin-left:8px" onclick="openImport()">重新导入</button>
           </div>
-          <div class="hint">单次导入上限 <b style="color:#cf1322">50,000</b>（原5,000），单条规则累计 ≤ 50,000。<span class="new-mark">NEW</span></div>
+          <div class="hint">单次导入最多 <b style="color:#cf1322">50,000</b> 个ID，单条规则累计不超过 50,000。<span class="new-mark">NEW</span></div>
         </div>
       </div>
 
@@ -560,22 +693,23 @@ a{text-decoration:none;color:inherit}
       <div class="frm-row">
         <label class="lb"><span class="req" id="rqA1">*</span>累充固定奖金</label>
         <div class="frm-ct">
-          <input class="ipt" id="fFixed" placeholder="留空=不配置累充奖励；填写后本区块整体必填" oninput="onBlockInput()">
+          <input class="ipt" id="fFixed" placeholder="留空 = 不配置累充固定奖金" oninput="onBlockInput()">
           <div class="err-msg" id="eA1">已填写累充区块，固定奖金必填（可为0，但不能与百分比同为0）</div>
         </div>
       </div>
       <div class="frm-row">
         <label class="lb"><span class="req" id="rqA2">*</span>累充百分比奖金(%)</label>
         <div class="frm-ct">
-          <input class="ipt" id="fPct" placeholder="留空=不配置累充奖励；填写后本区块整体必填" oninput="onBlockInput()">
+          <input class="ipt" id="fPct" placeholder="留空 = 不配置累充百分比奖金" oninput="onBlockInput()">
           <div class="err-msg" id="eA2">已填写累充区块，百分比必填（可为0，但不能与固定同为0）</div>
-          <div class="hint">输入值1即1%：会员历史总充值100元获得1元回归奖励（固定与百分比不能同为0）。</div>
+          <div class="hint">按历史总充值额外再送：填 1 即 1%，历史充值 100 可再得 1。<b>只发固定金额时此项填 0</b>（两项不能同时为 0）。</div>
         </div>
       </div>
       <div class="frm-row">
         <label class="lb"><span class="req off">*</span>累充赠送上限</label>
         <div class="frm-ct">
-          <input class="ipt" placeholder="选填，不填或填0时不限制（固定+百分比两项总和封顶值）">
+          <input class="ipt" id="fCapA" placeholder="选填，留空或 0 = 不限制累充赠送上限">
+          <div class="hint gray">封顶「固定奖金 + 百分比奖金」两项之和。例：填 500，则两项合计最多发 500。</div>
         </div>
       </div>
 
@@ -588,26 +722,28 @@ a{text-decoration:none;color:inherit}
       <div class="frm-row">
         <label class="lb"><span class="req" id="rqB1">*</span>新充值赠送比例(%)</label>
         <div class="frm-ct">
-          <input class="ipt" id="fRate" placeholder="留空=不配置新充值赠送；填写后本区块整体必填（>0且≤100）" oninput="onBlockInput()">
+          <input class="ipt" id="fRate" placeholder="留空 = 不配置新充值赠送比例（0~100）" oninput="onBlockInput()">
           <div class="err-msg" id="eB1">已填写新充值区块，赠送比例必填且需 >0 ≤100</div>
+          <div class="hint gray">会员回归后<b>再次充值</b>时按此比例赠送，如填 8 = 充 100 送 8。</div>
         </div>
       </div>
       <div class="frm-row">
-        <label class="lb"><span class="req off">*</span>新充值赠送上限（每会员累计）</label>
+        <label class="lb"><span class="req off">*</span>新充值赠送上限</label>
         <div class="frm-ct">
-          <input class="ipt" placeholder="选填，累计达到则该会员失效，不填或填0时不限制">
+          <input class="ipt" id="fCapB" placeholder="选填，留空或 0 = 不限制每会员累计赠送">
+          <div class="hint gray">单个会员累计赠送达到该金额后，本活动对他失效，不再赠送。</div>
         </div>
       </div>
       <div class="frm-row">
         <label class="lb"><span class="req" id="rqB2">*</span>回归赠送有效期(小时)</label>
         <div class="frm-ct">
-          <input class="ipt" id="fValid" placeholder="1~168 小时（最长7天）" oninput="onBlockInput()">
+          <input class="ipt" id="fValid" placeholder="必填，1~168 小时（最长 7 天）" oninput="onBlockInput()">
           <div class="err-msg" id="eB2">已填写新充值区块，有效期必填（1~168）</div>
-          <div class="hint">指定ID模式下有效期自会员<b style="color:#cf1322">首次登录激活</b>（导入时仅写资格，登录才起算倒计时）。<span class="new-mark">NEW</span></div>
+          <div class="hint" id="validHint">有效期自会员<b style="color:#cf1322">首次登录激活</b>起算（导入时仅写资格，登录后才开始倒计时）。<span class="new-mark">NEW</span></div>
         </div>
       </div>
-      <div class="frm-row">
-        <label class="lb"><span class="req">*</span>与通道奖励发放规则 <span class="new-mark">NEW</span></label>
+      <div class="frm-row" id="blkMutex">
+        <label class="lb"><span class="req" id="rqMutex">*</span>与通道奖励发放规则 <span class="new-mark">NEW</span></label>
         <div class="frm-ct">
           <select class="ipt" id="fMutexSel" onchange="onMutexSelChange()">
             <option value="max" selected>互斥取高（默认）</option>
@@ -615,12 +751,12 @@ a{text-decoration:none;color:inherit}
             <option value="stack">叠加</option>
           </select>
           <div class="hint" id="mutexHint">互斥取高：充值回调按封顶后实际金额比较「回归奖励 vs 通道奖励」，只发较高一项。</div>
-          <div class="hint warn">⚠️ 仅「指定/导入 ID」模式显示；「按条件全员」模式无此配置（维持叠加现状）。</div>
+          <div class="hint gray" id="mutexLock" style="display:none">👆 先填写上方「新充值赠送比例」，本项才可配置。<b>本项只影响新充值赠送，不影响累充奖励。</b></div>
         </div>
       </div>
 
       <div class="mini-note" id="blockRule">
-        📌 <b>2选1必填规则</b>：① 两个区块<b>至少完整配置一项</b>，两块全空禁止保存；② 某区块只要填写了任一字段，该区块内必填项整体生效；③ 未配置的区块对应活动开关自动置灰不可开启（后端同步兜底校验）。
+        📌 <b>累充奖励 / 新充值赠送 至少配置一项</b>：① 两项都不填无法保存；② 某一项只要填了任一栏，该项内的必填项就要填完整；③ 没配置的那一项，对应活动开关会置灰、无法开启。
       </div>
     </div>
     <div class="modal-ft">
@@ -699,7 +835,7 @@ a{text-decoration:none;color:inherit}
 <div class="doc-trigger" onclick="document.getElementById('docDrawer').classList.add('open')">需求说明</div>
 <div class="doc-drawer" id="docDrawer">
   <div class="doc-hd">
-    <div class="t">📋 需求说明 · 会员回归奖励 V2（5项改造）</div>
+    <div class="t">📋 需求说明 · 会员回归奖励 V2（6项改造）</div>
     <button class="x" style="border:none;background:none;font-size:17px;color:#909399;cursor:pointer" onclick="document.getElementById('docDrawer').classList.remove('open')">✕</button>
   </div>
   <div class="doc-bd">
@@ -729,7 +865,13 @@ a{text-decoration:none;color:inherit}
       ① 前置条件：用户存在<b>生效中的指定ID新充值奖励记录</b>，用户进行首充时需要<b>前置判断与对应所选通道的通道奖励是否互斥</b>；若无命中生效中的指定ID记录，则正常走通道奖励；<br>
       ② 发放回归奖励时：按回归打码倍数计打码，计入「新充值赠送上限（每会员累计）」；<br>
       ③ 互斥取高下取通道奖励时：该笔回归新充值奖励记录置为<b>「已过期/已取消」</b>，不再参与后续充值判断。</p>
-      <p class="em">范围：仅「指定/导入ID」模式；「按条件全员」模式维持现状（可叠加），两种模式行为差异已与运营确认。</p>
+      <p class="em">适用范围（两个条件同时成立才可配置）：① 仅「指定/导入ID」模式；② 仅作用于<b>新充值赠送</b>，<b>不影响累充奖励</b>。「按条件全员」模式维持现状（可叠加）。</p>
+      <table class="doc-tbl">
+        <tr><th style="width:230px">场景</th><th>配置交互</th></tr>
+        <tr><td>适用对象 = 按条件全员</td><td><b>整项不展示</b>（与「条件过滤区在指定ID模式下不展示」对称）</td></tr>
+        <tr><td>指定ID + 新充值赠送未配置</td><td>下拉<b>置灰不可选</b>、必填星号隐藏，提示「先填写上方新充值赠送比例，本项才可配置」</td></tr>
+        <tr><td>指定ID + 新充值赠送已配置</td><td>正常可选，默认<b>互斥取高</b></td></tr>
+      </table>
       <p>⚠️ 开发注意：V1 充值回调发放通道赠送在存储过程内，本改动需在回调链路增加前置判断分支，涉及核心资金链路，需重点回归测试（普通用户充值、全员模式用户充值不受影响）。</p>
     </div>
 
@@ -758,7 +900,7 @@ a{text-decoration:none;color:inherit}
 
     <div class="doc-sec">
       <div class="ds-t">5. 活动名称</div>
-      <p>① 表新增 ActivityName（nvarchar(100)，必填，≤50字）；新增/编辑弹窗置顶第一个字段；<br>
+      <p>① 表新增 ActivityName（nvarchar(100)，必填，≤50字）；新增/编辑弹窗中置于「适用对象」下方（先选模式、再命名）；<br>
       ② 展示位置：规则列表、名单抽屉标题、操作日志；<br>
       ③ <b>回归奖励领取记录页</b>：筛选条新增「活动名称」下拉（含已删除规则，标记「已删除」）；列表新增「活动名称」列，点击可跳转对应规则；<br>
       ④ <b>仅后台使用，不下发前端</b>（避免多语言问题），前端弹窗维持现有固定多语言文案；<br>
@@ -766,7 +908,31 @@ a{text-decoration:none;color:inherit}
     </div>
 
     <div class="doc-sec">
-      <div class="ds-t">6. 已确认决策记录</div>
+      <div class="ds-t">6. VIP等级过滤（按条件全员模式） <span class="new-mark">NEW</span></div>
+      <p><b>需求</b>：运营需按 VIP 等级分档召回（普通会员₨18 / VIP1–VIP2₨38 / VIP3–VIP4₨68 / VIP5以上₨118）。<br>
+      <b>方案</b>：VIP等级作为<b>条件过滤项</b>（不做档位子表）——分档 = <b>建多条规则</b>，每条自设 VIP 范围 + 沉默条件 + 奖励。理由：各档<b>沉默条件本就不同</b>（普通会员需「12天未登录<b>且有充值历史</b>」，VIP档只需「12天未登录」），档位子表满足不了；且规则表本就支持多条。</p>
+      <table class="doc-tbl">
+        <tr><th style="width:170px">项</th><th>规格</th></tr>
+        <tr><td>控件</td><td>下拉多选（含「全选 / 清空」），选一个即为单选</td></tr>
+        <tr><td>不选时</td><td>= <b>不限</b>，对全部等级生效</td></tr>
+        <tr><td>生效范围</td><td>仅「按条件全员」模式；<b>指定/导入ID 模式跳过全部条件过滤（含VIP）</b></td></tr>
+        <tr><td class="em">等级可重叠</td><td><b>允许多条规则使用同一 VIP 等级</b>（VIP 只是条件之一，不作互斥分区键）。典型场景：同为 VIP1-2，但按<b>沉默深度</b>（离线&gt;12天 ₨38 / 离线&gt;30天 ₨88）或<b>价值分层</b>（累充≥1000 / ≥10000）配成多条。面板内已被其他规则使用的等级标 <b>•</b> 并悬停说明，<b>仍可选</b>；选中后下方给软提示，<b>不阻断保存</b>。</td></tr>
+        <tr><td class="em">命中多条时的取舍</td><td>会员<b>同时满足多条规则全部条件</b>时，<b>只发奖励最高的一条</b>，不重复发放（沿用改造点2「互斥取高」的一致语义）。<br>· <b>累充奖励</b>：按封顶后的实际发放金额比较，取高者发放；<br>· <b>新充值赠送</b>：<b>只保留一条资格</b>，取赠送比例最高的一条（比例相同取有效期较长者），避免充值时比例不可预期。</td></tr>
+        <tr><td>等级判定时点</td><td><b>发放时的实时 VIP</b>（会员在沉默期可能升降级，以发放时为准）</td></tr>
+        <tr><td>无VIP记录</td><td>按<b>普通会员(0)</b>处理（<code>ISNULL(Vip_Level,0)</code>）</td></tr>
+      </table>
+      <p><b>V1 事实（已核实）</b>：<br>
+      ① VIP等级现成且实时：<code>tab_VipUsers.LevelId</code>，会员视图暴露为 <code>vw_tab_Users.Vip_Level</code>；<br>
+      ② <b>会员注册即初始化为 VIP0</b>（<code>sp_Set_UserRegister</code> 建号时即插入VIP记录，注释「初始化用户VIP等级为0级」），另有经验任务 <code>sp_Set_Vip_ComputingExp</code>（「默认所有会员都是VIP」）给 <code>UserState=1</code> 且无记录者补建 LevelId=0；<br>
+      ③ 故「无VIP记录」仅见于：历史老数据未跑补建 / <b>被禁用会员</b>（补建只处理启用态）/ 非注册流程建的号；<br>
+      ④ 先例：会员列表已有VIP筛选 <code>and Vip_Level={x}</code>（单值等于），本次多选改为 <code>IN (...)</code> 即可。</p>
+      <p>开发改动：规则表新增一列存选中等级（如 <code>VipLevels varchar</code>，"1,2"；<b>空=不限</b>）；弹窗条件过滤区加多选控件；匹配时加 <code>AND ISNULL(Vip_Level,0) IN (...)</code>；<b>发放层做命中去重与取高</b>。<b>约 1–2 人日。</b></p>
+      <p class="em">⚠️ 上线前须核对：<code>tab_VipLevel.Id</code> 为 IDENTITY(1,1) 从 <b>1</b> 开始，而注册取的是「升级经验=0 那一档的 Id」、查不到才回落 <b>0</b> —— 线上可能<b>同时存在 LevelId=0 与 LevelId=1 两种「普通会员」</b>，需确认「普通会员」实际取值（必要时同时覆盖 0 和 1，或先统一数据）。</p>
+      <p>⚠️ 另需定位：会员<b>命中哪条规则的匹配逻辑</b>不在 Ar.V1.Service 内（仅见报表读取），可能在 V1 老站点或定时任务，开发需先确认改造位置。</p>
+    </div>
+
+    <div class="doc-sec">
+      <div class="ds-t">7. 已确认决策记录</div>
       <table class="doc-tbl">
         <tr><th style="width:200px">决策点</th><th>结论</th></tr>
         <tr><td>与通道奖励发放规则</td><td>充值回调前置判断 · 仅指定ID模式 · 下拉三选项：互斥取高（默认）/ 回归新充值奖励优先 / 叠加</td></tr>
@@ -774,6 +940,7 @@ a{text-decoration:none;color:inherit}
         <tr><td>倒计时起点</td><td>首次登录激活</td></tr>
         <tr><td>弹窗策略</td><td>指定ID命中：未完成新充值前每次登录主动弹出，完成后不再弹出；原悬浮球手动唤起保留</td></tr>
         <tr><td>活动名称</td><td>仅后台使用，不下发前端</td></tr>
+        <tr><td>VIP等级过滤 <span class="new-mark">NEW</span></td><td>作过滤条件（非档位子表）· 分档=建多条规则 · <b>等级允许重叠</b>，命中多条时<b>只发奖励最高的一条</b>（新充值赠送只保留比例最高的一条资格）· 取发放时实时VIP · 无记录按普通会员(0)</td></tr>
       </table>
     </div>
   </div>
@@ -799,8 +966,131 @@ function toast(msg,cls){
 }
 
 /* ============ 编辑弹窗 & 2选1校验 ============ */
-function openEdit(){document.getElementById('modalEdit').classList.add('open')}
+/* 演示用规则数据（编辑/复制时回填） */
+const RULES={
+  1 :{name:'回归奖励-1',        scope:'all',vips:[0],  days:7, amt:10000,cnt:1,diff:'',fixed:50, pct:0,  capA:'',rate:1, capB:'', valid:1, mutex:'max',   on:false},
+  23:{name:'7月VIP召回·VIP1-2', scope:'all',vips:[1,2],days:12,amt:0,    cnt:0,diff:'',fixed:38, pct:0,  capA:'',rate:10,capB:500,valid:72,mutex:'max',   on:true },
+  24:{name:'7月大R召回·第一批', scope:'ids',vips:[],   days:'',amt:'',   cnt:'',diff:'',fixed:200,pct:1.5,capA:'',rate:8, capB:500,valid:72,mutex:'max',   on:true },
+  22:{name:'流失渠道用户挽回',  scope:'ids',vips:[],   days:'',amt:'',   cnt:'',diff:'',fixed:'', pct:'', capA:'',rate:10,capB:'', valid:48,mutex:'return',on:true }
+};
+const V=(id,val)=>{const e=document.getElementById(id); if(e) e.value=(val==null?'':val);};
+
+/* id 为空 = 新增（全部留空）；传 id = 编辑（回填）；copy=true = 以该规则为模板新建 */
+function openEdit(id,copy){
+  const r = (id!=null && RULES[id]) ? RULES[id] : null;
+  editRuleId = (r && !copy) ? id : null;             // 复制视为新增，不排除自身占用
+  document.querySelector('#modalEdit .modal-hd .t').textContent =
+    r ? (copy ? '复制新增会员回归奖励' : '编辑会员回归奖励') : '新增会员回归奖励';
+
+  V('fName', r ? (copy ? r.name+'（副本）' : r.name) : '');
+  V('fDays', r?r.days:'');  V('fAmt', r?r.amt:'');  V('fCnt', r?r.cnt:'');  V('fDiff', r?r.diff:'');
+  V('fFixed',r?r.fixed:''); V('fPct', r?r.pct:'');  V('fCapA',r?r.capA:'');
+  V('fRate', r?r.rate:'');  V('fCapB',r?r.capB:''); V('fValid',r?r.valid:'');
+  const ms=document.getElementById('fMutexSel'); if(ms) ms.value = r? r.mutex : 'max';
+
+  // 完整复制（等级允许重叠，VIP 一并复制，运营按需改动即可）
+  picked = new Set(r ? r.vips : []);
+  const sc = r ? r.scope : 'ids';
+  document.querySelector('input[name=scope][value="'+sc+'"]').checked = true;
+
+  document.getElementById('modalEdit').classList.add('open');
+  onScope(); onBlockInput();
+  document.querySelector('.modal-bd').scrollTop=0;
+  if(copy) toast('已复制「'+r.name+'」的全部配置，请按需修改条件与奖励','ok');
+}
+function copyRule(id){ openEdit(id,true); }
+function toggleRule(el,id){
+  const on = el.dataset.on==='1';
+  el.dataset.on = on?'0':'1';
+  el.textContent = on?'启用':'停用';
+  toast(on?('已停用「'+RULES[id].name+'」'):('已启用「'+RULES[id].name+'」'),'ok');
+}
 function closeEdit(){document.getElementById('modalEdit').classList.remove('open')}
+
+/* ============ 改造点6：VIP等级过滤 ============ */
+const LEVELS=[{v:0,n:'普通会员'}].concat(Array.from({length:10},(_,i)=>({v:i+1,n:'VIP'+(i+1)})));
+let picked=new Set();
+let editRuleId=null;              // 编辑中的规则ID（校验时排除自身）
+/* 已存在的「按条件全员」规则及其VIP范围（[]=不限，覆盖全部等级） */
+const EXIST_ALL=[
+  {id:1, name:'回归奖励-1',          vips:[0]},
+  {id:23,name:'7月VIP召回·VIP1-2',   vips:[1,2]}
+];
+/* 等级 → 占用它的规则（编辑自身时不算占用） */
+function ownerOf(v){
+  const r=EXIST_ALL.find(c=>c.id!==editRuleId && (c.vips.length?c.vips:LEVELS.map(l=>l.v)).includes(v));
+  return r||null;
+}
+
+function onScope(){
+  const v=document.querySelector('input[name=scope]:checked').value;
+  document.getElementById('blkCond').style.display = v==='all'?'':'none';
+  document.getElementById('blkIds').style.display  = v==='all'?'none':'';
+  if(v==='all') renderVip();
+  syncMutex();
+}
+
+/* 「与通道奖励发放规则」适用范围联动：
+   仅「指定/导入ID」模式显示；且需先配置「新充值赠送」才可选（该项只影响新充值，不影响累充） */
+function syncMutex(){
+  const isIds = document.querySelector('input[name=scope]:checked').value==='ids';
+  const wrap  = document.getElementById('blkMutex');
+  if(!wrap) return;
+  wrap.style.display = isIds ? '' : 'none';   // 全员模式：整项不展示
+  // 「首次登录激活」仅指定ID模式成立，全员模式不展示该说明
+  const vh=document.getElementById('validHint'); if(vh) vh.style.display = isIds ? '' : 'none';
+  if(!isIds) return;
+  const ready = blockBState()!=='empty';       // 新充值区块是否已开始配置
+  document.getElementById('fMutexSel').disabled = !ready;
+  document.getElementById('mutexLock').style.display = ready ? 'none' : '';
+  document.getElementById('mutexHint').style.display = ready ? '' : 'none';
+  document.getElementById('rqMutex').className = 'req' + (ready ? '' : ' off');
+}
+function renderVip(){
+  document.getElementById('vGrid').innerHTML=LEVELS.map(l=>{
+    const own=ownerOf(l.v);
+    const tip = own?` title="也被规则「${own.name}」使用，仍可选"`:'';
+    return `<div class="vi ${picked.has(l.v)?'on':''} ${own?'dup':''}"${tip} onclick="pick(${l.v})">`
+         + `<input type="checkbox" ${picked.has(l.v)?'checked':''}>${l.n}${own?'<span class="dup-dot">•</span>':''}</div>`;
+  }).join('');
+  const tags=[...picked].sort((a,b)=>a-b).map(v=>{
+    const n=LEVELS.find(l=>l.v===v).n;
+    return `<span class="vt">${n}<span class="x" onclick="event.stopPropagation();pick(${v})">✕</span></span>`;
+  }).join('');
+  document.getElementById('vipSel').innerHTML=(tags||'<span class="ph">不限（对全部等级生效）</span>')+'<span class="arw">▾</span>';
+  renderVipWarn();
+}
+
+/* 软提示：与其他规则重叠时告知取舍规则，但不阻断配置 */
+function renderVipWarn(){
+  const box=document.getElementById('vipWarn'); if(!box) return;
+  const mine = picked.size?[...picked]:LEVELS.map(l=>l.v);   // 不选=全部等级
+  const hits={};
+  mine.forEach(v=>{ const o=ownerOf(v); if(o){ (hits[o.name]=hits[o.name]||[]).push(LEVELS.find(l=>l.v===v).n); } });
+  const keys=Object.keys(hits);
+  if(!keys.length){ box.style.display='none'; return; }
+  box.style.display='';
+  box.innerHTML='ℹ️ '+keys.map(k=>`<b>${hits[k].join('、')}</b> 也被规则「${k}」使用`).join('；')
+    +'。若会员<b>同时满足两条规则的全部条件</b>，只发放<b>奖励较高</b>的一条，不会重复发放。';
+}
+function pick(v){ picked.has(v)?picked.delete(v):picked.add(v); renderVip(); }
+function qk(k){
+  if(k==='all') picked=new Set(LEVELS.map(l=>l.v));
+  else if(k==='none') picked=new Set();
+  renderVip();
+}
+function toggleVip(e){
+  e.stopPropagation();
+  const p=document.getElementById('vPanel'), s=document.getElementById('vipSel');
+  const open=!p.classList.contains('show');
+  p.classList.toggle('show',open); s.classList.toggle('on',open);
+}
+document.addEventListener('click',()=>{
+  const p=document.getElementById('vPanel'); if(!p) return;
+  p.classList.remove('show'); document.getElementById('vipSel').classList.remove('on');
+});
+/* 说明：VIP 等级允许多条规则重叠（VIP 只是条件之一），配置层不阻断；
+   重复发奖由发放层解决——会员同时命中多条时只发奖励最高的一条 */
 
 function blockAState(){
   const f=document.getElementById('fFixed').value.trim(), p=document.getElementById('fPct').value.trim();
@@ -834,6 +1124,8 @@ function onBlockInput(){
   // 清错误态
   ['eA1','eA2','eB1','eB2'].forEach(i=>document.getElementById(i).classList.remove('show'));
   ['fFixed','fPct','fRate','fValid'].forEach(i=>document.getElementById(i).classList.remove('err'));
+  // 新充值区块状态变化 → 同步「与通道奖励发放规则」可配性
+  syncMutex();
 }
 function trySave(){
   const name=document.getElementById('fName').value.trim();
@@ -863,8 +1155,9 @@ function trySave(){
   }
   if(bad){toast('存在未完成的区块配置，请补全或清空该区块','err');return}
 
-  // 指定ID + 配置了累充 → 金额预估确认
-  if(a==='ok'){
+  // 仅「指定/导入ID」+ 配置了累充 → 才弹金额预估确认（全员模式无名单，不适用）
+  const isIds = document.querySelector('input[name=scope]:checked').value==='ids';
+  if(a==='ok' && isIds){
     closeEdit();
     document.getElementById('modalEst').classList.add('open');
   }else{
