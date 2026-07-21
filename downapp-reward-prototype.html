@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>下载APP充值领奖励 · 下载即领改造 · 原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;background:#f0f2f5;color:#333;font-size:14px}
+
+/* 顶部演示条 */
+.demo{background:linear-gradient(90deg,#fff7e6,#ffe7ba);border-bottom:1px solid #ffd591;padding:9px 18px;font-size:12.5px;color:#874d00;line-height:1.7}
+.demo b{color:#d4380d}
+.demo .k{background:#fff;border:1px solid #ffd591;border-radius:4px;padding:1px 7px;margin:0 2px;font-weight:700}
+
+.page{padding:16px 18px 40px}
+
+/* 筛选栏 */
+.filter{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:14px}
+.fi{display:flex;align-items:center;gap:10px}
+.fi label{font-size:14px;color:#333;white-space:nowrap}
+.inp{height:36px;border:1px solid #ddd;border-radius:3px;padding:0 10px;font-size:13px;min-width:230px;background:#fff;color:#333;font-family:inherit}
+.inp::placeholder{color:#bbb}
+select.inp{min-width:230px}
+
+/* 按钮 */
+.btns{display:flex;gap:10px;margin-bottom:14px}
+.btn{height:36px;padding:0 16px;border:none;border-radius:3px;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:inherit;color:#fff;background:#7d6bd0}
+.btn:hover{opacity:.9}
+.btn.blue{background:#1E9FFF}
+.btn.plain{background:#fff;color:#666;border:1px solid #ddd}
+
+/* 表格 */
+.tblwrap{background:#fff;border:1px solid #e6e6e6;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;white-space:nowrap}
+th{background:#f7f7f7;color:#333;font-weight:600;padding:11px 12px;border:1px solid #e6e6e6;text-align:center}
+td{padding:10px 12px;border:1px solid #e6e6e6;text-align:center;color:#444}
+tr:hover td{background:#fafafa}
+.tag{display:inline-block;padding:2px 9px;border-radius:3px;font-size:12px}
+.tag.wait{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.tag.done{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}
+.tag.no{background:#f5f5f5;color:#999;border:1px solid #e0e0e0}
+.newcol{background:#fff1f0}
+.muted{color:#bbb}
+.badge-new{background:#f5222d;color:#fff;font-size:10px;border-radius:2px;padding:1px 5px;margin-left:5px;vertical-align:1px;font-weight:700}
+/* ? 悬浮说明 */
+.tipic{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:#bfbfbf;color:#fff;font-size:11px;font-weight:700;margin-left:5px;cursor:help;position:relative;vertical-align:1px}
+.tipic:hover,.tipic:focus{background:#1E9FFF;outline:none}
+.tipbox{display:none;position:absolute;left:50%;top:22px;transform:translateX(-50%);width:270px;background:#333;color:#fff;font-size:12px;font-weight:400;line-height:1.75;padding:10px 12px;border-radius:4px;white-space:normal;text-align:left;z-index:50;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.tipbox b{color:#ffd666}
+.tipbox::before{content:"";position:absolute;left:50%;top:-5px;transform:translateX(-50%);border:5px solid transparent;border-top:none;border-bottom-color:#333}
+.tipic:hover .tipbox,.tipic:focus .tipbox{display:block}
+
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:70px 16px 30px;overflow-y:auto}
+.mask.show{display:flex}
+.dlg{background:#fff;border-radius:3px;width:100%;max-width:740px;box-shadow:0 6px 24px rgba(0,0,0,.2)}
+.dlg-h{padding:13px 18px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;font-size:15px;color:#333;background:#fafafa}
+.dlg-x{cursor:pointer;color:#999;font-size:17px;line-height:1}
+.dlg-b{padding:22px 26px 8px}
+.dlg-f{padding:14px 26px 24px;display:flex;justify-content:center;gap:12px}
+.row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.row>label{width:150px;flex:0 0 150px;text-align:right;font-size:14px;color:#333}
+.row .fld{flex:1;min-width:0}
+.row .inp{width:100%;min-width:0}
+.hint{font-size:12px;color:#999;margin-top:6px;line-height:1.6}
+.hint.warn{color:#d4380d}
+.hint.ok{color:#389e0d}
+
+/* 开关 */
+.sw{position:relative;display:inline-block;width:46px;height:24px}
+.sw input{opacity:0;width:0;height:0}
+.sw i{position:absolute;inset:0;background:#ccc;border-radius:12px;transition:.2s;cursor:pointer}
+.sw i:before{content:"";position:absolute;width:20px;height:20px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s}
+.sw input:checked+i{background:#1E9FFF}
+.sw input:checked+i:before{transform:translateX(22px)}
+
+/* 打码只读提示行 */
+.codebar{background:#f6f9ff;border:1px solid #d6e4ff;border-radius:3px;padding:11px 14px;display:flex;align-items:center;gap:10px;font-size:13px;color:#1c4c8c}
+.codebar b{font-size:16px;color:#0958d9}
+.codebar a{margin-left:auto;color:#1E9FFF;text-decoration:none;font-size:13px}
+.codebar a:hover{text-decoration:underline}
+
+/* 二次确认 */
+.confirm{max-width:520px}
+.confirm .warnbox{background:#fff2f0;border:1px solid #ffccc7;border-radius:3px;padding:14px 16px;font-size:13px;line-height:1.9;color:#333}
+.confirm .warnbox .t{font-weight:700;color:#cf1322;margin-bottom:8px;font-size:14px}
+.confirm .warnbox .kv{display:flex;justify-content:space-between;padding:3px 0}
+.confirm .warnbox .kv b{color:#cf1322}
+
+/* toast */
+#toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 22px;border-radius:4px;font-size:14px;z-index:200;display:none}
+
+/* ===== 右侧抽屉：需求说明 ===== */
+.spec-btn{position:fixed;right:0;top:180px;z-index:90;background:#722ed1;color:#fff;border:none;writing-mode:vertical-rl;padding:16px 9px;border-radius:8px 0 0 8px;font-size:14px;font-weight:700;letter-spacing:3px;cursor:pointer;box-shadow:-2px 2px 10px rgba(0,0,0,.18)}
+.spec-btn:hover{background:#531dab}
+.drawer-mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;opacity:0;pointer-events:none;transition:.2s}
+.drawer-mask.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:640px;max-width:96vw;background:#fff;z-index:160;box-shadow:-6px 0 24px rgba(0,0,0,.2);transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column}
+.drawer.show{transform:translateX(0)}
+.drawer-h{padding:15px 20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;background:#f7f5ff}
+.drawer-h .t{font-size:16px;font-weight:700;color:#333}
+.drawer-h .t small{font-size:12px;color:#999;font-weight:400;margin-left:8px}
+.drawer-h .x{cursor:pointer;color:#999;font-size:20px;line-height:1}
+.drawer-b{padding:18px 22px 40px;overflow-y:auto;overflow-x:hidden;flex:1;font-size:13px;line-height:1.75;color:#444;text-align:left}
+.sec{margin-bottom:22px}
+.sec-t{font-size:14px;font-weight:700;color:#722ed1;padding-left:9px;border-left:3px solid #722ed1;margin-bottom:10px}
+.spec-tbl{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12.5px;margin-top:4px;white-space:normal}
+.spec-tbl th{background:#f5f2fc;border:1px solid #e6ddf7;padding:7px 9px;text-align:left;font-weight:600;color:#531dab;word-break:break-word;overflow-wrap:anywhere}
+.spec-tbl td{border:1px solid #eee;padding:7px 9px;vertical-align:top;line-height:1.7;text-align:left;word-break:break-word;overflow-wrap:anywhere}
+.chg{display:inline-block;font-size:11px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:4px}
+.chg.mod{background:#e6f4ff;color:#0958d9}
+.chg.new{background:#fff1f0;color:#cf1322}
+.chg.be{background:#f6ffed;color:#389e0d}
+.warnbox2{background:#fff7e6;border:1px solid #ffd591;border-radius:4px;padding:11px 13px;font-size:12.5px;line-height:1.8;color:#874d00;margin-top:6px}
+.warnbox2 b{color:#d4380d}
+.drawer-b code{background:#f2f3f5;padding:1px 5px;border-radius:3px;font-size:12px;font-family:Menlo,Consolas,monospace;color:#c41d7f}
+</style>
+</head>
+<body>
+
+<div class="demo">
+  <b>原型演示：</b>活动管理 → 下载app充值领奖励 → 活动配置。可试：
+  ① 把<span class="k">充值金额</span>改成 <span class="k">0</span>（原来会报错，现在允许，且提示变为"下载即领"）
+  ② 点<span class="k">保存</span>触发风控二次确认
+  ③ 表格中<span class="k">序号2</span>是"下载即领"产生的记录（无充值订单号但状态为待领取）
+</div>
+
+<div class="page">
+  <!-- 筛选栏 -->
+  <div class="filter">
+    <div class="fi"><label>会员ID</label><input class="inp" placeholder="会员ID"></div>
+    <div class="fi"><label>状态</label><select class="inp"><option>请选择</option><option>未充值</option><option>待领取</option><option>已领取</option></select></div>
+    <div class="fi"><label>订单号</label><input class="inp" placeholder="订单号"></div>
+    <div class="fi"><label>充值时间</label><input class="inp" placeholder="充值时间"></div>
+    <div class="fi"><label>领取时间</label><input class="inp" placeholder="领取时间"></div>
+  </div>
+
+  <div class="btns">
+    <button class="btn">🔍 查 询</button>
+    <button class="btn">↻ 重 置</button>
+    <button class="btn" onclick="openCfg()">＋ 活动配置</button>
+    <button class="btn">＋ 批量赠送</button>
+  </div>
+
+  <div class="tblwrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px">序号</th>
+          <th style="width:100px">会员ID</th>
+          <th style="width:250px">充值订单号</th>
+          <th style="width:110px">活动范围</th>
+          <th style="width:90px">状态</th>
+          <th style="width:110px">充值金额</th>
+          <th class="newcol" style="width:150px">领取门槛<span class="tipic" tabindex="0">?<span class="tipbox">该会员<b>建档当时</b>锁定的充值门槛，之后运营再改配置也不会变。<br><b>0.00</b> = 下载即领，无需充值。<br>用于排查「为什么这个会员领不到」。</span></span><span class="badge-new">新增</span></th>
+          <th style="width:160px">充值时间</th>
+          <th style="width:100px">领取金额</th>
+          <th style="width:160px">领取时间</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td><td>2251014</td><td>RC20260713163717972001069a</td><td>新注册会员</td>
+          <td><span class="tag done">已领取</span></td><td>100.00</td>
+          <td class="newcol">100.00</td><td>2026-07-13 16:37:19</td><td>3.00</td><td>2026-07-13 16:38:02</td>
+        </tr>
+        <tr style="background:#fffbe6">
+          <td>2</td><td>2251020</td><td class="muted">—（无需充值）</td><td>新注册会员</td>
+          <td><span class="tag wait">待领取</span></td><td class="muted">0.00</td>
+          <td class="newcol"><b style="color:#d4380d">0.00</b></td><td class="muted">—</td><td class="muted">0.00</td><td class="muted">—</td>
+        </tr>
+        <tr>
+          <td>3</td><td>2251006</td><td class="muted"></td><td>新注册会员</td>
+          <td><span class="tag no">未充值</span></td><td class="muted">0.00</td>
+          <td class="newcol">100.00</td><td class="muted">—</td><td class="muted">0.00</td><td class="muted">—</td>
+        </tr>
+        <tr>
+          <td>4</td><td>2251002</td><td>RC20260710182909342001031a</td><td>新注册会员</td>
+          <td><span class="tag done">已领取</span></td><td>200.00</td>
+          <td class="newcol">100.00</td><td>2026-07-10 18:29:11</td><td>3.00</td><td>2026-07-10 18:30:45</td>
+        </tr>
+        <tr>
+          <td>5</td><td>2250978</td><td>RC20260624155217592001005a</td><td>新注册会员</td>
+          <td><span class="tag done">已领取</span></td><td>150.00</td>
+          <td class="newcol">100.00</td><td>2026-06-24 15:52:19</td><td>3.00</td><td>2026-06-24 16:02:11</td>
+        </tr>
+        <tr>
+          <td>6</td><td>2247480</td><td>RC20260408140249753000002a</td><td>全站会员</td>
+          <td><span class="tag done">已领取</span></td><td>3000.00</td>
+          <td class="newcol">500.00</td><td>2026-04-08 14:04:00</td><td>9.00</td><td>2026-04-08 14:06:31</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:12px;font-size:12.5px;color:#888;line-height:1.9">
+    <b style="color:#d4380d">领取门槛</b>：会员建档当时锁定的充值门槛，之后运营再改配置也不会变。<br>
+    序号 2 门槛=<b style="color:#d4380d">0.00</b>，属「下载即领」，无需充值直接待领取；序号 3 门槛=100，即使现在配置已改成 0，该会员仍需充满 100 才能领取。
+  </div>
+</div>
+
+<!-- ========== 奖励配置弹窗 ========== -->
+<div class="mask" id="cfg">
+  <div class="dlg">
+    <div class="dlg-h"><span>奖励配置</span><span class="dlg-x" onclick="closeCfg()">✕</span></div>
+    <div class="dlg-b">
+      <div class="row">
+        <label>充值金额：</label>
+        <div class="fld">
+          <input class="inp" id="amt" value="100" oninput="onAmt()">
+          <div class="hint" id="amtHint"></div>
+        </div>
+      </div>
+      <div class="row">
+        <label>赠送金额：</label>
+        <div class="fld"><input class="inp" id="bonus" value="3">
+          <div class="hint">不可为 0，否则活动视为未开启</div>
+        </div>
+      </div>
+      <div class="row">
+        <label>活动范围：</label>
+        <div class="fld"><select class="inp"><option>新注册会员</option><option>全站会员</option><option>老会员回归</option><option>指定会员</option></select></div>
+      </div>
+      <div class="row">
+        <label>同设备可领取上限：</label>
+        <div class="fld"><input class="inp" id="dev" value="1"><div class="hint">最低 1，配置范围 1-100万</div></div>
+      </div>
+      <div class="row">
+        <label>同IP可领取上限：</label>
+        <div class="fld"><input class="inp" id="ip" value="1"><div class="hint">最低 1，配置范围 1-100万</div></div>
+      </div>
+
+      <div class="row">
+        <label>打码量倍数：<span class="badge-new">新增</span></label>
+        <div class="fld">
+          <div class="codebar">
+            当前 APP 下载奖励打码倍数：<b id="codeRate">3</b> 倍
+            <a href="javascript:;" onclick="toast('演示原型：跳转 系统设置 → 打码量配置')">去打码量配置修改 →</a>
+          </div>
+          <div class="hint">只读展示。打码倍数统一在「打码量配置」页维护，此处仅提示当前生效值。已与「充值赠送打码量倍数」拆开，互不影响。</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <label>赠送金额显示状态：</label>
+        <div class="fld"><label class="sw"><input type="checkbox" checked><i></i></label></div>
+      </div>
+      <div class="row">
+        <label>开启状态：</label>
+        <div class="fld"><label class="sw"><input type="checkbox" checked><i></i></label></div>
+      </div>
+    </div>
+    <div class="dlg-f">
+      <button class="btn blue" onclick="save()">保存</button>
+      <button class="btn plain" onclick="closeCfg()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 二次确认 ========== -->
+<div class="mask" id="cfm">
+  <div class="dlg confirm">
+    <div class="dlg-h"><span>⚠ 风险确认</span><span class="dlg-x" onclick="closeCfm()">✕</span></div>
+    <div class="dlg-b">
+      <div class="warnbox">
+        <div class="t">充值金额设为 0，会员下载APP后无需充值即可领取奖励</div>
+        <div class="kv"><span>赠送金额</span><b id="c-bonus">3</b></div>
+        <div class="kv"><span>打码量倍数</span><b id="c-code">3 倍</b></div>
+        <div class="kv"><span>同设备可领取上限</span><b id="c-dev">1</b></div>
+        <div class="kv"><span>同IP可领取上限</span><b id="c-ip">1</b></div>
+      </div>
+      <div class="hint" style="margin-top:12px">本次配置仅对<b>保存之后新增</b>的会员生效，存量会员仍按各自的「领取门槛」判定。</div>
+    </div>
+    <div class="dlg-f">
+      <button class="btn blue" onclick="doSave()">确认保存</button>
+      <button class="btn plain" onclick="closeCfm()">返回修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 右侧抽屉：需求说明 ========== -->
+<button class="spec-btn" onclick="openSpec()">📋 需求说明</button>
+<div class="drawer-mask" id="specMask" onclick="closeSpec()"></div>
+<div class="drawer" id="specDrawer">
+  <div class="drawer-h">
+    <div class="t">需求说明 · 本次改动点<small>下载APP充值领奖励 · 支持「下载即领」</small></div>
+    <div class="x" onclick="closeSpec()">✕</div>
+  </div>
+  <div class="drawer-b">
+
+    <div class="sec">
+      <div class="sec-t">一、需求目标</div>
+      当前「下载APP充值领奖励」必须充值达标才能领奖。本次改造：<b>充值金额支持配置为 0</b>，会员下载APP后<b>无需充值即可领取</b>（下载即领）。
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">二、页面改动点（对应本原型）</div>
+      <table class="spec-tbl">
+        <tr><th style="width:120px">位置</th><th>改动说明</th></tr>
+        <tr>
+          <td><b>活动配置弹窗<br>· 充值金额</b></td>
+          <td><span class="chg mod">改造</span>放开校验，允许填 <code>0</code>（原来 ≤0 报错「请输入有效的充值金额」）。填 0 时下方提示变为绿色「<b>下载即领</b>」，填非 0 为普通提示，填负数才报错。</td>
+        </tr>
+        <tr>
+          <td><b>活动配置弹窗<br>· 打码量倍数</b></td>
+          <td><span class="chg new">新增</span><b>只读</b>提示行：显示当前 APP 下载奖励打码倍数 + 「去打码量配置修改」跳转。打码倍数配置权仍在「打码量配置」页，此处仅提示，避免运营设 0 时漏看风控。<br><span class="chg new">新增</span>该打码项<b>与「充值赠送打码量倍数」拆开</b>，单独配置、互不影响。</td>
+        </tr>
+        <tr>
+          <td><b>活动配置弹窗<br>· 保存</b></td>
+          <td><span class="chg new">新增</span>充值金额=0 时，保存弹出<b>风险二次确认</b>，摊开 4 个关键参数（赠送金额 / 打码倍数 / 同设备上限 / 同IP上限）供核对。</td>
+        </tr>
+        <tr>
+          <td><b>列表<br>· 领取门槛列</b></td>
+          <td><span class="chg new">新增</span>「领取门槛」列（含 ? 说明）。展示每条记录<b>建档当时锁定的充值门槛</b>，用于排查「为什么这个会员领不到」。</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">三、后端逻辑改动</div>
+      <table class="spec-tbl">
+        <tr><th style="width:120px">项</th><th>说明</th></tr>
+        <tr><td><span class="chg mod">改造</span>下载即领</td><td>门槛=0 时，建记录直接置为「待领取」，不再等充值回调（原逻辑：记录=未充值 → 充值成功回调 → 才置待领取）。</td></tr>
+        <tr><td><span class="chg new">新增</span>领取门槛快照</td><td>建记录时把当时门槛存入该条记录。发奖判断改为读<b>记录里的快照</b>，不读当前配置。<b>运营每次改配置只影响之后新增的会员，存量不受影响。</b></td></tr>
+        <tr><td><span class="chg new">新增</span>打码项独立配置</td><td>新增独立打码 key，与充值赠送打码拆开；领取发放时读新 key。</td></tr>
+        <tr><td><span class="chg be">数据</span>存量刷新</td><td>已有记录的「领取门槛」刷为当前生效门槛，避免被误判为下载即领。</td></tr>
+      </table>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">四、约束与限制</div>
+      <table class="spec-tbl">
+        <tr><td style="width:120px"><b>赠送金额</b></td><td>不可为 0，否则代码判定「功能未开启」，活动整体失效。</td></tr>
+        <tr><td><b>同一会员</b></td><td>终身<b>只能领一次</b>（数据库唯一约束），领过不再发。</td></tr>
+        <tr><td><b>存量未充值会员</b></td><td>已在活动中但未充值的会员，按各自「领取门槛」判定，改配置<b>不会</b>让他们自动领取。</td></tr>
+      </table>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">五、开发需确认项</div>
+      <div class="warnbox2">
+        <b>打码倍数最小值 ≥ 1（必须实现）。</b><br>
+        新增的「APP下载奖励打码倍数」配置项，需加最小值校验：<b>录入与读取都不允许小于 1</b>。<br>
+        原因：打码是白送奖金的最后一道风控闸；若被配成 0，奖金到账即可直接提现，等于零门槛套现。
+      </div>
+      <div style="color:#999;font-size:12px;margin-top:8px">其余风险点（活动范围、风控上限、批量赠送旁路等）已单独同步运营，此处不再赘述。</div>
+    </div>
+
+    <div class="sec" style="color:#999;font-size:12px;border-top:1px dashed #ddd;padding-top:12px">
+      本说明随原型演示，仅列改动点与风险，不含实现细节代码。
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+function openCfg(){document.getElementById('cfg').classList.add('show');onAmt();}
+function closeCfg(){document.getElementById('cfg').classList.remove('show');}
+function closeCfm(){document.getElementById('cfm').classList.remove('show');}
+
+function onAmt(){
+  var v=document.getElementById('amt').value.trim();
+  var h=document.getElementById('amtHint');
+  var n=parseFloat(v);
+  if(v===''||isNaN(n)||n<0){ h.className='hint warn'; h.textContent='请输入有效的充值金额（不可为负数）'; return; }
+  if(n===0){ h.className='hint ok'; h.innerHTML='✔ 填 <b>0</b> = <b>下载即领</b>：会员下载APP注册后无需充值，直接进入「待领取」状态'; }
+  else { h.className='hint'; h.innerHTML='会员充值满 <b>'+n+'</b> 后进入「待领取」状态'; }
+}
+
+function save(){
+  var v=parseFloat(document.getElementById('amt').value);
+  var b=parseFloat(document.getElementById('bonus').value);
+  if(isNaN(v)||v<0){ toast('请输入有效的充值金额'); return; }
+  if(isNaN(b)||b<=0){ toast('请输入有效的赠送金额'); return; }
+  if(v===0){
+    document.getElementById('c-bonus').textContent=b;
+    document.getElementById('c-code').textContent=document.getElementById('codeRate').textContent+' 倍';
+    document.getElementById('c-dev').textContent=document.getElementById('dev').value;
+    document.getElementById('c-ip').textContent=document.getElementById('ip').value;
+    document.getElementById('cfm').classList.add('show');
+    return;
+  }
+  doSave();
+}
+function doSave(){ closeCfm(); closeCfg(); toast('保存成功（演示原型）'); }
+
+function openSpec(){document.getElementById('specMask').classList.add('show');document.getElementById('specDrawer').classList.add('show');}
+function closeSpec(){document.getElementById('specMask').classList.remove('show');document.getElementById('specDrawer').classList.remove('show');}
+var tm;
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(tm);tm=setTimeout(function(){t.style.display='none'},2000);}
+document.querySelectorAll('.mask').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('show')})});
+</script>
+</body>
+</html>
