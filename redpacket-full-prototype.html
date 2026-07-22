@@ -365,13 +365,13 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
       <table class="tbl">
         <thead><tr><th>订单号码</th><th>红包ID</th><th>红包编码</th><th class="newcol">奖励类型<span class="newb">NEW</span></th><th>变更类型</th><th>账变前</th><th>变更金额</th><th>账变后</th><th>备注</th><th>创建日期</th></tr></thead>
         <tbody>
-          <tr style="background:#fffaf7"><td class="mono">2026060916…0040</td><td>100336</td><td class="mono">6D3AB85…7B065</td><td><span class="tag coupon">充值券</span></td><td>创建红包(券)</td><td>580</td><td class="newcol">0</td><td>580</td><td>充值券·彩金由平台承担</td><td>06-09 16:50</td></tr>
-          <tr><td class="mono">2026021112…0004</td><td>100308</td><td class="mono">BE00E1…647ACC</td><td><span class="tag cash">现金</span></td><td>创建红包</td><td>582.92</td><td>-2.92</td><td>580</td><td>2</td><td>02-11 12:00</td></tr>
-          <tr><td class="mono">2026021111…0002</td><td>100307</td><td class="mono">87A348…C9AB90</td><td><span class="tag cash">现金</span></td><td>创建红包</td><td>590</td><td>-50</td><td>540</td><td>1</td><td>02-11 11:59</td></tr>
-          <tr><td class="mono">2026012312…0022</td><td>100305</td><td class="mono">FAD967…E5D1552</td><td><span class="tag cash">现金</span></td><td>创建红包</td><td>140</td><td>-100</td><td>40</td><td>1</td><td>01-23 12:05</td></tr>
+          <tr style="background:#fffaf7"><td class="mono">2026021111…0038</td><td>—</td><td class="mono">—</td><td><span class="tag cash">现金</span></td><td>红包充值</td><td>140</td><td style="color:#12a05f;font-weight:700">+500</td><td>640</td><td>操作人 admin</td><td>02-11 11:57</td></tr>
+          <tr style="background:#fffaf7"><td class="mono">2026021111…0037</td><td>—</td><td class="mono">—</td><td><span class="tag coupon">充值券</span></td><td>充值优惠券次数授权</td><td>0 次</td><td style="color:#7c3aed;font-weight:700">+200 次</td><td>200 次</td><td>操作人 admin · REDBAG20</td><td>02-11 11:57</td></tr>
+          <tr><td class="mono">2026012218…0012</td><td>—</td><td class="mono">—</td><td><span class="tag cash">现金</span></td><td>红包充值</td><td>40</td><td style="color:#12a05f;font-weight:700">+500</td><td>540</td><td>操作人 lunatest</td><td>01-22 18:09</td></tr>
+          <tr><td class="mono">2026012218…0011</td><td>—</td><td class="mono">—</td><td><span class="tag coupon">充值券</span></td><td>充值优惠券次数授权</td><td>0 次</td><td style="color:#7c3aed;font-weight:700">+200 次</td><td>200 次</td><td>操作人 lunatest · REDBAG10</td><td>01-22 18:09</td></tr>
         </tbody>
       </table>
-      <div class="note">⚠️ <b>关键差异</b>：现金红包创建<b>从代理赠金扣款</b>（变更为负）；<b>充值券创建不扣赠金</b>（变更 0），彩金由<b>平台</b>在会员充值后承担——避免代理误以为发券要先掏赠金。券的成本/效果看「领取记录」效果概览。</div>
+      <div class="note">📌 <b>本页职责</b>：只记<b>运营给代理的入账</b>（＋红包充值 / ＋充值优惠券次数授权）；红包<b>创建 / 取消等每一笔</b>金额与次数流水见「<b>代理红包账变</b>」。充值券的彩金由<b>平台</b>在会员用券充值后承担、不动代理赠金（创建券红包不扣款），券的成本/效果看「领取记录」效果概览。</div>
       <div class="foot">总共 14 条 <span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">›</span> <select class="sel"><option>10 条/页</option></select></div>
     </div></div>
   </div>
@@ -475,192 +475,108 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
 <!-- ════ P6 会员·充值用券 ════ -->
 <div id="P-p6" class="page-block" style="display:none">
 <style>
-#P-p6 .k6-wrap{padding:6px 4px 20px}
-#P-p6 .k6-cap0{text-align:center;font-size:13px;color:#6b7280;margin-bottom:10px}
-#P-p6 .k6-lang{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
-#P-p6 .k6-lang span{cursor:pointer;font-size:11.5px;padding:4px 12px;border-radius:13px;background:#f0f0f0;color:#666}
-#P-p6 .k6-lang span.on{background:#f5535f;color:#fff}
-#P-p6 .k6-stage{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
-#P-p6 .k6-col{width:300px;flex:0 0 auto;display:flex;flex-direction:column;gap:9px}
-#P-p6 .k6-cap{text-align:center;font-size:12.5px;font-weight:600;padding:6px 0;border-radius:18px}
-#P-p6 .k6-cap.c1{background:#e6f6ee;color:#0f7a48}
-#P-p6 .k6-cap.c2{background:#fff4e6;color:#ad4e00}
-#P-p6 .k6-cap.c3{background:#eef2ff;color:#3a49b8}
-#P-p6 .k6-phone{border:8px solid #16181f;border-radius:26px;overflow:hidden;background:#fff}
-#P-p6 .k6-top{background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;padding:11px 13px 14px}
-#P-p6 .k6-nav{display:flex;justify-content:space-between;font-size:12px}
-#P-p6 .k6-bal{margin-top:9px;background:rgba(255,255,255,.16);border-radius:10px;padding:8px 11px}
-#P-p6 .k6-bal .l{font-size:10.5px;opacity:.9}#P-p6 .k6-bal .v{font-size:18px;font-weight:700}
-#P-p6 .k6-body{padding:11px}
-#P-p6 .k6-st{font-size:12px;font-weight:600;margin:11px 0 7px}#P-p6 .k6-st:first-child{margin-top:0}
-#P-p6 .k6-chan{border:1.5px solid #f0524a;background:#fff6f5;border-radius:10px;padding:9px 10px;position:relative}
-#P-p6 .k6-chan.plain{border:1px solid #eceef1;background:#fff}
-#P-p6 .k6-chan .bo{position:absolute;top:-7px;right:9px;background:#eaa93a;color:#5a3d00;font-size:9.5px;font-weight:700;border-radius:6px;padding:1px 7px}
-#P-p6 .k6-chan .nm{font-size:12.5px;font-weight:600}#P-p6 .k6-chan .rg{font-size:10.5px;color:#8a929c;margin-top:2px}
-#P-p6 .k6-fee{display:inline-flex;gap:3px;margin-top:6px;font-size:10.5px;background:#fff7e6;color:#d46b08;border:1px solid #ffe0a6;padding:1px 8px;border-radius:6px;font-weight:600}
-#P-p6 .k6-amtg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-#P-p6 .k6-amt{border:1px solid #eceef1;border-radius:8px;padding:9px;text-align:center;font-weight:700}
-#P-p6 .k6-amt.on{border:1.5px solid #f0524a;background:#fff6f5;color:#f0524a}
-#P-p6 .k6-ai{border:1px solid #eceef1;border-radius:8px;padding:10px 11px;font-size:14px;color:#333}
-#P-p6 .k6-ai .cur{color:#f0524a;font-weight:700}
-#P-p6 .k6-cp{position:relative;border:1.5px dashed #fa8c16;background:#fff6ec;border-radius:10px;padding:9px 9px 8px;margin-top:12px}
-#P-p6 .k6-cptag{position:absolute;top:-9px;left:10px;background:#fa7a16;color:#fff;font-size:10px;font-weight:600;padding:1px 8px;border-radius:9px}
-#P-p6 .k6-cphead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-#P-p6 .k6-ck{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600}
-#P-p6 .k6-ck .b{width:16px;height:16px;border-radius:4px;background:#2f6fed;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px}
-#P-p6 .k6-est{font-size:11px;color:#8a929c}#P-p6 .k6-est b{color:#f0524a;font-size:12.5px}
-#P-p6 .k6-opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
-#P-p6 .k6-opt{border:1px solid #ffd8b0;background:#fff;border-radius:7px;padding:3px 2px;text-align:center;line-height:1.15}
-#P-p6 .k6-opt.on{border:1.5px solid #f0524a;background:#fff2ef}
-#P-p6 .k6-opt b{color:#f0524a;font-size:11.5px;display:block}
-#P-p6 .k6-opt span{font-size:8.5px;color:#9a7b52}
-#P-p6 .k6-card{border:1px solid #e6ebe8;border-radius:12px;overflow:hidden;margin-top:12px}
-#P-p6 .k6-ch2{display:flex;justify-content:space-between;align-items:center;background:#12a05f;color:#fff;padding:10px 13px;font-weight:700;font-size:13.5px}
-#P-p6 .k6-ch2 .gv{font-size:16px}
-#P-p6 .k6-row{display:flex;align-items:center;gap:8px;padding:9px 13px;font-size:12px;background:#f5f8f6;border-top:1px solid #ebf0ec}
-#P-p6 .k6-row .lab{color:#5a6472;width:78px;flex-shrink:0;line-height:1.25}
-#P-p6 .k6-row .bar{flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:14px}
-#P-p6 .k6-row .bar>i{display:block;height:100%;border-radius:6px}
-#P-p6 .k6-row .val{font-weight:700;flex-shrink:0;font-family:'SF Mono',Menlo,monospace}
-#P-p6 .k6-note{background:#fffbf2;border:1px solid #ffe0a6;border-radius:9px;padding:9px 11px;margin-top:11px;font-size:11px;color:#8a5a12;line-height:1.6;display:flex;gap:6px}
-#P-p6 .k6-foot{border-top:1px solid #f0f1f4;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:#6b7280}
-#P-p6 .k6-pay{background:#f0524a;color:#fff;border-radius:20px;padding:8px 16px;font-weight:700}
+/* ===== 会员端·充值用券页 · 统一样式（三份一致：#16 P-p6 / #20 P-p5 / #31 P-p5，对齐 UI 设计图） ===== */
+.pc-wrap{padding:12px 14px 18px}
+.pc-lang{display:flex;gap:6px;justify-content:flex-end;padding:0 0 8px}
+.pc-lang .langbtn{cursor:pointer;font-size:11px;padding:3px 10px;border-radius:12px;background:#f0f0f0;color:#666}
+.pc-lang .langbtn.on{background:#f5535f;color:#fff}
+.pc-sec{font-size:13px;font-weight:700;color:#1f2430;margin:15px 0 9px;display:flex;align-items:center;gap:6px}
+.pc-sec:first-of-type{margin-top:2px}
+.pc-new{display:inline-block;background:#f5222d;color:#fff;font-size:9px;font-weight:800;line-height:1.1;padding:2px 5px;border-radius:4px;letter-spacing:.5px}
+.pc-est{margin-left:auto;font-size:11.5px;font-weight:500;color:#8a929c}
+.pc-est b{color:#12a05f;font-size:13px;margin-left:4px}
+.pc-pay2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pc-payw{border:1.5px solid #ececf0;background:#fff;border-radius:11px;padding:13px 10px;text-align:center;font-size:12.5px;font-weight:600;color:#3a4150;cursor:pointer;transition:.12s}
+.pc-payw.on{border-color:#f0524a;background:#f0524a;color:#fff;box-shadow:0 3px 9px rgba(240,82,74,.22)}
+.pc-amt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.pc-amt{border:1px solid #e7e9ee;border-radius:10px;padding:13px 6px;text-align:center;font-weight:700;font-size:14.5px;color:#333;background:#fff;cursor:pointer;transition:.12s}
+.pc-amt.on{border-color:#f0524a;background:#f0524a;color:#fff;box-shadow:0 3px 9px rgba(240,82,74,.25)}
+.pc-cprow{display:flex;gap:9px;overflow-x:auto;padding:3px 1px 6px;-webkit-overflow-scrolling:touch}
+.pc-cprow::-webkit-scrollbar{height:0}
+.pc-cp{position:relative;flex:0 0 auto;min-width:94px;border:1.5px solid #e7e9ee;background:#fff;border-radius:12px;padding:11px 14px 10px;cursor:pointer;transition:.12s}
+.pc-cp.on{border-color:#f0524a;background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;box-shadow:0 5px 12px rgba(240,82,74,.3)}
+.pc-cp.dim{background:#f4f5f7;border-color:#eceef1;cursor:not-allowed}
+.pcc-r{font-size:19px;font-weight:800;line-height:1.05}
+.pc-cp.dim .pcc-r{color:#b3b8c0}
+.pcc-s{font-size:10.5px;color:#8a929c;margin-top:4px;white-space:nowrap}
+.pc-cp.on .pcc-s{color:rgba(255,255,255,.92)}
+.pc-cp.dim .pcc-s{color:#aab0b9}
+.pcc-ck{position:absolute;top:-7px;right:-6px;width:20px;height:20px;border-radius:50%;background:#fff;color:#f0524a;border:1.5px solid #f0524a;display:none;align-items:center;justify-content:center;font-size:12px;font-weight:800;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.pc-cp.on .pcc-ck{display:flex}
+.pc-detail{background:#fdeef0;border-radius:14px;padding:14px 16px;margin-top:11px}
+.pc-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:#5a6472;padding:5px 0}
+.pc-row.get{padding:2px 0 10px;margin-bottom:4px;border-bottom:1px dashed #f4c9d1}
+.pc-row.get>span:first-child{font-size:13px;font-weight:700;color:#1f2430}
+.pc-get{color:#12a05f;font-weight:800;font-size:22px;font-family:'SF Mono',Menlo,monospace}
+.pc-payv{color:#333;font-weight:700;font-family:'SF Mono',Menlo,monospace}
+.pc-bonus{color:#12a05f;font-weight:700;font-family:'SF Mono',Menlo,monospace}
+.pc-fee{color:#f5535f;font-weight:700;font-family:'SF Mono',Menlo,monospace}
+.pc-src{font-size:11px;color:#8a929c;line-height:1.5;padding:1px 0 4px}
+.pc-foot{margin-top:15px}
+.pc-paybtn{display:block;width:100%;border:none;border-radius:24px;height:48px;background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 15px rgba(240,82,74,.32)}
+
+/* ===== 三场景对照页（静态展示 · 三份完全一致） ===== */
+.sc-top{width:100%;text-align:center;padding:4px 0 2px}
+.sc-title{font-size:15px;font-weight:800;color:#1f2430;line-height:1.45;margin:0 auto 10px;max-width:820px;padding:0 12px}
+.sc-lang{display:inline-flex;gap:6px;justify-content:center;margin-bottom:4px}
+.sc-lang .langbtn{cursor:pointer;font-size:11.5px;padding:4px 12px;border-radius:13px;background:#f0f0f0;color:#666}
+.sc-lang .langbtn.on{background:#f5535f;color:#fff}
+.sc-scroll{width:100%;overflow-x:auto;text-align:center;padding:10px 0 16px}
+.sc-scroll::-webkit-scrollbar{height:8px}
+.sc-scroll::-webkit-scrollbar-thumb{background:#d3d8e0;border-radius:4px}
+.sc-cols{display:inline-flex;gap:20px;align-items:flex-start;padding:6px 12px;vertical-align:top}
+.sc-col{flex:0 0 auto;width:330px;text-align:left}
+.sc-colhead{font-size:12.5px;font-weight:800;color:#fff;background:linear-gradient(135deg,#f5544a,#ef4d43);border-radius:12px;padding:11px 14px;margin-bottom:14px;line-height:1.45;box-shadow:0 5px 14px rgba(240,82,74,.26);min-height:42px;display:flex;align-items:center}
+.sc-col.c2 .sc-colhead{background:linear-gradient(135deg,#fa9d3c,#f2792b);box-shadow:0 5px 14px rgba(242,121,43,.24)}
+.sc-col.c3 .sc-colhead{background:linear-gradient(135deg,#28b985,#12a05f);box-shadow:0 5px 14px rgba(18,160,95,.24)}
+.sc-phone{width:100%;height:auto;border-radius:34px;box-shadow:0 12px 32px rgba(0,0,0,.14),0 0 0 7px #1e1e1e,0 0 0 8px #333}
+.sc-phone .phone-body{background:#f5f7fa}
+.sc-pad{padding:12px 13px 18px}
+.sc-bal{background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;border-radius:14px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 6px 15px rgba(240,82,74,.24)}
+.sc-bal .lbl{font-size:12px;opacity:.92}
+.sc-bal .val{font-size:20px;font-weight:800;font-family:'SF Mono',Menlo,monospace}
+.sc-chan{position:relative;border:1.5px solid #ececf0;background:#fff;border-radius:12px;padding:12px 13px;margin-top:8px}
+.sc-chan .cn{font-size:13.5px;font-weight:700;color:#2b3240}
+.sc-chan .cr{font-size:11.5px;color:#8a929c;margin-top:3px;font-family:'SF Mono',Menlo,monospace}
+.sc-chan-badge{position:absolute;top:-10px;right:12px;background:linear-gradient(135deg,#ffd66b,#f5a623);color:#7a4a00;font-size:11px;font-weight:800;padding:3px 10px;border-radius:11px;box-shadow:0 3px 8px rgba(245,166,35,.4)}
+.sc-chan-fee{display:inline-block;margin-top:9px;font-size:11px;font-weight:600;color:#2f7fc7;background:#eaf3fc;border-radius:6px;padding:3px 9px}
+.sc-amt-row{display:flex;gap:9px}
+.sc-amt{flex:1;border:1.5px solid #e7e9ee;border-radius:10px;padding:11px 6px;text-align:center;font-weight:700;font-size:14px;color:#333;background:#fff}
+.sc-amt.on{border-color:#f0524a;background:#f0524a;color:#fff;box-shadow:0 3px 9px rgba(240,82,74,.25)}
+.sc-input{margin-top:9px;border:1.5px solid #f0524a;border-radius:10px;padding:10px 13px;font-size:15px;font-weight:800;color:#1f2430;background:#fff;font-family:'SF Mono',Menlo,monospace}
+.sc-est{margin-left:auto;font-size:11px;font-weight:500;color:#8a929c}
+.sc-est b{color:#12a05f;font-size:13px;margin-left:4px}
+.sc-cpbox{border:1.5px dashed #f3b6bb;border-radius:12px;padding:10px 9px 6px;margin-top:8px;background:#fffafb}
+.sc-cpbox .pc-cprow{flex-wrap:wrap;overflow:visible}
+.sc-cpbox .pc-cp{flex:1 1 calc(50% - 5px);min-width:0;padding:10px 10px 9px}
+.sc-cpbox .pcc-s{white-space:normal;line-height:1.35}
+.sc-credit{background:linear-gradient(160deg,#eafaf2,#dcf4e8);border:1px solid #bfe8d3;border-radius:14px;padding:13px 15px 7px;margin-top:14px}
+.sc-credit-top{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed #b6e2c9;padding-bottom:9px;margin-bottom:6px}
+.sc-credit-top .lbl{font-size:13px;font-weight:700;color:#1f2430}
+.sc-credit-top .val{font-size:23px;font-weight:800;color:#12a05f;font-family:'SF Mono',Menlo,monospace}
+.sc-drow{padding:6px 0}
+.sc-drow .dl{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:#5a6472}
+.sc-drow .dl .amt{font-weight:700;font-family:'SF Mono',Menlo,monospace;color:#3a4150;height:auto;border:none;background:transparent;border-radius:0;padding:0;font-size:12px;cursor:default}
+.sc-drow .dl .amt.bonus{color:#12a05f}
+.sc-drow .dl .amt.fee{color:#f5535f}
+.sc-pct{color:#b9909a;font-size:10.5px}
+.sc-bar{height:4px;border-radius:3px;background:#e2ede7;margin-top:6px;overflow:hidden}
+.sc-bar>i{display:block;height:100%;border-radius:3px;background:#a9dcc3}
+.sc-bar.bonus>i{background:#38c78a}
+.sc-bar.fee>i{background:#f59aa1}
+.sc-formula{background:#fff8e6;border:1px solid #ffe3a3;border-radius:11px;padding:10px 12px;margin-top:12px;font-size:11.5px;color:#8a6516;line-height:1.55}
+.sc-paybtn{display:block;width:100%;border:none;border-radius:24px;height:46px;margin-top:14px;background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 15px rgba(240,82,74,.3)}
 </style>
-  <div class="k6-wrap">
-    <div class="k6-cap0">会员端 H5 · 充值页使用充值优惠券 —— 三种场景样式</div>
-    <div class="k6-lang"><span class="langbtn on" data-l="zh" onclick="setLang('zh')">中文</span><span class="langbtn" data-l="en" onclick="setLang('en')">EN</span><span class="langbtn" data-l="hi" onclick="setLang('hi')">हिंदी</span><span class="langbtn" data-l="vi" onclick="setLang('vi')">Tiếng Việt</span></div>
-    <div class="k6-stage">
-
-      <!-- 场景① 券 + 充值奖励 + 手续费 -->
-      <div class="k6-col">
-        <div class="k6-cap c1" data-t="cap1">① 充值优惠券 + 充值奖励 + 手续费</div>
-        <div class="k6-phone">
-          <div class="k6-top"><div class="k6-nav"><span>‹ <span data-t="navDep">充值</span></span><span data-t="navHist">充值记录</span></div><div class="k6-bal"><div class="l" data-t="balance">余额</div><div class="v">₹7,609.80</div></div></div>
-          <div class="k6-body">
-            <div class="k6-st">🏦 <span data-t="selectCh">选择通道</span></div>
-            <div class="k6-chan"><span class="bo">+9%</span><div class="nm">123 (BullPay)</div><div class="rg">10 – 100K</div><div class="k6-fee">💠 <span data-t="fee">手续费</span> 2%</div></div>
-            <div class="k6-st">💰 <span data-t="depAmt">充值金额</span></div>
-            <div class="k6-amtg"><div class="k6-amt">₹100</div><div class="k6-amt on">₹500</div></div>
-            <div class="k6-ai"><span class="cur">₹</span> 500</div>
-            <div class="k6-cp">
-              <div class="k6-cphead"><span class="k6-ck"><span class="b">✓</span> <span data-t="useCoupon">使用充值优惠券</span><span class="newb">NEW</span></span><span class="k6-est"><span data-t="estBonus">预计彩金</span> <b>+ ₹50</b></span></div>
-              <div class="k6-opts"><div class="k6-opt on"><b>10%</b><span><span data-t="capLimit">上限</span> ₹50</span></div><div class="k6-opt"><b>8%</b><span><span data-t="capLimit">上限</span> ₹100</span></div><div class="k6-opt"><b>20%</b><span><span data-t="capLimit">上限</span> ₹30 <span data-t="threshold">满</span> ₹200</span></div></div>
-            </div>
-            <div class="k6-card"><div class="k6-ch2"><span data-t="actualCredit">实际上分</span><span class="gv">₹585.00</span></div>
-              <div class="k6-row"><span class="lab" data-t="amount">充值金额</span><span class="bar"><i style="width:100%;background:#bcd3c6"></i></span><span class="val" style="color:#333">₹500.00</span></div>
-              <div class="k6-row"><span class="lab" data-t="channelBonus">充值奖励</span><span class="bar"><i style="width:9%;background:#8fd3ac"></i></span><span class="val" style="color:#12a05f">+₹45.00</span></div>
-              <div class="k6-row"><span class="lab" data-t="couponBonus">充值优惠券彩金</span><span class="bar"><i style="width:10%;background:#8fd3ac"></i></span><span class="val" style="color:#12a05f">+₹50.00</span></div>
-              <div class="k6-row"><span class="lab" data-t="fee">手续费</span><span class="bar"><i style="width:4%;background:#e8b3a6"></i></span><span class="val" style="color:#d4380d">−₹10.00 (2%)</span></div>
-            </div>
-            <div class="k6-note"><span>💠</span><div data-t="formulaStack">实际上分 = 充值金额 + 充值奖励 + 充值优惠券彩金 − 手续费</div></div>
-          </div>
-          <div class="k6-foot"><span data-t="navDep">充值</span><span class="k6-pay"><span data-t="depositBtn">充值</span> ₹500.00</span></div>
-        </div>
-      </div>
-
-      <!-- 场景② 券 + 手续费 -->
-      <div class="k6-col">
-        <div class="k6-cap c2" data-t="cap2">② 充值优惠券 + 手续费（无通道奖励）</div>
-        <div class="k6-phone">
-          <div class="k6-top"><div class="k6-nav"><span>‹ <span data-t="navDep">充值</span></span><span data-t="navHist">充值记录</span></div><div class="k6-bal"><div class="l" data-t="balance">余额</div><div class="v">₹7,609.80</div></div></div>
-          <div class="k6-body">
-            <div class="k6-st">🏦 <span data-t="selectCh">选择通道</span></div>
-            <div class="k6-chan"><div class="nm">123 (BullPay)</div><div class="rg">10 – 100K</div><div class="k6-fee">💠 <span data-t="fee">手续费</span> 2%</div></div>
-            <div class="k6-st">💰 <span data-t="depAmt">充值金额</span></div>
-            <div class="k6-amtg"><div class="k6-amt">₹100</div><div class="k6-amt on">₹500</div></div>
-            <div class="k6-ai"><span class="cur">₹</span> 500</div>
-            <div class="k6-cp">
-              <div class="k6-cphead"><span class="k6-ck"><span class="b">✓</span> <span data-t="useCoupon">使用充值优惠券</span><span class="newb">NEW</span></span><span class="k6-est"><span data-t="estBonus">预计彩金</span> <b>+ ₹50</b></span></div>
-              <div class="k6-opts"><div class="k6-opt on"><b>10%</b><span><span data-t="capLimit">上限</span> ₹50</span></div><div class="k6-opt"><b>8%</b><span><span data-t="capLimit">上限</span> ₹100</span></div><div class="k6-opt"><b>20%</b><span><span data-t="capLimit">上限</span> ₹30 <span data-t="threshold">满</span> ₹200</span></div></div>
-            </div>
-            <div class="k6-card"><div class="k6-ch2"><span data-t="actualCredit">实际上分</span><span class="gv">₹540.00</span></div>
-              <div class="k6-row"><span class="lab" data-t="amount">充值金额</span><span class="bar"><i style="width:100%;background:#bcd3c6"></i></span><span class="val" style="color:#333">₹500.00</span></div>
-              <div class="k6-row"><span class="lab" data-t="couponBonus">充值优惠券彩金</span><span class="bar"><i style="width:10%;background:#8fd3ac"></i></span><span class="val" style="color:#12a05f">+₹50.00</span></div>
-              <div class="k6-row"><span class="lab" data-t="fee">手续费</span><span class="bar"><i style="width:4%;background:#e8b3a6"></i></span><span class="val" style="color:#d4380d">−₹10.00 (2%)</span></div>
-            </div>
-            <div class="k6-note"><span>💠</span><div data-t="formula2">实际上分 = 充值金额 + 充值优惠券彩金 − 手续费</div></div>
-          </div>
-          <div class="k6-foot"><span data-t="navDep">充值</span><span class="k6-pay"><span data-t="depositBtn">充值</span> ₹500.00</span></div>
-        </div>
-      </div>
-
-      <!-- 场景③ 只有券 -->
-      <div class="k6-col">
-        <div class="k6-cap c3" data-t="cap3">③ 只有充值优惠券（无手续费·无奖励）</div>
-        <div class="k6-phone">
-          <div class="k6-top"><div class="k6-nav"><span>‹ <span data-t="navDep">充值</span></span><span data-t="navHist">充值记录</span></div><div class="k6-bal"><div class="l" data-t="balance">余额</div><div class="v">₹7,609.80</div></div></div>
-          <div class="k6-body">
-            <div class="k6-st">🏦 <span data-t="selectCh">选择通道</span></div>
-            <div class="k6-chan plain"><div class="nm">RAP-12183</div><div class="rg">10 – 100M</div></div>
-            <div class="k6-st">💰 <span data-t="depAmt">充值金额</span></div>
-            <div class="k6-amtg"><div class="k6-amt">₹100</div><div class="k6-amt on">₹500</div></div>
-            <div class="k6-ai"><span class="cur">₹</span> 500</div>
-            <div class="k6-cp">
-              <div class="k6-cphead"><span class="k6-ck"><span class="b">✓</span> <span data-t="useCoupon">使用充值优惠券</span><span class="newb">NEW</span></span><span class="k6-est"><span data-t="estBonus">预计彩金</span> <b>+ ₹50</b></span></div>
-              <div class="k6-opts"><div class="k6-opt on"><b>10%</b><span><span data-t="capLimit">上限</span> ₹50</span></div><div class="k6-opt"><b>8%</b><span><span data-t="capLimit">上限</span> ₹100</span></div><div class="k6-opt"><b>20%</b><span><span data-t="capLimit">上限</span> ₹30 <span data-t="threshold">满</span> ₹200</span></div></div>
-            </div>
-            <div class="k6-card"><div class="k6-ch2"><span data-t="actualCredit">实际上分</span><span class="gv">₹550.00</span></div>
-              <div class="k6-row"><span class="lab" data-t="amount">充值金额</span><span class="bar"><i style="width:100%;background:#bcd3c6"></i></span><span class="val" style="color:#333">₹500.00</span></div>
-              <div class="k6-row"><span class="lab" data-t="couponBonus">充值优惠券彩金</span><span class="bar"><i style="width:10%;background:#8fd3ac"></i></span><span class="val" style="color:#12a05f">+₹50.00</span></div>
-            </div>
-            <div class="k6-note"><span>💠</span><div data-t="formula3">实际上分 = 充值金额 + 充值优惠券彩金</div></div>
-          </div>
-          <div class="k6-foot"><span data-t="navDep">充值</span><span class="k6-pay"><span data-t="depositBtn">充值</span> ₹500.00</span></div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<div id="P-p6-OLD" class="page-block" style="display:none">
   <div class="mobile-stage">
-    <div class="stage-cap">会员端 H5 · <b>充值页使用充值优惠券</b> — 还原真实充值页（三渠道共用）</div>
-    <div class="phone">
-      <div class="phone-notch"></div><div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
-      <div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">Deposit</span><span class="nav-r">Deposit history</span></div>
-      <div class="phone-body" style="padding-bottom:6px">
-        <div style="display:flex;gap:6px;padding:2px 0 8px;justify-content:flex-end"><span class="langbtn on" data-l="en" onclick="setLang('en')" style="cursor:pointer;font-size:11px;padding:3px 10px;border-radius:12px;background:#f5535f;color:#fff">EN</span><span class="langbtn" data-l="hi" onclick="setLang('hi')" style="cursor:pointer;font-size:11px;padding:3px 10px;border-radius:12px;background:#f0f0f0;color:#666">हिंदी</span><span class="langbtn" data-l="vi" onclick="setLang('vi')" style="cursor:pointer;font-size:11px;padding:3px 10px;border-radius:12px;background:#f0f0f0;color:#666">Tiếng Việt</span></div>
-        <div class="balance"><div class="bl">📋 <span data-t="balance">Balance</span> ⟳</div><div class="bv">₹122,573,252.38</div></div>
-        <div class="ch-grid">
-          <div class="ch"><div class="ci">🅰️</div><div class="cn">ARPay=66</div><span class="chtag">+9%</span></div>
-          <div class="ch"><div class="ci">🇮🇳</div><div class="cn">LocalUPI</div><span class="chtag">40%+8%</span></div>
-          <div class="ch"><div class="ci">💲</div><div class="cn">LocalUSDT</div><span class="chtag">40%+9%</span></div>
-          <div class="ch"><div class="ci">🏦</div><div class="cn">LocalBank</div><span class="chtag">40%+9%</span></div>
-          <div class="ch"><div class="ci">💵</div><div class="cn">USDT</div><span class="chtag">+9%</span></div>
-          <div class="ch"><div class="ci">🎁</div><div class="cn">fa 2=44</div></div>
-          <div class="ch on"><div class="ci">🔁</div><div class="cn">ArUpiPay=1</div><span class="chtag">+9%</span></div>
-          <div class="ch"><div class="ci">🔁</div><div class="cn">fa000</div><span class="chtag">+9%</span></div>
-        </div>
-        <div class="dcard"><div style="font-weight:700;font-size:13px;margin-bottom:10px">💳 <span data-t="selectCh">Select channel</span></div>
-          <div class="seg-ch"><div class="sc on">ArUpiPay-26001<div class="bal">Balance:100 – 50K</div></div><div class="sc">ArUpiPay-26000<div class="bal">Balance:100 – 50K</div></div></div></div>
-        <div class="dcard"><div style="font-weight:700;font-size:13px;margin-bottom:10px">💰 <span data-t="depAmt">Deposit amount</span></div>
-          <div class="amt-input"><span class="cur">₹</span><input id="amt-input" type="number" value="500" oninput="setAmt(+this.value||0)"></div>
-          <div class="chips" id="chips"><span class="chip" data-a="100" onclick="setAmt(100)">100</span><span class="chip on" data-a="500" onclick="setAmt(500)">500</span><span class="chip" data-a="1000" onclick="setAmt(1000)">1000</span><span class="chip" data-a="2000" onclick="setAmt(2000)">2000</span></div></div>
-        <div class="newwrap">
-          <div class="newtag">新增 · 使用充值优惠券</div>
-          <div class="uc-row"><div class="uc-check" onclick="toggleUse()"><span class="uc-dot" id="uc-dot">✓</span><span data-t="useCoupon">使用充值优惠券</span><span class="uc-q" onclick="event.stopPropagation();toggleTip()">?</span></div><div class="uc-est"><span data-t="estBonus">预计彩金</span><b class="v" id="uc-bonus">+ ₹50</b></div></div>
-          <div class="uc-tipbox" id="uc-tipbox">• 若所选充值通道 / 大类本身有奖励，与充值优惠券<b>互斥，只能二选一</b><br>• 左右滑动选券，自动选预计彩金最高<br>• 到账后按打码倍数计入流水</div>
-          <div class="cpscroll" id="cpscroll"></div>
-        </div>
-        <div class="dcard"><div style="font-weight:700;font-size:13px;margin-bottom:8px">📋 <span data-t="instr">Recharge instructions</span></div>
-          <div class="instr"><div class="li">If the transfer time is up, please fill out the deposit form again.</div><div class="li">Use coupon will not stack with system deposit bonus.</div></div></div>
-        <div id="rd-panel" style="border:1px solid #e6ebe8;border-radius:12px;overflow:hidden;margin:2px 0 0">
-          <div style="background:#12a05f;color:#fff;padding:11px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:15px"><span data-t="actualCredit">实际上分</span><b id="rd-get">₹0</b></div>
-          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6"><span style="color:#5a6472;width:78px;line-height:1.25;flex-shrink:0" id="rd-amt-lbl" data-t="amount">充值金额</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i style="display:block;height:100%;background:#bcd3c6;width:100%"></i></span><span style="font-weight:700;color:#333;font-family:'SF Mono',Menlo,monospace" id="rd-amt">₹0</span></div>
-          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6;border-top:1px solid #ebf0ec"><span style="color:#5a6472;width:78px;line-height:1.25;flex-shrink:0" id="rd-award-lbl">奖励</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i id="rd-bar-award" style="display:block;height:100%;background:#8fd3ac;width:0"></i></span><span style="font-weight:700;color:#12a05f;font-family:'SF Mono',Menlo,monospace" id="rd-award">+₹0</span></div>
-          <!-- 叠加关系专用第二行：与上一行逐行相加 = 奖励总额（BR-07 铁律）；互斥时隐藏 -->
-          <div id="rd-row2" style="display:none;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6;border-top:1px solid #ebf0ec"><span style="color:#5a6472;width:78px;line-height:1.25;flex-shrink:0" id="rd-award2-lbl">充值优惠券彩金</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i id="rd-bar-award2" style="display:block;height:100%;background:#8fd3ac;width:0"></i></span><span style="font-weight:700;color:#12a05f;font-family:'SF Mono',Menlo,monospace" id="rd-award2">+₹0</span></div>
-          <!-- 互斥关系专用来源标注（券赢 / 券落败·券未扣除已退回）；叠加时隐藏 -->
-          <div id="rd-src" style="display:none;padding:0 14px 9px 92px;font-size:11px;color:#8a929c;line-height:1.45;background:#f5f8f6"></div>
-          <div style="display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:12.5px;background:#f5f8f6;border-top:1px solid #ebf0ec"><span style="color:#5a6472;width:78px;line-height:1.25;flex-shrink:0" id="rd-fee-lbl">手续费</span><span style="flex:1;height:6px;border-radius:6px;background:#e3e8e5;overflow:hidden;min-width:16px"><i id="rd-bar-fee" style="display:block;height:100%;background:#e8b3a6;width:0"></i></span><span style="font-weight:700;color:#f5535f;font-family:'SF Mono',Menlo,monospace" id="rd-fee">-₹0</span></div>
-          <div style="font-size:11px;color:#12a05f;padding:6px 14px 10px;background:#f5f8f6" id="rd-note">💠 实际上分 = 充值金额 + 奖励 － 手续费</div>
-        </div>
-      </div>
-      <div class="dep-foot"><div style="font-size:11px;color:#888">Recharge Method:<br><b style="color:#333">ArUpiPay-26001</b></div><button class="dep-btn" id="dep-btn" onclick="submitDeposit()">Deposit ₹500</button></div>
+    <div class="sc-top">
+      <div class="sc-title" data-t="scTitle">会员端 H5 · 充值页使用充值优惠券 —— 三种场景样式</div>
+      <div class="sc-lang"><span class="langbtn on" data-l="zh" onclick="setLang('zh')">中文</span><span class="langbtn" data-l="en" onclick="setLang('en')">EN</span><span class="langbtn" data-l="hi" onclick="setLang('hi')">हिंदी</span><span class="langbtn" data-l="vi" onclick="setLang('vi')">Tiếng Việt</span></div>
     </div>
+    <div class="sc-scroll"><div class="sc-cols" id="sc-cols"></div></div>
   </div>
 </div>
+
+<!-- ════ P-p6-OLD 已退役：原「真实充值页」交互逻辑（rd-panel/renderRewardDetail）已并入上方 P-p6，tab「充值用券」统一指向设计图样式的交互页，消除历史两个充值页问题 ════ -->
 
 <!-- ════ P7 会员·个人中心（我的） ════ -->
 <div id="P-p7" class="page-block" style="display:none">
@@ -684,7 +600,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
           </div>
           <div class="pc-quick">
             <div class="qk" onclick="toast('AR钱包')"><div class="qk-i">🧧</div><span data-t="p7ArWallet">AR钱包</span></div>
-            <div class="qk" onclick="goTab('p6')"><div class="pc-bubble" data-t="p7Bubble">🎁 充₹500返₹50</div><div class="qk-i">💰</div><span data-t="deposit">充值</span></div>
+            <div class="qk" onclick="goTab('p6')"><div class="pc-bubble" id="pc-bubble-max">🎁 最高可得20%</div><div class="qk-i">💰</div><span data-t="deposit">充值</span></div>
             <div class="qk" onclick="toast('提现')"><div class="qk-i">💳</div><span data-t="withdraw">提现</span></div>
             <div class="qk" onclick="toast('VIP')"><div class="qk-i">👑</div><span data-t="p7Vip">VIP</span></div>
           </div>
@@ -1148,97 +1064,123 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
       <div class="h1">三、功能详述</div>
 
       <div class="h2">3.1 红包派送（代理端 · 改造）</div>
-      <p>现金红包与充值优惠券红包<b>同一列表</b>，按「奖励类型」区分 / 筛选；点「＋新增」打开创建红包弹窗。列表含<b>「状态」列</b>（<b>进行中 / 已抢完 / 已取消 / 已过期</b> 四态徽标，与 BR-06 一一对应）与<b>「取消红包码」操作</b>——<b>仅「进行中」的红包码展示「取消红包码」按钮</b>，已抢完 / 已取消 / 已过期均不可再取消（状态流转与取消规则见 BR-06）。</p>
+      <p>现金红包与充值优惠券红包在<b>同一列表</b>统一创建与管理。操作流程：</p>
+      <ul class="l">
+        <li>① 按 <b>红包编码 / 奖励类型</b>（全部 · 充值优惠券 · 现金）筛选查询；工具栏常驻展示当前<b>赠金余额</b>。</li>
+        <li>② 点「＋新增」打开<b>创建红包弹窗</b>（字段见下表），确定后生成红包码；券红包按发放数量<b>预扣授权次数</b>（BR-08）。</li>
+        <li>③ 操作列：红包链接（沿用现有）／<b>取消红包码——仅「进行中」状态展示该按钮</b>，其余三态不可取消（BR-06）／获取记录（跳 3.4 领取记录·效果）。</li>
+        <li>④ 「接受范围」列为子代理维度时显示「指定子代理ID · <b>N 个</b>」，<b>N 可点击</b>打开接受范围明细弹窗（3.2）。</li>
+      </ul>
+      <p><b>列表字段：</b></p>
+      <table class="t">
+        <tr><th style="width:160px">列</th><th>说明</th></tr>
+        <tr><td>ID / 红包编码 / 激活码类型 / 数量 / 剩余 / 接收条件 / 创建时间</td><td>沿用现有</td></tr>
+        <tr><td>奖励类型（新）</td><td>充值券 / 现金 徽标，与顶部筛选同枚举</td></tr>
+        <tr><td>金额 / 券规格（新）</td><td>现金红包：金额（如 ₹50 固定、随机 ₹2.29）；券红包：<b>比例 · 上限</b>（如 10% · 上限₹50）</td></tr>
+        <tr><td>状态</td><td><b>进行中 / 已抢完 / 已取消 / 已过期</b> 四态徽标（BR-06）</td></tr>
+        <tr><td>接受范围（新）</td><td>展示所选维度；子代理维度显示「指定子代理ID · N 个」，N 可点开明细（3.2）</td></tr>
+        <tr><td>操作</td><td>红包链接 / 取消红包码（<b>仅进行中</b>）/ 获取记录</td></tr>
+      </table>
       <p><b>创建红包弹窗字段：</b></p>
       <table class="t">
-        <tr><th style="width:118px">字段</th><th style="width:56px">必填</th><th>说明 / 取值</th></tr>
+        <tr><th style="width:150px">字段</th><th style="width:52px">必填</th><th>说明 / 取值</th></tr>
         <tr><td>激活码类型</td><td>是</td><td>固定激活码 / 随机激活码（<b>沿用现有红包逻辑</b>；与每人限领规则相关，见「五、限制条件与校验」）</td></tr>
-        <tr><td>奖励类型</td><td>是</td><td>现金 / <b>充值优惠券（新）</b></td></tr>
-        <tr><td>选择充值优惠券码</td><td>条件</td><td>奖励类型=充值优惠券时必填，下拉<b>仅列运营前置授权</b>的券码；选后展示券规格（只读）</td></tr>
-        <tr><td>接受范围</td><td>是</td><td>代理维度 或 <b>子代理维度</b>（指定子代理ID / 导入子代理ID），<b>二选一互斥</b></td></tr>
-        <tr><td>接收条件</td><td>否</td><td>存款 / 投注 / 亏损（多少天内或历史累计）；<b>判定时机与阈值录入沿用现有红包逻辑</b></td></tr>
-        <tr><td>数量 / 金额类型</td><td>是</td><td>红包个数、固定金额 / 随机金额 / <b>区间随机金额</b>（三选一，<b>沿用现有红包逻辑</b>；券红包为按张发、无金额类型）</td></tr>
+        <tr><td>奖励类型（新）</td><td>是</td><td>现金 / <b>充值优惠券（新）</b>，单选（一个红包码限一种奖励类型，见五）</td></tr>
+        <tr><td>金额类型 / 总金额</td><td>条件</td><td>现金红包必填：<b>固定金额 / 随机金额 / 区间随机金额</b> 三选一 ＋ 总金额（<b>沿用现有红包逻辑</b>）；<b>券红包按张发、无此项</b></td></tr>
+        <tr><td>选择充值优惠券码（新）</td><td>条件</td><td>券红包必填；下拉<b>仅列运营前置授权给本代理</b>的券码（含剩余次数）；选中后<b>只读</b>展示券规格：比例 / 上限 / 有效期 / 门槛 / 券 vs 通道赠金关系</td></tr>
+        <tr><td>数量</td><td>是</td><td>红包个数，≤ 5 万（见五）；券红包同步提示「可用额度：剩 N 张」，<b>发放数量 ≤ 授权剩余次数</b></td></tr>
+        <tr><td>接受范围（新）</td><td>是</td><td>无规则（不限定，沿用现有）/ 代理维度（直属下级 · 佣金下级 · 全部下级 · 指定直属代理）/ <b>子代理维度（指定子代理ID，录入与校验见 3.2）</b>；代理维度与子代理维度<b>二选一互斥</b>（BR-02）</td></tr>
+        <tr><td>接收条件</td><td>否</td><td>无规则 / 存款 / 投注 / 亏损条件，二级选择判定口径（多少天内或历史累计的次数 / 金额）＋数值；<b>判定时机与阈值录入沿用现有红包逻辑</b></td></tr>
         <tr><td>备注</td><td>条件</td><td>文本，<b>最长 150 字</b>；<b>红包数量 &gt; 1 时必填</b>（沿用现有红包逻辑）</td></tr>
       </table>
 
       <div class="h2">3.2 接受范围（改造）</div>
-      <p>在原「代理下级维度」（直属下级 / 佣金下级 / 全部下级 / 指定直属代理）基础上，<b>新增子代理维度</b>：指定子代理ID（手填，<b>逗号 / 中文逗号 / 顿号 / 空格 / 换行均可</b>分隔）/ 导入子代理ID（<b>CSV / Excel</b>）。<b style="color:#cf1322">所填 / 导入的子代理ID 必须属于本代理的下级</b>——系统按「代理-下级」归属校验，非本代理下级的 ID 自动剔除、不发放；<b>校验后提示「剔除 N 个（非下级 / 黑名单 / 重复）、有效 M 个」</b>，仅对有效 ID 发放。</p>
+      <p>在原「代理下级维度」（直属下级 / 佣金下级 / 全部下级 / 指定直属代理）基础上，<b>新增子代理维度</b>——按子代理ID 逐个指定。选「指定子代理ID」后：</p>
+      <ul class="l">
+        <li>① 录入：<b>手填 / 粘贴</b>子代理ID（<b>逗号 / 中文逗号 / 顿号 / 空格 / 换行均可</b>分隔），或<b>上传 CSV / Excel</b> 批量导入；输入框实时显示「已识别 N 个子代理ID」。</li>
+        <li>② 校验：按「代理-下级」归属校验，<b style="color:#cf1322">所填 / 导入的子代理ID 必须属于本代理的下级</b>，非下级 ID 自动剔除、不发放；<b>校验后提示「剔除 N 个（非下级 / 黑名单 / 已持同券 / 重复去重）、有效 M 个」</b>，仅对有效 ID 发放（BR-03，剔除细则见五）。</li>
+      </ul>
       <p><b>接受范围明细：</b>「红包派送」列表「接受范围」列的<b>数字（子代理个数）可点击</b>，打开<b>「接受范围明细」弹窗</b>，展示该红包所指定的子代理名单：<b>子代理ID / 领取状态（已领取 · 未领取）/ 领取时间</b>；弹窗内仅展示前若干条，支持<b>导出完整名单</b>。据此可对照「红包领取记录」，看清名单内谁已领、谁未领。</p>
 
       <div class="h2">3.3 会员列表·红包充值（V1后台 · 改造）</div>
-      <p>运营在会员列表对<b>单个代理</b>操作，配置项与新增列如下：</p>
+      <p>运营对<b>单个代理</b>充现金红包额度、前置授权充值优惠券次数。操作流程：按 代理ID / 会员账号 查询 → 点行内「红包充值」打开弹窗 → 选<b>配置类型</b>（二选一）填写 → 提交生效。</p>
       <table class="t">
-        <tr><th style="width:132px">配置 / 项</th><th style="width:56px">类型</th><th>说明</th></tr>
-        <tr><td>红包充值（现金）</td><td><span class="tag t-mod">配置</span></td><td>给代理充<b>现金红包额度</b>（红包余额），用于派发现金红包</td></tr>
-        <tr><td>前置授权充值优惠券码 + 总次数</td><td><span class="tag t-mod">配置</span></td><td>给代理<b>追加</b>某券码的可发次数；与「创建券码时」配的次数<b>累加（不覆盖）</b>（见名词术语「发券前置授权」 / BR-08）</td></tr>
-        <tr><td>红包 / 券 剩余额度</td><td><span class="tag t-new">新增列</span></td><td>一列上下两行：<b>红包剩余金额（₹）</b> + <b>充值优惠券码剩余次数（张）</b></td></tr>
-        <tr><td>生效前提</td><td><span class="tag t-mod">规则</span></td><td>代理<b>获授权后</b>，才能在「红包派送」下拉选到该券码、派发对应券红包</td></tr>
+        <tr><th style="width:172px">配置 / 项</th><th style="width:56px">类型</th><th>说明</th></tr>
+        <tr><td>配置类型</td><td><span class="tag t-new">字段</span></td><td><b>红包充值（现金）/ 充值优惠券配置</b>，单选切换下方字段组</td></tr>
+        <tr><td>红包充值 → 充值金额</td><td><span class="tag t-mod">配置</span></td><td>给代理充<b>现金红包额度</b>（红包余额），用于派发现金红包</td></tr>
+        <tr><td>充值优惠券配置 → 券码 + 次数</td><td><span class="tag t-mod">配置</span></td><td>券码下拉<b>仅列「适用渠道＝红包码」的券码</b>（运营建券时设定）；填入次数给代理<b>追加</b>该券码可发次数，与「创建券码时绑定」的次数<b>累加（不覆盖）</b>（见名词术语「发券前置授权」 / BR-08）</td></tr>
+        <tr><td>红包 / 券 剩余额度</td><td><span class="tag t-new">新增列</span></td><td>一列上下两行：<b>红包剩余金额（₹）</b> + <b>券剩余次数，口径「剩余 / 累计授权」</b>（如 62/100）；未授权显示「券 —（未授权）」，剩 0 标注「已发完」</td></tr>
+        <tr><td>生效前提</td><td><span class="tag t-mod">规则</span></td><td>代理<b>获授权后</b>，才能在「红包派送」下拉选到该券码、派发对应券红包（发放数量 ≤ 剩余次数）</td></tr>
       </table>
 
-      <div class="h2">3.4 领取记录·效果 / 赠金记录（代理端 · 改造）</div>
-      <p>领取记录·效果：红包领取统计 + 转化效果（核销率等）。赠金记录：代理赠金账变，现金红包扣款、<b>券红包零扣</b>（券彩金成本由<b>平台承担</b>，统一计入账变「充值优惠券」，代理后台暂不体现）。</p>
-
-      <div class="h2">3.5 代理红包账变（代理端 · 新增）</div>
-      <p>代理端新增页面，展示该代理<b>红包赠金余额（现金）</b>与<b>前置授权充值优惠券次数</b>的<b>双维度</b>账变流水。列：<b>账变时间 / 账变前金额·券次数 / 账变金额·券次数 / 账变后金额·券次数 / 操作人</b>；支持<b>起止时间筛选</b>与<b>分页</b>。</p>
+      <div class="h2">3.4 领取记录·效果 / 赠金记录 / 代理红包账变（代理端）</div>
+      <p><b>领取记录·效果（改造）</b>——看券红包「领取 → 用券充值」的转化效果（现金红包领了即到账，无此环节）。筛选：子代理ID / 红包ID / <b>使用状态（新）</b>（全部 · 已使用 · 未使用）。顶部<b>效果概览（新）</b>按当前红包汇总：发放数 / 已领取（领取率）/ 已使用（<b>核销率＝已使用 ÷ 已领取</b>）/ 带来充值（用券充值本金合计）/ 彩金成本（券彩金合计）。</p>
+      <table class="t">
+        <tr><th style="width:170px">列</th><th>说明</th></tr>
+        <tr><td>子代理ID / 红包码 / 子代理昵称 / 注册手机 / 收集时间</td><td>沿用现有；领取人＝接受范围名单内的子代理本人（BR-03）</td></tr>
+        <tr><td>领到（新）</td><td>领取内容；券红包展示券规格（如「10%券·上限₹50」）</td></tr>
+        <tr><td>使用状态（新）</td><td>已使用 / 未使用（该券是否已用于充值）</td></tr>
+        <tr><td>用券充值额 / 获得彩金（新）</td><td>已使用：该笔用券充值本金 / 到账券彩金；未使用显示「—」</td></tr>
+      </table>
+      <p><b>赠金记录（改造）</b>——只记<b>运营给代理账号的入账</b>：＋红包充值（现金）与＋<b>充值优惠券次数授权（新）</b>两类，按红包编码 / 时间筛选。列：订单号码 / 红包ID / 红包编码 / <b>奖励类型（新）</b> / 变更类型 / 账变前 / 变更金额 / 账变后 / 备注（含操作人）/ 创建日期。<b>与「代理红包账变」的分工</b>：本页＝入账记录；红包创建 / 取消等<b>每一笔</b>金额与次数流水在「代理红包账变」（两页不重复、不冲突）。创建现金红包扣赠金、创建券红包零扣——券彩金成本由<b>平台</b>在会员用券充值后承担，计入 V3 资金账变「充值优惠券」（3.5），代理赠金不动。</p>
+      <p><b>代理红包账变（新增）</b>——该代理<b>红包赠金余额（现金）</b>与<b>前置授权充值优惠券次数</b>的<b>双维度</b>账变流水。列：<b>账变时间 / 账变前金额·券次数 / 账变金额·券次数 / 账变后金额·券次数 / 操作人</b>；支持<b>起止时间筛选</b>与<b>分页</b>。</p>
       <ul class="l">
         <li><b>现金账变</b>：来自<b>红包创建 / 取消</b>对代理<b>赠金余额</b>的加减（创建现金红包扣减、取消按现有逻辑处理，见 BR-08），以及运营的红包充值（加）。</li>
         <li><b>券次数账变</b>：来自<b>运营的前置授权次数调整</b>（在「会员列表·红包充值」追加次数，或创建券码时绑定次数），以及券红包发放预扣 / 取消退回（BR-08）。</li>
+        <li>两个维度<b>合并在同一行的「/券次数」列</b>展示：现金账变行券次数为 0，授权调整行体现券次数增减；<b>操作人</b>区分代理本人（手机号账号）与运营后台账号（如 admin）。</li>
       </ul>
-      <p>两个维度<b>合并在同一行的「/券次数」列</b>展示：现金账变行券次数为 0，授权调整行则体现券次数增减，<b>操作人</b>区分是代理本人操作（手机号账号）还是运营后台账号（如 admin）。</p>
+
+      <div class="h2">3.5 V3中台后台：会员列表 / 资金账变（改造）</div>
+      <p><b>会员列表</b>——新增<b>「红包 / 券 剩余额度」列</b>，一列上下两行：<b>红包剩余金额（₹）</b>＋<b>券剩余次数</b>（仅剩余值；V1 列为「剩余/累计授权」口径，见 3.3）；未授权显示「券 —」，剩 0 标注「（已发完）」。该列<b>计入「页面总计 / 总计」汇总行</b>（红包金额求和＋券次数求和，如「红包 ₹2,700.00 / 券 242 次」）。其余筛选、列与操作沿用现有。</p>
+      <p><b>资金账变</b>——「账变类型」筛选与列<b>枚举新增「充值优惠券」</b>：会员用券充值后<b>券彩金到账</b>的账变流水（账变金额为正、操作人 system，备注含券码与比例，如「充值优惠券到账：REDBAG20 充10%返50」）；可按该类型筛选与<b>导出</b>，沿用页面既有校验（会员ID / 订单号 / 类型 / 操作人至少填一项）。</p>
 
       <div class="h2">3.6 客户端（新增 · 多语言）</div>
-      <p>输码兑换（输红包码得券）/ 我的充值优惠券（券包）/ 充值用券 / 个人中心；均支持<b>多语言</b>（当前英 / 印地 / 越南，可扩展）。</p>
-      <p><b>个人中心「充值」按钮气泡</b>：动态展示当前可享的<b>最高充值奖励</b>（如「充 ₹500 返 ₹50」），随可用优惠实时更新。换算规则：从会员当前<b>所有可用充值优惠券 / 通道充值奖励</b>中取<b>彩金上限最高的一档</b>（单档，不算叠加组合），按 <b>Y（返）= 该档彩金上限 ₹C</b>、<b>X（充）= max( ⌈C ÷ 比例%⌉ , 门槛 )</b> 换算成「充 X 返 Y」。示例：<code>10% · 上限₹50 · 无门槛 → 充 ₹500 返 ₹50</code>；<code>20% · 上限₹30 · 满₹200 → 充 ₹200 返 ₹30</code>。多档时先比 Y 取最大、Y 相同再取 X 最小（更易达成）；<b>无上限的奖励不进气泡</b>、<b>无可用奖励不展示气泡</b>。「我的充值优惠券」入口带 NEW 标识、可点击进入券包。</p>
+      <p>四页：输码兑换 / 我的充值优惠券 / 充值用券 / 个人中心；均走现有多语言机制（默认中文，可切英 / 印地 / 越南等，BR-09）。</p>
+      <p><b>个人中心（我的）</b>：「充值」按钮气泡动态展示「<b>最高可得 N%</b>」——N = 会员当前<b>所有持有充值优惠券</b>中的<b>最高赠送比例</b>（动态读取，不写死金额；如持有 10% / 8% / 20% / 15% 四张 → 显示「最高可得 20%」）。券列表变化（新领 / 过期 / 用掉）时随之更新；<b>无可用券不展示气泡</b>。点击进入充值页。列表新增<b>「我的充值优惠券」入口</b>，进入券包。</p>
+      <p><b>输码兑换</b>：输入红包码 → 点「立即兑换」→ 成功展示所得券卡片（比例 / 上限 / 门槛 / 有效期 / 来源红包码），券进入「我的充值优惠券」，可「去使用」跳充值页；页面说明标注红包码由上级代理发放。领取资格与限领见 BR-03 / 五。</p>
+      <p><b>我的充值优惠券</b>：三 Tab <b>未使用 / 已使用 / 已过期</b>。券卡片：比例 / 上限 / 门槛 / 剩余有效期 / 来源（红包码 ×××）；未使用可「去使用」跳充值页，已使用展示所用订单号，已过期展示过期日期。</p>
+      <p><b>充值用券</b>：充值页新增「使用充值优惠券」模块——券横排单选（<b>每次充值限用 1 张</b>，见五），选中打 ✓ 并展示<b>预计彩金</b>与「实际上分」明细；<b>未达门槛的券置灰</b>、副行展示门槛（如「满 ₹800」），<b>点击置灰券提示「未达使用门槛 ₹N，还差 ₹M」</b>、不可选用。明细行结构随通道配置与赠金关系呈三种典型场景（金额口径一律引用 3.7，展示铁律见 BR-07）：</p>
+      <table class="t">
+        <tr><th style="width:216px">场景</th><th>明细行</th><th style="width:186px">例（充₹500 · 券10%上限₹50）</th></tr>
+        <tr><td>① 券＋通道奖励＋手续费（叠加）</td><td>充值金额 / 充值奖励 / 充值优惠券彩金 / 手续费</td><td>500＋45＋50−10 = <b>585</b></td></tr>
+        <tr><td>② 券＋手续费（通道无奖励）</td><td>充值金额 / 充值优惠券彩金 / 手续费</td><td>500＋50−10 = <b>540</b></td></tr>
+        <tr><td>③ 仅券（通道无手续费·无奖励）</td><td>充值金额 / 充值优惠券彩金</td><td>500＋50 = <b>550</b></td></tr>
+      </table>
 
       <div class="h2">3.7 赠金计算规则（券 vs 通道赠金）</div>
-      <p>本节是券赠金与通道赠金的<b>唯一计算口径</b>，#31 / #16 / #20 三份需求共用；其余章节与业务规则<b>只引用本节、不重复算式</b>。</p>
-
-      <p><b>① 输入量</b></p>
+      <p>本节是「券赠金」与「通道赠金」的<b>唯一口径</b>，#31 / #16 / #20 三份需求共用；其余章节与业务规则只引用本节、不重复。</p>
+      <p><b>业务流程：</b>用户用券充值时，<b>实际到账 = 充值本金 ＋ 赠金 − 手续费</b>。「赠金」由两部分竞争或叠加得到——<b>券赠金</b>（这张券带来的）与<b>通道赠金</b>（充值方式自带的活动奖励）；二者谁生效、是否相加，由券规格里配置的<b>赠金关系</b>决定（三选一，运营建券时设定，代理 / 会员不可改）。</p>
+      <p><b>字段定义：</b></p>
       <table class="t">
-        <tr><th style="width:150px">符号</th><th>含义</th></tr>
-        <tr><td><code>A</code></td><td>充值本金（<b>门槛 / 比例 / 手续费都基于它</b>）</td></tr>
-        <tr><td><code>r</code> / <code>cap</code> / <code>th</code></td><td>券比例 / 券上限 / 券门槛（<code>th = 0</code> 表示无门槛）</td></tr>
-        <tr><td><code>chPct1</code> / <code>chPct2</code> / <code>chPct3</code></td><td>三类通道奖励费率：<b>充值通道赠金</b> / <b>VIP等级充值奖励</b> / <b>快捷金额充值奖励</b></td></tr>
-        <tr><td><code>feePct</code></td><td>手续费率</td></tr>
-        <tr><td><code>m_券</code> / <code>m_通道</code></td><td>打码倍数（券 / 通道）</td></tr>
+        <tr><th style="width:120px">概念</th><th>说明</th></tr>
+        <tr><td>充值本金</td><td>用户本次实际充值金额；<b>券门槛、券比例、手续费均以它为基数</b>（不以到账额为基数）</td></tr>
+        <tr><td>券赠金</td><td>充值本金按券比例计算，<b>不超过券上限</b>；未达券门槛则该券不可用</td></tr>
+        <tr><td>通道赠金</td><td>充值方式自带的活动奖励，含三类：<b>充值通道赠金 / VIP等级充值奖励 / 快捷金额充值奖励</b></td></tr>
+        <tr><td>手续费</td><td>按充值本金的固定费率扣取</td></tr>
+        <tr><td>打码量</td><td>赠金到账后、提现前需完成的流水倍数；<b>券赠金与通道赠金各自按自己的倍数计算</b></td></tr>
+        <tr><td>取整规则</td><td>券赠金、通道赠金、手续费<b>一律向下取整到整数 ₹</b>，各自单独取整、不保留小数</td></tr>
       </table>
-
-      <p><b>② 算式</b></p>
+      <p><b>三种赠金关系：</b></p>
       <table class="t">
-        <tr><th style="width:120px">步骤</th><th>算式</th></tr>
-        <tr><td>① 券可用性</td><td><code>usable = (A &gt;= th)</code> —— <b>含等于</b></td></tr>
-        <tr><td>② 券赠金</td><td><code>cpAward = min( floor(A × r), cap )</code> —— <b>先取整、再封顶</b></td></tr>
-        <tr><td>③ 通道候选</td><td><code>ch1 = floor(A × chPct1)</code> —— 充值通道赠金<br><code>ch2 = floor(A × chPct2)</code> —— VIP等级充值奖励<br><code>ch3 = floor(A × chPct3)</code> —— 快捷金额充值奖励</td></tr>
-        <tr><td>④ 关系裁决</td><td>见下方「③ 三种关系」表</td></tr>
-        <tr><td>⑤ 手续费</td><td><code>fee = floor(A × feePct)</code></td></tr>
-        <tr><td>⑥ 实际上分</td><td><code>youGet = A + award − fee</code></td></tr>
+        <tr><th style="width:104px">赠金关系</th><th>含义</th><th style="width:184px">券是否消耗</th><th>到账明细</th></tr>
+        <tr><td><b>互斥·取高</b><br>（默认）</td><td>券赠金与三类通道奖励中<b>只发金额最高的一个</b>；金额相等时<b>优先发券</b></td><td>券胜出 → 消耗；<b>券未胜出 → 不消耗、退回券包</b>，不计入「已使用」</td><td>一行「奖励」＋来源标注</td></tr>
+        <tr><td><b>叠加</b></td><td>券赠金与三类通道奖励<b>全部发放、金额相加</b></td><td>消耗</td><td><b>两行</b>：「充值奖励」（三类通道合计）＋「充值优惠券彩金」；<b>两行金额相加 = 总赠金</b></td></tr>
+        <tr><td><b>互斥·优先券</b></td><td><b>无条件只发券赠金</b>，不与通道比较（即使通道更高）</td><td>消耗</td><td>一行「奖励」＋来源标注</td></tr>
       </table>
-      <p><b>取整一律 floor（向下取整），精度到整数 ₹；四个候选（cpAward / ch1 / ch2 / ch3）各自独立取整后再参与裁决</b>（不是先加后取整）。</p>
-
-      <p><b>③ 三种关系</b></p>
-      <table class="t">
-        <tr><th style="width:104px">关系</th><th style="width:224px">算式</th><th style="width:206px">券消耗</th><th>明细</th></tr>
-        <tr><td><b>互斥·取高</b><br>（默认）</td><td><code>award = max(cpAward, ch1, ch2, ch3)</code>，<b>平局取券</b></td><td>券赢 → 消耗；<b>券落败 → 不消耗、退回券包，「已使用」不计数</b></td><td>1 行 + 来源标注</td></tr>
-        <tr><td><b>叠加</b></td><td><code>award = cpAward + ch1 + ch2 + ch3</code>（四者全给）</td><td>消耗</td><td><b>2 行</b>：「充值奖励」(= ch1+ch2+ch3) ＋「充值优惠券彩金」(= cpAward)；铁律 —— <b>逐行相加 = award</b></td></tr>
-        <tr><td><b>互斥·优先券</b></td><td><code>award = cpAward</code>，<b>无条件用券、完全不比通道</b></td><td>消耗</td><td>1 行 + 来源标注</td></tr>
-      </table>
-
-      <p><b>④ 打码量</b>（各算各的）：互斥 → <code>award × m_赢家倍数</code>；叠加 → <code>cpAward × m_券 + (ch1+ch2+ch3) × m_通道</code>。</p>
-
-      <p><b>⑤ 来源标注文案</b>（明细为 1 行时<b>必须带</b>）：</p>
+      <p><b>来源标注：</b>明细为一行时（取高 / 优先券）必须标注赠金来源，让会员看清钱从哪来、券有没有被扣：</p>
       <ul class="l">
-        <li>券赢 → <code>奖励 +₹50（充值优惠券 10%，取高 ＞ 通道 ₹45）</code></li>
-        <li>券落败 → <code>奖励 +₹90（VIP等级奖励，取高 ＞ 券 ₹50，券未扣除已退回）</code></li>
+        <li>券胜出：<b>奖励 +₹50（充值优惠券 10%，高于通道 ₹45）</b></li>
+        <li>券未胜出：<b>奖励 +₹90（VIP等级奖励 高于券 ₹50；券未使用、已退回）</b></li>
       </ul>
-
-      <p><b>⑥ 算例</b>（供验算；券 <b>10%·上限₹50·无门槛</b>，通道 <b>9%</b>，手续费 <b>2%</b>）：</p>
+      <p><b>算例</b>（券 10%、上限 ₹50、无门槛；通道奖励 9%；手续费 2%）：</p>
       <table class="t">
-        <tr><th style="width:66px">充值</th><th>cpAward</th><th>ch（通道9%）</th><th>取高</th><th style="width:52px">叠加</th><th style="width:58px">优先券</th><th>上分（取高）</th></tr>
-        <tr><td>₹500</td><td>min(50,50)=50</td><td>45</td><td><b>50</b>（券赢）</td><td>95</td><td>50</td><td>500+50−10=<b>540</b></td></tr>
-        <tr><td>₹1000</td><td>min(100,50)=<b>50</b>（封顶）</td><td>90</td><td><b>90</b>（通道赢，券退回）</td><td>140</td><td>50</td><td>1000+90−20=<b>1070</b></td></tr>
-        <tr><td>₹333</td><td>floor(33.3)=<b>33</b></td><td>floor(29.97)=<b>29</b></td><td>33</td><td>62</td><td>33</td><td>333+33−6=<b>360</b></td></tr>
+        <tr><th style="width:72px">充值本金</th><th>券赠金</th><th>通道赠金</th><th>取高·赠金</th><th style="width:62px">叠加·赠金</th><th style="width:66px">优先券·赠金</th></tr>
+        <tr><td>₹500</td><td>₹50</td><td>₹45</td><td><b>₹50</b>（券胜出）</td><td>₹95</td><td>₹50</td></tr>
+        <tr><td>₹1000</td><td>₹50（触上限）</td><td>₹90</td><td><b>₹90</b>（通道胜出，券退回）</td><td>₹140</td><td>₹50</td></tr>
+        <tr><td>₹333</td><td>₹33</td><td>₹29</td><td>₹33</td><td>₹62</td><td>₹33</td></tr>
       </table>
-      <div class="note">📌 上表为<b>单通道候选</b>场景（<code>chPct1 = 9%</code>、<code>chPct2 = chPct3 = 0</code>），故「叠加」列 = <code>cpAward + ch1</code>；多候选时按 ② 的 ③ 全量代入。</div>
+      <p class="note">到账 = 充值本金 ＋ 赠金 − 手续费（手续费 = 本金 × 2%）。例：充 ₹500 取高，到账 500 ＋ 50 − 10 = <b>₹540</b>；充 ₹1000 取高，到账 1000 ＋ 90 − 20 = <b>₹1070</b>。可作验收基准。
+    
     </div>
 
     <div class="sec">
@@ -1275,7 +1217,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
 <div class="toast-stack" id="toast-stack" style="position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:2000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none"></div>
 
 <script>
-function showPage(k,el){document.querySelectorAll('.page-block').forEach(b=>b.style.display='none');document.getElementById('P-'+k).style.display='';document.querySelectorAll('.b-tab').forEach(t=>t.classList.remove('on'));if(el)el.classList.add('on');if(k==='p6')renderRC();}
+function showPage(k,el){document.querySelectorAll('.page-block').forEach(b=>b.style.display='none');document.getElementById('P-'+k).style.display='';document.querySelectorAll('.b-tab').forEach(t=>t.classList.remove('on'));if(el)el.classList.add('on');if(k==='p6')renderScenarios();}
 /* 按 onclick 内容定位顶部 tab，避免硬编码索引（新增/调整 tab 时不会错位） */
 function goTab(k){const t=[...document.querySelectorAll('.b-tab')].find(x=>(x.getAttribute('onclick')||'').includes("'"+k+"'"));showPage(k,t);}
 function v3quick(el,label){el.parentElement.querySelectorAll('span').forEach(s=>s.classList.remove('on'));el.classList.add('on');toast('时间范围：'+label);}
@@ -1326,13 +1268,18 @@ function redeem(){const v=document.getElementById('red-code').value.trim().toUpp
 function myTab(el,id){el.parentElement.querySelectorAll('.tab-m').forEach(t=>t.classList.remove('on'));el.classList.add('on');['mc-unused','mc-used','mc-expired'].forEach(x=>document.getElementById(x).style.display='none');document.getElementById(id).style.display='';}
 const COUPONS=[{id:1,r:.10,cap:50,th:0,rule:'high'},{id:2,r:.20,cap:30,th:200,rule:'stack'},{id:3,r:.08,cap:100,th:0,rule:'only'}];
 let dep={amt:500,use:true,sel:1};
+/* 会员端·充值用券页 统一交互（三份一致）：2×3 快捷金额 + 券横排三态 + 明细预览下方 */
+const QAMTS=[100,500,1000,10000,50000,100000];
+function fmtAmt(v){return v>=10000?(v/1000)+'k':(''+v);}
+function money(v){return '₹'+Number(v).toFixed(2);}
+function pickPay(el){el.parentElement.querySelectorAll('.pc-payw').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
 function bonus(c,a){return a>=c.th?Math.min(Math.floor(a*c.r),c.cap):null;}
 function best(a){let b=null,bv=-1;COUPONS.forEach(c=>{const v=bonus(c,a);if(v!=null&&v>bv){bv=v;b=c.id;}});return b;}
-function setAmt(a){dep.amt=a;document.querySelectorAll('#chips .chip').forEach(x=>x.classList.toggle('on',+x.dataset.a===a));if(dep.use){const nb=best(a);if(nb&&nb!==dep.sel){dep.sel=nb;toast('已切换为更优券','success');}}renderRC();}
+function setAmt(a){dep.amt=a;if(dep.use){const nb=best(a);if(nb&&nb!==dep.sel){dep.sel=nb;toast(tt('coSwitchBest'),'success');}}renderRC();}
 function toggleUse(){dep.use=!dep.use;if(dep.use&&!dep.sel)dep.sel=best(dep.amt);renderRC();}
-function pick(id){const c=COUPONS.find(x=>x.id===id);if(bonus(c,dep.amt)==null)return;dep.sel=id;dep.use=true;renderRC();}
+function pick(id){const c=COUPONS.find(x=>x.id===id);if(bonus(c,dep.amt)==null){const d=Math.max(c.th-dep.amt,0);toast(tt('coBelowTh').replace('{th}',c.th).replace('{d}',d),'warning');return;}dep.sel=id;dep.use=true;renderRC();}
 let LANG='en';
-const T={balance:{zh:'余额',en:'Balance',hi:'शेष',vi:'Số dư'},selectCh:{zh:'选择通道',en:'Select channel',hi:'चैनल चुनें',vi:'Chọn kênh'},depAmt:{zh:'充值金额',en:'Deposit amount',hi:'जमा राशि',vi:'Số tiền nạp'},useCoupon:{zh:'使用充值优惠券',en:'Use coupon',hi:'कूपन उपयोग करें',vi:'Dùng phiếu ưu đãi'},estBonus:{zh:'预计彩金',en:'Est. bonus',hi:'अनुमानित बोनस',vi:'Thưởng dự kiến'},actualCredit:{zh:'实际上分',en:'Actual credit',hi:'वास्तविक क्रेडिट',vi:'Thực nhận'},amount:{zh:'充值金额',en:'Amount',hi:'राशि',vi:'Số tiền'},bonus:{zh:'奖励',en:'Bonus',hi:'बोनस',vi:'Thưởng'},channelBonus:{zh:'充值奖励',en:'Deposit bonus',hi:'जमा बोनस',vi:'Thưởng nạp'},couponBonus:{zh:'充值优惠券彩金',en:'Coupon bonus',hi:'कूपन बोनस',vi:'Thưởng phiếu'},fee:{zh:'手续费',en:'Fee',hi:'शुल्क',vi:'Phí'},instr:{zh:'充值说明',en:'Recharge instructions',hi:'रिचार्ज निर्देश',vi:'Hướng dẫn nạp'},formula:{zh:'实际上分 = 充值金额 + 奖励 − 手续费',en:'Actual = Amount + Bonus − Fee',hi:'वास्तविक = राशि + बोनस − शुल्क',vi:'Thực nhận = Số tiền + Thưởng − Phí'},formulaStack:{zh:'实际上分 = 充值金额 + 充值奖励 + 充值优惠券彩金 − 手续费',en:'Actual = Amount + Deposit bonus + Coupon − Fee',hi:'वास्तविक = राशि + जमा बोनस + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Thưởng nạp + Phiếu − Phí'},formula2:{zh:'实际上分 = 充值金额 + 充值优惠券彩金 − 手续费',en:'Actual = Amount + Coupon − Fee',hi:'वास्तविक = राशि + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Phiếu − Phí'},formula3:{zh:'实际上分 = 充值金额 + 充值优惠券彩金',en:'Actual = Amount + Coupon',hi:'वास्तविक = राशि + कूपन',vi:'Thực nhận = Số tiền + Phiếu'},cap1:{zh:'① 充值优惠券 + 充值奖励 + 手续费（叠加）',en:'① Coupon + Deposit bonus + Fee (stack)',hi:'① कूपन + जमा बोनस + शुल्क',vi:'① Phiếu + Thưởng nạp + Phí'},cap2:{zh:'② 充值优惠券 + 手续费（无通道奖励）',en:'② Coupon + Fee (no channel bonus)',hi:'② कूपन + शुल्क',vi:'② Phiếu + Phí'},cap3:{zh:'③ 只有充值优惠券（无手续费·无奖励）',en:'③ Coupon only (no fee/bonus)',hi:'③ केवल कूपन',vi:'③ Chỉ phiếu'},threshold:{zh:'满',en:'Min',hi:'न्यूनतम',vi:'Tối thiểu'},depositBtn:{zh:'充值',en:'Deposit',hi:'जमा करें',vi:'Nạp'},navDep:{zh:'充值',en:'Deposit',hi:'जमा',vi:'Nạp tiền'},navHist:{zh:'充值记录',en:'History',hi:'इतिहास',vi:'Lịch sử'},
+const T={scTitle:{zh:'会员端 H5 · 充值页使用充值优惠券 —— 三种场景样式',en:'Member H5 · Deposit coupon on the recharge page — 3 scenario styles',hi:'सदस्य H5 · रिचार्ज पेज पर कूपन — 3 परिदृश्य शैलियाँ',vi:'H5 thành viên · Phiếu ưu đãi khi nạp — 3 kiểu kịch bản'},balance:{zh:'余额',en:'Balance',hi:'शेष',vi:'Số dư'},selectCh:{zh:'选择通道',en:'Select channel',hi:'चैनल चुनें',vi:'Chọn kênh'},depAmt:{zh:'充值金额',en:'Deposit amount',hi:'जमा राशि',vi:'Số tiền nạp'},useCoupon:{zh:'使用充值优惠券',en:'Use coupon',hi:'कूपन उपयोग करें',vi:'Dùng phiếu ưu đãi'},estBonus:{zh:'预计彩金',en:'Est. bonus',hi:'अनुमानित बोनस',vi:'Thưởng dự kiến'},actualCredit:{zh:'实际上分',en:'Actual credit',hi:'वास्तविक क्रेडिट',vi:'Thực nhận'},amount:{zh:'充值金额',en:'Amount',hi:'राशि',vi:'Số tiền'},bonus:{zh:'奖励',en:'Bonus',hi:'बोनस',vi:'Thưởng'},channelBonus:{zh:'充值奖励',en:'Deposit bonus',hi:'जमा बोनस',vi:'Thưởng nạp'},couponBonus:{zh:'充值优惠券彩金',en:'Coupon bonus',hi:'कूपन बोनस',vi:'Thưởng phiếu'},fee:{zh:'手续费',en:'Fee',hi:'शुल्क',vi:'Phí'},instr:{zh:'充值说明',en:'Recharge instructions',hi:'रिचार्ज निर्देश',vi:'Hướng dẫn nạp'},formula:{zh:'实际上分 = 充值金额 + 奖励 − 手续费',en:'Actual = Amount + Bonus − Fee',hi:'वास्तविक = राशि + बोनस − शुल्क',vi:'Thực nhận = Số tiền + Thưởng − Phí'},formulaStack:{zh:'实际上分 = 充值金额 + 充值奖励 + 充值优惠券彩金 − 手续费',en:'Actual = Amount + Deposit bonus + Coupon − Fee',hi:'वास्तविक = राशि + जमा बोनस + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Thưởng nạp + Phiếu − Phí'},formula2:{zh:'实际上分 = 充值金额 + 充值优惠券彩金 − 手续费',en:'Actual = Amount + Coupon − Fee',hi:'वास्तविक = राशि + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Phiếu − Phí'},formula3:{zh:'实际上分 = 充值金额 + 充值优惠券彩金',en:'Actual = Amount + Coupon',hi:'वास्तविक = राशि + कूपन',vi:'Thực nhận = Số tiền + Phiếu'},cap1:{zh:'① 充值优惠券 + 充值奖励 + 手续费（叠加）',en:'① Coupon + Deposit bonus + Fee (stack)',hi:'① कूपन + जमा बोनस + शुल्क',vi:'① Phiếu + Thưởng nạp + Phí'},cap2:{zh:'② 充值优惠券 + 手续费（无通道奖励）',en:'② Coupon + Fee (no channel bonus)',hi:'② कूपन + शुल्क',vi:'② Phiếu + Phí'},cap3:{zh:'③ 只有充值优惠券（无手续费·无奖励）',en:'③ Coupon only (no fee/bonus)',hi:'③ केवल कूपन',vi:'③ Chỉ phiếu'},threshold:{zh:'满',en:'Min',hi:'न्यूनतम',vi:'Tối thiểu'},depositBtn:{zh:'充值',en:'Deposit',hi:'जमा करें',vi:'Nạp'},navDep:{zh:'充值',en:'Deposit',hi:'जमा',vi:'Nạp tiền'},navHist:{zh:'充值记录',en:'History',hi:'इतिहास',vi:'Lịch sử'},
 /* —— 赠金计算规则（PRD 3.7）· 三类通道候选名 + 来源标注 + 券消耗提示 —— */
 rkCoupon:{zh:'充值优惠券',en:'Recharge coupon',hi:'रिचार्ज कूपन',vi:'Phiếu nạp tiền'},
 rkChDeposit:{zh:'充值通道赠金',en:'Channel bonus',hi:'चैनल बोनस',vi:'Thưởng kênh nạp'},
@@ -1346,6 +1293,16 @@ rkDepCpKept:{zh:'充值已提交 · 券未扣除，已退回券包',en:'Deposit 
 rkDepNoCp:{zh:'充值已提交',en:'Deposit submitted',hi:'जमा सबमिट',vi:'Đã gửi nạp'},
 /* —— 共用术语 —— */
 capLimit:{zh:'上限',en:'Up to',hi:'अधिकतम',vi:'Tối đa'},
+/* —— 会员端·充值用券页（设计图）新增文案 —— */
+youGet:{zh:'到账金额',en:'You get',hi:'आपको मिलेगा',vi:'Bạn nhận'},
+youPay:{zh:'充值本金',en:'You pay',hi:'आप भुगतान',vi:'Bạn trả'},
+payBtn:{zh:'充值',en:'Deposit',hi:'जमा करें',vi:'Nạp tiền'},
+credited:{zh:'到账',en:'Credited',hi:'क्रेडिट',vi:'Nhận'},
+payMethod:{zh:'充值方式',en:'Payment method',hi:'भुगतान विधि',vi:'Phương thức nạp'},
+payBank:{zh:'银行到银行',en:'Bank to Bank',hi:'बैंक से बैंक',vi:'Ngân hàng → NH'},
+payWallet:{zh:'钱包到银行',en:'Wallet to Bank',hi:'वॉलेट से बैंक',vi:'Ví → Ngân hàng'},
+coSwitchBest:{zh:'已切换为更优券',en:'Switched to the best coupon',hi:'सर्वोत्तम कूपन पर स्विच किया',vi:'Đã đổi sang phiếu tốt nhất'},
+coBelowTh:{zh:'未达使用门槛 ₹{th}，还差 ₹{d}',en:'Below ₹{th} threshold — ₹{d} short',hi:'₹{th} सीमा से कम — ₹{d} शेष',vi:'Chưa đạt mức ₹{th} — còn thiếu ₹{d}'},
 rechargeCoupon:{en:'Recharge coupon',hi:'रिचार्ज कूपन',vi:'Phiếu nạp tiền'},
 goUse:{en:'Use now',hi:'अभी उपयोग करें',vi:'Dùng ngay'},
 unused:{en:'Unused',hi:'अप्रयुक्त',vi:'Chưa dùng'},
@@ -1379,7 +1336,7 @@ p7LastLogin:{en:'Last login: ',hi:'पिछला लॉगिन: ',vi:'Đăng
 p7TotalBal:{en:'Total balance',hi:'कुल शेष',vi:'Tổng số dư'},
 p7Wallet:{en:'Open wallet',hi:'बटुआ खोलें',vi:'Mở ví'},
 p7ArWallet:{en:'AR Wallet',hi:'AR बटुआ',vi:'Ví AR'},
-p7Bubble:{en:'🎁 Deposit ₹500 get ₹50',hi:'🎁 ₹500 जमा करें ₹50 पाएं',vi:'🎁 Nạp ₹500 nhận ₹50'},
+p7Bubble:{zh:'🎁 最高可得{p}%',en:'🎁 Up to {p}% bonus',hi:'🎁 अधिकतम {p}% बोनस',vi:'🎁 Thưởng tối đa {p}%'},
 p7Vip:{en:'VIP',hi:'VIP',vi:'VIP'},
 p7Bet:{en:'Bets',hi:'दांव',vi:'Cược'},
 p7BetSub:{en:'My betting records',hi:'मेरे दांव रिकॉर्ड',vi:'Lịch sử cược của tôi'},
@@ -1398,7 +1355,7 @@ p7Activity:{en:'Activity',hi:'गतिविधि',vi:'Hoạt động'},
 p7Promo:{en:'Promote',hi:'प्रचार',vi:'Quảng bá'},
 p7Mine:{en:'Mine',hi:'मेरा',vi:'Của tôi'}};
 function tt(k){return (T[k]&&T[k][LANG])||k;}
-function setLang(l){LANG=l;document.querySelectorAll('#P-p6 .langbtn').forEach(b=>{const on=b.dataset.l===l;b.style.background=on?'#f5535f':'#f0f0f0';b.style.color=on?'#fff':'#666';b.classList.toggle('on',on);});document.querySelectorAll('#P-p6 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k]&&T[k][l]!=null)el.textContent=T[k][l];});document.querySelectorAll('#P-p4 [data-t],#P-p5 [data-t],#P-p7 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k]&&T[k][l]!=null)el.textContent=T[k][l];});document.querySelectorAll('#P-p4 [data-thtml],#P-p5 [data-thtml],#P-p7 [data-thtml]').forEach(el=>{const k=el.dataset.thtml;if(T[k]&&T[k][l]!=null)el.innerHTML=T[k][l];});document.querySelectorAll('#P-p4 [data-tph],#P-p5 [data-tph],#P-p7 [data-tph]').forEach(el=>{const k=el.dataset.tph;if(T[k]&&T[k][l]!=null)el.placeholder=T[k][l];});renderRC();}
+function setLang(l){LANG=l;document.querySelectorAll('#P-p6 .langbtn').forEach(b=>{const on=b.dataset.l===l;b.style.background=on?'#f5535f':'#f0f0f0';b.style.color=on?'#fff':'#666';b.classList.toggle('on',on);});document.querySelectorAll('#P-p6 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k]&&T[k][l]!=null)el.textContent=T[k][l];});document.querySelectorAll('#P-p4 [data-t],#P-p5 [data-t],#P-p7 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k]&&T[k][l]!=null)el.textContent=T[k][l];});document.querySelectorAll('#P-p4 [data-thtml],#P-p5 [data-thtml],#P-p7 [data-thtml]').forEach(el=>{const k=el.dataset.thtml;if(T[k]&&T[k][l]!=null)el.innerHTML=T[k][l];});document.querySelectorAll('#P-p4 [data-tph],#P-p5 [data-tph],#P-p7 [data-tph]').forEach(el=>{const k=el.dataset.tph;if(T[k]&&T[k][l]!=null)el.placeholder=T[k][l];});renderScenarios();renderBubble();}
 /* ══════ 赠金计算规则（券 vs 通道赠金）—— 唯一口径见 PRD「赠金计算规则（券 vs 通道赠金）」小节 ══════
    #16 / #20 两份原型此块保持同源（逐字相同）；取整一律 floor，精度到整数 ₹。
    demo 常量：三类通道奖励费率（真实环境由后端按 通道 / VIP等级 / 快捷金额 下发）+ 手续费率 */
@@ -1432,30 +1389,109 @@ function rdBar(id,v,amt){const el=document.getElementById(id);if(el)el.style.wid
 function renderRewardDetail(){
   const rp=document.getElementById('rd-panel');if(!rp)return;
   const R=calcReward(),stack=R.mode==='stack';
-  rdTxt('rd-amt','₹'+R.amt);
+  rdTxt('rd-get',money(R.youGet));/* You get = 本金 + 赠金 − 手续费 */
+  rdTxt('rd-amt',money(R.amt));/* You pay = 充值本金 */
   const row2=document.getElementById('rd-row2'),src=document.getElementById('rd-src');
   if(stack){
     /* 叠加 → 明细 2 行：「充值奖励」(ch1+ch2+ch3) +「充值优惠券彩金」(cpAward)；铁律：逐行相加 = award */
-    rdTxt('rd-award-lbl',tt('channelBonus'));rdTxt('rd-award','+₹'+R.chTotal);rdBar('rd-bar-award',R.chTotal,R.amt);
-    rdTxt('rd-award2-lbl',tt('couponBonus'));rdTxt('rd-award2','+₹'+R.cpAward);rdBar('rd-bar-award2',R.cpAward,R.amt);
+    rdTxt('rd-award-lbl',tt('channelBonus'));rdTxt('rd-award','+₹'+R.chTotal);
+    rdTxt('rd-award2-lbl',tt('couponBonus'));rdTxt('rd-award2','+₹'+R.cpAward);
     if(row2)row2.style.display='flex';
     if(src)src.style.display='none';
   }else{
     /* 互斥 → 明细 1 行「奖励」+ 来源标注 */
-    rdTxt('rd-award-lbl',tt('bonus'));rdTxt('rd-award','+₹'+R.award);rdBar('rd-bar-award',R.award,R.amt);
+    rdTxt('rd-award-lbl',tt('bonus'));rdTxt('rd-award','+₹'+R.award);
     if(row2)row2.style.display='none';
     if(src){src.textContent='('+rewardSrc(R)+')';src.style.display='block';}
   }
-  rdTxt('rd-fee','-₹'+R.fee);rdBar('rd-bar-fee',R.fee,R.amt);
-  const fl=document.getElementById('rd-fee-lbl');if(fl)fl.innerHTML=tt('fee')+' <span style="color:#999;font-size:11px">('+Math.round(FEE_PCT*100)+'%)</span>';
-  rdTxt('rd-get','₹'+R.youGet);
-  rdTxt('rd-note','💠 '+tt(stack?'formulaStack':'formula'));
+  rdTxt('rd-fee','-₹'+R.fee);
+  const fl=document.getElementById('rd-fee-lbl');if(fl)fl.innerHTML=tt('fee')+' <span style="color:#b9909a;font-size:11px">('+Math.round(FEE_PCT*100)+'%)</span>';
 }
 /* 券消耗提示：互斥·取高且券落败时券未扣除 → 不得提示「券已锁定」 */
 function submitDeposit(){const R=calcReward();toast(!R.useCp?tt('rkDepNoCp'):(R.cpWin?tt('rkDepCpUsed'):tt('rkDepCpKept')),'success');}
-function renderRC(){const dot=document.getElementById('uc-dot');if(!dot)return;dot.style.background=dep.use?'#f5535f':'#ccc';dot.textContent=dep.use?'✓':'';const c=COUPONS.find(x=>x.id===dep.sel);const b=c?bonus(c,dep.amt):null;document.getElementById('uc-bonus').textContent=(dep.use&&c&&b!=null)?'+ ₹'+b:'+ ₹0';renderRewardDetail();document.getElementById('dep-btn').textContent='Deposit ₹'+(dep.amt||0);document.getElementById('amt-input').value=dep.amt||'';const sc=document.getElementById('cpscroll');if(!sc)return;const list=COUPONS.map(c=>({c,b:bonus(c,dep.amt)})).sort((x,y)=>(y.b==null?-1:y.b)-(x.b==null?-1:x.b));sc.innerHTML=list.map(({c,b})=>{const usable=b!=null,sel=dep.use&&c.id===dep.sel;return `<div class="cpchip ${sel?'on':''} ${usable?'':'dim'}" ${usable?`onclick="pick(${c.id})"`:''}><div class="r">${Math.round(c.r*100)}%</div><div class="m">上限₹${c.cap}${c.th?' 满₹'+c.th:''}</div></div>`;}).join('');}
+function renderRC(){const g=document.getElementById('pc-amtg');if(!g)return;/* 2×3 快捷金额，选中红底白字 */
+  g.innerHTML=QAMTS.map(v=>`<div class="pc-amt ${dep.amt===v?'on':''}" onclick="setAmt(${v})">₹${fmtAmt(v)}</div>`).join('');
+  /* 券横排三态：可选(白) / 选中(红+✓) / 置灰(A<门槛，副行显示 ₹门槛+)；置灰仍可点→pick() 弹 toast */
+  const list=COUPONS.map(c=>({c,b:bonus(c,dep.amt)})).sort((x,y)=>(y.b==null?-1:y.b)-(x.b==null?-1:x.b));
+  const sc=document.getElementById('cpscroll');
+  if(sc)sc.innerHTML=list.map(({c,b})=>{const usable=b!=null,sel=dep.use&&usable&&c.id===dep.sel;const sub=usable?tt('capLimit')+' ₹'+c.cap:'₹'+c.th+'+';return `<div class="pc-cp ${sel?'on':''} ${usable?'':'dim'}" onclick="pick(${c.id})"><span class="pcc-ck">✓</span><div class="pcc-r">${Math.round(c.r*100)}%</div><div class="pcc-s">${sub}</div></div>`;}).join('');
+  const c=COUPONS.find(x=>x.id===dep.sel),b=c?bonus(c,dep.amt):null;
+  const ub=document.getElementById('uc-bonus');if(ub)ub.textContent=(dep.use&&c&&b!=null)?'+₹'+b:'+₹0';
+  renderRewardDetail();
+  const R=calcReward(),db=document.getElementById('dep-btn');if(db)db.textContent=tt('payBtn')+' · '+tt('credited')+' '+money(R.youGet);}
 function toggleTip(){var t=document.getElementById('uc-tipbox');if(t)t.classList.toggle('show');}
-updatePreview();try{setLang('zh');}catch(e){}
+updatePreview();
+/* ===== 三场景对照页（静态展示）· 三份完全一致：一屏三列演示三种赠金关系下的明细结构差异 ===== */
+var SCN_COUPONS=[
+  {r:10,sub:'cap',cap:50,sel:true},
+  {r:8,sub:'cap',cap:100},
+  {r:20,sub:'capmin',cap:30,th:200},
+  {r:15,sub:'min',th:800,dim:true}
+];
+var SCN=[
+  {cls:'c1',head:'cap1',chName:'123 (BullPay)',chRange:'10 — 100K',badge:'+9%',fee:true,total:'585',formula:'formulaStack',rows:[
+    {k:'amount',v:'₹500.00',kind:'',bar:100},
+    {k:'channelBonus',v:'+₹45.00',kind:'bonus',bar:9},
+    {k:'couponBonus',v:'+₹50.00',kind:'bonus',bar:10},
+    {k:'fee',v:'−₹10.00',kind:'fee',bar:2,pct:'2%'}
+  ]},
+  {cls:'c2',head:'cap2',chName:'123 (BullPay)',chRange:'10 — 100K',badge:'',fee:true,total:'540',formula:'formula2',rows:[
+    {k:'amount',v:'₹500.00',kind:'',bar:100},
+    {k:'couponBonus',v:'+₹50.00',kind:'bonus',bar:10},
+    {k:'fee',v:'−₹10.00',kind:'fee',bar:2,pct:'2%'}
+  ]},
+  {cls:'c3',head:'cap3',chName:'RAP-12183',chRange:'10 — 100M',badge:'',fee:false,total:'550',formula:'formula3',rows:[
+    {k:'amount',v:'₹500.00',kind:'',bar:100},
+    {k:'couponBonus',v:'+₹50.00',kind:'bonus',bar:10}
+  ]}
+];
+function scCoupons(){
+  return SCN_COUPONS.map(function(c){
+    var cls='pc-cp'+(c.sel?' on':'')+(c.dim?' dim':'');
+    var sub;
+    if(c.sub==='cap')sub=tt('capLimit')+' ₹'+c.cap;
+    else if(c.sub==='capmin')sub=tt('capLimit')+' ₹'+c.cap+' · '+tt('threshold')+' ₹'+c.th;
+    else sub=tt('threshold')+' ₹'+c.th;
+    var oc=c.dim?' onclick="scDimToast('+c.th+')"':'';
+    return '<div class="'+cls+'"'+oc+'><span class="pcc-ck">✓</span><div class="pcc-r">'+c.r+'%</div><div class="pcc-s">'+sub+'</div></div>';
+  }).join('');
+}
+function scColHTML(s){
+  var badge=s.badge?'<span class="sc-chan-badge">'+s.badge+'</span>':'';
+  var fee=s.fee?'<div><span class="sc-chan-fee">💠 '+tt('fee')+' 2%</span></div>':'';
+  var rows=s.rows.map(function(r){
+    var ac='amt'+(r.kind?(' '+r.kind):'');
+    var bc='sc-bar'+(r.kind?(' '+r.kind):'');
+    var lbl=tt(r.k)+(r.pct?' <span class="sc-pct">('+r.pct+')</span>':'');
+    return '<div class="sc-drow"><div class="dl"><span>'+lbl+'</span><span class="'+ac+'">'+r.v+'</span></div><div class="'+bc+'"><i style="width:'+r.bar+'%"></i></div></div>';
+  }).join('');
+  return '<div class="sc-col '+s.cls+'">'+
+    '<div class="sc-colhead">'+tt(s.head)+'</div>'+
+    '<div class="phone sc-phone">'+
+    '<div class="phone-notch"></div>'+
+    '<div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>'+
+    '<div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">'+tt('navDep')+'</span><span class="nav-r" style="font-size:12px;color:#f5535f">'+tt('navHist')+'</span></div>'+
+    '<div class="phone-body"><div class="sc-pad">'+
+    '<div class="sc-bal"><span class="lbl">'+tt('balance')+'</span><span class="val">₹7,609.80</span></div>'+
+    '<div class="pc-sec" style="margin-top:14px">🏦 <span>'+tt('selectCh')+'</span></div>'+
+    '<div class="sc-chan">'+badge+'<div class="cn">'+s.chName+'</div><div class="cr">'+s.chRange+'</div>'+fee+'</div>'+
+    '<div class="pc-sec">💰 <span>'+tt('depAmt')+'</span></div>'+
+    '<div class="sc-amt-row"><div class="sc-amt">₹100</div><div class="sc-amt on">₹500</div></div>'+
+    '<div class="pc-sec">🎟️ <span>'+tt('useCoupon')+'</span> <span class="pc-new">NEW</span><span class="sc-est">'+tt('estBonus')+'<b>+₹50</b></span></div>'+
+    '<div class="sc-cpbox"><div class="pc-cprow">'+scCoupons()+'</div></div>'+
+    '<div class="sc-credit"><div class="sc-credit-top"><span class="lbl">'+tt('actualCredit')+'</span><span class="val">₹'+s.total+'</span></div>'+rows+'</div>'+
+    '<div class="sc-input">₹ 500</div>'+
+    '<div class="sc-formula">💠 <span>'+tt(s.formula)+'</span></div>'+
+    '<button class="sc-paybtn">'+tt('payBtn')+' ₹500</button>'+
+    '</div></div>'+
+    '</div></div>';
+}
+function renderScenarios(){var box=document.getElementById('sc-cols');if(!box)return;box.innerHTML=SCN.map(scColHTML).join('');}
+/* 个人中心充值气泡：动态取当前券列表最高赠送比例（不写死金额） */
+function maxCouponPct(){return Math.max.apply(null,SCN_COUPONS.map(function(c){return c.r;}));}
+function renderBubble(){var b=document.getElementById('pc-bubble-max');if(b)b.textContent=tt('p7Bubble').replace('{p}',maxCouponPct());}
+function scDimToast(th){var d=Math.max(th-500,0);toast(tt('coBelowTh').replace('{th}',th).replace('{d}',d),'warning');}
+try{setLang('zh');}catch(e){}
 /* iframe 嵌入模式：读 hash 定位页面 + 隐藏自带 demo tab 栏 */
 (function(){function findTab(k){var ts=document.querySelectorAll('.b-tab');for(var i=0;i<ts.length;i++){if((ts[i].getAttribute('onclick')||'').indexOf("'"+k+"'")>=0)return ts[i];}return null;}function hideChrome(){['.demo-banner','.sider','.admin-sider'].forEach(function(s){document.querySelectorAll(s).forEach(function(el){el.style.display='none';});});document.body.classList.remove('with-banner');document.body.style.paddingTop='0';}function go(k){hideChrome();if(k&&document.getElementById('P-'+k)){try{showPage(k,findTab(k));}catch(e){}}}var h=(location.hash||'').replace('#','');if(h){go(h);}window.addEventListener('hashchange',function(){go((location.hash||'').replace('#',''));});})();
 </script>

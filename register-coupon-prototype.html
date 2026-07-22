@@ -296,6 +296,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
     <span class="b-tab" onclick="showPage('p9',this)">🖥 V1·会员详情</span>
     <span class="b-tab" onclick="showPage('p3',this)">📱 代理·邀请链接</span>
     <span class="b-tab" onclick="showPage('p4',this)">📱 带券注册</span>
+    <span class="b-tab" onclick="showPage('p5',this)">📱 会员·充值用券</span>
   </div>
 </div>
 
@@ -319,7 +320,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           </div>
           <div class="form-row" style="margin:-4px 0 6px"><span class="form-label">　</span><span class="text-xs" id="chan-tip" style="color:#7c3aed">渠道配置注册送（新客）· 白名单属券规格·在下方设定 · 无需分配代理</span></div>
           <style>.tip-ic{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:7px;border-radius:50%;background:#b8c2d0;color:#fff;font-size:11px;font-weight:700;cursor:help;position:relative;vertical-align:middle;font-style:normal}.tip-ic:hover{background:#1677ff}.tip-ic:hover::after{content:attr(data-tip);position:absolute;left:23px;top:50%;transform:translateY(-50%);width:274px;background:#2b2b33;color:#fff;padding:9px 12px;border-radius:7px;font-size:12px;font-weight:400;line-height:1.65;z-index:9999;box-shadow:0 6px 22px rgba(0,0,0,.28);text-align:left;white-space:normal}.tip-ic:hover::before{content:'';position:absolute;left:17px;top:50%;transform:translateY(-50%);border:6px solid transparent;border-right-color:#2b2b33;z-index:9999}.tip-ic.tl:hover::after{left:auto;right:23px}.tip-ic.tl:hover::before{left:auto;right:17px;border-right-color:transparent;border-left-color:#2b2b33}</style>
-          <div class="form-row" style="align-items:center;margin:2px 0 10px"><span class="form-label" style="min-width:118px">券码发放上限</span><input class="input" id="cc-quota" type="number" value="0" style="width:96px"> <span class="text-sm text-muted">次（0 ＝ 不限制）</span><i class="tip-ic" data-tip="达到发放上限后，券码自动失效并置为「已停用」；此后在分配代理、渠道配置等所有联动下拉中都不再出现该券码。">?</i></div>
+          <div class="form-row" style="align-items:center;margin:2px 0 10px"><span class="form-label" style="min-width:118px">券码发放上限</span><input class="input" id="cc-quota" type="number" value="0" style="width:96px"> <span class="text-sm text-muted">次（0 ＝ 不限制）</span><i class="tip-ic" data-tip="每代理独立配额：分配给 N 个代理时，每个代理各得「上限」次、各自计数互不占用；某代理用完仅该代理行置「已用完」、其他代理不受影响，全部用完后券码整体「已用完」并从各联动下拉中消失。">?</i></div>
           <div class="card-head" style="margin-top:6px"><div class="card-title" style="font-size:14px">券规格</div></div>
           <div class="grid2">
           <div class="form-row"><span class="form-label" style="min-width:118px">充值赠送比例</span><input class="input" id="cc-ratio" type="number" value="10" oninput="updatePreview()" style="width:76px"> <span class="text-sm text-muted">%</span></div>
@@ -533,7 +534,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <div class="rules">
           <div class="rules-title">📋 规则</div>
           <ul>
-            <li>发放进度到达总次数上限 → 自动「已用完」；超出码活动时段 → 自动「已过期」</li>
+            <li>某代理发放进度到达其配额上限 → <b>该代理行</b>「已用完」（其余代理行不受影响）；全部代理行用完 → 券码整体「已用完」；超出码活动时段 → 自动「已过期」</li>
             <li>手动点击停用后，未使用的券码立即过期（带此码链接注册不再发券，但仍可正常注册）</li>
           </ul>
         </div>
@@ -627,6 +628,109 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<div id="P-p5" class="page-block" style="display:none">
+<style>
+/* ===== 会员端·充值用券页 · 统一样式（三份一致：#16 P-p6 / #20 P-p5 / #31 P-p5，对齐 UI 设计图） ===== */
+.pc-wrap{padding:12px 14px 18px}
+.pc-lang{display:flex;gap:6px;justify-content:flex-end;padding:0 0 8px}
+.pc-lang .langbtn{cursor:pointer;font-size:11px;padding:3px 10px;border-radius:12px;background:#f0f0f0;color:#666}
+.pc-lang .langbtn.on{background:#f5535f;color:#fff}
+.pc-sec{font-size:13px;font-weight:700;color:#1f2430;margin:15px 0 9px;display:flex;align-items:center;gap:6px}
+.pc-sec:first-of-type{margin-top:2px}
+.pc-new{display:inline-block;background:#f5222d;color:#fff;font-size:9px;font-weight:800;line-height:1.1;padding:2px 5px;border-radius:4px;letter-spacing:.5px}
+.pc-est{margin-left:auto;font-size:11.5px;font-weight:500;color:#8a929c}
+.pc-est b{color:#12a05f;font-size:13px;margin-left:4px}
+.pc-pay2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pc-payw{border:1.5px solid #ececf0;background:#fff;border-radius:11px;padding:13px 10px;text-align:center;font-size:12.5px;font-weight:600;color:#3a4150;cursor:pointer;transition:.12s}
+.pc-payw.on{border-color:#f0524a;background:#f0524a;color:#fff;box-shadow:0 3px 9px rgba(240,82,74,.22)}
+.pc-amt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.pc-amt{border:1px solid #e7e9ee;border-radius:10px;padding:13px 6px;text-align:center;font-weight:700;font-size:14.5px;color:#333;background:#fff;cursor:pointer;transition:.12s}
+.pc-amt.on{border-color:#f0524a;background:#f0524a;color:#fff;box-shadow:0 3px 9px rgba(240,82,74,.25)}
+.pc-cprow{display:flex;gap:9px;overflow-x:auto;padding:3px 1px 6px;-webkit-overflow-scrolling:touch}
+.pc-cprow::-webkit-scrollbar{height:0}
+.pc-cp{position:relative;flex:0 0 auto;min-width:94px;border:1.5px solid #e7e9ee;background:#fff;border-radius:12px;padding:11px 14px 10px;cursor:pointer;transition:.12s}
+.pc-cp.on{border-color:#f0524a;background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;box-shadow:0 5px 12px rgba(240,82,74,.3)}
+.pc-cp.dim{background:#f4f5f7;border-color:#eceef1;cursor:not-allowed}
+.pcc-r{font-size:19px;font-weight:800;line-height:1.05}
+.pc-cp.dim .pcc-r{color:#b3b8c0}
+.pcc-s{font-size:10.5px;color:#8a929c;margin-top:4px;white-space:nowrap}
+.pc-cp.on .pcc-s{color:rgba(255,255,255,.92)}
+.pc-cp.dim .pcc-s{color:#aab0b9}
+.pcc-ck{position:absolute;top:-7px;right:-6px;width:20px;height:20px;border-radius:50%;background:#fff;color:#f0524a;border:1.5px solid #f0524a;display:none;align-items:center;justify-content:center;font-size:12px;font-weight:800;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.pc-cp.on .pcc-ck{display:flex}
+.pc-detail{background:#fdeef0;border-radius:14px;padding:14px 16px;margin-top:11px}
+.pc-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:#5a6472;padding:5px 0}
+.pc-row.get{padding:2px 0 10px;margin-bottom:4px;border-bottom:1px dashed #f4c9d1}
+.pc-row.get>span:first-child{font-size:13px;font-weight:700;color:#1f2430}
+.pc-get{color:#12a05f;font-weight:800;font-size:22px;font-family:'SF Mono',Menlo,monospace}
+.pc-payv{color:#333;font-weight:700;font-family:'SF Mono',Menlo,monospace}
+.pc-bonus{color:#12a05f;font-weight:700;font-family:'SF Mono',Menlo,monospace}
+.pc-fee{color:#f5535f;font-weight:700;font-family:'SF Mono',Menlo,monospace}
+.pc-src{font-size:11px;color:#8a929c;line-height:1.5;padding:1px 0 4px}
+.pc-foot{margin-top:15px}
+.pc-paybtn{display:block;width:100%;border:none;border-radius:24px;height:48px;background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 15px rgba(240,82,74,.32)}
+
+/* ===== 三场景对照页（静态展示 · 三份完全一致） ===== */
+.sc-top{width:100%;text-align:center;padding:4px 0 2px}
+.sc-title{font-size:15px;font-weight:800;color:#1f2430;line-height:1.45;margin:0 auto 10px;max-width:820px;padding:0 12px}
+.sc-lang{display:inline-flex;gap:6px;justify-content:center;margin-bottom:4px}
+.sc-lang .langbtn{cursor:pointer;font-size:11.5px;padding:4px 12px;border-radius:13px;background:#f0f0f0;color:#666}
+.sc-lang .langbtn.on{background:#f5535f;color:#fff}
+.sc-scroll{width:100%;overflow-x:auto;text-align:center;padding:10px 0 16px}
+.sc-scroll::-webkit-scrollbar{height:8px}
+.sc-scroll::-webkit-scrollbar-thumb{background:#d3d8e0;border-radius:4px}
+.sc-cols{display:inline-flex;gap:20px;align-items:flex-start;padding:6px 12px;vertical-align:top}
+.sc-col{flex:0 0 auto;width:330px;text-align:left}
+.sc-colhead{font-size:12.5px;font-weight:800;color:#fff;background:linear-gradient(135deg,#f5544a,#ef4d43);border-radius:12px;padding:11px 14px;margin-bottom:14px;line-height:1.45;box-shadow:0 5px 14px rgba(240,82,74,.26);min-height:42px;display:flex;align-items:center}
+.sc-col.c2 .sc-colhead{background:linear-gradient(135deg,#fa9d3c,#f2792b);box-shadow:0 5px 14px rgba(242,121,43,.24)}
+.sc-col.c3 .sc-colhead{background:linear-gradient(135deg,#28b985,#12a05f);box-shadow:0 5px 14px rgba(18,160,95,.24)}
+.sc-phone{width:100%;height:auto;border-radius:34px;box-shadow:0 12px 32px rgba(0,0,0,.14),0 0 0 7px #1e1e1e,0 0 0 8px #333}
+.sc-phone .phone-body{background:#f5f7fa}
+.sc-pad{padding:12px 13px 18px}
+.sc-bal{background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;border-radius:14px;padding:13px 15px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 6px 15px rgba(240,82,74,.24)}
+.sc-bal .lbl{font-size:12px;opacity:.92}
+.sc-bal .val{font-size:20px;font-weight:800;font-family:'SF Mono',Menlo,monospace}
+.sc-chan{position:relative;border:1.5px solid #ececf0;background:#fff;border-radius:12px;padding:12px 13px;margin-top:8px}
+.sc-chan .cn{font-size:13.5px;font-weight:700;color:#2b3240}
+.sc-chan .cr{font-size:11.5px;color:#8a929c;margin-top:3px;font-family:'SF Mono',Menlo,monospace}
+.sc-chan-badge{position:absolute;top:-10px;right:12px;background:linear-gradient(135deg,#ffd66b,#f5a623);color:#7a4a00;font-size:11px;font-weight:800;padding:3px 10px;border-radius:11px;box-shadow:0 3px 8px rgba(245,166,35,.4)}
+.sc-chan-fee{display:inline-block;margin-top:9px;font-size:11px;font-weight:600;color:#2f7fc7;background:#eaf3fc;border-radius:6px;padding:3px 9px}
+.sc-amt-row{display:flex;gap:9px}
+.sc-amt{flex:1;border:1.5px solid #e7e9ee;border-radius:10px;padding:11px 6px;text-align:center;font-weight:700;font-size:14px;color:#333;background:#fff}
+.sc-amt.on{border-color:#f0524a;background:#f0524a;color:#fff;box-shadow:0 3px 9px rgba(240,82,74,.25)}
+.sc-input{margin-top:9px;border:1.5px solid #f0524a;border-radius:10px;padding:10px 13px;font-size:15px;font-weight:800;color:#1f2430;background:#fff;font-family:'SF Mono',Menlo,monospace}
+.sc-est{margin-left:auto;font-size:11px;font-weight:500;color:#8a929c}
+.sc-est b{color:#12a05f;font-size:13px;margin-left:4px}
+.sc-cpbox{border:1.5px dashed #f3b6bb;border-radius:12px;padding:10px 9px 6px;margin-top:8px;background:#fffafb}
+.sc-cpbox .pc-cprow{flex-wrap:wrap;overflow:visible}
+.sc-cpbox .pc-cp{flex:1 1 calc(50% - 5px);min-width:0;padding:10px 10px 9px}
+.sc-cpbox .pcc-s{white-space:normal;line-height:1.35}
+.sc-credit{background:linear-gradient(160deg,#eafaf2,#dcf4e8);border:1px solid #bfe8d3;border-radius:14px;padding:13px 15px 7px;margin-top:14px}
+.sc-credit-top{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px dashed #b6e2c9;padding-bottom:9px;margin-bottom:6px}
+.sc-credit-top .lbl{font-size:13px;font-weight:700;color:#1f2430}
+.sc-credit-top .val{font-size:23px;font-weight:800;color:#12a05f;font-family:'SF Mono',Menlo,monospace}
+.sc-drow{padding:6px 0}
+.sc-drow .dl{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:#5a6472}
+.sc-drow .dl .amt{font-weight:700;font-family:'SF Mono',Menlo,monospace;color:#3a4150;height:auto;border:none;background:transparent;border-radius:0;padding:0;font-size:12px;cursor:default}
+.sc-drow .dl .amt.bonus{color:#12a05f}
+.sc-drow .dl .amt.fee{color:#f5535f}
+.sc-pct{color:#b9909a;font-size:10.5px}
+.sc-bar{height:4px;border-radius:3px;background:#e2ede7;margin-top:6px;overflow:hidden}
+.sc-bar>i{display:block;height:100%;border-radius:3px;background:#a9dcc3}
+.sc-bar.bonus>i{background:#38c78a}
+.sc-bar.fee>i{background:#f59aa1}
+.sc-formula{background:#fff8e6;border:1px solid #ffe3a3;border-radius:11px;padding:10px 12px;margin-top:12px;font-size:11.5px;color:#8a6516;line-height:1.55}
+.sc-paybtn{display:block;width:100%;border:none;border-radius:24px;height:46px;margin-top:14px;background:linear-gradient(135deg,#f5544a,#ef4d43);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 6px 15px rgba(240,82,74,.3)}
+</style>
+  <div class="mobile-stage">
+    <div class="sc-top">
+      <div class="sc-title" data-t="scTitle">Member H5 · Deposit coupon on the recharge page — 3 scenario styles</div>
+      <div class="sc-lang"><span class="langbtn on" data-l="en" onclick="setLang('en')">EN</span><span class="langbtn" data-l="hi" onclick="setLang('hi')">हिंदी</span><span class="langbtn" data-l="vi" onclick="setLang('vi')">Tiếng Việt</span></div>
+    </div>
+    <div class="sc-scroll"><div class="sc-cols" id="sc-cols"></div></div>
   </div>
 </div>
 
@@ -1003,6 +1107,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <tr><td><span class="tag t-v1">V1后台</span></td><td>数据统计</td><td><span class="tag t-mod">改造</span></td><td>活动模块下方增加「充值优惠券」统计</td></tr>
         <tr><td><span class="tag t-ag">代理端</span></td><td>邀请链接</td><td><span class="tag t-new">新增</span></td><td>代理拼「邀请码-券码」链接拉新（含海报）</td></tr>
         <tr><td><span class="tag t-cl">客户端</span></td><td>带券注册</td><td><span class="tag t-mod">改造</span></td><td>解析 invitationCode 券码段，注册即得券（多语言）</td></tr>
+        <tr><td><span class="tag t-cl">客户端</span></td><td>充值页用券</td><td><span class="tag t-mod">改造</span></td><td>充值页用券到账明细三场景对照（联动 #16 充值用券），赠金口径见 3.9</td></tr>
       </table>
     </div>
 
@@ -1010,97 +1115,149 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="h1">三、功能详述</div>
 
       <div class="h2">3.1 优惠券管理（V1后台）</div>
-      <p>券码列表以「券码 × 代理」为一行；顶部支持券码 / 代理ID / 适用渠道 / 状态筛选；「新增券码」打开创建弹窗。</p>
+      <p>路径：活动管理 → 优惠券管理。充值优惠券码的创建与全生命周期管理，列表以「券码 × 代理」为一行（同码分配 N 个代理即 N 行，见 BR-06）。</p>
+      <p><b>操作流程：</b></p>
+      <ul class="l">
+        <li>① 列表筛选：充值优惠券码 / 代理ID / 适用渠道（代理邀请链接 / 渠道注册码 / 代理红包码 / 人工充值）/ 状态（进行中 / 已用完 / 已停用 / 已过期）→ 查询 / 重置。</li>
+        <li>② 新增：点「新增券码」→ 创建弹窗（字段见下表）→ 点「创建充值优惠券码」→ 系统自动随机生成券码（不可更改、可复制）。</li>
+        <li>③ 明细：点「发放进度」数字 → <b>发放明细</b>弹窗（筛选：领取状态 已领/未领、使用状态 已用/未用；列：会员ID / 手机·账号 / 发放时间 / 领取状态 / 使用状态）；点「券码使用进度」数字 → <b>使用明细</b>弹窗（筛选：充值大类；列：会员ID / 手机·账号 / 使用时间 / 充值金额 / 充值大类 / 券到账彩金）。两弹窗均<b>支持导出</b>。</li>
+        <li>④ 复制新建：以来源券的<b>规格 / 有效期 / 白名单</b>为模板、可改名；<b>上级代理 / 渠道不继承</b>——按券类型重新分配为必填（代理类填代理ID、渠道注册码选渠道、人工充值无需分配）；确认后系统<b>自动生成全新券码</b>，作为独立一条插入列表<b>顶部</b>，发放 / 使用统计从 0 开始。</li>
+        <li>⑤ 停用：二次确认后状态置「已停用」（后果见 5.1）；已过期 / 已停用行的「停用」按钮置灰不可点。</li>
+      </ul>
       <p><b>创建券码弹窗字段：</b></p>
       <table class="t">
         <tr><th style="width:128px">字段</th><th style="width:56px">必填</th><th>说明 / 取值</th></tr>
-        <tr><td>适用渠道</td><td>是</td><td>单选：渠道注册码 / 人工充值 / 代理邀请链接 / 代理红包码</td></tr>
-        <tr><td>券规格</td><td>是</td><td>充值比例% + 上限₹（可选不限）+ <b>最低充值门槛</b>（0=不限，满额才可用券）+ <b>已领取券有效期</b>（领后 N 天）+ 打码量倍数</td></tr>
-        <tr><td>适用充值大类</td><td>是</td><td><b>多选·至少勾 1 个</b>，提供「全选」快捷框；充值时按大类校验</td></tr>
-        <tr><td>券 vs 通道赠金关系</td><td>是</td><td>互斥·取高（默认）/ 叠加 / 互斥·优先券</td></tr>
-        <tr><td>发放限制</td><td>是</td><td>每手机号限领 1 次；<b>白名单（渠道注册码 / 代理邀请链接均在此设，属券规格）</b></td></tr>
-        <tr><td>分配代理</td><td>条件</td><td>仅「代理邀请链接 / 代理红包码」需要，授权哪些代理可推广 / 发放</td></tr>
-        <tr><td>充值优惠券码</td><td>自动</td><td>创建后自动生成，可复制</td></tr>
+        <tr><td>适用渠道</td><td>是</td><td>单选：渠道注册码 / 人工充值 / 代理邀请链接 / 代理红包码。联动显隐：<b>发放限制（白名单）</b>仅 渠道注册码 / 代理邀请链接 显示；<b>分配代理</b>仅 代理邀请链接 / 代理红包码 显示；人工充值两者均不显示</td></tr>
+        <tr><td>券码发放上限</td><td>是</td><td>次数，<b>0＝不限制</b>（默认）；多代理时为<b>每代理独立配额</b>（语义见 BR-06）</td></tr>
+        <tr><td>充值赠送比例</td><td>是</td><td>%</td></tr>
+        <tr><td>充值赠送上限</td><td>是</td><td>封顶 ₹N / 不限，二选一</td></tr>
+        <tr><td>已领取券有效期</td><td>是</td><td>领取后 N 天，超时自动过期（见 5.1）</td></tr>
+        <tr><td>打码量倍数</td><td>是</td><td>倍</td></tr>
+        <tr><td>通道赠金关系</td><td>是</td><td>互斥·取高（默认）/ 叠加 / 互斥·优先券，三选一；计算口径见 3.9</td></tr>
+        <tr><td>最低充值门槛</td><td>是</td><td>₹，0＝不限；单笔充值 ≥ 此额才可用券</td></tr>
+        <tr><td>适用充值大类</td><td>是</td><td>多选：<b>UPI / 银行卡 / USDT / E-Wallet / ARPay</b>（含「全选」快捷框），<b>必须至少勾 1 个</b>（BR-04）</td></tr>
+        <tr><td>券使用限制</td><td>否</td><td>勾选「<b>仅首充有效</b>」后该券仅用户<b>首次充值</b>时可用，非首充置灰</td></tr>
+        <tr><td>发放限制</td><td>是</td><td>每手机号<b>限领 1 次</b>（固定）；白名单单选 <b>不限制 / 仅白名单可领</b>（属券规格，渠道注册码 / 代理邀请链接均在此设；多代理时<span style="color:#c0392b">全体共享同一批名单</span>、按注册链接归因代理，见 BR-03 / BR-06；仅手机号注册命中）。选「仅白名单可领」后出「选择名单」下拉——<b>仅列与当前适用渠道归属一致的白名单</b>，可跳白名单库新建</td></tr>
+        <tr><td>实时预览</td><td>自动</td><td>券面 + 充 ₹100 / 500 / 1000 试算（未达门槛显示「未达门槛」）+ 赠金关系</td></tr>
+        <tr><td>分配代理</td><td>条件</td><td>代理ID 逗号分隔，或批量导入（粘贴 / 上传 Excel·CSV，逗号 / 空格 / 换行分隔，单次<b>最多 5,000 个</b>）</td></tr>
+        <tr><td>充值优惠券码</td><td>自动</td><td>点「创建」后系统随机生成、不可更改，可复制</td></tr>
       </table>
-      <p><b>列表新增字段：</b>适用渠道、上级代理ID、<b>发放进度</b>（点数字看逐笔<b>发放明细</b>：会员 / 手机号 / 时间 / 领取 / 使用状态）、<b>券码使用进度</b>（点数字看逐笔<b>使用明细</b>：会员 / 充值金额 / 用券彩金 / 到账时间）。发放明细、使用明细均<b>支持导出</b>。</p>
-      <p><b>列表操作：</b><b>复制新建</b>——以来源券的规格 / 有效期 / 白名单为模板克隆一张新券，券码<b>重新自动生成</b>、上级代理 / 渠道<b>不继承需重新分配</b>（按券类型自适应），作为独立一条加入列表；<b>停用</b>——立即失效（带此码链接注册不再发券）。</p>
+      <p><b>列表字段：</b>充值优惠券码 / 适用渠道（注册链接＝代理邀请链接 / 渠道注册码 / 红包码 / 人工充值）/ 券规格（比例·上限）/ 上级代理ID（代理类＝代理ID；渠道注册码＝「渠道·编码」；人工充值＝「直发·无代理」）/ 发放进度（已发 N，设发放上限时显示 N／配额及进度条）/ 券码使用进度（已用 N）/ 白名单（不限 ／ 白名单·名单名 ／ —）/ 状态（见 5.1）/ 操作（复制新建 / 停用）。</p>
 
       <div class="h2">3.2 白名单管理（V1后台）</div>
+      <p>路径：活动管理 → 白名单管理。注册场景手机号池（名单库 + 转化追踪合一）；本页<b>只圈人 + 看转化，不在此发券</b>。</p>
+      <p><b>操作流程：</b></p>
       <ul class="l">
-        <li>手机号按「名单 / 批次」归类；顶部漏斗展示 <b>导入 → 已注册 → 已充值 → 已用券</b> 及各级转化率。</li>
-        <li><b>新建名单需选「适用渠道归属」</b>（渠道注册 / 代理邀请注册，单选）——标明该名单归属的充值优惠券适用渠道；名单批次下拉与明细列均展示归属渠道。</li>
-        <li>明细列：所属名单 / <b>归属渠道</b> / 手机号 / 上级ID（邀请码归因）/ 状态 / 注册时间 / 充值额 / 用券彩金 / 使用的券。</li>
-        <li><b>导入格式校验</b>：手机号 = 国际区号 + 手机号纯数字（10–15 位，如 <span style="font-family:ui-monospace,Menlo,monospace">9188888888666</span>，91=印度区号）；<b>导入 / 导出同格式</b>，粘贴 / 上传时实时校验，不符格式的行标错、创建时自动剔除并去重。</li>
-        <li>本页只圈人 + 看转化，<b>不在此发券</b>；被哪些券码 / 活动引用会标注。</li>
+        <li>① 筛选：名单批次（全部名单 / 单个名单，下拉项带归属渠道）/ 手机号 / 状态（未注册 / 已注册未充值 / 已充值未用券 / 已用券）→ 查询；「导出」与导入同格式（区号＋手机号纯数字）。</li>
+        <li>② 新建：点「新建白名单」→ 弹窗（字段见下表）→ 创建后名单即入批次下拉并展示明细。</li>
+        <li>③ 追溯：选中单个名单时展示「<b>本名单被引用于</b>」标注（引用的注册券码 / 注册送彩金渠道，后者可点开渠道配置）——同一号码池、多活动共用。</li>
       </ul>
+      <p><b>新建白名单弹窗字段：</b></p>
+      <table class="t">
+        <tr><th style="width:128px">字段</th><th style="width:56px">必填</th><th>说明 / 取值</th></tr>
+        <tr><td>名单名称</td><td>是</td><td>文本</td></tr>
+        <tr><td>适用渠道归属</td><td>是</td><td>单选：<b>渠道注册 / 代理邀请注册</b>，二选一——标明该名单归属的充值优惠券适用渠道；建券弹窗「选择名单」按此过滤</td></tr>
+        <tr><td>导入手机号</td><td>是</td><td>粘贴（每行一个）或上传 CSV / Excel；格式＝<b>国际区号＋手机号纯数字（10–15 位）</b>，如 <span style="font-family:ui-monospace,Menlo,monospace">9188888888666</span>（91＝印度区号）；粘贴 / 上传实时校验，不符格式行标错、创建时<b>自动剔除并去重</b>；<b>导入 / 导出同格式</b></td></tr>
+      </table>
+      <p><b>页面展示：</b>顶部转化漏斗 <b>导入 → 已注册 → 已充值 → 已用券</b>（各级数量＋相对「导入」的转化率）；明细列表列：所属名单 / <b>归属渠道</b> / 手机号 / 上级ID（注册后按邀请码归因的上级代理，未注册＝「—」）/ 状态 / 注册时间 / 充值额 / 用券彩金 / 使用的券，底部合计行（充值额 / 用券彩金）。</p>
+      <p><b>特有规则：</b>仅手机号注册命中、邮箱注册不命中；红包码限领走<b>子代理维度</b>（指定子代理ID，见 #16）、不使用本号码池。</p>
 
-      <div class="h2">3.3 渠道报表（V1后台）</div>
-      <p>渠道维度统计表（支持 日 / 日区间 / 月 / 所有 切换）：渠道名 / 域名 / 编码 / <b>注册送金·券</b>（编码右侧，彩金 + 充值优惠券合一列）/ 总人数 / 首充人数 / 首充金额 / 二充人数 / 二充金额 / 总充值 / 总提现 / 今日各项 等；行内「渠道更新」弹窗可配置：<b>选择充值优惠券 + 赠送彩金 + 手机号白名单（选券后按券规格<span style="color:#7c3aed">只读</span>；不送券·仅彩金时可自定义）</b>。</p>
+      <div class="h2">3.3 渠道报表（V1后台 · 改造）</div>
+      <p>路径：报表管理 → 渠道报表。注册渠道（渠道注册码）转化统计；本期新增「注册送金/券」列，渠道弹窗新增「选择充值优惠券」。</p>
+      <p><b>操作流程：</b></p>
+      <ul class="l">
+        <li>① 查询：编码 / 渠道名 / 日期，支持 日 / 日区间 / 月 / 所有 切换及 上一日 / 下一日。</li>
+        <li>② 配置：点「新增」或行内「修改」→ 渠道更新弹窗（字段见下表）→「添加」保存。</li>
+        <li>③ 白名单联动：弹窗内<b>选券后「手机号白名单」锁定为该券券规格、只读</b>（隐藏「去白名单库」入口）；选「不送券」时白名单可自定义（可选）——即 BR-03。</li>
+      </ul>
+      <p><b>报表列：</b>渠道名 / 域名地址 / 编码 / <b>注册送金·券</b>（新增，编码右侧：彩金金额＋「券码·比例」标注，未配券显示「不送券」）/ 总人数 / 首充人数 / 首充金额 / 二充人数 / 二充金额 / 总充值金额 / 总提现金额 / 今日注册 / 今日首充人数 / 今日首充金额 / 今日二充人数 / 今日二次金额 / 今日充值金额 / 今日提现金额 / 操作（修改）。</p>
+      <p><b>渠道更新弹窗字段：</b></p>
+      <table class="t">
+        <tr><th style="width:128px">字段</th><th style="width:56px">必填</th><th>说明 / 取值</th></tr>
+        <tr><td>渠道名 / 域名地址 / 渠道编码</td><td>是</td><td>渠道基本信息（现有字段）</td></tr>
+        <tr><td>赠送金额</td><td>是</td><td>₹ 彩金，注册即到账（现有字段）</td></tr>
+        <tr><td>选择充值优惠券</td><td>否</td><td><b>新增</b>。下拉：不送券（仅送彩金，默认）/ 券库中「<b>渠道注册码</b>」类券（券码 · 比例 / 上限）；选券＝该渠道注册除彩金外<b>再叠加一张券</b>，注册即入「我的充值优惠券」，使用与到账复用现有充值优惠券系统（BR-07）</td></tr>
+        <tr><td>打码量倍数</td><td>是</td><td>倍，彩金按打码倍数计入流水（现有字段）</td></tr>
+        <tr><td>手机号白名单</td><td>否</td><td>不限制 / 仅白名单可领（＋「选择名单」下拉，仅名单内手机号注册可领本渠道）；<b>选券后由券规格决定、只读</b>；不送券时可自定义</td></tr>
+      </table>
 
       <div class="h2">3.4 资金账变（V1后台 · 改造）</div>
-      <p>账变类型多选新增「<b>充值优惠券</b>」；充值优惠券到账作为一种账变类型可查，其余字段复用现有账变。</p>
+      <p>路径：财务管理 → 资金账变。改造点仅两处，其余筛选（会员ID 必填 / 订单号 / 操作人 / 时间及快捷区间）、列表列、总计与导出均复用现有页面：</p>
+      <ul class="l">
+        <li>「类型」多选下拉新增「<b>充值优惠券</b>」选项（与 投注 / 投注返佣 / 中奖 / 红包 / 充值赠送 / 提现 并列，支持全选 / 清空）。</li>
+        <li>充值优惠券到账生成一条账变记录：账变类型＝<b>充值优惠券</b>，账变金额＝＋券彩金，备注＝「{券码} 充值优惠券到账」，操作人＝system。</li>
+      </ul>
 
       <div class="h2">3.5 会员详情（V1后台 · 改造）</div>
-      <p>「充值提现」区新增<b>充值优惠券奖金总额</b>（仅金额，不含币种 / 张数 = 会员使用充值优惠券获得的奖金累计），并入会员账户全景展示。</p>
+      <p>路径：会员管理 → 会员详情。改造点仅一处：「充值提现」区新增一行「<b>充值优惠券奖金总额</b>」＝该会员使用充值优惠券获得的奖金累计（仅金额，不含币种 / 张数）；其余区块不变。</p>
 
       <div class="h2">3.6 邀请链接（代理端）</div>
-      <p>代理将「邀请码-券码」拼成推广链接 / 海报拉新；仅推广运营授权（分配代理）给自己的券码。</p>
+      <p>代理端 H5 · 邀请页：代理选券生成「邀请码-券码」推广链接与海报拉新。</p>
+      <p><b>操作流程：</b></p>
+      <ul class="l">
+        <li>① 选券：下拉仅列<b>运营授权（分配代理）给该代理</b>的券码，每条标注 券码 / 比例 / 上限 / 有效期至 / 白名单归属（🔒限白名单 ／ 不限名单）；<b>已过期券置灰不可选</b>；末项「不附带（普通邀请海报）」。</li>
+        <li>② 联动：选中即同步刷新海报（凸显券比例 / 上限 / 券码）、宣传语与链接；不附带时为通用新人海报。</li>
+        <li>③ 复制邀请链接：带券＝<code>…/#/register?invitationCode={邀请码}-{券码}</code>；不带券＝<code>invitationCode={邀请码}</code>（无券码段）。</li>
+        <li>④ 分享：「分享邀请海报」生成海报，支持 WhatsApp / Telegram / Facebook / Twitter。</li>
+      </ul>
+      <p><b>选券提示：</b>选中临近到期券显示「即将到期，到期后此链接注册无优惠、请换码」提示；选中白名单券显示所限名单名称及后果提示；两条<b>可并存</b>——标注与提示的完整规则见 BR-09，此处不重复。</p>
 
       <div class="h2">3.7 带券注册（客户端 · 改造）</div>
-      <p>注册页解析 <code>invitationCode</code> 中的券码段，按后端判定发券（见「五、状态与判定」）；支持<b>多语言</b>（当前英 / 印地 / 越南，可扩展）。</p>
+      <p>会员端 H5 注册页：解析 <code>invitationCode</code> 中的券码段，注册即得券；是否发券由后端按 <b>5.2 判定矩阵</b>裁决，本节只写流程。</p>
+      <p><b>操作流程：</b></p>
+      <ul class="l">
+        <li>① 从推广链接进入注册页（手机 / 邮箱注册两 Tab），邀请码自动回填、只读（仅邀请码段，券码段不回显）。</li>
+        <li>② 券码有效且未绑白名单 → 表单下方展示「🎁 专属充值优惠券（N 张）· 注册即得」券卡区（比例 / 上限 / 门槛 / 有效期）；其余场景（绑白名单 / 已过期 / 已达上限 / 无券码）注册页<b>不展示券区</b>、注册流程不受影响（见 5.2）。</li>
+        <li>③ 注册成功：发券场景券自动入「我的充值优惠券」（点券可跳充值页用券，联动 #16）；白名单命中场景注册页全程无感知，<b>首次登录弹「到账告知」弹窗</b>（复用 #20 弹窗领取组件，弹一次即止、站内信兜底，语义见 BR-08）。</li>
+        <li>④ 多语言：英语（默认）/ 印地语 / 越南语，注册页与弹窗文案全量随语言切换，可扩展。</li>
+      </ul>
 
       <div class="h2">3.8 数据统计（V1后台 · 改造）</div>
       <p>数据统计页「活动」模块下方新增<b>「充值优惠券」统计块</b>，汇总充值优惠券相关数据（发放 / 使用 / 到账金额、人数等）；统计口径与「资金账变」的「充值优惠券」账变一致。</p>
 
       <div class="h2">3.9 赠金计算规则（券 vs 通道赠金）</div>
-      <p>本节是券赠金与通道赠金的<b>唯一计算口径</b>，#31 / #16 / #20 三份需求共用；其余章节与业务规则<b>只引用本节、不重复算式</b>。</p>
-
-      <p><b>① 输入量</b></p>
+      <p>本节是「券赠金」与「通道赠金」的<b>唯一口径</b>，#31 / #16 / #20 三份需求共用；其余章节与业务规则只引用本节、不重复。</p>
+      <p><b>业务流程：</b>用户用券充值时，<b>实际到账 = 充值本金 ＋ 赠金 − 手续费</b>。「赠金」由两部分竞争或叠加得到——<b>券赠金</b>（这张券带来的）与<b>通道赠金</b>（充值方式自带的活动奖励）；二者谁生效、是否相加，由券规格里配置的<b>赠金关系</b>决定（三选一，运营建券时设定，代理 / 会员不可改）。</p>
+      <p><b>字段定义：</b></p>
       <table class="t">
-        <tr><th style="width:150px">符号</th><th>含义</th></tr>
-        <tr><td><code>A</code></td><td>充值本金（<b>门槛 / 比例 / 手续费都基于它</b>）</td></tr>
-        <tr><td><code>r</code> / <code>cap</code> / <code>th</code></td><td>券比例 / 券上限 / 券门槛（<code>th = 0</code> 表示无门槛）</td></tr>
-        <tr><td><code>chPct1</code> / <code>chPct2</code> / <code>chPct3</code></td><td>三类通道奖励费率：<b>充值通道赠金</b> / <b>VIP等级充值奖励</b> / <b>快捷金额充值奖励</b></td></tr>
-        <tr><td><code>feePct</code></td><td>手续费率</td></tr>
-        <tr><td><code>m_券</code> / <code>m_通道</code></td><td>打码倍数（券 / 通道）</td></tr>
+        <tr><th style="width:120px">概念</th><th>说明</th></tr>
+        <tr><td>充值本金</td><td>用户本次实际充值金额；<b>券门槛、券比例、手续费均以它为基数</b>（不以到账额为基数）</td></tr>
+        <tr><td>券赠金</td><td>充值本金按券比例计算，<b>不超过券上限</b>；未达券门槛则该券不可用</td></tr>
+        <tr><td>通道赠金</td><td>充值方式自带的活动奖励，含三类：<b>充值通道赠金 / VIP等级充值奖励 / 快捷金额充值奖励</b></td></tr>
+        <tr><td>手续费</td><td>按充值本金的固定费率扣取</td></tr>
+        <tr><td>打码量</td><td>赠金到账后、提现前需完成的流水倍数；<b>券赠金与通道赠金各自按自己的倍数计算</b></td></tr>
+        <tr><td>取整规则</td><td>券赠金、通道赠金、手续费<b>一律向下取整到整数 ₹</b>，各自单独取整、不保留小数</td></tr>
       </table>
-
-      <p><b>② 算式</b></p>
+      <p><b>三种赠金关系：</b></p>
       <table class="t">
-        <tr><th style="width:120px">步骤</th><th>算式</th></tr>
-        <tr><td>① 券可用性</td><td><code>usable = (A &gt;= th)</code> —— <b>含等于</b></td></tr>
-        <tr><td>② 券赠金</td><td><code>cpAward = min( floor(A × r), cap )</code> —— <b>先取整、再封顶</b></td></tr>
-        <tr><td>③ 通道候选</td><td><code>ch1 = floor(A × chPct1)</code> —— 充值通道赠金<br><code>ch2 = floor(A × chPct2)</code> —— VIP等级充值奖励<br><code>ch3 = floor(A × chPct3)</code> —— 快捷金额充值奖励</td></tr>
-        <tr><td>④ 关系裁决</td><td>见下方「③ 三种关系」表</td></tr>
-        <tr><td>⑤ 手续费</td><td><code>fee = floor(A × feePct)</code></td></tr>
-        <tr><td>⑥ 实际上分</td><td><code>youGet = A + award − fee</code></td></tr>
+        <tr><th style="width:104px">赠金关系</th><th>含义</th><th style="width:184px">券是否消耗</th><th>到账明细</th></tr>
+        <tr><td><b>互斥·取高</b><br>（默认）</td><td>券赠金与三类通道奖励中<b>只发金额最高的一个</b>；金额相等时<b>优先发券</b></td><td>券胜出 → 消耗；<b>券未胜出 → 不消耗、退回券包</b>，不计入「已使用」</td><td>一行「奖励」＋来源标注</td></tr>
+        <tr><td><b>叠加</b></td><td>券赠金与三类通道奖励<b>全部发放、金额相加</b></td><td>消耗</td><td><b>两行</b>：「充值奖励」（三类通道合计）＋「充值优惠券彩金」；<b>两行金额相加 = 总赠金</b></td></tr>
+        <tr><td><b>互斥·优先券</b></td><td><b>无条件只发券赠金</b>，不与通道比较（即使通道更高）</td><td>消耗</td><td>一行「奖励」＋来源标注</td></tr>
       </table>
-      <p><b>取整一律 floor（向下取整），精度到整数 ₹；四个候选（cpAward / ch1 / ch2 / ch3）各自独立取整后再参与裁决</b>（不是先加后取整）。</p>
-
-      <p><b>③ 三种关系</b></p>
-      <table class="t">
-        <tr><th style="width:104px">关系</th><th style="width:224px">算式</th><th style="width:206px">券消耗</th><th>明细</th></tr>
-        <tr><td><b>互斥·取高</b><br>（默认）</td><td><code>award = max(cpAward, ch1, ch2, ch3)</code>，<b>平局取券</b></td><td>券赢 → 消耗；<b>券落败 → 不消耗、退回券包，「已使用」不计数</b></td><td>1 行 + 来源标注</td></tr>
-        <tr><td><b>叠加</b></td><td><code>award = cpAward + ch1 + ch2 + ch3</code>（四者全给）</td><td>消耗</td><td><b>2 行</b>：「充值奖励」(= ch1+ch2+ch3) ＋「充值优惠券彩金」(= cpAward)；铁律 —— <b>逐行相加 = award</b></td></tr>
-        <tr><td><b>互斥·优先券</b></td><td><code>award = cpAward</code>，<b>无条件用券、完全不比通道</b></td><td>消耗</td><td>1 行 + 来源标注</td></tr>
-      </table>
-
-      <p><b>④ 打码量</b>（各算各的）：互斥 → <code>award × m_赢家倍数</code>；叠加 → <code>cpAward × m_券 + (ch1+ch2+ch3) × m_通道</code>。</p>
-
-      <p><b>⑤ 来源标注文案</b>（明细为 1 行时<b>必须带</b>）：</p>
+      <p><b>来源标注：</b>明细为一行时（取高 / 优先券）必须标注赠金来源，让会员看清钱从哪来、券有没有被扣：</p>
       <ul class="l">
-        <li>券赢 → <code>奖励 +₹50（充值优惠券 10%，取高 ＞ 通道 ₹45）</code></li>
-        <li>券落败 → <code>奖励 +₹90（VIP等级奖励，取高 ＞ 券 ₹50，券未扣除已退回）</code></li>
+        <li>券胜出：<b>奖励 +₹50（充值优惠券 10%，高于通道 ₹45）</b></li>
+        <li>券未胜出：<b>奖励 +₹90（VIP等级奖励 高于券 ₹50；券未使用、已退回）</b></li>
       </ul>
-
-      <p><b>⑥ 算例</b>（供验算；券 <b>10%·上限₹50·无门槛</b>，通道 <b>9%</b>，手续费 <b>2%</b>）：</p>
+      <p><b>算例</b>（券 10%、上限 ₹50、无门槛；通道奖励 9%；手续费 2%）：</p>
       <table class="t">
-        <tr><th style="width:66px">充值</th><th>cpAward</th><th>ch（通道9%）</th><th>取高</th><th style="width:52px">叠加</th><th style="width:58px">优先券</th><th>上分（取高）</th></tr>
-        <tr><td>₹500</td><td>min(50,50)=50</td><td>45</td><td><b>50</b>（券赢）</td><td>95</td><td>50</td><td>500+50−10=<b>540</b></td></tr>
-        <tr><td>₹1000</td><td>min(100,50)=<b>50</b>（封顶）</td><td>90</td><td><b>90</b>（通道赢，券退回）</td><td>140</td><td>50</td><td>1000+90−20=<b>1070</b></td></tr>
-        <tr><td>₹333</td><td>floor(33.3)=<b>33</b></td><td>floor(29.97)=<b>29</b></td><td>33</td><td>62</td><td>33</td><td>333+33−6=<b>360</b></td></tr>
+        <tr><th style="width:72px">充值本金</th><th>券赠金</th><th>通道赠金</th><th>取高·赠金</th><th style="width:62px">叠加·赠金</th><th style="width:66px">优先券·赠金</th></tr>
+        <tr><td>₹500</td><td>₹50</td><td>₹45</td><td><b>₹50</b>（券胜出）</td><td>₹95</td><td>₹50</td></tr>
+        <tr><td>₹1000</td><td>₹50（触上限）</td><td>₹90</td><td><b>₹90</b>（通道胜出，券退回）</td><td>₹140</td><td>₹50</td></tr>
+        <tr><td>₹333</td><td>₹33</td><td>₹29</td><td>₹33</td><td>₹62</td><td>₹33</td></tr>
       </table>
-      <div class="note">📌 上表为<b>单通道候选</b>场景（<code>chPct1 = 9%</code>、<code>chPct2 = chPct3 = 0</code>），故「叠加」列 = <code>cpAward + ch1</code>；多候选时按 ② 的 ③ 全量代入。</div>
+      <p class="note">到账 = 充值本金 ＋ 赠金 − 手续费（手续费 = 本金 × 2%）。例：充 ₹500 取高，到账 500 ＋ 50 − 10 = <b>₹540</b>；充 ₹1000 取高，到账 1000 ＋ 90 − 20 = <b>₹1070</b>。可作验收基准。
+
+      <div class="h2">3.10 充值页用券（会员端 · 三场景对照）</div>
+      <p>会员充值页用券后的<b>到账明细展示结构</b>，按赠金构成分三种场景；金额算法一律引用 3.9，本节只定义明细行结构与公式展示。</p>
+      <table class="t">
+        <tr><th style="width:176px">场景</th><th>明细行（自上而下）</th><th style="width:250px">实际到账公式（算例：充 ₹500，券 10% 上限 ₹50）</th></tr>
+        <tr><td>① 券＋通道奖励叠加＋手续费</td><td>充值金额 / 充值奖励（通道）/ 充值优惠券彩金 / 手续费，共 <b>4 行</b></td><td>充值金额＋通道奖励＋券彩金−手续费＝500＋45＋50−10＝<b>₹585</b></td></tr>
+        <tr><td>② 有券、无通道奖励</td><td>充值金额 / 充值优惠券彩金 / 手续费，共 <b>3 行</b></td><td>充值金额＋券彩金−手续费＝500＋50−10＝<b>₹540</b></td></tr>
+        <tr><td>③ 仅券（无通道奖励、无手续费）</td><td>充值金额 / 充值优惠券彩金，共 <b>2 行</b></td><td>充值金额＋券彩金＝500＋50＝<b>₹550</b></td></tr>
+      </table>
+      <p><b>券卡置灰态：</b>券卡标注 比例＋上限 ₹N ／ 满 ₹N；充值金额<b>未达券门槛 → 该券置灰不可选</b>，点击提示「未达 ₹{门槛} 门槛，还差 ₹{差额}」；「用券」区标题右侧实时展示预估彩金。</p>
     </div>
 
     <div class="sec">
@@ -1110,7 +1267,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="br"><span class="no">BR-03</span><div><b>手机号白名单归位</b>：白名单属<b>券规格</b>，渠道注册码 / 代理邀请链接均在「建券弹窗」设定；渠道报表引用该券时，白名单按券规格<b>固定为只读</b>，不再在渠道配置单独设。</div></div>
       <div class="br"><span class="no">BR-04</span><div><b>适用充值大类必勾</b>：至少勾 1 个（全选=全部大类可用）；不再是"不勾=全部"。充值页按本单大类校验，不符则该券置灰。</div></div>
       <div class="br"><span class="no">BR-05</span><div><b>券 vs 通道赠金关系</b>：互斥·取高（默认）/ 叠加 / 互斥·优先券，三选一。<b>计算口径见「3.9 赠金计算规则（券 vs 通道赠金）」</b>，本条不另立算式。</div></div>
-      <div class="br"><span class="no">BR-06</span><div><b>券码 × 代理粒度</b>：一码多代理 = 多行，可按代理ID 追溯单代理发放进度；可选设「<b>券码发放上限</b>」（0 = 不限，达上限自动置为「已停用」），未设则仅按券码有效期控制。</div></div>
+      <div class="br"><span class="no">BR-06</span><div><b>券码 × 代理粒度</b>：一码多代理 = 多行，可按代理ID 追溯单代理发放进度。「<b>券码发放上限</b>」为<b>每代理独立配额</b>——分配给 N 个代理时，<b>每个代理各得「上限」次</b>、各自计数、互不占用；某代理达到自己的上限 → <b>仅该代理行</b>置为「已用完」（其链接注册不再发券），<b>其他代理不受影响</b>；全部代理行均用完 → 券码整体「已用完」。0 = 不限，未设则仅按券码有效期控制。<b>手机号白名单则相反，为券级共享</b>：券绑定的白名单由<b>所有被分配代理共用同一批号码</b>（不按代理拆分）；名单内号码通过<b>哪个代理的注册链接</b>（invitationCode 归属）注册，发券与业绩即<b>归因该代理</b>，同一号码全券仍只可领 1 次（先到先得，跨代理不重复发）。</div></div>
       <div class="br"><span class="no">BR-07</span><div><b>充值优惠券到账逻辑复用现有充值优惠券系统</b>：发出的券进「我的充值优惠券」，充值使用与到账口径与现有充值优惠券系统一致。</div></div>
       <div class="br"><span class="no">BR-08</span><div><b>白名单券码不在注册页展示</b>：注册页无法在输入手机号前判定名单归属，故绑白名单的券码<b>注册页不展示券区</b>（不锁态、不占位）；命中名单的手机号注册成功后<b>券自动入袋</b> + <b>首次登录弹窗告知</b>——弹窗<b>直接复用 #20「弹窗领取」组件</b>（同一套 UI，不另设计）；<b>但语义按 #20 口径「注册得券一律自动入袋」</b>：券在注册成功时已入袋，弹窗仅为到账告知，<b>不点 / 未弹到也不影响券归属</b>，<b>无「领取截止」、无额度退回</b>（此为与 #20 人工发放的弹窗领取模式的唯一差异）；弹一次即止，站内信兜底；<b>未命中不拦截注册</b>，仅不发券；<b>前端不提供白名单实时查询接口</b>，避免手机号在名单内与否被枚举探测。</div></div>
       <div class="br"><span class="no">BR-09</span><div><b>代理选券时必须标注白名单归属</b>：代理端「邀请海报」选券下拉需逐条注明<b>「🔒限白名单」/「不限名单」</b>；选中绑白名单的券后，页面显式提示<b>所限名单名称</b>及后果——名单外的人注册<b>不发券</b>、落地页<b>不展示券</b>（对方全程无感知），<b>发给名单外＝白发</b>。与「即将到期」提示<b>可并存</b>（同一张券可能既绑名单又临近到期）。目的：避免代理误把定向券当通用券群发。</div></div>
@@ -1121,8 +1278,9 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="h2">5.1 券码状态</div>
       <ul class="l">
         <li><b>进行中</b>：活动时段内、未停用，可正常发券。</li>
-        <li><b>已停用</b>：运营手动点击停用后，<b>未使用的券码立即过期</b>（带此码链接注册不再发券，但仍可正常注册）。</li>
-        <li><b>已过期</b>：<b>手动停用</b>的未使用的券；<b>已领取</b>的券超出<b>已领取券有效期</b>自动置为过期。</li>
+        <li><b>已用完</b>：某代理发放达到其独立配额 → <b>仅该代理行</b>「已用完」（其链接注册不再发券，其他代理行不受影响）；<b>全部代理行用完</b> → 券码整体「已用完」，并从渠道 / 代理选券等联动下拉中消失（配额语义见 BR-06）。</li>
+        <li><b>已停用</b>：运营手动点击停用后，<b>未使用的券码立即过期</b>（带此码链接注册不再发券，但仍可正常注册）；<b>已发放到用户手里的券不受影响</b>。</li>
+        <li><b>已过期</b>：超出码活动时段自动置「已过期」；<b>已领取</b>的券超出<b>已领取券有效期</b>亦自动置为过期（会员侧券状态）。</li>
       </ul>
       <div class="h2">5.2 带券注册判定矩阵（后端判定，会员侧无感知）</div>
       <table class="t">
@@ -1131,7 +1289,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <tr><td>券码绑白名单 · 手机号命中</td><td>注册页<b>不展示券</b>（此时无手机号、判不了）；注册成功 → 首次登录<b>弹窗告知</b>（券已自动入袋，关闭不丢）</td><td>发券</td></tr>
         <tr><td>券码绑白名单 · 未命中 / 邮箱注册</td><td>静默普通注册，无弹窗、无感知</td><td>不发</td></tr>
         <tr><td>券码已过期</td><td>与无券链接一致，静默普通注册</td><td>不发</td></tr>
-        <tr><td>已达发放上限</td><td>静默普通注册，无感知</td><td>不发</td></tr>
+        <tr><td>已达发放上限（该代理配额用完）</td><td>静默普通注册，无感知（其他未用完配额的代理链接仍正常发券）</td><td>不发</td></tr>
         <tr><td>链接不含券码</td><td>普通注册</td><td>不发</td></tr>
       </table>
     </div>
@@ -1142,8 +1300,10 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <li><b>手机号白名单仅手机号注册命中</b>（RegType=手机），邮箱注册不命中（针对短信拉新防水军）。</li>
         <li>每手机号<b>限领 1 次</b>。</li>
         <li>券码停用后立即失效；超活动时段自动过期。</li>
-        <li>渠道注册码券<b>绑渠道（无代理）</b>；代理红包码发给<b>已注册会员</b>（走会员维度，无需手机号白名单）。</li>
+        <li>渠道注册码券<b>绑渠道（无代理）</b>；代理红包码发给<b>指定子代理</b>（走<b>子代理维度</b>·子代理ID，见 #16，无需手机号白名单）。</li>
         <li>适用充值大类<b>必勾至少 1 个</b>。</li>
+        <li>分配代理批量导入单次<b>最多 5,000 个</b>（逗号 / 空格 / 换行分隔），超出拦截。</li>
+        <li>白名单导入不符格式（非 区号＋纯数字 10–15 位）的行标错、创建时自动剔除并去重（格式见 3.2）。</li>
       </ul>
       <div class="note">📌 本页为需求与规则说明，供开发对齐；具体交互演示见右侧各功能 Tab。</div>
     </div>
@@ -1160,6 +1320,7 @@ function showPage(key, el){
   if(el) el.classList.add('on');
   if(key==='p3') renderPosters();
   if(key==='p4') setRegDemo(regState);
+  if(key==='p5') renderScenarios();
 }
 function toast(msg, type='info', dur=2400){
   const stack=document.getElementById('toast-stack');
@@ -1181,7 +1342,7 @@ function toggleCap(m){
   document.getElementById('cc-cap').disabled=(m==='none');
   updatePreview();
 }
-function pickChan(el,chan){el.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('on'));el.classList.add('on');const assign=document.getElementById('assign-agent-block'),limit=document.getElementById('dist-limit-block');if(assign)assign.style.display=(chan==='link'||chan==='red')?'':'none';if(limit)limit.style.display=(chan==='link'||chan==='channel')?'':'none';if(chan==='link'||chan==='channel')fillCcWl(chan);const tips={link:'代理拼「邀请码-券码」链接拉新 · 有白名单 · 不设次数',channel:'渠道配置注册送（新客）· 白名单属券规格·在下方设定 · 无需分配代理',red:'发红包给下级会员 · 授权次数在会员列表配 · 无需白名单',manual:'直接发/批量导入给会员 · 按次直发 · 无需白名单'};document.getElementById('chan-tip').textContent=tips[chan];}
+function pickChan(el,chan){el.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('on'));el.classList.add('on');const assign=document.getElementById('assign-agent-block'),limit=document.getElementById('dist-limit-block');if(assign)assign.style.display=(chan==='link'||chan==='red')?'':'none';if(limit)limit.style.display=(chan==='link'||chan==='channel')?'':'none';if(chan==='link'||chan==='channel')fillCcWl(chan);const tips={link:'代理拼「邀请码-券码」链接拉新 · 有白名单 · 不设次数',channel:'渠道配置注册送（新客）· 白名单属券规格·在下方设定 · 无需分配代理',red:'发红包给指定子代理（子代理维度） · 授权次数在会员列表配 · 无需白名单',manual:'直接发/批量导入给会员 · 按次直发 · 无需白名单'};document.getElementById('chan-tip').textContent=tips[chan];}
 function toggleAllCat(el){document.querySelectorAll('#create-code-modal .cat-item').forEach(function(c){c.checked=el.checked;});}
 function catSync(){var items=[].slice.call(document.querySelectorAll('#create-code-modal .cat-item'));var on=items.filter(function(c){return c.checked;}).length;document.getElementById('cat-all').checked=(on===items.length);if(on===0)toast('必须至少勾选 1 个充值大类','warning');}
 let copySrcRow=null, copyAssignType='agent';
@@ -1464,7 +1625,7 @@ function renderWl(){
   const chanOf=n=>{const w=WL.find(x=>x.name===n);return w?w.chan:'—';};
   const rows=pool.map(p=>`<tr><td><span class="badge gray">${p[0]}</span></td><td><span class="badge" style="background:#eef4ff;color:#1f57bd">${chanOf(p[0])}</span></td><td>${p[1]}</td><td>${p[2]}</td><td><span class="badge ${p[3]}">${p[4]}</span></td><td>${p[5]}</td><td>${p[6]}</td><td>${p[7]}</td><td>${p[8]}</td></tr>`).join('')||`<tr><td colspan="9" style="text-align:center;color:#999;padding:18px">无匹配号码</td></tr>`;
   const table=`<table class="tbl"><thead><tr><th>所属名单</th><th>归属渠道</th><th>手机号</th><th>上级ID</th><th>状态</th><th>注册时间</th><th>充值额</th><th>用券彩金</th><th>使用的券</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="font-weight:700;background:#fafafa"><td colspan="6" style="text-align:right">合计</td><td>₹${sumDep}</td><td>₹${sumBonus}</td><td>—</td></tr></tfoot></table>`;
-  const src=`<div class="rules"><div class="rules-title">📋 白名单定位 & 数据来源（落地需打通）</div><ul><li><b>手机号白名单 = 注册场景专用号码池</b>：服务 <b>注册充值优惠券码 / 注册送彩金活动</b>（拉新，注册即匹配手机号）；<b>仅对手机号注册用户命中</b>，邮箱注册不命中。红包码限领已改走<b>会员维度</b>（会员ID/分组，不走手机号池）；本页只管圈人 + 看转化，<b>不在此发券</b></li><li><b>所属名单 / 批次</b>：导入的手机号按批次归类，用上方「名单批次」下拉切换；选「全部名单」看汇总</li><li><b>上级ID</b>：该手机号注册后绑定的上级代理（邀请码归因），未注册显示「—」</li></ul></div>`;
+  const src=`<div class="rules"><div class="rules-title">📋 白名单定位 & 数据来源（落地需打通）</div><ul><li><b>手机号白名单 = 注册场景专用号码池</b>：服务 <b>注册充值优惠券码 / 注册送彩金活动</b>（拉新，注册即匹配手机号）；<b>仅对手机号注册用户命中</b>，邮箱注册不命中。红包码限领已改走<b>子代理维度</b>（指定子代理ID，不走手机号池）；本页只管圈人 + 看转化，<b>不在此发券</b></li><li><b>所属名单 / 批次</b>：导入的手机号按批次归类，用上方「名单批次」下拉切换；选「全部名单」看汇总</li><li><b>上级ID</b>：该手机号注册后绑定的上级代理（邀请码归因），未注册显示「—」</li></ul></div>`;
   const refBox=(pick!=='__all__'&&lists[0]&&lists[0].refBy&&lists[0].refBy.length)?`<div style="background:#f6f3ff;border:1px solid #e6ddff;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#555">🔗 <b>本名单被引用于</b>：${lists[0].refBy.map(r=>{const clk=r.includes('注册送彩金');return `<span class="badge primary" style="margin-right:6px;${clk?'cursor:pointer;text-decoration:underline':''}" ${clk?"onclick=\"openModal('chan-modal')\"":''}>${r}${clk?' ⚙':''}</span>`;}).join('')}<span class="text-xs text-muted">— 同一号码池，多活动共用；点「注册送彩金」看渠道配置</span></div>`:'';
   document.getElementById('wl-detail').innerHTML=funnel+refBox+table+src;
 }
@@ -1504,6 +1665,7 @@ function mockWlUpload(){
 /* —— P4 多语言 en(默认)/hi/vi —— */
 let LANG='en';
 const T={
+  scTitle:{en:'Member H5 · Deposit coupon on the recharge page — 3 scenario styles',hi:'सदस्य H5 · रिचार्ज पेज पर कूपन — 3 परिदृश्य शैलियाँ',vi:'H5 thành viên · Phiếu ưu đãi khi nạp — 3 kiểu kịch bản'},balance:{en:'Balance',hi:'शेष',vi:'Số dư'},selectCh:{en:'Select channel',hi:'चैनल चुनें',vi:'Chọn kênh'},actualCredit:{en:'Actual credit',hi:'वास्तविक क्रेडिट',vi:'Thực nhận'},amount:{en:'Amount',hi:'राशि',vi:'Số tiền'},cap1:{en:'① Coupon + Deposit bonus + Fee (stack)',hi:'① कूपन + जमा बोनस + शुल्क',vi:'① Phiếu + Thưởng nạp + Phí'},cap2:{en:'② Coupon + Fee (no channel bonus)',hi:'② कूपन + शुल्क',vi:'② Phiếu + Phí'},cap3:{en:'③ Coupon only (no fee/bonus)',hi:'③ केवल कूपन',vi:'③ Chỉ phiếu'},formula2:{en:'Actual = Amount + Coupon − Fee',hi:'वास्तविक = राशि + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Phiếu − Phí'},formula3:{en:'Actual = Amount + Coupon',hi:'वास्तविक = राशि + कूपन',vi:'Thực nhận = Số tiền + Phiếu'},formulaStack:{en:'Actual = Amount + Deposit bonus + Coupon − Fee',hi:'वास्तविक = राशि + जमा बोनस + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Thưởng nạp + Phiếu − Phí'},threshold:{en:'Min',hi:'न्यूनतम',vi:'Tối thiểu'},
   regTitle:{en:'Register',hi:'रजिस्टर',vi:'Đăng ký'},
   regSub:{en:'Please register with your mobile number or email',hi:'कृपया अपने मोबाइल नंबर या ईमेल से रजिस्टर करें',vi:'Vui lòng đăng ký bằng số điện thoại hoặc email'},
   tabPhone:{en:'📱 Phone',hi:'📱 फ़ोन',vi:'📱 Điện thoại'},
@@ -1539,7 +1701,37 @@ const T={
   popCap:{en:'Max ₹50',hi:'अधिकतम ₹50',vi:'Tối đa ₹50'},
   popMeta:{en:'No threshold · Valid 7 days',hi:'कोई सीमा नहीं · 7 दिन वैध',vi:'Không điều kiện · Hiệu lực 7 ngày'},
   popGo:{en:'Claim now (1)',hi:'अभी प्राप्त करें (1)',vi:'Nhận ngay (1)'},
-  toastPopClaimed:{en:'Claimed — check "My Coupons"',hi:'प्राप्त हो गया — "मेरे कूपन" देखें',vi:'Đã nhận — xem "Phiếu ưu đãi của tôi"'}
+  toastPopClaimed:{en:'Claimed — check "My Coupons"',hi:'प्राप्त हो गया — "मेरे कूपन" देखें',vi:'Đã nhận — xem "Phiếu ưu đãi của tôi"'},
+  /* —— 会员端·充值用券页（联动第16项·设计图样式）· 与 #16/#20 同套术语 —— */
+  depAmt:{en:'Deposit amount',hi:'जमा राशि',vi:'Số tiền nạp'},
+  useCoupon:{en:'Use coupon',hi:'कूपन उपयोग करें',vi:'Dùng phiếu ưu đãi'},
+  estBonus:{en:'Est. bonus',hi:'अनुमानित बोनस',vi:'Thưởng dự kiến'},
+  capLimit:{en:'Up to',hi:'अधिकतम',vi:'Tối đa'},
+  navDep:{en:'Deposit',hi:'जमा',vi:'Nạp tiền'},
+  navHist:{en:'History',hi:'इतिहास',vi:'Lịch sử'},
+  bonus:{en:'Bonus',hi:'बोनस',vi:'Thưởng'},
+  channelBonus:{en:'Deposit bonus',hi:'जमा बोनस',vi:'Thưởng nạp'},
+  couponBonus:{en:'Coupon bonus',hi:'कूपन बोनस',vi:'Thưởng phiếu'},
+  fee:{en:'Fee',hi:'शुल्क',vi:'Phí'},
+  youGet:{en:'You get',hi:'आपको मिलेगा',vi:'Bạn nhận'},
+  youPay:{en:'You pay',hi:'आप भुगतान',vi:'Bạn trả'},
+  payBtn:{en:'Deposit',hi:'जमा करें',vi:'Nạp tiền'},
+  credited:{en:'Credited',hi:'क्रेडिट',vi:'Nhận'},
+  payMethod:{en:'Payment method',hi:'भुगतान विधि',vi:'Phương thức nạp'},
+  payBank:{en:'Bank to Bank',hi:'बैंक से बैंक',vi:'Ngân hàng → NH'},
+  payWallet:{en:'Wallet to Bank',hi:'वॉलेट से बैंक',vi:'Ví → Ngân hàng'},
+  coSwitchBest:{en:'Switched to the best coupon',hi:'सर्वोत्तम कूपन पर स्विच किया',vi:'Đã đổi sang phiếu tốt nhất'},
+  coBelowTh:{en:'Below ₹{th} threshold — ₹{d} short',hi:'₹{th} सीमा से कम — ₹{d} शेष',vi:'Chưa đạt mức ₹{th} — còn thiếu ₹{d}'},
+  rkCoupon:{en:'Recharge coupon',hi:'रिचार्ज कूपन',vi:'Phiếu nạp tiền'},
+  rkChDeposit:{en:'Channel bonus',hi:'चैनल बोनस',vi:'Thưởng kênh nạp'},
+  rkChVip:{en:'VIP level bonus',hi:'VIP स्तर बोनस',vi:'Thưởng cấp VIP'},
+  rkChQuick:{en:'Quick amount bonus',hi:'त्वरित राशि बोनस',vi:'Thưởng mức nhanh'},
+  rkSrcCpWin:{en:'{cp} {p}, higher-of ＞ channel ₹{v}',hi:'{cp} {p}, अधिक वाला ＞ चैनल ₹{v}',vi:'{cp} {p}, lấy cao hơn ＞ kênh ₹{v}'},
+  rkSrcCpLose:{en:'{ch}, higher-of ＞ coupon ₹{v}, coupon not consumed & returned',hi:'{ch}, अधिक वाला ＞ कूपन ₹{v}, कूपन कटा नहीं, वापस',vi:'{ch}, lấy cao hơn ＞ phiếu ₹{v}, phiếu chưa trừ, đã hoàn'},
+  rkSrcOnly:{en:'{cp} {p}, coupon-first · channels ignored',hi:'{cp} {p}, कूपन प्राथमिकता · चैनल नहीं',vi:'{cp} {p}, ưu tiên phiếu · bỏ qua kênh'},
+  rkDepCpUsed:{en:'Deposit submitted · coupon locked',hi:'जमा सबमिट · कूपन लॉक',vi:'Đã gửi nạp · phiếu đã khoá'},
+  rkDepCpKept:{en:'Deposit submitted · coupon not consumed, returned to wallet',hi:'जमा सबमिट · कूपन कटा नहीं, वॉलेट में वापस',vi:'Đã gửi nạp · phiếu chưa trừ, đã hoàn về ví'},
+  rkDepNoCp:{en:'Deposit submitted',hi:'जमा सबमिट',vi:'Đã gửi nạp'}
 };
 function tt(k){return (T[k]&&T[k][LANG])||k;}
 function setLang(l){
@@ -1547,9 +1739,149 @@ function setLang(l){
   document.querySelectorAll('#P-p4 .langbtn').forEach(function(b){var on=b.dataset.l===l;b.style.background=on?'rgba(255,255,255,.9)':'rgba(255,255,255,.25)';b.style.color=on?'#f5535f':'#fff';b.classList.toggle('on',on);});
   document.querySelectorAll('#P-p4 [data-t]').forEach(function(e){var k=e.getAttribute('data-t');if(T[k])e.textContent=T[k][l];});
   document.querySelectorAll('#P-p4 [data-tph]').forEach(function(e){var k=e.getAttribute('data-tph');if(T[k])e.placeholder=T[k][l];});
+  document.querySelectorAll('#P-p5 .langbtn').forEach(function(b){var on=b.dataset.l===l;b.style.background=on?'#f5535f':'#f0f0f0';b.style.color=on?'#fff':'#666';b.classList.toggle('on',on);});
+  document.querySelectorAll('#P-p5 [data-t]').forEach(function(e){var k=e.getAttribute('data-t');if(T[k])e.textContent=T[k][l];});
   renderRegCoupons();
   renderWlPopCoupon();   // 弹窗内券卡跟随语言重渲（弹窗未开也安全）
+  renderScenarios();     // 三场景对照页跟随语言重渲
 }
+/* ===== 会员端·充值用券页（联动第16项）· 交互逻辑（与 #16/#20 同源，取整一律 floor，精度到整数 ₹，显示两位小数） ===== */
+const COUPONS=[{id:1,r:.10,cap:50,th:0,rule:'high'},{id:2,r:.20,cap:30,th:200,rule:'stack'},{id:3,r:.08,cap:100,th:0,rule:'only'}];
+let dep={amt:500,use:true,sel:1};
+const QAMTS=[100,500,1000,10000,50000,100000];
+const CH_PCTS=[{k:'rkChDeposit',p:.09},{k:'rkChVip',p:.05},{k:'rkChQuick',p:.03}];
+const FEE_PCT=.02;
+function fmtAmt(v){return v>=10000?(v/1000)+'k':(''+v);}
+function money(v){return '₹'+Number(v).toFixed(2);}
+function pickPay(el){el.parentElement.querySelectorAll('.pc-payw').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
+function bonus(c,a){return a>=c.th?Math.min(Math.floor(a*c.r),c.cap):null;}
+function best(a){let b=null,bv=-1;COUPONS.forEach(c=>{const v=bonus(c,a);if(v!=null&&v>bv){bv=v;b=c.id;}});return b;}
+function setAmt(a){dep.amt=a;if(dep.use){const nb=best(a);if(nb&&nb!==dep.sel){dep.sel=nb;toast(tt('coSwitchBest'),'success');}}renderRC();}
+function toggleUse(){dep.use=!dep.use;if(dep.use&&!dep.sel)dep.sel=best(dep.amt);renderRC();}
+function pick(id){const c=COUPONS.find(x=>x.id===id);if(bonus(c,dep.amt)==null){const d=Math.max(c.th-dep.amt,0);toast(tt('coBelowTh').replace('{th}',c.th).replace('{d}',d),'warning');return;}dep.sel=id;dep.use=true;renderRC();}
+/* 赠金计算规则（券 vs 通道赠金）—— 与 #16/#20 逐字同源；四候选各自 floor 后裁决 */
+function calcReward(){
+  const amt=dep.amt||0,c=COUPONS.find(x=>x.id===dep.sel),b=c?bonus(c,amt):null;
+  const useCp=!!(dep.use&&c&&b!=null&&b>0),cpAward=useCp?b:0;
+  const chList=CH_PCTS.map(x=>({k:x.k,p:x.p,v:Math.floor(amt*x.p)}));
+  const chTotal=chList.reduce((s,x)=>s+x.v,0),chBest=chList.reduce((m,x)=>x.v>m.v?x:m,chList[0]);
+  const rule=useCp?(c.rule||'high'):'high';
+  let award,cpWin=false,mode;
+  if(!useCp){award=chBest.v;mode='chOnly';}
+  else if(rule==='stack'){award=cpAward+chTotal;cpWin=true;mode='stack';}
+  else if(rule==='only'){award=cpAward;cpWin=true;mode='only';}
+  else{cpWin=cpAward>=chBest.v;award=cpWin?cpAward:chBest.v;mode='high';}
+  const fee=Math.floor(amt*FEE_PCT);
+  return {amt,c,rule,mode,useCp,cpWin,cpAward,chList,chTotal,chBest,award,fee,youGet:amt+award-fee};
+}
+function rewardSrc(R){
+  if(R.mode==='chOnly')return tt(R.chBest.k);
+  const p=Math.round(R.c.r*100)+'%';
+  if(R.mode==='only')return tt('rkSrcOnly').replace('{cp}',tt('rkCoupon')).replace('{p}',p);
+  if(R.cpWin)return tt('rkSrcCpWin').replace('{cp}',tt('rkCoupon')).replace('{p}',p).replace('{v}',R.chBest.v);
+  return tt('rkSrcCpLose').replace('{ch}',tt(R.chBest.k)).replace('{v}',R.cpAward);
+}
+function rdTxt(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function renderRewardDetail(){
+  const rp=document.getElementById('rd-panel');if(!rp)return;
+  const R=calcReward(),stack=R.mode==='stack';
+  rdTxt('rd-get',money(R.youGet));/* You get = 本金 + 赠金 − 手续费 */
+  rdTxt('rd-amt',money(R.amt));/* You pay = 充值本金 */
+  const row2=document.getElementById('rd-row2'),src=document.getElementById('rd-src');
+  if(stack){
+    /* 叠加 → 明细 2 行：「充值奖励」(ch1+ch2+ch3) +「充值优惠券彩金」(cpAward)；逐行相加 = award */
+    rdTxt('rd-award-lbl',tt('channelBonus'));rdTxt('rd-award','+₹'+R.chTotal);
+    rdTxt('rd-award2-lbl',tt('couponBonus'));rdTxt('rd-award2','+₹'+R.cpAward);
+    if(row2)row2.style.display='flex';
+    if(src)src.style.display='none';
+  }else{
+    /* 互斥 → 明细 1 行「奖励」+ 来源标注 */
+    rdTxt('rd-award-lbl',tt('bonus'));rdTxt('rd-award','+₹'+R.award);
+    if(row2)row2.style.display='none';
+    if(src){src.textContent='('+rewardSrc(R)+')';src.style.display='block';}
+  }
+  rdTxt('rd-fee','-₹'+R.fee);
+  const fl=document.getElementById('rd-fee-lbl');if(fl)fl.innerHTML=tt('fee')+' <span style="color:#b9909a;font-size:11px">('+Math.round(FEE_PCT*100)+'%)</span>';
+}
+function renderRC(){const g=document.getElementById('pc-amtg');if(!g)return;/* 2×3 快捷金额，选中红底白字 */
+  g.innerHTML=QAMTS.map(v=>`<div class="pc-amt ${dep.amt===v?'on':''}" onclick="setAmt(${v})">₹${fmtAmt(v)}</div>`).join('');
+  /* 券横排三态：可选(白) / 选中(红+✓) / 置灰(A<门槛，副行显示 ₹门槛+)；置灰仍可点→pick() 弹 toast */
+  const list=COUPONS.map(c=>({c,b:bonus(c,dep.amt)})).sort((x,y)=>(y.b==null?-1:y.b)-(x.b==null?-1:x.b));
+  const sc=document.getElementById('cpscroll');
+  if(sc)sc.innerHTML=list.map(({c,b})=>{const usable=b!=null,sel=dep.use&&usable&&c.id===dep.sel;const sub=usable?tt('capLimit')+' ₹'+c.cap:'₹'+c.th+'+';return `<div class="pc-cp ${sel?'on':''} ${usable?'':'dim'}" onclick="pick(${c.id})"><span class="pcc-ck">✓</span><div class="pcc-r">${Math.round(c.r*100)}%</div><div class="pcc-s">${sub}</div></div>`;}).join('');
+  const c=COUPONS.find(x=>x.id===dep.sel),b=c?bonus(c,dep.amt):null;
+  const ub=document.getElementById('uc-bonus');if(ub)ub.textContent=(dep.use&&c&&b!=null)?'+₹'+b:'+₹0';
+  renderRewardDetail();
+  const R=calcReward(),db=document.getElementById('dep-btn');if(db)db.textContent=tt('payBtn')+' · '+tt('credited')+' '+money(R.youGet);}
+function submitDeposit(){const R=calcReward();toast(!R.useCp?tt('rkDepNoCp'):(R.cpWin?tt('rkDepCpUsed'):tt('rkDepCpKept')),'success');}
+
+/* ===== 三场景对照页（静态展示）· 三份完全一致：一屏三列演示三种赠金关系下的明细结构差异 ===== */
+var SCN_COUPONS=[
+  {r:10,sub:'cap',cap:50,sel:true},
+  {r:8,sub:'cap',cap:100},
+  {r:20,sub:'capmin',cap:30,th:200},
+  {r:15,sub:'min',th:800,dim:true}
+];
+var SCN=[
+  {cls:'c1',head:'cap1',chName:'123 (BullPay)',chRange:'10 — 100K',badge:'+9%',fee:true,total:'585',formula:'formulaStack',rows:[
+    {k:'amount',v:'₹500.00',kind:'',bar:100},
+    {k:'channelBonus',v:'+₹45.00',kind:'bonus',bar:9},
+    {k:'couponBonus',v:'+₹50.00',kind:'bonus',bar:10},
+    {k:'fee',v:'−₹10.00',kind:'fee',bar:2,pct:'2%'}
+  ]},
+  {cls:'c2',head:'cap2',chName:'123 (BullPay)',chRange:'10 — 100K',badge:'',fee:true,total:'540',formula:'formula2',rows:[
+    {k:'amount',v:'₹500.00',kind:'',bar:100},
+    {k:'couponBonus',v:'+₹50.00',kind:'bonus',bar:10},
+    {k:'fee',v:'−₹10.00',kind:'fee',bar:2,pct:'2%'}
+  ]},
+  {cls:'c3',head:'cap3',chName:'RAP-12183',chRange:'10 — 100M',badge:'',fee:false,total:'550',formula:'formula3',rows:[
+    {k:'amount',v:'₹500.00',kind:'',bar:100},
+    {k:'couponBonus',v:'+₹50.00',kind:'bonus',bar:10}
+  ]}
+];
+function scCoupons(){
+  return SCN_COUPONS.map(function(c){
+    var cls='pc-cp'+(c.sel?' on':'')+(c.dim?' dim':'');
+    var sub;
+    if(c.sub==='cap')sub=tt('capLimit')+' ₹'+c.cap;
+    else if(c.sub==='capmin')sub=tt('capLimit')+' ₹'+c.cap+' · '+tt('threshold')+' ₹'+c.th;
+    else sub=tt('threshold')+' ₹'+c.th;
+    var oc=c.dim?' onclick="scDimToast('+c.th+')"':'';
+    return '<div class="'+cls+'"'+oc+'><span class="pcc-ck">✓</span><div class="pcc-r">'+c.r+'%</div><div class="pcc-s">'+sub+'</div></div>';
+  }).join('');
+}
+function scColHTML(s){
+  var badge=s.badge?'<span class="sc-chan-badge">'+s.badge+'</span>':'';
+  var fee=s.fee?'<div><span class="sc-chan-fee">💠 '+tt('fee')+' 2%</span></div>':'';
+  var rows=s.rows.map(function(r){
+    var ac='amt'+(r.kind?(' '+r.kind):'');
+    var bc='sc-bar'+(r.kind?(' '+r.kind):'');
+    var lbl=tt(r.k)+(r.pct?' <span class="sc-pct">('+r.pct+')</span>':'');
+    return '<div class="sc-drow"><div class="dl"><span>'+lbl+'</span><span class="'+ac+'">'+r.v+'</span></div><div class="'+bc+'"><i style="width:'+r.bar+'%"></i></div></div>';
+  }).join('');
+  return '<div class="sc-col '+s.cls+'">'+
+    '<div class="sc-colhead">'+tt(s.head)+'</div>'+
+    '<div class="phone sc-phone">'+
+    '<div class="phone-notch"></div>'+
+    '<div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>'+
+    '<div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">'+tt('navDep')+'</span><span class="nav-r" style="font-size:12px;color:#f5535f">'+tt('navHist')+'</span></div>'+
+    '<div class="phone-body"><div class="sc-pad">'+
+    '<div class="sc-bal"><span class="lbl">'+tt('balance')+'</span><span class="val">₹7,609.80</span></div>'+
+    '<div class="pc-sec" style="margin-top:14px">🏦 <span>'+tt('selectCh')+'</span></div>'+
+    '<div class="sc-chan">'+badge+'<div class="cn">'+s.chName+'</div><div class="cr">'+s.chRange+'</div>'+fee+'</div>'+
+    '<div class="pc-sec">💰 <span>'+tt('depAmt')+'</span></div>'+
+    '<div class="sc-amt-row"><div class="sc-amt">₹100</div><div class="sc-amt on">₹500</div></div>'+
+    '<div class="pc-sec">🎟️ <span>'+tt('useCoupon')+'</span> <span class="pc-new">NEW</span><span class="sc-est">'+tt('estBonus')+'<b>+₹50</b></span></div>'+
+    '<div class="sc-cpbox"><div class="pc-cprow">'+scCoupons()+'</div></div>'+
+    '<div class="sc-credit"><div class="sc-credit-top"><span class="lbl">'+tt('actualCredit')+'</span><span class="val">₹'+s.total+'</span></div>'+rows+'</div>'+
+    '<div class="sc-input">₹ 500</div>'+
+    '<div class="sc-formula">💠 <span>'+tt(s.formula)+'</span></div>'+
+    '<button class="sc-paybtn">'+tt('payBtn')+' ₹500</button>'+
+    '</div></div>'+
+    '</div></div>';
+}
+function renderScenarios(){var box=document.getElementById('sc-cols');if(!box)return;box.innerHTML=SCN.map(scColHTML).join('');}
+function scDimToast(th){var d=Math.max(th-500,0);toast(tt('coBelowTh').replace('{th}',th).replace('{d}',d),'warning');}
 setRegDemo('valid');
 setLang('en');
 /* —— 邀请海报（凸显充值优惠券） —— */
