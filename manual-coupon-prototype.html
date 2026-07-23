@@ -297,7 +297,6 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
             <div class="form-row" style="align-items:center"><span class="form-label">券使用限制</span><label style="cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="cf-firstonly" style="accent-color:#1677ff;width:15px;height:15px"> 仅首充有效</label><span class="text-xs text-muted" style="margin-left:12px">勾选后该券仅用户<b>首次充值</b>时可用（非首充置灰）</span></div>
             <div class="form-row"><span class="form-label">发放方式</span>
               <div class="radio-grp"><div class="radio-opt on" id="rw-auto" onclick="toggleReward('auto')"><span class="rd"></span>自动领取</div><div class="radio-opt" id="rw-popup" onclick="toggleReward('popup')"><span class="rd"></span>弹窗领取</div></div></div>
-            <div class="form-row" id="rw-deadline" style="display:none"><span class="form-label">领取截止</span><span class="text-sm" style="color:#555">发放后 <input class="input" type="number" value="7" style="width:56px;height:28px;margin:0 2px"> 天未领取自动作废，<b style="color:#cf1322">额度退回</b></span></div>
             <div class="form-row" style="align-items:flex-start"><span class="form-label">预览</span><div class="preview-box flex-1" id="cf-preview" style="background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;padding:11px 14px;font-size:12.5px;color:#389e0d;max-width:380px"></div></div>
             <div class="form-row"><span class="form-label">打码量设置</span><input class="input" id="cf-wager" type="number" value="1" style="width:100px"> <span class="text-sm text-muted">倍（彩金按打码倍数计入流水）</span></div>
             </div>
@@ -309,11 +308,10 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           <div class="rules-title">📋 规则</div>
           <ul>
             <li>「存款类型」选"充值优惠券"：隐藏 存款金额/打码量，显示 券规格 + 发放方式</li>
-            <li>发放方式：自动领取（券直接入袋并通知）/ 弹窗领取（会员登录首页弹窗领取才入袋）</li>
+            <li>发放方式：自动领取＝券直接入袋 + 通知；弹窗领取＝<b>同样发放即入袋</b>，仅多弹一个到账告知弹窗（点不点都已到账），<b>无领取截止、无未领作废</b></li>
             <li>是否需审核由系统按操作人账号权限自动判断（不在发券表单手动勾选）；批量同理，需审核账号点「提交审核」入审核流</li>
-            <li>发放方式：自动领取=券直接入袋；弹窗领取=会员登录弹窗领取才入袋，须设「领取截止」（发放后 N 天不领作废、<b>额度退回</b>）</li>
             <li>口径：会员主动获取（红包码兑换 / 注册得券）一律自动入袋；<b>仅充值优惠券</b>可选自动 / 弹窗领取，<b>彩金充值 / 存款 / USDT 均直接到账</b>、无发放方式</li>
-            <li>批量校验：黑名单/已持同券→失败；会员ID重复→自动去重忽略；单次仅限同一充值类型</li>
+            <li>批量校验：已持同券→失败；会员ID重复→提醒运营（不自动去重，自行决定是否删除）；单次仅限同一充值类型</li>
             <li>批量导入：对名单内每个会员各发一张同规格券</li>
           </ul>
         </div>
@@ -364,7 +362,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
 <!-- ════ P3 会员·弹窗领取 ════ -->
 <div id="P-p3" class="page-block" style="display:none">
   <div class="mobile-stage">
-    <div class="stage-cap">会员端 H5 · <b>弹窗领取</b> — 发放即弹 / 登录即弹，多张合并一个弹窗，仅"立即领取"</div>
+    <div class="stage-cap">会员端 H5 · <b>弹窗领取</b> — 发放即入袋、登录弹窗仅告知，多张合并一个到账告知弹窗</div>
     <div class="phone">
       <div class="phone-notch"></div><div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
       <div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title" data-t="p3Home">首页</span><span style="width:20px"></span></div>
@@ -381,7 +379,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
               <div class="claim-cp"><div class="ccp-l"><b>10%</b><span data-t="p3Cap50">上限₹50</span></div><div class="ccp-r"><div class="ccp-n" data-t="p3CpName">充值优惠券</div><div class="ccp-m" data-t="p3Meta1">无门槛 · 有效期 7 天</div></div></div>
               <div class="claim-cp"><div class="ccp-l"><b>15%</b><span data-t="p3Cap80">上限₹80</span></div><div class="ccp-r"><div class="ccp-n" data-t="p3CpName">充值优惠券</div><div class="ccp-m" data-t="p3Meta2">满 ₹300 · 有效期 5 天</div></div></div>
             </div>
-            <button class="claim-go" id="claim-go" onclick="claimPopup()" data-t="p3Go">立即领取（2 张）</button>
+            <button class="claim-go" id="claim-go" onclick="claimPopup()" data-t="p3Go">知道了（2 张）</button>
           </div>
         </div>
       </div>
@@ -583,14 +581,14 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
     <div id="imp-empty" style="text-align:center;color:#bbb;padding:26px 0;font-size:13px">请先选导入类型 → 下载对应模板 → 上传 Excel</div>
 
     <div id="imp-result" style="display:none">
-      <div style="font-size:13px;margin-bottom:8px">校验错误：<b style="color:#f5222d">2</b> · 重复忽略：<b style="color:#fa8c16">1</b> · 总数：5</div>
+      <div style="font-size:13px;margin-bottom:8px">校验错误：<b style="color:#f5222d">1</b> · 重复提醒：<b style="color:#fa8c16">1</b> · 总数：5</div>
       <div id="imp-tbl-coupon" style="overflow-x:auto"><table class="tbl" style="font-size:12.5px;min-width:600px">
         <thead><tr><th>账户类型</th><th>会员ID</th><th>充值类型</th><th>备注</th><th>校验信息</th><th>状态</th></tr></thead>
         <tbody>
-          <tr><td>正式账号</td><td>100000</td><td>充值优惠券</td><td>—</td><td style="color:#f5222d">黑名单会员，不发券</td><td><span style="color:#f5222d;font-weight:600">失败</span></td></tr>
+          <tr><td>正式账号</td><td>100000</td><td>充值优惠券</td><td>—</td><td style="color:#389e0d">校验通过</td><td><span style="color:#389e0d;font-weight:600">待执行</span></td></tr>
           <tr><td>正式账号</td><td>2160646</td><td>充值优惠券</td><td>—</td><td style="color:#389e0d">校验通过</td><td><span style="color:#389e0d;font-weight:600">待执行</span></td></tr>
           <tr><td>正式账号</td><td>2247609</td><td>充值优惠券</td><td>vip</td><td style="color:#389e0d">校验通过</td><td><span style="color:#389e0d;font-weight:600">待执行</span></td></tr>
-          <tr><td>正式账号</td><td>2160646</td><td>充值优惠券</td><td>—</td><td style="color:#fa8c16">会员ID重复，已去重</td><td><span style="color:#fa8c16;font-weight:600">已忽略</span></td></tr>
+          <tr><td>正式账号</td><td>2160646</td><td>充值优惠券</td><td>—</td><td style="color:#fa8c16">会员ID 重复，请运营确认是否删除（不自动去重）</td><td><span style="color:#fa8c16;font-weight:600">提醒</span></td></tr>
           <tr><td>正式账号</td><td>2299001</td><td>充值优惠券</td><td>—</td><td style="color:#f5222d">已持未使用同类券</td><td><span style="color:#f5222d;font-weight:600">失败</span></td></tr>
         </tbody>
       </table></div>
@@ -626,7 +624,6 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
             </div></div>
         </div>
         <div class="form-row"><span class="form-label">发放方式</span><div class="radio-grp"><div class="radio-opt on" id="iw-auto" onclick="impRw('auto')"><span class="rd"></span>自动领取</div><div class="radio-opt" id="iw-popup" onclick="impRw('popup')"><span class="rd"></span>弹窗领取</div></div></div>
-        <div class="form-row" id="iw-deadline" style="display:none"><span class="form-label">领取截止</span><span class="text-sm" style="color:#555">发放后 <input class="input" type="number" value="7" style="width:52px;height:28px;margin:0 2px"> 天未领取作废，<b style="color:#cf1322">额度退回</b></span></div>
         <div style="font-size:11px;color:#999;margin-top:4px">💡 名单只管发给谁（会员ID），券规格 / 发放方式在此统一配置</div>
       </div>
       <div id="imp-other-config" style="display:none;border:1.5px solid #dca832;border-radius:8px;padding:14px 18px;margin-top:14px">
@@ -650,6 +647,16 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
     #P-preq .doc-badge{display:inline-block;background:#1677ff;color:#fff;font-size:12px;font-weight:700;padding:3px 11px;border-radius:4px;letter-spacing:1px}
     #P-preq .doc-t{font-size:27px;font-weight:800;color:#1a1a1a;margin:13px 0 5px;letter-spacing:.5px}
     #P-preq .doc-sub{color:#8a9099;font-size:13px}
+    #P-preq .doc-info{width:100%;border-collapse:collapse;margin:18px 0 4px;font-size:12.5px}
+    #P-preq .doc-info th{background:#f0f5ff;color:#1a3a6b;font-weight:700;text-align:left;padding:7px 11px;border:1px solid #dbe6f5;white-space:nowrap;width:82px}
+    #P-preq .doc-info td{padding:7px 11px;border:1px solid #e6e8ee;color:#2b2b33}
+    #P-preq .toc{background:#fafbfd;border:1px solid #e6e8ee;border-radius:8px;padding:13px 20px 15px;margin:16px 0 6px}
+    #P-preq .toc .toc-t{font-size:14px;font-weight:800;color:#1a1a1a;margin-bottom:9px;letter-spacing:.5px}
+    #P-preq .toc a{display:block;color:#0958d9;text-decoration:none;font-size:13px;padding:3px 0;cursor:pointer;line-height:1.5}
+    #P-preq .toc a:hover{text-decoration:underline}
+    #P-preq .toc a.sub{padding-left:24px;font-size:12.5px;color:#3a6bbf}
+    #P-preq .h1{scroll-margin-top:16px}
+    #P-preq .h2{scroll-margin-top:16px}
     #P-preq .info{display:grid;grid-template-columns:96px 1fr 96px 1fr;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;overflow:hidden;margin:18px 0 6px;font-size:12.5px}
     #P-preq .info>div{padding:9px 13px;border-top:1px solid #eef0f2}
     #P-preq .info .k{background:#f7f9fc;color:#8a9099;font-weight:600}
@@ -683,87 +690,207 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <div class="doc-sub">Manual Recharge Coupon · 单会员发放 + 批量导入 + 弹窗 / 自动领取</div>
     </div>
 
+    <table class="doc-info">
+      <tr><th>文档类型</th><td>需求规格说明书（PRD）</td><th>版本</th><td>V1</td></tr>
+      <tr><th>系统名称</th><td>人工充值发放充值优惠券系统</td><th>更新日期</th><td>2026-07-23</td></tr>
+      <tr><th>涉及端</th><td>V1后台 · 客户端</td><th>多语言</th><td>英 / 印地 / 越南</td></tr>
+      <tr><th>页面 / 模块</th><td>4 项（详见「二、需求范围」）</td><th>业务规则</th><td>BR-01 ~ BR-06</td></tr>
+    </table>
+
+    <div class="toc">
+      <div class="toc-t">目录</div>
+      <a onclick="document.getElementById('s1').scrollIntoView({behavior:'smooth',block:'start'})">一、名词术语</a>
+      <a onclick="document.getElementById('s2').scrollIntoView({behavior:'smooth',block:'start'})">二、需求范围（页面清单）</a>
+      <a onclick="document.getElementById('s3').scrollIntoView({behavior:'smooth',block:'start'})">三、功能详述</a>
+      <a class="sub" onclick="document.getElementById('s31').scrollIntoView({behavior:'smooth',block:'start'})">3.1　人工充值发券（V1后台 · 改造）</a>
+      <a class="sub" onclick="document.getElementById('s32').scrollIntoView({behavior:'smooth',block:'start'})">3.2　发券审核（V1后台 · 改造）</a>
+      <a class="sub" onclick="document.getElementById('s33').scrollIntoView({behavior:'smooth',block:'start'})">3.3　客户端（新增 · 多语言）</a>
+      <a class="sub" onclick="document.getElementById('s34').scrollIntoView({behavior:'smooth',block:'start'})">3.4　赠金计算规则（券 vs 通道赠金）</a>
+      <a onclick="document.getElementById('s4').scrollIntoView({behavior:'smooth',block:'start'})">四、业务规则</a>
+      <a onclick="document.getElementById('s5').scrollIntoView({behavior:'smooth',block:'start'})">五、限制条件与校验</a>
+    </div>
+
 
     <div class="sec">
-      <div class="h1">一、名词术语</div>
+      <div class="h1" id="s1">一、名词术语</div>
       <table class="t">
         <tr><th style="width:148px">术语</th><th>定义</th></tr>
         <tr><td>存款类型</td><td>人工操作的资金类型：人工存款 / 人工提款 / 彩金充值 / USDT / 充值优惠券（本期新增）。</td></tr>
         <tr><td>券来源</td><td>券规格的来源：从券码库选（唯一券源）或现填规格（现填也自动登记成券码）。</td></tr>
         <tr><td>券规格</td><td>券的字段集：比例 / 上限 / 已领取券有效期 / 最低充值门槛 / 通道赠金关系 / 适用充值大类 / 券使用限制（仅首充） / 打码量倍数，与「创建充值优惠券码」一致（详见 3.1）。</td></tr>
-        <tr><td>发放方式</td><td><b>仅充值优惠券有</b>：自动领取（直接入袋）/ 弹窗领取（登录首页弹窗领取才入袋）。</td></tr>
+        <tr><td>发放方式</td><td><b>仅充值优惠券有</b>：自动领取（直接入袋）/ 弹窗领取（发放即入袋，登录时多弹一个到账告知弹窗）。</td></tr>
         <tr><td>批量导入</td><td>上传会员ID 名单，按统一券规格 + 发放方式给名单内每人各发一张券。</td></tr>
-        <tr><td>领取截止</td><td>弹窗领取模式下的领取有效期，超期未领作废、额度退回。</td></tr>
       </table>
     </div>
 
     <div class="sec">
-      <div class="h1">二、需求范围（页面清单）</div>
+      <div class="h1" id="s2">二、需求范围（页面清单）</div>
       <table class="t">
         <tr><th style="width:82px">端</th><th style="width:158px">页面 / 模块</th><th style="width:62px">类型</th><th>核心内容</th></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>人工充值发券</td><td><span class="tag t-mod">改造</span></td><td>存款类型新增「充值优惠券」；单会员发放 + 批量导入弹窗（选类型 / 下模板 / 上传 / 校验 / 券配置）</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>发券审核</td><td><span class="tag t-mod">改造</span></td><td>发券并入通用「后台操作审核记录」，子类型新增「充值优惠券」，其余字段复用</td></tr>
+        <tr><td><span class="tag t-v1">V1后台</span></td><td>后台操作权限配置</td><td><span class="tag t-mod">改造</span></td><td><b style="color:#c0392b">无原型</b>：充值权限（多选）新增「充值优惠券」勾选项；决定谁能发券、是否需审核（详见 3.2 末「权限来源」）</td></tr>
         <tr><td><span class="tag t-cl">客户端</span></td><td>弹窗领取 / 我的充值优惠券 / 充值用券 / 个人中心</td><td><span class="tag t-new">新增</span></td><td>登录弹窗领券、券包、充值用券（多语言：英 / 印地 / 越南等）</td></tr>
       </table>
     </div>
 
     <div class="sec">
-      <div class="h1">三、功能详述</div>
+      <div class="h1" id="s3">三、功能详述</div>
 
-      <div class="h2">3.1 人工充值发券（V1后台 · 改造）</div>
-      <p>入口：财务管理 → 人工充值。存款类型新增「<b>充值优惠券</b>」；非券类型仍为 存款金额 + 打码量设置，流程不变。</p>
-      <p><b>单个会员 · 操作流程：</b>① 输入会员ID查询，命中后展示会员信息（账户 / 昵称 / 余额 / 打码量 / 当日充值 / 当日彩金）供核对<br>② 存款类型选「充值优惠券」<br>③ 选券来源<br>④ 确认 / 录入券规格<br>⑤ 选发放方式<br>⑥ 填备注、提交（是否入审核流按操作人权限自动判定，见 BR-04）。</p>
+      <div class="h2" id="s31">3.1 人工充值发券（V1后台 · 改造）</div>
+      <p>路径：财务管理 → 人工充值。存款类型新增「<b>充值优惠券</b>」；非券类型仍为 存款金额 + 打码量设置、流程不变。以下按页面<b>从上到下</b>分模块：① 顶部切换 → ② 会员查询 → ③ 发券表单 → ④ 批量导入弹窗。</p>
+
+      <p><b>① 顶部切换（单个会员 / 批量导入）</b></p>
       <table class="t">
-        <tr><th style="width:118px">字段</th><th style="width:56px">必填</th><th>说明 / 取值</th></tr>
-        <tr><td>会员ID</td><td>是</td><td>先查询命中方可发放，命中展示会员信息供核对</td></tr>
-        <tr><td>存款类型</td><td>是</td><td>人工存款（加存款）/ 人工提款（减存款）/ 彩金充值（加彩金）/ USDT充值 / <b>充值优惠券（新）</b></td></tr>
-        <tr><td>券来源</td><td>是</td><td>选充值优惠券时出现：从券码库选 / 现填规格；<b>券码库仅列「适用渠道 = 人工充值」的券</b>，规格只读</td></tr>
-        <tr><td>券规格</td><td>是</td><td>比例 / 上限（封顶 / 不限）/ 已领取券有效期 / <b>最低充值门槛</b> / <b>通道赠金关系（三选一）</b> / <b>适用充值大类（至少 1 个）</b> / <b>券使用限制（仅首充有效）</b> / 打码量 —— <b>与「创建充值优惠券码」的券规格一致</b>（现填的也自动登记成券码，故字段必须对齐）；<br>券码库来源为只读</td></tr>
-        <tr><td>发放方式</td><td>是</td><td><b>仅充值优惠券有</b>：自动领取 / 弹窗领取（弹窗须设领取截止）</td></tr>
+        <tr><th style="width:120px">控件</th><th style="width:96px">类型</th><th>取值 / 说明</th></tr>
+        <tr><td>单个会员</td><td>分段 tab（默认）</td><td>逐笔发放：查询会员 → 配券 → 提交（见 ②③）</td></tr>
+        <tr><td>批量导入</td><td>分段 tab</td><td>点击打开「导入界面」弹窗，按名单批量发放（见 ④）</td></tr>
+      </table>
+
+      <p><b>② 会员查询区（单个会员）</b></p>
+      <table class="t">
+        <tr><th style="width:140px">控件 / 字段</th><th>说明 / 取值</th></tr>
+        <tr><td>会员ID + 查询</td><td>输入会员ID 点「查询」，<b>命中后方可发放</b>；未命中不展示信息、不可提交</td></tr>
+        <tr><td>会员账户 / 用户昵称</td><td>命中回显供核对（如 9188****8666 / test002）</td></tr>
+        <tr><td>会员ID / 手机·邮箱</td><td>命中回显</td></tr>
+        <tr><td>账户余额 / 打码量</td><td>命中回显（余额高亮）</td></tr>
+        <tr><td>当日充值 / 当日彩金</td><td>命中回显，辅助风控核对</td></tr>
+      </table>
+
+      <p><b>③ 发券表单（存款类型选「充值优惠券」时隐藏 存款金额 / 打码量、显示券规格 + 发放方式，见 BR-01）</b></p>
+      <table class="t">
+        <tr><th style="width:128px">字段</th><th style="width:56px">必填</th><th>说明 / 取值</th></tr>
+        <tr><td>存款类型</td><td>是</td><td>人工存款（加存款）/ 人工提款（减存款）/ 彩金充值（加彩金）/ USDT充值 / <b>充值优惠券（新）</b>；<br>选券类型后展示以下券规格 + 发放方式</td></tr>
+        <tr><td>券来源</td><td>是</td><td>仅券类型出现：<b>从券码库选 / 现填规格（快捷）</b>；券码库＝唯一券源、仅列「适用人工充值」的券且规格只读；现填的也自动登记成券码（BR-05）</td></tr>
+        <tr><td>选择券码</td><td>条件</td><td>券来源＝券码库时出现：下拉仅列适用人工充值券（如 MANUAL8 · 充值8% / 上限₹40 · 15天），规格只读带出</td></tr>
+        <tr><td>优惠比例</td><td>是</td><td>现填规格：%</td></tr>
+        <tr><td>金额上限</td><td>是</td><td>现填规格：封顶 ₹N / 不限，二选一</td></tr>
+        <tr><td>已领取券有效期</td><td>是</td><td>现填规格：天</td></tr>
+        <tr><td>最低充值门槛</td><td>是</td><td>现填规格：₹，<b>0＝不限</b>；单笔充值 ≥ 此额才可用券</td></tr>
+        <tr><td>通道赠金关系</td><td>是</td><td>现填规格：互斥·取高（默认）/ 叠加（券+通道都给）/ 互斥·优先券；计算口径见 3.4</td></tr>
+        <tr><td>适用充值大类</td><td>是</td><td>现填规格：多选 <b>UPI / 银行卡 / USDT / E-Wallet / ARPay</b>（含「全选」），<b>至少勾 1 个</b></td></tr>
+        <tr><td>券使用限制</td><td>否</td><td>现填规格：勾「<b>仅首充有效</b>」后仅用户首次充值可用，非首充置灰</td></tr>
+        <tr><td>打码量设置</td><td>是</td><td>现填规格：倍（彩金按打码倍数计入流水）</td></tr>
+        <tr><td>发放方式</td><td>是</td><td><b>仅券类型有</b>：自动领取 / 弹窗领取——<b>两者均发放即入袋</b>，弹窗仅多一个到账告知弹窗、券均已入账（BR-02）</td></tr>
+        <tr><td>预览</td><td>自动</td><td>券面 + 充 ₹100 / 500 / 1000 试算（未达门槛显示「未达门槛」）+ 通道赠金关系</td></tr>
         <tr><td>备注</td><td>否</td><td>操作备注，留存于操作 / 审核记录</td></tr>
+        <tr><td>充值 / 发放</td><td>按钮</td><td>提交；<b>是否进审核流按操作人账号权限自动判定</b>（BR-04），金额 / 数量不作判定</td></tr>
       </table>
-      <p><b>批量导入 · 操作流程：</b>① 选导入类型（<b>充值优惠券</b> / 其他类型[人工充值 / 彩金充值 / USDT / 彩金扣除]，单次仅限一种）<br>② 下载对应模板<br>③ 上传 Excel（单次 ≤ 1.5 万条、文件 ≤ 4M）<br>④ 逐行校验出三态结果<br>⑤ 券配置（券来源 + 券规格 + 发放方式，全名单统一；名单只管发给谁）<br>⑥ 开始执行 / 提交审核（按操作人权限，见 BR-04），对名单内每人各发一张同规格券。</p>
+
+      <p><b>④ 批量导入弹窗（顶部「批量导入」打开「导入界面」）</b></p>
       <table class="t">
-        <tr><th style="width:132px">模板</th><th>列清单</th><th style="width:258px">说明</th></tr>
-        <tr><td>充值优惠券模板</td><td>账户类型 / 会员ID / 充值类型 / 备注</td><td><b>无充值金额列、无打码量列</b>——券规格（含打码量）在弹窗统一配置（券码库规格 / 现填规格，BR-05），模板不重复采集</td></tr>
-        <tr><td>其他类型模板</td><td>账户类型 / 会员ID / <b>充值金额</b> / 充值类型 / 打码量倍数 / 备注</td><td>金额 / 打码量按导入列执行；直接到账（彩金扣除为扣款）、无发放方式（BR-03）</td></tr>
+        <tr><th style="width:140px">区块 / 控件</th><th>说明 / 取值</th></tr>
+        <tr><td>导入类型（新）</td><td>单选：<b>充值优惠券 / 其他类型（人工充值 / 彩金充值 / USDT / 彩金扣除）</b>，<b>单次仅限一种</b></td></tr>
+        <tr><td>模板下载 / 上传Excel</td><td>下载对应模板 → 上传；<b>单次 ≤ 1.5 万条、文件 ≤ 4M</b>（xlsx / csv）</td></tr>
+        <tr><td>充值优惠券模板列</td><td>账户类型 / 会员ID / 充值类型 / 备注；<b>无充值金额列、无打码量列</b>——打码量随券规格走，在券配置区统一配</td></tr>
+        <tr><td>其他类型模板列</td><td>账户类型 / 会员ID / <b>充值金额</b> / 充值类型 / 打码量倍数 / 备注；金额 / 打码量按导入列执行</td></tr>
+        <tr><td>校验结果（三态）</td><td>逐行展示校验信息 + 状态，顶部汇总「校验错误 / 重复提醒 / 总数」：<br><b>失败</b>（已持未使用同类券）· <b>提醒</b>（会员ID 重复——<b>不自动去重</b>，标出重复项告知运营，由运营自行决定是否删除；同一会员可发多张，属正常场景）· <b>待执行</b>（校验通过）；<br><b>仅「待执行」进入发放 / 审核</b>（提醒项经运营确认保留后转「待执行」）</td></tr>
+        <tr><td>券配置区（充值优惠券）</td><td>券来源（券码库 / 现填规格）+ 券规格（同 ③）+ 通道赠金关系 + 券使用限制 + 适用充值大类 + 发放方式；<b>全名单统一，名单只管发给谁（会员ID）</b>，对名单内每人各发一张同规格券</td></tr>
+        <tr><td>其他类型配置</td><td>人工充值 / 彩金充值 / USDT 均<b>直接到账</b>、彩金扣除为扣款，<b>无发放方式</b>（BR-03）</td></tr>
+        <tr><td>底部执行</td><td>按操作人权限（BR-04）：免审 →「开始执行」直接发放；需审核 →「提交审核」入发券审核</td></tr>
       </table>
-      <p><b>批量校验三态：</b><b>失败</b>（黑名单会员 / 已持未使用同类券）、<b>已忽略</b>（会员ID 重复自动去重）、<b>待执行</b>（校验通过）；<br>结果表逐行展示校验信息与状态、顶部汇总（错误 / 忽略 / 总数），<b>仅「待执行」进入发放 / 审核</b>。</p>
 
-      <div class="h2">3.2 发券审核（V1后台 · 改造）</div>
-      <p>发券并入通用「<b>后台操作审核记录</b>」：操作类型 = 人工充值、<b>子类型新增「充值优惠券」</b>，其余字段全部复用。</p>
-      <p><b>审核流程：</b>① <b>是否审核由系统按操作人账号权限自动判定</b>——需审核账号点「提交审核」生成「待审核」记录，免审账号直接执行发放<br>② 审核人在列表处理：<b>通过 → 调发券服务发券</b>；<b>拒绝 → 不发放、仅留痕</b><br>③ 审核人 / 审核时间 / 审核备注 回写记录。</p>
-      <p><b>列表字段：</b>序号 / 会员账号 / 会员ID / 操作类型 / <b>子类型（新）</b> / 操作内容 / 审核状态 / 操作时间 / 操作人 / 审核时间 / 审核人 / 审核备注 / 操作（通过 · 拒绝）。<b>筛选项：</b>会员ID / 操作类型 / 子类型 / 审核状态（待审核 · 通过 · 拒绝） / 操作人 / 审核人，支持查询 / 重置 / 导出。</p>
-      <p><b>操作内容摘要：</b>留存券规格——「发充值优惠券：比例 / 上限 / 有效期 / 发放方式 / 打码倍数」；批量单为一条记录，会员账号显示「批量 N 人」。</p>
+      <div class="h2" id="s32">3.2 发券审核（V1后台 · 改造）</div>
+      <p>路径：运营管理 → 后台操作审核记录。发券并入通用审核记录：<b>操作类型 = 人工充值、子类型新增「充值优惠券」</b>，其余字段全部复用。<b>是否审核由操作人账号权限自动判定</b>（BR-04）——需审核账号「提交审核」入「待审核」、免审账号直接发放，本页仅做复核。以下按页面<b>从上到下</b>分模块：① 筛选栏 → ② 审核记录列表。</p>
 
-      <div class="h2">3.3 客户端（新增 · 多语言）</div>
-      <p>四页均支持<b>多语言</b>（当前英 / 印地 / 越南，可扩展）；赠金计算与到账明细口径统一见 3.4，本节只写页面流程与字段。</p>
+      <p><b>① 筛选栏（页面顶部）</b></p>
       <table class="t">
-        <tr><th style="width:126px">页面</th><th>流程 / 字段 / 规则</th></tr>
-        <tr><td>弹窗领取</td><td>触发：弹窗领取模式的券<b>发放即弹 / 登录即弹</b>；<br><b>多张合并一个弹窗</b>，逐张列出 比例 / 上限 / 门槛 / 有效期；<br>弹窗<b>仅「立即领取（N 张）」一个按钮、无关闭 ✕</b>；<br>点击后 N 张全部入袋、提示成功并收起（领取才入袋，见 BR-02）。</td></tr>
-        <tr><td>我的充值优惠券</td><td>三 tab：<b>未使用（带数量）/ 已使用 / 已过期</b>。券卡字段：比例 / 上限 / 门槛 / 剩余有效天数 / <b>来源标注</b>（如「运营发放（人工充值 · MANUAL8）」）；<br>未使用卡带「<b>去使用</b>」→ 充值用券页；<br>已使用显示核销订单号、已过期显示过期日期，二者灰态。</td></tr>
-        <tr><td>充值用券</td><td>充值页新增「使用充值优惠券」区块（NEW 标 + 预估赠金）；<br>券横排<b>三态</b>：可选 / 选中✓ / <b>置灰</b>（未达门槛，副行显示「₹门槛+」，点击提示还差多少）。到账明细行数随场景：<b>叠加</b> = 本金 + 充值奖励（通道） + 充值优惠券彩金 + 手续费；<br><b>通道无赠金</b> = 本金 + 券彩金 + 手续费；<br><b>无手续费</b>再省一行；<br>互斥单行「奖励 + 来源标注」及全部公式见 3.4。</td></tr>
-        <tr><td>个人中心（我的）</td><td>① 充值快捷按钮挂气泡「🎁 <b>最高可得 N%</b>」，N = 当前持有券的最高赠送比例（<b>动态</b>），点充值 → 充值用券页；<br>② 列表新增「<b>我的充值优惠券</b>」入口（「新」角标）→ 券包页；其余项不变。</td></tr>
+        <tr><th style="width:120px">控件</th><th style="width:64px">类型</th><th>取值 / 说明</th></tr>
+        <tr><td>会员ID</td><td>输入框</td><td>按会员ID 查询</td></tr>
+        <tr><td>操作类型</td><td>下拉</td><td>全部 / 人工充值</td></tr>
+        <tr><td>子类型（新）</td><td>下拉</td><td>全部 / <b>充值优惠券</b> / 人工存款 / 人工提款</td></tr>
+        <tr><td>审核状态</td><td>下拉</td><td>全部 / 待审核 / 通过 / 拒绝</td></tr>
+        <tr><td>操作人 / 审核人</td><td>输入框</td><td>按发起人 / 复核人查询</td></tr>
+        <tr><td>查询 / 重置 / 导出</td><td>按钮</td><td>按条件查询 / 清空条件 / 导出当前结果</td></tr>
       </table>
 
-      <div class="h2">3.4 赠金计算规则（券 vs 通道赠金）</div>
+      <p><b>② 审核记录列表（一行一条记录；批量单为一条、会员账号显示「批量 N 人」）</b></p>
+      <table class="t">
+        <tr><th style="width:150px">列 / 按钮</th><th>说明 / 取值</th></tr>
+        <tr><td>序号 / 会员账号 / 会员ID</td><td>基础标识；批量单会员账号显示「批量 N 人」、会员ID 显示「—」</td></tr>
+        <tr><td>操作类型 / 子类型（新）</td><td>操作类型＝人工充值；<b>子类型＝充值优惠券</b>（本期新增，红色标注）</td></tr>
+        <tr><td>操作内容</td><td>留存券规格摘要，如「发充值优惠券：10% / 上限₹50 / 有效期7天 / 到账：弹窗领取 / 打码1倍」</td></tr>
+        <tr><td>审核状态</td><td>待审核 / 通过 / 拒绝</td></tr>
+        <tr><td>操作时间 / 操作人</td><td>发起时间与发起账号</td></tr>
+        <tr><td>审核时间 / 审核人 / 审核备注</td><td>复核后回写；免审记录显示「无需审核，自动通过 / system」</td></tr>
+        <tr><td>操作·通过</td><td><b>调发券服务发券</b>，状态置「通过」并回写审核人 / 时间 / 备注</td></tr>
+        <tr><td>操作·拒绝</td><td><b>不发放、仅留痕</b>，状态置「拒绝」并回写审核信息</td></tr>
+      </table>
+
+      <div style="margin:16px 0 6px;padding:9px 13px;background:#eff4ff;border-left:3px solid #1677ff;border-radius:0 6px 6px 0;font-weight:700;color:#1a3a6b">▸ 权限来源 · 后台操作权限配置（V1后台 · 运营管理 · <span style="color:#c0392b">改造 · 本期无原型，仅需求说明</span>）</div>
+      <p>本页决定 <b>「谁能发充值优惠券」</b> 与 <b>「发了要不要审核」</b>——即 BR-04 审核判定的<b>权限来源</b>。路径：运营管理 / 后台操作权限配置。按<b>操作人账号</b>逐个配置，本期<b>仅需在「充值权限（多选）」中新增一个「充值优惠券」勾选项</b>，其余字段沿用现有页面。</p>
+      <table class="t">
+        <tr><th style="width:150px">字段</th><th>说明</th></tr>
+        <tr><td>用户账号 / 系统角色</td><td>被配置的后台操作人账号及其角色（如系统管理员），只读展示。</td></tr>
+        <tr><td>角色权限</td><td>单选 <b>操作 / 审核</b>——配置该账号是<b>充值（发起）权限</b>还是<b>审核权限</b>。</td></tr>
+        <tr><td>操作内容</td><td>多选：人工充值 / 修改银行卡 / 修改会员密码 …（沿用现有）。</td></tr>
+        <tr><td><b>充值权限（多选）</b></td><td>人工存款 / 人工提款 / 彩金充值 / 彩金扣除 / USDT充值 / <b style="color:#c0392b">充值优惠券（本期新增）</b>——勾选后该账号才可在「人工充值发券」中<b>选「充值优惠券」并发放</b>；未勾选则该存款类型对其不可用。</td></tr>
+        <tr><td>单笔 / 单日 上限（单个）</td><td>单日发起上限总次数 / 单日金额发起上限 / 单笔充值金额上限——该账号<b>单个发放</b>的次数与金额风控。</td></tr>
+        <tr><td>单笔 / 单日 上限（批量）</td><td>单日发起次数上限 / 单日发起金额上限 / 单笔充值金额上限——该账号<b>批量发放</b>的次数与金额风控。</td></tr>
+        <tr><td><b>是否需要审核</b></td><td>开启 / 关闭。<b>开启＝该账号的发放进「发券审核」待复核（对应 BR-04 的「需审核账号」）；关闭＝直接执行（免审账号）</b>。单个 / 批量一视同仁，金额与数量不改变此判定（仅作上方风控上限）。</td></tr>
+        <tr><td>状态</td><td>开启 / 关闭该账号的整体权限。</td></tr>
+      </table>
+      <p class="note">测试要点：①「充值优惠券」权限勾 / 不勾 → 该操作人「人工充值发券」的存款类型下拉<b>是否出现「充值优惠券」</b>；②「是否需要审核」开 / 关 → 同一操作人发券后<b>是进「待审核」还是直接发放</b>（与 BR-04 一致，与金额 / 数量无关）。</p>
+
+      <div class="h2" id="s33">3.3 客户端（新增 · 多语言）</div>
+      <p>四页均支持<b>多语言</b>（当前英 / 印地 / 越南，可扩展）；赠金计算与到账明细口径统一见 3.4，本节只写页面流程与字段。以下每个子页按页面区块列表：① 弹窗领取 → ② 我的充值优惠券 → ③ 充值用券 → ④ 个人中心。</p>
+
+      <p><b>① 弹窗领取（会员端 H5 · 首页）</b></p>
+      <table class="t">
+        <tr><th style="width:126px">区块 / 元素</th><th>说明 / 取值</th></tr>
+        <tr><td>触发</td><td>弹窗领取模式的券<b>发放即入袋</b>，会员登录首页即弹（首页背景置灰模糊）</td></tr>
+        <tr><td>弹窗头部</td><td>🎁「专属充值优惠券到账」+ 副标「运营送您 N 张充值优惠券」</td></tr>
+        <tr><td>券列表</td><td><b>多张合并一个弹窗</b>，逐张列出 比例 / 上限 / 门槛 / 有效期（如 10% · 上限₹50 · 无门槛 · 7 天）</td></tr>
+        <tr><td>底部按钮</td><td><b>仅一个到账告知按钮、无关闭 ✕</b>；点击后收起并提示「已在『我的充值优惠券』」</td></tr>
+        <tr><td>到账口径</td><td>券在<b>发放时已入袋</b>，弹窗仅通知——点不点、看没看到券都已在账户；即<b>发放即入袋、弹窗仅告知</b>（完整口径见 BR-02）</td></tr>
+      </table>
+
+      <p><b>② 我的充值优惠券（会员端 H5 · 券包）</b></p>
+      <table class="t">
+        <tr><th style="width:126px">区块 / 元素</th><th>说明 / 取值</th></tr>
+        <tr><td>顶部 tab</td><td><b>未使用（带数量）/ 已使用 / 已过期</b></td></tr>
+        <tr><td>券卡字段</td><td>比例 / 上限 / 券名「充值优惠券」/ 门槛 · 剩余有效天数 / <b>来源标注</b>（如「运营发放（人工充值 · MANUAL8）」）</td></tr>
+        <tr><td>未使用</td><td>券卡带「<b>去使用</b>」按钮 → 充值用券页（③）</td></tr>
+        <tr><td>已使用</td><td>灰态，显示核销订单号（如 CO...8842）</td></tr>
+        <tr><td>已过期</td><td>灰态，显示过期日期（如 2026-06-15 已过期）</td></tr>
+      </table>
+
+      <p><b>③ 充值用券（会员端 H5 · 充值页，三场景对照）</b></p>
+      <table class="t">
+        <tr><th style="width:126px">区块 / 元素</th><th>说明 / 取值</th></tr>
+        <tr><td>入口</td><td>充值页新增「使用充值优惠券」区块（<b>NEW 标 + 预估赠金</b>）</td></tr>
+        <tr><td>券横排三态</td><td>可选 / 选中✓ / <b>置灰</b>（未达门槛，副行显示「₹门槛+」，点击提示还差多少）</td></tr>
+        <tr><td>到账明细（行数随场景）</td><td><b>叠加</b>＝实付金额 + 充值奖励（通道）+ 充值优惠券彩金 + 手续费；<br><b>通道无赠金</b>＝实付金额 + 券彩金 + 手续费；<br><b>无手续费</b>再省一行</td></tr>
+        <tr><td>互斥单行</td><td>「奖励 + 来源标注」；<b>全部算式与公式见 3.4</b>（本节不重复）</td></tr>
+        <tr><td>多语言</td><td>EN / हिंदी / Tiếng Việt，可扩展</td></tr>
+      </table>
+
+      <p><b>④ 个人中心（会员端 H5 · 我的）</b></p>
+      <table class="t">
+        <tr><th style="width:126px">区块 / 元素</th><th>说明 / 取值</th></tr>
+        <tr><td>充值气泡</td><td>充值快捷按钮挂气泡「🎁 <b>最高可得 N%</b>」，N = 当前持有券的最高赠送比例（<b>动态</b>）；点充值 → 充值用券页（③）</td></tr>
+        <tr><td>我的充值优惠券入口</td><td>列表新增「<b>我的充值优惠券</b>」项（「新」角标）→ 券包页（②）</td></tr>
+        <tr><td>其余项</td><td>用户信息 / 余额 / 快捷（AR钱包 · 提现 · VIP）/ 记录九宫格 / 其他列表项<b>均不变</b></td></tr>
+      </table>
+
+      <div class="h2" id="s34">3.4 赠金计算规则（券 vs 通道赠金）</div>
       <p>本节是「券赠金」与「通道赠金」的<b>唯一口径</b>，#31 / #16 / #20 三份需求共用；其余章节与业务规则只引用本节、不重复。</p>
-      <p><b>业务流程：</b>用户用券充值时，<b>实际到账 = 充值本金 ＋ 赠金 − 手续费</b>。「赠金」由两部分竞争或叠加得到——<b>券赠金</b>（这张券带来的）与<b>通道赠金</b>（充值方式自带的活动奖励）；二者谁生效、是否相加，由券规格里配置的<b>赠金关系</b>决定（三选一，运营建券时设定，代理 / 会员不可改）。</p>
+      <p><b>业务流程：</b>用户用券充值时，<b>实际到账 = 实付金额 ＋ 赠金 − 手续费</b>。「赠金」由两部分竞争或叠加得到——<b>券赠金</b>（这张券带来的）与<b>通道赠金</b>（充值方式自带的活动奖励）；<br>二者谁生效、是否相加，由券规格里配置的<b>赠金关系</b>决定（三选一，运营建券时设定，代理 / 会员不可改）。</p>
       <p><b>字段定义：</b></p>
       <table class="t">
         <tr><th style="width:120px">概念</th><th>说明</th></tr>
-        <tr><td>充值本金</td><td>用户本次实际充值金额；<b>券门槛、券比例、手续费均以它为基数</b>（不以到账额为基数）</td></tr>
-        <tr><td>券赠金</td><td>充值本金按券比例计算，<b>不超过券上限</b>；未达券门槛则该券不可用</td></tr>
+        <tr><td>实付金额</td><td>用户本次实际充值金额；<br><b>券门槛、券比例、手续费均以它为基数</b>（不以到账额为基数）</td></tr>
+        <tr><td>券赠金</td><td>实付金额按券比例计算，<b>不超过券上限</b>；<br>未达券门槛则该券不可用</td></tr>
         <tr><td>通道赠金</td><td>充值方式自带的活动奖励，含三类：<b>充值通道赠金 / VIP等级充值奖励 / 快捷金额充值奖励</b></td></tr>
-        <tr><td>手续费</td><td>按充值本金的固定费率扣取</td></tr>
-        <tr><td>打码量</td><td>赠金到账后、提现前需完成的流水倍数；<b>券赠金与通道赠金各自按自己的倍数计算</b></td></tr>
-        <tr><td>取整规则</td><td>券赠金、通道赠金、手续费<b>一律向下取整到整数 ₹</b>，各自单独取整、不保留小数</td></tr>
+        <tr><td>手续费</td><td>按实付金额的固定费率扣取</td></tr>
+        <tr><td>打码量</td><td>赠金到账后、提现前需完成的流水倍数；<br><b>券赠金与通道赠金各自按自己的倍数计算</b></td></tr>
+        <tr><td>取整规则</td><td>券赠金、通道赠金、手续费均<b>向下取整为整数</b>；<br>展示统一<b>保留 2 位小数</b>（如 50 显示为 50.00），各自单独计算</td></tr>
       </table>
       <p><b>三种赠金关系：</b></p>
       <table class="t">
         <tr><th style="width:104px">赠金关系</th><th>含义</th><th style="width:184px">券是否消耗</th><th>到账明细</th></tr>
-        <tr><td><b>互斥·取高</b><br>（默认）</td><td>券赠金与三类通道奖励中<b>只发金额最高的一个</b>；金额相等时<b>优先发券</b></td><td>券胜出 → 消耗；<b>券未胜出 → 不消耗、退回券包</b>，不计入「已使用」</td><td>一行「奖励」＋来源标注</td></tr>
-        <tr><td><b>叠加</b></td><td>券赠金与三类通道奖励<b>全部发放、金额相加</b></td><td>消耗</td><td><b>两行</b>：「充值奖励」（三类通道合计）＋「充值优惠券彩金」；<b>两行金额相加 = 总赠金</b></td></tr>
+        <tr><td><b>互斥·取高</b><br>（默认）</td><td>券赠金与三类通道奖励中<b>只发金额最高的一个</b>；<br>金额相等时<b>优先发券</b></td><td>券胜出 → 消耗；<br><b>券未胜出 → 不消耗、退回券包</b>，不计入「已使用」</td><td>一行「奖励」＋来源标注</td></tr>
+        <tr><td><b>叠加</b></td><td>券赠金与三类通道奖励<b>全部发放、金额相加</b></td><td>消耗</td><td><b>两行</b>：「充值奖励」（三类通道合计）＋「充值优惠券彩金」；<br><b>两行金额相加 = 总赠金</b></td></tr>
         <tr><td><b>互斥·优先券</b></td><td><b>无条件只发券赠金</b>，不与通道比较（即使通道更高）</td><td>消耗</td><td>一行「奖励」＋来源标注</td></tr>
       </table>
       <p><b>来源标注：</b>明细为一行时（取高 / 优先券）必须标注赠金来源，让会员看清钱从哪来、券有没有被扣：</p>
@@ -773,33 +900,31 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       </ul>
       <p><b>算例</b>（券 10%、上限 ₹50、无门槛；通道奖励 9%；手续费 2%）：</p>
       <table class="t">
-        <tr><th style="width:72px">充值本金</th><th>券赠金</th><th>通道赠金</th><th>取高·赠金</th><th style="width:62px">叠加·赠金</th><th style="width:66px">优先券·赠金</th></tr>
+        <tr><th style="white-space:nowrap">实付金额</th><th style="white-space:nowrap">券赠金</th><th style="white-space:nowrap">通道赠金</th><th style="white-space:nowrap">取高·赠金</th><th style="white-space:nowrap">叠加·赠金</th><th style="white-space:nowrap">优先券·赠金</th></tr>
         <tr><td>₹500</td><td>₹50</td><td>₹45</td><td><b>₹50</b>（券胜出）</td><td>₹95</td><td>₹50</td></tr>
         <tr><td>₹1000</td><td>₹50（触上限）</td><td>₹90</td><td><b>₹90</b>（通道胜出，券退回）</td><td>₹140</td><td>₹50</td></tr>
         <tr><td>₹333</td><td>₹33</td><td>₹29</td><td>₹33</td><td>₹62</td><td>₹33</td></tr>
       </table>
-      <p class="note">到账 = 充值本金 ＋ 赠金 − 手续费（手续费 = 本金 × 2%）。例：充 ₹500 取高，到账 500 ＋ 50 − 10 = <b>₹540</b>；充 ₹1000 取高，到账 1000 ＋ 90 − 20 = <b>₹1070</b>。可作验收基准。
+      <p class="note">到账 = 实付金额 ＋ 赠金 − 手续费（手续费 = 实付金额 × 2%）。<br>例：充 ₹500 取高，到账 500 ＋ 50 − 10 = <b>₹540</b>；<br>充 ₹1000 取高，到账 1000 ＋ 90 − 20 = <b>₹1070</b>。可作验收基准。</p>
     
     </div>
 
     <div class="sec">
-      <div class="h1">四、业务规则</div>
+      <div class="h1" id="s4">四、业务规则</div>
       <div class="br"><span class="no">BR-01</span><div>存款类型选「<b>充值优惠券</b>」：隐藏 存款金额 / 打码量，显示 <b>券规格 + 发放方式</b>。</div></div>
-      <div class="br"><span class="no">BR-02</span><div><b>发放方式仅「充值优惠券」有</b>：自动领取＝券直接入袋 + 通知；弹窗领取＝会员登录首页弹窗领取才入袋。</div></div>
+      <div class="br"><span class="no">BR-02</span><div><b>发放方式仅「充值优惠券」有</b>：<br>自动领取＝券直接入袋 + 站内信通知；<br>弹窗领取＝券<b>同样发放即入袋</b>，只是会员登录首页时<b>多弹一个到账告知弹窗</b>——<b>弹窗仅为通知，点不点「领取」、有没有看到，券都已在账户里</b>；<br>两种方式券归属逻辑相同，<b>均无「领取截止」、无未领作废</b>。</div></div>
       <div class="br"><span class="no">BR-03</span><div><b>彩金充值 / 人工充值 / USDT 直接到账、彩金扣除为扣款 → 均无发放方式</b>（非券的资金操作没有"领取"概念）。</div></div>
-      <div class="br"><span class="no">BR-04</span><div><b>是否审核沿用现有「人工充值」审核逻辑</b>：由<b>操作人后台账号的权限</b>决定、系统自动判断（不在发券表单手动勾选）——<b>需审核账号</b>提交的发券（单个 / 批量一视同仁）一律进「发券审核」待复核，<b>免审账号</b>直接执行；<br><b>金额与数量均不作为判定条件</b>。</div></div>
+      <div class="br"><span class="no">BR-04</span><div><b>是否审核沿用现有「人工充值」审核逻辑</b>：由<b>操作人后台账号的权限</b>决定、系统自动判断（不在发券表单手动勾选）——<b>需审核账号</b>提交的发券（单个 / 批量一视同仁）一律进「发券审核」待复核，<b>免审账号</b>直接执行；<br><b>金额与数量均不作为判定条件</b>；<br>权限与「是否需要审核」开关的配置来源见 <b>3.2 末「后台操作权限配置」</b>。</div></div>
       <div class="br"><span class="no">BR-05</span><div><b>券来源</b>：券码库＝唯一券源；现填规格也<b>自动登记成券码</b>。批量时名单只管发给谁（会员ID），券规格 / 发放方式在弹窗统一配置。</div></div>
-      <div class="br"><span class="no">BR-06</span><div><b>额度占用（弹窗领取）</b>：此处「额度」= <b>券码发放上限</b>的次数配额；<br>弹窗领取发放时先<b>占用 1 个名额</b>、会员领取才确认消耗，<b>未领作废 / 审核拒绝 → 名额退回、可再发他人</b>；<br>券码未设上限（0=不限）则无占用，自动领取即时消耗。</div></div>
-      <div class="br"><span class="no">BR-07</span><div><b>券 vs 通道赠金关系</b>：互斥·取高（默认）/ 叠加 / 互斥·优先券，三选一（属券规格 —— 从券码库选时随券只读带出，现填规格时录入）。<b>计算口径见「3.4 赠金计算规则（券 vs 通道赠金）」</b>，本条不另立算式。</div></div>
+      <div class="br"><span class="no">BR-06</span><div><b>券 vs 通道赠金关系</b>：互斥·取高（默认）/ 叠加 / 互斥·优先券，三选一（属券规格 —— 从券码库选时随券只读带出，现填规格时录入）。<b>计算口径见「3.4 赠金计算规则（券 vs 通道赠金）」</b>，本条不另立算式。</div></div>
     </div>
 
     <div class="sec">
-      <div class="h1">五、限制条件与校验</div>
+      <div class="h1" id="s5">五、限制条件与校验</div>
       <ul class="l">
         <li>批量单次 <b>≤ 1.5 万条</b>，文件 <b>≤ 4M</b>（xlsx / csv）。</li>
-        <li>校验：黑名单 / <b>已持未使用同类券（同规格 / 同类型）</b> → 失败；<br>会员ID 重复 → 自动去重忽略；<br><b>单次仅限同一充值类型</b>。<b>单会员发放同样校验</b>黑名单 / 同类券。</li>
+        <li>校验：<b>已持未使用同类券（同规格 / 同类型）</b> → 失败；<br>会员ID 重复 → <b>提醒运营</b>（<b>不自动去重</b>，标出重复项，由运营自行决定是否删除——同一会员可发多张券属正常场景）；<br><b>单次仅限同一充值类型</b>。<b>单会员发放同样校验</b>已持同类券。<br><span style="color:#888">注：充值优惠券<b>不做黑名单校验</b>。</span></li>
         <li><b>现填规格须做合法区间校验</b>（比例% / 上限₹ / 已领取券有效期 / 最低充值门槛 / 打码量倍数；适用充值大类<b>至少勾 1 个</b>），避免录入异常规格。</li>
-        <li>弹窗领取须设「<b>领取截止</b>」（<b>默认 7 天、运营可自定义；0 = 不限制</b>，发放后超期未领作废、<b>额度退回</b>）。</li>
         <li>批量<b>失败 / 忽略清单沿用现有「批量充值」的失败处理逻辑</b>（逐行跳过 + 单条隔离 + 结果清单带状态与原因，复用现有流程；<b>不含失败清单导出 / 修正后重传</b>）。</li>
         <li>口径：会员主动获取（红包码兑换 / 注册得券）一律自动入袋；<b>仅充值优惠券定向发可选弹窗领取</b>。</li>
       </ul>
@@ -824,7 +949,7 @@ function toggleCap(m){capMode=m;document.getElementById('cap-limit').classList.t
 function srcMode(m){document.getElementById('src-lib').classList.toggle('on',m==='lib');document.getElementById('src-fill').classList.toggle('on',m==='fill');document.getElementById('cf-lib-pick').style.display=m==='lib'?'':'none';document.getElementById('cf-fill-wrap').style.display=m==='fill'?'':'none';if(m==='lib')libSpec();}
 function libSpec(){const s=document.getElementById('cf-lib-sel');if(!s)return;const v=s.value.split('|');const box=document.getElementById('cf-lib-spec');if(box)box.innerHTML=`充值 <b>${v[0]}%</b> · 上限 <b>₹${v[1]}</b> · 有效期 <b>${v[2]}天</b> · 打码 <b>${v[3]}倍</b><br><span style="color:#888">规格来自券码库，不可改</span>`;}
 function pickRadioM(el){el.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('on'));el.classList.add('on');}
-function toggleReward(m){reward=m;document.getElementById('rw-auto').classList.toggle('on',m==='auto');document.getElementById('rw-popup').classList.toggle('on',m==='popup');document.getElementById('rw-deadline').style.display=m==='popup'?'':'none';}
+function toggleReward(m){reward=m;document.getElementById('rw-auto').classList.toggle('on',m==='auto');document.getElementById('rw-popup').classList.toggle('on',m==='popup');}
 function updatePreview(){const r=(parseFloat(document.getElementById('cf-ratio').value)||0)/100;const cap=parseFloat(document.getElementById('cf-cap').value)||0;const min=parseFloat((document.getElementById('cf-min')||{}).value)||0;const calc=a=>{if(min>0&&a<min)return '<span style="color:#bbb">未达门槛</span>';const v=Math.floor(a*r);return capMode==='limit'?'得₹'+Math.min(v,cap):'得₹'+v;};document.getElementById('cf-preview').innerHTML=`券面：充值${document.getElementById('cf-ratio').value||0}%券`+(capMode==='limit'?`·上限₹${cap}`:'·不限上限')+(min>0?`·满₹${min}可用`:'')+`<br>充₹100 ${calc(100)}　|　充₹500 ${calc(500)}　|　充₹1000 ${calc(1000)}`+`<br>通道赠金关系：<b>${(document.getElementById('cf-relation')||{}).value||'互斥·取高（默认）'}</b>`;}
 function toggleAllCat(el){document.querySelectorAll('#cf-fill-wrap .cat-item').forEach(function(c){c.checked=el.checked;});}
 function catSync(){const items=[...document.querySelectorAll('#cf-fill-wrap .cat-item')];const all=document.getElementById('cat-all');if(all)all.checked=items.every(c=>c.checked);if(items.every(c=>!c.checked))toast('必须至少勾选 1 个充值大类','warning');}
@@ -834,7 +959,7 @@ function toggleImpReward(m){impReward=m;document.getElementById('ir-auto').class
 function setImpType(t){impType=t;document.getElementById('imp-coupon').classList.toggle('on',t==='coupon');document.getElementById('imp-other').classList.toggle('on',t==='other');document.getElementById('imp-tpl-hint').innerHTML=t==='coupon'?'📄 充值优惠券模板字段：<b>账户类型 / 会员ID / 充值类型 / 备注</b>（<b>无充值金额、无打码量</b>——打码量随券规格走，券码库选的券 / 现填规格里配，模板里配了也不生效）':'📄 其他类型模板字段：<b>账户类型 / 会员ID / 充值金额 / 充值类型 / 打码量倍数 / 备注</b>';const cp=document.getElementById('imp-tbl-coupon'),ot=document.getElementById('imp-tbl-other'),cfg=document.getElementById('imp-coupon-config'),ocfg=document.getElementById('imp-other-config');if(cp){cp.style.display=t==='coupon'?'':'none';ot.style.display=t==='coupon'?'none':'';cfg.style.display=t==='coupon'?'':'none';if(ocfg)ocfg.style.display=t==='coupon'?'none':'';}}
 function impUpload(){document.getElementById('imp-empty').style.display='none';document.getElementById('imp-result').style.display='';setImpType(impType);toast('Excel 已上传，校验完成','success');}
 function impSrc(m){document.getElementById('isrc-lib').classList.toggle('on',m==='lib');document.getElementById('isrc-fill').classList.toggle('on',m==='fill');document.getElementById('imp-lib').style.display=m==='lib'?'':'none';document.getElementById('imp-fill').style.display=m==='fill'?'':'none';}
-function impRw(m){impReward=m;document.getElementById('iw-auto').classList.toggle('on',m==='auto');document.getElementById('iw-popup').classList.toggle('on',m==='popup');document.getElementById('iw-deadline').style.display=m==='popup'?'':'none';}
+function impRw(m){impReward=m;document.getElementById('iw-auto').classList.toggle('on',m==='auto');document.getElementById('iw-popup').classList.toggle('on',m==='popup');}
 function execImport(){if(opPerm==='need'){toast('已提交审核：2 条待复核，3 条已跳过','warning');}else{toast('已开始执行：2 条待执行，3 条已跳过 · '+(impReward==='popup'?'弹窗领取':'自动领取'),'success');}closeModal('import-modal');}
 function setOpPerm(p){opPerm=p;document.getElementById('op-free').classList.toggle('on',p==='free');document.getElementById('op-need').classList.toggle('on',p==='need');document.getElementById('exec-btn').textContent=p==='need'?'提交审核':'开始执行';}
 libSpec();
@@ -892,9 +1017,9 @@ p3Cap50:{en:'Max ₹50',hi:'अधिकतम ₹50',vi:'Tối đa ₹50'},
 p3Cap80:{en:'Max ₹80',hi:'अधिकतम ₹80',vi:'Tối đa ₹80'},
 p3Meta1:{en:'No threshold · Valid 7 days',hi:'कोई सीमा नहीं · 7 दिन वैध',vi:'Không điều kiện · Hiệu lực 7 ngày'},
 p3Meta2:{en:'Min ₹300 · Valid 5 days',hi:'न्यूनतम ₹300 · 5 दिन वैध',vi:'Tối thiểu ₹300 · Hiệu lực 5 ngày'},
-p3Go:{en:'Claim now (2)',hi:'अभी प्राप्त करें (2)',vi:'Nhận ngay (2)'},
-p3Done:{en:'✓ Claimed',hi:'✓ प्राप्त किया',vi:'✓ Đã nhận'},
-p3Toast:{en:'Claimed! 2 coupons saved to "My Coupons"',hi:'प्राप्त हो गया! 2 कूपन "मेरे कूपन" में सहेजे गए',vi:'Đã nhận! 2 phiếu đã lưu vào "Phiếu của tôi"'}};
+p3Go:{en:'Got it (2)',hi:'ठीक है (2)',vi:'Đã hiểu (2)'},
+p3Done:{en:'✓ Credited',hi:'✓ जमा हो गया',vi:'✓ Đã vào ví'},
+p3Toast:{en:'Credited! 2 coupons are in "My Coupons"',hi:'जमा हो गया! 2 कूपन "मेरे कूपन" में हैं',vi:'Đã vào ví! 2 phiếu đã ở "Phiếu của tôi"'}};
 function tt(k){return (T[k]&&T[k][LANG])||k;}
 function setLang(l){LANG=l;document.querySelectorAll('#P-p5 .langbtn').forEach(b=>{const on=b.dataset.l===l;b.style.background=on?'#f5535f':'#f0f0f0';b.style.color=on?'#fff':'#666';b.classList.toggle('on',on);});document.querySelectorAll('#P-p5 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k])el.textContent=T[k][l];});document.querySelectorAll('#P-p3 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k])el.textContent=T[k][l];});renderScenarios();}
 /* ══════ 赠金计算规则（券 vs 通道赠金）—— 唯一口径见 PRD「赠金计算规则（券 vs 通道赠金）」小节 ══════
@@ -1019,7 +1144,7 @@ function scColHTML(s){
     '<div class="sc-amt-row"><div class="sc-amt">₹100</div><div class="sc-amt on">₹500</div></div>'+
     '<div class="pc-sec">🎟️ <span>'+tt('useCoupon')+'</span> <span class="pc-new">NEW</span><span class="sc-est">'+tt('estBonus')+'<b>+₹50</b></span></div>'+
     '<div class="sc-cpbox"><div class="pc-cprow">'+scCoupons()+'</div></div>'+
-    '<div class="sc-credit"><div class="sc-credit-top"><span class="lbl">'+tt('actualCredit')+'</span><span class="val">₹'+s.total+'</span></div>'+rows+'</div>'+
+    '<div class="sc-credit"><div class="sc-credit-top"><span class="lbl">'+tt('actualCredit')+'</span><span class="val">₹'+Number(s.total).toFixed(2)+'</span></div>'+rows+'</div>'+
     '<div class="sc-input">₹ 500</div>'+
     '<div class="sc-formula">💠 <span>'+tt(s.formula)+'</span></div>'+
     '<button class="sc-paybtn">'+tt('payBtn')+' ₹500</button>'+
