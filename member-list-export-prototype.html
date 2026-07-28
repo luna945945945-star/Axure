@@ -43,9 +43,15 @@ body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-s
 .fld input,.fld select{flex:1;height:30px;padding:0 8px;border:1px solid var(--bd);border-radius:4px;font-size:12px;font-family:inherit;background:#fff;min-width:0}
 .fld .opsel{flex:0 0 44px;padding:0 4px;text-align:center;font-weight:700}
 .fld input:focus,.fld select:focus{border-color:var(--pri);outline:none;box-shadow:0 0 0 2px var(--pri-l)}
-.fld.new{background:var(--new-bg);border:1px solid var(--new-bd);border-radius:6px;padding:4px 8px;margin:-4px -2px}
-.fld.new>label{color:#a35200;font-weight:700}
-.fld.new .suf{font-size:11px;color:#a35200;white-space:nowrap}
+/* 新增字段：不加底色框，仅用橙色标签 + 右上角 NEW 角标区分，融入原有栅格 */
+.fld.new{position:relative}
+.fld.new>label{color:#fa541c;font-weight:700}
+/* NEW 角标：绝对定位输入框右上角，不占位 */
+.fld.new .nb{position:absolute;top:-6px;right:0;background:#fa541c;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:0 4px;line-height:14px;letter-spacing:.3px;z-index:3;pointer-events:none}
+/* 区间双输入：最小 ~ 最大（单格=精确、两格=区间），紧凑排入单列 */
+.fld .range{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+.fld .range input{flex:1;min-width:0;width:auto;padding:0 6px}
+.fld .rsep{color:var(--ink3);flex-shrink:0;font-size:11px}
 .btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#8a6bff,#7c4dff);color:#fff}
 .btn.pri{background:linear-gradient(135deg,var(--pri),var(--pri2))}
@@ -199,13 +205,11 @@ tr:hover td{background:#fbfaff}tr:hover td.new{background:#fff8ee}
       <div class="fld"><label>注册指纹</label><input placeholder="注册浏览器指纹"></div>
       <div class="fld"><label>黑名单状态</label><select><option>全部</option><option>正常</option><option>已拉黑</option></select></div>
       <div class="fld"><label>活动黑名单</label><select><option>全部</option><option>是</option><option>否</option></select></div>
-
-      <!-- ↓↓↓ 本期新增筛选 ↓↓↓ -->
-      <div class="fld new"><label>充值总次数 ≥<span class="tag-new">NEW</span><span class="q">?<span class="tipsrc">按累计成功充值笔数筛选；<b>填 0 = 未充值会员</b>，填 N（≥1）= 充值笔数 ≥ N</span></span></label><input type="number" placeholder="如 0"><span class="suf">次</span></div>
-      <div class="fld new"><label>未登录天数 ≥<span class="tag-new">NEW</span><span class="q">?<span class="tipsrc">填 N，可筛出"距最后在线已达 N 天及以上"的会员（按最后在线/活跃时间计算）</span></span></label><input type="number" placeholder="如 7"><span class="suf">天</span></div>
-      <div class="fld new"><label>流水倍数 ≥<span class="tag-new">NEW</span><span class="q">?<span class="tipsrc">流水倍数 = 有效投注 ÷ 总充值；填 N，可筛出"倍数≥N"的会员</span></span></label><input type="number" placeholder="如 3"><span class="suf">倍</span></div>
-      <div class="fld new"><label>总盈亏<span class="tag-new">NEW</span><span class="q">?<span class="tipsrc">选 ≥ 或 ≤ 再填数值：<b>≥N</b> 筛盈亏不低于 N（找盈利/巨赢，如 ≥1000）；<b>≤N</b> 筛盈亏不高于 N（找亏损，填负数，如 ≤ -1000 = 亏损达 1000 及以上）；正数=会员盈利、负数=会员亏损</span></span></label><select class="opsel"><option>≥</option><option>≤</option></select><input type="number" placeholder="如 0"></div>
-      <div class="fld new"><label>银行卡绑定手机号<span class="tag-new">NEW</span></label><input placeholder="输入手机号查询"></div>
+      <div class="fld new"><label>绑卡手机号<span class="q">?<span class="tipsrc">输入手机号，精确查询绑定该手机号的提现银行卡对应会员</span></span></label><span class="nb">NEW</span><input placeholder="银行卡预留手机号"></div>
+      <div class="fld new"><label>充值次数<span class="q">?<span class="tipsrc"><b>累计成功充值的笔数</b>（只算充值到账的订单，不含赠送 / 红包）。<br><b>怎么查：</b>填一格 = 精确（填 <b>0</b> 查从未充值）；两格 = 区间（<b>1~3</b> 查充值 1 到 3 次）。</span></span></label><span class="nb">NEW</span><div class="range"><input type="number" min="0" placeholder="最小"><span class="rsep">~</span><input type="number" min="0" placeholder="最大"></div></div>
+      <div class="fld new"><label>未登录天数<span class="q">?<span class="tipsrc"><b>距今多少天没上线</b> = 今天 − 最后在线日期（今天来过 = 0 天）。<br><b>怎么查：</b>填一格 = 精确（<b>30</b> 查正好 30 天）；两格 = 区间（<b>30~90</b> 查 30 到 90 天；想查"30 天以上"把右格填大些，如 <b>30~9999</b>）。</span></span></label><span class="nb">NEW</span><div class="range"><input type="number" min="0" placeholder="最小"><span class="rsep">~</span><input type="number" min="0" placeholder="最大"></div></div>
+      <div class="fld new"><label>流水倍数<span class="q">?<span class="tipsrc"><b>有效投注 ÷ 总充值</b>，看会员投注活跃度（倍数越高投得越多）；没充值不算、显示"—"。<br><b>怎么查：</b>填一格 = 精确（<b>3</b> 查正好 3 倍）；两格 = 区间（<b>0~1</b> 查 1 倍以下、疑似薅羊毛）。</span></span></label><span class="nb">NEW</span><div class="range"><input type="number" min="0" step="0.1" placeholder="最小"><span class="rsep">~</span><input type="number" min="0" step="0.1" placeholder="最大"></div></div>
+      <div class="fld new"><label>总盈亏<span class="q">?<span class="tipsrc">会员<b>累计输赢</b>（会员视角）：<b>正数 = 会员赢</b>、<b>负数 = 会员输</b>。<br><b>怎么查：</b>填一格 = 精确；两格 = 区间。找亏损填负数（<b>-2000~-500</b> 查亏 500 到 2000）；找大赢家填正数（如 <b>1000~99999</b>）。</span></span></label><span class="nb">NEW</span><div class="range"><input type="number" step="0.01" placeholder="最小"><span class="rsep">~</span><input type="number" step="0.01" placeholder="最大"></div></div>
     </div>
 
     <div class="btns">
@@ -279,26 +283,26 @@ tr:hover td{background:#fbfaff}tr:hover td.new{background:#fff8ee}
       <h3>一、新增筛选项（5 项）</h3>
 
       <div class="sp-item new-c">
-        <div class="sp-h"><span class="sp-n">1</span>充值总次数 ≥ N <span class="sp-tag rt">实时</span></div>
-        <div class="sp-def"><b>定义：</b>按会员累计成功充值笔数筛选（全时段累计，不随日期/快捷日期变化）。</div>
-        <div class="sp-lim"><b>规范/限制：</b>入参整数 <b>N≥0</b>；<b>填 0 特指"未充值(=0)"会员</b>，填 N（≥1）按"充值笔数 ≥ N"处理；只统计<b>充值成功（已到账）</b>的订单，不含赠送/后台加币/红包等非充值入账；空值不参与筛选。</div>
+        <div class="sp-h"><span class="sp-n">1</span>充值总次数（最小 ~ 最大）<span class="sp-tag rt">实时</span></div>
+        <div class="sp-def"><b>定义：</b>按会员累计成功充值笔数筛选，<b>「最小 ~ 最大」区间</b>输入（全时段累计，不随日期/快捷日期变化）。</div>
+        <div class="sp-lim"><b>规范/限制：</b>入参整数 ≥0；<b>只填一格 = 精确值查询 · 两格都填 = 区间查询</b>；<b>查未充值会员填 0</b>；只统计<b>充值成功（已到账）</b>的订单，不含赠送/后台加币/红包等非充值入账；两格皆空不参与筛选。</div>
       </div>
 
       <div class="sp-item new-c">
-        <div class="sp-h"><span class="sp-n">2</span>未登录天数 ≥ N <span class="sp-tag rt">实时</span></div>
-        <div class="sp-def"><b>定义：</b>筛出"距最后一次<b>在线/活跃</b>已达 N 天及以上"的会员；天数 = 今天 − 最后在线日期（<b>今天在线过 = 0 天</b>）。</div>
-        <div class="sp-lim"><b>规范/限制：</b>入参正整数（N≥1）；<b>从未在线过</b>的会员视为"未登录天数 = ∞"，满足任意 ≥N；查询按"最后在线日期 ≤ 今天−N"处理走索引；<b>口径统一取"最后在线/活跃时间"</b>，与列表"最后在线"列同源。</div>
+        <div class="sp-h"><span class="sp-n">2</span>未登录天数（最小 ~ 最大）<span class="sp-tag rt">实时</span></div>
+        <div class="sp-def"><b>定义：</b>按"距最后一次<b>在线/活跃</b>的天数"筛选，<b>「最小 ~ 最大」区间</b>输入；天数 = 今天 − 最后在线日期（<b>今天在线过 = 0 天</b>）。</div>
+        <div class="sp-lim"><b>规范/限制：</b>入参整数 ≥0；<b>只填一格 = 精确值查询 · 两格都填 = 区间查询</b>（例：查恰好 30 天填一格 30；查 30~60 天两格填 30、60）；<b>从未在线过</b>的会员显示"未登录"（不落入任何具体天数，如需单独捞取用列表"未登录"标识）；查询转成日期阈值走索引；<b>口径统一取"最后在线/活跃时间"</b>，与列表"最后在线"列同源。</div>
       </div>
 
       <div class="sp-item new-c">
-        <div class="sp-h"><span class="sp-n">3</span>流水倍数 ≥ N <span class="sp-tag t1">T+1</span></div>
-        <div class="sp-def"><b>定义：</b>筛出"流水倍数 ≥ N"的会员；倍数 = 有效投注 ÷ 总充值（均为全时段累计）。</div>
-        <div class="sp-lim"><b>规范/限制：</b>入参支持小数（如 1.5）；<b>无充值（分母为 0）的会员不计入</b>、列表显示"—"（如需排查<b>有投注、零充值</b>的会员，请改用"充值总次数 = 0 且 总流水 > 0"筛选）；比较用<b>精确值</b>（非显示舍入值）；分子分母均取 T+1 口径。</div>
+        <div class="sp-h"><span class="sp-n">3</span>流水倍数（最小 ~ 最大）<span class="sp-tag t1">T+1</span></div>
+        <div class="sp-def"><b>定义：</b>按流水倍数筛选，<b>「最小 ~ 最大」区间</b>输入；倍数 = 有效投注 ÷ 总充值（均为全时段累计）。</div>
+        <div class="sp-lim"><b>规范/限制：</b>入参支持小数（如 1.5）；<b>只填一格 = 精确值查询 · 两格都填 = 区间查询</b>；<b>无充值（分母为 0）的会员不计入</b>、列表显示"—"（如需排查<b>有投注、零充值</b>的会员，请改用"充值总次数 = 0 且 总流水 > 0"筛选）；比较用<b>未舍入的原始数值</b>（非列表显示的舍入值）；分子分母均取 T+1 口径。</div>
       </div>
 
       <div class="sp-item new-c">
-        <div class="sp-h"><span class="sp-n">4</span>总盈亏 <span class="sp-tag t1">T+1</span></div>
-        <div class="sp-def"><b>定义：</b><b>操作符（≥ / ≤）可切换 + 填数值</b>：<b>≥N</b> 筛盈亏不低于 N（找盈利/巨赢，如 ≥1000）；<b>≤N</b> 筛盈亏不高于 N（找亏损，填负数，如 ≤ -1000 = 亏损达 1000 及以上）。</div>
+        <div class="sp-h"><span class="sp-n">4</span>总盈亏（最小 ~ 最大）<span class="sp-tag t1">T+1</span></div>
+        <div class="sp-def"><b>定义：</b>按会员盈亏筛选，<b>「最小 ~ 最大」区间</b>输入（支持负数）：<b>只填左=≥</b>（找盈利/巨赢，左格填 1000）· <b>只填右=≤</b>（找亏损，右格填负数，如 -1000 = 亏损达 1000 及以上）· <b>都填=区间</b>。</div>
         <div class="sp-lim"><b>规范/限制：</b>入参<b>支持负数与小数</b>；正数=会员盈利、负数=会员亏损（会员视角）；口径为"真实输赢"、按有效投注、T+1 截止昨天。<b>⚠️</b> 约定<b>正数 = 会员盈利</b>，开发须核对统计字段正负方向与此一致（平台视角相反需取负）。</div>
       </div>
 
