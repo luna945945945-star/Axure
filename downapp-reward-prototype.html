@@ -166,7 +166,7 @@ tr:hover td{background:#fafafa}
           <th class="newcol" style="width:160px">充值门槛快照<span class="tipic" tabindex="0">?<span class="tipbox">该会员<b>建档当时</b>锁定的充值门槛，之后运营再改配置也不会变。<br><b>0.00</b> = 下载即领，无需充值。<br>用于排查「为什么这个会员领不到」。</span></span><span class="badge-new">新增</span></th>
           <th style="width:110px">充值金额</th>
           <th style="width:160px">充值时间</th>
-          <th class="newcol" style="width:170px">待领取金额快照<span class="tipic" tabindex="0">?<span class="tipbox">该会员<b>建档当时</b>锁定的应发奖励金额（待领取金额），之后运营再改配置也不会变。<br>用于核对「该会员到底该领多少」，与当前配置的赠送金额无关。</span></span><span class="badge-new">新增</span></th>
+          <th class="newcol" style="width:170px">赠送金额快照<span class="tipic" tabindex="0">?<span class="tipbox">该会员<b>建档当时</b>锁定的应发奖励金额（赠送金额），之后运营再改配置也不会变。<br>用于核对「该会员到底该领多少」，与当前配置的赠送金额无关。</span></span><span class="badge-new">新增</span></th>
           <th style="width:160px">领取时间</th>
         </tr>
       </thead>
@@ -206,7 +206,7 @@ tr:hover td{background:#fafafa}
   </div>
 
   <div style="margin-top:12px;font-size:12.5px;color:#888;line-height:1.9">
-    <b style="color:#d4380d">充值门槛快照</b>：会员建档当时锁定的充值门槛，之后运营再改配置也不会变。<b>待领取金额快照</b>同理，为建档当时锁定的应发金额。<br>
+    <b style="color:#d4380d">充值门槛快照</b>：会员建档当时锁定的充值门槛，之后运营再改配置也不会变。<b>赠送金额快照</b>同理，为建档当时锁定的应发金额。<br>
     序号 2 门槛=<b style="color:#d4380d">0.00</b>，属「下载即领」，无需充值直接待领取；序号 3 门槛=100，即使现在配置已改成 0，该会员仍需充满 100 才能领取；序号 5 为<b style="color:#722ed1">批量赠送</b>，直接直发、单独归类，不并入自定义会员。
   </div>
 </div>
@@ -340,7 +340,7 @@ tr:hover td{background:#fafafa}
         </tr>
         <tr>
           <td><b>列表<br>· 列名与列序</b></td>
-          <td><span class="chg mod">改造</span>「领取门槛」改名 <b>充值门槛快照</b>、「领取金额」改名 <b>待领取金额快照</b>（均为建档当时锁定值）。<br><span class="chg mod">改造</span>列序调整为：<b>状态 → 充值门槛快照 → 充值金额 → 充值时间 → 待领取金额快照 → 领取时间</b>。</td>
+          <td><span class="chg mod">改造</span>「领取门槛」改名 <b>充值门槛快照</b>、「领取金额」改名 <b>赠送金额快照</b>（均为建档当时锁定值）。<br><span class="chg mod">改造</span>列序调整为：<b>状态 → 充值门槛快照 → 充值金额 → 充值时间 → 赠送金额快照 → 领取时间</b>。</td>
         </tr>
         <tr>
           <td><b>列表<br>· 归属类型名称</b></td>
@@ -354,7 +354,7 @@ tr:hover td{background:#fafafa}
       <table class="spec-tbl">
         <tr><th style="width:120px">项</th><th>说明</th></tr>
         <tr><td><span class="chg mod">改造</span>下载即领</td><td>门槛=0 时，建记录直接置为「待领取」，不再等充值回调（原逻辑：记录=未充值 → 充值成功回调 → 才置待领取）。</td></tr>
-        <tr><td><span class="chg new">新增</span>门槛/金额快照</td><td>建记录时把当时<b>充值门槛、待领取金额</b>存入该条记录（充值门槛快照 / 待领取金额快照）。发奖判断改为读<b>记录里的快照</b>，不读当前配置。<b>运营每次改配置只影响之后新增的会员，存量不受影响。</b></td></tr>
+        <tr><td><span class="chg new">新增</span>门槛/金额快照</td><td>建记录时把当时<b>充值门槛、赠送金额</b>存入该条记录（充值门槛快照 / 赠送金额快照）。发奖判断改为读<b>记录里的快照</b>，不读当前配置。<b>运营每次改配置只影响之后新增的会员，存量不受影响。</b></td></tr>
         <tr><td><span class="chg new">新增</span>打码项独立配置</td><td>新增独立打码 key，与充值赠送打码拆开；领取发放时读新 key。</td></tr>
         <tr><td><span class="chg be">数据</span>存量刷新</td><td>已有记录的「领取门槛」刷为当前生效门槛，避免被误判为下载即领。</td></tr>
       </table>
@@ -377,7 +377,7 @@ tr:hover td{background:#fafafa}
       <table class="spec-tbl">
         <tr><th style="width:40px">项</th><th style="width:56px">级别</th><th>动作 / 不做的后果</th></tr>
         <tr><td><b>M1</b></td><td><span class="chg new">高危</span></td><td>存量记录「充值门槛快照」<b>回刷为当前生效门槛（非 0）</b>。<br>不做 → 存量被判为门槛 0 = 下载即领，<b>全量白送奖金</b>。</td></tr>
-        <tr><td><b>M2</b></td><td><span class="chg mod">中</span></td><td>明确「待领取金额快照」取数与显隐口径；若建档即写，则<b>存量金额快照一并回刷</b>。<br>不做 → 存量未充值记录显示 0.00，<b>误导运营/客服</b>。</td></tr>
+        <tr><td><b>M2</b></td><td><span class="chg mod">中</span></td><td>明确「赠送金额快照」取数与显隐口径；若建档即写，则<b>存量金额快照一并回刷</b>。<br>不做 → 存量未充值记录显示 0.00，<b>误导运营/客服</b>。</td></tr>
         <tr><td><b>M3</b></td><td><span class="chg new">高危</span></td><td>新增「APP下载奖励打码倍数」独立配置，<b>上线即种入 ≥1</b>，录入与读取都强制 ≥1。<br>不做 → 存量待领取记录按打码 0 领取，<b>零门槛套现</b>。</td></tr>
         <tr><td><b>M4</b></td><td><span class="chg mod">中</span></td><td>决策历史「批量赠送」记录是否迁移为新归属类型；不迁则明确「仅新数据区分」并告知运营。<br>不做 → 历史批量记录仍挂在自定义会员下，<b>筛选错乱</b>。</td></tr>
         <tr><td><b>M5</b></td><td><span class="chg mod">中</span></td><td>统一门槛 / 金额快照的<b>写入时机</b>（建议都在建档时写），避免「有时建档写、有时回调写」导致快照语义不一致。</td></tr>
