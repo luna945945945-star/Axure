@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>后台侧边栏 · 搜索(主+子菜单) + 常用收藏 原型</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #eef1f5; color: #444; display: flex; min-height: 100vh;
+  }
+  .intro { flex: 1; padding: 32px 40px; max-width: 700px; }
+  .intro h1 { font-size: 20px; color: #222; margin-bottom: 6px; }
+  .intro .sub { color: #888; font-size: 13px; margin-bottom: 22px; }
+  .card { background: #fff; border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .card h2 { font-size: 15px; color: #2b6cb0; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .card ul { list-style: none; }
+  .card li { font-size: 13.5px; line-height: 1.9; color: #555; padding-left: 20px; position: relative; }
+  .card li::before { content: "▸"; position: absolute; left: 2px; color: #a0aec0; }
+  .card li b { color: #333; }
+  .tag { display:inline-block; font-size:11px; padding:1px 8px; border-radius:10px; background:#ebf5ff; color:#2b6cb0; margin-left:6px; }
+  .tag.hot { background:#fff3e0; color:#e07b00; }
+  .bc { color:#a0aab4; }
+
+  /* PRD */
+  .prd { background:#fff; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,.06); overflow:hidden; margin-bottom:16px; }
+  .prd-head { background:#2b6cb0; color:#fff; font-size:15px; font-weight:600; padding:14px 20px; display:flex; align-items:center; gap:9px; }
+  .prd-sec { padding:14px 20px 4px; border-bottom:1px solid #f0f2f5; }
+  .prd-sec:last-child { border-bottom:none; padding-bottom:16px; }
+  .prd-t { font-size:14px; font-weight:600; color:#2d3748; margin-bottom:8px; }
+  .prd ul { list-style:none; }
+  .prd li { font-size:13.5px; line-height:1.95; color:#555; padding-left:18px; position:relative; margin-bottom:2px; }
+  .prd li::before { content:"·"; position:absolute; left:5px; color:#2b6cb0; font-weight:700; }
+  .prd li b { color:#1a2733; }
+
+  /* ===== 侧边栏 ===== */
+  .sidebar { width: 300px; background: #fff; min-height: 100vh; border-right: 1px solid #e6e8eb; display: flex; flex-direction: column; box-shadow: 2px 0 8px rgba(0,0,0,.03); }
+  .brand { height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 18px; background: #fff5f5; border-bottom: 1px solid #f0e0e0; font-weight: 600; color: #c0392b; font-size: 15px; flex-shrink: 0; }
+  .brand .dot { width: 8px; height: 8px; border-radius: 50%; background: #27ae60; }
+
+  .search-wrap { padding: 12px 14px 8px; flex-shrink: 0; }
+  .search-box { display: flex; align-items: center; background: #f2f4f7; border-radius: 8px; padding: 0 10px; height: 38px; border: 1px solid transparent; transition: .15s; }
+  .search-box:focus-within { background: #fff; border-color: #7c5cff; box-shadow: 0 0 0 3px rgba(124,92,255,.12); }
+  .search-box i { color: #9aa5b1; font-size: 15px; }
+  .search-box input { border: none; outline: none; background: transparent; flex: 1; padding: 0 8px; font-size: 14px; color: #333; }
+  .search-box .clear { color: #bbb; cursor: pointer; display: none; font-size: 14px; }
+  .search-box .clear:hover { color: #666; }
+
+  .menu-scroll { flex: 1; overflow-y: auto; padding-bottom: 24px; }
+  .menu-scroll::-webkit-scrollbar { width: 6px; }
+  .menu-scroll::-webkit-scrollbar-thumb { background: #d5d9de; border-radius: 3px; }
+
+  .group-title { font-size: 11px; color: #9aa5b1; letter-spacing: 1px; font-weight: 600; padding: 12px 20px 6px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
+  .group-title .count { color: #cbd2d9; font-weight: 400; }
+
+  /* 主菜单行 */
+  .menu-item { display: flex; align-items: center; height: 46px; padding: 0 16px 0 20px; cursor: pointer; color: #4a5560; font-size: 14.5px; border-bottom: 1px solid #f4f5f7; transition: background .12s; user-select: none; }
+  .menu-item:hover { background: #f7fafd; }
+  .menu-item .m-icon { width: 22px; font-size: 16px; color: #7b8794; text-align: center; flex-shrink: 0; }
+  .menu-item .m-name { flex: 1; padding-left: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .menu-item .m-arrow { width: 16px; text-align: center; color: #cbd2d9; font-size: 14px; flex-shrink: 0; transition: transform .18s; }
+  .menu-item .m-star { width: 24px; text-align: center; color: #d5dbe1; font-size: 15px; flex-shrink: 0; opacity: 0; transition: .12s; }
+  .menu-item:hover .m-star { opacity: 1; }
+  .menu-item .m-star.on { color: #f6b73c; opacity: 1; }
+  .menu-item .m-star:hover { transform: scale(1.2); }
+  /* 展开态主菜单（紫色高亮，仿真后台） */
+  .menu-item.open { background: #f3f0ff; color: #7c5cff; }
+  .menu-item.open .m-icon { color: #7c5cff; }
+  .menu-item.open .m-arrow { transform: rotate(90deg); color: #7c5cff; }
+
+  /* 子菜单容器 + 行 */
+  .sub-wrap { display: none; background: #fcfcfd; }
+  .sub-wrap.open { display: block; }
+  .sub-item { display: flex; align-items: center; height: 44px; padding-left: 54px; padding-right: 16px; cursor: pointer; color: #8a94a3; font-size: 14px; border-bottom: 1px solid #f4f5f7; transition: .12s; }
+  .sub-item:hover { background: #f4f2ff; color: #6a5acd; }
+  .sub-item.active { background: #f3f0ff; color: #7c5cff; font-weight: 500; }
+  .sub-item .s-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub-item .m-star { width: 24px; text-align: center; color: #d5dbe1; font-size: 14px; flex-shrink: 0; opacity: 0; }
+  .sub-item:hover .m-star { opacity: 1; }
+  .sub-item .m-star.on { color: #f6b73c; opacity: 1; }
+
+  /* 常用区 */
+  .fav-zone { background: #fffdf6; }
+  .fav-item { display: flex; align-items: center; height: 46px; padding: 0 16px 0 20px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #f6efdd; transition: .12s; }
+  .fav-item:hover { background: #fdf6e3; }
+  .fav-item .f-icon { width: 22px; text-align: center; color: #b8a06a; font-size: 14px; flex-shrink: 0; }
+  .fav-item .f-name { flex: 1; padding-left: 12px; color: #6a5f45; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fav-item .f-name .bc { color: #bcae86; }
+  .fav-item .m-star { width: 24px; text-align: center; color: #f6b73c; font-size: 15px; flex-shrink: 0; }
+  .fav-empty { padding: 10px 20px 14px; font-size: 12.5px; color: #b0b8c0; line-height: 1.7; }
+  .fav-empty i { color: #f6b73c; }
+
+  /* 搜索结果行 */
+  .result-item { display: flex; align-items: center; min-height: 46px; padding: 6px 16px 6px 20px; cursor: pointer; border-bottom: 1px solid #f4f5f7; transition: .12s; }
+  .result-item:hover { background: #f7fafd; }
+  .result-item .r-icon { width: 22px; text-align: center; color: #9aa5b1; font-size: 15px; flex-shrink: 0; }
+  .result-item .r-body { flex: 1; padding-left: 12px; overflow: hidden; }
+  .result-item .r-name { font-size: 14.5px; color: #4a5560; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .result-item .r-parent { font-size: 11.5px; color: #a0aab4; margin-top: 1px; }
+  .result-item .m-star { width: 24px; text-align: center; color: #d5dbe1; font-size: 15px; flex-shrink: 0; opacity: 0; }
+  .result-item:hover .m-star { opacity: 1; }
+  .result-item .m-star.on { color: #f6b73c; opacity: 1; }
+  mark { background: #ffe58f; color: #ad6800; padding: 0 1px; border-radius: 2px; }
+
+  .no-result { padding: 34px 20px; text-align: center; color: #a0aab4; font-size: 13px; display: none; }
+  .no-result i { font-size: 28px; display: block; margin-bottom: 8px; color: #d5dbe1; }
+  .divider { height: 8px; background: #f4f6f8; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="brand"><span class="dot"></span> 当前站点：IndiaBDG</div>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <i class="fa fa-search"></i>
+      <input id="searchInput" type="text" placeholder="搜索主菜单/子菜单，如：相同IP / UPI / VIP" autocomplete="off">
+      <i class="fa fa-times-circle clear" id="clearBtn"></i>
+    </div>
+  </div>
+
+  <div class="menu-scroll" id="menuScroll">
+    <!-- 常用 -->
+    <div id="favBlock">
+      <div class="group-title"><i class="fa fa-star" style="color:#f6b73c"></i> 常用菜单 <span class="count" id="favCount"></span></div>
+      <div class="fav-zone" id="favZone"></div>
+      <div class="fav-empty" id="favEmpty">悬停任意菜单/子菜单，点右侧 <i class="fa fa-star-o"></i> 加入常用，直达深层页面。</div>
+      <div class="divider"></div>
+    </div>
+
+    <!-- 树 -->
+    <div id="treeBlock">
+      <div class="group-title">全部菜单 <span class="count" id="treeCount"></span></div>
+      <div id="treeZone"></div>
+    </div>
+
+    <!-- 搜索结果 -->
+    <div id="resultBlock">
+      <div class="group-title">搜索结果 <span class="count" id="resultCount"></span></div>
+      <div id="resultZone"></div>
+    </div>
+
+    <div class="no-result" id="noResult"><i class="fa fa-search"></i>没有找到匹配的菜单</div>
+  </div>
+</div>
+
+<div class="intro">
+  <h1>后台侧边栏 · 搜索(主菜单+子菜单) + 常用收藏</h1>
+  <div class="sub">交互原型（左侧可操作）— 主菜单+子菜单结构，搜索覆盖到二级页面</div>
+
+  <div class="card">
+    <h2><i class="fa fa-search"></i> 搜索主菜单 + 子菜单 <span class="tag hot">本次重点</span></h2>
+    <ul>
+      <li>搜索同时匹配<b>主菜单名</b>和<b>子菜单名</b>，深藏的二级页面也能一键搜到。</li>
+      <li>结果显示<b>「主菜单 › 子菜单」</b>面包屑，命中文字<b>高亮</b>，看得清它在哪。</li>
+      <li>搜"<b>会员</b>"→ 主菜单及其全部子项都出现；搜"<b>相同IP</b>""<b>UPI</b>"→ 直接定位到子页面。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><i class="fa fa-star"></i> 常用收藏（支持子菜单） <span class="tag">每人独立</span></h2>
+    <ul>
+      <li>子菜单也能收藏，常用区以<b>「主 › 子」</b>显示，直达深层页面。</li>
+      <li>本地保存（真实落地按登录账号存，<b>各管各的</b>）。</li>
+    </ul>
+  </div>
+
+  <!-- ===== PRD 需求说明 ===== -->
+  <div class="prd">
+    <div class="prd-head"><i class="fa fa-file-text-o"></i> PRD · 后台菜单搜索与常用收藏</div>
+
+    <div class="prd-sec">
+      <div class="prd-t">一、改造页面与字段</div>
+      <ul>
+        <li>改造对象：<b>后台侧边栏</b>（全站后台通用左侧菜单栏），不改菜单数据结构、不改现有菜单管理功能。</li>
+        <li>侧边栏顶部新增 <b>菜单搜索框</b>。</li>
+        <li>每个主菜单 / 子菜单行，悬停时右侧新增 <b>收藏星标</b>。</li>
+        <li>侧边栏顶部新增 <b>常用菜单</b> 分组，用于展示已收藏项。</li>
+        <li>不新增业务表；<b>常用收藏按登录账号存储</b>（每个管理员一份，互不影响）。</li>
+      </ul>
+    </div>
+
+    <div class="prd-sec">
+      <div class="prd-t">二、功能与规则 — 搜索</div>
+      <ul>
+        <li>搜索范围 = <b>当前账号有权限的主菜单名 + 子菜单名</b>；无权限的菜单搜不出来（与菜单权限保持一致）。</li>
+        <li>匹配方式：包含匹配、<b>大小写不敏感</b>；支持<b>拼音 / 首字母</b>（如输 upi、xtip）。</li>
+        <li>结果以 <b>「主菜单 › 子菜单」</b> 面包屑展示，命中文字<b>高亮</b>；一级菜单命中时带出其下全部有权限子项。</li>
+        <li>点击结果 <b>直接跳转对应页面</b>（使用该菜单已配置的跳转地址）。</li>
+        <li>无匹配显示<b>空状态</b>；清空搜索框恢复原菜单树。</li>
+      </ul>
+    </div>
+
+    <div class="prd-sec">
+      <div class="prd-t">三、功能与规则 — 常用收藏</div>
+      <ul>
+        <li>主菜单、子菜单<b>均可收藏</b>；点星标加入，再点取消。</li>
+        <li>已收藏项<b>置顶</b>到「常用菜单」分组，子菜单以「主 › 子」显示，可一键直达深层页面。</li>
+        <li>收藏数据<b>按登录账号存储</b>，一个管理员的调整不影响其他人。</li>
+        <li>常用为空时显示<b>引导提示</b>；常用项的跳转与其在菜单中的跳转一致。</li>
+      </ul>
+    </div>
+
+    <div class="prd-sec">
+      <div class="prd-t">四、限制与边界</div>
+      <ul>
+        <li>只做「搜索 + 常用收藏」，<b>不含拖拽调整菜单位置</b>（菜单位置仍由菜单管理页统一维护，全局生效）。</li>
+        <li>搜索与收藏<b>全程受菜单权限约束</b>，前后端一致，不得暴露无权限菜单。</li>
+        <li>某菜单被<b>删除 / 停用 / 失去权限</b>时，其在常用中的收藏项<b>自动不再显示</b>。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 菜单树（截图真实数据）=====
+const MENUS = [
+  {name:"大转盘", icon:"fa-asterisk"},
+  {name:"后台首页", icon:"fa-desktop"},
+  {name:"会员管理", icon:"fa-user", children:["会员列表","会员层级","下级会员列表","会员返佣等级","昨日返佣等级","充值等级","相同IP","登录日志","银行卡查询","短信验证码查询","用户USDT钱包","用户电子钱包","用户PIX钱包","实名认证","分组管理","合伙人奖励","代理审核机制","会员VIP升级奖励记录","会员提现限制名单","会员活动黑名单","异常会员处理"]},
+  {name:"会员VIP管理", icon:"fa-desktop", children:["VIP等级","VIP人数","经验值配置","VIP操作日志"]},
+  {name:"会员洗码管理", icon:"fa-desktop"},
+  {name:"XOSO极速", icon:"fa-key"},
+  {name:"新版返佣管理", icon:"fa-desktop"},
+  {name:"越南XOSO", icon:"fa-bullseye"},
+  {name:"BinGo18", icon:"fa-key"},
+  {name:"4D", icon:"fa-bullseye"},
+  {name:"锦标赛", icon:"fa-key"},
+  {name:"活动奖励", icon:"fa-key", children:["每周任务列表","每周任务领取记录","每日任务领取记录","每日任务列表","新手礼包","老会员回归奖励"]},
+  {name:"新会员礼包", icon:"fa-key"},
+  {name:"保险箱管理", icon:"fa-desktop"},
+  {name:"TrxHash", icon:"fa-bullseye"},
+  {name:"WinGo", icon:"fa-bullseye"},
+  {name:"5DNEW", icon:"fa-bullseye"},
+  {name:"K3", icon:"fa-bullseye"},
+  {name:"新彩种", icon:"fa-futbol-o"},
+  {name:"三方游戏管理", icon:"fa-cubes", children:["电子投注订单","视讯投注订单","体育投注订单","棋牌投注订单","游戏厂商","超级奖记录","余额回收"]},
+  {name:"运营管理", icon:"fa-desktop"},
+  {name:"财务管理", icon:"fa-building-o"},
+  {name:"活动管理", icon:"fa-circle-o"},
+  {name:"报表管理", icon:"fa-bar-chart"},
+  {name:"配置管理", icon:"fa-cog"},
+  {name:"积分商城", icon:"fa-desktop"},
+  {name:"支付管理", icon:"fa-cc-visa", children:["充值通道","代付通道","提现银行卡","收款银行卡","UPI账号管理","代付三方银行","充值类型","USDT地址","代收三方银行","本地电子钱包管理","银行卡充值二维码管理"]},
+  {name:"数据分析", icon:"fa-database"},
+  {name:"消息管理", icon:"fa-bell-o"},
+  {name:"客服管理", icon:"fa-bookmark-o"},
+  {name:"协议管理", icon:"fa-code"},
+  {name:"测试管理", icon:"fa-desktop"},
+  {name:"网站管理", icon:"fa-code"},
+  {name:"系统管理", icon:"fa-cogs"},
+  {name:"邀请转盘", icon:"fa-key"},
+  {name:"远程工作", icon:"fa-user-circle-o"},
+];
+
+// 扁平叶子（用于搜索/收藏）：子菜单 或 无子菜单的主菜单
+const LEAVES = [];
+MENUS.forEach(m=>{
+  if(m.children && m.children.length) m.children.forEach(c=> LEAVES.push({parent:m.name, icon:m.icon, name:c}));
+  else LEAVES.push({parent:null, icon:m.icon, name:m.name});
+});
+const keyOf = l => (l.parent||"") + "||" + l.name;
+
+const FAV_KEY = "ar_sidebar_favs_v2";
+let favs = JSON.parse(localStorage.getItem(FAV_KEY) || "[]");  // 存 keyOf
+const saveFavs = () => localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+
+const $ = id => document.getElementById(id);
+const treeZone=$("treeZone"), favZone=$("favZone"), resultZone=$("resultZone");
+const favBlock=$("favBlock"), treeBlock=$("treeBlock"), resultBlock=$("resultBlock");
+const favEmpty=$("favEmpty"), favCount=$("favCount"), treeCount=$("treeCount"), resultCount=$("resultCount");
+const noResult=$("noResult"), searchInput=$("searchInput"), clearBtn=$("clearBtn");
+
+function esc(s){ return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function hl(text,q){ const t=esc(text); if(!q) return t; const i=text.toLowerCase().indexOf(q); if(i<0) return t; return esc(text.slice(0,i))+"<mark>"+esc(text.slice(i,i+q.length))+"</mark>"+esc(text.slice(i+q.length)); }
+
+function toggleFav(leaf){ const k=keyOf(leaf); const i=favs.indexOf(k); if(i>=0) favs.splice(i,1); else favs.push(k); saveFavs(); render(); }
+function isFav(leaf){ return favs.includes(keyOf(leaf)); }
+
+// ===== 渲染树 =====
+function renderTree(){
+  treeZone.innerHTML="";
+  MENUS.forEach((m,mi)=>{
+    const hasChild = m.children && m.children.length;
+    const row=document.createElement("div"); row.className="menu-item"; row.dataset.mi=mi;
+    const selfLeaf = hasChild? null : {parent:null, icon:m.icon, name:m.name};
+    row.innerHTML =
+      `<span class="m-icon"><i class="fa fa-fw ${m.icon}"></i></span>`+
+      `<span class="m-name">${esc(m.name)}</span>`+
+      (hasChild? "" : `<span class="m-star ${selfLeaf&&isFav(selfLeaf)?'on':''}"><i class="fa ${selfLeaf&&isFav(selfLeaf)?'fa-star':'fa-star-o'}"></i></span>`)+
+      `<span class="m-arrow"><i class="fa fa-angle-right"></i></span>`;
+    treeZone.appendChild(row);
+
+    if(hasChild){
+      const wrap=document.createElement("div"); wrap.className="sub-wrap"; wrap.dataset.for=mi;
+      m.children.forEach((c,ci)=>{
+        const leaf={parent:m.name, icon:m.icon, name:c};
+        const s=document.createElement("div"); s.className="sub-item"+(mi===2&&ci===0?" active":"");
+        s.innerHTML=`<span class="s-name">${esc(c)}</span>`+
+          `<span class="m-star ${isFav(leaf)?'on':''}"><i class="fa ${isFav(leaf)?'fa-star':'fa-star-o'}"></i></span>`;
+        s.querySelector(".m-star").addEventListener("click",e=>{e.stopPropagation();toggleFav(leaf);});
+        wrap.appendChild(s);
+      });
+      treeZone.appendChild(wrap);
+      // 默认展开 会员管理(mi=2)
+      if(mi===2){ row.classList.add("open"); row.querySelector(".m-arrow i").className="fa fa-angle-down"; wrap.classList.add("open"); }
+      row.addEventListener("click",()=>{
+        const open=wrap.classList.toggle("open");
+        row.classList.toggle("open",open);
+        row.querySelector(".m-arrow i").className = open? "fa fa-angle-down":"fa fa-angle-right";
+      });
+    } else {
+      row.querySelector(".m-star").addEventListener("click",e=>{e.stopPropagation();toggleFav(selfLeaf);});
+    }
+  });
+  treeCount.textContent = `(${MENUS.length})`;
+}
+
+// ===== 渲染常用 =====
+function renderFav(){
+  favZone.innerHTML="";
+  const items = favs.map(k=> LEAVES.find(l=>keyOf(l)===k)).filter(Boolean);
+  items.forEach(l=>{
+    const el=document.createElement("div"); el.className="fav-item";
+    el.innerHTML=`<span class="f-icon"><i class="fa fa-fw ${l.icon}"></i></span>`+
+      `<span class="f-name">${l.parent?`<span class="bc">${esc(l.parent)} › </span>`:""}${esc(l.name)}</span>`+
+      `<span class="m-star on" title="取消常用"><i class="fa fa-star"></i></span>`;
+    el.querySelector(".m-star").addEventListener("click",e=>{e.stopPropagation();toggleFav(l);});
+    favZone.appendChild(el);
+  });
+  favEmpty.style.display = items.length? "none":"block";
+  favCount.textContent = items.length? `(${items.length})`:"";
+}
+
+// ===== 搜索 =====
+function applySearch(){
+  const q=searchInput.value.trim().toLowerCase();
+  clearBtn.style.display=q?"block":"none";
+  if(!q){ favBlock.style.display="block"; treeBlock.style.display="block"; resultBlock.style.display="none"; noResult.style.display="none"; return; }
+  favBlock.style.display="none"; treeBlock.style.display="none";
+  // 命中：叶子名 或 其父菜单名 含 q
+  const hits = LEAVES.filter(l=> l.name.toLowerCase().includes(q) || (l.parent && l.parent.toLowerCase().includes(q)));
+  resultZone.innerHTML="";
+  hits.forEach(l=>{
+    const el=document.createElement("div"); el.className="result-item";
+    el.innerHTML=`<span class="r-icon"><i class="fa fa-fw ${l.icon}"></i></span>`+
+      `<div class="r-body">`+
+        `<div class="r-name">${hl(l.name,q)}</div>`+
+        (l.parent?`<div class="r-parent">${hl(l.parent,q)} › ${esc(l.name)}</div>`:``)+
+      `</div>`+
+      `<span class="m-star ${isFav(l)?'on':''}"><i class="fa ${isFav(l)?'fa-star':'fa-star-o'}"></i></span>`;
+    el.querySelector(".m-star").addEventListener("click",e=>{e.stopPropagation();toggleFav(l);});
+    resultZone.appendChild(el);
+  });
+  resultBlock.style.display = hits.length? "block":"none";
+  resultCount.textContent = `(${hits.length})`;
+  noResult.style.display = hits.length? "none":"block";
+}
+
+function render(){ renderTree(); renderFav(); applySearch(); }
+
+searchInput.addEventListener("input", applySearch);
+searchInput.addEventListener("keydown",e=>{ if(e.key==="Escape"){searchInput.value="";applySearch();} });
+clearBtn.addEventListener("click",()=>{ searchInput.value="";applySearch();searchInput.focus(); });
+
+render();
+</script>
+</body>
+</html>
