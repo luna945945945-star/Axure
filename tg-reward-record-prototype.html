@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TG频道管理 · 领取记录/绑定失败/会员列表 交互原型</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;font-size:13px;color:#303133;background:linear-gradient(180deg,#f3f1fb,#f4f6fa 260px)}
+button,select,input{font-family:inherit}
+.demo-bar{height:32px;background:#fff;border-bottom:1px solid #eef0f3;display:flex;align-items:center;padding:0 18px;font-size:12px;color:#666}
+.demo-tag{background:linear-gradient(135deg,#8a6bff,#7c5cfa);color:#fff;font-size:10px;padding:2px 7px;border-radius:3px;margin-right:10px;font-weight:700}
+.wrap{padding:14px}
+.head{display:flex;justify-content:space-between;align-items:center;padding:6px 6px 12px}
+.head h1{font-size:19px;font-weight:700;color:#5b2ee0;margin:0}
+.crumb{font-size:13px;color:#909399}.crumb b{color:#5a6071}.crumb .sep{margin:0 6px;color:#c8cdd6}
+.new-mark{display:inline-block;background:#ff5566;color:#fff!important;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700;margin-left:4px;vertical-align:middle}
+.tabs{display:flex;gap:3px;margin:0 6px 14px}
+.tab{padding:9px 18px;font-size:13.5px;color:#606266;cursor:pointer;border:none;background:#fff;border-radius:7px 7px 0 0;box-shadow:0 -1px 3px rgba(0,0,0,.03)}
+.tab.on{color:#7c5cfa;font-weight:700;background:#fff;box-shadow:0 -2px 6px rgba(124,92,250,.12)}
+.tab.on::after{content:'';display:block;height:2px;background:#7c5cfa;margin:6px -18px -9px}
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.05);padding:16px 18px;margin-bottom:14px}
+/* 筛选 */
+.filters{display:flex;flex-wrap:wrap;gap:15px 26px;align-items:center}
+.fld{display:flex;align-items:center;gap:9px}
+.fld>label{font-size:13px;color:#606266;white-space:nowrap}
+.fld input,.fld select{height:34px;padding:0 11px;border:1px solid #dcdfe6;border-radius:5px;font-size:13px;background:#fff;min-width:170px;outline:none}
+.fld input:focus,.fld select:focus{border-color:#7c5cfa;box-shadow:0 0 0 2px rgba(124,92,250,.1)}
+.fld.new input,.fld.new select{border-color:#ffc9cb;background:#fffafb}
+.btns{display:flex;align-items:center;gap:10px;margin-top:15px}
+.btn{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 15px;border:none;border-radius:5px;font-size:13px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#8a6bff,#7c5cfa);color:#fff}
+.sw-lab{font-size:13px;color:#606266;margin-left:12px}
+.switch{position:relative;display:inline-block;width:42px;height:22px;vertical-align:middle;margin-left:4px}
+.switch input{display:none}
+.sl{position:absolute;inset:0;background:#c0c4cc;border-radius:22px;cursor:pointer;transition:.2s}
+.sl::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px;transition:.2s}
+.switch input:checked ~ .sl{background:#12b76a}
+.switch input:checked ~ .sl::before{left:22px}
+/* 表格 */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f5f4fb;color:#5a6071;font-weight:700;padding:13px 10px;text-align:center;white-space:nowrap}
+td{padding:12px 10px;border-bottom:1px solid #f0f2f5;text-align:center;color:#5a6071}
+tbody tr:hover td{background:#faf9ff}
+th.new{background:#ffeef0;color:#cf1322}
+.q{display:inline-flex;width:14px;height:14px;border-radius:50%;background:#e6ebf2;color:#5a6472;font-size:10px;font-weight:700;align-items:center;justify-content:center;cursor:help;margin-left:4px;vertical-align:middle;position:relative}
+.q:hover .tip{display:block}
+.q .tip{display:none;position:absolute;bottom:150%;left:50%;transform:translateX(-50%);background:#2b2440;color:#fff;font-size:11px;font-weight:400;padding:8px 11px;border-radius:6px;white-space:normal;width:250px;line-height:1.65;z-index:50;box-shadow:0 6px 18px rgba(0,0,0,.25);text-align:left}
+.q .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#2b2440}
+.q .tip b{color:#ffd591}
+.mono{font-family:'SF Mono',Menlo,monospace}
+.acc{color:#303133;font-weight:600}
+.tgid{font-family:'SF Mono',Menlo,monospace;color:#0088cc;font-weight:600}
+.amt{color:#12a05f;font-weight:700;font-family:Menlo,monospace}
+.st{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:11px}
+.st.quit{background:#fdecec;color:#e53935}.st.ok{background:#eef7ee;color:#67a866}
+.st.fail{background:#fdecec;color:#e53935}
+.op{color:#7c5cfa;cursor:pointer;margin:0 5px}.op:hover{text-decoration:underline}
+.hot{color:#e53935;font-weight:700}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:14px 4px 2px;font-size:12.5px;color:#909399}
+.pg{border:1px solid #dcdfe6;border-radius:4px;padding:4px 10px;background:#fff;cursor:pointer}.pg.on{background:#7c5cfa;color:#fff;border-color:#7c5cfa}
+.mini{background:#f5f4ff;border:1px solid #e1d3ff;border-radius:7px;padding:10px 13px;font-size:11.5px;color:#5a4a8f;line-height:1.7;margin-top:14px}
+.mini b{color:#4a3d8f}
+.mini.warn{background:#fff7e6;border-color:#ffd591;color:#8a5a00}
+.mini.warn b{color:#a3620a}
+.pane{display:none}.pane.on{display:block}
+.tag-purple{display:inline-block;background:#f0ebff;color:#7c5cfa;font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;margin-left:6px}
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:rgba(30,30,60,.4);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:26px 16px;overflow-y:auto}
+.mask.open{display:flex}
+.modal{background:#fff;border-radius:10px;width:720px;max-width:96vw;box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden}
+.modal-hd{padding:16px 24px;border-bottom:1px solid #eef0f3}
+.modal-hd .t{font-size:17px;font-weight:700;color:#2b6fe0}
+.modal-bd{padding:20px 30px;max-height:74vh;overflow-y:auto}
+.frow{display:flex;align-items:flex-start;margin-bottom:15px}
+.frow>label{width:130px;flex-shrink:0;text-align:right;padding-right:14px;padding-top:8px;font-size:14px;color:#606266}
+.frow .fc{flex:1;min-width:0}
+.fi{width:100%;height:38px;padding:0 12px;border:1px solid #dcdfe6;border-radius:5px;font-size:13.5px;outline:none;background:#fff;color:#606266}
+.fi:focus{border-color:#7c5cfa;box-shadow:0 0 0 2px rgba(124,92,250,.1)}
+textarea.fi{height:60px;padding:9px 12px;resize:vertical}
+.fi.mini{width:150px;display:inline-block}
+.fh{font-size:11.5px;color:#909399;margin-top:5px;line-height:1.6}
+.fixbox{background:#f0f9f0;border:1px solid #b7deb7;border-radius:6px;padding:9px 12px;font-size:12.5px;color:#237804;line-height:1.7}
+.fixbox b{color:#1a5c04}
+.frow.new{background:#fff6f6;border:1px solid #ffd9da;border-radius:8px;padding:11px 12px 11px 0;margin-left:-12px;margin-right:-12px}
+.frow.new>label{color:#cf1322;font-weight:700}
+.sec-line{display:flex;align-items:center;gap:9px;margin:20px 0 14px;color:#909399;font-size:12px}
+.sec-line::before,.sec-line::after{content:'';flex:1;height:1px;background:#eef0f3}
+.two{display:flex;align-items:center;gap:9px}.two span{color:#909399;font-size:13px;white-space:nowrap}
+.checks{display:flex;gap:16px;flex-wrap:wrap;padding-top:8px}
+.checks label{display:flex;align-items:center;gap:6px;font-size:13px;color:#606266;cursor:pointer}
+.checks input{accent-color:#7c5cfa;width:15px;height:15px}
+.mbtns{display:flex;justify-content:center;gap:14px;padding:8px 0 4px}
+.mbtn{height:40px;padding:0 20px;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.mbtn.save{background:linear-gradient(135deg,#8a6bff,#7c5cfa);color:#fff}
+.mbtn.back{background:#2b2f3a;color:#fff}
+.dl{display:flex;margin-bottom:12px}.dl dt{width:120px;text-align:right;padding-right:14px;color:#909399;flex-shrink:0}.dl dd{margin:0;color:#303133;font-weight:600}
+.dl.new dt{color:#cf1322}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(30,20,60,.9);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:2000;opacity:0;transition:.2s}.toast.show{opacity:1}
+/* 需求文档抽屉 */
+.prd-tab{position:fixed;top:50%;right:0;transform:translateY(-50%);writing-mode:vertical-rl;background:linear-gradient(180deg,#8a6bff,#5b2ee0);color:#fff;padding:14px 8px;border-radius:8px 0 0 8px;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;z-index:900}
+.prd-mask{position:fixed;inset:0;background:rgba(30,20,60,.25);z-index:950;opacity:0;visibility:hidden;transition:.25s}.prd-mask.open{opacity:1;visibility:visible}
+.prd{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:96vw;background:#fff;z-index:1000;box-shadow:-10px 0 40px rgba(0,0,0,.2);transform:translateX(100%);transition:transform .28s;display:flex;flex-direction:column}
+.prd.open{transform:translateX(0)}
+.prd-hd{background:linear-gradient(135deg,#7c5cfa,#5b2ee0);color:#fff;padding:15px 22px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.prd-hd .t{font-size:16px;font-weight:700}.prd-hd .t small{display:block;font-size:11px;opacity:.85;font-weight:400;margin-top:2px}
+.prd-hd .x{cursor:pointer;font-size:20px;border:none;background:none;color:#fff}
+.prd-nav{display:flex;gap:6px;padding:9px 22px;background:#fafafd;border-bottom:1px solid #eef0f3;flex-wrap:wrap;flex-shrink:0}
+.pn{border:1px solid #d9caff;background:#fff;color:#7c5cfa;border-radius:12px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer}.pn:hover{background:#7c5cfa;color:#fff}
+.prd-bd{padding:20px 24px;overflow-y:auto;flex:1;font-size:12.5px;line-height:1.8;color:#4a4f57}
+.prd-bd h2{font-size:14.5px;font-weight:800;color:#2b1a5c;margin:24px 0 10px;padding-bottom:7px;border-bottom:2px solid #ede8fb;scroll-margin-top:8px;display:flex;align-items:center;gap:8px}
+.prd-bd h2:first-child{margin-top:0}
+.prd-bd h2 .no{width:22px;height:22px;border-radius:6px;background:#7c5cfa;color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.prd-bd h3{font-size:12.8px;font-weight:700;color:#5b2ee0;margin:15px 0 7px}
+.prd-bd p{margin:6px 0}
+.prd-bd b{color:#2b1a5c}
+.prd-bd code{background:#f0ebff;color:#5b2ee0;padding:0 4px;border-radius:3px;font-size:11.5px;overflow-wrap:anywhere}
+.ptbl{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.ptbl th,.ptbl td{border:1px solid #e8e4f3;padding:7px 10px;text-align:left;vertical-align:top}
+.ptbl th{background:#f6f3fe;font-weight:700;color:#2b1a5c}
+.ptbl .n{color:#cf1322;font-weight:700}
+.ptbl .o{color:#8a929c}
+.tagN{display:inline-block;background:#ff5566;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700}
+.tagO{display:inline-block;background:#eef0f5;color:#8a929c;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700}
+.tagF{display:inline-block;background:#e8f5e9;color:#2e7d32;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700}
+.pflow{background:#faf8ff;border:1px solid #e1d3ff;border-radius:8px;padding:14px 16px;font-size:12px;line-height:2;color:#4a4f57;white-space:pre-wrap;font-family:'SF Mono',Menlo,monospace}
+.pnote{border-left:3px solid #ffb300;background:#fffaf0;padding:9px 13px;border-radius:0 6px 6px 0;margin:10px 0;font-size:12px;color:#8a5a00;line-height:1.75}
+.pnote b{color:#a3620a}
+.pkey{border-left:3px solid #12a05f;background:#f3fbf6;padding:9px 13px;border-radius:0 6px 6px 0;margin:10px 0;font-size:12px;color:#237804;line-height:1.75}
+.pkey b{color:#1a5c04}
+</style>
+</head>
+<body>
+<div class="demo-bar"><span class="demo-tag">交互原型</span><b>TG频道管理 · 完整版</b>　<span style="color:#909399">红标为本次改动 / 新增</span></div>
+
+<div class="wrap">
+  <div class="head">
+    <h1>TG频道管理</h1>
+    <div class="crumb">活动管理 <span class="sep">›</span> <b>TG频道管理</b></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" id="t_rec" onclick="go('rec')">🎁 奖励领取记录</button>
+    <button class="tab" id="t_fail" onclick="go('fail')">🚫 绑定失败记录 <span class="new-mark">NEW</span></button>
+    <button class="tab" id="t_user" onclick="go('user')">👤 会员列表（TG数字ID）<span class="new-mark">NEW</span></button>
+  </div>
+
+  <!-- ============ Tab A：领取记录 ============ -->
+  <div class="pane on" id="p_rec">
+    <div class="card">
+      <div class="filters">
+        <div class="fld"><label>会员ID</label><input placeholder="会员ID"></div>
+        <div class="fld"><label>会员账号</label><input placeholder="会员账号"></div>
+        <div class="fld new"><label>TG数字ID <span class="new-mark">NEW</span></label><input placeholder="Telegram 数字ID"></div>
+        <div class="fld"><label>邀请码</label><input placeholder="邀请码"></div>
+        <div class="fld new"><label>加入频道时间 <span class="new-mark">NEW</span></label><input placeholder="加入频道时间"></div>
+        <div class="fld new"><label>退群检测 <span class="new-mark">NEW</span></label>
+          <select><option>全部</option><option>已退群</option><option>未退群</option></select></div>
+        <div class="fld"><label>领取时间</label><input placeholder="领取时间"></div>
+      </div>
+      <div class="btns">
+        <button class="btn" onclick="toast('已搜索')">🔍 搜 索</button>
+        <button class="btn" onclick="toast('已重置')">↻ 重 置</button>
+        <button class="btn" onclick="openSetting()">＋ 活动设置</button>
+        <span class="sw-lab">活动开关：<label class="switch"><input type="checkbox" checked><span class="sl"></span></label></span>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>会员ID</th>
+          <th class="new">会员账号 <span class="new-mark">改</span></th>
+          <th class="new">TG数字ID <span class="new-mark">改</span></th>
+          <th>邀请码</th>
+          <th class="new">加入频道时间 <span class="new-mark">NEW</span></th>
+          <th>奖励单号</th>
+          <th>奖励金额</th>
+          <th>领取时间</th>
+          <th class="new">退群检测 <span class="new-mark">改</span><span class="q">?<span class="tip"><b>固定逻辑，无需配置</b>：① 领奖时校验用户仍在频道，不在则不发；② 领奖后监听退群，退出即实时标「已退群」并记退群时间。可按此列筛选揪出"领完就退"的用户。</span></span></th>
+        </tr></thead>
+        <tbody id="recBody"></tbody>
+      </table>
+      <div class="pager"><span>共 4 条</span><span class="pg on">1</span><span class="pg">2</span><span>20/页</span></div>
+      <div class="mini">💡 <b>状态判断</b>：有「领取时间」＝已领取，无＝尚未领取（是否可领由发奖解锁条件决定），不再单列状态。<b>退群检测</b>列只记录「已退群 + 退群时间」，正常在群显示「—」。</div>
+    </div>
+  </div>
+
+  <!-- ============ Tab B：绑定失败记录（新增）============ -->
+  <div class="pane" id="p_fail">
+    <div class="card">
+      <div class="filters">
+        <div class="fld"><label>TG数字ID</label><input placeholder="Telegram 数字ID" id="failQ"></div>
+        <div class="fld"><label>平台账号</label><input placeholder="试图绑定的平台账号"></div>
+        <div class="fld"><label>失败原因</label>
+          <select><option>全部</option><option>该TG号已绑定其他账号</option><option>该会员已绑定其他TG号</option><option>未加入频道</option><option>命中去重上限</option><option>活动已停用/过期</option></select></div>
+        <div class="fld"><label>失败时间</label><input placeholder="失败时间"></div>
+      </div>
+      <div class="btns">
+        <button class="btn" onclick="toast('已搜索')">🔍 搜 索</button>
+        <button class="btn" onclick="toast('已重置')">↻ 重 置</button>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>TG数字ID</th><th>试图绑定的平台账号</th><th>会员昵称</th><th>失败原因</th><th>失败时间</th>
+          <th>该TG号累计失败</th><th>操作</th>
+        </tr></thead>
+        <tbody id="failBody"></tbody>
+      </table>
+      <div class="pager"><span>共 5 条</span><span class="pg on">1</span><span>20/页</span></div>
+      <div class="mini warn">🛡️ <b>风控用途</b>：同一 TG数字ID 若<b>反复尝试绑定不同平台账号</b>（如下方 <span class="hot">999888777</span> 撞了 3 个账号），是<b>撞库/多开黑产</b>的典型特征。按 TG数字ID 搜索可拉出「这个数字ID 试图绑过哪几个平台账号、失败几次」。</div>
+    </div>
+  </div>
+
+  <!-- ============ Tab C：会员列表（补 TG数字ID）============ -->
+  <div class="pane" id="p_user">
+    <div class="card">
+      <div class="filters">
+        <div class="fld"><label>会员ID</label><input placeholder="会员ID"></div>
+        <div class="fld"><label>会员账号</label><input placeholder="会员账号"></div>
+        <div class="fld new"><label>是否绑定TG数字ID <span class="new-mark">NEW</span></label>
+          <select><option>全部</option><option>是</option><option>否</option></select></div>
+        <div class="fld"><label>VIP等级</label><select><option>全部</option><option>普通会员</option><option>VIP1+</option></select></div>
+      </div>
+      <div class="btns">
+        <button class="btn" onclick="toast('已搜索')">🔍 搜 索</button>
+        <button class="btn" onclick="toast('已重置')">↻ 重 置</button>
+        <span class="sw-lab">模拟「查看手机号」权限：<label class="switch"><input type="checkbox" id="viewPerm" onchange="renderUsers()"><span class="sl"></span></label> <span id="permTip" style="font-size:12px;color:#909399">未勾选（加密显示）</span></span>
+      </div>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>会员ID</th><th>会员账号</th><th>昵称</th>
+          <th class="new">TG数字ID <span class="new-mark">NEW</span><span class="q">?<span class="tip">展示权限与<b>「查看手机号」</b>一致：有权限看完整数字ID，无权限加密显示（脱敏）。</span></span></th>
+          <th>余额</th><th>VIP等级</th><th>注册时间</th><th>操作</th>
+        </tr></thead>
+        <tbody id="userBody"></tbody>
+      </table>
+      <div class="pager"><span>共 3 条</span><span class="pg on">1</span><span>20/页</span></div>
+      <div class="mini">💡 本 Tab 属<b>会员管理</b>模块改动：筛选区加「TG数字ID」查询项、列表加「TG数字ID」列，点「详情」在会员详情页也多显示 TG数字ID（含绑定时间）。<b>一个平台会员 ↔ 一个 TG数字ID 双向唯一。</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 活动设置弹窗 ===== -->
+<div class="mask" id="setMask"><div class="modal">
+  <div class="modal-hd"><span class="t">TG频道活动设置更新</span></div>
+  <div class="modal-bd">
+    <div class="frow"><label>频道地址：</label><div class="fc"><input class="fi" value="wqewqewq"></div></div>
+    <div class="frow"><label>频道ID：</label><div class="fc"><input class="fi" value="2341234312">
+      <div class="fh">机器人查成员、发消息都靠它；须与机器人所在频道一致。</div></div></div>
+    <div class="frow"><label>机器人Token：</label><div class="fc"><input class="fi" value="1e23e13e"></div></div>
+    <div class="frow"><label>机器人简介：</label><div class="fc"><textarea class="fi">121212qwewqewq111</textarea></div></div>
+
+    <div class="frow"><label style="padding-top:0">绑定规则：</label><div class="fc">
+      <div class="fixbox">✔ <b>固定逻辑（不可配置）</b>：会员<b>必须已加入频道</b>才算绑定成功；绑定关系锁定「会员账号 ↔ TG数字ID」，<b>一个 TG数字ID 只能绑一个平台账号，双向唯一</b>。</div></div></div>
+
+    <div class="frow"><label>奖励项目：</label><div class="fc"><select class="fi"><option>加入频道</option></select></div></div>
+    <div class="frow"><label>奖励金额：</label><div class="fc"><input class="fi" value="20.00"></div></div>
+    <div class="frow"><label>打码倍数：</label><div class="fc"><input class="fi" value="1">
+      <div class="fh">奖金需完成 奖金×倍数 的有效投注后才可提现；0＝免打码。</div></div></div>
+
+    <div class="sec-line">以下为本期新增 · 发奖与风控</div>
+    <div class="frow new"><label>发奖解锁 <span class="new-mark">NEW</span></label><div class="fc">
+      <select class="fi" id="s_lock" onchange="sLock()">
+        <option value="now">绑定即领</option>
+        <option value="pay" selected>绑定充值后可领</option>
+        <option value="bet">绑定投注后可领</option>
+      </select>
+      <div class="two" id="s_lockVal" style="margin-top:9px"><span id="s_lockLab" style="min-width:76px">充值金额 ≥</span><input class="fi mini" placeholder="金额"><span>才解锁</span></div>
+      <div class="fh">绑定零成本，「绑定即领」易被批量小号薅空，建议押后到充值/投注后发。</div></div></div>
+
+    <div class="frow new"><label>领取时限 <span class="new-mark">NEW</span></label><div class="fc">
+      <div class="two"><span>解锁后</span><input class="fi mini" value="72" style="width:90px"><span>小时内未领取则作废（0＝不限）</span></div></div></div>
+
+    <div class="frow new"><label>同设备可领取上限 <span class="new-mark">NEW</span></label><div class="fc">
+      <input class="fi" value="1000000"><div class="fh">同一设备指纹累计可领取的次数上限，防一人多账号批量薅。</div></div></div>
+    <div class="frow new"><label>同IP可领取上限 <span class="new-mark">NEW</span></label><div class="fc">
+      <input class="fi" type="number" value="1000000"></div></div>
+
+    <div class="frow"><label>状态：</label><div class="fc"><select class="fi"><option>启用</option><option>停用</option></select></div></div>
+
+    <div class="mbtns">
+      <button class="mbtn save" onclick="saveSetting()">✎ 修 改</button>
+      <button class="mbtn back" onclick="closeSetting()">↩ 返 回</button>
+    </div>
+  </div>
+</div></div>
+
+<!-- ===== 会员详情弹窗 ===== -->
+<div class="mask" id="userMask"><div class="modal" style="width:560px">
+  <div class="modal-hd"><span class="t">会员详情</span></div>
+  <div class="modal-bd">
+    <div class="dl"><dt>会员ID</dt><dd id="u_id">—</dd></div>
+    <div class="dl"><dt>会员账号</dt><dd id="u_acc">—</dd></div>
+    <div class="dl"><dt>昵称</dt><dd id="u_nick">—</dd></div>
+    <div class="dl new"><dt>TG数字ID <span class="new-mark">NEW</span></dt><dd id="u_tg" class="tgid">—</dd></div>
+    <div class="dl new"><dt>TG绑定时间 <span class="new-mark">NEW</span></dt><dd id="u_tgt">—</dd></div>
+    <div class="dl"><dt>余额</dt><dd id="u_bal">—</dd></div>
+    <div class="dl"><dt>VIP等级</dt><dd id="u_vip">—</dd></div>
+    <div class="dl"><dt>注册时间</dt><dd id="u_reg">—</dd></div>
+    <div class="mbtns"><button class="mbtn back" onclick="closeUser()">↩ 关 闭</button></div>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== 需求文档抽屉（PRD）===== -->
+<div class="prd-tab" onclick="togglePrd()">📋 需求文档</div>
+<div class="prd-mask" id="prdMask" onclick="togglePrd()"></div>
+<aside class="prd" id="prd">
+  <div class="prd-hd">
+    <span class="t">TG频道管理 · 需求文档（PRD）<small>活动管理 › TG频道管理　｜　最终确认版</small></span>
+    <button class="x" onclick="togglePrd()">✕</button>
+  </div>
+  <div class="prd-nav">
+    <button class="pn" onclick="pjump('h1')">1 改造页面与字段</button>
+    <button class="pn" onclick="pjump('h2')">2 业务流程</button>
+    <button class="pn" onclick="pjump('h3')">3 配置项</button>
+    <button class="pn" onclick="pjump('h4')">4 业务规则</button>
+    <button class="pn" onclick="pjump('h5')">5 数据结构</button>
+    <button class="pn" onclick="pjump('h6')">6 开发要点</button>
+  </div>
+  <div class="prd-bd">
+    <p style="margin-top:0"><span class="tagO">现有</span> 已有字段/功能　<span class="tagN">NEW</span> 本期新增　<span class="tagF">固定</span> 固定逻辑、不可配置</p>
+
+    <h2 id="h1"><span class="no">1</span>改造页面与字段</h2>
+    <table class="ptbl">
+      <tr><th style="width:170px">页面</th><th>现有字段</th><th>本期新增</th></tr>
+      <tr><td><b>TG频道活动设置</b>（弹窗）</td><td class="o">频道地址、频道ID、机器人Token、机器人简介、奖励项目、奖励金额、打码倍数、状态</td><td class="n">发奖解锁（下拉+阈值）、领取时限、同设备可领取上限、同IP可领取上限</td></tr>
+      <tr><td><b>奖励领取记录</b>（列表）</td><td class="o">会员ID、邀请码、奖励单号、奖励金额、领取时间</td><td class="n">筛选加：TG数字ID / 加入频道时间 / 退群检测；列改：会员昵称→会员账号、TG昵称→TG数字ID；列加：加入频道时间、退群检测（已退群+退群时间）</td></tr>
+      <tr><td class="n"><b>绑定失败记录</b>（新页面）</td><td class="o">—</td><td class="n">整页新增：TG数字ID、试图绑定的平台账号、会员昵称、失败原因、失败时间、该TG号累计失败数</td></tr>
+      <tr><td><b>会员列表 / 会员详情</b><br><span style="font-size:10.5px;color:#909399">（会员管理模块）</span></td><td class="o">会员管理现有字段</td><td class="n">列表加：TG数字ID 查询项 + TG数字ID 列；详情加：TG数字ID + TG绑定时间</td></tr>
+    </table>
+
+    <h2 id="h2"><span class="no">2</span>业务流程</h2>
+    <div class="pflow">① 会员在 App 点专属链接 → 跳转 TG 加入频道
+     （只跳转、没真加入 = 不生效）
+② 机器人拿 TG数字ID 校验"是否已加入频道"  <固定逻辑>
+     ├ 未加入 → 判失败，写入「绑定失败记录」
+     └ 已加入 → 绑定成功，记录 会员账号 ↔ TG数字ID + 绑定成功时间
+        ⚠ TG号一经绑定不可更换
+③ 会员回平台，产生【绑定成功时间之后】的新充值/投注
+     → 达到配置金额才「解锁」（非历史累计）
+④ 解锁后 N 小时内领取 → 奖金进平台余额，带打码倍数
+⑤ 领奖时校验仍在群（不在不发）；领后监听退群标「已退群」
+     ⚠ 机器人权限：启用前自检 + 运行中失败挂起告警</div>
+
+    <h2 id="h3"><span class="no">3</span>配置项说明（活动设置）</h2>
+    <table class="ptbl">
+      <tr><th style="width:130px">配置项</th><th style="width:52px">类型</th><th>说明</th></tr>
+      <tr><td>频道地址 / ID / 机器人Token / 简介</td><td><span class="tagO">现有</span></td><td>频道与机器人基础信息，机器人须为该频道管理员</td></tr>
+      <tr><td>奖励项目 / 金额</td><td><span class="tagO">现有</span></td><td>加入频道奖励，奖金进平台余额（账变类型 <code>124 加入频道奖励</code>）</td></tr>
+      <tr><td>打码倍数</td><td><span class="tagO">现有</span></td><td>奖金需完成 奖金×倍数 有效投注后可提现。<span class="n">后台校验：正整数 ≥1，禁 0、禁小数</span></td></tr>
+      <tr><td>发奖解锁</td><td><span class="tagN">NEW</span></td><td>下拉三选一：绑定即领 / <b>绑定充值后可领</b> / 绑定投注后可领。后两者填阈值金额。<b>看的是绑定后新增，不读历史累计</b></td></tr>
+      <tr><td>领取时限</td><td><span class="tagN">NEW</span></td><td>解锁后 N 小时内未领取则作废（0＝不限）</td></tr>
+      <tr><td>同设备可领取上限</td><td><span class="tagN">NEW</span></td><td>同一设备指纹累计可领次数上限，防一人多账号薅</td></tr>
+      <tr><td>同IP可领取上限</td><td><span class="tagN">NEW</span></td><td>同一 IP 累计可领次数上限</td></tr>
+      <tr><td>状态</td><td><span class="tagO">现有</span></td><td>启用 / 停用</td></tr>
+    </table>
+
+    <h2 id="h4"><span class="no">4</span>业务规则</h2>
+    <table class="ptbl">
+      <tr><th style="width:150px">规则</th><th>内容</th></tr>
+      <tr><td>身份唯一凭据</td><td>用 <b>TG 数字ID</b>（终身不变、无法伪造），不用 @用户名 <span class="tagF">固定</span></td></tr>
+      <tr><td>绑定唯一性</td><td>一个会员 ↔ 一个 TG数字ID，<b>双向唯一</b>；<b>不做解绑/换绑</b>（本活动仅用于发奖）<span class="tagF">固定</span></td></tr>
+      <tr><td>加入频道判定</td><td>必须<b>真加入频道</b>才算绑定成功；只跳转未加入 = 不生效 <span class="tagF">固定</span></td></tr>
+      <tr><td>解锁口径</td><td>充值/投注均看<b>绑定成功时间之后的新增</b>，非历史累计</td></tr>
+      <tr><td>退群检测</td><td>① 领奖时校验仍在群，不在不发；② 领后监听退群，退出即标「已退群」+记退群时间 <span class="tagF">固定</span></td></tr>
+      <tr><td>领取次数</td><td>每会员每活动<b>仅一次</b>；再叠加同设备/同IP 上限风控</td></tr>
+      <tr><td>逾期</td><td>解锁后超领取时限，奖金作废、不可补领</td></tr>
+      <tr><td>TG数字ID 展示权限</td><td>展示权限与<b>「查看手机号」权限一致</b>：有权限看完整，无权限<b>加密显示（脱敏）</b>。适用于会员列表、会员详情等展示 TG数字ID 的位置</td></tr>
+      <tr><td>枚举复用</td><td><b>不新建枚举</b>：客户端交易记录、后台资金账变类型均<b>引用现有枚举</b>——发奖沿用现有账变类型 <code>124 加入频道奖励</code></td></tr>
+    </table>
+    <div class="pnote">⚠️ <b>不解绑的配套提示</b>：绑定前 UI 需提示"<b>TG号一经绑定不可更换，请用常用账号</b>"，避免用户用小号绑了想换换不了。</div>
+
+    <h2 id="h5"><span class="no">5</span>数据结构改动</h2>
+    <table class="ptbl">
+      <tr><th style="width:200px">表</th><th>改动</th></tr>
+      <tr><td><code>tab_TGActivitySetting</code>（配置）</td><td class="n">加：发奖解锁类型 + 解锁阈值、领取时限、同设备上限、同IP上限、打码倍数</td></tr>
+      <tr><td><code>tab_TGActivityRecord</code>（记录）</td><td class="n">加：TG数字ID、加入频道时间、<b>绑定成功时间</b>、解锁状态、退群状态 + 退群时间、设备指纹、IP</td></tr>
+      <tr><td class="n"><b>新增</b> 绑定失败记录表</td><td class="n">TG数字ID、试图绑定的会员ID/账号、会员昵称、失败原因、失败时间</td></tr>
+      <tr><td>会员表 / 视图</td><td class="n">对外暴露 TG数字ID + TG绑定时间（供会员列表/详情用）</td></tr>
+    </table>
+    <p><b>失败原因枚举</b>：该TG号已绑定其他账号 / 该会员已绑定其他TG号 / 未加入频道 / 命中去重上限 / 活动已停用·过期。</p>
+
+    <h2 id="h6"><span class="no">6</span>开发落地要点</h2>
+    <table class="ptbl">
+      <tr><th style="width:150px">项</th><th>要求</th></tr>
+      <tr><td>绑定成功时间</td><td>必须存字段，作为充值/投注解锁的<b>起算锚点</b>——只统计此时间之后的数据</td></tr>
+      <tr><td>解锁不读历史</td><td>严禁图省事读历史累计充值/投注字段，否则老用户一绑即达标、白送</td></tr>
+      <tr><td>打码倍数</td><td>后端校验正整数 ≥1，前端同步限制</td></tr>
+      <tr><td class="n">机器人权限容错</td><td><b>启用前自检</b>：机器人非频道管理员则拦住、提示；<b>运行中 <code>getChatMember</code> 失败</b> → 挂起该笔 + 告警，<b>绝不默认放行（会被薅）也不默认拒绝（误伤真实用户）</b></td></tr>
+      <tr><td>退群检测实现</td><td>领奖时 <code>getChatMember</code> 实时查；领后监听 <code>chat_member</code> 事件（机器人需开启该更新类型）</td></tr>
+      <tr><td>核心逻辑位置</td><td>TG 活动绑定/发奖逻辑在 <b>V1 老站点</b>，需先定位改造入口</td></tr>
+    </table>
+    <div class="pnote">⚠️ <b>退群检测的边界</b>：Telegram 对大频道/私有频道的成员事件推送<b>不保证 100% 覆盖</b>，"已退群"能抓大部分但非绝对。真防薅靠「领奖时校验」这道硬闸，"已退群"标记做拉黑处置时留人工复核余地。</div>
+
+  </div>
+</aside>
+
+<script>
+function togglePrd(){document.getElementById('prd').classList.toggle('open');document.getElementById('prdMask').classList.toggle('open');}
+function pjump(id){document.getElementById('prd').classList.add('open');document.getElementById('prdMask').classList.add('open');setTimeout(()=>document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'}),120);}
+/* ===== 数据 ===== */
+const REC=[
+ {id:2251044,acc:'6695270509',tg:'781245993',code:'na3Od2251044',join:'2026-07-24 20:11:32',no:'TG2026072411023301',amt:'50.00',got:'2026-07-25 10:36:20',quit:''},
+ {id:2251043,acc:'fesada@gicont.com',tg:'602118874',code:'uu9oK2251043',join:'2026-07-25 09:02:10',no:'—',amt:'50.00',got:'—',quit:''},
+ {id:2251040,acc:'6688888810',tg:'915663201',code:'CNnCl2251040',join:'2026-07-24 14:20:55',no:'—',amt:'50.00',got:'—',quit:''},
+ {id:2251037,acc:'911345566779',tg:'488290117',code:'T9mdf2251037',join:'2026-07-23 18:40:07',no:'TG2026072309887put',amt:'50.00',got:'2026-07-23 19:05:41',quit:'2026-07-23 19:20:03'}
+];
+document.getElementById('recBody').innerHTML=REC.map(r=>`<tr>
+  <td class="mono">${r.id}</td><td class="acc">${r.acc}</td><td class="tgid">${r.tg}</td>
+  <td class="mono">${r.code}</td><td class="mono" style="background:#fffafb">${r.join}</td>
+  <td class="mono">${r.no}</td><td class="amt">${r.amt}</td><td class="mono">${r.got}</td>
+  <td>${r.quit?'<span class="st quit">已退群</span><div style="font-size:10.5px;color:#c0637a;margin-top:2px">'+r.quit+'</div>':'<span style="color:#c0c4cc">—</span>'}</td>
+</tr>`).join('');
+
+const FAIL=[
+ {tg:'999888777',acc:'6612334455',nick:'MemberAAA',reason:'该TG号已绑定其他账号',time:'2026-07-25 11:02:31',cnt:3,hot:1},
+ {tg:'999888777',acc:'6633445566',nick:'MemberBBB',reason:'该TG号已绑定其他账号',time:'2026-07-25 11:05:18',cnt:3,hot:1},
+ {tg:'999888777',acc:'6644556677',nick:'MemberCCC',reason:'该TG号已绑定其他账号',time:'2026-07-25 11:09:44',cnt:3,hot:1},
+ {tg:'602118874',acc:'6688990011',nick:'MemberDDD',reason:'该会员已绑定其他TG号',time:'2026-07-24 22:10:05',cnt:1,hot:0},
+ {tg:'350012288',acc:'6600112233',nick:'MemberEEE',reason:'未加入频道',time:'2026-07-24 15:33:20',cnt:1,hot:0}
+];
+document.getElementById('failBody').innerHTML=FAIL.map(f=>`<tr>
+  <td class="tgid ${f.hot?'hot':''}">${f.tg}</td><td class="mono">${f.acc}</td><td>${f.nick}</td>
+  <td><span class="st fail">${f.reason}</span></td><td class="mono">${f.time}</td>
+  <td>${f.cnt>1?'<span class="hot">'+f.cnt+' 个账号</span>':f.cnt+' 个'}</td>
+  <td><span class="op" onclick="failByTg('${f.tg}')">查该TG号</span></td>
+</tr>`).join('');
+function failByTg(tg){ document.getElementById('failQ').value=tg; toast('已按 TG数字ID '+tg+' 筛选（演示）'); }
+
+const USERS=[
+ {id:2251044,acc:'6695270509',nick:'MemberNNGSPSWC',tg:'781245993',tgt:'2026-07-24 20:11:40',bal:'666.00',vip:'普通会员',reg:'2026-07-17'},
+ {id:2251043,acc:'fesada@gicont.com',nick:'MemberNNGVC4IU',tg:'602118874',tgt:'2026-07-25 09:02:20',bal:'22167.22',vip:'VIP2',reg:'2026-07-17'},
+ {id:2251042,acc:'6677777767',nick:'MemberNNGG3CCZ',tg:'',tgt:'',bal:'866.00',vip:'普通会员',reg:'2026-07-16'}
+];
+function maskTg(id){ return id.length<=5 ? id.slice(0,1)+'****' : id.slice(0,3)+'****'+id.slice(-2); }
+function renderUsers(){
+  const perm=document.getElementById('viewPerm').checked;
+  const tip=document.getElementById('permTip');
+  if(tip) tip.textContent = perm?'已勾选（完整显示）':'未勾选（加密显示）';
+  document.getElementById('userBody').innerHTML=USERS.map(u=>`<tr>
+    <td class="mono">${u.id}</td><td class="acc">${u.acc}</td><td>${u.nick}</td>
+    <td>${u.tg?'<span class="tgid">'+(perm?u.tg:maskTg(u.tg))+'</span>':'<span style="color:#c0c4cc">未绑定</span>'}</td>
+    <td class="mono">${u.bal}</td><td>${u.vip}</td><td class="mono">${u.reg}</td>
+    <td><span class="op" onclick="openUser(${u.id})">详情</span></td>
+  </tr>`).join('');
+}
+renderUsers();
+
+/* ===== Tab ===== */
+function go(k){
+  ['rec','fail','user'].forEach(x=>{document.getElementById('t_'+x).classList.toggle('on',x===k);document.getElementById('p_'+x).classList.toggle('on',x===k);});
+}
+
+/* ===== 活动设置弹窗 ===== */
+function openSetting(){ document.getElementById('setMask').classList.add('open'); sLock(); }
+function closeSetting(){ document.getElementById('setMask').classList.remove('open'); }
+function sLock(){
+  const v=document.getElementById('s_lock').value;
+  document.getElementById('s_lockVal').style.display = v==='now'?'none':'';
+  document.getElementById('s_lockLab').textContent = v==='bet'?'有效投注 ≥':'充值金额 ≥';
+}
+function saveSetting(){ closeSetting(); toast('✅ 已保存 · 保存时已自检机器人管理员权限'); }
+document.getElementById('setMask').addEventListener('click',e=>{if(e.target.id==='setMask')closeSetting()});
+
+/* ===== 会员详情弹窗 ===== */
+function openUser(id){
+  const u=USERS.find(x=>x.id===id);
+  u_id.textContent=u.id;u_acc.textContent=u.acc;u_nick.textContent=u.nick;
+  const perm=(document.getElementById('viewPerm')||{}).checked;
+  u_tg.innerHTML=u.tg?(perm?u.tg:maskTg(u.tg)):'<span style="color:#c0c4cc">未绑定</span>';
+  u_tgt.textContent=u.tgt||'—';u_bal.textContent=u.bal;u_vip.textContent=u.vip;u_reg.textContent=u.reg;
+  document.getElementById('userMask').classList.add('open');
+}
+function closeUser(){ document.getElementById('userMask').classList.remove('open'); }
+document.getElementById('userMask').addEventListener('click',e=>{if(e.target.id==='userMask')closeUser()});
+
+let tmr;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tmr);tmr=setTimeout(()=>t.classList.remove('show'),2200);}
+</script>
+</body>
+</html>
