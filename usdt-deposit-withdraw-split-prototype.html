@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>存款/取款未到账 · 按货币分流(USDT 独立工单)</title>
+<style>
+:root{
+  --primary:#1677ff;--primary-dark:#0958d9;--primary-light:#e6f4ff;
+  --success:#52c41a;--warning:#fa8c16;--danger:#cf1322;
+  --usdt:#26a17b;--usdt-bg:#e7f7f1;
+  --text:#1f2329;--text-2:#555;--text-3:#888;--border:#e8e8e8;--border-strong:#dcdfe6;
+  --bg:#f4f6fa;--radius:10px;--radius-sm:6px;--shadow:0 1px 3px rgba(0,0,0,.05);
+  --el-blue:#409eff;--el-green:#67c23a;--el-red:#f56c6c;--el-gray:#909399;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;background:var(--bg);color:var(--text);line-height:1.55}
+.wrap{max-width:1240px;margin:0 auto;padding:20px}
+a{color:var(--primary);text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+/* 页头 */
+.page-head{background:#fff;border-radius:var(--radius);padding:22px 28px;margin-bottom:14px;box-shadow:var(--shadow)}
+.page-head h1{font-size:20px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+.page-head .sub{font-size:13px;color:var(--text-3)}
+.page-head .tags{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.tag{padding:3px 11px;border-radius:11px;font-size:11.5px;font-weight:500;background:var(--primary-light);color:var(--primary)}
+.tag.new{background:#fff1f0;color:var(--danger)}
+.tag.usdt{background:var(--usdt-bg);color:var(--usdt)}
+.tag.gray{background:#f0f1f4;color:#666}
+
+/* 主 Tab */
+.main-tabs{background:#fff;border-radius:var(--radius);padding:6px;margin-bottom:16px;display:flex;gap:4px;box-shadow:var(--shadow)}
+.mt-btn{flex:1;padding:11px 14px;background:transparent;font-size:13.5px;color:#666;border-radius:7px;font-weight:500;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.mt-btn:hover{background:#f5f7fa;color:var(--primary)}
+.mt-btn.active{background:linear-gradient(135deg,#2470ff,#5a3ff8);color:#fff;font-weight:600;box-shadow:0 2px 8px rgba(36,112,255,.25)}
+.mt-btn .n{background:#ff4d4f;color:#fff;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:700;margin-left:2px}
+.mt-btn.active .n{background:#fff;color:#cf1322}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* 卡片 */
+.card{background:#fff;border-radius:var(--radius);padding:22px 26px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-h{font-size:16px;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f0f1f4;display:flex;align-items:center;gap:8px}
+.card-h .num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#2470ff,#5a3ff8);color:#fff;font-size:12px;font-weight:700}
+.card-h .r{margin-left:auto;font-size:12px;font-weight:400;color:var(--text-3)}
+
+/* ============ 真实后台 UI（对照截图） ============ */
+.adminui{border:1px solid #ebeef2;border-radius:8px;overflow:hidden;background:#fff}
+.au-filter{display:flex;gap:12px;padding:16px;flex-wrap:wrap;align-items:center;border-bottom:1px solid #f0f1f4}
+.au-sel{height:34px;min-width:180px;border:1px solid var(--border-strong);border-radius:6px;padding:0 12px;font-size:13px;color:#a8abb2;background:#fff;display:inline-flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer}
+.au-sel .ar{color:#c0c4cc;font-size:11px}
+.au-sel.filled{color:var(--text)}
+.au-btn{height:34px;padding:0 18px;border-radius:6px;font-size:13px;border:1px solid var(--border-strong);background:#fff;color:#606266;transition:all .12s}
+.au-btn:hover{color:var(--primary);border-color:var(--primary)}
+.au-btn.pri{background:var(--primary);color:#fff;border-color:var(--primary)}
+.au-btn.pri:hover{background:var(--primary-dark);color:#fff}
+.au-toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 8px}
+.au-tools{display:flex;align-items:center;gap:14px;color:#909399;font-size:15px}
+.au-tools .sw{width:34px;height:18px;background:#dcdfe6;border-radius:10px;position:relative}
+.au-tools .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%}
+.au-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.au-tbl th{background:#fafafa;padding:12px 10px;text-align:center;color:#606266;font-weight:600;border-top:1px solid #ebeef2;border-bottom:1px solid #ebeef2;white-space:nowrap}
+.au-tbl td{padding:13px 10px;text-align:center;border-bottom:1px solid #f2f3f5;color:#5a5e66;white-space:nowrap}
+.au-tbl tr:hover td{background:#f5f9ff}
+.au-tbl tr.new-row td{background:#f3fbf8}
+.au-tbl tr.new-row:hover td{background:#eaf7f1}
+.au-tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;line-height:1.6}
+.au-tag.login{background:#ecf5ff;color:var(--el-blue);border:1px solid #d9ecff}
+.au-tag.logout{background:#f4f4f5;color:var(--el-gray);border:1px solid #e9e9eb}
+.au-tag.on{background:#f0f9eb;color:var(--el-green);border:1px solid #e1f3d8}
+.au-tag.off{background:#fef0f0;color:var(--el-red);border:1px solid #fde2e2}
+.au-tag.new{background:var(--usdt);color:#fff;margin-left:5px;font-size:10px;padding:1px 6px}
+.au-act{color:var(--el-blue);cursor:pointer;margin:0 4px;font-size:13px}
+.au-act:hover{opacity:.75}
+.au-act.warn{color:var(--warning)}
+.au-act.suc{color:var(--el-green)}
+.au-page{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:14px 16px;font-size:13px;color:#606266}
+.au-page .pg{min-width:28px;height:28px;padding:0 6px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:#606266;background:#f4f4f5}
+.au-page .pg.on{background:var(--primary);color:#fff}
+
+/* 弹窗（对照截图2） */
+.dlg-mask{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:flex-start;justify-content:center;z-index:1000;padding:52px 20px;overflow:auto}
+.dlg-mask.show{display:flex}
+.dlg{background:#fff;border-radius:8px;width:660px;max-width:94vw;box-shadow:0 14px 50px rgba(0,0,0,.22)}
+.dlg-h{padding:18px 24px;font-size:17px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.dlg-h .x{color:#909399;cursor:pointer;font-size:18px;width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;background:#f5f5f5}
+.dlg-b{padding:6px 26px 18px}
+.dlg-f{padding:14px 24px;display:flex;justify-content:flex-end;gap:10px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:18px 26px}
+.frow{display:flex;align-items:flex-start;gap:12px}
+.frow.full{grid-column:1/-1}
+.frow .fl{width:82px;text-align:right;font-size:13px;color:#606266;padding-top:9px;flex-shrink:0}
+.frow .fl .req{color:var(--el-red);margin-left:2px}
+.frow .fc{flex:1;min-width:0}
+.finput{width:100%;height:36px;border:1px solid var(--border-strong);border-radius:6px;padding:0 12px;font-size:13px;color:var(--text);background:#fff}
+.finput::placeholder{color:#c0c4cc}
+.stepper{display:flex;align-items:center;border:1px solid var(--border-strong);border-radius:6px;overflow:hidden;height:36px}
+.stepper input{flex:1;border:none;text-align:center;font-size:13px;height:100%;min-width:0}
+.stepper b{width:34px;text-align:center;color:#909399;cursor:pointer;background:#f5f7fa;height:100%;line-height:36px;font-weight:400}
+.upl{width:96px;height:96px;border:1px dashed var(--border-strong);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:#a8abb2;font-size:12px;cursor:pointer}
+.upl .p{font-size:22px;color:#c0c4cc}
+.radios{display:flex;align-items:center;gap:22px;padding-top:8px}
+.rad{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:#5a5e66}
+.rad .dot{width:16px;height:16px;border-radius:50%;border:1.5px solid #dcdfe6;position:relative}
+.rad.on .dot{border-color:var(--primary)}
+.rad.on .dot::after{content:"";position:absolute;inset:3px;background:var(--primary);border-radius:50%}
+.rad.on{color:var(--text)}
+.ftext{width:100%;border:1px solid var(--border-strong);border-radius:6px;padding:10px 12px;font-size:13px;min-height:78px;resize:vertical}
+.fhint{font-size:12px;color:#a8abb2;margin-top:6px}
+.fcount{text-align:right;font-size:12px;color:#c0c4cc;margin-top:-24px;margin-right:10px;position:relative;pointer-events:none}
+
+/* 自定义下拉（工单类型） */
+.cdd{position:relative}
+.cdd-val{height:36px;border:1px solid var(--border-strong);border-radius:6px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;color:#c0c4cc;background:#fff}
+.cdd-val.filled{color:var(--text)}
+.cdd-val .ar{color:#c0c4cc;font-size:11px;transition:.15s}
+.cdd.open .cdd-val{border-color:var(--primary)}
+.cdd.open .cdd-val .ar{transform:rotate(180deg)}
+.cdd-list{position:absolute;top:40px;left:0;right:0;background:#fff;border:1px solid #e4e7ed;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.12);z-index:20;max-height:240px;overflow:auto;display:none}
+.cdd.open .cdd-list{display:block}
+.cdd-opt{padding:9px 12px;font-size:13px;cursor:pointer;color:#5a5e66;display:flex;align-items:center;justify-content:space-between}
+.cdd-opt:hover{background:#f5f7fa}
+.cdd-opt.sel{color:var(--primary);font-weight:600;background:#f5f9ff}
+.cdd-opt.new{color:var(--usdt);font-weight:600}
+.cdd-opt .np{font-size:9px;background:var(--usdt);color:#fff;padding:1px 5px;border-radius:5px}
+
+/* 参数配置 */
+.cfg{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 22px;max-width:640px}
+.cfg-item{display:flex;align-items:center;justify-content:space-between;background:#fafbfc;border:1px solid #eef0f3;border-radius:8px;padding:11px 14px}
+.cfg-item .lb{font-size:12.5px;color:var(--text-2)}
+.cfg-item .vl{display:flex;align-items:center;gap:6px}
+.cfg-item .vl input{width:56px;height:28px;border:1px solid var(--border-strong);border-radius:6px;text-align:center;font-size:13px;color:var(--text)}
+.cfg-item .vl .u{font-size:11.5px;color:var(--text-3)}
+.switch{width:38px;height:22px;background:var(--usdt);border-radius:12px;position:relative;flex-shrink:0}
+.switch::after{content:"";position:absolute;top:2px;right:2px;width:18px;height:18px;background:#fff;border-radius:50%}
+
+/* 泳道 */
+.swim{display:grid;grid-template-columns:110px 1fr;border:1px solid #ecedf2;border-radius:8px;overflow:hidden;margin-top:6px}
+.sw-actor{background:#f6f8fb;padding:16px 12px;font-size:12px;font-weight:600;color:#444;border-bottom:1px solid #ecedf2;border-right:1px solid #ecedf2;display:flex;align-items:center;gap:6px}
+.sw-actor.user{background:#e6f4ff;color:#1677ff}
+.sw-actor.sys{background:#fff7e6;color:#d46b08}
+.sw-actor.plat{background:#f9f0ff;color:#722ed1}
+.sw-body{padding:13px 15px;border-bottom:1px solid #ecedf2;display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:70px}
+.swim>div:nth-last-child(-n+2){border-bottom:none}
+.node{padding:7px 12px;border-radius:6px;font-size:12px;background:#fff;border:1px solid #dcdfe4;color:#333;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.node.dec{background:#fafbfc;color:#666}.node.dec::before{content:"?";margin-right:3px;color:#999;font-weight:700}
+.node.hot{border-color:var(--usdt);background:var(--usdt-bg);color:#0f6f52;font-weight:600}
+.node.hot::after{content:"NEW";font-size:8px;font-weight:700;background:var(--usdt);color:#fff;padding:1px 4px;border-radius:5px;margin-left:3px}
+.arrow{color:#c4c9d0;font-size:14px}
+
+/* 对比双列 / 手机 */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:960px){.compare{grid-template-columns:1fr}}
+.col-h{font-size:13.5px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:7px}
+.col-h.old{background:#f0f1f4;color:#666}
+.col-h.new{background:var(--usdt-bg);color:var(--usdt)}
+.phone-stage{display:flex;justify-content:center}
+.phone{width:320px;height:640px;background:#fff;border-radius:34px;box-shadow:0 20px 50px rgba(0,0,0,.16),0 0 0 9px #1e1e1e,0 0 0 10px #333;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.ph-notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:90px;height:20px;background:#1e1e1e;border-radius:11px;z-index:5}
+.ph-status{height:34px;flex-shrink:0;display:flex;align-items:flex-end;justify-content:space-between;padding:0 22px 6px;font-size:11px;font-weight:600}
+.ph-nav{height:42px;background:#fff;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;padding:0 14px;flex-shrink:0;justify-content:space-between}
+.ph-nav .t{font-size:15px;font-weight:600}
+.ph-nav .b{font-size:19px;color:#333;cursor:pointer;width:20px}
+.ph-body{flex:1;overflow-y:auto;background:#f5f7fa}
+.ph-screen{display:none;padding:14px}
+.ph-screen.on{display:block}
+.ot-row{background:#fff;border-radius:9px;padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:11px;box-shadow:0 1px 2px rgba(0,0,0,.04);cursor:pointer;border:1px solid transparent;transition:all .12s}
+.ot-row:hover{border-color:var(--primary)}
+.ot-row .ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:var(--primary-light)}
+.ot-row .ic.u{background:var(--usdt-bg)}
+.ot-row .ic.w{background:#fff7e6}
+.ot-row .tx{flex:1}
+.ot-row .tx b{font-size:13.5px;font-weight:600;display:block}
+.ot-row .tx small{color:var(--text-3);font-size:11px}
+.ot-row .arr{color:#ccc;font-size:16px}
+.ot-row.hl{border-color:var(--danger);background:#fff8f8}
+.pill{display:inline-block;font-size:9px;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--usdt);color:#fff;margin-left:5px;vertical-align:middle}
+.note-bubble{background:#fff8e6;border:1px dashed #ffd591;border-radius:8px;padding:9px 11px;font-size:11.5px;color:#874d00;margin:6px 0 12px;line-height:1.5}
+.note-bubble.bad{background:#fff1f0;border-color:#ffa39e;color:#a8071a}
+.note-bubble.good{background:var(--usdt-bg);border-color:#87d9bf;color:#0f6f52}
+.f-field{margin-bottom:13px}
+.f-field label{font-size:12px;color:var(--text-2);display:block;margin-bottom:5px;font-weight:500}
+.f-field .box{background:#fff;border:1px solid #e3e5ea;border-radius:8px;padding:10px 12px;font-size:12.5px;color:#333}
+.f-upload{background:#fff;border:1px dashed #cfd3da;border-radius:8px;height:80px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:5px;color:#aab;font-size:11px}
+.f-submit{width:100%;height:42px;border-radius:9px;background:var(--usdt);color:#fff;font-size:14px;font-weight:600;margin-top:6px}
+.f-submit.blue{background:var(--primary)}
+
+/* badge / rules / prd / callout */
+.badge{display:inline-flex;align-items:center;padding:1px 8px;border-radius:11px;font-size:11px;font-weight:500;background:#f5f5f5;color:var(--text-2)}
+.badge.usdt{background:var(--usdt-bg);color:var(--usdt);border:1px solid #87d9bf}
+.badge.warn{background:#fff7e6;color:var(--warning);border:1px solid #ffd591}
+.rules{background:#fafbff;border-left:3px solid var(--primary);padding:14px 18px;border-radius:0 8px 8px 0}
+.rules ol,.rules ul{margin-left:2px;padding-left:16px}
+.rules li{padding:3px 0;font-size:12.8px;color:var(--text-2)}
+.rules li b{color:var(--text)}
+.prd h2{font-size:16px;margin:22px 0 10px;padding-left:11px;border-left:4px solid var(--primary);color:#1f2329}
+.prd h2:first-child{margin-top:0}
+.prd p{font-size:13px;color:var(--text-2);margin:6px 0}
+.prd code{background:#f4f5f7;padding:1px 5px;border-radius:4px;font-size:11.5px;font-family:'SF Mono',Monaco,monospace;color:#c7254e}
+.goal{background:linear-gradient(135deg,#eef4ff,#f3efff);border-radius:9px;padding:14px 18px;font-size:13.5px;color:#2a3a5e;margin-bottom:6px}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;font-size:12.5px}
+.tbl thead th{background:#fafbfc;padding:10px 12px;text-align:left;color:var(--text-2);font-weight:600;border-bottom:1px solid var(--border)}
+.tbl tbody td{padding:10px 12px;border-bottom:1px solid #f5f5f5;vertical-align:top}
+.tbl tbody tr:last-child td{border-bottom:none}
+.callout{border-radius:9px;padding:13px 16px;font-size:12.8px;line-height:1.6;margin-top:14px}
+.callout.warn{background:#fff8e6;border:1px solid #ffe0a3;color:#7a5200}
+.callout.info{background:var(--usdt-bg);border:1px solid #a5ddca;color:#0f6f52}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--text-3);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.dotc{width:10px;height:10px;border-radius:3px;display:inline-block}
+.foot{text-align:center;color:#aab;font-size:11.5px;padding:16px 0 4px}
+.kpi{display:flex;gap:12px;flex-wrap:wrap}
+.kpi .k{flex:1;min-width:130px;background:#fafbfc;border:1px solid #eef0f3;border-radius:9px;padding:13px 16px}
+.kpi .k .nm{font-size:15px;font-weight:800;color:var(--primary)}
+.kpi .k .nm.u{color:var(--usdt)}
+.kpi .k .l{font-size:11.5px;color:var(--text-3);margin-top:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="page-head">
+    <h1>💱 存款/取款未到账 · 按货币分流</h1>
+    <div class="sub">新增「USDT存款未到账」「USDT取款未到账」两个工单类型,USDT 与本地货币(如印度站 INR)未到账各自独立处理、配置与统计</div>
+    <div class="tags">
+      <span class="tag gray">工单系统</span>
+      <span class="tag new">新增 2 个工单类型</span>
+      <span class="tag usdt">USDT 独立</span>
+      <span class="tag">含完整 PRD</span>
+    </div>
+  </div>
+
+  <div class="main-tabs">
+    <button class="mt-btn active" onclick="switchMain(this,'t-prd')">📄 PRD 需求说明</button>
+    <button class="mt-btn" onclick="switchMain(this,'t-flow')">🔀 自动流程 & 影响范围</button>
+    <button class="mt-btn" onclick="switchMain(this,'t-admin')">🖥 后台配置<span class="n">交互</span></button>
+    <button class="mt-btn" onclick="switchMain(this,'t-user')">📱 客户端分流</button>
+  </div>
+
+  <!-- ============ TAB 1 · PRD ============ -->
+  <div id="t-prd" class="tab-pane active">
+    <div class="card prd">
+      <div class="goal"><b>需求目标 ·</b> 在存款/取款未到账场景下按币种拆分——USDT 充值/提现未到账进入独立的「USDT存款未到账」「USDT取款未到账」工单,与本地货币(如印度站 INR)未到账完全分开,各自独立处理、配置与统计。</div>
+
+      <h2>一、改造页面与字段</h2>
+      <table class="tbl">
+        <thead><tr><th style="width:80px">端</th><th style="width:190px">页面</th><th>改造内容</th></tr></thead>
+        <tbody>
+          <tr><td>客户端</td><td>存款/取款未到账入口</td><td>各增加一个「USDT未到账」并列入口,会员按币种自选;各自对应独立表单(沿用订单号、凭证图等字段,无新增用户填写项)</td></tr>
+          <tr><td>后台</td><td>工单配置 · 添加类型</td><td>「工单类型」下拉新增:USDT存款未到账、USDT取款未到账</td></tr>
+          <tr><td>后台</td><td>表单配置</td><td>可为两个新类型配置表单(显示名称、ICON、排序、限制类型、状态、备注)</td></tr>
+          <tr><td>后台</td><td>参数配置</td><td>两个新类型各自<b>独立</b>配置:自动查询总次数、频率、订单下限/上限时间、多媒体附件转待处理</td></tr>
+          <tr><td>后台</td><td>自动转发配置</td><td>支持为两个新类型配置自动转发(现仅存款未到账支持)</td></tr>
+          <tr><td>后台</td><td>工单列表 / 详情</td><td>类型下拉、筛选、列表显示 增加两个新类型</td></tr>
+          <tr><td>后台</td><td>报表统计(3 张)</td><td>工单类型报表、员工工单报表(工单员工日报)、补单统计报表 均需加入 USDT 口径(明细见「后台配置」页 · 报表清单)</td></tr>
+          <tr><td>全端</td><td>多语言</td><td>两个新类型显示名的各语言翻译</td></tr>
+        </tbody>
+      </table>
+
+      <h2>二、功能说明与业务规则</h2>
+      <div class="rules"><ol>
+        <li>存款/取款未到账各拆为「本地货币」「USDT」两个入口,会员按币种自选。</li>
+        <li>USDT 未到账提交后,工单类型为对应的 USDT 类型,不再混入本地货币未到账。</li>
+        <li>新旧类型<b>相互独立</b>:表单、参数配置、自动转发、报表统计各自独立、互不影响。</li>
+        <li>USDT 类型自动处理流程与本地货币一致(存款:定时查平台→到账自动完成→超次/超时转人工;取款:转三方群处理),差异仅在于<b>调用 USDT 对应的平台补单接口</b>。</li>
+        <li>平台到账/完成回调沿用现有按订单号匹配机制,不区分币种(前提:平台端 USDT 到账须回调既有接口或新增回调)。</li>
+        <li>存量不迁移:上线前历史工单维持原类型;规则仅对上线后新提交生效。</li>
+      </ol></div>
+
+      <h2>三、平台端依赖</h2>
+      <div class="rules"><ol>
+        <li><b>USDT 充值/提现补单接口</b>:若与本地货币不共用,平台端需新建,并在补单接口映射中配置对应 Method。</li>
+        <li><b>USDT 到账/完成回调</b>:平台端须在 USDT 订单状态变更时回调既有 UpdateRechargeOrderState / UpdateWithdrawOrderState(或新增 USDT 专用回调)。</li>
+      </ol></div>
+
+      <h2>四、验收标准</h2>
+      <div class="rules"><ol>
+        <li>会员提交 USDT 充值/提现未到账 → 分别进入「USDT存款未到账」「USDT取款未到账」工单;本地货币仍进原类型。</li>
+        <li>两个新类型可在后台独立配置表单、参数、自动转发。</li>
+        <li>USDT 存款未到账自动补单调用正确的平台接口;USDT 取款未到账按规则转三方群。</li>
+        <li>到账/完成后工单能按现有机制(轮询/平台回调)自动置为已处理。</li>
+        <li>后台列表/详情/筛选/报表 均正确区分并统计 4 个类型(本地存款、本地取款、USDT存款、USDT取款)。</li>
+        <li>全链路回归通过,存量工单不受影响。</li>
+      </ol></div>
+
+      <div class="callout info">💡 落地方式(供技术评估):若 USDT 与本地货币唯一后端差异只是"平台补单接口",可用"同类型下第二张表单 + 按表单映射接口"实现,成本更低;本方案按已确认的"两个新工单类型"给出。</div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 2 · 自动流程 & 影响范围 ============ -->
+  <div id="t-flow" class="tab-pane">
+    <div class="card">
+      <div class="card-h"><span class="num">1</span>USDT 存款未到账 · 自动补单流程(与本地货币同构,仅接口不同)</div>
+      <div class="swim">
+        <div class="sw-actor user">会员</div>
+        <div class="sw-body"><span class="node">选「USDT存款未到账」</span><span class="arrow">→</span><span class="node">填订单号+凭证</span><span class="arrow">→</span><span class="node">提交</span></div>
+        <div class="sw-actor sys">工单系统</div>
+        <div class="sw-body"><span class="node">进自动化队列</span><span class="arrow">→</span><span class="node dec">按参数定时查</span><span class="arrow">→</span><span class="node hot">调 USDT 补单接口</span><span class="arrow">→</span><span class="node dec">到账?</span></div>
+        <div class="sw-actor plat">平台端</div>
+        <div class="sw-body"><span class="node hot">USDT充值补单/查询</span><span class="arrow">→</span><span class="node">返回 LocalState</span><span class="arrow">→</span><span class="node hot">到账回调 UpdateRechargeOrderState</span></div>
+        <div class="sw-actor sys">结果</div>
+        <div class="sw-body"><span class="node">到账 → 自动完成</span><span class="arrow">/</span><span class="node dec">超次/超时 → 转人工</span><span class="arrow">/</span><span class="node">回调迟到 → 自动补完成</span></div>
+      </div>
+      <div class="legend"><span><i class="dotc" style="background:var(--usdt)"></i>标 NEW = USDT 专属改动(接口/映射)</span><span>其余流程复用本地货币逻辑</span><span>取款类:不查平台,转三方群处理</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><span class="num">2</span>影响范围<span class="r">9 大模块 · 具体改动开发自行评估</span></div>
+      <div class="rules">
+        <ol>
+          <li><b>类型枚举与基础数据</b> — WorkOrderType、自动化类型白名单</li>
+          <li><b>用户端提交</b> — 入口、下限校验、单号提取</li>
+          <li><b>后台工单管理与配置</b> — 类型/表单/参数/自动转发配置</li>
+          <li><b>自动化补单任务</b> — 首查 + 补单任务(接口映射)</li>
+          <li><b>自动转发 / 三方群</b> — 转发任务、转发记录</li>
+          <li><b>报表统计</b> — 服务层 + 报表字段 + 看板</li>
+          <li><b>搜索 / 索引</b> — ElasticSearch 工单索引(新类型 ID 纳入查询)</li>
+          <li><b>多语言</b> — 两个新类型显示名(全语言)</li>
+          <li><b>平台端(外部依赖)</b> — USDT 充值/提现补单接口与到账回调</li>
+        </ol>
+      </div>
+      <div class="callout warn">⚠️ 说明:"存款/取款未到账"在系统内被多处按类型判断,新增类型需在上述模块同步纳入;<b>具体改动点由开发按代码评估</b>。建议实现时把类型判断集中收敛,降低遗漏风险。</div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 3 · 后台配置(对照真实后台) ============ -->
+  <div id="t-admin" class="tab-pane">
+    <div class="card">
+      <div class="card-h"><span class="num">1</span>工单配置列表<span class="r">系统 / 工单配置 — 点「添加类型」新增 USDT 类型</span></div>
+      <div class="adminui">
+        <div class="au-filter">
+          <div class="au-sel">请选择商户 <span class="ar">▾</span></div>
+          <div class="au-sel">工单类型名称 <span class="ar">▾</span></div>
+          <div class="au-sel">工单限制类型 <span class="ar">▾</span></div>
+          <div class="au-sel">请选择状态 <span class="ar">▾</span></div>
+          <button class="au-btn pri">查询</button>
+          <button class="au-btn">重置</button>
+        </div>
+        <div class="au-toolbar">
+          <button class="au-btn pri" onclick="openDlg('dlg-add')">添加类型</button>
+          <div class="au-tools"><span class="sw"></span><span>⟳</span><span>▤</span><span>⚙</span></div>
+        </div>
+        <table class="au-tbl">
+          <thead><tr><th>商户名称</th><th>表单ID</th><th>工单类型名称</th><th>工单限制类型</th><th>开启状态</th><th>备注</th><th>排序</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr class="new-row">
+              <td>AR047-Goa</td><td>685</td>
+              <td><b>USDT存款未到账</b><span class="au-tag new">NEW</span></td>
+              <td><span class="au-tag login">已登录</span></td>
+              <td><span class="au-tag on">启用</span></td><td>-</td><td>2</td>
+              <td><span class="au-act warn">禁用</span><span class="au-act">编辑</span><span class="au-act" onclick="openDlg('dlg-param')">参数配置</span><span class="au-act">vip配置</span><span class="au-act">教程</span><span class="au-act">自动转发</span><span class="au-act">快捷回复</span></td>
+            </tr>
+            <tr class="new-row">
+              <td>AR047-Goa</td><td>686</td>
+              <td><b>USDT取款未到账</b><span class="au-tag new">NEW</span></td>
+              <td><span class="au-tag login">已登录</span></td>
+              <td><span class="au-tag on">启用</span></td><td>-</td><td>3</td>
+              <td><span class="au-act warn">禁用</span><span class="au-act">编辑</span><span class="au-act" onclick="openDlg('dlg-param')">参数配置</span><span class="au-act">vip配置</span><span class="au-act">教程</span><span class="au-act">自动转发</span><span class="au-act">快捷回复</span></td>
+            </tr>
+            <tr>
+              <td>AR047-Goa</td><td>236</td><td>存款未到账</td>
+              <td><span class="au-tag login">已登录</span></td><td><span class="au-tag on">启用</span></td><td>-</td><td>1</td>
+              <td><span class="au-act warn">禁用</span><span class="au-act">编辑</span><span class="au-act">参数配置</span><span class="au-act">vip配置</span><span class="au-act">教程</span><span class="au-act">自动转发</span><span class="au-act">快捷回复</span></td>
+            </tr>
+            <tr>
+              <td>ar008-Raja</td><td>386</td><td>存款未到账</td>
+              <td><span class="au-tag login">已登录</span></td><td><span class="au-tag on">启用</span></td><td>-</td><td>1</td>
+              <td><span class="au-act warn">禁用</span><span class="au-act">编辑</span><span class="au-act">参数配置</span><span class="au-act">vip配置</span><span class="au-act">教程</span><span class="au-act">自动转发</span><span class="au-act">快捷回复</span></td>
+            </tr>
+            <tr>
+              <td>ar014-lottery7</td><td>444</td><td>外部链接</td>
+              <td><span class="au-tag login">已登录</span></td><td><span class="au-tag off">禁用</span></td><td>-</td><td>1</td>
+              <td><span class="au-act suc">启用</span><span class="au-act">编辑</span><span class="au-act">vip配置</span><span class="au-act">教程</span><span class="au-act">快捷回复</span></td>
+            </tr>
+            <tr>
+              <td>AR062-diuwin</td><td>1048</td><td>外部链接</td>
+              <td><span class="au-tag logout">未登录</span></td><td><span class="au-tag on">启用</span></td><td>-</td><td>1</td>
+              <td><span class="au-act warn">禁用</span><span class="au-act">编辑</span><span class="au-act">vip配置</span><span class="au-act">教程</span><span class="au-act">快捷回复</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="au-page">
+          <span style="color:#909399;margin-right:6px">共 684 条</span>
+          <span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">4</span><span class="pg">…</span><span class="pg">35</span><span class="pg">›</span>
+          <span style="margin-left:8px;color:#909399">20/页</span>
+        </div>
+      </div>
+      <div class="callout info">💡 新增 USDT 类型的入口与本地货币完全一致:点「添加类型」→ 在弹窗「工单类型」下拉里选择 <b>USDT存款未到账 / USDT取款未到账</b>(下拉新增项)→ 填显示名称/ICON/排序 → 保存。</div>
+      <div class="callout warn">📌 <b>行内操作说明</b>(新 USDT 类型同样具备):
+        <ul style="margin:8px 0 0;padding-left:18px">
+          <li><b style="color:#26a17b">自动转发</b> — 把该工单(订单号 + 凭证图/视频/PDF)<b>按支付通道自动转发到对应的三方支付/客服 Telegram 群组</b>,供三方核实处理;可选一并转发多媒体附件(视频、PDF、PDF 密码)。<u>USDT 类型需为其配置对应的三方转发群</u>。</li>
+          <li><b>参数配置</b> — 自动查询总次数 / 频率 / 订单下限·上限时间(即补单轮询规则)。</li>
+          <li><b>快捷回复</b> — 预设客服回复语;<b>vip配置</b> — 按会员 VIP 等级控制可见/可用;<b>教程</b> — 用户提交时的引导图文。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><span class="num">2</span>关键交互 · 点击体验</div>
+      <div class="kpi">
+        <div class="k" style="cursor:pointer" onclick="openDlg('dlg-add')"><div class="nm">＋ 添加工单类型</div><div class="l">打开弹窗 → 工单类型下拉含 2 个 USDT 新选项(点击体验)</div></div>
+        <div class="k" style="cursor:pointer" onclick="openDlg('dlg-param')"><div class="nm u">⚙ 参数配置</div><div class="l">USDT 类型独立配置:次数/频率/有效期(点击体验)</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><span class="num">3</span>涉及的报表清单(需同步加入 USDT 口径)<span class="r">系统无独立"看板/工作台",统计即以下报表页</span></div>
+      <table class="tbl">
+        <thead><tr><th style="width:180px">报表菜单名</th><th style="width:88px">所在位置</th><th>现状口径</th><th>改造后</th><th style="width:76px">遗漏风险</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><b>工单类型报表</b></td><td>商户报表</td>
+            <td>按工单类型<b>逐行</b>统计(总数 / 系统处理中 / 待处理 / 处理中 / 已处理)</td>
+            <td>新增 2 个 USDT 类型 → 自动多 2 行(查询需纳入新类型 ID)</td>
+            <td><span class="badge" style="background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8">低</span></td>
+          </tr>
+          <tr class="" style="background:#fff8e6">
+            <td><b>员工工单报表</b><br><span style="color:#888;font-size:11px">(工单员工日报 / 导出)</span></td><td>商户报表</td>
+            <td>按员工逐行,<b>每个工单类型是一组独立列</b>——存款未到账、取款未到账 各有"已处理""已驳回"列</td>
+            <td><b style="color:#cf1322">需为 USDT 新增列</b>:USDT存款/取款未到账 的"已处理""已驳回"</td>
+            <td><span class="badge warn">⚠️ 高</span></td>
+          </tr>
+          <tr>
+            <td><b>补单统计报表</b></td><td>统计报表</td>
+            <td>按<b>支付通道</b>统计补单情况(工单数、补单次数、首次/二次/三次补单成功率)</td>
+            <td>USDT 通道的补单在此统计(查询需纳入 USDT 类型)</td>
+            <td><span class="badge" style="background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1">中</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warn">⚠️ <b>「员工工单报表」遗漏风险最高</b>:它的"存款/取款未到账"是<b>写死的固定列</b>(不是按类型动态生成),USDT 必须<b>新增对应列</b>,否则报表里根本看不到 USDT 数据。<b>请重点截此表</b>给开发/测试核对。另:<b>无独立看板</b>,涉及存/取款未到账的统计就是以上 3 张,不用再找"工作台/dashboard"。</div>
+    </div>
+  </div>
+
+  <!-- ============ TAB 4 · 用户端分流 ============ -->
+  <div id="t-user" class="tab-pane">
+    <div class="card">
+      <div class="card-h"><span class="num">1</span>用户提交入口:现状 vs 改造后<span class="r">右侧手机可点击:存款未到账 → 选 USDT未到账 → 提交</span></div>
+      <div class="compare">
+        <div>
+          <div class="col-h old">🔴 现状 · 不分币种</div>
+          <div class="phone-stage"><div class="phone">
+            <div class="ph-notch"></div><div class="ph-status"><span>9:41</span><span>📶 🔋</span></div>
+            <div class="ph-nav"><span class="b">‹</span><span class="t">选择工单类型</span><span style="width:20px"></span></div>
+            <div class="ph-body"><div class="ph-screen on">
+              <div class="ot-row"><div class="ic">🔓</div><div class="tx"><b>会员账号解冻</b></div><span class="arr">›</span></div>
+              <div class="ot-row hl"><div class="ic">💰</div><div class="tx"><b>存款未到账</b><small>印度货币未到账</small></div><span class="arr">›</span></div>
+              <div class="ot-row"><div class="ic w">💸</div><div class="tx"><b>取款未到账</b><small>印度货币未到账</small></div><span class="arr">›</span></div>
+              <div class="ot-row"><div class="ic">🎧</div><div class="tx"><b>一对一客服</b></div><span class="arr">›</span></div>
+              <div class="note-bubble bad">⚠️ 会员充的是 <b>USDT</b>,也只能进这唯一的「存款未到账(印度货币未到账)」——币种混在一起,无法分开处理/统计。</div>
+            </div></div>
+          </div></div>
+        </div>
+        <div>
+          <div class="col-h new">🟢 改造后 · 按币种分流(可点击)</div>
+          <div class="phone-stage"><div class="phone">
+            <div class="ph-notch"></div><div class="ph-status"><span>9:41</span><span>📶 🔋</span></div>
+            <div class="ph-nav"><span class="b" id="ph-back" style="visibility:hidden" onclick="phGo('s-menu')">‹</span><span class="t" id="ph-title">选择工单类型</span><span style="width:20px"></span></div>
+            <div class="ph-body">
+              <div class="ph-screen on" id="s-menu">
+                <div class="ot-row"><div class="ic">🔓</div><div class="tx"><b>会员账号解冻</b></div><span class="arr">›</span></div>
+                <div class="ot-row" onclick="phGo('s-dep')"><div class="ic">💰</div><div class="tx"><b>存款未到账</b><small>点我 → 选择币种</small></div><span class="arr">›</span></div>
+                <div class="ot-row" onclick="phGo('s-wd')"><div class="ic w">💸</div><div class="tx"><b>取款未到账</b><small>点我 → 选择币种</small></div><span class="arr">›</span></div>
+                <div class="ot-row"><div class="ic">🎧</div><div class="tx"><b>一对一客服</b></div><span class="arr">›</span></div>
+                <div class="note-bubble good">✅ 存款/取款未到账下各拆为「本地货币」「USDT」两个入口,会员按币种自选。</div>
+              </div>
+              <div class="ph-screen" id="s-dep">
+                <div class="note-bubble">您要反馈哪种货币的<b>充值</b>未到账?</div>
+                <div class="ot-row" onclick="phGo('s-form-inr')"><div class="ic">🇮🇳</div><div class="tx"><b>本地货币未到账</b><small>INR 充值</small></div><span class="arr">›</span></div>
+                <div class="ot-row" onclick="phGo('s-form-usdt')"><div class="ic u">₮</div><div class="tx"><b>USDT存款未到账 <span class="pill">NEW</span></b><small>USDT 充值</small></div><span class="arr">›</span></div>
+              </div>
+              <div class="ph-screen" id="s-wd">
+                <div class="note-bubble">您要反馈哪种货币的<b>提现</b>未到账?</div>
+                <div class="ot-row" onclick="phGo('s-form-inr')"><div class="ic w">🇮🇳</div><div class="tx"><b>本地货币未到账</b><small>INR 提现</small></div><span class="arr">›</span></div>
+                <div class="ot-row" onclick="phGo('s-form-usdt')"><div class="ic u">₮</div><div class="tx"><b>USDT取款未到账 <span class="pill">NEW</span></b><small>USDT 提现</small></div><span class="arr">›</span></div>
+              </div>
+              <div class="ph-screen" id="s-form-usdt">
+                <div class="note-bubble good">✅ 已进入 <b>USDT未到账</b> 工单,与本地货币分开处理。</div>
+                <div class="f-field"><label>订单号 / TxHash</label><div class="box">USDT2026072413...284b</div></div>
+                <div class="f-field"><label>凭证截图</label><div class="f-upload"><span style="font-size:20px">🖼</span>上传充值凭证</div></div>
+                <button class="f-submit" onclick="toast('已提交:USDT未到账工单','success')">提交</button>
+              </div>
+              <div class="ph-screen" id="s-form-inr">
+                <div class="note-bubble">进入「本地货币未到账」工单(维持现状流程)。</div>
+                <div class="f-field"><label>订单号</label><div class="box">RC2026072413...284b</div></div>
+                <div class="f-field"><label>凭证截图</label><div class="f-upload"><span style="font-size:20px">🖼</span>上传充值凭证</div></div>
+                <button class="f-submit blue" onclick="toast('已提交:本地货币未到账工单','success')">提交</button>
+              </div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="num">2</span>分流后:一个"未到账"变成四类工单</div>
+      <div class="kpi">
+        <div class="k"><div class="nm">本地存款</div><div class="l">本地货币充值未到账(原 存款未到账)</div></div>
+        <div class="k"><div class="nm">本地取款</div><div class="l">本地货币提现未到账(原 取款未到账)</div></div>
+        <div class="k"><div class="nm u">USDT 存款</div><div class="l">USDT 充值未到账 · 新增</div></div>
+        <div class="k"><div class="nm u">USDT 取款</div><div class="l">USDT 提现未到账 · 新增</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">工单系统 · 存款/取款未到账按货币分流 · 交互原型 + PRD · 仅评审用</div>
+</div>
+
+<!-- ===== 弹窗:添加工单类型(对照截图2) ===== -->
+<div class="dlg-mask" id="dlg-add">
+  <div class="dlg">
+    <div class="dlg-h"><span>添加工单类型</span><span class="x" onclick="closeDlg('dlg-add')">✕</span></div>
+    <div class="dlg-b">
+      <div class="fg">
+        <div class="frow"><div class="fl">请选择商户<span class="req">*</span></div><div class="fc"><input class="finput" placeholder="请选择商户" value="AR047-Goa" readonly></div></div>
+        <div class="frow"><div class="fl">工单类型<span class="req">*</span></div><div class="fc">
+          <div class="cdd" id="cdd-type">
+            <div class="cdd-val" onclick="toggleCdd()"><span id="cdd-text">工单类型名称</span><span class="ar">▾</span></div>
+            <div class="cdd-list">
+              <div class="cdd-opt" onclick="pickType('存款未到账',0)">存款未到账</div>
+              <div class="cdd-opt" onclick="pickType('取款未到账',0)">取款未到账</div>
+              <div class="cdd-opt" onclick="pickType('会员账号解冻',0)">会员账号解冻</div>
+              <div class="cdd-opt" onclick="pickType('一对一客服',0)">一对一客服</div>
+              <div class="cdd-opt" onclick="pickType('外部链接',0)">外部链接</div>
+              <div class="cdd-opt new" onclick="pickType('USDT存款未到账',1)">USDT存款未到账 <span class="np">NEW</span></div>
+              <div class="cdd-opt new" onclick="pickType('USDT取款未到账',1)">USDT取款未到账 <span class="np">NEW</span></div>
+            </div>
+          </div>
+        </div></div>
+        <div class="frow"><div class="fl">显示名称<span class="req">*</span></div><div class="fc"><input class="finput" id="disp-name" placeholder="请输入显示名称"></div></div>
+        <div class="frow"><div class="fl">排序<span class="req">*</span></div><div class="fc"><div class="stepper"><b onclick="step(-1)">−</b><input id="sort-val" value="2"><b onclick="step(1)">＋</b></div></div></div>
+        <div class="frow full"><div class="fl">ICON</div><div class="fc"><div class="upl"><span class="p">＋</span>上传图片</div></div></div>
+        <div class="frow"><div class="fl">限制类型</div><div class="fc"><div class="radios">
+          <div class="rad" onclick="pickRad(this)"><span class="dot"></span>未登录</div>
+          <div class="rad on" onclick="pickRad(this)"><span class="dot"></span>已登录</div>
+        </div></div></div>
+        <div class="frow"><div class="fl">状态</div><div class="fc"><div class="radios">
+          <div class="rad" onclick="pickRad(this)"><span class="dot"></span>禁用</div>
+          <div class="rad on" onclick="pickRad(this)"><span class="dot"></span>启用</div>
+        </div></div></div>
+        <div class="frow full"><div class="fl">备注</div><div class="fc">
+          <textarea class="ftext" maxlength="100" placeholder="请输入备注信息"></textarea>
+          <div class="fcount">0 / 100</div>
+          <div class="fhint">仅后台可见,不展示给用户</div>
+        </div></div>
+      </div>
+      <button class="au-btn pri" style="margin-top:14px">添加项目</button>
+    </div>
+    <div class="dlg-f">
+      <button class="au-btn" onclick="closeDlg('dlg-add')">取消</button>
+      <button class="au-btn pri" onclick="saveType()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 弹窗:参数配置(USDT 独立) ===== -->
+<div class="dlg-mask" id="dlg-param">
+  <div class="dlg" style="width:560px">
+    <div class="dlg-h"><span>参数配置 · <span style="color:var(--usdt)">USDT存款未到账</span></span><span class="x" onclick="closeDlg('dlg-param')">✕</span></div>
+    <div class="dlg-b">
+      <div class="cfg">
+        <div class="cfg-item"><span class="lb">自动查询总次数</span><span class="vl"><input value="10"><span class="u">次</span></span></div>
+        <div class="cfg-item"><span class="lb">自动查询频率</span><span class="vl"><input value="15"><span class="u">分钟</span></span></div>
+        <div class="cfg-item"><span class="lb">订单下限时间</span><span class="vl"><input value="0"><span class="u">分钟</span></span></div>
+        <div class="cfg-item"><span class="lb">订单上限时间</span><span class="vl"><input value="72"><span class="u">小时</span></span></div>
+        <div class="cfg-item"><span class="lb">多媒体附件转待处理</span><span class="vl"><span class="switch"></span></span></div>
+        <div class="cfg-item"><span class="lb">自动转发媒体到三方群</span><span class="vl"><span class="switch"></span></span></div>
+      </div>
+      <div class="callout info" style="margin-top:16px">💡 与本地货币互不影响。覆盖时长 = 次数 × 频率(10×15=150 分钟);若充值常延迟到账,建议次数≥8,避免"轮询窗口刚过就到账"漏抓。</div>
+    </div>
+    <div class="dlg-f">
+      <button class="au-btn" onclick="closeDlg('dlg-param')">取消</button>
+      <button class="au-btn pri" onclick="closeDlg('dlg-param');toast('参数已保存','success')">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack" style="position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:2000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none"></div>
+
+<script>
+function switchMain(btn,id){
+  document.querySelectorAll('.mt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+/* 手机分流 */
+const titles={'s-menu':'选择工单类型','s-dep':'存款未到账 · 选币种','s-wd':'取款未到账 · 选币种','s-form-usdt':'USDT未到账','s-form-inr':'本地货币未到账'};
+function phGo(id){
+  document.querySelectorAll('#s-menu,#s-dep,#s-wd,#s-form-usdt,#s-form-inr').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.getElementById('ph-title').textContent=titles[id]||'';
+  document.getElementById('ph-back').style.visibility = id==='s-menu' ? 'hidden' : 'visible';
+}
+/* 弹窗 */
+function openDlg(id){document.getElementById(id).classList.add('show')}
+function closeDlg(id){document.getElementById(id).classList.remove('show');if(id==='dlg-add')document.getElementById('cdd-type').classList.remove('open')}
+document.querySelectorAll('.dlg-mask').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+/* 自定义下拉 */
+function toggleCdd(){document.getElementById('cdd-type').classList.toggle('open')}
+function pickType(name,isNew){
+  document.getElementById('cdd-text').textContent=name;
+  document.getElementById('cdd-text').style.color='#1f2329';
+  document.getElementById('cdd-type').classList.remove('open');
+  document.querySelectorAll('#cdd-type .cdd-opt').forEach(o=>o.classList.remove('sel'));
+  event.currentTarget.classList.add('sel');
+  const dn=document.getElementById('disp-name'); dn.value=name;
+  if(isNew) toast('已选择新类型:'+name,'success');
+}
+function step(d){const el=document.getElementById('sort-val');el.value=Math.max(0,(parseInt(el.value)||0)+d)}
+function pickRad(el){el.parentElement.querySelectorAll('.rad').forEach(r=>r.classList.remove('on'));el.classList.add('on')}
+function saveType(){
+  const t=document.getElementById('cdd-text').textContent;
+  if(t==='工单类型名称'){toast('请先选择工单类型','warning');return}
+  closeDlg('dlg-add');toast('已保存工单类型:'+t,'success');
+}
+/* toast */
+function toast(msg,type){
+  const s=document.getElementById('toast-stack');const e=document.createElement('div');
+  const c={success:'rgba(46,143,46,.95)',warning:'rgba(212,123,0,.95)',danger:'rgba(196,30,30,.95)'}[type]||'rgba(0,0,0,.82)';
+  e.style.cssText='padding:10px 18px;background:'+c+';color:#fff;border-radius:6px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.18)';
+  e.textContent=(type==='success'?'✓ ':'')+msg;s.appendChild(e);
+  setTimeout(()=>{e.style.transition='all .2s';e.style.opacity='0';setTimeout(()=>e.remove(),200)},2200);
+}
+</script>
+</body>
+</html>
