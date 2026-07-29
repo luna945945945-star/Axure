@@ -248,7 +248,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
       <table class="tbl">
         <thead><tr><th style="width:80px">端</th><th style="width:190px">页面</th><th>改造内容</th></tr></thead>
         <tbody>
-          <tr><td>客户端</td><td>存款/取款未到账入口</td><td>各增加一个「USDT未到账」并列入口,会员按币种自选;各自对应独立表单(沿用订单号、凭证图等字段,无新增用户填写项)</td></tr>
+          <tr><td>客户端</td><td>工单类型列表</td><td>在原工单类型列表中<b>直接平铺新增</b>「USDT存款未到账」「USDT取款未到账」两个入口(与现有类型同级,<b>无二级菜单</b>),会员直接点选;各自对应独立表单(沿用订单号、凭证图等字段,无新增用户填写项)</td></tr>
           <tr><td>后台</td><td>工单配置 · 添加类型</td><td>「工单类型」下拉新增:USDT存款未到账、USDT取款未到账</td></tr>
           <tr><td>后台</td><td>表单配置</td><td>可为两个新类型配置表单(显示名称、ICON、排序、限制类型、状态、备注)</td></tr>
           <tr><td>后台</td><td>参数配置</td><td>两个新类型各自<b>独立</b>配置:自动查询总次数、频率、订单下限/上限时间、多媒体附件转待处理</td></tr>
@@ -261,7 +261,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
 
       <h2>二、功能说明与业务规则</h2>
       <div class="rules"><ol>
-        <li>存款/取款未到账各拆为「本地货币」「USDT」两个入口,会员按币种自选。</li>
+        <li>在原工单类型列表中,存款/取款未到账各<b>直接平铺新增一个 USDT 入口</b>(与现有类型同级),会员直接点选,<b>无二级菜单、无需先选币种</b>。</li>
         <li>USDT 未到账提交后,工单类型为对应的 USDT 类型,不再混入本地货币未到账。</li>
         <li>新旧类型<b>相互独立</b>:表单、参数配置、自动转发、报表统计各自独立、互不影响。</li>
         <li>USDT 类型自动处理流程与本地货币一致(存款:定时查平台→到账自动完成→超次/超时转人工;取款:转三方群处理),差异仅在于<b>调用 USDT 对应的平台补单接口</b>。</li>
@@ -437,7 +437,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
   <!-- ============ TAB 4 · 用户端分流 ============ -->
   <div id="t-user" class="tab-pane">
     <div class="card">
-      <div class="card-h"><span class="num">1</span>用户提交入口:现状 vs 改造后<span class="r">右侧手机可点击:存款未到账 → 选 USDT未到账 → 提交</span></div>
+      <div class="card-h"><span class="num">1</span>用户提交入口:现状 vs 改造后<span class="r">右侧手机可点击:列表里直接点 USDT存款未到账 → 提交(无二级菜单)</span></div>
       <div class="compare">
         <div>
           <div class="col-h old">🔴 现状 · 不分币种</div>
@@ -454,39 +454,25 @@ button{font-family:inherit;cursor:pointer;border:none;background:none}
           </div></div>
         </div>
         <div>
-          <div class="col-h new">🟢 改造后 · 按币种分流(可点击)</div>
+          <div class="col-h new">🟢 改造后 · 扁平列表直接新增(可点击)</div>
           <div class="phone-stage"><div class="phone">
             <div class="ph-notch"></div><div class="ph-status"><span>9:41</span><span>📶 🔋</span></div>
             <div class="ph-nav"><span class="b" id="ph-back" style="visibility:hidden" onclick="phGo('s-menu')">‹</span><span class="t" id="ph-title">选择工单类型</span><span style="width:20px"></span></div>
             <div class="ph-body">
               <div class="ph-screen on" id="s-menu">
                 <div class="ot-row"><div class="ic">🔓</div><div class="tx"><b>会员账号解冻</b></div><span class="arr">›</span></div>
-                <div class="ot-row" onclick="phGo('s-dep')"><div class="ic">💰</div><div class="tx"><b>存款未到账</b><small>点我 → 选择币种</small></div><span class="arr">›</span></div>
-                <div class="ot-row" onclick="phGo('s-wd')"><div class="ic w">💸</div><div class="tx"><b>取款未到账</b><small>点我 → 选择币种</small></div><span class="arr">›</span></div>
+                <div class="ot-row" onclick="phForm('dep')"><div class="ic">💰</div><div class="tx"><b>存款未到账</b><small>本地货币 · INR</small></div><span class="arr">›</span></div>
+                <div class="ot-row" onclick="phForm('udep')"><div class="ic u">₮</div><div class="tx"><b>USDT存款未到账 <span class="pill">NEW</span></b><small>USDT</small></div><span class="arr">›</span></div>
+                <div class="ot-row" onclick="phForm('wd')"><div class="ic w">💸</div><div class="tx"><b>取款未到账</b><small>本地货币 · INR</small></div><span class="arr">›</span></div>
+                <div class="ot-row" onclick="phForm('uwd')"><div class="ic u">₮</div><div class="tx"><b>USDT取款未到账 <span class="pill">NEW</span></b><small>USDT</small></div><span class="arr">›</span></div>
                 <div class="ot-row"><div class="ic">🎧</div><div class="tx"><b>一对一客服</b></div><span class="arr">›</span></div>
-                <div class="note-bubble good">✅ 存款/取款未到账下各拆为「本地货币」「USDT」两个入口,会员按币种自选。</div>
+                <div class="note-bubble good">✅ USDT 两个新类型<b>直接平铺在原工单列表里</b>(与现有类型同级),点选即进对应表单——<b>无二级菜单、无需先选币种</b>。</div>
               </div>
-              <div class="ph-screen" id="s-dep">
-                <div class="note-bubble">您要反馈哪种货币的<b>充值</b>未到账?</div>
-                <div class="ot-row" onclick="phGo('s-form-inr')"><div class="ic">🇮🇳</div><div class="tx"><b>本地货币未到账</b><small>INR 充值</small></div><span class="arr">›</span></div>
-                <div class="ot-row" onclick="phGo('s-form-usdt')"><div class="ic u">₮</div><div class="tx"><b>USDT存款未到账 <span class="pill">NEW</span></b><small>USDT 充值</small></div><span class="arr">›</span></div>
-              </div>
-              <div class="ph-screen" id="s-wd">
-                <div class="note-bubble">您要反馈哪种货币的<b>提现</b>未到账?</div>
-                <div class="ot-row" onclick="phGo('s-form-inr')"><div class="ic w">🇮🇳</div><div class="tx"><b>本地货币未到账</b><small>INR 提现</small></div><span class="arr">›</span></div>
-                <div class="ot-row" onclick="phGo('s-form-usdt')"><div class="ic u">₮</div><div class="tx"><b>USDT取款未到账 <span class="pill">NEW</span></b><small>USDT 提现</small></div><span class="arr">›</span></div>
-              </div>
-              <div class="ph-screen" id="s-form-usdt">
-                <div class="note-bubble good">✅ 已进入 <b>USDT未到账</b> 工单,与本地货币分开处理。</div>
-                <div class="f-field"><label>订单号 / TxHash</label><div class="box">USDT2026072413...284b</div></div>
-                <div class="f-field"><label>凭证截图</label><div class="f-upload"><span style="font-size:20px">🖼</span>上传充值凭证</div></div>
-                <button class="f-submit" onclick="toast('已提交:USDT未到账工单','success')">提交</button>
-              </div>
-              <div class="ph-screen" id="s-form-inr">
-                <div class="note-bubble">进入「本地货币未到账」工单(维持现状流程)。</div>
-                <div class="f-field"><label>订单号</label><div class="box">RC2026072413...284b</div></div>
-                <div class="f-field"><label>凭证截图</label><div class="f-upload"><span style="font-size:20px">🖼</span>上传充值凭证</div></div>
-                <button class="f-submit blue" onclick="toast('已提交:本地货币未到账工单','success')">提交</button>
+              <div class="ph-screen" id="s-form">
+                <div class="note-bubble" id="ph-note"></div>
+                <div class="f-field"><label id="ph-ordlabel">订单号</label><div class="box" id="ph-ord"></div></div>
+                <div class="f-field"><label>凭证截图</label><div class="f-upload"><span style="font-size:20px">🖼</span>上传凭证</div></div>
+                <button class="f-submit" id="ph-submit">提交</button>
               </div>
             </div>
           </div></div>
@@ -587,12 +573,28 @@ function switchMain(btn,id){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 /* 手机分流 */
-const titles={'s-menu':'选择工单类型','s-dep':'存款未到账 · 选币种','s-wd':'取款未到账 · 选币种','s-form-usdt':'USDT未到账','s-form-inr':'本地货币未到账'};
+const forms={
+  dep:{t:'存款未到账',note:'本地货币(INR)充值未到账,维持现状流程。',good:false,ord:'RC2026072413...284b',usdt:false},
+  udep:{t:'USDT存款未到账',note:'✅ 已进入 <b>USDT存款未到账</b> 工单,与本地货币分开处理。',good:true,ord:'USDT2026072413...284b',usdt:true},
+  wd:{t:'取款未到账',note:'本地货币(INR)提现未到账,维持现状流程。',good:false,ord:'WD2026072409...66c',usdt:false},
+  uwd:{t:'USDT取款未到账',note:'✅ 已进入 <b>USDT取款未到账</b> 工单,与本地货币分开处理。',good:true,ord:'UW2026072411...9a1',usdt:true}
+};
+function phForm(kind){
+  const f=forms[kind];
+  document.getElementById('s-menu').classList.remove('on');
+  document.getElementById('s-form').classList.add('on');
+  document.getElementById('ph-title').textContent=f.t;
+  const note=document.getElementById('ph-note'); note.className='note-bubble'+(f.good?' good':''); note.innerHTML=f.note;
+  document.getElementById('ph-ord').textContent=f.ord;
+  const btn=document.getElementById('ph-submit'); btn.className='f-submit'+(f.usdt?'':' blue');
+  btn.onclick=()=>toast('已提交:'+f.t+'工单','success');
+  document.getElementById('ph-back').style.visibility='visible';
+}
 function phGo(id){
-  document.querySelectorAll('#s-menu,#s-dep,#s-wd,#s-form-usdt,#s-form-inr').forEach(s=>s.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-  document.getElementById('ph-title').textContent=titles[id]||'';
-  document.getElementById('ph-back').style.visibility = id==='s-menu' ? 'hidden' : 'visible';
+  document.getElementById('s-form').classList.remove('on');
+  document.getElementById('s-menu').classList.add('on');
+  document.getElementById('ph-title').textContent='选择工单类型';
+  document.getElementById('ph-back').style.visibility='hidden';
 }
 /* 弹窗 */
 function openDlg(id){document.getElementById(id).classList.add('show')}
