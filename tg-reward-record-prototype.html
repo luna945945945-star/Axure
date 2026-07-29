@@ -328,6 +328,7 @@ textarea.fi{height:60px;padding:9px 12px;resize:vertical}
     <h2 id="h1"><span class="no">1</span>改造页面与字段</h2>
     <table class="ptbl">
       <tr><th style="width:170px">页面</th><th>现有字段</th><th>本期新增</th></tr>
+      <tr><td><b>外链配置</b>（首页入口）<br><span style="font-size:10.5px;color:#909399">已有功能</span></td><td class="o">名称、图片（png）、链接地址、状态（启用/禁用）</td><td class="o">沿用现状，无字段改动。<b>链接地址填机器人专属绑定链接</b>（<code>https://t.me/机器人?start=…</code>）</td></tr>
       <tr><td><b>TG频道活动设置</b>（弹窗）</td><td class="o">频道地址、频道ID、机器人Token、机器人简介、奖励项目、奖励金额、打码倍数、状态</td><td class="n">发奖解锁（下拉+阈值）、领取时限、同设备可领取上限、同IP可领取上限</td></tr>
       <tr><td><b>奖励领取记录</b>（列表）</td><td class="o">会员ID、邀请码、奖励单号、奖励金额、领取时间</td><td class="n">筛选加：TG数字ID / 加入频道时间 / 退群检测；列改：会员昵称→会员账号、TG昵称→TG数字ID；列加：加入频道时间、退群检测（已退群+退群时间）</td></tr>
       <tr><td class="n"><b>绑定失败记录</b>（新页面）</td><td class="o">—</td><td class="n">整页新增：TG数字ID、试图绑定的平台账号、会员昵称、失败原因、失败时间、该TG号累计失败数</td></tr>
@@ -335,7 +336,9 @@ textarea.fi{height:60px;padding:9px 12px;resize:vertical}
     </table>
 
     <h2 id="h2"><span class="no">2</span>业务流程</h2>
-    <div class="pflow">① 会员在 App 点专属链接 → 跳转 TG 加入频道
+    <div class="pflow">⓪ 后台「外链配置」配好首页 Telegram 入口
+     （名称 / 图片png / 链接地址 / 状态），链接指向机器人绑定链接
+① 会员点首页 TG 外链图标 → 跳转 TG 加入频道
      （只跳转、没真加入 = 不生效）
 ② 机器人拿 TG数字ID 校验"是否已加入频道"  <固定逻辑>
      ├ 未加入 → 判失败，写入「绑定失败记录」
@@ -363,6 +366,7 @@ textarea.fi{height:60px;padding:9px 12px;resize:vertical}
     <h2 id="h4"><span class="no">4</span>业务规则</h2>
     <table class="ptbl">
       <tr><th style="width:150px">规则</th><th>内容</th></tr>
+      <tr><td>客户端入口</td><td>首页 Telegram 图标由后台<b>「外链配置」</b>维护（图片/链接/状态）；<b>链接地址须填机器人专属绑定链接</b>，会员点击即跳转绑定。外链<b>状态=禁用</b>时入口不展示</td></tr>
       <tr><td>身份唯一凭据</td><td>用 <b>TG 数字ID</b>（终身不变、无法伪造），不用 @用户名 <span class="tagF">固定</span></td></tr>
       <tr><td>绑定唯一性</td><td>一个会员 ↔ 一个 TG数字ID，<b>双向唯一</b>；<b>不做解绑/换绑</b>（本活动仅用于发奖）<span class="tagF">固定</span></td></tr>
       <tr><td>加入频道判定</td><td>必须<b>真加入频道</b>才算绑定成功；只跳转未加入 = 不生效 <span class="tagF">固定</span></td></tr>
