@@ -29,6 +29,16 @@ select.inp{min-width:230px}
 .btn:hover{opacity:.9}
 .btn.blue{background:#1E9FFF}
 .btn.plain{background:#fff;color:#666;border:1px solid #ddd}
+/* 上传会员按钮 */
+.upbtns{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.upbtn{height:40px;padding:0 20px;border:1px solid #b7eb8f;background:#f6ffed;color:#52c41a;border-radius:4px;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit}
+.upbtn.tmpl{color:#95de64}
+.upbtn:hover{opacity:.85}
+.uplink{font-size:12px;color:#1E9FFF;cursor:pointer}
+.uplink:hover{text-decoration:underline}
+.upstat{font-size:12.5px;margin-top:8px}
+.upstat.ok{color:#389e0d}
+.upstat.bad{color:#d4380d;font-weight:600}
 
 /* 表格 */
 .tblwrap{background:#fff;border:1px solid #e6e6e6;overflow-x:auto}
@@ -120,10 +130,10 @@ tr:hover td{background:#fafafa}
 <body>
 
 <div class="demo">
-  <b>原型演示：</b>活动管理 → 下载app充值领奖励 → 活动配置。可试：
-  ① 把<span class="k">充值金额</span>改成 <span class="k">0</span>（原来会报错，现在允许，且提示变为"下载即领"）
-  ② 点<span class="k">保存</span>触发风控二次确认
-  ③ 表格中<span class="k">序号2</span>是"下载即领"产生的记录（无充值订单号但状态为待领取）
+  <b>原型演示：</b>活动管理 → 下载app充值领奖励。可试：
+  ① 活动配置里把<span class="k">充值门槛</span>改成 <span class="k">0</span>（允许，提示变"下载即领"）
+  ② 活动范围选<span class="k">自定义会员</span>但不上传名单 → 点保存被拦截
+  ③ 顶部<span class="k">目标类型名称</span>可筛选；列表里<span class="k">批量赠送</span>单独归类，不并入自定义会员
 </div>
 
 <div class="page">
@@ -132,6 +142,7 @@ tr:hover td{background:#fafafa}
     <div class="fi"><label>会员ID</label><input class="inp" placeholder="会员ID"></div>
     <div class="fi"><label>状态</label><select class="inp"><option>请选择</option><option>未充值</option><option>待领取</option><option>已领取</option></select></div>
     <div class="fi"><label>订单号</label><input class="inp" placeholder="订单号"></div>
+    <div class="fi"><label>目标类型名称</label><select class="inp"><option>全部</option><option>全站全员</option><option>回归老会员</option><option>新注册会员</option><option>自定义会员</option><option>批量赠送</option></select></div>
     <div class="fi"><label>充值时间</label><input class="inp" placeholder="充值时间"></div>
     <div class="fi"><label>领取时间</label><input class="inp" placeholder="领取时间"></div>
   </div>
@@ -150,53 +161,53 @@ tr:hover td{background:#fafafa}
           <th style="width:60px">序号</th>
           <th style="width:100px">会员ID</th>
           <th style="width:250px">充值订单号</th>
-          <th style="width:110px">活动范围</th>
+          <th style="width:120px">归属类型名称</th>
           <th style="width:90px">状态</th>
+          <th class="newcol" style="width:160px">充值门槛快照<span class="tipic" tabindex="0">?<span class="tipbox">该会员<b>建档当时</b>锁定的充值门槛，之后运营再改配置也不会变。<br><b>0.00</b> = 下载即领，无需充值。<br>用于排查「为什么这个会员领不到」。</span></span><span class="badge-new">新增</span></th>
           <th style="width:110px">充值金额</th>
-          <th class="newcol" style="width:150px">领取门槛<span class="tipic" tabindex="0">?<span class="tipbox">该会员<b>建档当时</b>锁定的充值门槛，之后运营再改配置也不会变。<br><b>0.00</b> = 下载即领，无需充值。<br>用于排查「为什么这个会员领不到」。</span></span><span class="badge-new">新增</span></th>
           <th style="width:160px">充值时间</th>
-          <th style="width:100px">领取金额</th>
+          <th class="newcol" style="width:170px">待领取金额快照<span class="tipic" tabindex="0">?<span class="tipbox">该会员<b>建档当时</b>锁定的应发奖励金额（待领取金额），之后运营再改配置也不会变。<br>用于核对「该会员到底该领多少」，与当前配置的赠送金额无关。</span></span><span class="badge-new">新增</span></th>
           <th style="width:160px">领取时间</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>1</td><td>2251014</td><td>RC20260713163717972001069a</td><td>新注册会员</td>
-          <td><span class="tag done">已领取</span></td><td>100.00</td>
-          <td class="newcol">100.00</td><td>2026-07-13 16:37:19</td><td>3.00</td><td>2026-07-13 16:38:02</td>
+          <td><span class="tag done">已领取</span></td>
+          <td class="newcol">100.00</td><td>100.00</td><td>2026-07-13 16:37:19</td><td class="newcol">3.00</td><td>2026-07-13 16:38:02</td>
         </tr>
         <tr style="background:#fffbe6">
           <td>2</td><td>2251020</td><td class="muted">—（无需充值）</td><td>新注册会员</td>
-          <td><span class="tag wait">待领取</span></td><td class="muted">0.00</td>
-          <td class="newcol"><b style="color:#d4380d">0.00</b></td><td class="muted">—</td><td class="muted">0.00</td><td class="muted">—</td>
+          <td><span class="tag wait">待领取</span></td>
+          <td class="newcol"><b style="color:#d4380d">0.00</b></td><td class="muted">0.00</td><td class="muted">—</td><td class="newcol">3.00</td><td class="muted">—</td>
         </tr>
         <tr>
           <td>3</td><td>2251006</td><td class="muted"></td><td>新注册会员</td>
-          <td><span class="tag no">未充值</span></td><td class="muted">0.00</td>
-          <td class="newcol">100.00</td><td class="muted">—</td><td class="muted">0.00</td><td class="muted">—</td>
+          <td><span class="tag no">未充值</span></td>
+          <td class="newcol">100.00</td><td class="muted">0.00</td><td class="muted">—</td><td class="newcol muted">0.00</td><td class="muted">—</td>
         </tr>
         <tr>
-          <td>4</td><td>2251002</td><td>RC20260710182909342001031a</td><td>新注册会员</td>
-          <td><span class="tag done">已领取</span></td><td>200.00</td>
-          <td class="newcol">100.00</td><td>2026-07-10 18:29:11</td><td>3.00</td><td>2026-07-10 18:30:45</td>
+          <td>4</td><td>2251002</td><td>RC20260710182909342001031a</td><td>自定义会员</td>
+          <td><span class="tag done">已领取</span></td>
+          <td class="newcol">100.00</td><td>200.00</td><td>2026-07-10 18:29:11</td><td class="newcol">3.00</td><td>2026-07-10 18:30:45</td>
         </tr>
         <tr>
-          <td>5</td><td>2250978</td><td>RC20260624155217592001005a</td><td>新注册会员</td>
-          <td><span class="tag done">已领取</span></td><td>150.00</td>
-          <td class="newcol">100.00</td><td>2026-06-24 15:52:19</td><td>3.00</td><td>2026-06-24 16:02:11</td>
+          <td>5</td><td>2250978</td><td class="muted">—（批量直发）</td><td><b style="color:#722ed1">批量赠送</b></td>
+          <td><span class="tag done">已领取</span></td>
+          <td class="newcol muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="newcol">5.00</td><td>2026-06-24 16:02:11</td>
         </tr>
         <tr>
-          <td>6</td><td>2247480</td><td>RC20260408140249753000002a</td><td>全站会员</td>
-          <td><span class="tag done">已领取</span></td><td>3000.00</td>
-          <td class="newcol">500.00</td><td>2026-04-08 14:04:00</td><td>9.00</td><td>2026-04-08 14:06:31</td>
+          <td>6</td><td>2247480</td><td>RC20260408140249753000002a</td><td>全站全员</td>
+          <td><span class="tag done">已领取</span></td>
+          <td class="newcol">500.00</td><td>3000.00</td><td>2026-04-08 14:04:00</td><td class="newcol">9.00</td><td>2026-04-08 14:06:31</td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <div style="margin-top:12px;font-size:12.5px;color:#888;line-height:1.9">
-    <b style="color:#d4380d">领取门槛</b>：会员建档当时锁定的充值门槛，之后运营再改配置也不会变。<br>
-    序号 2 门槛=<b style="color:#d4380d">0.00</b>，属「下载即领」，无需充值直接待领取；序号 3 门槛=100，即使现在配置已改成 0，该会员仍需充满 100 才能领取。
+    <b style="color:#d4380d">充值门槛快照</b>：会员建档当时锁定的充值门槛，之后运营再改配置也不会变。<b>待领取金额快照</b>同理，为建档当时锁定的应发金额。<br>
+    序号 2 门槛=<b style="color:#d4380d">0.00</b>，属「下载即领」，无需充值直接待领取；序号 3 门槛=100，即使现在配置已改成 0，该会员仍需充满 100 才能领取；序号 5 为<b style="color:#722ed1">批量赠送</b>，直接直发、单独归类，不并入自定义会员。
   </div>
 </div>
 
@@ -206,9 +217,9 @@ tr:hover td{background:#fafafa}
     <div class="dlg-h"><span>奖励配置</span><span class="dlg-x" onclick="closeCfg()">✕</span></div>
     <div class="dlg-b">
       <div class="row">
-        <label>充值金额：</label>
+        <label>充值门槛：</label>
         <div class="fld">
-          <input class="inp" id="amt" value="100" oninput="onAmt()">
+          <input class="inp" id="amt" value="200" oninput="onAmt()">
           <div class="hint" id="amtHint"></div>
         </div>
       </div>
@@ -219,32 +230,45 @@ tr:hover td{background:#fafafa}
         </div>
       </div>
       <div class="row">
+        <label>打码量倍数：</label>
+        <div class="fld">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <b style="font-size:15px">当前 <span id="codeRate">1</span> 倍</b>
+            <a href="javascript:;" style="color:#1E9FFF;text-decoration:none" onclick="toast('演示原型：跳转 系统设置 → 打码量配置')">去打码量配置修改 →</a>
+            <span class="hint warn" style="margin:0">（下载即领时务必确认 ≥1，避免零门槛套现）</span>
+          </div>
+          <div class="hint">只读展示。打码倍数在「打码量配置」页维护，已与「充值赠送打码量倍数」拆开、互不影响。</div>
+        </div>
+      </div>
+      <div class="row">
         <label>活动范围：</label>
-        <div class="fld"><select class="inp"><option>新注册会员</option><option>全站会员</option><option>老会员回归</option><option>指定会员</option></select></div>
+        <div class="fld"><select class="inp" id="range" onchange="onRange()">
+          <option>新注册会员</option><option>全站全员</option><option>回归老会员</option><option selected>自定义会员</option>
+        </select></div>
+      </div>
+      <div class="row" id="uploadRow">
+        <label>上传会员：</label>
+        <div class="fld">
+          <div class="upbtns">
+            <button type="button" class="upbtn tmpl" onclick="toast('演示原型：下载会员ID模板')">⭳ 模板下载</button>
+            <button type="button" class="upbtn" onclick="simUpload()">▦ 上传会员</button>
+            <span class="uplink" onclick="simUploadBad()">模拟上传一份无效名单</span>
+          </div>
+          <div class="hint">（表格只需上传用户ID，单次上传上限最大 1000）</div>
+          <div class="upstat" id="upStat"></div>
+        </div>
       </div>
       <div class="row">
         <label>同设备可领取上限：</label>
-        <div class="fld"><input class="inp" id="dev" value="1"><div class="hint">最低 1，配置范围 1-100万</div></div>
+        <div class="fld"><input class="inp" id="dev" value="1000000"><div class="hint">最低 1，配置范围 1-100万</div></div>
       </div>
       <div class="row">
         <label>同IP可领取上限：</label>
-        <div class="fld"><input class="inp" id="ip" value="1"><div class="hint">最低 1，配置范围 1-100万</div></div>
+        <div class="fld"><input class="inp" id="ip" value="1000000"><div class="hint">最低 1，配置范围 1-100万</div></div>
       </div>
-
-      <div class="row">
-        <label>打码量倍数：<span class="badge-new">新增</span></label>
-        <div class="fld">
-          <div class="codebar">
-            当前 APP 下载奖励打码倍数：<b id="codeRate">3</b> 倍
-            <a href="javascript:;" onclick="toast('演示原型：跳转 系统设置 → 打码量配置')">去打码量配置修改 →</a>
-          </div>
-          <div class="hint">只读展示。打码倍数统一在「打码量配置」页维护，此处仅提示当前生效值。已与「充值赠送打码量倍数」拆开，互不影响。</div>
-        </div>
-      </div>
-
       <div class="row">
         <label>赠送金额显示状态：</label>
-        <div class="fld"><label class="sw"><input type="checkbox" checked><i></i></label></div>
+        <div class="fld" style="display:flex;align-items:center;gap:12px"><label class="sw"><input type="checkbox" checked><i></i></label><span class="hint warn" style="margin:0">（仅配置状态开启可用）</span></div>
       </div>
       <div class="row">
         <label>开启状态：</label>
@@ -264,7 +288,7 @@ tr:hover td{background:#fafafa}
     <div class="dlg-h"><span>⚠ 风险确认</span><span class="dlg-x" onclick="closeCfm()">✕</span></div>
     <div class="dlg-b">
       <div class="warnbox">
-        <div class="t">充值金额设为 0，会员下载APP后无需充值即可领取奖励</div>
+        <div class="t">充值门槛设为 0，会员下载APP后无需充值即可领取奖励</div>
         <div class="kv"><span>赠送金额</span><b id="c-bonus">3</b></div>
         <div class="kv"><span>打码量倍数</span><b id="c-code">3 倍</b></div>
         <div class="kv"><span>同设备可领取上限</span><b id="c-dev">1</b></div>
@@ -311,8 +335,16 @@ tr:hover td{background:#fafafa}
           <td><span class="chg new">新增</span>充值金额=0 时，保存弹出<b>风险二次确认</b>，摊开 4 个关键参数（赠送金额 / 打码倍数 / 同设备上限 / 同IP上限）供核对。</td>
         </tr>
         <tr>
-          <td><b>列表<br>· 领取门槛列</b></td>
-          <td><span class="chg new">新增</span>「领取门槛」列（含 ? 说明）。展示每条记录<b>建档当时锁定的充值门槛</b>，用于排查「为什么这个会员领不到」。</td>
+          <td><b>活动配置弹窗<br>· 活动范围</b></td>
+          <td><span class="chg mod">改造</span>「指定会员」改名为 <b>自定义会员</b>。<br><span class="chg new">新增</span>选「自定义会员」时显示<b>上传会员</b>（模板下载 + 上传，单次上限 1000，仅需用户ID）。<br><span class="chg new">校验</span><b>未上传名单 / 上传会员全部无效时，保存被拦截</b>，不允许保存。</td>
+        </tr>
+        <tr>
+          <td><b>列表<br>· 列名与列序</b></td>
+          <td><span class="chg mod">改造</span>「领取门槛」改名 <b>充值门槛快照</b>、「领取金额」改名 <b>待领取金额快照</b>（均为建档当时锁定值）。<br><span class="chg mod">改造</span>列序调整为：<b>状态 → 充值门槛快照 → 充值金额 → 充值时间 → 待领取金额快照 → 领取时间</b>。</td>
+        </tr>
+        <tr>
+          <td><b>列表<br>· 归属类型名称</b></td>
+          <td><span class="chg new">新增</span>筛选栏「订单号」右侧加 <b>目标类型名称</b> 下拉：全站全员 / 回归老会员 / 新注册会员 / 自定义会员 / 批量赠送。<br><span class="chg new">新增</span>批量赠送的会员，列表<b>归属类型名称 = 批量赠送</b>，<b>单独归类、不并入自定义会员</b>，便于区分。</td>
         </tr>
       </table>
     </div>
@@ -322,7 +354,7 @@ tr:hover td{background:#fafafa}
       <table class="spec-tbl">
         <tr><th style="width:120px">项</th><th>说明</th></tr>
         <tr><td><span class="chg mod">改造</span>下载即领</td><td>门槛=0 时，建记录直接置为「待领取」，不再等充值回调（原逻辑：记录=未充值 → 充值成功回调 → 才置待领取）。</td></tr>
-        <tr><td><span class="chg new">新增</span>领取门槛快照</td><td>建记录时把当时门槛存入该条记录。发奖判断改为读<b>记录里的快照</b>，不读当前配置。<b>运营每次改配置只影响之后新增的会员，存量不受影响。</b></td></tr>
+        <tr><td><span class="chg new">新增</span>门槛/金额快照</td><td>建记录时把当时<b>充值门槛、待领取金额</b>存入该条记录（充值门槛快照 / 待领取金额快照）。发奖判断改为读<b>记录里的快照</b>，不读当前配置。<b>运营每次改配置只影响之后新增的会员，存量不受影响。</b></td></tr>
         <tr><td><span class="chg new">新增</span>打码项独立配置</td><td>新增独立打码 key，与充值赠送打码拆开；领取发放时读新 key。</td></tr>
         <tr><td><span class="chg be">数据</span>存量刷新</td><td>已有记录的「领取门槛」刷为当前生效门槛，避免被误判为下载即领。</td></tr>
       </table>
@@ -338,13 +370,21 @@ tr:hover td{background:#fafafa}
     </div>
 
     <div class="sec">
-      <div class="sec-t">五、开发需确认项</div>
-      <div class="warnbox2">
-        <b>打码倍数最小值 ≥ 1（必须实现）。</b><br>
-        新增的「APP下载奖励打码倍数」配置项，需加最小值校验：<b>录入与读取都不允许小于 1</b>。<br>
-        原因：打码是白送奖金的最后一道风控闸；若被配成 0，奖金到账即可直接提现，等于零门槛套现。
+      <div class="sec-t">五、上线数据迁移 / 兜底清单（必做）</div>
+      <div class="warnbox2" style="margin-bottom:10px">
+        <b>本次改造的核心风险不在前端，而在字段语义从「实时读配置」变为「记录级快照」。</b>存量记录没有快照值，若不回刷会触发线上事故，以下为上线前置条件。
       </div>
-      <div style="color:#999;font-size:12px;margin-top:8px">其余风险点（活动范围、风控上限、批量赠送旁路等）已单独同步运营，此处不再赘述。</div>
+      <table class="spec-tbl">
+        <tr><th style="width:40px">项</th><th style="width:56px">级别</th><th>动作 / 不做的后果</th></tr>
+        <tr><td><b>M1</b></td><td><span class="chg new">高危</span></td><td>存量记录「充值门槛快照」<b>回刷为当前生效门槛（非 0）</b>。<br>不做 → 存量被判为门槛 0 = 下载即领，<b>全量白送奖金</b>。</td></tr>
+        <tr><td><b>M2</b></td><td><span class="chg mod">中</span></td><td>明确「待领取金额快照」取数与显隐口径；若建档即写，则<b>存量金额快照一并回刷</b>。<br>不做 → 存量未充值记录显示 0.00，<b>误导运营/客服</b>。</td></tr>
+        <tr><td><b>M3</b></td><td><span class="chg new">高危</span></td><td>新增「APP下载奖励打码倍数」独立配置，<b>上线即种入 ≥1</b>，录入与读取都强制 ≥1。<br>不做 → 存量待领取记录按打码 0 领取，<b>零门槛套现</b>。</td></tr>
+        <tr><td><b>M4</b></td><td><span class="chg mod">中</span></td><td>决策历史「批量赠送」记录是否迁移为新归属类型；不迁则明确「仅新数据区分」并告知运营。<br>不做 → 历史批量记录仍挂在自定义会员下，<b>筛选错乱</b>。</td></tr>
+        <tr><td><b>M5</b></td><td><span class="chg mod">中</span></td><td>统一门槛 / 金额快照的<b>写入时机</b>（建议都在建档时写），避免「有时建档写、有时回调写」导致快照语义不一致。</td></tr>
+      </table>
+      <div class="warnbox2" style="margin-top:10px">
+        <b>上线顺序：</b>先发库 + 跑完迁移脚本（M1~M3）并核对，<b>再放开新逻辑开关</b>；建议用<b>配置开关控制「读快照 / 读实时」</b>，出问题可一键切回旧逻辑。切忌代码与迁移同时生效。
+      </div>
     </div>
 
     <div class="sec" style="color:#999;font-size:12px;border-top:1px dashed #ddd;padding-top:12px">
@@ -357,7 +397,9 @@ tr:hover td{background:#fafafa}
 <div id="toast"></div>
 
 <script>
-function openCfg(){document.getElementById('cfg').classList.add('show');onAmt();}
+var upState={uploaded:false,valid:0,invalid:0};
+
+function openCfg(){document.getElementById('cfg').classList.add('show');onAmt();onRange();}
 function closeCfg(){document.getElementById('cfg').classList.remove('show');}
 function closeCfm(){document.getElementById('cfm').classList.remove('show');}
 
@@ -365,16 +407,38 @@ function onAmt(){
   var v=document.getElementById('amt').value.trim();
   var h=document.getElementById('amtHint');
   var n=parseFloat(v);
-  if(v===''||isNaN(n)||n<0){ h.className='hint warn'; h.textContent='请输入有效的充值金额（不可为负数）'; return; }
+  if(v===''||isNaN(n)||n<0){ h.className='hint warn'; h.textContent='请输入有效的充值门槛（不可为负数）'; return; }
   if(n===0){ h.className='hint ok'; h.innerHTML='✔ 填 <b>0</b> = <b>下载即领</b>：会员下载APP注册后无需充值，直接进入「待领取」状态'; }
-  else { h.className='hint'; h.innerHTML='会员充值满 <b>'+n+'</b> 后进入「待领取」状态'; }
+  else { h.className='hint'; h.innerHTML='会员充值 <b>'+n+'</b> 后进入「待领取」状态'; }
 }
+
+/* 活动范围切换：仅「自定义会员」显示上传会员 */
+function onRange(){
+  var isCustom=document.getElementById('range').value==='自定义会员';
+  document.getElementById('uploadRow').style.display=isCustom?'flex':'none';
+  if(!isCustom){ upState={uploaded:false,valid:0,invalid:0}; }
+  renderUp();
+}
+function renderUp(){
+  var s=document.getElementById('upStat');
+  if(!s)return;
+  if(!upState.uploaded){ s.className='upstat'; s.textContent=''; return; }
+  if(upState.valid<1){ s.className='upstat bad'; s.textContent='✘ 上传的 '+upState.invalid+' 个会员均无效，无法保存'; }
+  else { s.className='upstat ok'; s.textContent='✔ 已上传：有效 '+upState.valid+' 人'+(upState.invalid?('，无效 '+upState.invalid+' 人（无效将被忽略）'):''); }
+}
+function simUpload(){ upState={uploaded:true,valid:3,invalid:0}; renderUp(); toast('上传成功：有效 3 人'); }
+function simUploadBad(){ upState={uploaded:true,valid:0,invalid:5}; renderUp(); toast('上传完成：5 个会员均无效'); }
 
 function save(){
   var v=parseFloat(document.getElementById('amt').value);
   var b=parseFloat(document.getElementById('bonus').value);
-  if(isNaN(v)||v<0){ toast('请输入有效的充值金额'); return; }
+  if(isNaN(v)||v<0){ toast('请输入有效的充值门槛'); return; }
   if(isNaN(b)||b<=0){ toast('请输入有效的赠送金额'); return; }
+  // 自定义会员必须上传有效名单
+  if(document.getElementById('range').value==='自定义会员'){
+    if(!upState.uploaded){ toast('活动范围为「自定义会员」，请先上传会员名单'); return; }
+    if(upState.valid<1){ toast('上传的会员无效，无法保存'); return; }
+  }
   if(v===0){
     document.getElementById('c-bonus').textContent=b;
     document.getElementById('c-code').textContent=document.getElementById('codeRate').textContent+' 倍';
