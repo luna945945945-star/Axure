@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>充值/代付通道 · 操作后保留页码与筛选 原型</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#333;font-size:13px}
+  /* 顶部 TAB */
+  .tabs{display:flex;background:#fff;border-bottom:1px solid #e6e8eb;padding:0 16px;position:sticky;top:0;z-index:20;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .tab{padding:14px 22px;cursor:pointer;font-size:14px;color:#5a6472;border-bottom:2px solid transparent;font-weight:500}
+  .tab:hover{color:#2b6cb0}
+  .tab.active{color:#2b6cb0;border-bottom-color:#2b6cb0}
+  .page{display:none;padding:16px}
+  .page.active{display:block}
+
+  /* PRD */
+  .prd{max-width:900px;margin:0 auto;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .prd-head{background:#2b6cb0;color:#fff;font-size:16px;font-weight:600;padding:16px 24px}
+  .prd-sec{padding:16px 24px 6px;border-bottom:1px solid #f0f2f5}
+  .prd-sec:last-child{border-bottom:none;padding-bottom:20px}
+  .prd-t{font-size:14px;font-weight:600;color:#2d3748;margin-bottom:9px}
+  .prd ul{list-style:none}
+  .prd li{font-size:13.5px;line-height:2;color:#555;padding-left:18px;position:relative}
+  .prd li::before{content:"·";position:absolute;left:5px;color:#2b6cb0;font-weight:700}
+  .prd li b{color:#1a2733}
+  .prd .em{color:#c0392b;font-weight:600}
+
+  /* 工具/对比开关 */
+  .toolbar{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #e6e8eb;border-radius:8px;padding:10px 14px;margin-bottom:12px;flex-wrap:wrap}
+  .toolbar .lab{font-size:13px;color:#5a6472}
+  .seg{display:inline-flex;border:1px solid #cbd5e0;border-radius:6px;overflow:hidden}
+  .seg button{border:none;background:#fff;padding:6px 14px;cursor:pointer;font-size:12.5px;color:#5a6472}
+  .seg button.on{background:#2b6cb0;color:#fff}
+  .toolbar .desc{font-size:12px;color:#8a94a3}
+
+  /* 搜索区 */
+  .search{background:#fff;border:1px solid #e6e8eb;border-radius:8px;padding:14px;margin-bottom:12px}
+  .search .grid{display:flex;flex-wrap:wrap;gap:12px 18px}
+  .fld{display:flex;align-items:center;gap:6px}
+  .fld label{font-size:12.5px;color:#5a6472;white-space:nowrap}
+  .fld input,.fld select{border:1px solid #d6dbe0;border-radius:5px;padding:6px 8px;font-size:12.5px;min-width:130px;outline:none;background:#fff}
+  .fld input:focus,.fld select:focus{border-color:#2b6cb0;box-shadow:0 0 0 2px rgba(43,108,176,.12)}
+  .search .acts{margin-top:12px;display:flex;gap:8px}
+  .btn{border:none;border-radius:5px;padding:7px 16px;cursor:pointer;font-size:12.5px;display:inline-flex;align-items:center;gap:5px}
+  .btn-primary{background:#7c5cff;color:#fff}
+  .btn-reset{background:#eef0f3;color:#5a6472}
+  .btn-add{background:#2ecc71;color:#fff}
+  .btn:hover{opacity:.9}
+
+  /* 状态条（关键证明） */
+  .statebar{display:flex;align-items:center;gap:10px;background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:9px 14px;margin-bottom:12px;font-size:12.5px;flex-wrap:wrap}
+  .statebar .k{color:#ad6800;font-weight:600}
+  .chip{background:#fff;border:1px solid #ffd666;color:#ad6800;border-radius:12px;padding:2px 10px;font-size:12px}
+  .chip.page{background:#e6f7ff;border-color:#91d5ff;color:#0958d9}
+  .statebar .none{color:#bfa53c}
+
+  /* 表格 */
+  .tbl-wrap{background:#fff;border:1px solid #e6e8eb;border-radius:8px;overflow-x:auto}
+  table{border-collapse:collapse;width:100%;min-width:1200px;font-size:12px}
+  th,td{padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid #f0f2f5}
+  th{background:#fafbfc;color:#5a6472;font-weight:600;position:sticky;top:0}
+  tr:hover td{background:#f7fafd}
+  .red{color:#c0392b}
+  .sw{display:inline-block;width:34px;height:18px;border-radius:9px;background:#2ecc71;position:relative;cursor:pointer;vertical-align:middle}
+  .sw::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;right:2px;transition:.15s}
+  .sw.off{background:#cbd5e0}
+  .sw.off::after{right:auto;left:2px}
+  .op{display:flex;gap:5px}
+  .op-btn{border:1px solid #2ecc71;color:#27ae60;background:#fff;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11.5px;white-space:nowrap}
+  .op-btn:hover{background:#eafaf0}
+  .op-btn.del{border-color:#e74c3c;color:#e74c3c}
+  .op-btn.del:hover{background:#fdedeb}
+
+  /* 分页 */
+  .pager{display:flex;align-items:center;gap:6px;padding:12px 4px;justify-content:flex-end}
+  .pager button{border:1px solid #d6dbe0;background:#fff;border-radius:5px;padding:5px 11px;cursor:pointer;font-size:12.5px;color:#5a6472}
+  .pager button.on{background:#2b6cb0;color:#fff;border-color:#2b6cb0}
+  .pager button:disabled{opacity:.4;cursor:not-allowed}
+  .pager .info{margin-right:auto;color:#8a94a3;font-size:12px}
+
+  /* 弹窗 */
+  .mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+  .mask.show{display:flex}
+  .modal{background:#fff;border-radius:10px;width:760px;max-width:100%;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+  .modal-head{color:#2b6cb0;font-size:16px;font-weight:600;padding:16px 24px;border-bottom:1px solid #eef0f3}
+  .modal-body{padding:20px 28px}
+  .frow{display:flex;align-items:flex-start;margin-bottom:15px;gap:14px}
+  .frow>label{width:130px;text-align:right;font-size:13px;color:#5a6472;padding-top:8px;flex-shrink:0}
+  .fctrl{flex:1;display:flex;flex-direction:column;gap:4px}
+  .fctrl input,.fctrl select{width:100%;border:1px solid #d6dbe0;border-radius:6px;padding:8px 10px;font-size:13px;outline:none;background:#fff}
+  .fctrl input:focus,.fctrl select:focus{border-color:#7c5cff;box-shadow:0 0 0 2px rgba(124,92,255,.12)}
+  .fctrl input:disabled{background:#f0f2f5;color:#98a2b0}
+  .inline{display:flex;align-items:center;gap:10px}
+  .inline .rng{display:flex;align-items:center;gap:8px;flex:1}
+  .note{font-size:12px;color:#c0392b}
+  .note.g{color:#8a94a3}
+  .cbs{display:flex;flex-wrap:wrap;gap:14px;border:1px solid #e6e8eb;border-radius:6px;padding:12px;min-height:44px}
+  .cbs label{display:flex;align-items:center;gap:5px;font-size:12.5px;color:#5a6472;cursor:pointer}
+  .radios{display:flex;gap:18px;align-items:center;padding-top:6px}
+  .radios label{display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer}
+  .chk-mod{display:flex;align-items:center;gap:5px;font-size:12.5px;color:#5a6472;white-space:nowrap}
+  .modal-foot{display:flex;justify-content:center;gap:12px;padding:16px 24px 24px}
+  .btn-save{background:#7c5cff;color:#fff;border:none;border-radius:6px;padding:9px 26px;cursor:pointer;font-size:13px}
+  .btn-back{background:#2c3440;color:#fff;border:none;border-radius:6px;padding:9px 26px;cursor:pointer;font-size:13px}
+
+  /* toast */
+  .toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:99;background:#2c3440;color:#fff;padding:11px 20px;border-radius:8px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:.25s;pointer-events:none;max-width:90%}
+  .toast.show{opacity:1;top:74px}
+  .toast.ok{background:#237a4b}
+  .toast.old{background:#b9770e}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" data-tab="prd">PRD 需求说明</div>
+  <div class="tab" data-tab="recharge">充值通道列表</div>
+  <div class="tab" data-tab="payout">代付通道列表</div>
+</div>
+
+<!-- ============ TAB1 PRD ============ -->
+<div class="page active" id="page-prd">
+  <div class="prd">
+    <div class="prd-head">PRD · 充值通道 / 代付通道 —— 操作后保留页码与搜索条件</div>
+
+    <div class="prd-sec">
+      <div class="prd-t">一、改造页面与字段</div>
+      <ul>
+        <li>改造对象：后台 <b>支付管理 → 充值通道</b> 列表页、<b>支付管理 → 代付通道</b> 列表页。</li>
+        <li>涉及操作：<b>新增、编辑通道、常用修改、删除</b>（含代收/代付测试等列表内操作）。</li>
+        <li>不新增字段、不改通道数据结构；仅调整<b>操作完成后的页面跳转与列表状态</b>。</li>
+      </ul>
+    </div>
+
+    <div class="prd-sec">
+      <div class="prd-t">二、功能与规则</div>
+      <ul>
+        <li><b>操作完成后停留当前页</b>：新增、编辑通道、常用修改、删除，成功后<span class="em">不再跳回默认页/列表首页</span>，停留在操作发起时所在的<b>列表页码</b>。</li>
+        <li><b>返回按钮</b>：点「返回」回到<b>上一页（发起操作前的列表及其页码）</b>，而不是默认页。</li>
+        <li><b>保留搜索条件</b>：带搜索条件时，无论<b>修改成功</b>还是<b>返回</b>，都<span class="em">保留原搜索条件 + 页码</span>，不清空、不回到默认列表。</li>
+        <li>状态保留范围 = <b>全部搜索条件 + 当前页码</b>（如有排序一并保留）。</li>
+        <li>删除后仍停留当前页；若当前页被删空，停留在有效的相邻页（如上一页）。</li>
+        <li><b>充值通道与代付通道两个页面处理逻辑一致。</b></li>
+      </ul>
+    </div>
+
+    <div class="prd-sec">
+      <div class="prd-t">三、限制与边界</div>
+      <ul>
+        <li>仅改交互与列表状态保留，<b>不改通道字段含义、不改校验逻辑</b>。</li>
+        <li>「查询」为一次新的检索，按现状回到第 1 页属正常；本需求保留的是<b>操作/返回过程中的既有状态</b>。</li>
+        <li>右侧列表页可切换「旧行为 / 新行为」对比，直观演示改造前后差异。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TAB2 充值通道 ============ -->
+<div class="page" id="page-recharge">
+  <div class="toolbar">
+    <span class="lab">演示模式：</span>
+    <div class="seg" id="seg-recharge">
+      <button data-b="new" class="on">新行为（本次改造）</button>
+      <button data-b="old">旧行为（现状）</button>
+    </div>
+    <span class="desc">切到「旧行为」再做任意操作/返回，会刷回默认页并清空筛选——对比即知痛点。</span>
+  </div>
+
+  <div class="search">
+    <div class="grid" id="search-recharge">
+      <div class="fld"><label>充值类型</label><select data-f="type"><option value="">请选择</option><option>ArUpiPay</option><option>Bank Transfer</option><option>QRIS</option><option>DANA</option></select></div>
+      <div class="fld"><label>前台显示名称</label><input data-f="name" placeholder="前台显示名称"></div>
+      <div class="fld"><label>通道查询</label><input data-f="code" placeholder="通道编码/通道ID"></div>
+      <div class="fld"><label>网关地址</label><input data-f="gw" placeholder="网关地址"></div>
+      <div class="fld"><label>三方映射码</label><input data-f="map" placeholder="三方映射码"></div>
+      <div class="fld"><label>充值币种</label><select data-f="cur"><option value="">请选择</option><option>INR</option><option>VND</option></select></div>
+      <div class="fld"><label>状态</label><select data-f="state"><option value="">请选择</option><option>开启</option><option>关闭</option></select></div>
+      <div class="fld"><label>直连模式</label><select data-f="direct"><option value="">请选择</option><option>是</option><option>否</option></select></div>
+    </div>
+    <div class="acts">
+      <button class="btn btn-primary" onclick="doQuery('recharge')">🔍 查询</button>
+      <button class="btn btn-reset" onclick="doReset('recharge')">↺ 重置</button>
+      <button class="btn btn-add" onclick="openNew('recharge')">＋ 新增</button>
+    </div>
+  </div>
+
+  <div class="statebar" id="state-recharge"></div>
+  <div class="tbl-wrap"><table id="tbl-recharge"></table></div>
+  <div class="pager" id="pager-recharge"></div>
+</div>
+
+<!-- ============ TAB3 代付通道 ============ -->
+<div class="page" id="page-payout">
+  <div class="toolbar">
+    <span class="lab">演示模式：</span>
+    <div class="seg" id="seg-payout">
+      <button data-b="new" class="on">新行为（本次改造）</button>
+      <button data-b="old">旧行为（现状）</button>
+    </div>
+    <span class="desc">切到「旧行为」再做任意操作/返回，会刷回默认页并清空筛选——对比即知痛点。</span>
+  </div>
+
+  <div class="search">
+    <div class="grid" id="search-payout">
+      <div class="fld"><label>出款显示名称</label><input data-f="name" placeholder="出款显示名称"></div>
+      <div class="fld"><label>通道查询</label><input data-f="code" placeholder="通道编码/通道ID"></div>
+      <div class="fld"><label>网关地址</label><input data-f="gw" placeholder="网关地址"></div>
+      <div class="fld"><label>三方映射码</label><input data-f="map" placeholder="三方映射码"></div>
+      <div class="fld"><label>币种</label><select data-f="cur"><option value="">请选择</option><option>INR</option><option>VIRTUAL</option></select></div>
+      <div class="fld"><label>状态</label><select data-f="state"><option value="">请选择</option><option>开启</option><option>关闭</option></select></div>
+      <div class="fld"><label>直连模式</label><select data-f="direct"><option value="">请选择</option><option>是</option><option>否</option></select></div>
+    </div>
+    <div class="acts">
+      <button class="btn btn-primary" onclick="doQuery('payout')">🔍 查询</button>
+      <button class="btn btn-reset" onclick="doReset('payout')">↺ 重置</button>
+      <button class="btn btn-add" onclick="openNew('payout')">＋ 新增</button>
+    </div>
+  </div>
+
+  <div class="statebar" id="state-payout"></div>
+  <div class="tbl-wrap"><table id="tbl-payout"></table></div>
+  <div class="pager" id="pager-payout"></div>
+</div>
+
+<!-- 弹窗 & toast -->
+<div class="mask" id="mask"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ========= 数据 =========
+const RECHARGE = [
+  {id:26001,name:"ArUpiPay-26001",rate:"0%",type:"ArUpiPay",map:"ArbPayINR",gw:"https://apiarb-sit-proxy.35456462.com",code:3,cur:"INR",lv:"所有",gift:"0.1000",fee:"0.0001",min:"300.00",max:"500000.00",sort:2000,direct:"否",state:1},
+  {id:26000,name:"ArUpiPay-26000",rate:"0%",type:"Bank Transfer",map:"ArbPayINR",gw:"https://apiarb-sit-proxy.35456462.com/ar-wallet",code:3,cur:"INR",lv:"所有",gift:"0.9000",fee:"0",min:"300.00",max:"500000.00",sort:2000,direct:"否",state:1},
+  {id:10577,name:"RupixPay-APP",rate:"0%",type:"Bank Transfer",map:"BonusPayINR",gw:"https://www.ckckpay.com:5000",code:100,cur:"INR",lv:"Lv0..",gift:"0.1000",fee:"0",min:"500.00",max:"50000.00",sort:1600,direct:"否",state:1},
+  {id:10568,name:"RupixPay-UPI",rate:"0%",type:"Bank Transfer",map:"BonusPayINR",gw:"https://www.ckckpay.com:5000",code:100,cur:"INR",lv:"Lv3..",gift:"0.1000",fee:"0",min:"500.00",max:"50000.00",sort:1600,direct:"否",state:1},
+  {id:10560,name:"BonusPay Paytm x",rate:"0%",type:"QRIS",map:"FirePayINR",gw:"https://www.ckckpay.com:5000",code:100,cur:"INR",lv:"Lv1",gift:"0.0100",fee:"0",min:"500.00",max:"50000.00",sort:1480,direct:"是",state:1},
+  {id:10321,name:"BonusPay UPI &#2",rate:"0%",type:"QRIS",map:"FirePayINR",gw:"https://www.ckckpay.com:5000",code:100,cur:"INR",lv:"所有",gift:"0.0100",fee:"0",min:"500.00",max:"50000.00",sort:1503,direct:"是",state:1},
+  {id:10567,name:"BonusPay-APP-1",rate:"0%",type:"QRIS",map:"FirePayINR",gw:"https://www.ckckpay.com:5000",code:100,cur:"INR",lv:"Lv1",gift:"0.0100",fee:"0",min:"500.00",max:"50000.00",sort:1503,direct:"是",state:1},
+  {id:10725,name:"YayaPay-Paytm",rate:"0%",type:"Bank Transfer",map:"YayaPayINR",gw:"https://api.yaya-pay.com",code:924,cur:"INR",lv:"Lv1",gift:"0.0100",fee:"0",min:"300.00",max:"50000.00",sort:1498,direct:"是",state:1},
+  {id:10504,name:"YayaPay-UPI x Q",rate:"0%",type:"Bank Transfer",map:"YayaPayINR",gw:"https://api.yaya-pay.com",code:923,cur:"INR",lv:"Lv1",gift:"0.0100",fee:"0",min:"300.00",max:"50000.00",sort:1498,direct:"是",state:1},
+  {id:10503,name:"YayaPay-APP-10",rate:"0%",type:"DANA",map:"YayaPayINR",gw:"https://api.yaya-pay.com",code:923,cur:"INR",lv:"所有",gift:"0.0010",fee:"0",min:"100.00",max:"50000.00",sort:1498,direct:"是",state:1},
+  {id:10681,name:"7Days-Paytm x",rate:"0%",type:"QRIS",map:"LakshmiPayINR",gw:"https://pay.lakshmipay.vip",code:"kaka",cur:"INR",lv:"所有",gift:"0.0000",fee:"0",min:"200.00",max:"50000.00",sort:1497,direct:"否",state:1},
+  {id:10682,name:"7Days-UPI x",rate:"0%",type:"QRIS",map:"LakshmiPayINR",gw:"https://pay.lakshmipay.vip",code:"kaka",cur:"INR",lv:"所有",gift:"0.0000",fee:"0",min:"200.00",max:"50000.00",sort:1496,direct:"否",state:1},
+];
+const PAYOUT = [
+  {id:10367,name:"TronPayUSDT-10367",bal:"2,881.67",low:"0.06",map:"TronPayUSDTCU",gw:"https://api.upay6.net",code:60,cur:"VIRTUAL",min:"500.00",max:"9999999999.00",sort:999999,weight:1,direct:"是",state:1},
+  {id:10268,name:"CpuPayINR-10268",bal:"10.46",low:"0.00",map:"CpuPayINR",gw:"https://mcapi.cpumpayc.com",code:71001,cur:"INR",min:"500.00",max:"1500.00",sort:888888,weight:1,direct:"是",state:1},
+  {id:10445,name:"ArbPay2INR-BANK-10445",bal:"20,022,416.00",low:"9,993,500.00",map:"ArbPay2INR",gw:"https://apiarb-sit-proxy.35456462.com",code:1,cur:"INR",min:"100.00",max:"10000.00",sort:10000,weight:10,direct:"是",state:1},
+  {id:10444,name:"ArbPay2INR-UPI-10444",bal:"6,038,247.62",low:"0.00",map:"ArbPay2INR",gw:"https://apiarb-sit-proxy.35456462.com",code:3,cur:"INR",min:"1.00",max:"100000.00",sort:10000,weight:1,direct:"是",state:1},
+  {id:26004,name:"FastUPI提现-26004",bal:"6,038,247.62",low:"0.00",map:"ArFastUpi",gw:"https://apiarb-sit.35456462.com",code:9999,cur:"INR",min:"100.00",max:"50000.00",sort:9999,weight:5,direct:"否",state:1},
+  {id:26003,name:"FastUPI提现-26003",bal:"6,038,247.62",low:"0.00",map:"ArFastUpi",gw:"https://apiarb-sit.35456462.com",code:9999,cur:"INR",min:"100.00",max:"50000.00",sort:9999,weight:5,direct:"否",state:1},
+  {id:3003,name:"365PayPKR-3003",bal:"----",low:"0.00",map:"P365PayPKR",gw:"https://pay.365dayspay.com",code:1002,cur:"INR",min:"100.00",max:"50000.00",sort:1002,weight:9,direct:"否",state:1},
+  {id:10337,name:"DAMAN UPI 系统-10337",bal:"1,020,642.73",low:"0.00",map:"BonusPayINR",gw:"https://www.ckckpay.com:5000",code:105,cur:"INR",min:"1000.00",max:"90000.00",sort:105,weight:1,direct:"是",state:1},
+  {id:12002,name:"DMPay-USDT-12002",bal:"0.00",low:"0.00",map:"DMPayUSDTCU",gw:"https://gateway.dmusdt.com",code:104,cur:"VIRTUAL",min:"1.00",max:"20000.00",sort:104,weight:1,direct:"是",state:1},
+  {id:12003,name:"DMPay-INR-12003",bal:"0.00",low:"0.00",map:"DMPayINR",gw:"https://gateway.dmusdt.com",code:103,cur:"INR",min:"100.00",max:"50000.00",sort:103,weight:1,direct:"是",state:1},
+];
+
+const PAGE_SIZE=5;
+const CFG={
+  recharge:{data:RECHARGE, filters:{}, page:1, behavior:"new",
+    fields:["state","code","name","rate","type","map","gw","cur","lv","gift","fee","min","max","sort","direct"]},
+  payout:{data:PAYOUT, filters:{}, page:1, behavior:"new"},
+};
+
+// ========= 过滤 =========
+function match(row,f,key){
+  if(!f) return true;
+  const map={type:"type",name:"name",code:"code",gw:"gw",cur:"cur",state:"state",direct:"direct",map:"map"};
+  if(f.type && row.type!==f.type) return false;
+  if(f.name && !String(row.name).toLowerCase().includes(f.name.toLowerCase())) return false;
+  if(f.code && !(String(row.id).includes(f.code)||String(row.code).includes(f.code))) return false;
+  if(f.gw && !String(row.gw).toLowerCase().includes(f.gw.toLowerCase())) return false;
+  if(f.map && !String(row.map).toLowerCase().includes(f.map.toLowerCase())) return false;
+  if(f.cur && row.cur!==f.cur) return false;
+  if(f.direct && row.direct!==f.direct) return false;
+  if(f.state){ const s=row.state?"开启":"关闭"; if(s!==f.state) return false; }
+  return true;
+}
+function filtered(key){ const c=CFG[key]; return c.data.filter(r=>match(r,c.filters)); }
+
+// ========= 状态条 =========
+const FLABEL={type:"充值类型",name:"名称",code:"通道查询",gw:"网关",map:"映射码",cur:"币种",state:"状态",direct:"直连"};
+function renderState(key){
+  const c=CFG[key], list=filtered(key), pages=Math.max(1,Math.ceil(list.length/PAGE_SIZE));
+  const active=Object.entries(c.filters).filter(([k,v])=>v);
+  let html=`<span class="k">当前列表状态（操作后保持不变）：</span>`;
+  if(active.length) html+=active.map(([k,v])=>`<span class="chip">${FLABEL[k]||k}：${v}</span>`).join("");
+  else html+=`<span class="none">未设置筛选</span>`;
+  html+=`<span class="chip page">第 ${c.page} / ${pages} 页</span>`;
+  document.getElementById("state-"+key).innerHTML=html;
+}
+
+// ========= 表格 =========
+function esc(s){return String(s).replace(/&#2/g,"&amp;#2");}
+function sw(on){return `<span class="sw ${on?'':'off'}"></span>`;}
+function renderRecharge(){
+  const c=CFG.recharge, list=filtered("recharge");
+  const pages=Math.max(1,Math.ceil(list.length/PAGE_SIZE)); if(c.page>pages)c.page=pages;
+  const rows=list.slice((c.page-1)*PAGE_SIZE,c.page*PAGE_SIZE);
+  let h=`<thead><tr>
+    <th>状态</th><th>ID</th><th>前台显示名称</th><th>今日成功率</th><th>充值类型</th><th>三方映射码</th>
+    <th>网关地址</th><th>通道编码</th><th>充值币种</th><th>可见等级</th><th>充值赠送比率</th><th>手续费率</th>
+    <th>最小金额</th><th>最大金额</th><th>排序</th><th>直连</th><th>操作</th></tr></thead><tbody>`;
+  rows.forEach(r=>{h+=`<tr>
+    <td>${sw(r.state)}</td><td>${r.id}</td><td>${esc(r.name)}</td><td>${r.rate}</td>
+    <td>${r.type}</td><td>${r.map}</td><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${r.gw}</td>
+    <td>${r.code}</td><td>${r.cur}</td><td class="${r.lv==='所有'?'red':'red'}">${r.lv}</td>
+    <td>${r.gift}</td><td>${r.fee}</td><td>${r.min}</td><td>${r.max}</td><td>${r.sort}</td><td class="${r.direct==='否'?'red':''}">${r.direct}</td>
+    <td><div class="op">
+      <button class="op-btn" onclick="testOp('recharge','代收测试',${r.id})">代收测试</button>
+      <button class="op-btn" onclick="openEdit('recharge',${r.id})">编辑通道</button>
+      <button class="op-btn" onclick="openCommon('recharge',${r.id})">常用修改</button>
+      <button class="op-btn del" onclick="delRow('recharge',${r.id})">删除</button>
+    </div></td></tr>`;});
+  if(!rows.length)h+=`<tr><td colspan="17" style="text-align:center;color:#a0aab4;padding:24px">无匹配数据</td></tr>`;
+  h+="</tbody>";
+  document.getElementById("tbl-recharge").innerHTML=h;
+  renderPager("recharge",list.length,pages); renderState("recharge");
+}
+function renderPayout(){
+  const c=CFG.payout, list=filtered("payout");
+  const pages=Math.max(1,Math.ceil(list.length/PAGE_SIZE)); if(c.page>pages)c.page=pages;
+  const rows=list.slice((c.page-1)*PAGE_SIZE,c.page*PAGE_SIZE);
+  let h=`<thead><tr>
+    <th>状态</th><th>ID</th><th>出款显示名称</th><th>三方通道余额</th><th>通道余额低于</th><th>三方映射码</th>
+    <th>网关地址</th><th>通道编码</th><th>提现币种</th><th>最小金额</th><th>最大金额</th><th>排序</th><th>自动出款权重</th><th>直连</th><th>操作</th></tr></thead><tbody>`;
+  rows.forEach(r=>{h+=`<tr>
+    <td>${sw(r.state)}</td><td>${r.id}</td><td>${esc(r.name)}</td><td>${r.bal}</td><td>${r.low}</td><td>${r.map}</td>
+    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${r.gw}</td><td>${r.code}</td><td>${r.cur}</td>
+    <td>${r.min}</td><td>${r.max}</td><td>${r.sort}</td><td>${r.weight}</td><td class="${r.direct==='否'?'red':''}">${r.direct}</td>
+    <td><div class="op">
+      <button class="op-btn" onclick="testOp('payout','代付测试',${r.id})">代付测试</button>
+      <button class="op-btn" onclick="openEdit('payout',${r.id})">编辑通道</button>
+      <button class="op-btn" onclick="openCommon('payout',${r.id})">常用修改</button>
+      <button class="op-btn del" onclick="delRow('payout',${r.id})">删除</button>
+    </div></td></tr>`;});
+  if(!rows.length)h+=`<tr><td colspan="15" style="text-align:center;color:#a0aab4;padding:24px">无匹配数据</td></tr>`;
+  h+="</tbody>";
+  document.getElementById("tbl-payout").innerHTML=h;
+  renderPager("payout",list.length,pages); renderState("payout");
+}
+function renderList(key){ key==="recharge"?renderRecharge():renderPayout(); }
+
+function renderPager(key,total,pages){
+  const c=CFG[key];
+  let h=`<span class="info">共 ${total} 条 · 每页 ${PAGE_SIZE} 条</span>`;
+  h+=`<button ${c.page<=1?'disabled':''} onclick="goPage('${key}',${c.page-1})">上一页</button>`;
+  for(let i=1;i<=pages;i++) h+=`<button class="${i===c.page?'on':''}" onclick="goPage('${key}',${i})">${i}</button>`;
+  h+=`<button ${c.page>=pages?'disabled':''} onclick="goPage('${key}',${c.page+1})">下一页</button>`;
+  document.getElementById("pager-"+key).innerHTML=h;
+}
+function goPage(key,p){ CFG[key].page=p; renderList(key); }
+
+// ========= 搜索 =========
+function readFilters(key){
+  const f={}; document.querySelectorAll(`#search-${key} [data-f]`).forEach(el=>f[el.dataset.f]=el.value.trim());
+  return f;
+}
+function doQuery(key){ CFG[key].filters=readFilters(key); CFG[key].page=1; renderList(key); toast(key,"ok","🔍 已按搜索条件查询"); }
+function doReset(key){ document.querySelectorAll(`#search-${key} [data-f]`).forEach(el=>el.value=""); CFG[key].filters={}; CFG[key].page=1; renderList(key); }
+
+// ========= 操作后：核心状态保持逻辑 =========
+function afterOp(key,action){
+  const c=CFG[key];
+  if(c.behavior==="new"){
+    const hasFilter=Object.values(c.filters).some(v=>v);
+    renderList(key);
+    const verb={save:"已保存",del:"已删除",test:"测试完成",back:"已返回"}[action];
+    toast(key,"ok",`✓ ${verb} · 停留在第 ${c.page} 页${hasFilter?"，并保留搜索条件":""}`);
+  }else{
+    // 旧行为：刷回默认页 + 清空筛选
+    c.filters={}; c.page=1;
+    document.querySelectorAll(`#search-${key} [data-f]`).forEach(el=>el.value="");
+    renderList(key);
+    toast(key,"old",`⟳ （旧行为）操作后刷新回默认页，搜索条件与页码被清空`);
+  }
+}
+function testOp(key,label,id){ afterOp(key,"test"); }
+function delRow(key,id){
+  if(!confirm("确认删除该通道？"))return;
+  const c=CFG[key]; c.data=c.data.filter(r=>r.id!==id);
+  if(key==="recharge")CFG.recharge.data=c.data; else CFG.payout.data=c.data;
+  afterOp(key,"del");
+}
+
+// ========= 弹窗 =========
+let curModal={key:null};
+function showModal(html,key){ curModal.key=key; document.getElementById("modal").innerHTML=html; document.getElementById("mask").classList.add("show"); }
+function closeModal(){ document.getElementById("mask").classList.remove("show"); }
+function modalSave(){ const k=curModal.key; closeModal(); afterOp(k,"save"); }
+function modalBack(){ const k=curModal.key; closeModal(); afterOp(k,"back"); }
+document.getElementById("mask").addEventListener("click",e=>{ if(e.target.id==="mask") closeModal(); });
+
+function foot(){ return `<div class="modal-foot"><button class="btn-save" onclick="modalSave()">修 改</button><button class="btn-back" onclick="modalBack()">↩ 返 回</button></div>`; }
+function row(label,ctrl){ return `<div class="frow"><label>${label}：</label><div class="fctrl">${ctrl}</div></div>`; }
+function lvChecks(){ return [0,1,2,3,4,5,6].map(i=>`<label><input type="checkbox"> Lv ${i}</label>`).join(""); }
+
+// 充值-编辑通道（图一）
+function openEdit(key,id){
+  const r=CFG[key].data.find(x=>x.id===id);
+  if(key==="recharge"){
+    showModal(`<div class="modal-head">编辑通道</div><div class="modal-body">
+      ${row("通道币种",`<input disabled value="${r.cur}">`)}
+      ${row("通道名称",`<input disabled value="${esc(r.name)}">`)}
+      ${row("三方映射码",`<input disabled value="${r.map}">`)}
+      ${row("通道编码",`<input value="${r.code}">`)}
+      ${row("网关地址",`<input value="${r.gw}">`)}
+      ${row("商户号",`<input value="sitweb">`)}
+      ${row("商户密钥",`<input placeholder="请输入商户密钥">`)}
+      ${row("公钥",`<input value="MII***QAB">`)}
+      ${row("私钥",`<input value="MII***w==">`)}
+      ${row("回调白名单",`<input value="8.219.59.128">`)}
+    </div>${foot()}`,key);
+  }else{
+    showModal(`<div class="modal-head">编辑提现通道</div><div class="modal-body">
+      ${row("提现币种",`<input disabled value="${r.cur}">`)}
+      ${row("通道名称",`<input disabled value="${esc(r.name)}">`)}
+      ${row("三方映射码",`<input disabled value="${r.map}">`)}
+      ${row("通道编码",`<input disabled value="${r.code}"><div class="note">*此通道编码由系统统一规范不可编辑</div>`)}
+      ${row("网关地址",`<input value="${r.gw}">`)}
+      ${row("商户号",`<input value="1051">`)}
+      ${row("商户密钥",`<input placeholder="请输入商户密钥">`)}
+      ${row("公钥",`<input placeholder="请输入公钥">`)}
+      ${row("私钥",`<input value="d7i***9f5">`)}
+      ${row("回调白名单",`<input value="43.198.183.101|43.198.154.66|8.8.8.9">`)}
+    </div>${foot()}`,key);
+  }
+}
+
+// 常用修改（图二 / 图六）
+function openCommon(key,id){
+  const r=CFG[key].data.find(x=>x.id===id);
+  if(key==="recharge"){
+    showModal(`<div class="modal-head">充值通道常用修改</div><div class="modal-body">
+      ${row("充值类型",`<select><option>${r.type}</option><option>ArUpiPay</option><option>Bank Transfer</option><option>QRIS</option><option>DANA</option></select>`)}
+      ${row("前台显示名称",`<input value="${esc(r.name)}">`)}
+      ${row("充值赠送比率",`<div class="inline"><input id="giftInp" disabled value="${r.gift}" style="flex:1"><label class="chk-mod"><input type="checkbox" onchange="document.getElementById('giftInp').disabled=!this.checked"> 是否修改</label></div>`)}
+      ${row("手续费率",`<div class="inline"><input id="feeInp" disabled value="${r.fee}" style="flex:1"><span>%</span><label class="chk-mod"><input type="checkbox" onchange="document.getElementById('feeInp').disabled=!this.checked"> 是否修改</label><span class="note g">(0 表示不收取)</span></div>`)}
+      ${row("延迟发放时间",`<input value="0"><div class="note">(单位: 天, 0 表示即时发放, 最大支持延迟7天发放)</div>`)}
+      ${row("单笔金额限制",`<div class="rng"><input value="${r.min}"><span>-</span><input value="${r.max}"></div>`)}
+      ${row("开始时间",`<div class="rng"><input disabled value="00:00"><span>-</span><input disabled value="24:00"></div>`)}
+      ${row("最大待支付订单数量",`<input value="0">`)}
+      ${row("可见分组",`<div class="cbs">${lvChecks()}</div><div class="note">不勾选表示任何等级都可见</div>`)}
+      ${row("优惠可用等级",`<div class="cbs">${lvChecks()}</div><div class="note">不勾选表示任何等级都可见</div>`)}
+      ${row("优惠可用设备",`<div class="cbs"><label><input type="checkbox"> PC</label><label><input type="checkbox"> H5</label><label><input type="checkbox"> APP</label></div><div class="note">不勾选表示任何设备都可用</div>`)}
+      ${row("支持VIP等级充值赠送",`<div class="radios"><label><input type="radio" name="vip"> 关闭</label><label><input type="radio" name="vip" checked> 开启</label></div>`)}
+      ${row("填写支付信息开关",`<div class="radios"><label><input type="radio" name="payinfo" checked> 关闭</label><label><input type="radio" name="payinfo"> 开启</label></div>`)}
+      ${row("自动切换通道开关",`<div class="radios"><label><input type="radio" name="autosw" checked> 关闭</label><label><input type="radio" name="autosw"> 开启</label></div>`)}
+      ${row("排序",`<input value="${r.sort}">`)}
+      ${row("备注",`<input value="12345678901234567890">`)}
+    </div>${foot()}`,key);
+  }else{
+    showModal(`<div class="modal-head">提现通道常用修改</div><div class="modal-body">
+      ${row("提现类型",`<select><option>BANK CADE222</option><option>${r.map}</option></select>`)}
+      ${row("出款显示名称",`<input value="${esc(r.name)}">`)}
+      ${row("提款金额限制",`<div class="rng"><input value="${r.min}"><span>-</span><input value="${r.max}"></div>`)}
+      ${row("排序",`<input value="${r.sort}">`)}
+      ${row("备注",`<input value="可用1">`)}
+      ${row("自动出款权重",`<input value="${r.weight}">`)}
+      ${row("三方通道余额",`<input disabled value="${r.bal}">`)}
+      ${row("通道余额低于",`<input value="${r.low}">`)}
+    </div>${foot()}`,key);
+  }
+}
+
+// 新增（复用编辑通道空表单）
+function openNew(key){
+  if(key==="recharge"){
+    showModal(`<div class="modal-head">新增充值通道</div><div class="modal-body">
+      ${row("通道币种",`<select><option>INR</option><option>VND</option></select>`)}
+      ${row("充值类型",`<select><option>ArUpiPay</option><option>Bank Transfer</option><option>QRIS</option><option>DANA</option></select>`)}
+      ${row("前台显示名称",`<input placeholder="请输入前台显示名称">`)}
+      ${row("三方映射码",`<input placeholder="请输入三方映射码">`)}
+      ${row("网关地址",`<input placeholder="请输入网关地址">`)}
+      ${row("商户号",`<input placeholder="请输入商户号">`)}
+      ${row("回调白名单",`<input placeholder="多个用 | 分隔">`)}
+    </div>${foot()}`,key);
+  }else{
+    showModal(`<div class="modal-head">新增代付通道</div><div class="modal-body">
+      ${row("提现币种",`<select><option>INR</option><option>VIRTUAL</option></select>`)}
+      ${row("出款显示名称",`<input placeholder="请输入出款显示名称">`)}
+      ${row("三方映射码",`<input placeholder="请输入三方映射码">`)}
+      ${row("网关地址",`<input placeholder="请输入网关地址">`)}
+      ${row("商户号",`<input placeholder="请输入商户号">`)}
+      ${row("回调白名单",`<input placeholder="多个用 | 分隔">`)}
+    </div>${foot()}`,key);
+  }
+}
+
+// ========= toast =========
+let toastTimer;
+function toast(key,type,msg){
+  const t=document.getElementById("toast");
+  t.className="toast "+type; t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2600);
+}
+
+// ========= tab & behavior =========
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active"); document.getElementById("page-"+t.dataset.tab).classList.add("active");
+}));
+["recharge","payout"].forEach(key=>{
+  document.querySelectorAll(`#seg-${key} button`).forEach(b=>b.addEventListener("click",()=>{
+    document.querySelectorAll(`#seg-${key} button`).forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); CFG[key].behavior=b.dataset.b;
+  }));
+});
+
+renderRecharge(); renderPayout();
+</script>
+</body>
+</html>
