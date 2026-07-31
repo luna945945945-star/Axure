@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会员详情 · 新增「提现退回」 交互原型 + PRD</title>
+<style>
+:root{--pri:#7b61ff;--ink:#1f2937;--ink2:#5b6472;--ink3:#98a1b3;--line:#e6e9ef;--bd:#d7dce5;--bg:#f4f5f8;--red:#e5484d;--green:#16a34a;--hl:#fff7d6;--hlbd:#f0c93a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;font-size:13px;color:var(--ink);background:var(--bg)}
+.win{background:#fff;min-height:100vh}
+.win-top{height:5px;background:linear-gradient(90deg,#12c06a,#0fa85c)}
+.win-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid var(--line)}
+.win-bar .t{font-size:16px;font-weight:700}
+.win-bar .x{color:#9aa3b2;font-size:20px;cursor:pointer;line-height:1}
+.body{padding:26px 28px 60px}
+/* 查询条 */
+.qbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:26px}
+.qbar label{font-size:13px;color:#3a4250;font-weight:600}
+.qbar input{height:38px;border:1px solid var(--bd);border-radius:7px;padding:0 12px;font-size:13px;width:180px}
+.qbar input::placeholder{color:#b9c0cc}
+.btn{height:38px;padding:0 26px;background:var(--pri);color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(.95)}
+.subtabs{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.subtabs .lb{font-size:14px;color:#3a4250}
+.subtabs .tab{background:var(--pri);color:#fff;font-size:13px;padding:6px 14px;border-radius:7px;cursor:pointer}
+.subtabs .tab.off{background:#eef0f5;color:#6b7280}
+/* 大表格 */
+.grid{width:100%;border-collapse:collapse;table-layout:fixed}
+.grid td{border:1px solid var(--line);padding:11px 10px;font-size:13px;height:44px;vertical-align:middle}
+.grid td.lbl{color:#3a4250;text-align:right;width:9%;white-space:nowrap;background:#fbfcfe}
+.grid td.val{color:#1f2937;text-align:center;width:7.5%;font-variant-numeric:tabular-nums}
+.grid td.sec{text-align:center;font-weight:800;color:var(--red);font-size:15px;letter-spacing:1px;background:#fff}
+.grid td.blank{background:#fff}
+.pos{color:var(--green);font-weight:600}
+/* 新增高亮 */
+.grid td.newlbl{background:var(--hl);color:#8a6a00;font-weight:700;position:relative}
+.grid td.newval{background:var(--hl);font-weight:700;color:#1f2937}
+.newbadge{display:inline-block;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle}
+.hint{width:14px;height:14px;border-radius:50%;background:#c9a227;color:#fff;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:help;margin-left:5px;position:relative;vertical-align:middle}
+.hint .tt{display:none;position:absolute;bottom:150%;left:50%;transform:translateX(-50%);background:#26324a;color:#fff;font-size:11.5px;font-weight:400;padding:9px 12px;border-radius:6px;width:250px;line-height:1.7;z-index:60;text-align:left;letter-spacing:0}
+.hint:hover .tt{display:block}
+.fmtnote{color:var(--red);font-size:11px;font-weight:600;margin-left:6px}
+/* PRD 抽屉 */
+.prd-fab{position:fixed;right:26px;bottom:26px;background:#26324a;color:#fff;padding:12px 20px;border-radius:26px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 6px 20px rgba(20,30,60,.25);z-index:100}
+.mask{display:none;position:fixed;inset:0;background:rgba(15,20,35,.4);z-index:200}
+.mask.on{display:block}
+.drawer{position:fixed;top:0;right:-820px;width:800px;max-width:94vw;height:100vh;background:#fff;z-index:201;transition:right .28s;overflow-y:auto;box-shadow:-8px 0 30px rgba(0,0,0,.15)}
+.drawer.on{right:0}
+.dr-head{position:sticky;top:0;background:#26324a;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+.dr-head .t{font-size:16px;font-weight:700}
+.dr-head .t small{font-weight:400;opacity:.7;margin-left:8px;font-size:12px}
+.dr-head .c{cursor:pointer;font-size:20px}
+.dr-body{padding:22px 26px 60px}
+.h2{font-size:15px;font-weight:800;color:#26324a;margin:24px 0 10px;padding-left:10px;border-left:4px solid var(--pri)}
+.h2:first-child{margin-top:0}
+.dr-body p{line-height:1.85;color:#39404c;margin:7px 0}
+.dr-body b{color:#1f2937}
+.tag{display:inline-block;padding:1px 8px;border-radius:4px;font-size:11.5px;font-weight:600;margin:0 2px}
+.tag.g{background:#eafaf0;color:var(--green)}.tag.r{background:#fdecec;color:var(--red)}.tag.b{background:#eef2ff;color:var(--pri)}.tag.y{background:#fff5db;color:#b8860b}
+table.p{width:100%;border-collapse:collapse;margin:10px 0;font-size:12.5px}
+table.p th{background:#f4f6fb;color:#26324a;font-weight:700;text-align:left;padding:9px 11px;border:1px solid #e6e9ef}
+table.p td{padding:9px 11px;border:1px solid #e6e9ef;color:#39404c;vertical-align:top;line-height:1.6}
+table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px;color:#c0392b;font-family:Menlo,monospace}
+.callout{border-radius:8px;padding:12px 15px;margin:12px 0;font-size:12.5px;line-height:1.8}
+.callout.ok{background:#f0fbf4;border:1px solid #bfe9cd}
+.callout.warn{background:#fffaf0;border:1px solid #f2dca8}
+.callout .ct{font-weight:700;margin-bottom:3px}
+.callout.ok .ct{color:var(--green)}.callout.warn .ct{color:#b8860b}
+.flow{background:#f7f9fc;border:1px solid #e6e9ef;border-radius:8px;padding:14px 16px;font-family:Menlo,monospace;font-size:12px;line-height:1.95;color:#3a4250;white-space:pre;overflow-x:auto}
+.kbd{font-family:Menlo,monospace;background:#f2f4f8;padding:1px 6px;border-radius:4px;color:#c0392b;font-size:12px}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="win-top"></div>
+  <div class="win-bar"><div class="t">用户详情</div><div class="x">✕</div></div>
+  <div class="body">
+
+    <div class="qbar">
+      <label>用户ID：</label><input id="uid" value="2251214">
+      <label style="margin-left:8px">开始时间</label><input placeholder="开始时间">
+      <label>结束时间</label><input placeholder="结束时间">
+      <button class="btn" onclick="query()" style="margin-left:20px">查询</button>
+      <span style="margin-left:auto;color:#98a1b3;font-size:12px">切换示例：
+        <select id="demo" onchange="query()" style="height:34px;border:1px solid var(--bd);border-radius:6px;padding:0 8px">
+          <option value="0">2251214 · 有退回</option>
+          <option value="1">2251215 · 无退回</option>
+          <option value="2">2251216 · 多次退回</option>
+        </select>
+      </span>
+    </div>
+
+    <div class="subtabs"><span class="lb">会员详细信息</span><span class="tab">打码游戏统计</span></div>
+
+    <table class="grid" id="detail"></table>
+  </div>
+</div>
+
+<div class="prd-fab" onclick="openPrd()">📋 需求说明文档</div>
+<div class="mask" id="mask" onclick="closePrd()"></div>
+<div class="drawer" id="drawer">
+  <div class="dr-head"><div class="t">会员详情 · 新增「提现退回」字段<small>PRD 需求说明 v1.0 · 2026-07-30</small></div><div class="c" onclick="closePrd()">✕</div></div>
+  <div class="dr-body">
+
+    <div class="h2">一、改造页面与字段</div>
+    <p><b>改造页面：</b>V1 后台 → 会员管理 → <b>用户详情弹窗</b>。</p>
+    <p><b>新增字段：</b>在「充值提现」区块新增一项 <b>提现退回</b>，展示<b>次数 / 金额</b>两个值（格式与「人工充值 <span class="kbd">0/0</span>」「累计充值 <span class="kbd">0.00/0</span>」一致）。</p>
+    <table class="p">
+      <tr><th style="width:20%">字段</th><th style="width:16%">展示格式</th><th>口径</th></tr>
+      <tr><td><b>提现退回</b></td><td>次数 / 金额<br>例：<code>3 / 1,250.00</code></td><td>该用户历史所有<b>提现申请被驳回或出款失败、金额已退回余额</b>的记录：笔数汇总为「次数」，退回本金汇总为「金额」。</td></tr>
+    </table>
+    <p style="color:#98a1b3">位置：置于「充值提现」区块，与「充值优惠券奖金总额」同一行右侧（见原型黄色高亮处）。</p>
+
+    <div class="h2">二、口径与边界</div>
+    <table class="p">
+      <tr><th style="width:26%">问题</th><th>取定 / 建议</th></tr>
+      <tr><td>退回包含哪些类型 <span class="tag r">需拍板</span></td><td>推荐 <b>提现退回 = Type IN (6 出款失败退回, 9 审核拒绝退回)</b>。</td></tr>
+      <tr><td>金额口径</td><td>取<b>账变金额 ChangeAmount</b>＝实际退回用户余额的钱（用户真实拿回的金额）；与「累计提现手续费」互不重复。</td></tr>
+      <tr><td>次数含义</td><td>一笔退回账变 = 1 次；<b>部分退回（差额退回）也各计一条</b>，比按提现单状态更贴近真实退款事件。</td></tr>
+      <tr><td>数据时效</td><td>与账变同步实时汇总统计。</td></tr>
+      <tr><td>时间范围</td><td>跟随弹窗「开始/结束时间」，与现有奖励字段同一套时间处理逻辑。</td></tr>
+    </table>
+
+    <div class="h2">三、验收标准</div>
+    <p>1. 用户详情「充值提现」区显示「提现退回」，格式 <b>次数 / 金额</b>，金额保留 2 位小数、千分位。</p>
+    <p>2. 数值 = 账变 Type IN (6,9) 的次数与金额。</p>
+    <p>3. 无退回时显示 <span class="kbd">0 / 0.00</span>，不报错、不留空。</p>
+    <p>4. 受弹窗时间筛选影响，行为与本页其它活动奖励字段一致。</p>
+  </div>
+</div>
+
+<script>
+const DATA=[
+ {uid:'2251214', refundTimes:3,  refundAmt:1250.00, bal:'666.00', reg:'2026-07-30 10:38:45'},
+ {uid:'2251215', refundTimes:0,  refundAmt:0,       bal:'1,203.00', reg:'2026-06-11 09:02:10'},
+ {uid:'2251216', refundTimes:12, refundAmt:38650.50,bal:'92.30',  reg:'2026-05-02 21:15:33'}
+];
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function render(d){
+  const rf = `${d.refundTimes} / ${fmt(d.refundAmt)}`;
+  document.getElementById('detail').innerHTML=`
+  <tr>
+    <td class="sec" colspan="4">充值提现</td>
+    <td class="sec" colspan="6">活动奖励</td>
+    <td class="sec" colspan="2">VIP</td>
+    <td class="sec" colspan="2">保险箱</td>
+  </tr>
+  <tr>
+    <td class="lbl">人工充值</td><td class="val">0/0</td><td class="lbl">充值赠送</td><td class="val">0</td>
+    <td class="lbl">已领红包</td><td class="val">0</td><td class="lbl">注册送金</td><td class="val">666</td><td class="lbl">代理红包充值</td><td class="val">0</td>
+    <td class="lbl">VIP经验值</td><td class="val">0</td><td class="lbl">已领取收益</td><td class="val">0</td>
+  </tr>
+  <tr>
+    <td class="lbl">累计充值</td><td class="val">0.00/0</td><td class="lbl">彩金充值</td><td class="val">0</td>
+    <td class="lbl">每周/日奖励</td><td class="val">0/0</td><td class="lbl">首充奖励</td><td class="val">0</td><td class="lbl">新会员礼包</td><td class="val">0.00</td>
+    <td class="lbl">VIP等级</td><td class="val">0</td><td class="lbl">待领取收益</td><td class="val">0</td>
+  </tr>
+  <tr>
+    <td class="lbl">累计提现</td><td class="val">0.00/0</td><td class="lbl">等待出款</td><td class="val">0.00</td>
+    <td class="lbl">超级大奖</td><td class="val">0</td><td class="lbl">每日签到</td><td class="val">0</td><td class="lbl">大转盘</td><td class="val">0</td>
+    <td class="lbl">VIP每月奖励</td><td class="val">0/0</td><td class="lbl">保险箱利率</td><td class="val">58.00%</td>
+  </tr>
+  <tr>
+    <td class="lbl">累计充提差</td><td class="val pos">0.00</td><td class="lbl">累计提现手续费</td><td class="val">0.00</td>
+    <td class="lbl">锦标赛奖励</td><td class="val">0</td><td class="lbl">新手礼包</td><td class="val">0</td><td class="lbl">TG频道活动</td><td class="val">0</td>
+    <td class="lbl">VIP升级礼包</td><td class="val">0/0</td><td class="blank"></td><td class="blank"></td>
+  </tr>
+  <tr>
+    <td class="lbl">充值优惠券奖金总额</td><td class="val">0.00</td>
+    <td class="newlbl">提现退回 <span class="newbadge">新增</span><span class="hint">?<span class="tt">展示次数 / 金额两个值，该用户历史所有提现申请被驳回或出款失败、金额已退回余额的记录：笔数汇总为「次数」，退回本金汇总为「金额」。</span></span></td>
+    <td class="newval">${rf}</td>
+    <td class="lbl">回归奖励</td><td class="val">0</td><td class="lbl">邀请转盘奖励</td><td class="val">0</td><td class="lbl">回归新充值奖励</td><td class="val">0</td>
+    <td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td>
+  </tr>
+  <tr>
+    <td class="sec" colspan="2">余额</td><td class="sec" colspan="2">打码/洗码</td><td class="sec" colspan="2">代理数据</td>
+    <td class="sec" colspan="8">账号数据</td>
+  </tr>
+  <tr>
+    <td class="lbl">用户余额</td><td class="val">${d.bal}</td><td class="lbl">累计打码量</td><td class="val">0</td><td class="lbl">总获得佣金</td><td class="val">0</td>
+    <td class="lbl">上级代理ID</td><td class="val">100017</td><td class="lbl">充值等级</td><td class="val">L0</td><td class="lbl">首次登录</td><td class="val">2026-07-30</td><td class="lbl">注册时间</td><td class="val">${d.reg}</td>
+  </tr>
+  <tr>
+    <td class="lbl">保险箱及三方余额</td><td class="val">0 / 0.0</td><td class="lbl">需要打码量</td><td class="val">0</td><td class="lbl">邀请奖励</td><td class="val">0</td>
+    <td class="lbl">会员ID</td><td class="val">${d.uid}</td><td class="lbl">绑定(邮箱/手机号)</td><td class="val">—</td><td class="lbl">首充金额</td><td class="val">0</td><td class="lbl">首充日期</td><td class="val">—</td>
+  </tr>
+  <tr>
+    <td class="lbl">未开奖下注金额</td><td class="val">0.00</td><td class="lbl">会员洗码量</td><td class="val">0.00</td><td class="lbl">下级数量</td><td class="val">0</td>
+    <td class="lbl">账号</td><td class="val">+919155550093</td><td class="lbl">用户积分</td><td class="val">0</td><td class="lbl">次充金额</td><td class="val">0</td><td class="lbl">次充日期</td><td class="val">—</td>
+  </tr>
+  <tr>
+    <td class="lbl">本次打码倍数</td><td class="val" style="color:var(--red)">--</td><td class="lbl">返水金额</td><td class="val">0.00</td><td class="lbl">合伙人奖励</td><td class="val">0</td>
+    <td class="lbl">是否领取返佣</td><td class="val">是</td><td class="lbl">是否有效</td><td class="val">否</td><td class="lbl">三充金额</td><td class="val">0</td><td class="lbl">三充日期</td><td class="val">—</td>
+  </tr>
+  <tr>
+    <td class="blank" colspan="6"></td>
+    <td class="lbl">语种</td><td class="val">中文简体</td><td class="blank" colspan="6"></td>
+  </tr>`;
+}
+function query(){const i=+document.getElementById('demo').value;const d=DATA[i];document.getElementById('uid').value=d.uid;render(d);}
+function openPrd(){document.getElementById('mask').classList.add('on');document.getElementById('drawer').classList.add('on');}
+function closePrd(){document.getElementById('mask').classList.remove('on');document.getElementById('drawer').classList.remove('on');}
+render(DATA[0]);
+</script>
+</body>
+</html>
