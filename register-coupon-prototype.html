@@ -1206,7 +1206,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <tr><td>券码发放上限</td><td>条件</td><td><b>仅 代理邀请链接 / 代理红包码 显示且必填 ≥ 1</b>；渠道注册码 / 人工充值 <b>无此项</b>（不设发放上限、可无限发放——尤其人工充值为运营高频主动发券）。<br>次数范围 <u>1 – 10,000,000</u>；多代理时为每代理独立配额——分配给 N 个代理时，每个代理各得上限次、各自计数、互不占用</td></tr>
         <tr><td>每手机号 / 白名单</td><td>是</td><td>每手机号限领 1 次（仅「渠道注册码 / 代理邀请链接」的注册领取生效、防刷；人工充值 / 代理红包码为定向发放，不受此限）；<br>白名单单选 不限制 / 仅白名单可领（属券规格，渠道注册码 / 代理邀请链接均在此设；<br>多代理时<span style="color:#c0392b">全体共享同一批名单</span>、按注册链接归因代理；<br>仅手机号注册命中）。选「仅白名单可领」后出「选择名单」下拉——仅列与当前适用渠道归属一致的白名单，可跳白名单库新建</td></tr>
         <tr><td colspan="3" style="background:#eef4ff;color:#1a3a6b;font-weight:700;padding:6px 11px">三、使用限制</td></tr>
-        <tr><td>已领取券有效期</td><td>是</td><td>领取后 N 天内可用，范围 <u>1 – 365</u> 天，超时自动过期</td></tr>
+        <tr><td>已领取券有效期</td><td>是</td><td>领取后 N 天内可用，范围 <u>1 – 365</u> 天，超时自动过期。<b>客户端显示口径</b>：券包 / 充值用券一律显<b>到期日（绝对日期，如"至 8/10"）</b>——到期日 ＝ <b>领取时间 + 本有效期、领取时算好落库</b>，客户端只读固定日期，<u>不显总时长（"7天/7D"）、不做倒计时、不在客户端判到期</u>（到期以服务端为准）</td></tr>
         <tr><td>最低充值门槛</td><td>是</td><td>₹，范围 <u>0 – 站点币种上限</u>（「$10,000 等值」×汇率取整，如 ₹1,000,000；0＝不限）；<br>单笔充值 ≥ 此额才可用券</td></tr>
         <tr><td>适用充值大类</td><td>是</td><td>多选：UPI / 银行卡 / USDT / E-Wallet / ARPay（含「全选」快捷框），<u>必须至少勾 1 个</u>；<br>充值时大类不符则该券置灰不可用</td></tr>
         <tr><td>仅首充有效</td><td>否</td><td>勾选后该券仅用户首次充值时可用，非首充置灰</td></tr>
@@ -2101,10 +2101,10 @@ function submitDeposit(){const R=calcReward();toast(!R.useCp?tt('rkDepNoCp'):(R.
 
 /* ===== 三场景对照页（静态展示）· 三份完全一致：一屏三列演示三种赠金关系下的明细结构差异 ===== */
 var SCN_COUPONS=[
-  {r:10,cap:50,th:0,valid:7,sel:true},
-  {r:8,cap:100,th:0,valid:7,cats:['USDT']},
-  {r:20,cap:30,th:200,valid:30,first:true},
-  {r:15,cap:0,th:800,valid:7,dim:true}
+  {r:10,cap:50,th:0,valid:7,exp:'8/10',sel:true},
+  {r:8,cap:100,th:0,valid:7,exp:'8/10',cats:['USDT']},
+  {r:20,cap:30,th:200,valid:30,exp:'9/2',first:true},
+  {r:15,cap:0,th:800,valid:7,exp:'8/5',dim:true}
 ];
 var SCN=[
   {cls:'c1',head:'cap1',chName:'123 (BullPay)',chRange:'10 — 100K',badge:'+9%',fee:true,total:'585',formula:'formulaStack',rows:[
@@ -2132,7 +2132,7 @@ function scCoupons(){
     if(c.cats&&c.cats.length)l2.push(c.cats.join('/')+' only');
     if(c.first)l2.push('First only');
     var oc=c.dim?' onclick="scDimToast('+c.th+')"':'';
-    return '<div class="'+cls+'"'+oc+'><span class="pcc-exp">'+c.valid+'D</span><span class="pcc-ck">✓</span><div class="pcc-r">'+c.r+'%</div><div class="pcc-s">'+l1+'</div><div class="pcc-s2">'+l2.join(' · ')+'</div></div>';
+    return '<div class="'+cls+'"'+oc+'><span class="pcc-ck">✓</span><div class="pcc-r">'+c.r+'%</div><div class="pcc-s">'+l1+'</div><div class="pcc-s2">'+l2.join(' · ')+'</div></div>';
   }).join('');
 }
 function scColHTML(s){
