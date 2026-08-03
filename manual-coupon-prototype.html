@@ -285,7 +285,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
             <li>发放方式：自动领取＝券直接入袋；弹窗领取＝<b>需用户在登录弹窗点「领取」才入袋</b>（未领取则不入袋），<b>无领取截止、无未领作废</b></li>
             <li>是否需审核由系统按操作人账号权限自动判断（不在发券表单手动勾选）；批量同理，需审核账号点「提交审核」入审核流</li>
             <li>口径：会员主动获取（红包码兑换 / 注册得券）一律自动入袋；<b>仅人工充值的充值优惠券</b>可选自动 / 弹窗领取（弹窗领取＝领取才入袋），<b>彩金充值 / 存款 / USDT 均直接到账</b>、无发放方式</li>
-            <li>批量校验：已持同券→失败；会员ID重复→提醒运营（不自动去重，自行决定是否删除）；单次仅限同一充值类型</li>
+            <li>批量校验：<b>会员不存在 / 无效ID → 失败</b>；会员ID 重复 → 提醒运营（不自动去重、标出重复项，自行决定是否删除——<b>同一会员可发多张券属正常</b>）；单次仅限同一充值类型（<b>不做"已持同类券"拦截，见 #31 BR-10</b>）</li>
             <li>批量导入：对名单内每个会员各发一张同规格券</li>
           </ul>
         </div>
@@ -569,7 +569,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
           <tr><td>正式账号</td><td>2160646</td><td>充值优惠券</td><td>—</td><td style="color:#389e0d">校验通过</td><td><span style="color:#389e0d;font-weight:600">待执行</span></td></tr>
           <tr><td>正式账号</td><td>2247609</td><td>充值优惠券</td><td>vip</td><td style="color:#389e0d">校验通过</td><td><span style="color:#389e0d;font-weight:600">待执行</span></td></tr>
           <tr><td>正式账号</td><td>2160646</td><td>充值优惠券</td><td>—</td><td style="color:#fa8c16">会员ID 重复，请运营确认是否删除（不自动去重）</td><td><span style="color:#fa8c16;font-weight:600">提醒</span></td></tr>
-          <tr><td>正式账号</td><td>2299001</td><td>充值优惠券</td><td>—</td><td style="color:#f5222d">已持未使用同类券</td><td><span style="color:#f5222d;font-weight:600">失败</span></td></tr>
+          <tr><td>—</td><td>9999999</td><td>充值优惠券</td><td>—</td><td style="color:#f5222d">会员ID 不存在 / 无效</td><td><span style="color:#f5222d;font-weight:600">失败</span></td></tr>
         </tbody>
       </table></div>
       <div id="imp-tbl-other" style="display:none;overflow-x:auto"><table class="tbl" style="font-size:12.5px;min-width:680px">
@@ -696,7 +696,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <tr><td><span class="tag t-v1">V1后台</span></td><td>人工充值发券</td><td><span class="tag t-mod">改造</span></td><td>存款类型新增「充值优惠券」；单会员发放 + 批量导入弹窗（选类型 / 下模板 / 上传 / 校验 / 券配置）</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>发券审核</td><td><span class="tag t-mod">改造</span></td><td>发券并入通用「后台操作审核记录」，子类型新增「充值优惠券」，其余字段复用</td></tr>
         <tr><td><span class="tag t-v1">V1后台</span></td><td>后台操作权限配置</td><td><span class="tag t-mod">改造</span></td><td><b style="color:#c0392b">无原型</b>：充值权限（多选）新增「充值优惠券」勾选项；决定谁能发券、是否需审核（详见 3.2 末「权限来源」）</td></tr>
-        <tr><td><span class="tag t-cl">客户端</span></td><td>弹窗领取 / 我的充值优惠券 / 充值用券 / 个人中心</td><td><span class="tag t-new">新增</span></td><td>登录弹窗领券、券包、充值用券（多语言：英 / 印地 / 越南等）</td></tr>
+        <tr><td><span class="tag t-cl">客户端</span></td><td>弹窗领取 / 我的充值优惠券 / 充值用券 / 个人中心</td><td><span class="tag t-new">新增</span></td><td>登录弹窗领券、券包、充值用券（弹窗领券 / 券包多语言：英 / 印地 / 越南；<b>「充值用券」券内强制英文</b>）</td></tr>
       </table>
     </div>
 
@@ -737,7 +737,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <tr><td>适用充值大类</td><td>是</td><td>现填规格：多选 <b>UPI / 银行卡 / USDT / E-Wallet / ARPay</b>（含「全选」），<b>至少勾 1 个</b></td></tr>
         <tr><td>券使用限制</td><td>否</td><td>现填规格：勾「<b>仅首充有效</b>」后仅用户首次充值可用，非首充置灰</td></tr>
         <tr><td>打码量设置</td><td>是</td><td>现填规格：倍（彩金按打码倍数计入流水）</td></tr>
-        <tr><td>发放方式</td><td>是</td><td><b>仅券类型有</b>：自动领取 / 弹窗领取——<b>两者均发放即入袋</b>，弹窗仅多一个到账告知弹窗、券均已入账（BR-02）</td></tr>
+        <tr><td>发放方式</td><td>是</td><td><b>仅券类型有</b>：自动领取＝直接入袋；<b>弹窗领取＝领取型</b>——会员登录弹窗点「领取」才入袋、<b>未领取则不入袋</b>（见 BR-02）</td></tr>
         <tr><td>预览</td><td>自动</td><td>券面 + 充 ₹100 / 500 / 1000 试算（未达门槛显示「未达门槛」）+ 通道赠金关系</td></tr>
         <tr><td>备注</td><td>否</td><td>操作备注，留存于操作 / 审核记录</td></tr>
         <tr><td>充值 / 发放</td><td>按钮</td><td>提交；<b>是否进审核流按操作人账号权限自动判定</b>（BR-04），金额 / 数量不作判定</td></tr>
@@ -750,7 +750,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         <tr><td>模板下载 / 上传Excel</td><td>下载对应模板 → 上传；<b>单次 ≤ 1.5 万条、文件 ≤ 4M</b>（xlsx / csv）</td></tr>
         <tr><td>充值优惠券模板列</td><td>账户类型 / 会员ID / 充值类型 / 备注；<b>无充值金额列、无打码量列</b>——打码量随券规格走，在券配置区统一配</td></tr>
         <tr><td>其他类型模板列</td><td>账户类型 / 会员ID / <b>充值金额</b> / 充值类型 / 打码量倍数 / 备注；金额 / 打码量按导入列执行</td></tr>
-        <tr><td>校验结果（三态）</td><td>逐行展示校验信息 + 状态，顶部汇总「校验错误 / 重复提醒 / 总数」：<br><b>失败</b>（已持未使用同类券）· <b>提醒</b>（会员ID 重复——<b>不自动去重</b>，标出重复项告知运营，由运营自行决定是否删除；同一会员可发多张，属正常场景）· <b>待执行</b>（校验通过）；<br><b>仅「待执行」进入发放 / 审核</b>（提醒项经运营确认保留后转「待执行」）</td></tr>
+        <tr><td>校验结果（三态）</td><td>逐行展示校验信息 + 状态，顶部汇总「校验错误 / 重复提醒 / 总数」：<br><b>失败</b>（会员ID 不存在 / 无效）· <b>提醒</b>（会员ID 重复——<b>不自动去重</b>，标出重复项告知运营，由运营自行决定是否删除；同一会员可发多张，属正常场景）· <b>待执行</b>（校验通过）；<br><b>仅「待执行」进入发放 / 审核</b>（提醒项经运营确认保留后转「待执行」）</td></tr>
         <tr><td>券配置区（充值优惠券）</td><td>券来源（券码库 / 现填规格）+ 券规格（同 ③）+ 通道赠金关系 + 券使用限制 + 适用充值大类 + 发放方式；<b>全名单统一，名单只管发给谁（会员ID）</b>，对名单内每人各发一张同规格券</td></tr>
         <tr><td>其他类型配置</td><td>人工充值 / 彩金充值 / USDT 均<b>直接到账</b>、彩金扣除为扣款，<b>无发放方式</b>（BR-03）</td></tr>
         <tr><td>底部执行</td><td>按操作人权限（BR-04）：免审 →「开始执行」直接发放；需审核 →「提交审核」入发券审核</td></tr>
@@ -799,26 +799,26 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <p class="note">测试要点：①「充值优惠券」权限勾 / 不勾 → 该操作人「人工充值发券」的存款类型下拉<b>是否出现「充值优惠券」</b>；②「是否需要审核」开 / 关 → 同一操作人发券后<b>是进「待审核」还是直接发放</b>（与 BR-04 一致，与金额 / 数量无关）。</p>
 
       <div class="h2" id="s33">3.3 客户端（新增 · 多语言）</div>
-      <p>四页均支持<b>多语言</b>（当前英 / 印地 / 越南，可扩展）；赠金计算与到账明细口径统一见 3.4，本节只写页面流程与字段。以下每个子页按页面区块列表：① 弹窗领取 → ② 我的充值优惠券 → ③ 充值用券 → ④ 个人中心。</p>
+      <p>弹窗领取 / 我的充值优惠券 / 个人中心 支持<b>多语言</b>（当前英 / 印地 / 越南，可扩展）；<b>「充值用券」券展示强制英文</b>（券内容不做多语言）；赠金计算与到账明细口径统一见 3.4，本节只写页面流程与字段。以下每个子页按页面区块列表：① 弹窗领取 → ② 我的充值优惠券 → ③ 充值用券 → ④ 个人中心。</p>
 
       <p><b>① 弹窗领取（会员端 H5 · 首页）</b></p>
       <table class="t">
         <tr><th style="width:126px">区块 / 元素</th><th>说明 / 取值</th></tr>
-        <tr><td>触发</td><td>弹窗领取模式的券<b>发放即入袋</b>，会员登录首页即弹（首页背景置灰模糊）</td></tr>
+        <tr><td>触发</td><td>弹窗领取模式的券<b>需点「领取」才入袋</b>，会员登录首页即弹出领取弹窗（首页背景置灰模糊）</td></tr>
         <tr><td>弹窗头部</td><td>🎁「专属充值优惠券到账」+ 副标「运营送您 N 张充值优惠券」</td></tr>
         <tr><td>券列表</td><td><b>多张合并一个弹窗</b>，逐张列出 比例 / 上限 / 门槛 / 有效期（如 10% · 上限₹50 · 无门槛 · 7 天）</td></tr>
         <tr><td>底部按钮</td><td><b>仅一个到账告知按钮、无关闭 ✕</b>；点击后收起并提示「已在『我的充值优惠券』」</td></tr>
-        <tr><td>到账口径</td><td>券在<b>发放时已入袋</b>，弹窗仅通知——点不点、看没看到券都已在账户；即<b>发放即入袋、弹窗仅告知</b>（完整口径见 BR-02）</td></tr>
+        <tr><td>到账口径</td><td>券需在弹窗<b>点「领取」才入袋（未领取则不入袋）</b>，为<b>领取型弹窗</b>；未领取的券保留待领、券码停用时随之失效（完整口径见 BR-02 / BR-07）</td></tr>
       </table>
 
       <p><b>② 我的充值优惠券（会员端 H5 · 券包）</b></p>
       <table class="t">
         <tr><th style="width:126px">区块 / 元素</th><th>说明 / 取值</th></tr>
         <tr><td>顶部 tab</td><td><b>未使用（带数量）/ 已使用 / 已过期</b></td></tr>
-        <tr><td>券卡字段</td><td>券码 / 比例 / 上限 / 券名「充值优惠券」/ 门槛 / 适用大类 / 仅首充 / 剩余有效天数（<b>仅展示会员可见规格</b>，不显示赠金关系、券来源等后台信息）</td></tr>
+        <tr><td>券卡字段</td><td>券码 / 比例 / 上限 / 券名「充值优惠券」/ 门槛 / 适用大类 / 仅首充 / 剩余有效天数（<b>仅展示会员可见规格</b>，不显示赠金关系、券来源等后台信息）。<b>紧凑卡片</b>：左侧力度大字 +「Up to 上限 / Min 门槛」+ 左上「⏱N d」有效期角标；右侧券码 +「仅首充 / 仅 X 大类」说明</td></tr>
         <tr><td>未使用</td><td>券卡带「<b>去使用</b>」按钮 → 充值用券页（③）</td></tr>
-        <tr><td>已使用</td><td>灰态，显示核销订单号（如 CO...8842）</td></tr>
-        <tr><td>已过期</td><td>灰态，显示过期日期（如 2026-06-15 已过期）</td></tr>
+        <tr><td>已使用</td><td>灰态 +「已使用」标记；<b>展示与未使用相同的券规格信息，不再显示订单号</b>（会员端券包只看券本身；核销订单号在后台「领取记录 / 发券审核」可查）</td></tr>
+        <tr><td>已过期</td><td>灰态 +「已过期」标记</td></tr>
       </table>
 
       <p><b>③ 充值用券（会员端 H5 · 充值页，三场景对照）</b></p>
@@ -878,18 +878,19 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
     <div class="sec">
       <div class="h1" id="s4">四、业务规则</div>
       <div class="br"><span class="no">BR-01</span><div>存款类型选「<b>充值优惠券</b>」：隐藏 存款金额 / 打码量，显示 <b>券规格 + 发放方式</b>。</div></div>
-      <div class="br"><span class="no">BR-02</span><div><b>发放方式仅「充值优惠券」有</b>：<br>自动领取＝券直接入袋 + 站内信通知；<br>弹窗领取＝券<b>同样发放即入袋</b>，只是会员登录首页时<b>多弹一个到账告知弹窗</b>——<b>弹窗仅为通知，点不点「领取」、有没有看到，券都已在账户里</b>；<br>两种方式券归属逻辑相同，<b>均无「领取截止」、无未领作废</b>。</div></div>
+      <div class="br"><span class="no">BR-02</span><div><b>发放方式仅「充值优惠券」有</b>：<br>自动领取＝券直接入袋 + 站内信通知；<br>弹窗领取＝<b>需会员在登录弹窗点「领取」才入袋（未领取则不入袋）</b>，为<b>领取型弹窗</b>（与注册券的「通知型·发放即入袋」不同，见 #31 BR-08）；<br><b>均无「领取截止」、无未领作废</b>（未领取的券保留待领；但券码被停用时，未领取＝未落袋、随之失效，见 BR-07）。</div></div>
       <div class="br"><span class="no">BR-03</span><div><b>彩金充值 / 人工充值 / USDT 直接到账、彩金扣除为扣款 → 均无发放方式</b>（非券的资金操作没有"领取"概念）。</div></div>
       <div class="br"><span class="no">BR-04</span><div><b>是否审核沿用现有「人工充值」审核逻辑</b>：由<b>操作人后台账号的权限</b>决定、系统自动判断（不在发券表单手动勾选）——<b>需审核账号</b>提交的发券（单个 / 批量一视同仁）一律进「发券审核」待复核，<b>免审账号</b>直接执行；<br><b>金额与数量均不作为判定条件</b>；<br>权限与「是否需要审核」开关的配置来源见 <b>3.2 末「后台操作权限配置」</b>。</div></div>
       <div class="br"><span class="no">BR-05</span><div><b>券来源</b>：券码库＝唯一券源；现填规格也<b>自动登记成券码</b>。批量时名单只管发给谁（会员ID），券规格 / 发放方式在弹窗统一配置。</div></div>
       <div class="br"><span class="no">BR-06</span><div><b>券 vs 通道赠金关系</b>：互斥·取高（默认）/ 叠加 / 互斥·优先券，三选一（属券规格 —— 从券码库选时随券只读带出，现填规格时录入）。<b>计算口径见「3.4 赠金计算规则（券 vs 通道赠金）」</b>，本条不另立算式。</div></div>
+      <div class="br"><span class="no">BR-07</span><div><b>券码停用口径（与 #31 / #16 统一 —— 以「落袋」为界）</b>：运营在「优惠券管理」停用某券码后——<b>未落袋（未进会员券包）的发放能力立即停</b>：人工充值 / 现填的选券下拉不再列出该券码、<b>弹窗领取但「未领取」的券随之失效</b>（未落袋、不能再领）；<b>已落袋到会员券包的券（不论是否已使用）不回收、不失效</b>，按券自身有效期正常用。<u>边界看「落袋与否」、不看「使用与否」</u>，与 #31「操作·停用」规则、#16 BR-10 红包联动<b>同一口径</b>。</div></div>
     </div>
 
     <div class="sec">
       <div class="h1" id="s5">五、限制条件与校验</div>
       <ul class="l">
         <li>批量单次 <b>≤ 1.5 万条</b>，文件 <b>≤ 4M</b>（xlsx / csv）。</li>
-        <li>校验：<b>已持未使用同类券（同规格 / 同类型）</b> → 失败；<br>会员ID 重复 → <b>提醒运营</b>（<b>不自动去重</b>，标出重复项，由运营自行决定是否删除——同一会员可发多张券属正常场景）；<br><b>单次仅限同一充值类型</b>。<b>单会员发放同样校验</b>已持同类券。<br><span style="color:#888">注：充值优惠券<b>不做黑名单校验</b>。</span></li>
+        <li>校验：<b>会员ID 不存在 / 无效 → 失败</b>；<br>会员ID 重复 → <b>提醒运营</b>（<b>不自动去重</b>，标出重复项，由运营自行决定是否删除——<b>同一会员可发多张券属正常场景</b>）；<br><b>单次仅限同一充值类型</b>。<br><span style="color:#888">注：充值优惠券<b>不做黑名单校验</b>、<b>不做"已持同类券"拦截</b>——人工充值为定向发放，同一会员可持多张同类券属正常（见 #31 BR-10）。</span></li>
         <li><b>现填规格须做合法区间校验</b>（比例% / 上限₹ / 已领取券有效期 / 最低充值门槛 / 打码量倍数；适用充值大类<b>至少勾 1 个</b>），避免录入异常规格。</li>
         <li>批量<b>失败 / 忽略清单沿用现有「批量充值」的失败处理逻辑</b>（逐行跳过 + 单条隔离 + 结果清单带状态与原因，复用现有流程；<b>不含失败清单导出 / 修正后重传</b>）。</li>
         <li>口径：会员主动获取（红包码兑换 / 注册得券）一律自动入袋；<b>仅充值优惠券定向发可选弹窗领取</b>。</li>
@@ -920,10 +921,7 @@ function _relShort(v){v=v||'';return v.indexOf('叠加')>=0?'叠加':(v.indexOf(
 function _curCats(){var all=document.getElementById('cat-all');if(all&&all.checked)return null;var names=[];document.querySelectorAll('#cf-fill-wrap .cat-item').forEach(function(c){if(c.checked)names.push(c.parentElement.textContent.trim());});return names.length?names:null;}
 function specCellHTML(o){var cap=o.capNone?'不封顶':'上限 ₹'+o.cap;var main='<b>'+o.ratio+'%</b> · '+cap;var tags=[];var rel=o.rel||'取高';var rc={'取高':'stag-rel-high','叠加':'stag-rel-add','优先券':'stag-rel-cp'}[rel]||'stag-rel-high';tags.push('<span class="stag '+rc+'" title="通道赠金关系：'+rel+'">'+rel+'</span>');if(o.min&&o.min>0)tags.push('<span class="stag stag-min">满 ₹'+o.min+'</span>');if(o.first)tags.push('<span class="stag stag-first">仅首充</span>');if(o.cats&&o.cats.length){var lab=o.cats.length===1?('仅 '+o.cats[0]):('限'+o.cats.length+'类');tags.push('<span class="stag stag-cat" title="适用大类：'+o.cats.join(' / ')+'">'+lab+'</span>');}return '<div class="spec-cell"><div class="spec-main">'+main+'</div><div class="spec-tags">'+tags.join('')+'</div></div>';}
 function couponPreviewFull(o){var r=(parseFloat(o.ratio)||0)/100,cap=parseFloat(o.cap)||0,min=parseInt(o.min)||0;var calc=function(a){if(min>0&&a<min)return '<span style="color:#bbb">未达门槛</span>';var v=Math.floor(a*r);return '赠送 ₹'+(o.capNone?v:Math.min(v,cap));};var relFull=o.rel==='叠加'?'叠加（券+通道都给）':(o.rel==='优先券'?'互斥·优先券':'互斥·取高（默认）');var capTxt=o.capNone?'不封顶':('上限 ₹'+o.cap);var catTxt=(!o.cats||o.cats.length===0||o.cats.length>=5)?'全部（UPI / 银行卡 / USDT / E-Wallet / ARPay）':o.cats.join(' / ');return '<div style="font-size:14px;color:#1f2329"><b style="color:#c0392b;font-size:15px">'+o.ratio+'%</b> · '+capTxt+'</div>'+'<div style="margin-top:6px">充 ₹100 '+calc(100)+'　|　充 ₹500 '+calc(500)+'　|　充 ₹1000 '+calc(1000)+'</div>'+'<div style="margin-top:5px;color:#555">最低充值门槛：<b>'+(min>0?('₹'+min):'无门槛')+'</b>　·　仅首充：<b>'+(o.first?'是':'否')+'</b></div>'+'<div style="margin-top:2px;color:#555">适用大类：<b>'+catTxt+'</b></div>'+'<div style="margin-top:2px;color:#555">打码：<b>'+(o.wager||'1')+' 倍</b>　·　已领取券有效期：<b>'+(o.valid||'7')+' 天</b>　·　通道赠金关系：<b>'+relFull+'</b></div>';}
-function updatePreview(){var el=document.getElementById('cf-preview');if(!el)return;el.innerHTML=couponPreviewFull({ratio:document.getElementById('cf-ratio').value||0,cap:document.getElementById('cf-cap').value,capNone:capMode!=='limit',min:parseInt((document.getElementById('cf-min')||{}).value,10)||0,first:!!(document.getElementById('cf-firstonly')||{}).checked,cats:_curCats(),rel:_relShort((document.getElementById('cf-relation')||{}).value),wager:(document.getElementById('cf-wager')||{}).value||'1',valid:(document.getElementById('cf-valid')||{}).value||'7'});}
-function _fsTwo(n){return (n<10?'0':'')+n;}
-function genFillName(){var d=new Date();return 'AdHoc-'+_fsTwo(d.getMonth()+1)+_fsTwo(d.getDate())+'-'+_fsTwo(d.getHours())+_fsTwo(d.getMinutes());}
-var fillCtx='single';
+function updatePreview(){var el=document.getElementById('cf-preview');if(!el)return;el.innerHTML=couponPreviewFull({ratio:document.getElementById('cf-ratio').value||0,cap:document.getElementById('cf-cap').value,capNone:capMode!=='limit',min:parseInt((document.getElementById('cf-min')||{}).value,10)||0,first:!!(document.getElementById('cf-firstonly')||{}).checked,cats:_curCats(),rel:_relShort((document.getElementById('cf-relation')||{}).value),wager:(document.getElementById('cf-wager')||{}).value||'1',valid:(document.getElementById('cf-valid')||{}).value||'7'});}var fillCtx='single';
 function openFillSpec(ctx){fillCtx=ctx||'single';updatePreview();openModal('fill-spec-modal');}
 function applyFillSpec(){var nm=(document.getElementById('fs-name').value||'').trim();if(!nm){toast('请填写优惠券名称','warning');return;}if(!/^[A-Za-z0-9_-]{1,50}$/.test(nm)){toast('券名仅支持 英文/数字/横杠/下划线','warning');return;}var html=couponPreviewFull({ratio:document.getElementById('cf-ratio').value,cap:document.getElementById('cf-cap').value,capNone:capMode!=='limit',min:parseInt((document.getElementById('cf-min')||{}).value,10)||0,first:!!document.getElementById('cf-firstonly').checked,cats:_curCats(),rel:_relShort(document.getElementById('cf-relation').value),wager:(document.getElementById('cf-wager')||{}).value||'1',valid:(document.getElementById('cf-valid')||{}).value||'7'});var tgt=document.getElementById(fillCtx==='batch'?'fill-summary-batch':'fill-summary-single');if(tgt){tgt.style.color='';tgt.innerHTML='<div style="display:block;margin-top:8px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;padding:10px 12px;line-height:1.6;max-width:440px"><div style="font-weight:600;color:#c0390f;margin-bottom:5px">'+nm+'</div>'+html+'</div>';}closeModal('fill-spec-modal');toast('券规格已保存，将自动登记为券码「'+nm+'」','success');}
 function toggleAllCat(el){document.querySelectorAll('#cf-fill-wrap .cat-item').forEach(function(c){c.checked=el.checked;});}
