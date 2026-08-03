@@ -348,7 +348,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
         </div>
         <div class="claim-overlay" id="claim-overlay">
           <div class="claim-modal">
-            <div class="claim-top"><div style="font-size:34px">🎁</div><div class="claim-t" data-t="p3Title">专属充值优惠券到账</div><div class="claim-s" data-t="p3Sub">运营送您 2 张充值优惠券</div></div>
+            <div class="claim-top"><div style="font-size:34px">🎁</div><div class="claim-t" data-t="p3Title">专属充值优惠券·待领取</div><div class="claim-s" data-t="p3Sub">运营送您 2 张充值优惠券，点「领取」入袋</div></div>
             <div class="claim-list">
               <div class="claim-cp"><div class="ccp-l"><b>10%</b><span data-t="p3Cap50">上限₹50</span></div><div class="ccp-r"><div class="ccp-n" data-t="p3CpName">充值优惠券</div><div class="ccp-m" data-t="p3Meta1">无门槛 · 有效期 7 天</div></div></div>
               <div class="claim-cp"><div class="ccp-l"><b>15%</b><span data-t="p3Cap80">上限₹80</span></div><div class="ccp-r"><div class="ccp-n" data-t="p3CpName">充值优惠券</div><div class="ccp-m" data-t="p3Meta2">满 ₹300 · 有效期 5 天</div></div></div>
@@ -815,7 +815,7 @@ input,select{font-family:inherit;font-size:inherit;outline:none}
       <table class="t">
         <tr><th style="width:126px">区块 / 元素</th><th>说明 / 取值</th></tr>
         <tr><td>顶部 tab</td><td><b>未使用（带数量）/ 已使用 / 已过期</b></td></tr>
-        <tr><td>券卡字段</td><td>券码 / 比例 / 上限 / 券名「充值优惠券」/ 门槛 / 适用大类 / 仅首充 / 剩余有效天数（<b>仅展示会员可见规格</b>，不显示赠金关系、券来源等后台信息）。<b>紧凑卡片</b>：左侧力度大字 +「Up to 上限 / Min 门槛」+ 左上「⏱N d」有效期角标；右侧券码 +「仅首充 / 仅 X 大类」说明</td></tr>
+        <tr><td>券卡字段</td><td>券码 / 比例 / 上限 / 券名「充值优惠券」/ 门槛 / 适用大类 / 仅首充 / <b>到期日</b>（<b>仅展示会员可见规格</b>，不显示赠金关系、券来源等后台信息）。<b>紧凑卡片</b>：左侧力度大字 +「Up to 上限 / Min 门槛」+ 左上「<b>至 M/D</b>」到期日角标。<b>有效期口径（重要）</b>：客户端一律显示<b>到期日（绝对日期）</b>——<b>到期日 ＝ 领取时间 + 已领取券有效期，领取那一刻算好落库</b>，客户端只读这个固定日期；<u>不显总时长（如"7天/7D"）、不做倒计时、不在客户端判到期</u>（到期判定以服务端为准，套壳 H5 不依赖设备时间）；券包 / 充值用券 / 详情统一此口径；右侧券码 +「仅首充 / 仅 X 大类」说明</td></tr>
         <tr><td>未使用</td><td>券卡带「<b>去使用</b>」按钮 → 充值用券页（③）</td></tr>
         <tr><td>已使用</td><td>灰态 +「已使用」标记；<b>展示与未使用相同的券规格信息，不再显示订单号</b>（会员端券包只看券本身；核销订单号在后台「领取记录 / 发券审核」可查）</td></tr>
         <tr><td>已过期</td><td>灰态 +「已过期」标记</td></tr>
@@ -954,7 +954,7 @@ function setAmt(a){dep.amt=a;if(dep.use){const nb=best(a);if(nb&&nb!==dep.sel){d
 function toggleUse(){dep.use=!dep.use;if(dep.use&&!dep.sel)dep.sel=best(dep.amt);renderRC();}
 function pick(id){const c=COUPONS.find(x=>x.id===id);if(bonus(c,dep.amt)==null){const d=Math.max(c.th-dep.amt,0);toast(tt('coBelowTh').replace('{th}',c.th).replace('{d}',d),'warning');return;}dep.sel=id;dep.use=true;renderRC();}
 let LANG='en';
-const T={noCap:{en:'No cap',hi:'कोई सीमा नहीं',vi:'Không giới hạn'},noThreshold:{en:'No min',hi:'कोई न्यूनतम नहीं',vi:'Không tối thiểu'},codeLabel:{en:'Code',hi:'कोड',vi:'Mã'},firstOnly:{en:'First only',hi:'केवल पहली जमा',vi:'Chỉ lần đầu'},catOnly:{en:'{c} only',hi:'केवल {c}',vi:'Chỉ {c}'},daysLeft:{en:'{n} days left',hi:'{n} दिन शेष',vi:'Còn {n} ngày'},couponName:{en:'Deposit coupon',hi:'जमा कूपन',vi:'Phiếu nạp'},goUse:{en:'Use now',hi:'उपयोग करें',vi:'Dùng ngay'},usedOnOrder:{en:'Used · order {o}',hi:'ऑर्डर {o}',vi:'Đơn {o}'},expiredOn:{en:'Expired {d}',hi:'{d} समाप्त',vi:'Hết hạn {d}'},tabUnused:{en:'Unused',hi:'अप्रयुक्त',vi:'Chưa dùng'},tabUsed:{en:'Used',hi:'प्रयुक्त',vi:'Đã dùng'},tabExpired:{en:'Expired',hi:'समाप्त',vi:'Hết hạn'},navMyCoupons:{en:'My coupons',hi:'मेरे कूपन',vi:'Phiếu của tôi'},usedBadge:{en:'Used',hi:'प्रयुक्त',vi:'Đã dùng'},expiredBadge:{en:'Expired',hi:'समाप्त',vi:'Hết hạn'},scTitle:{en:'Member H5 · Deposit coupon on the recharge page — 3 scenario styles',hi:'सदस्य H5 · रिचार्ज पेज पर कूपन — 3 परिदृश्य शैलियाँ',vi:'H5 thành viên · Phiếu ưu đãi khi nạp — 3 kiểu kịch bản'},cap1:{en:'① Coupon + Deposit bonus + Fee (stack)',hi:'① कूपन + जमा बोनस + शुल्क',vi:'① Phiếu + Thưởng nạp + Phí'},cap2:{en:'② Coupon + Fee (no channel bonus)',hi:'② कूपन + शुल्क',vi:'② Phiếu + Phí'},cap3:{en:'③ Coupon only (no fee/bonus)',hi:'③ केवल कूपन',vi:'③ Chỉ phiếu'},formula2:{en:'Actual = Amount + Coupon − Fee',hi:'वास्तविक = राशि + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Phiếu − Phí'},formula3:{en:'Actual = Amount + Coupon',hi:'वास्तविक = राशि + कूपन',vi:'Thực nhận = Số tiền + Phiếu'},threshold:{en:'Min',hi:'न्यूनतम',vi:'Tối thiểu'},balance:{en:'Balance',hi:'शेष',vi:'Số dư'},selectCh:{en:'Select channel',hi:'चैनल चुनें',vi:'Chọn kênh'},depAmt:{en:'Deposit amount',hi:'जमा राशि',vi:'Số tiền nạp'},useCoupon:{en:'Use coupon',hi:'कूपन उपयोग करें',vi:'Dùng phiếu ưu đãi'},estBonus:{en:'Est. bonus',hi:'अनुमानित बोनस',vi:'Thưởng dự kiến'},actualCredit:{en:'Actual credit',hi:'वास्तविक क्रेडिट',vi:'Thực nhận'},amount:{en:'Amount',hi:'राशि',vi:'Số tiền'},bonus:{en:'Bonus',hi:'बोनस',vi:'Thưởng'},fee:{en:'Fee',hi:'शुल्क',vi:'Phí'},instr:{en:'Recharge instructions',hi:'रिचार्ज निर्देश',vi:'Hướng dẫn nạp'},formula:{en:'Actual = Amount + Bonus − Fee',hi:'वास्तविक = राशि + बोनस − शुल्क',vi:'Thực nhận = Số tiền + Thưởng − Phí'},
+const T={noCap:{en:'No cap',hi:'कोई सीमा नहीं',vi:'Không giới hạn'},noThreshold:{en:'No min',hi:'कोई न्यूनतम नहीं',vi:'Không tối thiểu'},codeLabel:{en:'Code',hi:'कोड',vi:'Mã'},validUntil:{en:'Valid until',hi:'वैध तिथि',vi:'Hạn dùng'},firstOnly:{en:'First only',hi:'केवल पहली जमा',vi:'Chỉ lần đầu'},catOnly:{en:'{c} only',hi:'केवल {c}',vi:'Chỉ {c}'},daysLeft:{en:'{n} days left',hi:'{n} दिन शेष',vi:'Còn {n} ngày'},couponName:{en:'Deposit coupon',hi:'जमा कूपन',vi:'Phiếu nạp'},goUse:{en:'Use now',hi:'उपयोग करें',vi:'Dùng ngay'},usedOnOrder:{en:'Used · order {o}',hi:'ऑर्डर {o}',vi:'Đơn {o}'},expiredOn:{en:'Expired {d}',hi:'{d} समाप्त',vi:'Hết hạn {d}'},tabUnused:{en:'Unused',hi:'अप्रयुक्त',vi:'Chưa dùng'},tabUsed:{en:'Used',hi:'प्रयुक्त',vi:'Đã dùng'},tabExpired:{en:'Expired',hi:'समाप्त',vi:'Hết hạn'},navMyCoupons:{en:'My coupons',hi:'मेरे कूपन',vi:'Phiếu của tôi'},usedBadge:{en:'Used',hi:'प्रयुक्त',vi:'Đã dùng'},expiredBadge:{en:'Expired',hi:'समाप्त',vi:'Hết hạn'},scTitle:{en:'Member H5 · Deposit coupon on the recharge page — 3 scenario styles',hi:'सदस्य H5 · रिचार्ज पेज पर कूपन — 3 परिदृश्य शैलियाँ',vi:'H5 thành viên · Phiếu ưu đãi khi nạp — 3 kiểu kịch bản'},cap1:{en:'① Coupon + Deposit bonus + Fee (stack)',hi:'① कूपन + जमा बोनस + शुल्क',vi:'① Phiếu + Thưởng nạp + Phí'},cap2:{en:'② Coupon + Fee (no channel bonus)',hi:'② कूपन + शुल्क',vi:'② Phiếu + Phí'},cap3:{en:'③ Coupon only (no fee/bonus)',hi:'③ केवल कूपन',vi:'③ Chỉ phiếu'},formula2:{en:'Actual = Amount + Coupon − Fee',hi:'वास्तविक = राशि + कूपन − शुल्क',vi:'Thực nhận = Số tiền + Phiếu − Phí'},formula3:{en:'Actual = Amount + Coupon',hi:'वास्तविक = राशि + कूपन',vi:'Thực nhận = Số tiền + Phiếu'},threshold:{en:'Min',hi:'न्यूनतम',vi:'Tối thiểu'},balance:{en:'Balance',hi:'शेष',vi:'Số dư'},selectCh:{en:'Select channel',hi:'चैनल चुनें',vi:'Chọn kênh'},depAmt:{en:'Deposit amount',hi:'जमा राशि',vi:'Số tiền nạp'},useCoupon:{en:'Use coupon',hi:'कूपन उपयोग करें',vi:'Dùng phiếu ưu đãi'},estBonus:{en:'Est. bonus',hi:'अनुमानित बोनस',vi:'Thưởng dự kiến'},actualCredit:{en:'Actual credit',hi:'वास्तविक क्रेडिट',vi:'Thực nhận'},amount:{en:'Amount',hi:'राशि',vi:'Số tiền'},bonus:{en:'Bonus',hi:'बोनस',vi:'Thưởng'},fee:{en:'Fee',hi:'शुल्क',vi:'Phí'},instr:{en:'Recharge instructions',hi:'रिचार्ज निर्देश',vi:'Hướng dẫn nạp'},formula:{en:'Actual = Amount + Bonus − Fee',hi:'वास्तविक = राशि + बोनस − शुल्क',vi:'Thực nhận = Số tiền + Thưởng − Phí'},
 /* —— 赠金计算规则（PRD 3.4）· 叠加两行 + 三类通道候选名 + 来源标注 + 券消耗提示 —— */
 channelBonus:{en:'Deposit bonus',hi:'जमा बोनस',vi:'Thưởng nạp'},
 couponBonus:{en:'Coupon bonus',hi:'कूपन बोनस',vi:'Thưởng phiếu'},
@@ -983,16 +983,16 @@ rkDepCpUsed:{en:'Deposit submitted · coupon locked',hi:'जमा सबमि�
 rkDepCpKept:{en:'Deposit submitted · coupon not consumed, returned to wallet',hi:'जमा सबमिट · कूपन कटा नहीं, वॉलेट में वापस',vi:'Đã gửi nạp · phiếu chưa trừ, đã hoàn về ví'},
 rkDepNoCp:{en:'Deposit submitted',hi:'जमा सबमिट',vi:'Đã gửi nạp'},
 p3Home:{en:'Home',hi:'होम',vi:'Trang chủ'},
-p3Title:{en:'Exclusive coupons received',hi:'विशेष कूपन प्राप्त हुए',vi:'Đã nhận phiếu ưu đãi độc quyền'},
-p3Sub:{en:'Operations sent you 2 deposit coupons',hi:'ऑपरेशंस ने आपको 2 रिचार्ज कूपन भेजे',vi:'Vận hành đã tặng bạn 2 phiếu ưu đãi nạp tiền'},
+p3Title:{en:'Coupons to claim',hi:'दावा करने के लिए कूपन',vi:'Phiếu ưu đãi cần nhận'},
+p3Sub:{en:'Operations sent you 2 coupons — tap Claim to add them',hi:'ऑपरेशंस ने 2 कूपन भेजे — जोड़ने के लिए दावा करें',vi:'Vận hành tặng 2 phiếu — nhấn Nhận để thêm'},
 p3CpName:{en:'Deposit coupon',hi:'रिचार्ज कूपन',vi:'Phiếu ưu đãi nạp tiền'},
 p3Cap50:{en:'Max ₹50',hi:'अधिकतम ₹50',vi:'Tối đa ₹50'},
 p3Cap80:{en:'Max ₹80',hi:'अधिकतम ₹80',vi:'Tối đa ₹80'},
 p3Meta1:{en:'No threshold · Valid 7 days',hi:'कोई सीमा नहीं · 7 दिन वैध',vi:'Không điều kiện · Hiệu lực 7 ngày'},
 p3Meta2:{en:'Min ₹300 · Valid 5 days',hi:'न्यूनतम ₹300 · 5 दिन वैध',vi:'Tối thiểu ₹300 · Hiệu lực 5 ngày'},
-p3Go:{en:'Got it (2)',hi:'ठीक है (2)',vi:'Đã hiểu (2)'},
-p3Done:{en:'✓ Credited',hi:'✓ जमा हो गया',vi:'✓ Đã vào ví'},
-p3Toast:{en:'Credited! 2 coupons are in "My Coupons"',hi:'जमा हो गया! 2 कूपन "मेरे कूपन" में हैं',vi:'Đã vào ví! 2 phiếu đã ở "Phiếu của tôi"'}};
+p3Go:{en:'Claim now (2)',hi:'अभी दावा करें (2)',vi:'Nhận ngay (2)'},
+p3Done:{en:'✓ Claimed',hi:'✓ दावा किया',vi:'✓ Đã nhận'},
+p3Toast:{en:'Claimed! 2 coupons added to "My Coupons"',hi:'दावा किया! 2 कूपन "मेरे कूपन" में जोड़े',vi:'Đã nhận! 2 phiếu thêm vào "Phiếu của tôi"'}};
 function tt(k){return (T[k]&&T[k][LANG])||k;}
 function setLang(l){LANG=l;document.querySelectorAll('#P-p5 .langbtn').forEach(b=>{const on=b.dataset.l===l;b.style.background=on?'#f5535f':'#f0f0f0';b.style.color=on?'#fff':'#666';b.classList.toggle('on',on);});document.querySelectorAll('#P-p5 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k])el.textContent=T[k][l];});document.querySelectorAll('#P-p3 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k])el.textContent=T[k][l];});document.querySelectorAll('#P-p4 .langbtn').forEach(b=>{b.classList.toggle('on',b.dataset.l===l);});document.querySelectorAll('#P-p4 [data-t]').forEach(el=>{const k=el.dataset.t;if(T[k])el.textContent=T[k][l];});if(typeof renderMyCoupons==='function')renderMyCoupons();renderScenarios();}
 /* ══════ 赠金计算规则（券 vs 通道赠金）—— 唯一口径见 PRD「赠金计算规则（券 vs 通道赠金）」小节 ══════
@@ -1061,10 +1061,10 @@ function renderRC(){const g=document.getElementById('pc-amtg');if(!g)return;/* 2
 function toggleTip(){var t=document.getElementById('uc-tipbox');if(t)t.classList.toggle('show');}
 /* ===== 三场景对照页（静态展示）· 三份完全一致：一屏三列演示三种赠金关系下的明细结构差异 ===== */
 var SCN_COUPONS=[
-  {r:10,cap:50,th:0,valid:7,sel:true},
-  {r:8,cap:100,th:0,valid:7,cats:['USDT']},
-  {r:20,cap:30,th:200,valid:30,first:true},
-  {r:15,cap:0,th:800,valid:7,dim:true}
+  {r:10,cap:50,th:0,valid:7,exp:'8/10',sel:true},
+  {r:8,cap:100,th:0,valid:7,exp:'8/10',cats:['USDT']},
+  {r:20,cap:30,th:200,valid:30,exp:'9/2',first:true},
+  {r:15,cap:0,th:800,valid:7,exp:'8/5',dim:true}
 ];
 var SCN=[
   {cls:'c1',head:'cap1',chName:'123 (BullPay)',chRange:'10 — 100K',badge:'+9%',fee:true,total:'585',formula:'formulaStack',rows:[
@@ -1092,7 +1092,7 @@ function scCoupons(){
     if(c.cats&&c.cats.length)l2.push(c.cats.join('/')+' only');
     if(c.first)l2.push('First only');
     var oc=c.dim?' onclick="scDimToast('+c.th+')"':'';
-    return '<div class="'+cls+'"'+oc+'><span class="pcc-exp">'+c.valid+'D</span><span class="pcc-ck">✓</span><div class="pcc-r">'+c.r+'%</div><div class="pcc-s">'+l1+'</div><div class="pcc-s2">'+l2.join(' · ')+'</div></div>';
+    return '<div class="'+cls+'"'+oc+'><span class="pcc-exp">至 '+c.exp+'</span><span class="pcc-ck">✓</span><div class="pcc-r">'+c.r+'%</div><div class="pcc-s">'+l1+'</div><div class="pcc-s2">'+l2.join(' · ')+'</div></div>';
   }).join('');
 }
 function tE(k){return (T[k]&&T[k].en)||k;}
@@ -1128,20 +1128,20 @@ function scColHTML(s){
 }
 function _mcCond(c){var a=[];if(c.first)a.push(tt('firstOnly'));if(c.cats&&c.cats.length)a.push(tt('catOnly').replace('{c}',c.cats.join('/')));return a.join(' · ');}
 function mcCard(c){
-  var exp=(c.state==='expired')?'':'<span class="mc-exp">⏱ '+c.valid+'d</span>';
   var minL=c.th>0?'<div class="cc-min">'+tt('threshold')+' ₹'+c.th+'</div>':'';
   var capT=c.cap>0?(tt('capLimit')+' ₹'+c.cap):tt('noCap');
   var cond=_mcCond(c);var condL=cond?'<div class="cc-meta">'+cond+'</div>':'';
+  var expL='<div class="cc-meta">'+tt('validUntil')+' '+c.exp+'</div>';
   var gray=(c.state==='unused')?'':' gray';
   var act=(c.state==='unused')?('<button class="btn coupon sm" onclick="showPage(\'p5\',document.querySelectorAll(\'.b-tab\')[5])">'+tt('goUse')+'</button>'):(c.state==='used'?'<span class="badge gray">'+tt('usedBadge')+'</span>':'<span class="badge gray">'+tt('expiredBadge')+'</span>');
-  return '<div class="coupon-card'+gray+'"><div class="cc-left">'+exp+'<div class="cc-ratio">'+c.r+'%</div><div class="cc-cap">'+capT+'</div>'+minL+'</div>'+
-    '<div class="cc-right"><div class="cc-name">'+tt('couponName')+'</div><div class="cc-meta">'+tt('codeLabel')+' '+c.code+'</div>'+condL+'</div>'+
+  return '<div class="coupon-card'+gray+'"><div class="cc-left"><div class="cc-ratio">'+c.r+'%</div><div class="cc-cap">'+capT+'</div>'+minL+'</div>'+
+    '<div class="cc-right"><div class="cc-name">'+tt('couponName')+'</div><div class="cc-meta">'+tt('codeLabel')+' '+c.code+'</div>'+condL+expL+'</div>'+
     '<div class="cc-act">'+act+'</div></div>';
 }
 function renderMyCoupons(){
-  var u=document.getElementById('mc-unused'); if(u)u.innerHTML=mcCard({r:10,cap:50,code:'MANUAL10',th:100,cats:['USDT'],first:true,valid:3,state:'unused'});
-  var us=document.getElementById('mc-used'); if(us)us.innerHTML=mcCard({r:20,cap:100,code:'MANUAL20',th:200,cats:['银行卡'],first:true,valid:7,state:'used'});
-  var ex=document.getElementById('mc-expired'); if(ex)ex.innerHTML=mcCard({r:5,cap:20,code:'MANUAL5',th:0,cats:null,first:false,valid:0,state:'expired'});
+  var u=document.getElementById('mc-unused'); if(u)u.innerHTML=mcCard({r:10,cap:50,code:'MANUAL10',th:100,cats:['USDT'],first:true,valid:3,exp:'8/6',state:'unused'});
+  var us=document.getElementById('mc-used'); if(us)us.innerHTML=mcCard({r:20,cap:100,code:'MANUAL20',th:200,cats:['银行卡'],first:true,valid:7,exp:'8/10',state:'used'});
+  var ex=document.getElementById('mc-expired'); if(ex)ex.innerHTML=mcCard({r:5,cap:20,code:'MANUAL5',th:0,cats:null,first:false,valid:0,exp:'6/15',state:'expired'});
 }
 function renderScenarios(){var box=document.getElementById('sc-cols');if(!box)return;box.innerHTML=SCN.map(scColHTML).join('');}
 function scDimToast(th){var d=Math.max(th-500,0);toast(tt('coBelowTh').replace('{th}',th).replace('{d}',d),'warning');}
