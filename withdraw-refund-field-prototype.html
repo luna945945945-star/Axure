@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>会员详情 · 新增「提现退回」 交互原型 + PRD</title>
+<title>会员详情 · 新增「累计提现退回」 交互原型 + PRD</title>
 <style>
 :root{--pri:#7b61ff;--ink:#1f2937;--ink2:#5b6472;--ink3:#98a1b3;--line:#e6e9ef;--bd:#d7dce5;--bg:#f4f5f8;--red:#e5484d;--green:#16a34a;--hl:#fff7d6;--hlbd:#f0c93a}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -100,22 +100,22 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
 <div class="prd-fab" onclick="openPrd()">📋 需求说明文档</div>
 <div class="mask" id="mask" onclick="closePrd()"></div>
 <div class="drawer" id="drawer">
-  <div class="dr-head"><div class="t">会员详情 · 新增「提现退回」字段<small>PRD 需求说明 v1.0 · 2026-07-30</small></div><div class="c" onclick="closePrd()">✕</div></div>
+  <div class="dr-head"><div class="t">会员详情 · 新增「累计提现退回」字段<small>PRD 需求说明 v1.0 · 2026-07-30</small></div><div class="c" onclick="closePrd()">✕</div></div>
   <div class="dr-body">
 
     <div class="h2">一、改造页面与字段</div>
     <p><b>改造页面：</b>V1 后台 → 会员管理 → <b>用户详情弹窗</b>。</p>
-    <p><b>新增字段：</b>在「充值提现」区块新增一项 <b>提现退回</b>，展示<b>次数 / 金额</b>两个值（格式与「人工充值 <span class="kbd">0/0</span>」「累计充值 <span class="kbd">0.00/0</span>」一致）。</p>
+    <p><b>新增字段：</b>在「充值提现」区块新增一项 <b>累计提现退回</b>，展示<b>金额 / 笔数</b>两个值（格式与「累计充值 <span class="kbd">0.00/0</span>」「累计提现 <span class="kbd">0.00/0</span>」一致）。</p>
     <table class="p">
       <tr><th style="width:20%">字段</th><th style="width:16%">展示格式</th><th>口径</th></tr>
-      <tr><td><b>提现退回</b></td><td>次数 / 金额<br>例：<code>3 / 1,250.00</code></td><td>该用户历史所有<b>提现申请被驳回或出款失败、金额已退回余额</b>的记录：笔数汇总为「次数」，退回本金汇总为「金额」。</td></tr>
+      <tr><td><b>累计提现退回</b></td><td>金额 / 笔数<br>例：<code>1,250.00 / 3</code></td><td>该用户历史所有<b>提现申请被驳回或出款失败、金额已退回余额</b>的记录：退回本金汇总为「金额」，笔数汇总为「笔数」。</td></tr>
     </table>
     <p style="color:#98a1b3">位置：置于「充值提现」区块，与「充值优惠券奖金总额」同一行右侧（见原型黄色高亮处）。</p>
 
     <div class="h2">二、口径与边界</div>
     <table class="p">
       <tr><th style="width:26%">问题</th><th>取定 / 建议</th></tr>
-      <tr><td>退回包含哪些类型 <span class="tag r">需拍板</span></td><td>推荐 <b>提现退回 = Type IN (6 出款失败退回, 9 审核拒绝退回)</b>。</td></tr>
+      <tr><td>退回包含哪些类型</td><td><b>累计提现退回 = Type IN (6 出款失败退回, 9 审核拒绝退回)</b>。</td></tr>
       <tr><td>金额口径</td><td>取<b>账变金额 ChangeAmount</b>＝实际退回用户余额的钱（用户真实拿回的金额）；与「累计提现手续费」互不重复。</td></tr>
       <tr><td>次数含义</td><td>一笔退回账变 = 1 次；<b>部分退回（差额退回）也各计一条</b>，比按提现单状态更贴近真实退款事件。</td></tr>
       <tr><td>数据时效</td><td>与账变同步实时汇总统计。</td></tr>
@@ -123,9 +123,9 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
     </table>
 
     <div class="h2">三、验收标准</div>
-    <p>1. 用户详情「充值提现」区显示「提现退回」，格式 <b>次数 / 金额</b>，金额保留 2 位小数、千分位。</p>
+    <p>1. 用户详情「充值提现」区显示「累计提现退回」，格式 <b>金额 / 笔数</b>，金额保留 2 位小数、千分位。</p>
     <p>2. 数值 = 账变 Type IN (6,9) 的次数与金额。</p>
-    <p>3. 无退回时显示 <span class="kbd">0 / 0.00</span>，不报错、不留空。</p>
+    <p>3. 无退回时显示 <span class="kbd">0.00/0</span>，不报错、不留空。</p>
     <p>4. 受弹窗时间筛选影响，行为与本页其它活动奖励字段一致。</p>
   </div>
 </div>
@@ -138,7 +138,7 @@ const DATA=[
 ];
 function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function render(d){
-  const rf = `${d.refundTimes} / ${fmt(d.refundAmt)}`;
+  const rf = `${fmt(d.refundAmt)}/${d.refundTimes}`;
   document.getElementById('detail').innerHTML=`
   <tr>
     <td class="sec" colspan="4">充值提现</td>
@@ -168,7 +168,7 @@ function render(d){
   </tr>
   <tr>
     <td class="lbl">充值优惠券奖金总额</td><td class="val">0.00</td>
-    <td class="newlbl">提现退回 <span class="newbadge">新增</span><span class="hint">?<span class="tt">展示次数 / 金额两个值，该用户历史所有提现申请被驳回或出款失败、金额已退回余额的记录：笔数汇总为「次数」，退回本金汇总为「金额」。</span></span></td>
+    <td class="newlbl">累计提现退回 <span class="newbadge">新增</span><span class="hint">?<span class="tt">展示金额 / 笔数两个值，该用户历史所有提现申请被驳回或出款失败、金额已退回余额的记录：退回本金汇总为「金额」，笔数汇总为「笔数」。</span></span></td>
     <td class="newval">${rf}</td>
     <td class="lbl">回归奖励</td><td class="val">0</td><td class="lbl">邀请转盘奖励</td><td class="val">0</td><td class="lbl">回归新充值奖励</td><td class="val">0</td>
     <td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td>
