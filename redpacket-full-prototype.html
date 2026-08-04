@@ -281,13 +281,14 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
     </aside>
     <div class="main"><div class="main-body">
       <div class="bar">
-        <div class="fld"><label>红包编码：</label><input class="inp" placeholder="红包编码"></div>
+        <div class="fld"><label>红包编码：</label><input class="inp" id="p1-rcode" value="6D3AB85…7B065" placeholder="红包编码" style="min-width:150px" onchange="updateEffectOverview()"></div><div class="fld"><label>优惠券码<span class="newb">NEW</span></label><input class="inp" id="p1-ccode" placeholder="优惠券码·精确" style="min-width:130px" onchange="updateEffectOverview()"></div>
         <div class="fld"><label>奖励类型<span class="newb">NEW</span></label><select class="sel" id="rt-filter" onchange="filterReward()"><option value="">全部</option><option value="coupon">充值优惠券</option><option value="cash">现金</option></select></div>
         <button class="btn blue" onclick="toast('查询中…')">🔍 查询</button>
         <button class="btn ghost" onclick="toast('已重置')">↻ 重置</button>
         <button class="btn blue" onclick="openModal('create-modal')">＋ 新增</button>
         <button class="btn amt">赠金余额 580.00</button>
       </div>
+      <div id="p1-overview" style="margin-bottom:14px"><div class="effect" style="margin:0"><div class="et">🎯 红包编码 6D3AB85…7B065 · 10%券·上限₹50 · 按红包维度（<b>本代理账号总账</b>，与逐条明细 / 子代理领取无关）</div><div class="m"><span class="k">发放</span><span class="v">100</span></div><div class="m"><span class="k">已领取(领取率)</span><span class="v">38 <small>38%</small></span></div><div class="m"><span class="k">已使用(核销率)</span><span class="v">22 <small>58%</small></span></div><div class="m"><span class="k">带来充值</span><span class="v">₹12,400</span></div><div class="m"><span class="k">彩金成本</span><span class="v">₹620</span></div></div></div>
       <table class="tbl">
         <thead><tr><th>ID</th><th>红包编码</th><th>激活码类型</th><th class="newcol">奖励类型<span class="newb">NEW</span></th><th>金额类型</th><th>随机区间</th><th>总金额<span class="colsub">/券规格</span></th><th>数量</th><th>剩余数量</th><th>状态</th><th>接受范围 <span class="newb">NEW</span></th><th>接收条件</th><th>备注</th><th>创建时间</th><th>操作</th></tr></thead>
         <tbody id="p1-body">
@@ -299,7 +300,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
           <tr data-rt="cash"><td>100312</td><td class="mono">83B384…2D76D5</td><td>随机激活码</td><td class="newcol"><span class="tag cash">现金</span></td><td>随机金额</td><td>₹1 – ₹5</td><td>₹2.29</td><td>1</td><td>0</td><td><span class="tag st-done">已抢完</span></td><td>无规则</td><td>无规则</td><td>随机红包</td><td>02-11 12:00</td><td><button class="btn link sm">红包链接</button> <button class="btn link sm" onclick="goTab('p2')">获取记录</button></td></tr>
         </tbody>
       </table>
-      <div class="note">现金红包与充值优惠券红包<b>同一列表</b>、按「奖励类型」软筛。<b>贴真实红包派送字段</b>（激活码类型 / 金额类型 / 随机区间 / 总金额 / 数量 / 剩余数量 / 接收条件 / 备注 …）；<b>金额类型·随机区间·总金额自适应</b>——现金显固定/随机金额 + 区间 + ₹总额，券显<b>券规格 + 券码</b>（券不预扣现金、金额类型/随机区间＝—）。<b>「状态」「接受范围」保留现设计不变</b>：状态四态 进行中/已抢完/已取消/已过期（见 BR-06，仅「进行中」可取消红包码）；接受范围 无规则／指定子代理ID·点人数看<b>指定子代理明细</b>（可导出）。点「获取记录」看该红包领取与转化。</div>
+      <div class="note">现金红包与充值优惠券红包<b>同一列表</b>、按「奖励类型」软筛。<b>贴真实红包派送字段</b>（激活码类型 / 金额类型 / 随机区间 / 总金额 / 数量 / 剩余数量 / 接收条件 / 备注 …）；<b>金额类型·随机区间·总金额自适应</b>——现金显固定/随机金额 + 区间 + ₹总额，券显<b>券规格 + 券码</b>（券不预扣现金、金额类型/随机区间＝—）。<b>「状态」「接受范围」保留现设计不变</b>：状态四态 进行中/已抢完/已取消/已过期（仅「进行中」可取消红包码）；接受范围 无规则／指定子代理ID·点人数看<b>指定子代理明细</b>（可导出）。点「获取记录」看该红包领取与转化。</div>
       <div class="foot">总共 14 条 <span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">›</span> <select class="sel"><option>10 条/页</option></select></div>
     </div></div>
   </div>
@@ -329,15 +330,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
         <div class="fld"><label>结束时间：</label><input class="inp" placeholder="请选择日期" style="min-width:128px"></div>
         <button class="btn blue" onclick="toast('查询中…')">🔍 查询</button><button class="btn ghost" onclick="toast('已重置')">↻ 重置</button>
       </div>
-      <div class="effect">
-        <div class="et">🎯 充值优惠券效果概览 <span class="newb">NEW</span></div>
-        <div class="m"><span class="k">红包 100336 · 10%券</span><span class="v">发放 100</span></div>
-        <div class="m"><span class="k">已领取</span><span class="v">38 <small>38%</small></span></div>
-        <div class="m"><span class="k">已使用(核销率)</span><span class="v">22 <small>58%</small></span></div>
-        <div class="m"><span class="k">带来充值</span><span class="v">₹12,400</span></div>
-        <div class="m"><span class="k">彩金成本</span><span class="v">₹620</span></div>
-      </div>
-      <table class="tbl">
+<table class="tbl">
         <thead><tr><th>用户ID</th><th>红包ID</th><th>红包码</th><th>用户昵称</th><th>注册手机</th><th class="newcol">奖励类型<span class="newb">NEW</span></th><th>金额<span class="colsub">/券规格</span></th><th>收集时间</th><th>红包创建时间</th><th class="newcol">使用情况<span class="newb">NEW</span></th><th>操作</th></tr></thead>
         <tbody>
           <tr data-rt="coupon"><td>100071</td><td>100336</td><td class="mono">6D3AB85…7B065</td><td>Agent71</td><td>669****011</td><td class="newcol"><span class="tag coupon">充值券</span></td><td class="newcol">10%·上限₹50<div class="usub">券码 SUMMER10</div></td><td>06-13 19:22</td><td>06-09 16:50</td><td class="newcol"><span class="tag unused">未使用</span></td><td><span style="color:#c8ccd4">—</span></td></tr>
@@ -1105,7 +1098,9 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
       <p><b>① 筛选栏 / 顶部操作区</b></p>
       <table class="t">
         <tr><th style="width:132px">控件</th><th style="width:64px">类型</th><th>取值 / 说明</th></tr>
-        <tr><td>红包编码</td><td>输入框</td><td>按红包编码查询</td></tr>
+        <tr><td>红包编码</td><td>输入框</td><td>按红包编码查询；<b>驱动上方效果概览（红包维度）</b></td></tr>
+        <tr><td>优惠券码（新·精确）</td><td>输入框</td><td>精确搜券码；<b>驱动上方效果概览（券码维度）</b></td></tr>
+        <tr><td>效果概览（新·顶部）</td><td>展示</td><td><b>聚合总账</b>随搜索切换：填<b>红包编码→该红包维度</b>（发放/已领取率/核销率/带来充值/彩金成本）；填<b>优惠券码→该券码维度</b>（该券码在<b>本账号所有红包</b>合计）。<b>两维度均限本代理后台账号下</b>、明写"本代理账号总账·与逐条明细/子代理无关"。<u>不做每红包一个「效果」按钮</u>——随机激活码红包会出现 N 个重复效果</td></tr>
         <tr><td>奖励类型（新）</td><td>下拉</td><td>全部 / 充值优惠券 / 现金；与列表「奖励类型」同枚举</td></tr>
         <tr><td>查询 / 重置</td><td>按钮</td><td>按条件查询 / 清空条件</td></tr>
         <tr><td>＋新增</td><td>按钮</td><td>打开创建红包弹窗（字段见 ③），确定后生成红包码；券红包按发放数量<b>预扣授权次数</b>（BR-08）</td></tr>
@@ -1122,7 +1117,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
         <tr><td>接受范围（新）</td><td>展示所选维度；子代理维度显示「指定子代理ID · <b>N 个</b>」，<b>N 可点击</b> → 打开接受范围明细弹窗（见 3.2）</td></tr>
         <tr><td>操作 · 红包链接</td><td>沿用现有</td></tr>
         <tr><td>操作 · 取消红包码</td><td><b>仅「进行中」状态展示该按钮</b>，其余三态不可取消（BR-06）</td></tr>
-        <tr><td>操作 · 获取记录</td><td>跳「领取记录·效果」（见 3.4）</td></tr>
+        <tr><td>操作 · 获取记录</td><td>跳「红包领取记录·效果」（见 3.4）</td></tr>
       </table>
 
       <p><b>③ 创建红包弹窗（点「＋新增」打开，确定后生成红包码）</b></p>
@@ -1204,7 +1199,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
         <tr><td>优惠券码（新）</td><td>输入框</td><td>按优惠券码查（券类型时可用）</td></tr>
         <tr><td>使用情况（新，原「使用状态」改名）</td><td>下拉</td><td>全部 / 未使用 / 已使用 / 已到账（<b>跨类型统一口径</b>：未/已使用＝券，已到账＝现金）</td></tr>
       </table>
-      <p><b>② 效果概览（券红包汇总）</b>：发放数 / 已领取（领取率）/ 已使用（核销率＝已使用÷已领取）/ 带来充值 / 彩金成本。</p>
+      <p><b>② 本页只保留逐条领取明细</b> —— <b>效果概览已放到「红包派送」</b>（顶部聚合总账、按 红包编码 / 优惠券码 双维度随搜索切换，见红包派送 ① 筛选栏）。本页专注"谁领了 / 用了"的明细，可按 会员ID / 红包ID / 代理ID / 奖励类型 / 优惠券码 / 使用情况 筛选，与聚合总账<b>口径分开、不混淆</b>。</p>
       <p><b>③ 列表</b>（真实字段 + 自适应）</p>
       <table class="t">
         <tr><th style="width:180px">列</th><th>说明 / 取值</th></tr>
@@ -1380,6 +1375,10 @@ function v3quick(el,label){el.parentElement.querySelectorAll('span').forEach(s=>
 function toast(m){const s=document.getElementById('toast-stack');const e=document.createElement('div');e.style.cssText='padding:10px 18px;background:rgba(0,0,0,.82);color:#fff;border-radius:6px;font-size:13px';e.textContent=m;s.appendChild(e);setTimeout(()=>{e.style.opacity=0;e.style.transition='.2s';setTimeout(()=>e.remove(),200)},1900);}
 function openModal(id){document.getElementById(id).classList.add('show')}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
+var REDPKG_EFFECT={'6D3AB85…7B065':{spec:'10%券·上限₹50',issued:100,claimed:38,claimRate:'38%',used:22,useRate:'58%',recharge:'12,400',cost:'620'},'A11C92…E5D12':{spec:'20%券·上限₹100',issued:50,claimed:50,claimRate:'100%',used:31,useRate:'62%',recharge:'18,600',cost:'930'},'C7E5F1…3A9B44':{spec:'20%券·上限₹80',issued:30,claimed:12,claimRate:'40%',used:9,useRate:'75%',recharge:'5,400',cost:'270'}};
+var COUPON_EFFECT={'SUMMER10':{issued:180,claimed:120,claimRate:'67%',used:78,useRate:'65%',recharge:'42,000',cost:'2,100'},'WINTER20':{issued:50,claimed:50,claimRate:'100%',used:31,useRate:'62%',recharge:'18,600',cost:'930'},'AUTUMN15':{issued:30,claimed:12,claimRate:'40%',used:9,useRate:'75%',recharge:'5,400',cost:'270'}};
+function _effHTML(dim,d){return '<div class="effect" style="margin:0"><div class="et">🎯 '+dim+'（<b>本代理账号总账</b>，与逐条明细 / 子代理领取无关）</div>'+'<div class="m"><span class="k">发放</span><span class="v">'+d.issued+'</span></div>'+'<div class="m"><span class="k">已领取(领取率)</span><span class="v">'+d.claimed+' <small>'+d.claimRate+'</small></span></div>'+'<div class="m"><span class="k">已使用(核销率)</span><span class="v">'+d.used+' <small>'+d.useRate+'</small></span></div>'+'<div class="m"><span class="k">带来充值</span><span class="v">₹'+d.recharge+'</span></div>'+'<div class="m"><span class="k">彩金成本</span><span class="v">₹'+d.cost+'</span></div></div>';}
+function updateEffectOverview(){var box=document.getElementById('p1-overview');if(!box)return;var rid=((document.getElementById('p1-rcode')||{}).value||'').trim();var cc=((document.getElementById('p1-ccode')||{}).value||'').trim().toUpperCase();if(cc&&COUPON_EFFECT[cc]){box.innerHTML=_effHTML('券码 '+cc+' · 按券码维度（该券码在本账号所有红包合计）',COUPON_EFFECT[cc]);}else if(rid&&REDPKG_EFFECT[rid]){box.innerHTML=_effHTML('红包编码 '+rid+' · '+REDPKG_EFFECT[rid].spec+' · 按红包维度',REDPKG_EFFECT[rid]);}else{box.innerHTML='<div class="effect" style="margin:0"><div class="et">🎯 充值优惠券效果概览 <span class="newb">NEW</span></div><div style="grid-column:1/-1;padding:9px 4px;color:#888;font-size:12.5px">输入<b>红包编码</b>看该红包总账，或输入<b>优惠券码</b>看该券码总账（两个维度均限<b>本代理账号下</b>）</div></div>';}}
 function claimDetail(btn){var d=btn.dataset;var h='<div class="cd-hd"><b>'+d.coupon+'</b> · '+d.spec+'</div>'+'<div class="cd-grid">'+'<div class="cd-i"><span class="k">会员ID</span><span class="v">'+d.aid+'</span></div>'+'<div class="cd-i"><span class="k">充值订单号</span><span class="v">'+d.order+'</span></div>'+'<div class="cd-i"><span class="k">使用时间</span><span class="v">'+d.usetime+'</span></div>'+'<div class="cd-i"><span class="k">充值大类</span><span class="v">'+d.cat+'</span></div>'+'</div>'+'<div class="cd-money"><div class="cd-m"><span class="k">充值金额</span><span class="v">₹'+d.recharge+'</span></div><div class="cd-m green"><span class="k">到账彩金</span><span class="v">₹'+d.bonus+'</span></div></div>';document.getElementById('cd-body').innerHTML=h;openModal('claim-detail-modal');}
 function p3Reward(){var v=document.getElementById('p3-reward').value;var cc=document.getElementById('p3-cc-fld');if(cc)cc.style.display=(v==='cash')?'none':'';document.querySelectorAll('#P-p3 tbody tr').forEach(function(tr){var t=tr.getAttribute('data-rt');tr.style.display=(!v||v===t)?'':'none';});}
 function p8Reward(){var v=document.getElementById('p8-reward').value;var cc=document.getElementById('p8-cc-fld');if(cc)cc.style.display=(v==='cash')?'none':'';document.querySelectorAll('#P-p8 tbody tr').forEach(function(tr){var t=tr.getAttribute('data-rt');tr.style.display=(!v||v===t)?'':'none';});}
