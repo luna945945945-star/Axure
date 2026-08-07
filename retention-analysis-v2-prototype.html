@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>留存分析 V2 · 热力矩阵+衰减曲线 交互原型</title>
+<style>
+:root{--pri:#3a6df0;--pri-d:#2b55c8;--ink:#1f2937;--ink2:#5b6472;--ink3:#98a1b3;--line:#eceff4;--bd:#dde2ea;--bg:#f3f5f9;--green:#16a34a;--red:#e5484d;--amber:#e8890c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;font-size:13px;color:var(--ink);background:var(--bg)}
+.demo-bar{height:34px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 18px;font-size:12px;color:#666}
+.demo-tag{background:linear-gradient(135deg,#3a6df0,#2b55c8);color:#fff;font-size:10px;padding:2px 7px;border-radius:3px;margin-right:10px;font-weight:700}
+.demo-bar b{color:#222}.demo-bar .sub{margin-left:12px;color:#98a1b3}
+.wrap{display:flex;min-height:calc(100vh - 34px)}
+/* 侧栏 */
+.side{width:180px;flex-shrink:0;background:#1b2233;color:#c3cad9;padding:14px 0}
+.side .logo{font-size:14px;font-weight:700;color:#fff;padding:0 18px 14px;border-bottom:1px solid #2a3346}
+.side .grp{font-size:10.5px;color:#6b7590;padding:14px 18px 6px;letter-spacing:.5px}
+.side .it{padding:9px 18px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.side .it:hover{background:#232c40;color:#fff}
+.side .it.on{background:#2b55c8;color:#fff;font-weight:600}
+.side .nn{background:#e5484d;color:#fff;font-size:9px;padding:1px 5px;border-radius:7px;font-weight:700}
+.main{flex:1;min-width:0;padding:16px 22px}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.crumb{font-size:13px;color:#98a1b3}.crumb b{color:#5b6472}
+.upd{font-size:11.5px;color:var(--green);background:#eafaf0;border:1px solid #bfe8cd;border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(20,30,60,.05);padding:15px 17px;margin-bottom:14px}
+.card-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.card-t{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card-t small{font-weight:400;color:#98a1b3;font-size:12px}
+/* 筛选 */
+.filters{display:flex;flex-wrap:wrap;gap:11px 20px;align-items:center}
+.fld{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink2)}
+.fld select,.fld input{height:32px;padding:0 10px;border:1px solid var(--bd);border-radius:6px;font-size:12.5px;background:#fff;outline:none}
+.fld select:focus,.fld input:focus{border-color:var(--pri)}
+.btn{height:32px;padding:0 14px;border:none;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#3a6df0,#2b55c8);color:#fff}
+.btn.gho{background:#fff;border:1px solid var(--bd);color:var(--ink2)}
+/* 口径切换（核心） */
+.metric-tabs{display:inline-flex;background:#eef1f6;border-radius:8px;padding:3px}
+.mt{padding:6px 14px;font-size:12.5px;font-weight:600;color:var(--ink2);border-radius:6px;cursor:pointer;border:none;background:none}
+.mt.on{background:#fff;color:var(--pri-d);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.mt .sub{display:block;font-size:9.5px;font-weight:400;color:#98a1b3;margin-top:1px}
+.mt.on .sub{color:#7d90c8}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 14px;position:relative}
+.kpi.hl{border-color:#c9d8fb;background:linear-gradient(180deg,#f7f9ff,#fff)}
+.kpi.warn{border-color:#fbd6ce;background:linear-gradient(180deg,#fff6f4,#fff)}
+.kpi .t{font-size:11.5px;color:var(--ink2);display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.kpi .v{font-size:23px;font-weight:800;letter-spacing:-.5px}
+.kpi .v.up{color:var(--green)}.kpi .v.down{color:var(--red)}.kpi .v.rk{color:var(--red)}
+.kpi .s{font-size:11px;color:#98a1b3;margin-top:4px;line-height:1.5}
+.kpi .chg{font-size:11px;font-weight:700;margin-left:6px}
+.chg.up{color:var(--green)}.chg.down{color:var(--red)}
+.i{width:14px;height:14px;border-radius:50%;background:#e6ebf2;color:#5a6472;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:help}
+.src{position:absolute;top:11px;right:12px;font-size:9.5px;color:#c3cad9;font-family:Menlo,monospace}
+/* 留存矩阵热力图 */
+.rt-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.rt-tbl th{padding:8px 6px;color:var(--ink2);font-weight:700;text-align:center;white-space:nowrap;border-bottom:2px solid var(--line)}
+.rt-tbl th.lft{text-align:left;padding-left:10px}
+.rt-tbl td{padding:0;text-align:center;border:1px solid #fff}
+.rt-cell{padding:9px 6px;font-weight:700;color:#26324a;font-family:Menlo,monospace;font-size:11.5px;cursor:pointer;position:relative}
+.rt-cell:hover{outline:2px solid var(--pri);outline-offset:-2px;z-index:2}
+.rt-cell.empty{color:#c3cad9;font-weight:400;background:#fafbfd!important;cursor:default}
+.rt-cell.d0{background:#eef3ff;color:#3a6df0}
+.rt-lbl{text-align:left;padding:9px 10px;font-weight:600;color:var(--ink);white-space:nowrap}
+.rt-lbl .n{font-size:10px;color:#98a1b3;font-weight:400;margin-left:5px}
+.rt-tbl tr:hover{background:#f9fbff}
+.legend{display:flex;align-items:center;gap:8px;font-size:11px;color:#98a1b3;margin-top:10px}
+.legend .bar{display:flex}.legend .bar i{width:22px;height:11px;display:inline-block}
+/* 曲线 */
+.curve-wrap{display:flex;gap:18px}
+.curve{flex:1}
+.curve-legend{width:150px;flex-shrink:0;font-size:11.5px}
+.cl-it{display:flex;align-items:center;gap:7px;padding:6px 0;cursor:pointer}
+.cl-it .dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.cl-it .nm{color:var(--ink2)}.cl-it .val{margin-left:auto;font-weight:700;font-family:Menlo,monospace}
+/* 明细/下钻 */
+.dtable{width:100%;border-collapse:collapse;font-size:12px}
+.dtable th{background:#f6f8fc;color:var(--ink2);font-weight:700;padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line)}
+.dtable td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--ink2)}
+.dtable tbody tr:hover td{background:#f9fbff}
+.pill{display:inline-block;font-size:10.5px;font-weight:600;padding:1px 8px;border-radius:10px}
+.pill.g{background:#eafaf0;color:var(--green)}.pill.r{background:#fdecec;color:var(--red)}.pill.a{background:#fff3e0;color:var(--amber)}
+.op{color:var(--pri);cursor:pointer}.op:hover{text-decoration:underline}
+.note{background:#f5f8ff;border:1px solid #d6e0fb;border-radius:8px;padding:11px 14px;font-size:11.5px;color:#3a4a6b;line-height:1.75;margin-top:12px}
+.note b{color:#26324a}
+.warn-t{background:#fff8ee;border:1px solid #ffd591;color:#8a5a00}
+.warn-t b{color:#a3620a}
+.tip{position:relative}
+.tip .tt{display:none;position:absolute;bottom:150%;left:50%;transform:translateX(-50%);background:#26324a;color:#fff;font-size:11px;font-weight:400;padding:7px 10px;border-radius:6px;width:210px;line-height:1.6;z-index:50;text-align:left}
+.tip:hover .tt{display:block}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(20,30,60,.92);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:2000;opacity:0;transition:.2s}.toast.show{opacity:1}
+.mask{position:fixed;inset:0;background:rgba(20,30,60,.45);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 16px}
+.mask.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:640px;max-width:95vw;box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden}
+.modal-h{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-h .t{font-size:15px;font-weight:700}.modal-h .x{cursor:pointer;font-size:18px;color:#98a1b3;border:none;background:none}
+.modal-b{padding:16px 20px}
+</style>
+</head>
+<body>
+<div class="demo-bar"><span class="demo-tag">交互原型 V2</span><b>留存分析</b><span class="sub">以「可切口径的留存热力矩阵」为核心 · 数据为演示</span></div>
+
+<div class="wrap">
+  <div class="side">
+    <div class="logo">📊 运营分析中台</div>
+    <div class="grp">经营分析</div>
+    <div class="it">大盘概览</div>
+    <div class="it on">📈 留存分析 <span class="nn">V2</span></div>
+    <div class="it">活动 ROI 分析</div>
+    <div class="it">用户价值分层</div>
+    <div class="grp">活动奖励</div>
+    <div class="it">活动配置</div>
+    <div class="it">领取记录</div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">经营分析 <b>/ 留存分析</b></div>
+      <div class="upd">⏱ 数据更新 2026-07-26 06:00（T+1 离线 · 截止 07-25）</div>
+    </div>
+
+    <!-- 筛选 -->
+    <div class="card">
+      <div class="filters">
+        <div class="fld"><label>分析对象</label>
+          <select id="obj" onchange="render()">
+            <option value="all">全部新增用户</option>
+            <option value="act">参加活动的用户（活动留存）</option>
+            <option value="agent">按代理查子代理留存</option>
+          </select></div>
+        <div class="fld" id="agtFld" style="display:none"><label>代理ID</label>
+          <input id="agtId" value="AG10231" style="width:140px" placeholder="输入代理ID"></div>
+        <div class="fld" id="actFld" style="display:none"><label>活动</label>
+          <select>
+            <optgroup label="周期任务">
+              <option>每日签到（7）</option><option selected>每日奖励（118）</option><option>每周奖励（107）</option><option>转盘奖励（119）</option><option>邀请转盘奖励（130）</option>
+            </optgroup>
+            <optgroup label="充值 / 赠送">
+              <option>充值赠送（10）</option><option>彩金充值（13）</option><option>首充满赠送（14）</option><option>充值等级奖励（132）</option><option>VIP充值等级奖励（133）</option><option>提现活动奖励（126）</option>
+            </optgroup>
+            <optgroup label="新会员 / 回归">
+              <option>注册送金（12）</option><option>新手礼包（113）</option><option>新会员负盈利送彩金（116）</option><option>新会员玩游戏送彩金（117）</option><option>下载APP充值奖励（131）</option><option>回归奖励（115）</option><option>回归新充值奖励（134）</option>
+            </optgroup>
+            <optgroup label="账号完善 / 邀请">
+              <option>绑卡赠送（25）</option><option>绑定手机奖励（104）</option><option>绑定邮箱奖励（106）</option><option>邀请奖励（20）</option><option>合伙人奖励（122）</option><option>加入频道奖励（124）</option>
+            </optgroup>
+            <optgroup label="VIP / 其他">
+              <option>VIP升级礼包（29）</option><option>VIP每月奖励（30）</option><option>VIP会员充值奖励（31）</option><option>锦标赛奖励（114）</option><option>红包（3）</option>
+            </optgroup>
+          </select></div>
+        <div class="fld"><label>渠道</label><select><option>全部</option><option>官方渠道</option><option>域名1渠道</option><option>域名2渠道</option><option>域名3渠道</option></select></div>
+        <div class="fld"><label>VIP等级</label><select><option>全部</option><option>VIP0</option><option>VIP1+</option></select></div>
+        <div class="fld"><label>同期群范围</label><input type="date" value="2026-07-01" style="width:130px"> ~ <input type="date" value="2026-07-07" style="width:130px"></div>
+        <button class="btn" onclick="toast('已查询')">🔍 查询</button>
+        <button class="btn gho" onclick="openImp()">⬆ 导入名单</button>
+        <button class="btn gho" onclick="toast('已导出当前视图')">⬇ 导出</button>
+      </div>
+    </div>
+
+    <!-- 口径切换（核心差异点）-->
+    <div class="card" id="metricCard" style="padding:12px 17px">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <span style="font-size:12.5px;font-weight:700;color:var(--ink2)">留存口径</span>
+        <div class="metric-tabs">
+          <button class="mt" data-m="login" onclick="setMetric('login')">登录留存<span class="sub">还在（最浅）</span></button>
+          <button class="mt" data-m="bet" onclick="setMetric('bet')">投注留存<span class="sub">还在玩</span></button>
+          <button class="mt on" data-m="pay" onclick="setMetric('pay')">充值留存<span class="sub">还在付费（核心）</span></button>
+        </div>
+        <span style="font-size:11.5px;color:#98a1b3">👈 博彩关键在<b style="color:var(--red)">充值留存</b>——只看登录留存会高估效果（人回来了但没花钱）</span>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpis" id="kpis"></div>
+
+    <!-- 留存热力矩阵 -->
+    <div class="card" id="mtxCard" style="margin-top:14px">
+      <div class="card-h"><div class="card-t">留存热力矩阵 <small id="mtxSub">充值留存 · 颜色越深留存越高</small></div>
+        <span style="font-size:11.5px;color:#98a1b3">行=同期群（哪天进来的）· 列=之后第N天</span></div>
+      <div class="note" style="background:#eff5ff;border-color:#cfe0fb;color:#2c4a86;margin-bottom:12px">
+        📖 <b>什么是「同期群（Cohort，又称同期群/留存群）」</b>：把<b>同一天（或同一批）进来 / 参加活动的用户归为一组</b>，一起追踪他们之后第 1、3、7… 天还剩多少人留存。<br>
+        举例：下表「<b>07-03 群</b>」= 7 月 3 日这天参加活动的所有人；这一行就是<b>只盯这批人</b>随时间的留存衰减。这样能<b>公平对比不同日期 / 不同活动带进来的用户质量</b>，避免把新老用户混一起看不清效果。
+      </div>
+      <div style="overflow-x:auto"><table class="rt-tbl" id="mtx"></table></div>
+      <div class="legend">留存率<div class="bar" id="lg"></div>低 → 高　·　<span style="color:var(--ink3)">未满窗口的格子置灰显示「—」，不计入平均，避免拉低误判</span></div>
+    </div>
+
+    <!-- 衰减曲线 -->
+    <div class="card" id="curveCard">
+      <div class="card-h"><div class="card-t">留存衰减曲线 <small>同群随时间的流失，断崖点自动标注</small></div></div>
+      <div class="curve-wrap">
+        <div class="curve"><svg id="curve" viewBox="0 0 620 240" width="100%" height="240"></svg></div>
+        <div class="curve-legend" id="clegend"></div>
+      </div>
+      <div class="note warn-t">⚠️ <b>断崖标注</b>：多数群在 <b>Day3</b> 出现留存断崖（从 ~40% 掉到 ~30%），建议在 Day2 晚间做定向召回（推送/短信/彩金）截住这波流失。</div>
+    </div>
+
+    <!-- 下级子代理留存（按代理维度）-->
+    <div class="card" id="agtCard" style="display:none">
+      <div class="card-h"><div class="card-t">下级子代理 · 活动留存 <small id="agtSub">代理 AG10231 名下 6 个子代理</small></div>
+        <span style="font-size:11.5px;color:#98a1b3">充值留存口径 · 点「查看会员」下钻到该子代理名下会员</span></div>
+      <table class="dtable">
+        <thead><tr><th>子代理ID</th><th>代理名称</th><th>名下会员</th><th>领取人数</th><th>活动成本</th><th>次日充值留存</th><th>7日充值留存</th><th>充提差</th><th>操作</th></tr></thead>
+        <tbody id="agtBody"></tbody><tfoot id="agtFoot"></tfoot>
+      </table>
+      <div class="note">💡 <b>按代理维度</b>：输入代理ID，看其名下每个子代理带来的用户领了多少活动、成本多少、以及这批人的<b>充值留存与充提差</b>——快速定位"只薅羊毛不留存"的子代理线。子代理关系来自 <code>tab_Chart_Relative</code>。</div>
+    </div>
+
+    <!-- 下钻明细 -->
+    <div class="card" id="drillCard">
+      <div class="card-h"><div class="card-t">同期群下钻 <small>点上方任意热力格 → 看这批人明细 → 点用户看完整轨迹</small></div>
+        <span class="pill a" id="drillTag">当前：07-03 群 · Day7 · 未充值用户</span></div>
+      <table class="dtable">
+        <thead><tr><th>会员ID</th><th>渠道</th><th>参与日(T0)</th><th>累计充值</th><th>累计提现</th><th>充提差</th><th>累计彩金</th><th>彩金占比</th><th>标签</th><th>操作</th></tr></thead>
+        <tbody id="drillBody"></tbody>
+      </table>
+      <div class="note">💡 <b>下钻价值</b>：留存率是结论，明细才能行动——从"Day7 零充值"这格点进来，直接拿到这批"回来了却没花钱"的名单，可一键导出做二次召回或加黑。</div>
+    </div>
+
+    <!-- 口径说明 -->
+    <div class="card">
+      <div class="card-t" style="margin-bottom:10px">📐 指标口径与数据来源</div>
+      <table class="dtable">
+        <tr><th style="width:150px">指标</th><th>算法 / 取数</th></tr>
+        <tr><td>同期群（Cohort）</td><td>把<b>同一天/同一批进来或参加活动的用户</b>归为一组，一起追踪其后第 N 天的留存；行=群（哪天进来），列=之后第 N 天</td></tr>
+        <tr><td>登录留存</td><td>Day N 有登录记录的用户 ÷ 同期群基数（<code>UserLoginDate</code>）</td></tr>
+        <tr><td>投注留存</td><td>Day N 有<b>有效投注</b>的用户占比（<code>tab_Chart_Lottery</code>）</td></tr>
+        <tr><td class="em" style="color:var(--red);font-weight:700">充值留存（核心）</td><td>Day N 有<b>成功充值</b>的用户占比（<code>tab_Chart_Recharge</code>）</td></tr>
+        <tr><td>复充率</td><td>首充后 N 天内二次充值人数 ÷ 首充人数</td></tr>
+        <tr><td>充提差</td><td>累计充值 − 累计提现（<code>RechargeAmount_All − WithdrawAmount_All</code>）</td></tr>
+        <tr><td>彩金占比</td><td>累计彩金 ÷ 累计充值，>50% 标记疑似羊毛</td></tr>
+        <tr><td>ROI</td><td>（活动带来的净存款增量 − 活动成本）÷ 活动成本，<b>无对照组=毛ROI，含自然留存</b></td></tr>
+      </table>
+      <div class="note warn-t">⚠️ <b>数据边界（诚实标注）</b>：① T+1 离线，数据截止昨天；② 未满窗口置灰不计入；③ 无对照组，留存/ROI 含用户自然回流部分，<b>仅可横向比活动、纵向比趋势，不能当纯增量效果读</b>。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 导入弹窗 -->
+<div class="mask" id="impMask"><div class="modal">
+  <div class="modal-h"><span class="t">导入用户名单</span><button class="x" onclick="closeImp()">✕</button></div>
+  <div class="modal-b">
+    <p style="color:var(--ink2);line-height:1.8">上传/粘贴一批会员ID，只统计这批人的留存——用于分析某次投放、某批导入用户的效果。</p>
+    <textarea style="width:100%;height:90px;border:1px solid var(--bd);border-radius:6px;padding:9px;font-size:12.5px" placeholder="会员ID，逗号或换行分隔"></textarea>
+    <div style="text-align:right;margin-top:12px"><button class="btn gho" onclick="closeImp()">取消</button> <button class="btn" onclick="closeImp();toast('已导入 4,820 人，仅统计名单内')">确认导入</button></div>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====== 三口径数据 ====== */
+const COHORTS=['07-01','07-02','07-03','07-04','07-05','07-06','07-07'];
+const DAYS=[0,1,3,7,15,30];
+// 每种口径一套衰减（登录高、投注中、充值低）
+const BASE={
+ login:[100,60,42,34,29,22],
+ bet:  [100,45,30,23,18,13],
+ pay:  [100,28,18,13,10,7]
+};
+function matrix(metric){
+  return COHORTS.map((c,ci)=>{
+    const cutoff=[6,6,5,4,3,2,1][ci]; // 越晚的群可见窗口越少（未满置灰）
+    return DAYS.map((d,di)=> di<cutoff ? Math.max(0,Math.round(BASE[metric][di]*(1-ci*0.015))) : null);
+  });
+}
+function heat(v){ // 0-100 -> 蓝色深浅
+  if(v==null) return '#fafbfd';
+  const t=Math.min(1,v/70);
+  const r=Math.round(238-(238-58)*t), g=Math.round(243-(243-109)*t), b=Math.round(255-(255-240)*t);
+  return `rgb(${r},${g},${b})`;
+}
+let metric='pay';
+function setMetric(m){ metric=m; document.querySelectorAll('.mt').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); render(); }
+
+const SUBS=[
+ {id:'AG102311',nm:'子代理·孟买A',mem:210,ppl:186,cost:9300,d1:'42%',d7:'34%',diff:'+12,000'},
+ {id:'AG102312',nm:'子代理·孟买B',mem:180,ppl:151,cost:7550,d1:'38%',d7:'31%',diff:'+8,600'},
+ {id:'AG102313',nm:'子代理·德里A',mem:96,ppl:88,cost:4400,d1:'22%',d7:'12%',diff:'+1,200'},
+ {id:'AG102314',nm:'子代理·薅羊毛群',mem:120,ppl:118,cost:5900,d1:'3%',d7:'0%',diff:'-4,200'},
+ {id:'AG102315',nm:'子代理·钦奈A',mem:140,ppl:130,cost:6500,d1:'36%',d7:'29%',diff:'+6,800'},
+ {id:'AG102316',nm:'子代理·加尔各答',mem:85,ppl:69,cost:3650,d1:'34%',d7:'27%',diff:'+3,900'},
+];
+function renderAgent(){
+  const aid=document.getElementById('agtId').value||'AG10231';
+  document.getElementById('agtSub').textContent=`代理 ${aid} 名下 ${SUBS.length} 个子代理`;
+  document.getElementById('agtBody').innerHTML=SUBS.map(s=>`<tr>
+    <td style="font-family:Menlo,monospace"><span class="op" onclick="toast('查看 ${s.id} 名下会员')">${s.id}</span></td><td>${s.nm}</td>
+    <td style="font-family:Menlo,monospace">${s.mem}</td><td style="font-family:Menlo,monospace">${s.ppl}</td>
+    <td style="font-family:Menlo,monospace;color:#e8890c">₹${s.cost.toLocaleString()}</td>
+    <td style="font-weight:700;color:${parseInt(s.d1)<15?'#e5484d':'#5b6472'}">${s.d1}</td>
+    <td style="font-weight:700;color:${parseInt(s.d7)<15?'#e5484d':'#16a34a'}">${s.d7}</td>
+    <td style="font-family:Menlo,monospace;font-weight:700;color:${s.diff[0]==='-'?'#e5484d':'#16a34a'}">${s.diff}</td>
+    <td><span class="op" onclick="toast('下钻 ${s.id} 名下会员留存')">查看会员</span></td></tr>`).join('');
+  const S=k=>SUBS.reduce((a,r)=>a+r[k],0);
+  document.getElementById('agtFoot').innerHTML=`<tr style="background:#f4f6fd;font-weight:700"><td>合计</td><td>${SUBS.length} 个子代理</td><td style="font-family:Menlo,monospace">${S('mem')}</td><td style="font-family:Menlo,monospace">${S('ppl')}</td><td style="font-family:Menlo,monospace;color:#e8890c">₹${S('cost').toLocaleString()}</td><td>—</td><td>—</td><td style="font-family:Menlo,monospace;color:#16a34a">+29,300</td><td></td></tr>`;
+}
+function render(){
+  const obj=document.getElementById('obj').value, isAgent=obj==='agent';
+  document.getElementById('agtFld').style.display = isAgent?'':'none';
+  document.getElementById('actFld').style.display = (obj==='act')?'':'none';
+  // 按代理维度：隐藏热力矩阵/曲线/口径切换/KPI/下钻，显示子代理表
+  ['kpis','metricCard','mtxCard','curveCard','drillCard'].forEach(id=>document.getElementById(id).style.display=isAgent?'none':'');
+  document.getElementById('agtCard').style.display=isAgent?'':'none';
+  if(isAgent){ renderAgent(); return; }
+  // KPI 随口径变
+  const K={
+   login:{d1:'60%',d7:'34%',d30:'22%',re:'—',rk:'—'},
+   bet:  {d1:'45%',d7:'23%',d30:'13%',re:'—',rk:'—'},
+   pay:  {d1:'28%',d7:'13%',d30:'7%',re:'19.6%',rk:'66%'}
+  }[metric];
+  const mn={login:'登录',bet:'投注',pay:'充值'}[metric];
+  document.getElementById('kpis').innerHTML=`
+   <div class="kpi hl"><span class="src">Chart</span><div class="t">次日${mn}留存 <span class="tip"><span class="i">i</span><span class="tt">同期群 Day1 有${mn}行为的占比</span></span></div><div class="v">${K.d1}<span class="chg down">▼2.1%</span></div><div class="s">较上周期</div></div>
+   <div class="kpi hl"><span class="src">Chart</span><div class="t">7日${mn}留存</div><div class="v">${K.d7}<span class="chg up">▲0.8%</span></div><div class="s">核心留存节点</div></div>
+   <div class="kpi"><span class="src">Chart</span><div class="t">30日${mn}留存</div><div class="v">${K.d30}</div><div class="s">长期价值</div></div>
+   <div class="kpi ${metric==='pay'?'':'warn'}"><div class="t">复充率 <span class="tip"><span class="i">i</span><span class="tt">首充后7天内二次充值人数占比；仅充值口径有效</span></span></div><div class="v">${K.re}</div><div class="s">${metric==='pay'?'首充→复充':'切「充值留存」口径查看'}</div></div>
+   <div class="kpi warn"><div class="t">7日零充值率（羊毛） <span class="tip"><span class="i">i</span><span class="tt">领取/进入后7天内零充值占比，越高活动越亏</span></span></div><div class="v rk">${K.rk}</div><div class="s">${metric==='pay'?'需转化 / 加黑':'切「充值留存」查看'}</div></div>`;
+  // 矩阵
+  const M=matrix(metric);
+  document.getElementById('mtxSub').textContent = mn+'留存 · 颜色越深留存越高';
+  let html='<thead><tr><th class="lft">同期群 \\ 天数</th>'+DAYS.map(d=>`<th>Day${d}</th>`).join('')+'<th>群人数</th></tr></thead><tbody>';
+  const sizes=[1240,1180,1310,1090,1420,1360,1500];
+  M.forEach((row,ci)=>{
+    html+=`<tr><td class="rt-lbl">${COHORTS[ci]}<span class="n">群</span></td>`+
+      row.map((v,di)=> v==null?`<td><div class="rt-cell empty">—</div></td>`
+        :`<td><div class="rt-cell ${di===0?'d0':''}" style="background:${di===0?'':heat(v)}" onclick="drill('${COHORTS[ci]}',${DAYS[di]})">${v}%</div></td>`).join('')+
+      `<td class="rt-lbl" style="font-family:Menlo,monospace;color:var(--ink2)">${sizes[ci].toLocaleString()}</td></tr>`;
+  });
+  html+='</tbody>';
+  document.getElementById('mtx').innerHTML=html;
+  // 图例
+  document.getElementById('lg').innerHTML=[10,25,40,55,70].map(v=>`<i style="background:${heat(v)}"></i>`).join('');
+  drawCurve(M);
+  drillBody();
+}
+function drawCurve(M){
+  const svg=document.getElementById('curve');const W=620,H=240,pl=40,pr=10,pt=14,pb=28;
+  const xs=DAYS, cols=['#3a6df0','#16a34a','#e8890c','#8b5cf6','#e5484d','#0891b2','#64748b'];
+  function X(i){return pl+(W-pl-pr)*(i/(DAYS.length-1))}
+  function Y(v){return pt+(H-pt-pb)*(1-v/100)}
+  let g='';
+  // 网格+Y轴
+  [0,25,50,75,100].forEach(v=>{g+=`<line x1="${pl}" y1="${Y(v)}" x2="${W-pr}" y2="${Y(v)}" stroke="#eef1f6"/><text x="${pl-6}" y="${Y(v)+3}" text-anchor="end" font-size="9" fill="#98a1b3">${v}%</text>`});
+  DAYS.forEach((d,i)=>{g+=`<text x="${X(i)}" y="${H-10}" text-anchor="middle" font-size="9" fill="#98a1b3">Day${d}</text>`});
+  M.forEach((row,ci)=>{
+    let pts=row.map((v,di)=>v==null?null:`${X(di)},${Y(v)}`).filter(Boolean).join(' ');
+    g+=`<polyline points="${pts}" fill="none" stroke="${cols[ci]}" stroke-width="${ci===2?2.6:1.6}" opacity="${ci===2?1:.7}"/>`;
+  });
+  // Day3 断崖标注
+  g+=`<line x1="${X(2)}" y1="${pt}" x2="${X(2)}" y2="${H-pb}" stroke="#e5484d" stroke-dasharray="3 3" opacity=".5"/><text x="${X(2)+4}" y="${pt+10}" font-size="9.5" fill="#e5484d" font-weight="700">Day3 断崖</text>`;
+  svg.innerHTML=g;
+  document.getElementById('clegend').innerHTML='<div style="font-weight:700;color:var(--ink2);margin-bottom:6px">各同期群（终值）</div>'+
+    COHORTS.map((c,ci)=>{const last=M[ci].filter(v=>v!=null).slice(-1)[0];return `<div class="cl-it"><span class="dot" style="background:${cols[ci]}"></span><span class="nm">${c} 群${ci===2?' ★':''}</span><span class="val">${last}%</span></div>`}).join('');
+}
+/* 下钻 */
+function drill(c,d){ document.getElementById('drillTag').textContent=`当前：${c} 群 · Day${d} · 未充值用户`; drillBody(); toast(`下钻：${c} 群 Day${d} 的未充值用户`); }
+const DUSERS=[
+ {id:2251044,ch:'域名2渠道',t0:'07-03',rc:'0.00',wd:'0.00',diff:'0.00',bn:'128.00',rate:'∞',tag:['r','纯羊毛']},
+ {id:2251051,ch:'域名1渠道',t0:'07-03',rc:'200.00',wd:'180.00',diff:'20.00',bn:'88.00',rate:'44%',tag:['a','待转化']},
+ {id:2251066,ch:'官方渠道',t0:'07-03',rc:'1500.00',wd:'300.00',diff:'1200.00',bn:'50.00',rate:'3%',tag:['g','优质']},
+ {id:2251072,ch:'域名3渠道',t0:'07-03',rc:'0.00',wd:'0.00',diff:'0.00',bn:'50.00',rate:'∞',tag:['r','纯羊毛']}
+];
+function drillBody(){
+  document.getElementById('drillBody').innerHTML=DUSERS.map(u=>`<tr>
+    <td style="font-family:Menlo,monospace">${u.id}</td><td>${u.ch}</td><td>${u.t0}</td>
+    <td style="font-family:Menlo,monospace">${u.rc}</td><td style="font-family:Menlo,monospace">${u.wd}</td>
+    <td style="font-family:Menlo,monospace;font-weight:700;color:${u.diff==='0.00'?'#98a1b3':'#16a34a'}">${u.diff}</td>
+    <td style="font-family:Menlo,monospace;color:#e8890c">${u.bn}</td><td style="font-weight:700;color:${u.rate==='∞'||parseInt(u.rate)>50?'#e5484d':'#5b6472'}">${u.rate}</td>
+    <td><span class="pill ${u.tag[0]}">${u.tag[1]}</span></td>
+    <td><span class="op" onclick="toast('查看会员 ${u.id} 完整行为轨迹')">轨迹</span></td></tr>`).join('');
+}
+function openImp(){document.getElementById('impMask').classList.add('open')}
+function closeImp(){document.getElementById('impMask').classList.remove('open')}
+document.getElementById('impMask').addEventListener('click',e=>{if(e.target.id==='impMask')closeImp()});
+let tmr;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tmr);tmr=setTimeout(()=>t.classList.remove('show'),2000);}
+render();
+</script>
+</body>
+</html>

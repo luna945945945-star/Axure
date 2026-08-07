@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>活动分析（按活动/名单/会员/代理）· V1后台交互原型</title>
+<style>
+:root{--pri:#722ed1;--pri-d:#531dab;--pri-l:#f4ebff;--suc:#52c41a;--warn:#fa8c16;--dng:#cf1322;--blue:#1677ff;--purple:#722ed1;
+--txt:#222;--t2:#555;--t3:#888;--bd:#e8e8e8;--bds:#d9d9d9;--bg:#f0f2f5;--card:#fff;--hover:#fafbff;--dark:#001529;--r:8px;--rs:5px;--sh:0 2px 8px rgba(0,0,0,.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;color:var(--txt);background:var(--bg);line-height:1.5}
+button{font-family:inherit;cursor:pointer;border:none;background:none}input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
+.admin{display:flex;min-height:100vh}
+.side{width:196px;background:var(--dark);color:#fff;flex-shrink:0}
+.logo{padding:16px 20px;font-size:15px;font-weight:700;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px}
+.logo .d{width:8px;height:8px;background:var(--pri);border-radius:50%;box-shadow:0 0 12px var(--pri)}
+.menu{padding:8px 0}.mg{padding:10px 20px 4px;font-size:11px;color:rgba(255,255,255,.38)}
+.mi{padding:9px 20px 9px 30px;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;border-left:3px solid transparent}
+.mi.on{color:#fff;background:rgba(114,46,209,.18);border-left-color:var(--pri)}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.hd{height:52px;background:#fff;border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 24px;justify-content:space-between}
+.bc{font-size:13px;color:var(--t2)}.bc .cur{color:var(--txt);font-weight:600}
+.fresh{font-size:12px;background:#f6ffed;border:1px solid #b7eb8f;color:#389e0d;padding:2px 10px;border-radius:12px}
+.content{flex:1;padding:14px 20px 40px}
+.demo{background:linear-gradient(90deg,#fff7e6,#ffe7ba);border-bottom:1px solid #ffd591;padding:6px 20px;font-size:12px;color:#874d00}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;margin-bottom:14px}
+/* 模式切换 */
+.modes{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.mode{flex:1;min-width:180px;background:#fff;border:1px solid var(--bd);border-radius:var(--r);padding:12px 16px;cursor:pointer;box-shadow:var(--sh);border-left:3px solid transparent}
+.mode:hover{border-color:var(--pri)}
+.mode.on{border-color:var(--pri);border-left-color:var(--pri);background:var(--pri-l)}
+.mode .mt{font-size:14px;font-weight:700;color:var(--txt);display:flex;align-items:center;gap:7px}
+.mode.on .mt{color:var(--pri-d)}
+.mode .ms{font-size:11.5px;color:var(--t3);margin-top:4px}
+/* 筛选 */
+.frow{display:flex;gap:12px 16px;flex-wrap:wrap;align-items:center}
+.fld{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--t2)}
+.fld label{white-space:nowrap}
+.inp,.sel{height:30px;padding:0 9px;border:1px solid var(--bds);border-radius:var(--rs);background:#fff;color:var(--txt);min-width:120px}
+.inp:focus,.sel:focus{border-color:var(--pri);box-shadow:0 0 0 2px var(--pri-l)}
+.inp.sm{width:130px;min-width:0}
+.quick{display:flex;border:1px solid var(--bds);border-radius:var(--rs);overflow:hidden}
+.quick span{padding:6px 11px;font-size:12px;color:var(--t2);cursor:pointer;border-right:1px solid var(--bd)}
+.quick span:last-child{border-right:none}.quick span.on{background:var(--pri);color:#fff}
+.btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 15px;border-radius:var(--rs);font-size:13px;font-weight:500;border:1px solid var(--bds);background:#fff;color:var(--t2)}
+.btn:hover{border-color:var(--pri);color:var(--pri)}
+.btn.pri{background:var(--pri);color:#fff;border-color:var(--pri)}.btn.pri:hover{background:var(--pri-d);color:#fff}
+.btn.suc{background:var(--suc);color:#fff;border-color:var(--suc)}
+.btn.sm{height:26px;padding:0 10px;font-size:12px}
+.actions{display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #f2f2f2;align-items:center;flex-wrap:wrap}
+/* 多选活动 */
+.ms-wrap{position:relative}
+.ms-btn{min-width:230px;text-align:left;justify-content:space-between;height:30px;padding:0 10px;display:flex;align-items:center;border:1px solid var(--bds);border-radius:var(--rs);background:#fff;font-size:12.5px;color:var(--txt);cursor:pointer}
+.ms-pop{display:none;position:absolute;top:34px;left:0;z-index:40;background:#fff;border:1px solid var(--bd);border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.14);width:300px;max-height:320px;overflow:auto;padding:8px}
+.ms-pop.on{display:block}
+.ms-pop .grp{font-size:11px;color:var(--t3);padding:6px 8px 2px}
+.ms-pop label{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;cursor:pointer;font-size:12.5px}
+.ms-pop label:hover{background:var(--pri-l)}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--pri-l);color:var(--pri-d);border-radius:11px;padding:1px 9px;font-size:11.5px;margin:2px 3px 2px 0}
+/* KPI */
+.kpi-g{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:13px 15px;position:relative}
+.kpi .t{font-size:12.5px;color:var(--t3)}.kpi .v{font-size:22px;font-weight:800;margin-top:6px}
+.kpi .s{font-size:11.5px;color:var(--t3);margin-top:4px}.kpi.hl{border-left:3px solid var(--pri)}
+.kpi .src{position:absolute;top:9px;right:10px;font-size:10px;color:#bbb}
+.v.up{color:var(--suc)}.v.dn{color:var(--dng)}
+/* 留存卡：充值留存 + 打码留存 */
+.ret-g{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.ret{background:linear-gradient(135deg,#faf7ff,#f3edfb);border:1px solid #e9dcf7;border-radius:var(--r);padding:12px 15px}
+.ret .rt{font-size:12.5px;color:var(--pri-d);font-weight:600}
+.ret .two{display:flex;gap:16px;margin-top:6px}
+.ret .two .c{display:flex;flex-direction:column}
+.ret .two .l{font-size:11px;color:var(--t2)}.ret .two .n{font-size:20px;font-weight:800;line-height:1.1}
+.n.rec{color:var(--blue)}.n.cod{color:var(--purple)}
+.ret .bar{position:relative;height:7px;background:#ece7f5;border-radius:4px;margin-top:9px}
+.ret .fi{position:absolute;top:0;left:0;height:100%;border-radius:4px}
+.fi.rec{background:var(--blue)}.fi.cod{background:var(--purple);opacity:.42}
+.ret .ss{font-size:11px;color:var(--t2);margin-top:6px;border-top:1px dashed #cfe3ff;padding-top:5px}
+.ret.imm{background:#fafafa;border-color:#e0e0e0}.ret.imm .n{color:#b0b0b0}
+.imm-tag{font-size:10px;color:#8c8c8c;background:#f0f0f0;border:1px solid #e0e0e0;border-radius:8px;padding:1px 6px;margin-left:5px}
+/* 表 */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--bd);margin-bottom:14px}
+.tab{padding:9px 18px;font-size:13px;color:var(--t2);cursor:pointer;border-bottom:2px solid transparent;font-weight:500}
+.tab.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:600}
+.panel{display:none}.panel.on{display:block}
+.tw{overflow-x:auto;background:#fff;border-radius:var(--r);box-shadow:var(--sh)}
+.tbl{width:100%;border-collapse:collapse;min-width:1000px}
+.tbl th{background:#fafafa;padding:10px 12px;text-align:left;font-size:12px;color:var(--t2);font-weight:600;border-bottom:1px solid var(--bd);white-space:nowrap}
+.tbl th .sub{display:block;font-weight:400;font-size:10px;color:#aaa;margin-top:2px}
+.tbl td{padding:10px 12px;font-size:12.5px;border-bottom:1px solid #f5f5f5;white-space:nowrap}
+.tbl tbody tr:hover{background:var(--hover)}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tfoot td{padding:10px 12px;font-weight:700;background:#f0f5ff;border-top:2px solid #cfe3ff}
+.tbl tfoot .muted{color:#9bb2cf;font-weight:400}
+.link{color:var(--blue);cursor:pointer;font-weight:600}.link:hover{text-decoration:underline}
+.dual{white-space:nowrap;font-variant-numeric:tabular-nums}.dual .rec{color:var(--blue);font-weight:600}.dual .cod{color:var(--purple);font-weight:600}.dual .sep{color:#d0d0d0;margin:0 1px}
+.badge{display:inline-flex;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:500;background:#f5f5f5;color:var(--t2)}
+.badge.g{background:#f6ffed;color:var(--suc);border:1px solid #b7eb8f}.badge.r{background:#fff1f0;color:var(--dng);border:1px solid #ffa39e}.badge.w{background:#fff7e6;color:var(--warn);border:1px solid #ffd591}.badge.b{background:var(--pri-l);color:var(--pri)}
+.verdict{display:inline-flex;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600}
+.v-farm{background:#fff1f0;color:var(--dng);border:1px solid #ffa39e}.v-conv{background:#fff7e6;color:var(--warn);border:1px solid #ffd591}.v-ok{background:#f6ffed;color:var(--suc);border:1px solid #b7eb8f}
+.imm-cell{color:#c8c8c8}
+.note{background:#fffbe6;border:1px solid #ffe58f;border-radius:var(--r);padding:9px 14px;margin-bottom:14px;font-size:12.5px;color:#614700;line-height:1.7}
+.note b{color:#ad6800}.note .tg{color:#ad6800;cursor:pointer;font-weight:700;margin-left:6px}
+.note.col .full{display:none}
+.hint{font-size:12px;color:var(--t3);margin-top:9px}
+.imm-box{font-size:12px;color:#8c6d00;background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;padding:6px 12px;margin-bottom:10px;display:inline-block}
+.ctx{display:none;align-items:center;gap:10px;background:#e6f4ff;border:1px solid #91caff;border-radius:6px;padding:8px 14px;margin-bottom:12px;font-size:12.5px;color:#0d3a6b}
+.ctx.on{display:flex}.ctx .back{color:var(--pri);cursor:pointer;font-weight:600}
+.mt2{display:inline-flex;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600}
+.mt2.real{background:#f6ffed;color:#389e0d;border:1px solid #b7eb8f}.mt2.agent{background:#e6f4ff;color:#0958d9;border:1px solid #91caff}.mt2.black{background:#fff1f0;color:var(--dng);border:1px solid #ffa39e}
+.ip-warn{color:var(--dng);font-weight:700}
+/* member profile */
+.prof{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px}
+.pf{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:11px 13px}
+.pf .t{font-size:11.5px;color:var(--t3)}.pf .v{font-size:17px;font-weight:800;margin-top:5px}
+/* modal */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}
+.mask.on{display:flex}
+.modal{background:#fff;border-radius:var(--r);width:560px;max-width:92vw;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal-h{padding:14px 20px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between}
+.modal-h .t{font-size:15px;font-weight:600}.modal-h .x{font-size:18px;color:var(--t3);cursor:pointer}
+.modal-b{padding:18px 20px}
+.drop{border:1.5px dashed var(--bds);border-radius:8px;padding:22px;text-align:center;color:var(--t3);font-size:12.5px;background:#fafbfc;cursor:pointer}
+.drop:hover{border-color:var(--pri);color:var(--pri)}
+.parse{display:none;margin-top:14px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:7px;padding:11px 14px;font-size:12.5px;color:#389e0d}.parse.on{display:block}
+.modal-f{padding:13px 20px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:10px}
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;z-index:2000;opacity:0;transition:.2s}.toast.on{opacity:1}
+@media(max-width:1200px){.kpi-g,.ret-g{grid-template-columns:repeat(2,1fr)}.prof{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="admin">
+  <aside class="side">
+    <div class="logo"><span class="d"></span>V1 运营后台</div>
+    <div class="menu">
+      <div class="mg">活动奖励</div>
+      <div class="mi">活动配置</div><div class="mi">领取记录</div><div class="mi">会员活动黑名单</div>
+      <div class="mi on">📊 活动分析<span style="margin-left:6px;background:#f5222d;color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:7px">NEW</span></div>
+      <div class="mg">财务管理</div><div class="mi">人工充值</div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="demo">🧪 交互原型 · 数据为演示；顶部 4 个「分析维度」对应你的 4 类查询。留存分「充值留存(蓝)/打码留存(紫)」两条。</div>
+    <header class="hd">
+      <div class="bc">活动奖励 / <span class="cur">活动分析</span></div>
+      <div style="display:flex;align-items:center;gap:14px"><span class="fresh">🕒 T+1 离线 · 数据截至 07-25</span><span style="font-size:12.5px;color:var(--t2)">luna</span></div>
+    </header>
+    <div class="content">
+
+      <!-- ═══ 分析维度切换 ═══ -->
+      <div class="modes">
+        <div class="mode on" data-m="act" onclick="setMode('act',this)"><div class="mt">🎯 按活动</div><div class="ms">单个 / 多个 / 全部活动的成本与留存</div></div>
+        <div class="mode" data-m="imp" onclick="setMode('imp',this)"><div class="mt">📋 按导入名单</div><div class="ms">导入一批会员，看这批的领取与留存</div></div>
+        <div class="mode" data-m="mem" onclick="setMode('mem',this)"><div class="mt">👤 按会员</div><div class="ms">单会员历史领取时间线 + 领取后留存</div></div>
+        <div class="mode" data-m="agt" onclick="setMode('agt',this)"><div class="mt">🏷️ 按代理</div><div class="ms">代理下级子代理的领取与留存</div></div>
+      </div>
+
+      <!-- 口径 -->
+      <div class="note col" id="note">📐 <b>统一口径</b>
+        <span class="tg" onclick="this.parentElement.classList.toggle('col');this.textContent=this.parentElement.classList.contains('col')?'展开 ▾':'收起 ▴'">展开 ▾</span>
+        <div class="full" style="margin-top:7px">
+          ① <b>成本</b> = 该范围派发的活动奖金合计。② <b>充值留存</b> = 领取(T0)后 N 日内有成功充值的人占比；<b>打码留存</b> = T0 后 N 日内有有效打码(投注)的人占比。③ <b>T0 = 首次领取</b>（可重复领的活动一人只取第一次）。④ 数据 T+1 离线；<b>未成熟窗口置灰不计入</b>。⑤ 未扣自然留存，仅作横向比活动/趋势。
+        </div>
+      </div>
+
+      <!-- ═══════════ 模式1 按活动 ═══════════ -->
+      <div id="M-act">
+        <div class="card">
+          <div class="frow">
+            <div class="fld"><label>活动</label>
+              <div class="ms-wrap">
+                <button class="ms-btn" onclick="document.getElementById('ms-pop').classList.toggle('on')"><span id="ms-sum">每日奖励（118）</span><span>▾</span></button>
+                <div class="ms-pop" id="ms-pop">
+                  <label><input type="checkbox" id="ms-all" onchange="msAll(this)"> <b>全部活动</b></label>
+                  <div class="grp">周期任务</div>
+                  <label><input type="checkbox" class="ms-c" value="每日签到"> 每日签到（7）</label>
+                  <label><input type="checkbox" class="ms-c" value="每日奖励" checked> 每日奖励（118）</label>
+                  <label><input type="checkbox" class="ms-c" value="每周奖励"> 每周奖励（107）</label>
+                  <label><input type="checkbox" class="ms-c" value="转盘奖励"> 转盘奖励（119）</label>
+                  <div class="grp">充值 / 赠送</div>
+                  <label><input type="checkbox" class="ms-c" value="充值赠送"> 充值赠送（10）</label>
+                  <label><input type="checkbox" class="ms-c" value="首充满赠送"> 首充满赠送（14）</label>
+                  <div class="grp">新会员 / 回归</div>
+                  <label><input type="checkbox" class="ms-c" value="新手礼包"> 新手礼包（113）</label>
+                  <label><input type="checkbox" class="ms-c" value="回归奖励"> 回归奖励（115）</label>
+                  <label><input type="checkbox" class="ms-c" value="下载APP充值奖励"> 下载APP充值奖励（131）</label>
+                </div>
+              </div>
+            </div>
+            <div class="fld"><label>开始</label><input type="date" class="inp sm" value="2026-07-08"></div>
+            <div class="fld"><label>结束</label><input type="date" class="inp sm" value="2026-07-14"></div>
+            <div class="fld"><label>会员类型</label><select class="sel" style="min-width:110px"><option>仅真实用户</option><option>全部</option><option>代理分组</option></select></div>
+            <div class="fld"><label>VIP</label><select class="sel" style="min-width:90px"><option>全部</option><option>VIP0</option><option>VIP1+</option></select></div>
+          </div>
+          <div class="actions">
+            <button class="btn pri" onclick="toast('已按当前活动与条件查询')">🔍 查询</button>
+            <button class="btn" onclick="toast('已重置')">重置</button>
+            <button class="btn suc" onclick="toast('已导出【'+curTab()+'】Excel')">⬇ 导出</button>
+            <div class="quick" style="margin-left:auto"><span>今天</span><span>昨天</span><span>本周</span><span class="on">近7天</span><span>本月</span></div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab on" onclick="actTab('ov',this)">概览</div>
+          <div class="tab" onclick="actTab('daily',this)">每日明细</div>
+          <div class="tab" onclick="actTab('user',this)">用户明细</div>
+        </div>
+
+        <!-- 概览 -->
+        <div class="panel on" id="A-ov">
+          <div class="kpi-g">
+            <div class="kpi hl"><div class="t">领取人数（去重）</div><div class="v">1,000</div><div class="s">分母基准</div><div class="src">FinancialLog</div></div>
+            <div class="kpi"><div class="t">活动成本（奖金）</div><div class="v">₹50,000</div><div class="s">人均 ₹50</div><div class="src">FinancialLog</div></div>
+            <div class="kpi"><div class="t">充值留存（7日）</div><div class="v" style="color:var(--blue)">34%</div><div class="s">340 人 · 复充 0.71 笔/人</div><div class="src">Recharges</div></div>
+            <div class="kpi"><div class="t">打码留存（7日）</div><div class="v" style="color:var(--purple)">61%</div><div class="s">610 人有有效投注</div><div class="src">Chart_Lottery</div></div>
+            <div class="kpi"><div class="t">窗口总流水（7日）</div><div class="v">₹1,240,000</div><div class="s">人均 ₹1,240</div><div class="src">Chart_Lottery</div></div>
+            <div class="kpi"><div class="t">流水倍数</div><div class="v">2.88x</div><div class="s">要求 3.0x · 达标 68%</div><div class="src">计算</div></div>
+            <div class="kpi"><div class="t">重提差（7日）</div><div class="v up">+₹135,000</div><div class="s">充 380,000 − 提 245,000</div><div class="src">R−W</div></div>
+            <div class="kpi"><div class="t">活动 ROI <span class="imm-tag">仅含已满15天群</span></div><div class="v up">+159%</div><div class="s">15日窗口</div><div class="src">计算</div></div>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:var(--t2);margin:2px 2px 9px">留存（<span style="color:var(--blue)">充值留存</span> / <span style="color:var(--purple)">打码留存</span>，按 T0 同期群窗口）</div>
+          <div class="ret-g" id="A-ret"></div>
+        </div>
+
+        <!-- 每日明细 -->
+        <div class="panel" id="A-daily">
+          <div class="imm-box">⏳ 距今不足 15 天的同期群窗口未走完，已<b>排除</b>，满 15 天自动补上。</div>
+          <div class="tw"><table class="tbl">
+            <thead><tr><th>日期<span class="sub">T0=首次领取</span></th><th>活动</th><th>领取人数</th><th class="num">活动成本</th>
+              <th class="num">次日<span class="sub">充/码</span></th><th class="num">3日<span class="sub">充/码</span></th><th class="num">7日<span class="sub">充/码</span></th><th class="num">15日<span class="sub">充/码</span></th>
+              <th class="num">充值<span class="sub">7日</span></th><th class="num">总流水<span class="sub">7日</span></th><th class="num">流水倍数</th><th class="num">重提差</th><th class="num">ROI</th><th>操作</th></tr></thead>
+            <tbody id="A-daily-b"></tbody><tfoot id="A-daily-f"></tfoot>
+          </table></div>
+          <div class="hint">💡 点「领取人数/查看用户」下钻当天群体。合计仅汇总可加总列。</div>
+        </div>
+
+        <!-- 用户明细 -->
+        <div class="panel" id="A-user">
+          <div class="ctx on" id="A-ctx"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <span style="color:var(--t2);font-size:12.5px">判定：</span>
+            <span class="badge" style="cursor:pointer" onclick="toast('筛选：全部')">全部 8</span>
+            <span class="verdict v-farm" style="cursor:pointer">🔴 纯羊毛 2</span>
+            <span class="verdict v-conv" style="cursor:pointer">🟠 待转化 1</span>
+            <span class="verdict v-ok" style="cursor:pointer">🟢 正常 5</span>
+            <button class="btn sm" style="margin-left:auto;color:var(--dng);border-color:#ffa39e" onclick="toast('已批量拉黑纯羊毛')">🚫 批量拉黑纯羊毛</button>
+          </div>
+          <div class="tw"><table class="tbl" style="min-width:1500px">
+            <thead><tr><th>会员账号</th><th>状态</th><th>类型</th><th>VIP</th><th>渠道</th><th>上级代理</th><th>登入IP</th><th class="num">同IP</th>
+              <th>领取时间<span class="sub">T0</span></th><th class="num">本次奖金</th><th class="num">累计领彩金</th>
+              <th>次日<span class="sub">充/码</span></th><th>7日<span class="sub">充/码</span></th><th class="num">累计充值</th><th class="num">总流水</th><th>判定</th><th>操作</th></tr></thead>
+            <tbody id="A-user-b"></tbody>
+          </table></div>
+          <div class="hint">💡 <span style="color:var(--blue);font-weight:600">充</span>=有成功充值(充值留存) · <span style="color:var(--purple);font-weight:600">码</span>=有有效打码(打码留存)。没回来+零充值=纯羊毛；有打码无充值=待转化；有充值=正常。</div>
+        </div>
+      </div>
+
+      <!-- ═══════════ 模式2 按导入名单 ═══════════ -->
+      <div id="M-imp" style="display:none">
+        <div class="card">
+          <div class="frow">
+            <button class="btn pri" onclick="openM('imp')">⬆ 导入会员名单</button>
+            <span class="chip" id="imp-chip" style="display:none">📋 名单 <b id="imp-n">4,820</b> 人 <span style="cursor:pointer" onclick="document.getElementById('imp-chip').style.display='none';toast('已清除名单')">✕</span></span>
+            <div class="fld"><label>活动范围</label>
+              <button class="ms-btn" style="min-width:180px" onclick="toast('可选定名单在哪些活动的领取，默认全部活动')"><span>全部活动</span><span>▾</span></button></div>
+            <div class="fld"><label>时间</label><input type="date" class="inp sm" value="2026-07-01"> ~ <input type="date" class="inp sm" value="2026-07-25"></div>
+            <button class="btn pri" style="margin-left:auto" onclick="toast('已按名单查询')">🔍 查询</button>
+          </div>
+          <div class="hint">导入一批会员ID/账号，页面所有指标仅统计名单内用户——看这批人的活动领取、成本、充值/打码留存。</div>
+        </div>
+        <div class="kpi-g">
+          <div class="kpi hl"><div class="t">名单人数</div><div class="v">4,820</div><div class="s">有效导入</div></div>
+          <div class="kpi"><div class="t">名单领取总次数</div><div class="v">11,240</div><div class="s">人均 2.3 次</div></div>
+          <div class="kpi"><div class="t">名单领取成本</div><div class="v">₹214,600</div><div class="s">人均 ₹44.5</div></div>
+          <div class="kpi"><div class="t">充值留存(7日) / 打码留存(7日)</div><div class="v"><span style="color:var(--blue)">31%</span> <span style="color:#ccc">/</span> <span style="color:var(--purple)">58%</span></div><div class="s">名单整体</div></div>
+        </div>
+        <div class="tw"><table class="tbl" style="min-width:1200px">
+          <thead><tr><th>会员账号</th><th>类型</th><th>VIP</th><th>上级代理</th><th class="num">领取次数</th><th class="num">累计领彩金</th>
+            <th>次日<span class="sub">充/码</span></th><th>7日<span class="sub">充/码</span></th><th class="num">累计充值</th><th class="num">总流水</th><th>判定</th></tr></thead>
+          <tbody id="I-b"></tbody>
+        </table></div>
+      </div>
+
+      <!-- ═══════════ 模式3 按会员 ═══════════ -->
+      <div id="M-mem" style="display:none">
+        <div class="card">
+          <div class="frow">
+            <div class="fld"><label>会员ID/账号</label><input class="inp" id="mem-q" value="9188****201" style="min-width:180px"></div>
+            <div class="fld"><label>范围</label><select class="sel" id="mem-range" style="min-width:120px"><option value="hist">历史全部</option><option value="range">指定时间区间</option></select></div>
+            <div class="fld" id="mem-dates" style="display:none"><input type="date" class="inp sm" value="2026-06-01"> ~ <input type="date" class="inp sm" value="2026-07-25"></div>
+            <button class="btn pri" onclick="toast('已查询该会员领取时间线')">🔍 查询</button>
+          </div>
+        </div>
+        <div class="prof">
+          <div class="pf"><div class="t">会员账号</div><div class="v" style="font-size:14px">9188****201</div></div>
+          <div class="pf"><div class="t">VIP / 层级</div><div class="v" style="font-size:14px">VIP2 · 2级</div></div>
+          <div class="pf"><div class="t">上级代理</div><div class="v" style="font-size:14px">AG10231</div></div>
+          <div class="pf"><div class="t">累计领取次数</div><div class="v">37</div></div>
+          <div class="pf"><div class="t">累计领取金额</div><div class="v">₹1,860</div></div>
+          <div class="pf"><div class="t">累计充值 / 打码</div><div class="v" style="font-size:14px">₹12,800 / ₹41,000</div></div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--t2);margin:2px 2px 9px">领取时间线（每次领取 + 该次领取后的充值/打码留存）</div>
+        <div class="tw"><table class="tbl" style="min-width:1050px">
+          <thead><tr><th>领取时间</th><th>活动</th><th class="num">奖金</th>
+            <th>领后次日<span class="sub">充/码</span></th><th>领后3日<span class="sub">充/码</span></th><th>领后7日<span class="sub">充/码</span></th>
+            <th class="num">领后7日充值</th><th class="num">领后7日流水</th><th>该次判定</th></tr></thead>
+          <tbody id="P-b"></tbody>
+        </table></div>
+        <div class="hint">💡 单会员视角：看他每一次领了什么、领完有没有充值/打码回来——识别"专薅某个活动却从不充值"的行为。</div>
+      </div>
+
+      <!-- ═══════════ 模式4 按代理 ═══════════ -->
+      <div id="M-agt" style="display:none">
+        <div class="card">
+          <div class="frow">
+            <div class="fld"><label>代理ID</label><input class="inp" id="agt-q" value="AG10231" style="min-width:150px"></div>
+            <div class="fld"><label>活动</label><select class="sel" style="min-width:150px"><option>全部活动</option><option>每日奖励（118）</option><option>充值赠送（10）</option></select></div>
+            <div class="fld"><label>时间</label><input type="date" class="inp sm" value="2026-07-08"> ~ <input type="date" class="inp sm" value="2026-07-14"></div>
+            <div class="fld"><label>层级</label><select class="sel" style="min-width:110px"><option>仅直属下级</option><option>含所有下级</option></select></div>
+            <button class="btn pri" onclick="toast('已查询该代理下级子代理')">🔍 查询</button>
+          </div>
+        </div>
+        <div class="ctx" id="G-ctx"></div>
+        <div class="kpi-g">
+          <div class="kpi hl"><div class="t">直属子代理数</div><div class="v">6</div><div class="s">AG10231 名下</div></div>
+          <div class="kpi"><div class="t">名下领取人数</div><div class="v">842</div><div class="s">去重会员</div></div>
+          <div class="kpi"><div class="t">名下领取成本</div><div class="v">₹41,300</div><div class="s">奖金合计</div></div>
+          <div class="kpi"><div class="t">整体 充值/打码 留存(7日)</div><div class="v"><span style="color:var(--blue)">36%</span> <span style="color:#ccc">/</span> <span style="color:var(--purple)">63%</span></div></div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--t2);margin:2px 2px 9px">下级子代理领取与留存（点「查看会员」下钻到该子代理名下会员）</div>
+        <div class="tw"><table class="tbl" style="min-width:1100px">
+          <thead><tr><th>子代理ID</th><th>代理名称</th><th class="num">名下会员</th><th class="num">领取人数</th><th class="num">领取成本</th>
+            <th>次日<span class="sub">充/码</span></th><th>7日<span class="sub">充/码</span></th><th class="num">名下充值(7日)</th><th class="num">重提差(7日)</th><th>操作</th></tr></thead>
+          <tbody id="G-b"></tbody><tfoot id="G-f"></tfoot>
+        </table></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- 导入弹窗 -->
+<div class="mask" id="MK-imp"><div class="modal">
+  <div class="modal-h"><span class="t">导入会员名单</span><span class="x" onclick="closeM('imp')">✕</span></div>
+  <div class="modal-b">
+    <div class="drop" onclick="document.getElementById('parse').classList.add('on')">📄 点击上传 .xlsx/.csv/.txt（单列 会员ID/账号，上限 5 万行）<br><span style="font-size:11px">或拖拽到此处</span></div>
+    <div style="text-align:center;font-size:12px;color:var(--t3);margin:10px 0">— 或直接粘贴 —</div>
+    <textarea class="inp" style="width:100%;height:70px;padding:8px" placeholder="每行一个会员ID/账号" onblur="if(this.value.trim())document.getElementById('parse').classList.add('on')"></textarea>
+    <div class="parse" id="parse">✅ 解析完成：共 <b>5,010</b> · 有效 <b>4,820</b> · 无效 <b>190</b>（重复/不存在/格式错）</div>
+  </div>
+  <div class="modal-f"><button class="btn" onclick="closeM('imp')">取消</button><button class="btn pri" onclick="applyImp()">应用名单</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+let tmr;function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('on');clearTimeout(tmr);tmr=setTimeout(()=>e.classList.remove('on'),1600);}
+function openM(id){document.getElementById('MK-'+id).classList.add('on');}
+function closeM(id){document.getElementById('MK-'+id).classList.remove('on');}
+function applyImp(){document.getElementById('imp-chip').style.display='inline-flex';closeM('imp');toast('已应用名单：仅统计 4,820 人');}
+const money=n=>'₹'+n.toLocaleString('en-IN');
+const dual=(a,b)=>`<span class="dual"><span class="rec">${a}</span><span class="sep">/</span><span class="cod">${b}</span></span>`;
+const yn=(a,b)=>{const y='<span class="rec">✓</span>',n='<span style="color:#dcdcdc">✗</span>',p='<span class="cod">✓</span>';return `<span class="dual">${a?y:n}<span class="sep">/</span>${b?p:n}</span>`;};
+
+/* ── 模式切换 ── */
+function setMode(m,el){
+  document.querySelectorAll('.mode').forEach(x=>x.classList.remove('on'));el.classList.add('on');
+  ['act','imp','mem','agt'].forEach(k=>document.getElementById('M-'+k).style.display=k===m?'block':'none');
+}
+function curTab(){const t=document.querySelector('#M-act .tab.on');return t?t.textContent:'概览';}
+function actTab(k,el){document.querySelectorAll('#M-act .panel').forEach(p=>p.classList.remove('on'));document.getElementById('A-'+k).classList.add('on');document.querySelectorAll('#M-act .tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');}
+
+/* ── 多选活动 ── */
+function msAll(cb){document.querySelectorAll('.ms-c').forEach(c=>c.checked=false);msSum();}
+document.querySelectorAll('.ms-c').forEach(c=>c.addEventListener('change',()=>{if(c.checked)document.getElementById('ms-all').checked=false;msSum();}));
+function msSum(){
+  const sel=[...document.querySelectorAll('.ms-c:checked')].map(c=>c.value);
+  const all=document.getElementById('ms-all').checked;
+  document.getElementById('ms-sum').textContent = all?'全部活动':(sel.length===0?'请选择活动':sel.length===1?sel[0]:`已选 ${sel.length} 个活动`);
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.ms-wrap'))document.getElementById('ms-pop').classList.remove('on');});
+
+/* ── 模式3 范围切换 ── */
+document.getElementById('mem-range').addEventListener('change',function(){document.getElementById('mem-dates').style.display=this.value==='range'?'flex':'none';});
+
+/* ── 模式1 留存卡 ── */
+const retW=[['次日',18,45],['3日',26,54],['7日',34,61],['15日',41,66,'imm']];
+document.getElementById('A-ret').innerHTML=retW.map(w=>`
+  <div class="ret ${w[3]?'imm':''}"><div class="rt">${w[0]}${w[3]?' <span class="imm-tag">仅已满15天 3/7群</span>':''}</div>
+    <div class="two"><div class="c"><span class="l">充值留存</span><span class="n rec">${w[1]}%</span></div><div class="c"><span class="l">打码留存</span><span class="n cod">${w[2]}%</span></div></div>
+    <div class="bar"><div class="fi cod" style="width:${w[2]}%"></div><div class="fi rec" style="width:${w[1]}%"></div></div>
+    <div class="ss">充值 ${w[1]*10} · 打码 ${w[2]*10} / 1000</div></div>`).join('');
+
+/* ── 模式1 每日明细 ── */
+const daily=[
+ {d:'2026-07-14',ppl:152,cost:7600,c1:1,d1:1,c3:1,d3:1,c7:1,d7:1,c15:null,rech:62000,flow:198000,mult:2.9,diff:22000,roi:null,left:4},
+ {d:'2026-07-13',ppl:138,cost:6900,c1:1,d1:1,c3:1,d3:1,c7:1,d7:1,c15:null,rech:53000,flow:171000,mult:2.85,diff:19000,roi:null,left:3},
+ {d:'2026-07-12',ppl:161,cost:8050,c1:1,d1:1,c3:1,d3:1,c7:1,d7:1,c15:null,rech:60000,flow:186000,mult:2.73,diff:24000,roi:null,left:2},
+ {d:'2026-07-10',ppl:144,cost:7200,c1:1,d1:1,c3:1,d3:1,c7:1,d7:1,c15:1,rech:51000,flow:163000,mult:2.8,diff:18500,roi:157,left:0},
+ {d:'2026-07-09',ppl:133,cost:6650,c1:1,d1:1,c3:1,d3:1,c7:1,d7:1,c15:1,rech:49000,flow:150000,mult:2.7,diff:17000,roi:156,left:0},
+ {d:'2026-07-08',ppl:143,cost:7150,c1:1,d1:1,c3:1,d3:1,c7:1,d7:1,c15:1,rech:57000,flow:214000,mult:3.3,diff:18500,roi:159,left:0},
+];
+const imm=n=>`<span class="imm-cell">— 还需${n}天</span>`;
+// 用比例展示：这里 c/d 存的是"该窗口充值留存%/打码留存%"用固定示例
+const dd=[[18,45],[26,54],[34,61]];
+document.getElementById('A-daily-b').innerHTML=daily.map((r,i)=>{
+  const base=[[17+i%3,44+i%4],[25+i%3,52+i%4],[33+i%3,60+i%4]];
+  return `<tr><td>${r.d}</td><td>每日奖励</td><td><span class="link" onclick="drillA('${r.d}',${r.left})">${r.ppl}</span></td><td class="num">${money(r.cost)}</td>
+  <td class="num">${dual(base[0][0]+'%',base[0][1]+'%')}</td><td class="num">${dual(base[1][0]+'%',base[1][1]+'%')}</td><td class="num">${dual(base[2][0]+'%',base[2][1]+'%')}</td>
+  <td class="num">${r.c15===null?imm(r.left):dual('41%','66%')}</td>
+  <td class="num">${money(r.rech)}</td><td class="num">${money(r.flow)}</td><td class="num">${r.mult.toFixed(2)}x</td><td class="num" style="color:#389e0d">+${money(r.diff)}</td>
+  <td class="num">${r.roi===null?imm(r.left):'<span style="color:#389e0d;font-weight:700">+'+r.roi+'%</span>'}</td>
+  <td><span class="link" onclick="drillA('${r.d}',${r.left})">查看用户</span></td></tr>`;}).join('');
+(function(){const S=k=>daily.reduce((a,r)=>a+r[k],0);
+document.getElementById('A-daily-f').innerHTML=`<tr><td>合计/均</td><td>—</td><td>${S('ppl')}</td><td class="num">${money(S('cost'))}</td>
+<td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+<td class="num">${money(S('rech'))}</td><td class="num">${money(S('flow'))}</td><td class="num muted">—</td><td class="num" style="color:#389e0d">+${money(S('diff'))}</td><td class="num muted">—</td><td></td></tr>`;})();
+
+/* ── 模式1 用户明细 ── */
+const users=[
+ {acc:'9188****201',st:'启用',mt:'real',vip:'VIP2',ch:'APP-安卓',ag:'AG10231',ip:'103.21.44.8',ipn:1,t:'07-12 09:14',bonus:50,acc2:1860,c1:1,d1:1,c7:1,d7:1,rech:12800,flow:41000,v:'ok'},
+ {acc:'9188****774',st:'启用',mt:'real',vip:'VIP1',ch:'官网',ag:'AG10231',ip:'45.118.62.19',ipn:4,t:'07-12 09:20',bonus:50,acc2:920,c1:1,d1:1,c7:1,d7:1,rech:8600,flow:22000,v:'ok'},
+ {acc:'9188****356',st:'活动黑名单',mt:'real',vip:'VIP0',ch:'TG',ag:'AG10877',ip:'45.118.62.19',ipn:4,t:'07-12 09:21',bonus:50,acc2:150,c1:0,d1:0,c7:0,d7:0,rech:0,flow:0,v:'farm'},
+ {acc:'9188****902',st:'启用',mt:'real',vip:'VIP0',ch:'TG',ag:'AG10877',ip:'45.118.62.19',ipn:4,t:'07-12 09:23',bonus:50,acc2:100,c1:0,d1:1,c7:0,d7:1,rech:0,flow:3200,v:'conv'},
+ {acc:'9188****118',st:'拉黑',mt:'black',vip:'VIP0',ch:'APP-iOS',ag:'AG10877',ip:'45.118.62.19',ipn:4,t:'07-12 09:25',bonus:50,acc2:50,c1:0,d1:0,c7:0,d7:0,rech:0,flow:0,v:'farm'},
+ {acc:'9188****640',st:'启用',mt:'real',vip:'VIP3+',ch:'官网',ag:'AG10231',ip:'172.98.11.4',ipn:1,t:'07-12 10:02',bonus:50,acc2:3400,c1:1,d1:1,c7:1,d7:1,rech:24000,flow:78000,v:'ok'},
+ {acc:'9188****523',st:'启用',mt:'agent',vip:'VIP1',ch:'APP-安卓',ag:'AG10412',ip:'103.77.20.55',ipn:1,t:'07-12 10:18',bonus:50,acc2:610,c1:0,d1:1,c7:1,d7:1,rech:5200,flow:14000,v:'ok'},
+ {acc:'9188****087',st:'启用',mt:'agent',vip:'VIP0',ch:'官网',ag:'AG10412',ip:'103.77.20.55',ipn:2,t:'07-12 10:41',bonus:50,acc2:280,c1:0,d1:1,c7:1,d7:1,rech:3000,flow:7600,v:'ok'},
+];
+const stB=s=>s==='启用'?'<span class="badge g">启用</span>':s==='拉黑'?'<span class="badge r">拉黑</span>':'<span class="badge w">活动黑名单</span>';
+const mtB=t=>t==='agent'?'<span class="mt2 agent">代理</span>':t==='black'?'<span class="mt2 black">黑名单</span>':'<span class="mt2 real">真实</span>';
+const vB=v=>v==='ok'?'<span class="verdict v-ok">正常</span>':v==='conv'?'<span class="verdict v-conv">待转化</span>':'<span class="verdict v-farm">纯羊毛</span>';
+document.getElementById('A-user-b').innerHTML=users.map(u=>`<tr>
+  <td>${u.acc}</td><td>${stB(u.st)}</td><td>${mtB(u.mt)}</td><td><span class="badge b">${u.vip}</span></td><td>${u.ch}</td><td>${u.ag}</td>
+  <td>${u.ip}</td><td class="num">${u.ipn>=2?'<span class="ip-warn">'+u.ipn+'</span>':u.ipn}</td>
+  <td>${u.t}</td><td class="num">${money(u.bonus)}</td><td class="num">${money(u.acc2)}</td>
+  <td>${yn(u.c1,u.d1)}</td><td>${yn(u.c7,u.d7)}</td><td class="num">${money(u.rech)}</td><td class="num">${money(u.flow)}</td>
+  <td>${vB(u.v)}</td><td><button class="btn sm" onclick="toast('已加入活动黑名单')">拉黑</button></td></tr>`).join('');
+document.getElementById('A-ctx').innerHTML=`<span>👥 当前示例群 <b>2026-07-12 · 每日奖励</b>（从「每日明细」点领取人数可切换）</span>`;
+function drillA(d,left){document.getElementById('A-ctx').innerHTML=`<span>🔻 已下钻：<b>${d} · 每日奖励</b> 群体（${left<=0?'15日窗口已满':'未满 · 还需'+left+'天'}）</span><span class="back" onclick="actTab('daily',document.querySelectorAll('#M-act .tab')[1])">← 返回每日明细</span>`;actTab('user',document.querySelectorAll('#M-act .tab')[2]);}
+
+/* ── 模式2 名单会员 ── */
+document.getElementById('I-b').innerHTML=users.map(u=>`<tr>
+  <td>${u.acc}</td><td>${mtB(u.mt)}</td><td><span class="badge b">${u.vip}</span></td><td>${u.ag}</td>
+  <td class="num">${Math.round(u.acc2/50)}</td><td class="num">${money(u.acc2)}</td>
+  <td>${yn(u.c1,u.d1)}</td><td>${yn(u.c7,u.d7)}</td><td class="num">${money(u.rech)}</td><td class="num">${money(u.flow)}</td><td>${vB(u.v)}</td></tr>`).join('');
+
+/* ── 模式3 会员领取时间线 ── */
+const timeline=[
+ {t:'2026-07-12 09:14',act:'每日奖励',bonus:50,c1:1,d1:1,c3:1,d3:1,c7:1,d7:1,rech:900,flow:4100,v:'ok'},
+ {t:'2026-07-11 20:33',act:'转盘奖励',bonus:12,c1:1,d1:1,c3:1,d3:1,c7:1,d7:1,rech:600,flow:2800,v:'ok'},
+ {t:'2026-07-08 10:02',act:'充值赠送',bonus:200,c1:1,d1:1,c3:1,d3:1,c7:1,d7:1,rech:2000,flow:9000,v:'ok'},
+ {t:'2026-07-05 21:10',act:'每日奖励',bonus:50,c1:0,d1:1,c3:0,d3:1,c7:0,d7:1,rech:0,flow:1500,v:'conv'},
+ {t:'2026-06-28 08:40',act:'每日签到',bonus:5,c1:0,d1:0,c3:0,d3:0,c7:0,d7:0,rech:0,flow:0,v:'farm'},
+];
+document.getElementById('P-b').innerHTML=timeline.map(r=>`<tr>
+  <td>${r.t}</td><td>${r.act}</td><td class="num">${money(r.bonus)}</td>
+  <td>${yn(r.c1,r.d1)}</td><td>${yn(r.c3,r.d3)}</td><td>${yn(r.c7,r.d7)}</td>
+  <td class="num">${money(r.rech)}</td><td class="num">${money(r.flow)}</td><td>${vB(r.v)}</td></tr>`).join('');
+
+/* ── 模式4 子代理 ── */
+const subs=[
+ {id:'AG102311',nm:'子代理·孟买A',mem:210,ppl:186,cost:9300,c1:1,d1:1,c7:1,d7:1,rech:38000,diff:12000},
+ {id:'AG102312',nm:'子代理·孟买B',mem:180,ppl:151,cost:7550,c1:1,d1:1,c7:1,d7:1,rech:29000,diff:8600},
+ {id:'AG102313',nm:'子代理·德里A',mem:96,ppl:88,cost:4400,c1:0,d1:1,c7:1,d7:1,rech:9800,diff:1200},
+ {id:'AG102314',nm:'子代理·薅羊毛群',mem:120,ppl:118,cost:5900,c1:0,d1:0,c7:0,d7:0,rech:0,diff:-4200},
+ {id:'AG102315',nm:'子代理·钦奈A',mem:140,ppl:130,cost:6500,c1:1,d1:1,c7:1,d7:1,rech:22000,diff:6800},
+ {id:'AG102316',nm:'子代理·加尔各答',mem:85,ppl:69,cost:3650,c1:1,d1:1,c7:1,d7:1,rech:14000,diff:3900},
+];
+document.getElementById('G-b').innerHTML=subs.map(s=>`<tr>
+  <td><span class="link" onclick="drillG('${s.id}','${s.nm}')">${s.id}</span></td><td>${s.nm}</td><td class="num">${s.mem}</td><td class="num">${s.ppl}</td><td class="num">${money(s.cost)}</td>
+  <td>${yn(s.c1,s.d1)}</td><td>${yn(s.c7,s.d7)}</td><td class="num">${money(s.rech)}</td>
+  <td class="num" style="color:${s.diff<0?'#cf1322':'#389e0d'}">${s.diff<0?'':'+'}${money(s.diff)}</td>
+  <td><span class="link" onclick="drillG('${s.id}','${s.nm}')">查看会员</span></td></tr>`).join('');
+(function(){const S=k=>subs.reduce((a,r)=>a+r[k],0);
+document.getElementById('G-f').innerHTML=`<tr><td>合计</td><td>${subs.length} 个子代理</td><td class="num">${S('mem')}</td><td class="num">${S('ppl')}</td><td class="num">${money(S('cost'))}</td><td class="muted">—</td><td class="muted">—</td><td class="num">${money(S('rech'))}</td><td class="num" style="color:#389e0d">+${money(S('diff'))}</td><td></td></tr>`;})();
+function drillG(id,nm){document.getElementById('G-ctx').classList.add('on');document.getElementById('G-ctx').innerHTML=`<span>🔻 已下钻子代理：<b>${id} · ${nm}</b> 名下会员（演示复用用户明细结构）</span><span class="back" onclick="document.getElementById('G-ctx').classList.remove('on')">← 返回子代理列表</span>`;toast('下钻到 '+id+' 名下会员（演示）');}
+</script>
+</body>
+</html>
