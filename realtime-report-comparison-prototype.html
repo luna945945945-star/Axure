@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>实时数据统计报表 · 同比/环比增强 交互原型</title>
+<style>
+:root{
+  --pri:#7c4dff;--pri-d:#5b2ee0;--pri-l:#f3eeff;--pri-bd:#d9caff;
+  --ink:#1f2329;--ink2:#555;--ink3:#8a929c;--line:#edeef1;--bd:#dcdfe4;--bg:#eef0f4;
+  --up:#12a05f;--up-bg:#eaf7f0;--down:#e53935;--down-bg:#fdecec;--flat:#a6adb6;
+  --new:#fa541c;--new-bg:#fff4e6;--new-bd:#ffd591;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",-apple-system,sans-serif;font-size:13px;color:var(--ink);background:var(--bg);line-height:1.5;padding:14px}
+.wrap{max-width:100%;margin:0 auto}
+.head{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:8px;padding:12px 18px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.head h1{font-size:16px;font-weight:700;color:var(--pri-d)}
+.crumb{font-size:12.5px;color:var(--ink3)}.crumb b{color:var(--ink2)}
+.banner{background:#fff8ee;border:1px solid var(--new-bd);border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:12px;color:#8a5a00}
+.banner b{color:#c0390f}
+.tag-new{background:var(--new);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:7px;vertical-align:middle;letter-spacing:.3px;margin-left:3px}
+.card{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding:14px 16px;margin-bottom:12px}
+.note{font-size:12px;color:#8a5a08;background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:7px 12px;margin-bottom:12px;line-height:1.6}
+.note b{color:#c0390f}
+.upd{text-align:right;font-size:11.5px;color:var(--ink3);margin-bottom:8px;line-height:1.6}
+/* 日期栏 */
+.daterow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.daterow .di{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2)}
+.daterow .di b{color:var(--pri-d)}
+.daterow input{height:28px;padding:0 8px;border:1px solid var(--bd);border-radius:4px;font-size:12px;font-family:inherit;width:120px}
+.daterow .today{color:#e53935;font-weight:700}
+.btn{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 14px;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#8a6bff,#7c4dff);color:#fff}
+.btn.gho{background:#fff;border:1px solid var(--bd);color:var(--ink2)}
+/* 工具条：开关 + 图例 */
+.tools{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:10px 0 2px}
+.tg{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);cursor:pointer;user-select:none}
+.tg input{width:15px;height:15px;accent-color:var(--pri)}
+.tg b{color:var(--ink)}
+.legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink3);margin-left:auto}
+.legend .k{display:inline-flex;align-items:center;gap:4px}
+.chip{display:inline-flex;align-items:center;gap:2px;padding:0 5px;border-radius:9px;font-weight:700;font-size:11px}
+.chip.up{color:var(--up);background:var(--up-bg)}
+.chip.down{color:var(--down);background:var(--down-bg)}
+.def{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.def .d{flex:1;min-width:240px;border:1px solid var(--line);border-left:3px solid var(--pri);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--ink2);background:#fbfaff}
+.def .d.tb{border-left-color:#1677ff;background:#f5f9ff}
+.def .d b{color:var(--ink)}
+.def .d .tt{font-weight:700;color:var(--ink);font-size:12.5px}
+/* 报表 */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;margin-top:12px}
+table{border-collapse:collapse;width:100%}
+th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#f7f8fa;color:#5a6472;font-weight:700;padding:8px 10px;text-align:left;position:sticky;top:0;z-index:2;white-space:nowrap}
+th .sub{display:block;font-size:10.5px;font-weight:400;color:var(--ink3);margin-top:2px}
+td{padding:6px 8px}
+td.time{font-weight:700;color:var(--ink);white-space:nowrap;background:#fcfcfd;text-align:center;font-size:12.5px}
+tr:hover td{background:#fcfbff}
+tr:hover td.time{background:#f4f1ff}
+/* 单元格内指标迷你表 */
+.cell{display:grid;grid-template-columns:max-content 100px 92px 100px;gap:1px 10px;font-size:11.5px}
+.cell .mh{display:contents}
+.cell .mh span{font-size:10px;color:var(--ink3);font-weight:700;padding-bottom:3px;border-bottom:1px dashed var(--line);margin-bottom:2px}
+.cell .mh .a{text-align:left}
+.m{display:contents}
+.m .ml{color:var(--ink2);white-space:nowrap}
+.m .mv{text-align:left;font-family:'SF Mono',Menlo,monospace;color:var(--ink);font-weight:600;white-space:nowrap}
+.m .d{text-align:left;font-family:'SF Mono',Menlo,monospace;font-weight:700;white-space:nowrap;font-size:11px}
+.m .d.up{color:var(--up)}.m .d.down{color:var(--down)}.m .d.flat{color:var(--flat);font-weight:400}
+.m .d.na{color:#c8ccd2;font-weight:400}
+/* 隐藏列 */
+.report.hideHB .hb{display:none}
+.report.hideTB .tb{display:none}
+.report.hideHB .cell{grid-template-columns:max-content 100px 100px}
+.report.hideTB .cell{grid-template-columns:max-content 100px 92px}
+.report.hideHB.hideTB .cell{grid-template-columns:max-content auto}
+/* 异常高亮 */
+.report.anom .m.big-up>*{background:var(--up-bg)}
+.report.anom .m.big-down>*{background:var(--down-bg)}
+.report.anom .m.big-up .ml::before,.report.anom .m.big-down .ml::before{content:'●';font-size:8px;margin-right:3px;vertical-align:middle}
+.report.anom .m.big-up .ml::before{color:var(--up)}
+.report.anom .m.big-down .ml::before{color:var(--down)}
+/* 右侧需求说明抽屉 */
+.spec-tab{position:fixed;top:50%;right:0;transform:translateY(-50%);writing-mode:vertical-rl;background:linear-gradient(180deg,var(--pri),var(--pri-d));color:#fff;padding:14px 8px;border-radius:8px 0 0 8px;font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;z-index:900;box-shadow:-2px 2px 10px rgba(124,77,255,.35);user-select:none}
+.spec-mask{position:fixed;inset:0;background:rgba(30,20,60,.25);z-index:950;opacity:0;visibility:hidden;transition:.25s}
+.spec-mask.open{opacity:1;visibility:visible}
+.spec{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:96vw;background:#fff;z-index:1000;box-shadow:-10px 0 40px rgba(0,0,0,.22);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.spec.open{transform:translateX(0)}
+.spec-hd{background:linear-gradient(135deg,var(--pri),var(--pri-d));color:#fff;padding:15px 22px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.spec-hd .t{font-size:15px;font-weight:700}.spec-hd .t small{display:block;font-size:11px;font-weight:400;opacity:.85;margin-top:2px}
+.spec-hd .x{cursor:pointer;font-size:20px;line-height:1}
+.spec-bd{padding:18px 22px;overflow-y:auto;flex:1;font-size:12px;line-height:1.75;color:var(--ink2)}
+.spec-sec{margin-bottom:22px}
+.spec-sec>h3{font-size:15px;font-weight:800;color:var(--ink);padding-bottom:7px;border-bottom:1px solid var(--bd);margin-bottom:12px}
+.spec-bd .k{font-size:13px;font-weight:700;color:var(--ink)}
+.spec-bd ul{margin:4px 0 0 2px;list-style:none}
+.spec-bd ul li{position:relative;padding-left:15px;margin-bottom:6px}
+.spec-bd ul li::before{content:'▸';position:absolute;left:0;color:var(--ink3)}
+.spec-bd b{color:var(--ink);font-weight:700}
+.spec-bd code{background:#f2f3f5;color:var(--ink);padding:0 4px;border-radius:3px;font-size:11.5px;overflow-wrap:anywhere}
+.spec-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.spec-tbl th,.spec-tbl td{border:1px solid var(--bd);padding:7px 10px;text-align:left;vertical-align:top}
+.spec-tbl th{background:#f7f8fa;font-weight:700;color:var(--ink)}
+.spec-tbl td:first-child{font-weight:700;color:var(--ink);white-space:nowrap}
+.opt{border:1px solid var(--line);border-radius:7px;padding:10px 13px;margin-bottom:10px}
+.opt .oh{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.opt.rec{border-color:var(--pri-bd);background:#fbfaff}
+.opt .rec-tag{background:var(--pri);color:#fff;font-size:10px;font-weight:700;border-radius:4px;padding:1px 6px;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head"><h1>实时数据统计报表</h1><div class="crumb">报表管理 › <b>实时数据统计报表</b> · 同比/环比增强</div></div>
+  <div class="banner">🧪 交互原型 · 在原报表每格的每个指标后新增 <span class="tag-new">环比</span><span class="tag-new">同比</span> 两个对比值。<b>同比</b>＝对比「上一个筛选日期的同一时刻」；<b>环比</b>＝对比「上一个 10 分钟时段」。↑绿=上升 ↓红=下降。可用上方开关切换显示。</div>
+
+  <div class="card">
+    <div class="upd">最后更新：2026/8/7 17:48:53　·　距离下次更新还有 <b>578</b> 秒（每 10 分钟刷新）</div>
+    <div class="note">*实时数据统计报表数据每 10 分钟更新一次，页面定时 10 分钟刷新一次。本期新增的 <b>同比 / 环比</b> 为纯展示层派生，不改变原有统计口径。</div>
+
+    <!-- 日期栏（沿用原报表） -->
+    <div class="daterow">
+      <div class="di"><span>日期</span><span class="today">今日</span></div>
+      <div class="di"><span>日期1：</span><input value="2026-08-06"></div>
+      <div class="di"><span>日期2：</span><input value="2026-08-05"></div>
+      <div class="di"><span>日期3：</span><input value="2026-08-04"></div>
+      <div class="di"><span>日期4：</span><input value="2026-08-03"></div>
+      <button class="btn" onclick="render()">🔍 查询</button>
+    </div>
+
+    <!-- 新增工具条：显示开关 + 图例 -->
+    <div class="tools">
+      <label class="tg"><input type="checkbox" id="tHB" checked onchange="render()"><b>环比</b>（上一时段）</label>
+      <label class="tg"><input type="checkbox" id="tTB" checked onchange="render()"><b>同比</b>（上一日期同刻）</label>
+      <label class="tg"><input type="checkbox" id="tAnom" onchange="render()"><b>异常高亮</b>（波动≥25% / 成功率≥5%）</label>
+      <div class="legend">
+        <span class="k"><span class="chip up">↑ 上升</span></span>
+        <span class="k"><span class="chip down">↓ 下降</span></span>
+      </div>
+    </div>
+
+    <div class="def">
+      <div class="d"><span class="tt">环比 <span class="tag-new">本期</span></span>　本格数值 − <b>上一个 10 分钟时段</b>（表格中下方一行）。看即时趋势、突增突降；<b>累计型指标</b>（充值/注册等）该差值即<b>本时段增量</b>。</div>
+      <div class="d tb"><span class="tt">同比 <span class="tag-new">本期</span></span>　本格数值 − <b>上一个筛选日期的同一时刻</b>（相邻右列、同一时段）。随日期1~4变化，对比两个所选日期同点位好坏。</div>
+    </div>
+
+    <div class="tbl-wrap">
+      <div class="report" id="report"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 右侧需求说明抽屉 -->
+<div class="spec-tab" onclick="toggleSpec()">📋 需求说明</div>
+<div class="spec-mask" id="specMask" onclick="toggleSpec()"></div>
+<aside class="spec" id="spec">
+  <div class="spec-hd">
+    <span class="t">实时数据统计报表 · 同比/环比增强<small>报表管理 › 实时数据统计报表　｜　交互原型配套</small></span>
+    <span class="x" onclick="toggleSpec()">✕</span>
+  </div>
+  <div class="spec-bd">
+    <div class="spec-sec">
+      <h3>一、改造页面与字段</h3>
+      <ul>
+        <li><span class="k">改造页面：</span>报表管理 › 「实时数据统计报表」。沿用现有「日期 / 日期1~4 + 查询」筛选与「每 10 分钟一行、多日期并排」的表格结构，不改原有指标口径与刷新机制。</li>
+        <li><span class="k">新增内容：</span>每格内每个指标行，在「数值」之后新增两个对比值 ——「环比」「同比」（13 个指标全部适用）：新增注册 / 投注用户 / 在线人数 / 首充用户 / 二充用户 / 充值金额 / 充值人数 / 三方近1小时成功率 / 三方近3小时成功率 / 提现金额 / 提现人数 / 充值差 / 优惠合计。</li>
+        <li><span class="k">展示辅助：</span>顶部新增开关（环比 / 同比 / 异常高亮）与图例；单元格内首行加「数值 · 环比 · 同比」列头。</li>
+      </ul>
+    </div>
+
+    <div class="spec-sec">
+      <h3>二、口径定义</h3>
+      <table class="spec-tbl">
+        <thead><tr><th>维度</th><th>对比基准</th><th>公式</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td>环比</td><td>同一日期、「上一个 10 分钟时段」（表格中相邻的下一行，时间更早 10 分钟）</td><td><code>本时段值 − 上一时段值</code></td><td>即时趋势，抓突增突降（成功率骤降、提现骤升等）</td></tr>
+          <tr><td>同比</td><td>「上一个筛选日期」的「同一时刻」（相邻右列，时段相同，随日期1~4变化）</td><td><code>本列本时段值 − 上一日期列同时段值</code></td><td>按所选日期1~4两两对比同一点位好坏</td></tr>
+        </tbody>
+      </table>
+      <ul style="margin-top:10px">
+        <li><span class="k">涨跌与配色：</span>对比值 &gt;0 显示 <span style="color:var(--up)">↑ 绿色</span>、&lt;0 显示 <span style="color:var(--down)">↓ 红色</span>、=0 灰色（沿用参考图三配色，纯按数值方向，不区分该指标「涨是好还是坏」）。</li>
+        <li><span class="k">成功率类（三方近1h/3h成功率）：</span>对比 = 两个成功率之差（今值 − 基准），带 % 显示，如 71% 对 73% 记 <code>↓2%</code>。口径为「差值」（本质是百分点，随值一起用 % 呈现），非相对变化率 (本−基)/基。</li>
+        <li><span class="k">金额/计数类：</span>显示「绝对差值」（完整千分位数值，不用万/亿缩写）。</li>
+      </ul>
+    </div>
+
+    <div class="spec-sec">
+      <h3>三、展示方式</h3>
+      <div class="opt rec">
+        <div class="oh">每格「指标：数值 ｜ 环比 ｜ 同比」并列</div>
+        每个指标行内，数值后并列 「环比」「同比」 两个对比（箭头 + 颜色 + 差值），四列左对齐、一屏可同时看两个维度；顶部开关可随时隐藏环比或同比降噪。涨 ↑ 绿、跌 ↓ 红、持平灰；单元格首行为「指标 / 数值 / 环比 / 同比」列头。
+      </div>
+    </div>
+
+    <div class="spec-sec">
+      <h3>四、边界与规则</h3>
+      <ul>
+        <li><span class="k">无环比基准：</span>当前查询时间范围内「最早的一个时段」没有上一时段，环比显示 <code>—</code>。</li>
+        <li><span class="k">无同比基准：</span>上一个筛选日期该时刻无数据（新站点 / 早于开服，或「最后一个日期无更早所选日期」）显示 <code>—</code>；「未来时段」（今日晚于当前时刻的行）本无数据，环比 / 同比同样为空。</li>
+        <li><span class="k">同比 = 上一个筛选日期同一时刻（随日期1~4变化，非固定前一天）：</span>今日的同比对比「日期1」、日期1对比「日期2」、日期2对比「日期3」、日期3对比「日期4」；日期可「非连续」，同比即按所选相邻日期相减。最后一个日期（日期4）没有更早的所选日期，同比显示 <code>—</code>。</li>
+        <li><span class="k">累计 vs 当期口径：</span>若某指标是「当日累计值」（如充值金额累计），环比会恒为正（每时段只增），此时环比 ≈ 本时段新增量；同比才体现同点位对比。口径以现有报表为准，对比公式不变。</li>
+        <li><span class="k">显示规范：</span>成功率的环比 / 同比按 % 显示（成功率之差，非相对变化率）；金额显示完整千分位数值（不用 万 / 亿 缩写，便于核对）；每格「数值 / 环比 / 同比」统一左对齐，指标名后带「：」。</li>
+      </ul>
+    </div>
+
+    <div class="spec-sec">
+      <h3>五、验收标准</h3>
+      <ul>
+        <li><span class="k">字段完整：</span>13 个指标每行均在数值后展示 「环比」「同比」 两个对比值（新增注册 / 投注用户 / 在线人数 / 首充 / 二充 / 充值金额 / 充值人数 / 三方1h·3h成功率 / 提现金额 / 提现人数 / 充值差 / 优惠合计）。</li>
+        <li><span class="k">环比取数正确：</span>环比 = 本时段 − 同日「上一个 10 分钟时段」（表中相邻下一行）；抽查任一格与下一行相减一致。</li>
+        <li><span class="k">同比取数正确：</span>同比 = 本列 − 「上一个筛选日期（相邻右列）」同一时段；把日期1~4 改成非连续日期后，仍按所选相邻日期计算，不得固定按前一天。</li>
+        <li><span class="k">涨跌与配色：</span>对比 &gt;0 显示 ↑绿、&lt;0 ↓红、=0 灰；成功率对比以 % （成功率之差）呈现，金额 / 计数以完整千分位绝对差值呈现（不用 万 / 亿）。</li>
+        <li><span class="k">口径分型正确：</span>累计型指标（充值 / 注册 / 提现等）环比恒为正（=本时段增量）；在线人数 / 两成功率 / 充值差 的环比、同比可正可负。</li>
+        <li><span class="k">边界处理：</span>范围内最早时段的环比、最后一个筛选日期的同比、及无数据 / 未来时段，均显示 <code>—</code>（不报错、不显示 0）。</li>
+        <li><span class="k">开关生效：</span>环比 / 同比可各自隐藏、异常高亮可开关，切换后布局不错位、整页无横向滚动条。</li>
+        <li><span class="k">不改原口径与机制：</span>原有各指标数值、10 分钟统计与页面刷新均与现网一致；刷新后对比值随之重算。</li>
+      </ul>
+    </div>
+  </div>
+</aside>
+
+<script>
+/* ===== 指标定义 =====
+   kind:'cum'  累计型（当日累计到该时段）→ 数值随时段增大；环比=相邻时段之差=本时段增量(恒正)
+   kind:'snap' 快照/瞬时（在线人数）             → 环比/同比为普通差值(±)
+   kind:'pct'  滚动窗口成功率                     → 环比/同比为百分点(±)
+   kind:'derived' 充值差 = 充值金额 − 提现金额（两累计之差，环比可正可负） */
+const METRICS=[
+  {k:'reg',  n:'新增注册',   t:'int',  kind:'cum',  cum:160,     inc:8},
+  {k:'bet',  n:'投注用户',   t:'int',  kind:'cum',  cum:690,     inc:6},
+  {k:'online',n:'在线人数',  t:'int',  kind:'snap', snap:448,    jit:11},
+  {k:'fc',   n:'首充用户',   t:'int',  kind:'cum',  cum:52,      inc:3},
+  {k:'sc',   n:'二充用户',   t:'int',  kind:'cum',  cum:40,      inc:2},
+  {k:'ramt', n:'充值金额',   t:'money',kind:'cum',  cum:3.75e9,  inc:330000},
+  {k:'rcnt', n:'充值人数',   t:'int',  kind:'cum',  cum:790,     inc:9},
+  {k:'s1',   n:'三方1h成功率',t:'pct', kind:'snap', snap:71,     jit:5},
+  {k:'s3',   n:'三方3h成功率',t:'pct', kind:'snap', snap:80,     jit:5},
+  {k:'wamt', n:'提现金额',   t:'money',kind:'cum',  cum:2.68e9,  inc:55000},
+  {k:'wcnt', n:'提现人数',   t:'int',  kind:'cum',  cum:406,     inc:5},
+  {k:'diff', n:'充值差',     t:'money',kind:'derived'},
+  {k:'bonus',n:'优惠合计',   t:'money',kind:'cum',  cum:1.525e8, inc:4200},
+];
+/* 展示日期：索引0=今日，其后为日期1~4，共5列；末列(日期4)无更早所选日期，同比显示 — */
+const DATES=['2026-08-07','2026-08-06','2026-08-05','2026-08-04','2026-08-03'];
+const SHOW_DATES=5;                                   // 展示今日 + 日期1~4 共5列
+/* 时段：新→旧；多生成1个更早时段作为最早行的环比基准 */
+const BUCKETS=['16:10','16:00','15:50','15:40','15:30','15:20','15:10'];
+const SHOW_BUCKETS=6;
+const MI=k=>METRICS.findIndex(x=>x.k===k);
+
+/* 确定性伪随机，保证每次渲染一致 */
+function rnd(a,b,c){const x=Math.sin(a*127.1+b*311.7+c*74.7+11.3)*43758.5453;return x-Math.floor(x);}
+
+/* 预生成累计型指标：越晚的时段累计越大；环比=相邻时段之差=本时段增量(恒正)；不同天有整体高低→同比± */
+const CUM={};
+function buildData(){
+  for(let mi=0;mi<METRICS.length;mi++){
+    const m=METRICS[mi];
+    if(m.kind!=='cum') continue;
+    CUM[m.k]=[];
+    for(let di=0;di<DATES.length;di++){
+      const dayLevel=1+0.09*(rnd(di,9,mi)-0.5)*2;          // 每天整体高低 → 同比±
+      const arr=new Array(BUCKETS.length);
+      arr[0]=m.cum*dayLevel;                               // bi=0 最新时段累计最大
+      for(let bi=0;bi<BUCKETS.length-1;bi++){
+        const inc=m.inc*(0.55+0.9*rnd(di,bi,mi));          // 本时段增量(正)
+        arr[bi+1]=Math.max(0,arr[bi]-inc);                 // 更早时段累计更小
+      }
+      CUM[m.k][di]=arr;
+    }
+  }
+}
+function snapVal(di,bi,mi){
+  const m=METRICS[mi];
+  const t=Math.sin((BUCKETS.length-bi)*0.5+mi*1.9);
+  const day=(rnd(di,9,mi)-0.5)*2, noise=(rnd(di,bi,mi)-0.5)*2;
+  if(m.t==='pct') return Math.max(6,Math.min(97, m.snap+m.jit*t+m.jit*0.7*day+2*noise));
+  return Math.max(0, m.snap+m.jit*t+m.jit*0.6*day+3*noise);
+}
+function val(di,bi,mk){
+  const mi=MI(mk), m=METRICS[mi];
+  if(m.kind==='derived'&&m.k==='diff') return val(di,bi,'ramt')-val(di,bi,'wamt');
+  if(m.kind==='cum'){ const v=CUM[m.k][di][bi]; return m.t==='money'?v:Math.round(v); }
+  const r=snapVal(di,bi,mi); return m.t==='pct'?r:Math.round(r);
+}
+buildData();
+
+/* ===== 格式化（金额/计数均显示完整千分位数值，不用万/亿缩写） ===== */
+function fmtVal(m,v){
+  if(m.t==='pct') return v.toFixed(1)+'%';
+  return Math.round(v).toLocaleString('en-US');
+}
+function fmtDelta(m,cur,base){
+  if(base===null||base===undefined) return {cls:'na',txt:'—'};
+  const d=cur-base, eps=m.t==='pct'?0.05:0.5;
+  if(Math.abs(d)<eps) return {cls:'flat',txt:'–0'};
+  const cls=d>0?'up':'down', arrow=d>0?'↑':'↓', ad=Math.abs(d);
+  // 成功率：两个成功率之差，带 % 显示；其余：完整千分位绝对差值
+  const txt = m.t==='pct' ? arrow+ad.toFixed(1)+'%' : arrow+Math.round(ad).toLocaleString('en-US');
+  return {cls,txt,d,base};
+}
+function isBig(m,cur,base){
+  if(base===null||base===undefined||base===0) return false;
+  if(m.t==='pct') return Math.abs(cur-base)>=5;
+  return Math.abs((cur-base)/base)>=0.25;
+}
+
+/* ===== 渲染 ===== */
+function cellHtml(di,bi){
+  let rows=`<div class="mh"><span>指标</span><span class="a">数值</span><span class="a hb">环比</span><span class="a tb">同比</span></div>`;
+  for(const m of METRICS){
+    const cur=val(di,bi,m.k);
+    const hbBase=(bi+1<BUCKETS.length)?val(di,bi+1,m.k):null;        // 环比：同日上一时段
+    const tbBase=(di+1<DATES.length)?val(di+1,bi,m.k):null;          // 同比：上一个筛选日期(相邻右列)同时段
+    const hb=fmtDelta(m,cur,hbBase);
+    const tb=fmtDelta(m,cur,tbBase);
+    const bigHb=isBig(m,cur,hbBase), bigTb=isBig(m,cur,tbBase);
+    let bigCls='';
+    if(bigHb||bigTb){ const dir=bigHb?(cur-hbBase):(cur-tbBase); bigCls=dir>0?'big-up':'big-down'; }
+    rows+=`<div class="m ${bigCls}"><span class="ml">${m.n}：</span>`
+        +`<span class="mv">${fmtVal(m,cur)}</span>`
+        +`<span class="d hb ${hb.cls}">${hb.txt}</span>`
+        +`<span class="d tb ${tb.cls}">${tb.txt}</span></div>`;
+  }
+  return `<div class="cell">${rows}</div>`;
+}
+function render(){
+  const showHB=document.getElementById('tHB').checked;
+  const showTB=document.getElementById('tTB').checked;
+  const anom=document.getElementById('tAnom').checked;
+  const rep=document.getElementById('report');
+  rep.className='report'+(showHB?'':' hideHB')+(showTB?'':' hideTB')+(anom?' anom':'');
+
+  let html='<table><thead><tr><th>时间</th>';
+  for(let di=0;di<SHOW_DATES;di++){
+    const label=di===0?`${DATES[di]} <span style="color:#e53935">今日</span>`:DATES[di];
+    html+=`<th>${label}</th>`;
+  }
+  html+='</tr></thead><tbody>';
+  for(let bi=0;bi<SHOW_BUCKETS;bi++){
+    html+=`<tr><td class="time">${BUCKETS[bi]}</td>`;
+    for(let di=0;di<SHOW_DATES;di++){ html+=`<td>${cellHtml(di,bi)}</td>`; }
+    html+='</tr>';
+  }
+  html+='</tbody></table>';
+  rep.innerHTML=html;
+}
+function toggleSpec(){document.getElementById('spec').classList.toggle('open');document.getElementById('specMask').classList.toggle('open');}
+render();
+</script>
+</body>
+</html>
