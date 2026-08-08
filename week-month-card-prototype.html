@@ -355,8 +355,8 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
             <div class="card-b">
               <div class="frm">
                 <div class="frm-row shared"><div class="lb"><span class="req">*</span>活动名称</div><div class="ctrl"><input id="actName" value="Weekly Card 周卡奖励"><span class="hint g">仅后台使用，前端标题见「活动标题」（分语言）</span></div></div>
-                <div class="frm-row i18n"><div class="lb"><span class="req">*</span>活动标题</div><div class="ctrl"><input id="actTitle" placeholder="前端展示标题"><span class="hint">前端顶部标题，按当前语言维护</span></div></div>
-                <div class="frm-row i18n"><div class="lb">规则说明</div><div class="ctrl"><textarea id="actRule" rows="3" placeholder="前端活动规则说明"></textarea></div></div>
+                <div class="frm-row i18n"><div class="lb"><span class="req">*</span>活动标题</div><div class="ctrl"><input id="actTitle" maxlength="30" oninput="updCount('actTitle','titleCount',30)" placeholder="前端展示标题"><span class="hint">前端顶部标题，按当前语言维护；限 <span id="titleCount">0</span>/30 字</span></div></div>
+                <div class="frm-row i18n"><div class="lb">规则说明</div><div class="ctrl"><textarea id="actRule" maxlength="500" oninput="updCount('actRule','ruleCount',500)" rows="3" placeholder="前端活动规则说明"></textarea><span class="hint" style="text-align:right">限 <span id="ruleCount">0</span>/500 字</span></div></div>
                 <div class="frm-row shared"><div class="lb"><span class="req">*</span>开始时间</div><div class="ctrl"><input id="actStart" value="2024-05-03 00:00:00"><span class="hint">活动上线、用户可购买的起点</span></div></div>
                 <div class="frm-row shared"><div class="lb"><span class="req">*</span>结束时间</div><div class="ctrl"><input id="actEnd" value="2099-05-03 23:59:59"><span class="hint">停止购买（下架）时间；已购卡按自身周期继续领取。<b style="color:#3a4250">到达结束时间后，活动开关自动关闭（下架）</b>。</span></div></div>
                 <div class="frm-row shared"><div class="lb" id="actSwLb">周卡活动开关</div><div class="ctrl" style="padding-top:5px">
@@ -405,7 +405,7 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
             <div class="tbl-wrap">
               <table class="tier">
                 <thead><tr>
-                  <th>排序</th><th title="仅后台标识，客户端不展示，无需多语言">档位名称</th><th>售价</th><th>即时奖励</th><th>每日奖励</th><th>领取天数</th><th>打码量倍数 <span class="qh" data-tip="奖励金额 × 倍数 = 该笔奖励需完成的打码量（对应 V1 的 AmountofCode）；正整数。">?</span></th><th>累计购买上限 <span class="qh" data-tip="同一档位同一用户最大可购买上限（活动周期内累计）；留空=不限。">?</span></th><th>总库存 <span class="qh" data-tip="该档位总库存；卖完以后该档位【自动下架】——联动该档「档位开关」关闭、客户端隐藏该档；留空=不限；购买即扣、退款回补、过期未领不回补。">?</span></th><th>每日限量 <span class="qh" data-tip="该档位每天可购买上限；达上限后客户端点购买提示『本档今日已售罄，换个档位或明天再来抢购～』；每日 00:00（站点时区）重置；留空=不限。">?</span></th><th>档位开关 <span class="qh" data-tip="单个档位上/下架。开启=该档可购买；关闭=停售并隐藏（关闭后才能编辑/删除），实时生效；关闭不影响已购该档的卡（继续领完、不追溯）。">?</span></th><th>操作</th>
+                  <th>排序 <span class="qh" data-tip="整数，范围 0 ~ 99999；数字越大越靠前。">?</span></th><th>档位名称 <span class="qh" data-tip="仅后台标识，客户端不展示、无需多语言；文本 1 ~ 30 字符。">?</span></th><th>售价 <span class="qh" data-tip="金额（2 位小数），范围 0.01 ~ 999,999,999；必填、必须 > 0。">?</span></th><th>即时奖励 <span class="qh" data-tip="金额（2 位小数），范围 0 ~ 999,999,999；可为 0。">?</span></th><th>每日奖励 <span class="qh" data-tip="金额（2 位小数），范围 0.01 ~ 999,999,999；必填、必须 > 0。">?</span></th><th>领取天数</th><th>打码量倍数 <span class="qh" data-tip="奖励金额 × 倍数 = 该笔奖励需完成的打码量（对应 V1 的 AmountofCode）；正整数，范围 1 ~ 999。">?</span></th><th>累计购买上限 <span class="qh" data-tip="同一档位同一用户最大可购买上限（活动周期内累计）；正整数 1 ~ 999999，留空=不限。">?</span></th><th>总库存 <span class="qh" data-tip="该档位总库存；卖完以后该档位【自动下架】——联动该档「档位开关」关闭、客户端隐藏该档；正整数 1 ~ 9,999,999，留空=不限；购买即扣、退款回补、过期未领不回补。">?</span></th><th>每日限量 <span class="qh" data-tip="该档位每天可购买上限；达上限后客户端点购买提示『本档今日已售罄，换个档位或明天再来抢购～』；每日 00:00（站点时区）重置；正整数 1 ~ 9,999,999、留空=不限、且 ≤ 总库存。">?</span></th><th>档位开关 <span class="qh" data-tip="单个档位上/下架。开启=该档可购买；关闭=停售并隐藏（关闭后才能编辑/删除），实时生效；关闭不影响已购该档的卡（继续领完、不追溯）。">?</span></th><th>操作</th>
                 </tr></thead>
                 <tbody id="tierBody"></tbody>
               </table>
@@ -623,11 +623,13 @@ function renderTiers(){
 }
 function setTierField(i,k,v){
   const blank=(''+v).trim()==='';
-  if(['price','instant','daily'].includes(k)){TIERS[i][k]=Math.round((Number(v)||0)*100)/100;renderTiers();}  // 金额：2 位小数
-  else if(k==='x'){TIERS[i][k]=Math.max(1,Math.round(Number(v)||1));renderTiers();}                            // 打码量倍数：正整数 ≥1
-  else if(k==='sort'){TIERS[i][k]=Math.max(0,Math.round(Number(v)||0));renderTiers();}                         // 排序：非负整数
-  else if(k==='per'){TIERS[i][k]=blank?'':Math.max(1,Math.round(Number(v)||1));renderTiers();}                 // 每人次数：留空=不限
-  else if(k==='stock'||k==='dayLimit'){TIERS[i][k]=blank?'':(isNaN(Number(v))?v:Math.max(0,Math.round(Number(v))));renderTiers();} // 库存/限量：留空=不限
+  const clamp=(x,lo,hi)=>Math.min(hi,Math.max(lo,x));
+  if(['price','instant','daily'].includes(k)){TIERS[i][k]=clamp(Math.round((Number(v)||0)*100)/100,0,999999999);renderTiers();}  // 金额：2 位小数，0~999,999,999（覆盖 VND/IDR）
+  else if(k==='x'){TIERS[i][k]=clamp(Math.round(Number(v)||1),1,999);renderTiers();}                           // 打码量倍数：正整数 1~999
+  else if(k==='sort'){TIERS[i][k]=clamp(Math.round(Number(v)||0),0,99999);renderTiers();}                      // 排序：整数 0~99999
+  else if(k==='name'){TIERS[i][k]=(''+v).slice(0,30);renderTiers();}                                          // 档位名称：≤30 字符
+  else if(k==='per'){TIERS[i][k]=blank?'':clamp(Math.round(Number(v)||1),1,999999);renderTiers();}            // 累计购买上限：留空=不限，1~999999
+  else if(k==='stock'||k==='dayLimit'){TIERS[i][k]=blank?'':clamp(Math.round(Number(v)||1),1,9999999);renderTiers();} // 库存/限量：留空=不限，1~9,999,999
   else{TIERS[i][k]=v;}
 }
 function editTier(i){if(TIERS[i].on)return;TIERS[i].editing=true;renderTiers();}
@@ -990,7 +992,8 @@ function renderLangTabs(){
     langs.map(l=>{const filled=I18N[l.c]&&I18N[l.c].title;return `<button class="lt-btn ${l.c===curLang?'active':''}" onclick="switchLang('${l.c}')">${l.n}${filled?'':'<span class="miss" title="待译"></span>'}</button>`;}).join('')
     +`<span class="base">英语为默认可编辑全部，其它语言仅译 标题/规则/图片</span>`;
 }
-function loadLang(c){const d=I18N[c]||{};document.getElementById('actTitle').value=d.title||'';document.getElementById('actRule').value=d.rule||'';}
+function loadLang(c){const d=I18N[c]||{};document.getElementById('actTitle').value=d.title||'';document.getElementById('actRule').value=d.rule||'';updCount('actTitle','titleCount',30);updCount('actRule','ruleCount',500);}
+function updCount(inp,cnt,max){const el=document.getElementById(inp),c=document.getElementById(cnt);if(el&&c){const n=(el.value||'').length;c.textContent=n;c.style.color=n>=max?'#e5484d':'';}}
 function saveLang(){if(!I18N[curLang])I18N[curLang]={};I18N[curLang].title=document.getElementById('actTitle').value;I18N[curLang].rule=document.getElementById('actRule').value;}
 function switchLang(c){
   saveLang();curLang=c;loadLang(c);
