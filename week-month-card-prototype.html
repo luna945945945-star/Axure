@@ -67,6 +67,9 @@ table.tier .del{color:var(--red);cursor:pointer;font-size:12px}
 table.tier input:disabled,table.tier select:disabled{background:#f6f7fa;color:#9aa1ad;cursor:not-allowed;border-color:#edeef2}
 .addtier{margin-top:12px;background:#f3f0ff;color:var(--pri);border:1px solid #ddd4ff;border-radius:7px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer}
 .op-prev{color:var(--pri);cursor:pointer;font-size:12px}
+.qh{display:inline-flex;width:15px;height:15px;border-radius:50%;background:#dfe3ea;color:#5b6472;align-items:center;justify-content:center;font-size:9px;cursor:help;margin-left:3px;vertical-align:middle;font-weight:400}
+.qh:hover{background:var(--pri);color:#fff}
+#gtip{display:none;position:fixed;max-width:260px;background:#20232e;color:#fff;font-size:11.5px;font-weight:400;line-height:1.65;padding:8px 11px;border-radius:8px;box-shadow:0 8px 24px rgba(15,20,35,.28);z-index:9999;pointer-events:none;white-space:normal}
 table.rec tfoot .ft td{background:#f4f6fd;border-top:1px solid #e3e7f5;padding:11px 10px;font-size:13px;color:#d6342c;font-variant-numeric:tabular-nums}
 table.rec tfoot .ft .ft-lb{font-weight:700;text-align:left;padding-left:14px}
 table.rec tfoot .ft .ft-v{font-family:Menlo,monospace;font-weight:700}
@@ -355,7 +358,7 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
                 <div class="frm-row i18n"><div class="lb"><span class="req">*</span>活动标题</div><div class="ctrl"><input id="actTitle" placeholder="前端展示标题"><span class="hint">前端顶部标题，按当前语言维护</span></div></div>
                 <div class="frm-row i18n"><div class="lb">规则说明</div><div class="ctrl"><textarea id="actRule" rows="3" placeholder="前端活动规则说明"></textarea></div></div>
                 <div class="frm-row shared"><div class="lb"><span class="req">*</span>开始时间</div><div class="ctrl"><input id="actStart" value="2024-05-03 00:00:00"><span class="hint">活动上线、用户可购买的起点</span></div></div>
-                <div class="frm-row shared"><div class="lb"><span class="req">*</span>结束时间</div><div class="ctrl"><input id="actEnd" value="2099-05-03 23:59:59"><span class="hint">停止购买（下架）时间；已购卡按自身周期继续领取</span></div></div>
+                <div class="frm-row shared"><div class="lb"><span class="req">*</span>结束时间</div><div class="ctrl"><input id="actEnd" value="2099-05-03 23:59:59"><span class="hint">停止购买（下架）时间；已购卡按自身周期继续领取。<b style="color:#3a4250">到达结束时间后，活动开关自动关闭（下架）</b>。</span></div></div>
                 <div class="frm-row shared"><div class="lb" id="actSwLb">周卡活动开关</div><div class="ctrl" style="padding-top:5px">
                   <div class="sw on" id="actSwitch" onclick="toggleActSw(this)"><span class="dot"></span><span class="lb" id="actSwTxt">客户端入口：显示</span></div>
                   <span class="hint">开关 = 客户端的活动<b style="color:#3a4250">入口显隐</b>；关闭=隐藏入口、停止新购买，<b style="color:#3a4250">不影响已购卡</b>（实时生效，不追溯）。</span>
@@ -380,10 +383,16 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
                 </div></div>
                 <div class="frm-row" id="scopeRow"></div>
                 <div class="frm-row"><div class="lb">累计充值要求</div><div class="ctrl"><input placeholder="≥（留空不限）" style="max-width:280px"></div></div>
-                <div class="frm-row"><div class="lb">近30天充值</div><div class="ctrl"><input placeholder="≥（留空不限）" style="max-width:280px"><span class="hint o">V1 无预聚合，需实时汇总近 30 天充值</span></div></div>
-                <div class="sub-div" title="下单校验（都满足才可购买）：① 持卡限制开→无「持卡中」卡（本活动内，周/月卡各自独立）；② 该档「每人购买次数」未超——即复购上限（含复购、周期内累计、留空=不限）；③ 同时持多张=开→该档不限张数、仅该档。库存：总库存=全周期总量·售罄下架；每日限量=自然日上限·每日00:00站点时区重置；购买即扣、退款回补、过期不回补。">购买 / 持卡规则 <span style="color:#c2c7d1;font-weight:400;font-size:11px">ⓘ 悬停看下单校验/库存规则</span></div>
-                <div class="frm-row"><div class="lb">持卡限制</div><div class="ctrl" style="padding-top:5px"><div class="sw on" onclick="toggleHoldLimit(this)"><span class="dot"></span><span class="lb">同一用户仅持 1 张有效卡</span></div><span class="hint" style="margin-top:5px">开启后：全局仅 1 张，档位表「同时持多张」自动失效（置灰）</span></div></div>
-                <div class="frm-row"><div class="lb">完成后可复购</div><div class="ctrl" style="padding-top:5px"><div class="sw on" onclick="tog(this)"><span class="dot"></span><span class="lb">卡完成 / 过期后才能再次购买</span></div></div></div>
+                <div class="frm-row"><div class="lb">近30天充值</div><div class="ctrl"><input placeholder="≥（留空不限）" style="max-width:280px"></div></div>
+                <div class="sub-div" data-tip="下单校验（都满足才可购买）：① 同时持卡上限——当前持卡数 < 上限（跨档合计、周/月卡独立），且同档同时仅 1 张（硬规则）；② 累计购买总上限——全档累计已购 < 上限；③ 该档「累计购买上限」未超（留空=不限）。库存：总库存售罄→该档自动下架（联动档位开关 / 客户端隐藏）；每日限量达上限→当日售罄（点购买提示换档 / 明天再来）、每日 00:00 站点时区重置；购买即扣、退款回补、过期不回补。">购买 / 持卡规则 <span class="qh" data-tip="下单校验：同时持卡上限 + 累计购买总上限 + 该档累计购买上限，均满足且未售罄才可购买。">?</span></div>
+                <div class="frm-row"><div class="lb">同时持卡上限</div><div class="ctrl">
+                  <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding-top:5px">最多同时持有 <input id="holdMax" value="1" style="width:52px"> 张 <span class="qh" data-tip="同一用户本活动【同时】最多可持有的有效卡张数（跨档位合计）；默认 1；周卡 / 月卡分开独立计算。上限=1 即「仅持 1 张、完成或过期后才能再买」。">?</span></div>
+                  <span class="hint" style="margin-top:6px"><b style="color:#3a4250">同一档位同时仅 1 张</b>（硬规则、系统固定）——完成 / 过期后释放名额、可再购。</span>
+                </div></div>
+                <div class="frm-row"><div class="lb">累计购买总上限</div><div class="ctrl">
+                  <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding-top:5px">最多累计购买 <input id="totalBuy" placeholder="不限" style="width:52px"> 张 <span class="qh" data-tip="所有档位【合计】，同一用户在本活动最多可购买的总张数；留空 = 不限；周卡 / 月卡分开独立计算。">?</span></div>
+                  <span class="hint" style="margin-top:6px">所有档位<b style="color:#3a4250">合计</b>的购买上限；<b style="color:#3a4250">留空 = 不限</b>。</span>
+                </div></div>
               </div>
               <div class="mod-save"><button class="btn-v1" onclick="toast('✅ 参与用户条件已保存（写入操作日志）')"><span class="ic">💾</span>保存参与条件</button></div>
             </div>
@@ -396,7 +405,7 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
             <div class="tbl-wrap">
               <table class="tier">
                 <thead><tr>
-                  <th>排序</th><th title="仅后台标识，客户端不展示，无需多语言">档位名称</th><th>售价</th><th>即时奖励</th><th>每日奖励</th><th>领取天数</th><th title="奖励金额 × 倍数 = 该笔奖励需完成的打码量（对应 V1 的 AmountofCode）">打码量倍数</th><th title="同一用户对【该档】累计可购买次数上限（含复购）——即『复购上限』；活动周期内累计；留空=不限。完成后可复购=完成/过期后可在此上限内再买。">每人购买次数</th><th title="该档是否允许同一用户【同时持有多张】（是/否开关）；开启=不限张数、作用域仅该档；仍受「每人购买次数」总量约束；受活动级「持卡限制」控制——持卡限制开启时全局仅 1 张、本列失效（置灰）。">同时持多张</th><th title="该档【全活动周期】可售总量；售罄即该档下架；留空=不限。购买即扣、退款回补、过期未领不回补。">总库存</th><th title="该档【每个自然日】可售上限；每日 00:00（站点时区）重置；留空=不限。">每日限量</th><th title="单个档位上/下架。开启=该档可购买；关闭=停售并隐藏（关闭后才能编辑/删除）。实时生效。关闭不影响已购该档的卡，仍继续领完（不追溯）。">开启</th><th>操作</th>
+                  <th>排序</th><th title="仅后台标识，客户端不展示，无需多语言">档位名称</th><th>售价</th><th>即时奖励</th><th>每日奖励</th><th>领取天数</th><th>打码量倍数 <span class="qh" data-tip="奖励金额 × 倍数 = 该笔奖励需完成的打码量（对应 V1 的 AmountofCode）；正整数。">?</span></th><th>累计购买上限 <span class="qh" data-tip="同一档位同一用户最大可购买上限（活动周期内累计）；留空=不限。">?</span></th><th>总库存 <span class="qh" data-tip="该档位总库存；卖完以后该档位【自动下架】——联动该档「档位开关」关闭、客户端隐藏该档；留空=不限；购买即扣、退款回补、过期未领不回补。">?</span></th><th>每日限量 <span class="qh" data-tip="该档位每天可购买上限；达上限后客户端点购买提示『本档今日已售罄，换个档位或明天再来抢购～』；每日 00:00（站点时区）重置；留空=不限。">?</span></th><th>档位开关 <span class="qh" data-tip="单个档位上/下架。开启=该档可购买；关闭=停售并隐藏（关闭后才能编辑/删除），实时生效；关闭不影响已购该档的卡（继续领完、不追溯）。">?</span></th><th>操作</th>
                 </tr></thead>
                 <tbody id="tierBody"></tbody>
               </table>
@@ -508,10 +517,10 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
             <button class="pvl" data-l="hi" onclick="setPvLang('hi')">हिन्दी</button>
           </div>
           <div class="pv-lang" style="margin-top:-4px">
-            <span class="pvl-lb">模拟资格：</span>
-            <button class="pvl on" id="gateOk" onclick="setGate(false)">满足条件</button>
-            <button class="pvl" id="gateNo" onclick="setGate(true)">充值门槛不足</button>
-            <span class="pvl-lb" style="color:#98a1b3">（演示「不满足充值门槛 → 点购买提示还差 ₹X」）</span>
+            <span class="pvl-lb">模拟购买场景：</span>
+            <button class="pvl on" data-sc="normal" onclick="setScenario('normal')">正常</button>
+            <button class="pvl" data-sc="gate" onclick="setScenario('gate')">充值门槛不足</button>
+            <button class="pvl" data-sc="limit" onclick="setScenario('limit')">该档每日限量已达</button>
           </div>
           <div class="phone">
             <div class="ph-top"><span class="bk">‹</span><span id="phTitle">活动中心</span><span class="hs" id="phHist">History</span></div>
@@ -519,6 +528,7 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
             <div class="dlg-mask" id="confirmDlg"><div class="dlg" id="cfBody"></div></div>
             <div class="dlg-mask" id="lowDlg"><div class="dlg" id="lowBody"></div></div>
             <div class="dlg-mask" id="gateDlg"><div class="dlg" id="gateBody"></div></div>
+            <div class="dlg-mask" id="limitDlg"><div class="dlg" id="limitBody"></div></div>
           </div>
         </div>
       </div>
@@ -527,6 +537,7 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="gtip"></div>
 
 <!-- 档位总奖励预览弹窗 -->
 <div class="tprev-mask" id="tierPrevModal" onclick="if(event.target===this)closeTierPrev()">
@@ -572,7 +583,6 @@ const ACT={
 };
 let curAct='周卡';
 let TIERS=ACT[curAct].tiers;
-let holdLimit=true; // 活动级持卡限制：开=全局仅1张，档位「同时持多张」失效
 const RECS=[
  {uid:2251044,type:'周卡',tier:'周卡1140',order:'WC26080100012',buy:'2026-08-01 20:11',amt:1140,instant:1000,claimed:3,days:7,total:1105,mult:1,exp:'2026-08-08 23:59:59',st:['b','持卡中']},
  {uid:2251051,type:'周卡',tier:'周卡342', order:'WC26072900008',buy:'2026-07-29 09:02',amt:342, instant:300, claimed:7,days:7,total:377, mult:1,exp:'2026-08-05 23:59:59',st:['g','已完成']},
@@ -588,7 +598,7 @@ const CARD_ST_TIP={
 /* ---------- 档位表 ---------- */
 function renderTiers(){
   const days=ACT[curAct].days;
-  if(!TIERS.length){document.getElementById('tierBody').innerHTML=`<tr><td colspan="13" style="text-align:center;color:#98a1b3;padding:22px">暂无档位，点下方「新增档位」</td></tr>`;return;}
+  if(!TIERS.length){document.getElementById('tierBody').innerHTML=`<tr><td colspan="12" style="text-align:center;color:#98a1b3;padding:22px">暂无档位，点下方「新增档位」</td></tr>`;return;}
   document.getElementById('tierBody').innerHTML=TIERS.map((t,i)=>{
     const ed=t.editing, dis=ed?'':'disabled';
     const prev=`<span class="op-prev" onclick="showTierPreview(${i})" title="查看该档的总奖励构成">预览</span>`;
@@ -596,11 +606,6 @@ function renderTiers(){
     if(t.on) ops=`<span class="op-dis" title="开启中不可编辑，请先关闭">编辑</span>`+prev;
     else if(ed) ops=`<span class="op-save" onclick="saveTier(${i})">保存</span>`+prev;
     else ops=`<span class="op-edit" onclick="editTier(${i})">编辑</span>`+prev;
-    const multiCell = holdLimit
-      ? `<div class="sw" style="pointer-events:none;opacity:.35;transform:scale(.8)" title="持卡限制开启：全局仅持1张，本项不生效"><span class="dot"></span></div>`
-      : ed
-        ? `<div class="sw ${t.multi?'on':''}" onclick="toggleTierMulti(${i})" style="transform:scale(.8)"><span class="dot"></span></div>`
-        : `<div class="sw ${t.multi?'on':''}" style="pointer-events:none;opacity:.4;transform:scale(.8)"><span class="dot"></span></div>`;
     return `<tr>
     <td><input value="${t.sort}" ${dis} onchange="setTierField(${i},'sort',this.value)" style="width:46px"></td>
     <td><input value="${t.name}" ${dis} onchange="setTierField(${i},'name',this.value)" style="min-width:90px"></td>
@@ -609,10 +614,9 @@ function renderTiers(){
     <td><input value="${t.daily}" ${dis} onchange="setTierField(${i},'daily',this.value)"></td>
     <td><input value="${t.days}" readonly title="${curAct}固定 ${days} 天" style="width:56px;background:#f3f4f7;color:#8b93a1"></td>
     <td><input value="${t.x}" ${dis} onchange="setTierField(${i},'x',this.value)" style="width:56px"></td>
-    <td><input value="${t.per}" ${dis} placeholder="不限" title="留空=不限" onchange="setTierField(${i},'per',this.value)" style="width:56px"></td>
-    <td>${multiCell}</td>
-    <td><input value="${t.stock}" ${dis} placeholder="不限" title="留空=不限（值层存 null）" onchange="setTierField(${i},'stock',this.value)" style="width:64px"></td>
-    <td><input value="${t.dayLimit}" ${dis} placeholder="不限" title="留空=不限（值层存 null）" onchange="setTierField(${i},'dayLimit',this.value)" style="width:64px"></td>
+    <td><input value="${t.per}" ${dis} onchange="setTierField(${i},'per',this.value)" style="width:64px"></td>
+    <td><input value="${t.stock===''?(ed?'':'∞'):t.stock}" ${dis} onchange="setTierField(${i},'stock',this.value)" style="width:64px;${t.stock===''&&!ed?'text-align:center;font-size:15px;color:#8b93a1':''}"></td>
+    <td><input value="${t.dayLimit===''?(ed?'':'∞'):t.dayLimit}" ${dis} onchange="setTierField(${i},'dayLimit',this.value)" style="width:64px;${t.dayLimit===''&&!ed?'text-align:center;font-size:15px;color:#8b93a1':''}"></td>
     <td><div class="sw ${t.on?'on':''}" onclick="toggleTierOn(${i})" style="transform:scale(.8)" title="该档位上/下架，实时生效；关闭=停售并隐藏、且可编辑；不影响已购该档的卡（继续领完、不追溯）"><span class="dot"></span></div></td>
     <td style="white-space:nowrap">${ops}</td>
   </tr>`;}).join('');
@@ -630,7 +634,6 @@ function editTier(i){if(TIERS[i].on)return;TIERS[i].editing=true;renderTiers();}
 function saveTier(i){TIERS[i].editing=false;renderTiers();toast('✅ 档位已保存');}
 function delTier(i){if(TIERS[i].on){toast('请先关闭该档位再删除');return;}TIERS.splice(i,1);renderTiers();}
 function toggleTierOn(i){TIERS[i].on=!TIERS[i].on;if(TIERS[i].on)TIERS[i].editing=false;renderTiers();toast(TIERS[i].on?'档位已开启':'已关闭，可编辑/删除');}
-function toggleTierMulti(i){TIERS[i].multi=!TIERS[i].multi;renderTiers();}
 function showTierPreview(i){
   const t=TIERS[i];
   const inst=Number(t.instant)||0, dtot=(Number(t.daily)||0)*(Number(t.days)||0), tot=inst+dtot, price=Number(t.price)||0;
@@ -644,7 +647,6 @@ function showTierPreview(i){
   document.getElementById('tierPrevModal').classList.add('show');
 }
 function closeTierPrev(){document.getElementById('tierPrevModal').classList.remove('show');}
-function toggleHoldLimit(el){el.classList.toggle('on');holdLimit=el.classList.contains('on');renderTiers();toast(holdLimit?'持卡限制开启：全局仅持 1 张，档位「同时持多张」失效':'持卡限制关闭：可按档位设置「同时持多张」');}
 function addTier(){TIERS.push({sort:TIERS.length+1,name:curAct+' 新档位',type:curAct,price:0,instant:0,daily:0,days:ACT[curAct].days,x:1,per:1,multi:false,stock:'',dayLimit:'',on:false,editing:true});renderTiers();toast('新档位为草稿（未开启），可编辑；配置好后再开启');}
 /* ---------- 记录 ---------- */
 function renderRecs(){filterBuy();}
@@ -812,7 +814,7 @@ function showScope(type){
   }else if(type==='group'){
     lb='选择分组';
     ctrl=`<select style="max-width:340px"><option>请选择分组</option><option>高活跃组</option><option>沉默用户组</option><option>大 R 组</option><option>新客组</option></select>
-      <span class="hint o" style="margin-top:6px">需确认 V1 是否已有用户分组体系；无则需新建或复用会员标记</span>`;
+      <span class="hint" style="margin-top:6px">下拉读取后台「分组管理」中已建立的分组；分组管理<b style="color:#3a4250">新增 / 删除分组时下拉实时联动</b>。</span>`;
   }
   row.innerHTML=`<div class="lb">${lb}</div><div class="ctrl">${ctrl}</div>`;
 }
@@ -829,10 +831,10 @@ let buyTierIdx=0;
 /* 客户端多语言（仅预览排版，不写进后台配置） */
 let pvLang='zh';
 const TR={
- zh:{center:'活动中心',history:'历史',tabs:['新手礼包','每日任务','每周任务','购买周卡','购买月卡'],banner:'活动 Banner',bannerSub:'整个活动统一一张（预览示意）',choose:'选择档位 · 立即购买',instant:'立即返现',daily:'每日',days:'天',buy:'立即购买',orig:'原价',noTier:'该分类暂无上架档位',holding:'持卡中，完成或过期后才能再次购买',progress:'进度',claimed:'已领',stDays:'已领天数',stTotal:'累计已领',stRemain:'剩余应领',claimNow:'立即领取',completed:'已完成',nextIn:'距下次领取',newbieTitle:'🎁 新人 3 日礼',getIt:'去领取',noteNewbie:'占位示意 · 接现有「新手礼包」接口',noteDaily:'占位示意 · 接现有「每日任务」接口',noteWeekly:'占位示意 · 接现有「每周任务」接口',progressLbl:'进度',packRows:[['第1天','₹88'],['第2天','₹188'],['第3天','₹388']],dailyTasks:[['首充一笔','0 / 1','去完成'],['投注满 ₹500','320 / 500','去完成'],['每日签到','已完成','领取']],weeklyTasks:[['本周充值满 ₹2000','1,200 / 2,000','去完成'],['累计投注 ₹1万','8k / 10k','去完成'],['周活跃 5 天','3 / 5','去完成']],buyQ:'购买 {n}？',willCashback:'你会立即返现',everyDay:'每天获得',totalReward:'总奖励',claimWarn:'⚠ 每日奖励必须当日领取，否则系统自动作废！',cancel:'取消',confirmBuy:'确认购买',lowTitle:'余额不足',lowLine:'现金余额不足，无法购买该卡',topup:'立即充值',buySuccess:'购买成功，立即返现 {v}',claimedToast:'已领取 +{v}，明天再来',nextDayToast:'新一天奖励可领取（演示）',needLine:'购买本卡需现金余额',toRecharge:'正在跳转充值页…（示意 · 接平台现有充值页）',gateTitle:'暂不符合参与条件',gateLine:'需累计充值达标，你还差 {v} 即可参与'},
- en:{center:'Activity Center',history:'History',tabs:['Newbie Pack','Daily Tasks','Weekly Tasks','Weekly Card','Monthly Card'],banner:'Activity Banner',bannerSub:'One shared banner for the whole activity (preview)',choose:'Choose a tier · Buy now',instant:'Instant cashback',daily:'Daily',days:'days',buy:'Buy now',orig:'Original',noTier:'No tiers available in this category',holding:'Card active — buy again after it completes or expires',progress:'Progress',claimed:'Claimed',stDays:'Days claimed',stTotal:'Total claimed',stRemain:'Remaining',claimNow:'Claim Now',completed:'Completed',nextIn:'Next in',newbieTitle:'🎁 Newbie 3-Day Gift',getIt:'Claim',noteNewbie:'Placeholder · uses existing “Newbie Pack” API',noteDaily:'Placeholder · uses existing “Daily Tasks” API',noteWeekly:'Placeholder · uses existing “Weekly Tasks” API',progressLbl:'Progress',packRows:[['Day 1','₹88'],['Day 2','₹188'],['Day 3','₹388']],dailyTasks:[['First deposit','0 / 1','Go'],['Bet ₹500','320 / 500','Go'],['Daily check-in','Done','Claim']],weeklyTasks:[['Deposit ₹2000 this week','1,200 / 2,000','Go'],['Bet ₹10k total','8k / 10k','Go'],['Active 5 days','3 / 5','Go']],buyQ:'Buy {n}?',willCashback:'You’ll get instant cashback',everyDay:'Get daily',totalReward:'Total reward',claimWarn:'⚠ Daily rewards must be claimed the same day, or they expire automatically!',cancel:'Cancel',confirmBuy:'Confirm Purchase',lowTitle:'Insufficient balance',lowLine:'Not enough cash balance to buy this card',topup:'Top up now',buySuccess:'Purchased! Instant cashback {v}',claimedToast:'Claimed +{v}, come back tomorrow',nextDayToast:'New day reward available (demo)',needLine:'This card needs cash balance',toRecharge:'Redirecting to Deposit…(demo · uses platform deposit page)',gateTitle:'Not eligible yet',gateLine:'Top up {v} more to qualify'},
- vi:{center:'Trung tâm hoạt động',history:'Lịch sử',tabs:['Gói tân thủ','Nhiệm vụ ngày','Nhiệm vụ tuần','Thẻ tuần','Thẻ tháng'],banner:'Banner hoạt động',bannerSub:'Một banner chung cho cả hoạt động (xem trước)',choose:'Chọn gói · Mua ngay',instant:'Hoàn tiền ngay',daily:'Mỗi ngày',days:'ngày',buy:'Mua ngay',orig:'Giá gốc',noTier:'Chưa có gói nào trong mục này',holding:'Đang giữ thẻ — mua lại sau khi hoàn thành hoặc hết hạn',progress:'Tiến độ',claimed:'Đã nhận',stDays:'Ngày đã nhận',stTotal:'Tổng đã nhận',stRemain:'Còn lại',claimNow:'Nhận ngay',completed:'Hoàn thành',nextIn:'Lần sau sau',newbieTitle:'🎁 Quà 3 ngày tân thủ',getIt:'Nhận',noteNewbie:'Chỗ trống · dùng API “Gói tân thủ” hiện có',noteDaily:'Chỗ trống · dùng API “Nhiệm vụ ngày” hiện có',noteWeekly:'Chỗ trống · dùng API “Nhiệm vụ tuần” hiện có',progressLbl:'Tiến độ',packRows:[['Ngày 1','₹88'],['Ngày 2','₹188'],['Ngày 3','₹388']],dailyTasks:[['Nạp lần đầu','0 / 1','Đi'],['Cược ₹500','320 / 500','Đi'],['Điểm danh hằng ngày','Xong','Nhận']],weeklyTasks:[['Nạp ₹2000 tuần này','1,200 / 2,000','Đi'],['Cược tổng ₹10k','8k / 10k','Đi'],['Hoạt động 5 ngày','3 / 5','Đi']],buyQ:'Mua {n}?',willCashback:'Bạn sẽ được hoàn tiền ngay',everyDay:'Nhận mỗi ngày',totalReward:'Tổng thưởng',claimWarn:'⚠ Thưởng hằng ngày phải nhận trong ngày, nếu không sẽ tự động mất!',cancel:'Hủy',confirmBuy:'Xác nhận mua',lowTitle:'Số dư không đủ',lowLine:'Số dư tiền mặt không đủ để mua thẻ này',topup:'Nạp ngay',buySuccess:'Đã mua! Hoàn tiền ngay {v}',claimedToast:'Đã nhận +{v}, mai quay lại',nextDayToast:'Có thưởng ngày mới (demo)',needLine:'Thẻ này cần số dư tiền mặt',toRecharge:'Đang chuyển đến trang Nạp…(demo)',gateTitle:'Chưa đủ điều kiện',gateLine:'Nạp thêm {v} để tham gia'},
- hi:{center:'गतिविधि केंद्र',history:'इतिहास',tabs:['नई सदस्य पैक','दैनिक कार्य','साप्ताहिक कार्य','साप्ताहिक कार्ड','मासिक कार्ड'],banner:'गतिविधि बैनर',bannerSub:'पूरी गतिविधि के लिए एक साझा बैनर (पूर्वावलोकन)',choose:'गोल्ड चुनें · अभी खरीदें',instant:'तुरंत कैशबैक',daily:'रोज़',days:'दिन',buy:'अभी खरीदें',orig:'मूल कीमत',noTier:'इस श्रेणी में कोई गोल्ड उपलब्ध नहीं',holding:'कार्ड सक्रिय — पूरा या समाप्त होने के बाद फिर खरीदें',progress:'प्रगति',claimed:'प्राप्त',stDays:'प्राप्त दिन',stTotal:'कुल प्राप्त',stRemain:'शेष',claimNow:'अभी लें',completed:'पूर्ण',nextIn:'अगला',newbieTitle:'🎁 नई सदस्य 3-दिन उपहार',getIt:'प्राप्त करें',noteNewbie:'प्लेसहोल्डर · मौजूदा “नई सदस्य पैक” API',noteDaily:'प्लेसहोल्डर · मौजूदा “दैनिक कार्य” API',noteWeekly:'प्लेसहोल्डर · मौजूदा “साप्ताहिक कार्य” API',progressLbl:'प्रगति',packRows:[['दिन 1','₹88'],['दिन 2','₹188'],['दिन 3','₹388']],dailyTasks:[['पहली जमा','0 / 1','जाएँ'],['₹500 दांव','320 / 500','जाएँ'],['दैनिक चेक-इन','पूर्ण','लें']],weeklyTasks:[['इस हफ्ते ₹2000 जमा','1,200 / 2,000','जाएँ'],['कुल ₹10k दांव','8k / 10k','जाएँ'],['5 दिन सक्रिय','3 / 5','जाएँ']],buyQ:'{n} खरीदें?',willCashback:'आपको तुरंत कैशबैक मिलेगा',everyDay:'रोज़ पाएं',totalReward:'कुल इनाम',claimWarn:'⚠ दैनिक इनाम उसी दिन लेना ज़रूरी है, वरना अपने आप समाप्त हो जाएगा!',cancel:'रद्द करें',confirmBuy:'खरीद पक्की करें',lowTitle:'शेष राशि अपर्याप्त',lowLine:'यह कार्ड खरीदने के लिए पर्याप्त नकद शेष नहीं है',topup:'अभी टॉप-अप करें',buySuccess:'खरीद लिया! तुरंत कैशबैक {v}',claimedToast:'{v} मिला, कल फिर आएं',nextDayToast:'नए दिन का इनाम उपलब्ध (डेमो)',needLine:'इस कार्ड के लिए नकद शेष चाहिए',toRecharge:'जमा पेज पर जा रहे हैं…(डेमो)',gateTitle:'अभी योग्य नहीं',gateLine:'भाग लेने के लिए {v} और टॉप-अप करें'}
+ zh:{center:'活动中心',history:'历史',tabs:['新手礼包','每日任务','每周任务','购买周卡','购买月卡'],banner:'活动 Banner',bannerSub:'整个活动统一一张（预览示意）',choose:'选择档位 · 立即购买',instant:'立即返现',daily:'每日',days:'天',buy:'立即购买',orig:'原价',noTier:'该分类暂无上架档位',holding:'持卡中，完成或过期后才能再次购买',progress:'进度',claimed:'已领',stDays:'已领天数',stTotal:'累计已领',stRemain:'剩余应领',claimNow:'立即领取',completed:'已完成',nextIn:'距下次领取',newbieTitle:'🎁 新人 3 日礼',getIt:'去领取',noteNewbie:'占位示意 · 接现有「新手礼包」接口',noteDaily:'占位示意 · 接现有「每日任务」接口',noteWeekly:'占位示意 · 接现有「每周任务」接口',progressLbl:'进度',packRows:[['第1天','₹88'],['第2天','₹188'],['第3天','₹388']],dailyTasks:[['首充一笔','0 / 1','去完成'],['投注满 ₹500','320 / 500','去完成'],['每日签到','已完成','领取']],weeklyTasks:[['本周充值满 ₹2000','1,200 / 2,000','去完成'],['累计投注 ₹1万','8k / 10k','去完成'],['周活跃 5 天','3 / 5','去完成']],buyQ:'购买 {n}？',willCashback:'你会立即返现',everyDay:'每天获得',totalReward:'总奖励',claimWarn:'⚠ 每日奖励必须当日领取，否则系统自动作废！',cancel:'取消',confirmBuy:'确认购买',lowTitle:'余额不足',lowLine:'现金余额不足，无法购买该卡',topup:'立即充值',buySuccess:'购买成功，立即返现 {v}',claimedToast:'已领取 +{v}，明天再来',nextDayToast:'新一天奖励可领取（演示）',needLine:'购买本卡需现金余额',toRecharge:'正在跳转充值页…（示意 · 接平台现有充值页）',gateTitle:'暂不符合参与条件',gateLine:'需累计充值达标，你还差 {v} 即可参与',limitTitle:'该档今日已售罄',limitLine:'本档位今日购买已达上限，换个档位或明天再来抢购～',gotIt:'知道了'},
+ en:{center:'Activity Center',history:'History',tabs:['Newbie Pack','Daily Tasks','Weekly Tasks','Weekly Card','Monthly Card'],banner:'Activity Banner',bannerSub:'One shared banner for the whole activity (preview)',choose:'Choose a tier · Buy now',instant:'Instant cashback',daily:'Daily',days:'days',buy:'Buy now',orig:'Original',noTier:'No tiers available in this category',holding:'Card active — buy again after it completes or expires',progress:'Progress',claimed:'Claimed',stDays:'Days claimed',stTotal:'Total claimed',stRemain:'Remaining',claimNow:'Claim Now',completed:'Completed',nextIn:'Next in',newbieTitle:'🎁 Newbie 3-Day Gift',getIt:'Claim',noteNewbie:'Placeholder · uses existing “Newbie Pack” API',noteDaily:'Placeholder · uses existing “Daily Tasks” API',noteWeekly:'Placeholder · uses existing “Weekly Tasks” API',progressLbl:'Progress',packRows:[['Day 1','₹88'],['Day 2','₹188'],['Day 3','₹388']],dailyTasks:[['First deposit','0 / 1','Go'],['Bet ₹500','320 / 500','Go'],['Daily check-in','Done','Claim']],weeklyTasks:[['Deposit ₹2000 this week','1,200 / 2,000','Go'],['Bet ₹10k total','8k / 10k','Go'],['Active 5 days','3 / 5','Go']],buyQ:'Buy {n}?',willCashback:'You’ll get instant cashback',everyDay:'Get daily',totalReward:'Total reward',claimWarn:'⚠ Daily rewards must be claimed the same day, or they expire automatically!',cancel:'Cancel',confirmBuy:'Confirm Purchase',lowTitle:'Insufficient balance',lowLine:'Not enough cash balance to buy this card',topup:'Top up now',buySuccess:'Purchased! Instant cashback {v}',claimedToast:'Claimed +{v}, come back tomorrow',nextDayToast:'New day reward available (demo)',needLine:'This card needs cash balance',toRecharge:'Redirecting to Deposit…(demo · uses platform deposit page)',gateTitle:'Not eligible yet',gateLine:'Top up {v} more to qualify',limitTitle:'Sold out today',limitLine:'This tier is sold out today — pick another tier or come back tomorrow.',gotIt:'Got it'},
+ vi:{center:'Trung tâm hoạt động',history:'Lịch sử',tabs:['Gói tân thủ','Nhiệm vụ ngày','Nhiệm vụ tuần','Thẻ tuần','Thẻ tháng'],banner:'Banner hoạt động',bannerSub:'Một banner chung cho cả hoạt động (xem trước)',choose:'Chọn gói · Mua ngay',instant:'Hoàn tiền ngay',daily:'Mỗi ngày',days:'ngày',buy:'Mua ngay',orig:'Giá gốc',noTier:'Chưa có gói nào trong mục này',holding:'Đang giữ thẻ — mua lại sau khi hoàn thành hoặc hết hạn',progress:'Tiến độ',claimed:'Đã nhận',stDays:'Ngày đã nhận',stTotal:'Tổng đã nhận',stRemain:'Còn lại',claimNow:'Nhận ngay',completed:'Hoàn thành',nextIn:'Lần sau sau',newbieTitle:'🎁 Quà 3 ngày tân thủ',getIt:'Nhận',noteNewbie:'Chỗ trống · dùng API “Gói tân thủ” hiện có',noteDaily:'Chỗ trống · dùng API “Nhiệm vụ ngày” hiện có',noteWeekly:'Chỗ trống · dùng API “Nhiệm vụ tuần” hiện có',progressLbl:'Tiến độ',packRows:[['Ngày 1','₹88'],['Ngày 2','₹188'],['Ngày 3','₹388']],dailyTasks:[['Nạp lần đầu','0 / 1','Đi'],['Cược ₹500','320 / 500','Đi'],['Điểm danh hằng ngày','Xong','Nhận']],weeklyTasks:[['Nạp ₹2000 tuần này','1,200 / 2,000','Đi'],['Cược tổng ₹10k','8k / 10k','Đi'],['Hoạt động 5 ngày','3 / 5','Đi']],buyQ:'Mua {n}?',willCashback:'Bạn sẽ được hoàn tiền ngay',everyDay:'Nhận mỗi ngày',totalReward:'Tổng thưởng',claimWarn:'⚠ Thưởng hằng ngày phải nhận trong ngày, nếu không sẽ tự động mất!',cancel:'Hủy',confirmBuy:'Xác nhận mua',lowTitle:'Số dư không đủ',lowLine:'Số dư tiền mặt không đủ để mua thẻ này',topup:'Nạp ngay',buySuccess:'Đã mua! Hoàn tiền ngay {v}',claimedToast:'Đã nhận +{v}, mai quay lại',nextDayToast:'Có thưởng ngày mới (demo)',needLine:'Thẻ này cần số dư tiền mặt',toRecharge:'Đang chuyển đến trang Nạp…(demo)',gateTitle:'Chưa đủ điều kiện',gateLine:'Nạp thêm {v} để tham gia',limitTitle:'Hết hàng hôm nay',limitLine:'Gói này đã hết hôm nay — chọn gói khác hoặc quay lại ngày mai.',gotIt:'Đã hiểu'},
+ hi:{center:'गतिविधि केंद्र',history:'इतिहास',tabs:['नई सदस्य पैक','दैनिक कार्य','साप्ताहिक कार्य','साप्ताहिक कार्ड','मासिक कार्ड'],banner:'गतिविधि बैनर',bannerSub:'पूरी गतिविधि के लिए एक साझा बैनर (पूर्वावलोकन)',choose:'गोल्ड चुनें · अभी खरीदें',instant:'तुरंत कैशबैक',daily:'रोज़',days:'दिन',buy:'अभी खरीदें',orig:'मूल कीमत',noTier:'इस श्रेणी में कोई गोल्ड उपलब्ध नहीं',holding:'कार्ड सक्रिय — पूरा या समाप्त होने के बाद फिर खरीदें',progress:'प्रगति',claimed:'प्राप्त',stDays:'प्राप्त दिन',stTotal:'कुल प्राप्त',stRemain:'शेष',claimNow:'अभी लें',completed:'पूर्ण',nextIn:'अगला',newbieTitle:'🎁 नई सदस्य 3-दिन उपहार',getIt:'प्राप्त करें',noteNewbie:'प्लेसहोल्डर · मौजूदा “नई सदस्य पैक” API',noteDaily:'प्लेसहोल्डर · मौजूदा “दैनिक कार्य” API',noteWeekly:'प्लेसहोल्डर · मौजूदा “साप्ताहिक कार्य” API',progressLbl:'प्रगति',packRows:[['दिन 1','₹88'],['दिन 2','₹188'],['दिन 3','₹388']],dailyTasks:[['पहली जमा','0 / 1','जाएँ'],['₹500 दांव','320 / 500','जाएँ'],['दैनिक चेक-इन','पूर्ण','लें']],weeklyTasks:[['इस हफ्ते ₹2000 जमा','1,200 / 2,000','जाएँ'],['कुल ₹10k दांव','8k / 10k','जाएँ'],['5 दिन सक्रिय','3 / 5','जाएँ']],buyQ:'{n} खरीदें?',willCashback:'आपको तुरंत कैशबैक मिलेगा',everyDay:'रोज़ पाएं',totalReward:'कुल इनाम',claimWarn:'⚠ दैनिक इनाम उसी दिन लेना ज़रूरी है, वरना अपने आप समाप्त हो जाएगा!',cancel:'रद्द करें',confirmBuy:'खरीद पक्की करें',lowTitle:'शेष राशि अपर्याप्त',lowLine:'यह कार्ड खरीदने के लिए पर्याप्त नकद शेष नहीं है',topup:'अभी टॉप-अप करें',buySuccess:'खरीद लिया! तुरंत कैशबैक {v}',claimedToast:'{v} मिला, कल फिर आएं',nextDayToast:'नए दिन का इनाम उपलब्ध (डेमो)',needLine:'इस कार्ड के लिए नकद शेष चाहिए',toRecharge:'जमा पेज पर जा रहे हैं…(डेमो)',gateTitle:'अभी योग्य नहीं',gateLine:'भाग लेने के लिए {v} और टॉप-अप करें',limitTitle:'आज बिक गया',limitLine:'यह गोल्ड आज बिक चुका है — दूसरा चुनें या कल फिर आएं।',gotIt:'ठीक है'}
 };
 function T(k){return (TR[pvLang]&&TR[pvLang][k]!==undefined)?TR[pvLang][k]:TR.zh[k];}
 function setPvLang(c){pvLang=c;document.querySelectorAll('.pvl').forEach(b=>b.classList.toggle('on',b.dataset.l===c));renderPhone();}
@@ -841,8 +843,12 @@ function renderLowDlg(){
   document.getElementById('lowBody').innerHTML=`<div style="font-size:34px;margin-bottom:4px">💰</div><h4>${T('lowTitle')}</h4><div class="line">${T('lowLine')}</div>${need}<div class="btns" style="margin-top:16px"><button class="no" onclick="hideDlg('lowDlg')">${T('cancel')}</button><button class="pay" onclick="goRecharge()">${T('topup')} →</button></div>`;
 }
 function goRecharge(){hideDlg('lowDlg');toast(T('toRecharge'));}
-let gateDemo=false;
-function setGate(on){gateDemo=on;const ok=document.getElementById('gateOk'),no=document.getElementById('gateNo');if(ok)ok.classList.toggle('on',!on);if(no)no.classList.toggle('on',on);}
+let buyScenario='normal';
+function setScenario(s){buyScenario=s;document.querySelectorAll('.pv-lang [data-sc]').forEach(b=>b.classList.toggle('on',b.dataset.sc===s));}
+function showLimit(){
+  document.getElementById('limitBody').innerHTML=`<div style="font-size:34px;margin-bottom:4px">📦</div><h4>${T('limitTitle')}</h4><div class="line">${T('limitLine')}</div><div class="btns" style="margin-top:16px"><button class="ok" onclick="hideDlg('limitDlg')">${T('gotIt')}</button></div>`;
+  showDlg('limitDlg');
+}
 function showGate(){
   const need=1200; // demo：门槛 ₹5,000、当前 ₹3,800 → 还差 ₹1,200
   document.getElementById('gateBody').innerHTML=`<div style="font-size:34px;margin-bottom:4px">🔒</div><h4>${T('gateTitle')}</h4><div class="line">${T('gateLine').replace('{v}','<b style="color:#e5484d">₹'+need.toLocaleString()+'</b>')}</div><div class="btns" style="margin-top:16px"><button class="no" onclick="hideDlg('gateDlg')">${T('cancel')}</button><button class="pay" onclick="hideDlg('gateDlg');toast(T('toRecharge'))">${T('topup')} →</button></div>`;
@@ -942,7 +948,8 @@ function coinShower(){
 }
 function askBuy(i){
   const t=visTiers[i]; buyTierIdx=i;
-  if(gateDemo){showGate();return;}  // 演示：不满足充值门槛 → 提示还差 ₹X
+  if(buyScenario==='gate'){showGate();return;}    // 演示：不满足充值门槛 → 提示还差 ₹X
+  if(buyScenario==='limit'){showLimit();return;}  // 演示：该档每日限量已达 → 提示换档/明天再来
   // 演示：价格 > 3000 模拟余额不足
   if(t.price>3000){lowTier=t;renderLowDlg();showDlg('lowDlg');return;}
   document.getElementById('cfBody').innerHTML=`
@@ -1030,6 +1037,9 @@ function setAct(a){
   toast('已切换到「'+a+'活动」');
 }
 syncActSw(curAct);renderTiers();renderRecs();showScope('all');initI18n();renderPhone();initQDates();
+/* ---------- 自定义悬停说明（原生 title 在预览面板不显示，改用 data-tip） ---------- */
+document.addEventListener('mouseover',function(e){const t=e.target.closest('[data-tip]');if(!t)return;const g=document.getElementById('gtip');g.textContent=t.getAttribute('data-tip');g.style.display='block';const r=t.getBoundingClientRect();let left=r.left+r.width/2-130;left=Math.max(8,Math.min(left,window.innerWidth-268));let top=r.bottom+8;if(top+g.offsetHeight>window.innerHeight-8)top=r.top-g.offsetHeight-8;g.style.left=left+'px';g.style.top=top+'px';});
+document.addEventListener('mouseout',function(e){if(e.target.closest('[data-tip]'))document.getElementById('gtip').style.display='none';});
 </script>
 <script src="week-month-card-prd.js"></script>
 </body>
