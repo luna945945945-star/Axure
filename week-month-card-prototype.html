@@ -342,6 +342,7 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
         <div class="act-switch">
           <button class="as on" data-act="周卡" onclick="setAct('周卡')">周卡活动</button>
           <button class="as" data-act="月卡" onclick="setAct('月卡')">月卡活动</button>
+          <button onclick="openTabSort()" style="margin-left:12px;height:32px;padding:0 14px;border:1px solid var(--pri);background:#fff;color:var(--pri);border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap">🔢 客户端 Tab 排序</button>
           <span class="as-note">两个独立活动，各自一套完整配置（基础配置 + 参与条件 + 档位）；客户端「活动中心」把它们聚合到一起</span>
         </div>
         <div class="lang-bar">
@@ -363,7 +364,6 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
                   <div class="sw on" id="actSwitch" onclick="toggleActSw(this)"><span class="dot"></span><span class="lb" id="actSwTxt">客户端入口：显示</span></div>
                   <span class="hint">开关 = 客户端的活动<b style="color:#3a4250">入口显隐</b>；关闭=隐藏入口、停止新购买，<b style="color:#3a4250">不影响已购卡</b>（实时生效，不追溯）。</span>
                 </div></div>
-                <div class="frm-row shared"><div class="lb">客户端 Tab 排序</div><div class="ctrl"><input id="actTabSort" value="90" onchange="ACT[curAct].tabSort=Math.max(0,Math.round(Number(this.value)||0));this.value=ACT[curAct].tabSort" style="width:90px"><span class="hint"><b style="color:#3a4250">数字越大越靠前</b>——决定「活动中心」里本卡 Tab 的位置；周卡 / 月卡各自设置，与 新手礼包 / 每日 / 每周 等 Tab 统一按排序值排列。</span></div></div>
                 <div class="frm-row i18n"><div class="lb">活动页面图片</div><div class="ctrl"><div class="banner"><span class="plus">+</span><span>上传 Banner</span><span class="hint">建议 750×420，作为该活动 Banner</span></div></div></div>
               </div>
               <div class="mod-save"><button class="btn-v1" onclick="toast('✅ 基础配置已保存（写入操作日志）')"><span class="ic">💾</span>保存基础配置</button></div>
@@ -553,6 +553,18 @@ table.p code{background:#f2f4f8;padding:1px 6px;border-radius:4px;font-size:12px
     <div class="bd-head"><span>每日领取详情</span><span class="bd-x" onclick="closeBuyDetail()">✕</span></div>
     <div class="bd-body" id="bdBody"></div>
     <div class="bd-foot"><button class="btn cancel" onclick="closeBuyDetail()">关闭</button></div>
+  </div>
+</div>
+
+<!-- 客户端 Tab 排序弹窗 -->
+<div class="tprev-mask" id="mTabSort" onclick="if(event.target===this)closeTabSort()">
+  <div class="bd-card" style="width:440px">
+    <div class="bd-head"><span>客户端 Tab 排序</span><span class="bd-x" onclick="closeTabSort()">✕</span></div>
+    <div class="bd-body">
+      <div style="font-size:12px;color:#8b93a1;margin-bottom:12px">「活动中心」5 个 Tab 统一排序，<b style="color:#5b6472">数字越大越靠前</b>；<b style="color:#5b6472">未开启的活动置灰、不参与排序与展示</b>。</div>
+      <div id="tabSortBody"></div>
+    </div>
+    <div class="bd-foot"><button class="btn-v1" onclick="closeTabSort()">完成</button></div>
   </div>
 </div>
 
@@ -826,8 +838,30 @@ let tmr;function toast(m){const t=document.getElementById('toast');t.textContent
 let CARD=null,visTiers=[],lowTier=null; // 当前持卡实例
 let aggTab='购买周卡';
 const AGG=['新手礼包','每日任务','每周任务','购买周卡','购买月卡'];
-const TAB_SORT_FIXED={'新手礼包':50,'每日任务':40,'每周任务':30}; // 其它模块各自配置，此处 demo 固定；周/月卡取自各自基础配置的 tabSort
-function tabSortVal(a){return a==='购买周卡'?(Number(ACT['周卡'].tabSort)||0):a==='购买月卡'?(Number(ACT['月卡'].tabSort)||0):(TAB_SORT_FIXED[a]||0);}
+// 5 个 Tab 的启用状态与排序：周/月卡取自各自活动（enabled=活动开关、sort=tabSort）；其它模块 demo 固定（每周任务演示未开启→置灰）
+const TAB_META=[
+  {key:'新手礼包',enabled:true,sort:50},
+  {key:'每日任务',enabled:true,sort:40},
+  {key:'每周任务',enabled:false,sort:30},
+  {key:'购买周卡',act:'周卡'},
+  {key:'购买月卡',act:'月卡'}
+];
+function tabEnabled(m){return m.act?(ACT[m.act].status!==false):m.enabled;}
+function tabSortOf(m){return m.act?(Number(ACT[m.act].tabSort)||0):m.sort;}
+function tabSortVal(a){const m=TAB_META.find(x=>x.key===a);return m?tabSortOf(m):0;}
+function tabEnabledByKey(a){const m=TAB_META.find(x=>x.key===a);return m?tabEnabled(m):true;}
+function openTabSort(){renderTabSort();document.getElementById('mTabSort').classList.add('show');}
+function closeTabSort(){document.getElementById('mTabSort').classList.remove('show');}
+function renderTabSort(){
+  document.getElementById('tabSortBody').innerHTML=TAB_META.map((m,i)=>{
+    const en=tabEnabled(m), sort=tabSortOf(m);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border:1px solid var(--line);border-radius:9px;margin-bottom:8px;${en?'':'opacity:.5;background:#f7f8fa'}">
+      <span style="font-weight:600;color:#2b3140">${m.key}${en?'':' <span style="font-weight:400;color:#98a1b3;font-size:11px">· 未开启</span>'}</span>
+      <div style="display:flex;align-items:center;gap:6px;color:#5b6472">排序 <input type="number" min="0" max="99999" value="${sort}" ${en?'':'disabled'} onchange="setTabSort(${i},this.value)" style="width:74px"></div>
+    </div>`;
+  }).join('');
+}
+function setTabSort(i,v){const m=TAB_META[i];const n=Math.min(99999,Math.max(0,Math.round(Number(v)||0)));if(m.act)ACT[m.act].tabSort=n;else m.sort=n;renderTabSort();}
 function setAggTab(a){aggTab=a;renderPhone();}
 let buyTierIdx=0;
 /* 客户端多语言（仅预览排版，不写进后台配置） */
@@ -913,7 +947,7 @@ function renderPhone(){
   renderLowDlg();
   const b=document.getElementById('phBody');
   let h=unifiedBanner();
-  const order=AGG.map((a,idx)=>({a,idx})).sort((x,y)=>tabSortVal(y.a)-tabSortVal(x.a)); // 数字越大越靠前
+  const order=AGG.map((a,idx)=>({a,idx})).filter(o=>tabEnabledByKey(o.a)).sort((x,y)=>tabSortVal(y.a)-tabSortVal(x.a)); // 仅展示已开启，数字越大越靠前
   h+=`<div class="agg-tabs">`+order.map(o=>`<button class="agg ${o.a===aggTab?'on':''}" onclick="setAggTab('${o.a}')">${T('tabs')[o.idx]}</button>`).join('')+`</div>`;
   if(aggTab==='购买周卡') h+=cardHtml('周卡');
   else if(aggTab==='购买月卡') h+=cardHtml('月卡');
@@ -1024,13 +1058,11 @@ function setAct(a){
   ACT[curAct].start=document.getElementById('actStart').value;
   ACT[curAct].end=document.getElementById('actEnd').value;
   ACT[curAct].status=document.getElementById('actSwitch').classList.contains('on');
-  ACT[curAct].tabSort=Number(document.getElementById('actTabSort').value)||0;
   curAct=a; TIERS=ACT[a].tiers; I18N=ACT[a].i18n; curLang=BASE_LANG;
   document.querySelectorAll('.act-switch .as').forEach(b=>b.classList.toggle('on',b.dataset.act===a));
   document.getElementById('actName').value=ACT[a].name;
   document.getElementById('actStart').value=ACT[a].start;
   document.getElementById('actEnd').value=ACT[a].end;
-  document.getElementById('actTabSort').value=ACT[a].tabSort;
   syncActSw(a);
   document.getElementById('curActLbl').textContent=a+'活动';
   document.getElementById('tierActLbl').textContent=a+'活动 · 领取 '+ACT[a].days+' 天';
