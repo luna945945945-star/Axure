@@ -111,7 +111,7 @@ tr:hover td.time{background:#f4f1ff}
 <body>
 <div class="wrap">
   <div class="head"><h1>实时数据统计报表</h1><div class="crumb">报表管理 › <b>实时数据统计报表</b> · 同比/环比增强</div></div>
-  <div class="banner">🧪 交互原型 · 在原报表每格的每个指标后新增 <span class="tag-new">环比</span><span class="tag-new">同比</span> 两个对比值。<b>同比</b>＝对比「上一个筛选日期的同一时刻」；<b>环比</b>＝对比「上一个 10 分钟时段」。↑绿=上升 ↓红=下降。可用上方开关切换显示。</div>
+  <div class="banner">🧪 交互原型 · 在原报表每格的每个指标后新增 <span class="tag-new">环比</span><span class="tag-new">同比</span> 两个对比值。<b>同比</b>＝对比「上一个筛选日期的同一时刻」；<b>环比</b>＝对比「上一个 60 分钟时段」（同日往前 60 分钟）。↑绿=上升 ↓红=下降。可用上方开关切换显示。</div>
 
   <div class="card">
     <div class="upd">最后更新：2026/8/7 17:48:53　·　距离下次更新还有 <b>578</b> 秒（每 10 分钟刷新）</div>
@@ -129,7 +129,7 @@ tr:hover td.time{background:#f4f1ff}
 
     <!-- 新增工具条：显示开关 + 图例 -->
     <div class="tools">
-      <label class="tg"><input type="checkbox" id="tHB" checked onchange="render()"><b>环比</b>（上一时段）</label>
+      <label class="tg"><input type="checkbox" id="tHB" checked onchange="render()"><b>环比</b>（上一60分钟）</label>
       <label class="tg"><input type="checkbox" id="tTB" checked onchange="render()"><b>同比</b>（上一日期同刻）</label>
       <label class="tg"><input type="checkbox" id="tAnom" onchange="render()"><b>异常高亮</b>（波动≥25% / 成功率≥5%）</label>
       <div class="legend">
@@ -139,7 +139,7 @@ tr:hover td.time{background:#f4f1ff}
     </div>
 
     <div class="def">
-      <div class="d"><span class="tt">环比 <span class="tag-new">本期</span></span>　本格数值 − <b>上一个 10 分钟时段</b>（表格中下方一行）。看即时趋势、突增突降；<b>累计型指标</b>（充值/注册等）该差值即<b>本时段增量</b>。</div>
+      <div class="d"><span class="tt">环比 <span class="tag-new">本期</span></span>　本格数值 − <b>上一个 60 分钟时段</b>（同日中时间早 60 分钟的行，即往前 6 行）。看近一小时趋势、突增突降；<b>累计型指标</b>（充值/注册等）该差值即<b>近 60 分钟增量</b>。</div>
       <div class="d tb"><span class="tt">同比 <span class="tag-new">本期</span></span>　本格数值 − <b>上一个筛选日期的同一时刻</b>（相邻右列、同一时段）。随日期1~4变化，对比两个所选日期同点位好坏。</div>
     </div>
 
@@ -172,7 +172,7 @@ tr:hover td.time{background:#f4f1ff}
       <table class="spec-tbl">
         <thead><tr><th>维度</th><th>对比基准</th><th>公式</th><th>用途</th></tr></thead>
         <tbody>
-          <tr><td>环比</td><td>同一日期、「上一个 10 分钟时段」（表格中相邻的下一行，时间更早 10 分钟）</td><td><code>本时段值 − 上一时段值</code></td><td>即时趋势，抓突增突降（成功率骤降、提现骤升等）</td></tr>
+          <tr><td>环比</td><td>同一日期、「上一个 60 分钟时段」（同日中时间早 60 分钟的行，即表中往前 6 行）</td><td><code>本时段值 − 60分钟前时段值</code></td><td>近一小时趋势，抓突增突降（成功率骤降、提现骤升等）</td></tr>
           <tr><td>同比</td><td>「上一个筛选日期」的「同一时刻」（相邻右列，时段相同，随日期1~4变化）</td><td><code>本列本时段值 − 上一日期列同时段值</code></td><td>按所选日期1~4两两对比同一点位好坏</td></tr>
         </tbody>
       </table>
@@ -194,10 +194,10 @@ tr:hover td.time{background:#f4f1ff}
     <div class="spec-sec">
       <h3>四、边界与规则</h3>
       <ul>
-        <li><span class="k">无环比基准：</span>当前查询时间范围内「最早的一个时段」没有上一时段，环比显示 <code>—</code>。</li>
+        <li><span class="k">无环比基准：</span>「60 分钟前的时段」不存在时（当日最早 6 个时段，即 00:00~00:50；或查询范围内取不到），环比显示 <code>—</code>，<b>不跨天取数</b>。</li>
         <li><span class="k">无同比基准：</span>上一个筛选日期该时刻无数据（新站点 / 早于开服，或「最后一个日期无更早所选日期」）显示 <code>—</code>；「未来时段」（今日晚于当前时刻的行）本无数据，环比 / 同比同样为空。</li>
         <li><span class="k">同比 = 上一个筛选日期同一时刻（随日期1~4变化，非固定前一天）：</span>今日的同比对比「日期1」、日期1对比「日期2」、日期2对比「日期3」、日期3对比「日期4」；日期可「非连续」，同比即按所选相邻日期相减。最后一个日期（日期4）没有更早的所选日期，同比显示 <code>—</code>。</li>
-        <li><span class="k">累计 vs 当期口径：</span>若某指标是「当日累计值」（如充值金额累计），环比会恒为正（每时段只增），此时环比 ≈ 本时段新增量；同比才体现同点位对比。口径以现有报表为准，对比公式不变。</li>
+        <li><span class="k">累计 vs 当期口径：</span>若某指标是「当日累计值」（如充值金额累计），环比会恒为正（累计只增），此时环比 ≈ <b>近 60 分钟新增量</b>；同比才体现同点位对比。口径以现有报表为准，对比公式不变。</li>
         <li><span class="k">显示规范：</span>成功率的环比 / 同比按 % 显示（成功率之差，非相对变化率）；金额显示完整千分位数值（不用 万 / 亿 缩写，便于核对）；每格「数值 / 环比 / 同比」统一左对齐，指标名后带「：」。</li>
       </ul>
     </div>
@@ -206,11 +206,11 @@ tr:hover td.time{background:#f4f1ff}
       <h3>五、验收标准</h3>
       <ul>
         <li><span class="k">字段完整：</span>13 个指标每行均在数值后展示 「环比」「同比」 两个对比值（新增注册 / 投注用户 / 在线人数 / 首充 / 二充 / 充值金额 / 充值人数 / 三方1h·3h成功率 / 提现金额 / 提现人数 / 充值差 / 优惠合计）。</li>
-        <li><span class="k">环比取数正确：</span>环比 = 本时段 − 同日「上一个 10 分钟时段」（表中相邻下一行）；抽查任一格与下一行相减一致。</li>
+        <li><span class="k">环比取数正确：</span>环比 = 本时段 − 同日「上一个 60 分钟时段」（表中往前 6 行、时间早 60 分钟的行）；抽查任一格与该行相减一致。</li>
         <li><span class="k">同比取数正确：</span>同比 = 本列 − 「上一个筛选日期（相邻右列）」同一时段；把日期1~4 改成非连续日期后，仍按所选相邻日期计算，不得固定按前一天。</li>
         <li><span class="k">涨跌与配色：</span>对比 &gt;0 显示 ↑绿、&lt;0 ↓红、=0 灰；成功率对比以 % （成功率之差）呈现，金额 / 计数以完整千分位绝对差值呈现（不用 万 / 亿）。</li>
         <li><span class="k">口径分型正确：</span>累计型指标（充值 / 注册 / 提现等）环比恒为正（=本时段增量）；在线人数 / 两成功率 / 充值差 的环比、同比可正可负。</li>
-        <li><span class="k">边界处理：</span>范围内最早时段的环比、最后一个筛选日期的同比、及无数据 / 未来时段，均显示 <code>—</code>（不报错、不显示 0）。</li>
+        <li><span class="k">边界处理：</span>无「60 分钟前时段」的行（当日 00:00~00:50 或范围内取不到）的环比、最后一个筛选日期的同比、及无数据 / 未来时段，均显示 <code>—</code>（不报错、不显示 0、不跨天取数）。</li>
         <li><span class="k">开关生效：</span>环比 / 同比可各自隐藏、异常高亮可开关，切换后布局不错位、整页无横向滚动条。</li>
         <li><span class="k">不改原口径与机制：</span>原有各指标数值、10 分钟统计与页面刷新均与现网一致；刷新后对比值随之重算。</li>
       </ul>
@@ -220,7 +220,7 @@ tr:hover td.time{background:#f4f1ff}
 
 <script>
 /* ===== 指标定义 =====
-   kind:'cum'  累计型（当日累计到该时段）→ 数值随时段增大；环比=相邻时段之差=本时段增量(恒正)
+   kind:'cum'  累计型（当日累计到该时段）→ 数值随时段增大；环比=与60分钟前时段之差=近60分钟增量(恒正)
    kind:'snap' 快照/瞬时（在线人数）             → 环比/同比为普通差值(±)
    kind:'pct'  滚动窗口成功率                     → 环比/同比为百分点(±)
    kind:'derived' 充值差 = 充值金额 − 提现金额（两累计之差，环比可正可负） */
@@ -242,15 +242,16 @@ const METRICS=[
 /* 展示日期：索引0=今日，其后为日期1~4，共5列；末列(日期4)无更早所选日期，同比显示 — */
 const DATES=['2026-08-07','2026-08-06','2026-08-05','2026-08-04','2026-08-03'];
 const SHOW_DATES=5;                                   // 展示今日 + 日期1~4 共5列
-/* 时段：新→旧；多生成1个更早时段作为最早行的环比基准 */
-const BUCKETS=['16:10','16:00','15:50','15:40','15:30','15:20','15:10'];
+/* 时段：新→旧；多生成6个更早时段（60分钟）作为各展示行的环比基准 */
+const BUCKETS=['16:10','16:00','15:50','15:40','15:30','15:20','15:10','15:00','14:50','14:40','14:30','14:20'];
 const SHOW_BUCKETS=6;
+const HB_STEP=6; /* 环比基准 = 往前6行（60分钟前的时段） */
 const MI=k=>METRICS.findIndex(x=>x.k===k);
 
 /* 确定性伪随机，保证每次渲染一致 */
 function rnd(a,b,c){const x=Math.sin(a*127.1+b*311.7+c*74.7+11.3)*43758.5453;return x-Math.floor(x);}
 
-/* 预生成累计型指标：越晚的时段累计越大；环比=相邻时段之差=本时段增量(恒正)；不同天有整体高低→同比± */
+/* 预生成累计型指标：越晚的时段累计越大；环比=与60分钟前时段之差(6个10分钟增量之和,恒正)；不同天有整体高低→同比± */
 const CUM={};
 function buildData(){
   for(let mi=0;mi<METRICS.length;mi++){
@@ -309,7 +310,7 @@ function cellHtml(di,bi){
   let rows=`<div class="mh"><span>指标</span><span class="a">数值</span><span class="a hb">环比</span><span class="a tb">同比</span></div>`;
   for(const m of METRICS){
     const cur=val(di,bi,m.k);
-    const hbBase=(bi+1<BUCKETS.length)?val(di,bi+1,m.k):null;        // 环比：同日上一时段
+    const hbBase=(bi+HB_STEP<BUCKETS.length)?val(di,bi+HB_STEP,m.k):null; // 环比：同日60分钟前的时段(往前6行)
     const tbBase=(di+1<DATES.length)?val(di+1,bi,m.k):null;          // 同比：上一个筛选日期(相邻右列)同时段
     const hb=fmtDelta(m,cur,hbBase);
     const tb=fmtDelta(m,cur,tbBase);
