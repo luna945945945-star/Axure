@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>补单全链路流程与卡单断点</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f4f6f9;
+    color: #1f2937;
+    line-height: 1.6;
+    padding: 32px 16px 64px;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 28px; }
+  .header h1 { font-size: 26px; font-weight: 800; color: #111827; letter-spacing: .5px; }
+  .header .sub { color: #6b7280; font-size: 14px; margin-top: 6px; }
+
+  /* Core insight */
+  .insight {
+    background: linear-gradient(135deg, #fff7ed 0%, #fef2f2 100%);
+    border: 1.5px solid #fdba74;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .insight .icon { font-size: 30px; line-height: 1; }
+  .insight .big { font-size: 18px; font-weight: 800; color: #9a3412; }
+  .insight .desc { font-size: 14px; color: #7c2d12; margin-top: 6px; }
+  .insight .desc b { background: #fde68a; padding: 0 4px; border-radius: 3px; }
+
+  /* Legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: center; margin-bottom: 30px; font-size: 13px; }
+  .legend .item { display: flex; align-items: center; gap: 6px; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .pill.blue { background: #dbeafe; color: #1d4ed8; }
+  .pill.green { background: #d1fae5; color: #047857; }
+  .pill.yellow { background: #fef3c7; color: #b45309; }
+
+  /* Flow */
+  .stage {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    position: relative;
+  }
+  .stage-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .num {
+    flex: 0 0 auto;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #4f46e5; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px;
+  }
+  .stage-title { font-size: 17px; font-weight: 800; color: #111827; }
+  .stage-body { font-size: 14.5px; color: #374151; padding-left: 46px; }
+  .stage-body .tech { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+  .stage-body ul { margin: 6px 0 0; padding-left: 18px; }
+  .stage-body li { margin-bottom: 3px; }
+
+  .arrow { text-align: center; color: #9ca3af; font-size: 22px; line-height: 1; margin: 8px 0; }
+
+  /* Branch */
+  .branch { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .branch-card { border-radius: 12px; padding: 14px 16px; font-size: 14px; }
+  .branch-card .tag { font-weight: 800; font-size: 13px; display: block; margin-bottom: 6px; }
+  .branch-card.ok { background: #ecfdf5; border: 1.5px solid #6ee7b7; }
+  .branch-card.ok .tag { color: #047857; }
+  .branch-card.no { background: #fff7ed; border: 1.5px solid #fdba74; }
+  .branch-card.no .tag { color: #c2410c; }
+  .branch-card ol { margin: 4px 0 0; padding-left: 18px; }
+  .branch-card li { margin-bottom: 5px; }
+  .mini-note { font-size: 12px; color: #b45309; background:#fffbeb; border-left:3px solid #f59e0b; padding:4px 8px; border-radius:4px; margin-top:6px; }
+
+  /* Breakpoints */
+  .bp-section { margin-top: 44px; }
+  .bp-section h2 {
+    font-size: 20px; font-weight: 800; color: #111827; text-align: center; margin-bottom: 6px;
+  }
+  .bp-section .bp-sub { text-align: center; color: #6b7280; font-size: 13.5px; margin-bottom: 22px; }
+  .bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .bp {
+    border-radius: 12px; padding: 16px 18px; background: #fff;
+    border: 1px solid #e5e7eb; border-left-width: 5px;
+  }
+  .bp.red { border-left-color: #ef4444; }
+  .bp.yellow { border-left-color: #f59e0b; }
+  .bp .bp-title { font-weight: 800; font-size: 15px; color: #111827; display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .bp .sev { font-size: 11px; font-weight: 800; padding: 1px 8px; border-radius: 999px; }
+  .bp.red .sev { background: #fee2e2; color: #b91c1c; }
+  .bp.yellow .sev { background: #fef3c7; color: #b45309; }
+  .bp .bp-desc { font-size: 13.5px; color: #374151; }
+  .bp .result { font-size: 12.5px; color: #b91c1c; font-weight: 700; margin-top: 8px; }
+  .bp.yellow .result { color: #b45309; }
+
+  .extra {
+    margin-top: 20px; background: #fefce8; border: 1.5px dashed #eab308;
+    border-radius: 12px; padding: 16px 18px;
+  }
+  .extra .bp-title { color: #854d0e; }
+
+  .footer { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 40px; }
+
+  @media (max-width: 680px) {
+    .branch, .bp-grid { grid-template-columns: 1fr; }
+    .stage-body { padding-left: 0; }
+    .header h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>存款未到账 · 补单全链路流程</h1>
+    <div class="sub">主流程 ①→④ ＋ 4 个会让工单卡死的断点 · 大白话版</div>
+  </div>
+
+  <!-- Core insight -->
+  <div class="insight">
+    <div class="icon">💡</div>
+    <div>
+      <div class="big">提交补单请求 ≠ 订单已到账</div>
+      <div class="desc">系统只有确认 <b>「钱真的到账了」</b> 才算完成并关单。三方回一句「收到请求」<b>不算数</b>，只记一次「受理成功」，工单不会关。<br><span style="font-size:12px;color:#9a3412;">技术口径：只认 LocalState==1；ThirdRequestCode==0 只累加成功次数，不关单。</span></div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="item"><span class="pill blue">系统处理中</span><span>系统正在自动补单</span></div>
+    <div class="item"><span class="pill yellow">待处理</span><span>系统搞不定，转人工/TG群</span></div>
+    <div class="item"><span class="pill green">已处理</span><span>确认到账，关单</span></div>
+  </div>
+
+  <!-- STAGE 1 -->
+  <div class="stage">
+    <div class="stage-head"><div class="num">1</div><div class="stage-title">用户提交工单</div></div>
+    <div class="stage-body">
+      工单落库，同时排进「补单待办清单」，状态 <span class="pill blue">系统处理中</span>。
+    </div>
+  </div>
+
+  <div class="arrow">▼</div>
+
+  <!-- STAGE 2 -->
+  <div class="stage">
+    <div class="stage-head"><div class="num">2</div><div class="stage-title">自动补单每隔几分钟跑一次 → 问平台：这单到账没？</div></div>
+    <div class="stage-body">
+      系统定时去 V1 平台查这笔订单。<div class="tech">调 /api/webapi/RenotifyRechargeOrder ，平台内部分两支（ThirdRechargeService:928）</div>
+      <div class="branch">
+        <div class="branch-card ok">
+          <span class="tag">✅ 已经到账</span>
+          平台直接回「已到账」，工单立刻 <span class="pill green">已处理</span>，不做任何补单动作。
+          <div style="font-size:12px;color:#047857;margin-top:6px;">（就是 92pkr 那单走的路）</div>
+        </div>
+        <div class="branch-card no">
+          <span class="tag">❌ 还没到账</span>
+          平台做两件事：
+          <ol>
+            <li>贴一张「便利贴」记住这张工单（只保留 <b>2 天</b>）<div class="tech" style="color:#c2410c;">Redis 待回调标记</div></li>
+            <li>按通道向三方发起补单 / 提交 UTR</li>
+          </ol>
+          <div class="mini-note">⚠️ 三方「收到请求」≠ 到账，只记一次「受理成功」，不关单</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">▼<br><span style="font-size:12px;">（还没到账时）</span></div>
+
+  <!-- STAGE 3 -->
+  <div class="stage">
+    <div class="stage-head"><div class="num">3</div><div class="stage-title">还没到账就反复重试，直到放弃</div></div>
+    <div class="stage-body">
+      每隔几分钟再问一次。满足其中一个条件就停：
+      <ul>
+        <li>重试次数用完（查询总次数）</li>
+        <li>盯梢时间到（超过有效时间 N 小时）</li>
+      </ul>
+      停下后：状态从 <span class="pill blue">系统处理中</span> → <span class="pill yellow">待处理</span>，并<b>转发到 TG 群 / 转人工</b>。
+      <div class="tech">备注写 Automatic query completed. ，进自动转发队列 → WorkOrderAutoForwardJob</div>
+    </div>
+  </div>
+
+  <div class="arrow">▼<br><span style="font-size:12px;">（订单后来才到账 → 回来关单）</span></div>
+
+  <!-- STAGE 4 -->
+  <div class="stage" style="border-color:#a7f3d0; background:#f0fdf9;">
+    <div class="stage-head"><div class="num" style="background:#059669;">4</div><div class="stage-title">订单「后来」到账了 → 回来自动关单</div></div>
+    <div class="stage-body">
+      这就是「后续」——不管是<b>三方晚到的回调</b>，还是<b>运营在后台人工上分</b>，只要订单变成功：
+      <ul>
+        <li>系统翻出第 ② 步那张「便利贴」，找到对应工单</li>
+        <li>通知工单系统「这单到账了」，最多重试 3 次</li>
+        <li>工单核对无误 → <span class="pill green">已处理</span>，备注「延迟到账，现已入账」</li>
+      </ul>
+      <div class="tech">V1 改单 ThirdRechargeService:1413 / 后台人工上分 RechargeController:538 → POST /api/WorkOrder/UpdateRechargeOrderState（双层签名）</div>
+    </div>
+  </div>
+
+  <!-- BREAKPOINTS -->
+  <div class="bp-section">
+    <h2>⚠️ 4 个断点：会让工单永远卡在「待处理」</h2>
+    <div class="bp-sub">这条「后来到账→回来关单」的链路上，任一环节出问题，工单就关不掉，只能人工捞</div>
+
+    <div class="bp-grid">
+      <div class="bp red">
+        <div class="bp-title">🔴 关单通知只发 3 次就放弃 <span class="sev">严重</span></div>
+        <div class="bp-desc">到账后回来关单的通知，最多重试 3 次，而且「发完不管」。三次都失败（网络 / 系统抖动）就没有然后了。</div>
+        <div class="result">→ 工单卡死，只能人工手动捞</div>
+      </div>
+
+      <div class="bp red">
+        <div class="bp-title">🔴 「便利贴」只留 2 天 <span class="sev">严重</span></div>
+        <div class="bp-desc">那张记着「到账要通知」的便利贴只保留 2 天。若订单超过 2 天才到账（三方长期挂单、隔天才人工处理），便利贴已撕掉。</div>
+        <div class="result">→ 关单通知根本不会发出去</div>
+      </div>
+
+      <div class="bp yellow">
+        <div class="bp-title">🟡 重复提单只关「最近一张」 <span class="sev">中</span></div>
+        <div class="bp-desc">同一订单号提了多张工单时（目前没拦截），到账后只自动关「最近那一张」，其余继续卡着。会和「已到账还能重复提」的问题叠加放大。</div>
+        <div class="result">→ 多余工单留在「待处理」</div>
+      </div>
+
+      <div class="bp yellow">
+        <div class="bp-title">🟡 少配一个参数就悄悄不回调 <span class="sev">中</span></div>
+        <div class="bp-desc">关单依赖两个后台配置（外链配置、工单后台地址），任一为空，系统直接「悄悄跳过」，既不回调也不报错。</div>
+        <div class="result">→ 完全不关单，且无人察觉</div>
+      </div>
+    </div>
+
+    <!-- Extra hazard -->
+    <div class="extra">
+      <div class="bp-title">➕ 额外隐患：只看「到账状态」，不看「金额」</div>
+      <div class="bp-desc">回调关单时只判断「到账没」，不核对金额。<b>部分到账</b>（只到了一部分钱）也会被当成「全部到账」直接关单。</div>
+    </div>
+  </div>
+
+  <div class="footer">补单全链路流程与断点 · 供运营/产品对齐问题定位</div>
+
+</div>
+</body>
+</html>
