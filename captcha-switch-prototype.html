@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录/注册验证方式开关 原型</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f6f8;color:#333;font-size:13px}
+
+  /* TAB */
+  .tabs{display:flex;background:#fff;border-bottom:1px solid #e6e8eb;padding:0 16px;position:sticky;top:0;z-index:30;box-shadow:0 1px 3px rgba(0,0,0,.05);flex-wrap:wrap}
+  .tab{padding:13px 20px;cursor:pointer;font-size:14px;color:#5a6472;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap}
+  .tab:hover{color:#6c5fd8}
+  .tab.active{color:#6c5fd8;border-bottom-color:#6c5fd8}
+  .page{display:none}
+  .page.active{display:block}
+
+  /* 后台外壳（还原截图） */
+  .adm-head{background:linear-gradient(90deg,#dcdda6 0%,#e4e5b6 60%,#ececcd 100%);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .adm-head .t{font-size:17px;color:#4a5fc1;font-weight:600}
+  .adm-head .bc{font-size:12.5px;color:#8a8f9a}
+  .adm-head .bc a{color:#6c7bd0;text-decoration:none}
+  .adm-body{background:#fff;padding:18px 22px 26px;min-height:70vh}
+
+  .qbar{margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn-q{background:#6c5fd8;color:#fff;border:none;border-radius:6px;padding:9px 22px;font-size:13.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn-q:hover{background:#5b4ec7}
+
+  /* 工具条 */
+  .toolbar{display:flex;align-items:center;gap:14px;background:#f7f8fb;border:1px solid #e6e8eb;border-radius:8px;padding:10px 14px;margin-bottom:14px;flex-wrap:wrap}
+  .toolbar .lab{font-size:12.5px;color:#5a6472;font-weight:600}
+  .seg{display:inline-flex;border:1px solid #cbd0da;border-radius:6px;overflow:hidden}
+  .seg button{border:none;background:#fff;padding:6px 14px;cursor:pointer;font-size:12.5px;color:#5a6472;border-right:1px solid #e6e8eb}
+  .seg button:last-child{border-right:none}
+  .seg button.on{background:#6c5fd8;color:#fff}
+  .toolbar .desc{font-size:12px;color:#98a2b0;margin-left:auto}
+
+  /* 表格（还原截图） */
+  .tw{border:1px solid #e9ebef;border-radius:4px;overflow-x:auto}
+  table.cfg{border-collapse:collapse;width:100%;min-width:900px;font-size:13px}
+  .cfg th{background:#f1f3f7;color:#3d4453;font-weight:600;text-align:left;padding:12px 14px;border-bottom:1px solid #e4e7ec;white-space:nowrap}
+  .cfg td{padding:11px 14px;border-bottom:1px solid #f0f2f5;color:#3d4453;vertical-align:middle}
+  .cfg tr:hover td{background:#fafbfd}
+  .cfg .c-id{width:70px}
+  .cfg .c-sw{width:330px}
+  .cfg .c-sw.narrow{width:120px}
+  .cfg td.desc{color:#5a6472}
+
+  /* 红框高亮（还原截图标注） */
+  tr.mark td{background:#fff8f7!important;position:relative}
+  tr.mark td:first-child{box-shadow:inset 3px 0 0 #e03131}
+  tr.mark{outline:2px solid #e03131;outline-offset:-2px}
+  .mk{display:inline-block;background:#e03131;color:#fff;font-size:10.5px;border-radius:3px;padding:1px 6px;margin-left:7px;vertical-align:1.5px}
+
+  /* 原开关（改造前） */
+  .sw{display:inline-flex;align-items:center;gap:6px;border-radius:14px;padding:3px 5px;font-size:12px;cursor:pointer;user-select:none;min-width:64px;justify-content:space-between}
+  .sw.on{background:#3ec46d;color:#fff;padding-left:11px}
+  .sw.off{background:#ebedf0;color:#9aa1ab;flex-direction:row-reverse;padding-right:11px}
+  .sw .knob{width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);flex-shrink:0}
+
+  /* 方案A：三开关单选 */
+  .swgrp{display:flex;gap:8px;flex-wrap:wrap}
+  .swopt{display:inline-flex;align-items:center;gap:6px;border-radius:14px;padding:3px 5px 3px 11px;font-size:12px;cursor:pointer;user-select:none;background:#ebedf0;color:#9aa1ab;transition:.15s;white-space:nowrap}
+  .swopt .knob{width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2);flex-shrink:0}
+  .swopt:hover{filter:brightness(.97)}
+  .swopt.on{background:#3ec46d;color:#fff}
+  .swopt.dis{opacity:.45;cursor:not-allowed}
+  .swopt.dis:hover{filter:none}
+
+  /* 方案B：分段控件 */
+  .segsel{display:inline-flex;border:1px solid #cbd0da;border-radius:6px;overflow:hidden}
+  .segsel button{border:none;background:#fff;padding:6px 13px;cursor:pointer;font-size:12.5px;color:#5a6472;border-right:1px solid #e6e8eb;white-space:nowrap}
+  .segsel button:last-child{border-right:none}
+  .segsel button.on{background:#3ec46d;color:#fff}
+  .segsel button:disabled{color:#c3c8d0;cursor:not-allowed;background:#fafbfc}
+
+  /* 方案C：下拉 */
+  .selc{border:1px solid #d6dbe0;border-radius:6px;padding:6px 10px;font-size:12.5px;background:#fff;min-width:150px;outline:none;color:#3d4453}
+  .selc:focus{border-color:#6c5fd8;box-shadow:0 0 0 2px rgba(108,95,216,.12)}
+
+  /* 提示条 */
+  .hint{display:flex;align-items:flex-start;gap:9px;background:#f4f2ff;border:1px solid #d9d3ff;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#5646b8;line-height:1.85}
+  .hint.warn{background:#fffbe6;border-color:#ffe58f;color:#ad6800}
+  .hint b{color:#3d2f9e}
+  .hint.warn b{color:#8a5300}
+
+  /* 会员端 */
+  .wrapc{padding:18px;display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+  .h5col{display:flex;flex-direction:column;gap:10px}
+  .h5title{font-size:13px;font-weight:600;color:#3d4453}
+  .phone{width:310px;border:10px solid #2c3440;border-radius:26px;background:#fff;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.16)}
+  .ph-bar{background:#6c5fd8;color:#fff;text-align:center;padding:11px;font-size:14px;font-weight:600}
+  .ph-body{padding:18px 16px 22px;min-height:360px;background:#f7f8fb}
+  .ph-fld{margin-bottom:13px}
+  .ph-lb{font-size:11.5px;color:#8a94a3;margin-bottom:5px}
+  .ph-in{background:#fff;border:1px solid #e2e5ea;border-radius:8px;padding:11px 12px;font-size:13px;color:#3d4453}
+  .ph-in.ph{color:#b6bec7}
+  .ph-btn{background:#6c5fd8;color:#fff;text-align:center;padding:12px;border-radius:8px;font-size:14px;cursor:pointer;margin-top:8px;font-weight:600}
+  .ph-btn.dis{background:#c3bee8;cursor:not-allowed}
+  .cap-box{margin:4px 0 6px}
+
+  /* 滑块验证 */
+  .slider{position:relative;height:42px;background:#fff;border:1px solid #e2e5ea;border-radius:8px;overflow:hidden;user-select:none}
+  .slider .txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;color:#98a2b0;pointer-events:none}
+  .slider .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:#dff5e6}
+  .slider .hd{position:absolute;left:0;top:0;bottom:0;width:44px;background:#fff;border:1px solid #e2e5ea;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:grab;box-shadow:0 1px 4px rgba(0,0,0,.12);font-size:15px;color:#6c5fd8;z-index:2}
+  .slider.done .fill{background:#d6f5e0;width:100%!important}
+  .slider.done .hd{background:#3ec46d;color:#fff;border-color:#3ec46d}
+  .slider.done .txt{color:#237a4b;font-weight:600}
+
+  /* CF 人机验证 */
+  .cf{background:#fff;border:1px solid #e2e5ea;border-radius:8px;padding:12px 13px;display:flex;align-items:center;gap:11px;cursor:pointer}
+  .cf .cb{width:20px;height:20px;border:2px solid #c3c8d0;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff}
+  .cf.load .cb{border-color:#f38020;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+  .cf.ok .cb{border-color:#3ec46d;background:#3ec46d;color:#fff;font-size:13px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .cf .t{font-size:12.5px;color:#3d4453;flex:1}
+  .cf .brand{font-size:9.5px;color:#98a2b0;text-align:right;line-height:1.5}
+  .cf .brand b{color:#f38020;font-size:11px;display:block}
+
+  .none-tip{background:#fff;border:1px dashed #dfe3e8;border-radius:8px;padding:14px;text-align:center;font-size:12px;color:#b6bec7}
+
+  /* 说明 */
+  .doc{max-width:960px;margin:0 auto;padding:18px}
+  .doc-card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .doc-h{background:#6c5fd8;color:#fff;padding:15px 22px;font-size:15px;font-weight:600}
+  .doc-s{padding:16px 22px 8px;border-bottom:1px solid #f0f2f5}
+  .doc-s:last-child{border-bottom:none;padding-bottom:20px}
+  .doc-t{font-size:14px;font-weight:600;color:#2d3748;margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid #eef0f7}
+  .doc ul{list-style:none}
+  .doc li{font-size:13.5px;line-height:1.95;color:#555;padding-left:18px;position:relative}
+  .doc li::before{content:"·";position:absolute;left:5px;color:#6c5fd8;font-weight:700}
+  .doc li b{color:#1a2733}
+  .doc .em{color:#c0392b;font-weight:600}
+  .doc table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0 6px}
+  .doc th,.doc td{border:1px solid #e6e8eb;padding:8px 11px;text-align:left;line-height:1.75;vertical-align:top}
+  .doc th{background:#f7f7fc;color:#5a6472;font-weight:600;white-space:nowrap}
+
+  /* toast */
+  .toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:99;background:#2c3440;color:#fff;padding:11px 20px;border-radius:8px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:.25s;pointer-events:none;text-align:center;line-height:1.7;max-width:90%}
+  .toast.show{opacity:1;top:70px}
+  .toast.ok{background:#237a4b}
+  .toast.warn{background:#b9770e}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" data-tab="cfg">参数配置开关</div>
+  <div class="tab" data-tab="h5">会员端效果</div>
+  <div class="tab" data-tab="doc">规则说明</div>
+</div>
+
+<!-- ============ TAB1 后台配置 ============ -->
+<div class="page active" id="page-cfg">
+  <div class="adm-head">
+    <div class="t">参数配置开关</div>
+    <div class="bc">配置管理 &gt;&nbsp; <a href="javascript:;">参数配置开关</a> &gt;&nbsp; <a href="javascript:;">参数配置开关</a></div>
+  </div>
+  <div class="adm-body">
+
+    <div class="qbar"><button class="btn-q">🔍 查 询</button></div>
+
+    <div class="tw">
+      <table class="cfg">
+        <thead><tr>
+          <th class="c-id">Id</th><th style="width:330px">名称</th><th>描述</th>
+          <th class="c-sw" id="th-sw">开关</th>
+        </tr></thead>
+        <tbody id="cfg-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TAB2 会员端 ============ -->
+<div class="page" id="page-h5">
+  <div class="wrapc">
+    <div class="h5col">
+      <div class="h5title">登录页（受 Id 58 控制 · 当前：<b id="lg-mode" style="color:#6c5fd8"></b>）</div>
+      <div class="phone">
+        <div class="ph-bar">登录</div>
+        <div class="ph-body">
+          <div class="ph-fld"><div class="ph-lb">账号</div><div class="ph-in">member8899</div></div>
+          <div class="ph-fld"><div class="ph-lb">密码</div><div class="ph-in ph">••••••••</div></div>
+          <div class="cap-box" id="lg-cap"></div>
+          <div class="ph-btn" id="lg-btn" onclick="trySubmit('login')">登 录</div>
+        </div>
+      </div>
+      <div class="seg" style="align-self:flex-start">
+        <button onclick="setMode('login','none',1)">不验证</button>
+        <button onclick="setMode('login','slider',1)" class="on">图形滑块验证</button>
+        <button onclick="setMode('login','cf',1)">CF人机验证</button>
+      </div>
+    </div>
+
+    <div class="h5col">
+      <div class="h5title">注册页（受 Id 248 控制 · 当前：<b id="rg-mode" style="color:#6c5fd8"></b>）</div>
+      <div class="phone">
+        <div class="ph-bar">注册</div>
+        <div class="ph-body">
+          <div class="ph-fld"><div class="ph-lb">手机号</div><div class="ph-in">98210 34567</div></div>
+          <div class="ph-fld"><div class="ph-lb">设置密码</div><div class="ph-in ph">••••••••</div></div>
+          <div class="ph-fld"><div class="ph-lb">邀请码</div><div class="ph-in ph">选填</div></div>
+          <div class="cap-box" id="rg-cap"></div>
+          <div class="ph-btn" id="rg-btn" onclick="trySubmit('reg')">注 册</div>
+        </div>
+      </div>
+      <div class="seg" style="align-self:flex-start">
+        <button onclick="setMode('reg','none',1)" class="on">不验证</button>
+        <button onclick="setMode('reg','slider',1)">图形滑块验证</button>
+        <button onclick="setMode('reg','cf',1)">CF人机验证</button>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:280px;padding-top:26px">
+      <div class="doc-card">
+        <div class="doc-h" style="font-size:14px;padding:12px 18px">三种方式的会员端表现</div>
+        <div class="doc-s">
+          <ul class="doc" style="list-style:none">
+            <li style="padding-left:18px;position:relative;font-size:13px;line-height:2;color:#555"><b>不验证</b>：表单下方无任何验证控件，填完直接提交。</li>
+            <li style="padding-left:18px;position:relative;font-size:13px;line-height:2;color:#555"><b>图形滑块验证</b>：出现滑块条，需拖到最右端才可提交（可拖动试试）。</li>
+            <li style="padding-left:18px;position:relative;font-size:13px;line-height:2;color:#555"><b>CF人机验证</b>：出现 Cloudflare Turnstile 验证框，勾选后校验通过才可提交。</li>
+            <li style="padding-left:18px;position:relative;font-size:13px;line-height:2;color:#555">未通过验证时提交按钮<b>置灰不可点</b>。</li>
+            <li style="padding-left:18px;position:relative;font-size:13px;line-height:2;color:#555">登录与注册<b>各自独立配置</b>，可以是不同方式。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TAB3 说明 ============ -->
+<div class="page" id="page-doc">
+<div class="doc">
+  <div class="doc-card">
+    <div class="doc-h">登录 / 注册验证方式开关 —— 规则说明</div>
+
+    <div class="doc-s">
+      <div class="doc-t">一、改造范围</div>
+      <table>
+        <tr><th style="width:60px">Id</th><th style="width:200px">名称</th><th>描述</th><th style="width:230px">开关</th></tr>
+        <tr>
+          <td><b>58</b></td>
+          <td>改造前：开启图片验证码<br><b style="color:#237a4b">改造后：开启登录验证方式</b></td>
+          <td>改造前：开启后登录将需要图形验证码<br><b style="color:#237a4b">改造后：开启后登录将需要（图形滑块验证 / CF人机验证），都关闭表示不验证</b></td>
+          <td>改造前：启用 / 禁用<br><b style="color:#237a4b">改造后：图形滑块验证、CF人机验证 两个开关，互斥；两个都关闭 = 不验证</b></td>
+        </tr>
+        <tr>
+          <td><b>248</b></td>
+          <td>改造前：开启后注册将需要图形验证码<br><b style="color:#237a4b">改造后：开启注册验证方式</b></td>
+          <td>改造前：开启后注册将需要图形验证码<br><b style="color:#237a4b">改造后：开启后注册将需要（图形滑块验证 / CF人机验证），都关闭表示不验证</b></td>
+          <td>同上</td>
+        </tr>
+      </table>
+      <ul style="margin-top:8px">
+        <li>本次仅改造 <b>Id 58</b> 与 <b>Id 248</b> 两条，列表页其余开关的名称、描述、交互<b>保持不变</b>。</li>
+      </ul>
+    </div>
+
+    <div class="doc-s">
+      <div class="doc-t">二、开关规则</div>
+      <ul>
+        <li><b>控件形态</b>：沿用列表页既有开关的视觉语言，开关列放<b>两个开关</b>——「图形滑块验证」「CF人机验证」，开启为绿色，关闭为灰色。</li>
+        <li><b>两个开关互斥</b>：<span class="em">同一时刻最多只能开启一个</span>。开启其中一个时，另一个自动关闭。</li>
+        <li><b>都关闭 = 不验证</b>：两个开关均为关闭状态时，表示该场景不做任何验证，会员端无验证控件。</li>
+        <li>点击已开启的开关即将其<b>关闭</b>，此时回到「不验证」；点击未开启的开关即将其开启，另一个自动关闭。</li>
+        <li><b>58 与 248 相互独立</b>：登录与注册可配置为不同的验证方式，互不影响。</li>
+        <li>切换后<b>即时生效</b>，会员端下次进入登录 / 注册页即按新配置渲染。</li>
+        <li>每次切换写入后台操作日志（操作人、时间、原值 → 新值）。</li>
+      </ul>
+    </div>
+
+    <div class="doc-s">
+      <div class="doc-t">三、存量值映射（上线时一次性转换）</div>
+      <table>
+        <tr><th style="width:120px">改造前值</th><th style="width:160px">改造后值</th><th>说明</th></tr>
+        <tr><td>禁用（0）</td><td><b>两个开关均关闭</b>（不验证）</td><td>行为一致，会员端无感知</td></tr>
+        <tr><td>启用（1）</td><td><b>图形滑块验证 开</b><br>CF人机验证 关</td><td>原开关已开启的站点，上线后<b>默认开启「图形滑块验证」</b>；如需改用「CF人机验证」，由运营在后台<span class="em">人工切换</span></td></tr>
+      </table>
+    </div>
+
+    <div class="doc-s">
+      <div class="doc-t">四、边界与限制</div>
+      <table>
+        <tr><th style="width:40px">#</th><th style="width:170px">边界</th><th>说明</th></tr>
+        <tr><td>B1</td><td>CF 依赖外网</td><td>CF人机验证需会员端可访问 Cloudflare 域名；对该域名不可达的地区，建议选用图形滑块验证。</td></tr>
+        <tr><td>B2</td><td>不影响其他验证</td><td>本次不涉及短信验证码、谷歌验证（Id 111 / 112）等既有开关，各自独立。</td></tr>
+        <tr><td>B3</td><td>仅覆盖登录 / 注册</td><td>找回密码、绑定手机号等其他场景的验证方式不在本次范围内。</td></tr>
+        <tr><td>B4</td><td>仅改两条配置</td><td>列表页其余配置项的名称、描述与「启用 / 禁用」交互完全不变，不做统一改造。</td></tr>
+      </table>
+    </div>
+
+    <div class="doc-s">
+      <div class="doc-t">五、验收标准</div>
+      <table>
+        <tr><th style="width:70px">编号</th><th style="width:140px">场景</th><th>预期结果</th></tr>
+        <tr><td>AC-01</td><td>名称与描述</td><td>Id 58 显示「开启登录验证方式 / 开启后登录将需要（图形滑块验证/CF人机验证），都关闭表示不验证」；Id 248 显示「开启注册验证方式 / 开启后注册将需要（图形滑块验证/CF人机验证），都关闭表示不验证」。</td></tr>
+        <tr><td>AC-02</td><td>两开关互斥</td><td>开启「图形滑块验证」后「CF人机验证」自动关闭，反之亦然；两者<b>不能同时为开</b>；页面刷新后状态保持。</td></tr>
+        <tr><td>AC-03</td><td>登录 - 都关闭</td><td>两个开关均关闭时，登录页无验证控件，账号密码正确即可登录成功。</td></tr>
+        <tr><td>AC-04</td><td>登录 - 图形滑块</td><td>登录页出现滑块，未完成滑动时登录按钮不可点；滑动完成后可正常登录。</td></tr>
+        <tr><td>AC-05</td><td>登录 - CF人机</td><td>登录页出现 Turnstile 验证框，校验通过后方可登录；校验失败给出重试提示。</td></tr>
+        <tr><td>AC-06</td><td>注册三态</td><td>Id 248 的三种组合（都关 / 滑块开 / CF开）在注册页表现与 AC-03~05 一致。</td></tr>
+        <tr><td>AC-07</td><td>互不影响</td><td>登录开启 CF人机验证、注册开启图形滑块验证时，两端各自按配置渲染。</td></tr>
+        <tr><td>AC-08</td><td>即时生效</td><td>后台切换后无需重启服务，会员端刷新页面即生效。</td></tr>
+        <tr><td>AC-09</td><td>存量映射</td><td>升级后原「启用」的站点为「图形滑块验证」，原「禁用」的站点为「不验证」。</td></tr>
+        <tr><td>AC-10</td><td>操作日志</td><td>每次切换在后台操作日志留痕，含操作人、时间、原值与新值。</td></tr>
+        <tr><td>AC-11</td><td>其余开关不受影响</td><td>列表页其他配置项的名称、描述与启用/禁用交互完全不变。</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========== 配置数据（还原截图） ========== */
+const rows=[
+ {id:8,  n:'邀请码是否必填',d:'开启后注册页面的邀请码为必填内容',v:0},
+ {id:16, n:'理财开关',d:'开启后正常使用保险箱',v:1},
+ {id:19, n:'开启邀请人任务',d:'关闭后不显示邀请人任务',v:1},
+ {id:31, n:'自动入款',d:'开启后银行卡充值将会通过短信内容自动入款',v:1},
+ {id:34, n:'是否开启推广链接配置',d:'开启后推广链接可配置(0:关闭 1: 开启)',v:1},
+ {id:46, n:'积分商城开关',d:'开启后可正常使用积分商城',v:0},
+ {id:58, n:'开启图片验证码',d:'开启后登录将需要图形验证码',v:1,
+         n2:'开启登录验证方式',d2:'开启后登录将需要（图形滑块验证/CF人机验证），都关闭表示不验证',target:'login'},
+ {id:59, n:'提现是否需要打码量 0:不需要 1:需要',d:'提现是否需要打码量 0:不需要 1:需要',v:1},
+ {id:69, n:'是否开启洗码量',d:'是否开启洗码量(0:关闭 1: 开启)',v:1},
+ {id:70, n:'彩票长龙显示开关(0:关闭 1: 开启)',d:'彩票长龙显示开关(0:关闭 1: 开启)',v:1},
+ {id:71, n:'充值等级开关',d:'是否开启充值等级开关(0:关闭 1: 开启)',v:1},
+ {id:72, n:'大奖奖励开关',d:'开启后可正常启用大奖奖励(0:关闭 1: 开启)',v:1},
+ {id:108,n:'是否开启官方充值，下单填入付款人信息弹框',d:'是否开启官方充值(0:关闭 1: 开启)',v:1},
+ {id:111,n:'是否开启前台谷歌验证',d:'是否开启前台谷歌验证(0:关闭 1: 开启)',v:0},
+ {id:112,n:'前台绑定谷歌是否开启短信验证',d:'前台绑定谷歌是否开启短信验证(0:关闭 1: 开启)',v:0},
+ {id:116,n:'前端是否允许会员添加USDT地址',d:'前端是否允许会员添加USDT地址(0:关闭 1: 开启)',v:1},
+ {id:117,n:'前端钱包页面是否显示总充/提金额字段 0关 1开',d:'前端钱包页面是否显示总充/提金额字段 (0:关闭 1: 开启)',v:1},
+ {id:246,n:'允许未充值用户进行游戏',d:'允许未充值用户进行游戏(0:关闭 1: 开启)',v:0},
+ {id:248,n:'开启后注册将需要图形验证码',d:'开启后注册将需要图形验证码',v:0,
+         n2:'开启注册验证方式',d2:'开启后注册将需要（图形滑块验证/CF人机验证），都关闭表示不验证',target:'reg'},
+ {id:255,n:'注册隐私协议默认勾选',d:'注册隐私协议默认勾选',v:0},
+ {id:279,n:'代理下级当日需要有充值才计算投注返佣',d:'代理下级当日需要有充值才计算投注返佣(0:关闭 1: 开启)',v:0},
+ {id:283,n:'新版保险箱（半小时计算利息，只能一次性取出）',d:'新版保险箱（半小时一次性取出）',v:0},
+ {id:297,n:'手机号码注册是否首位限制0开关',d:'手机号码注册是否首位限制0开关(0:关闭 1: 开启)',v:0}
+];
+
+const MODES=[{k:'none',t:'不验证'},{k:'slider',t:'图形滑块验证'},{k:'cf',t:'CF人机验证'}];
+const MODE_T=m=>MODES.find(x=>x.k===m).t;
+
+/* 存量映射：58 原值 1 → 图形滑块；248 原值 0 → 不验证 */
+let state={login:'slider',reg:'none'};
+let pass={login:false,reg:false};
+
+const $=id=>document.getElementById(id);
+function toast(m,c){const t=$('toast');t.className='toast '+(c||'')+' show';t.innerHTML=m;clearTimeout(t._h);t._h=setTimeout(()=>t.className='toast '+(c||''),2800);}
+
+/* ========== TAB ========== */
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');$('page-'+t.dataset.tab).classList.add('active');window.scrollTo(0,0);
+});
+function goTab(n){document.querySelector('.tab[data-tab="'+n+'"]').click();}
+
+/* ========== 渲染配置表 ========== */
+function render(){
+  $('cfg-body').innerHTML=rows.map(r=>{
+    const isT=!!r.target;
+    const name=isT?r.n2:r.n, desc=isT?r.d2:r.d;
+    const sw=isT? ctrl(r.target)
+      : (r.v?'<span class="sw on">启用<span class="knob"></span></span>'
+            :'<span class="sw off">禁用<span class="knob"></span></span>');
+    return `<tr class="${isT?'mark':''}">
+      <td class="c-id">${r.id}</td>
+      <td>${name}${isT?'<span class="mk">本次改造</span>':''}</td>
+      <td class="desc">${desc}</td>
+      <td class="c-sw">${sw}</td></tr>`;
+  }).join('');
+  syncH5();
+}
+
+/* 开关：两个互斥开关，都关 = 不验证 */
+const SWITCHES=[{k:'slider',t:'图形滑块验证'},{k:'cf',t:'CF人机验证'}];
+function ctrl(target){
+  const cur=state[target];
+  return '<div class="swgrp">'+SWITCHES.map(m=>
+    `<span class="swopt ${cur===m.k?'on':''}" onclick="pick('${target}','${m.k}')">${m.t}<span class="knob"></span></span>`
+  ).join('')+'</div>';
+}
+
+function pick(target,mode){
+  const old=MODE_T(state[target]);
+  // 点击已开启的开关 → 关闭它，回到「不验证」；否则开启它并自动关闭另一个
+  state[target] = (state[target]===mode) ? 'none' : mode;
+  pass[target]=false;
+  render();
+  const name=target==='login'?'Id 58 登录验证方式':'Id 248 注册验证方式';
+  const now=MODE_T(state[target]);
+  toast(state[target]==='none'
+    ? `${name}　|　已关闭<b>${MODE_T(mode)}</b>，两个开关均为关闭 → <b>不验证</b>`
+    : `${name}　|　<b>${old}</b> → <b>${now}</b>　已即时生效`,'ok');
+}
+
+/* ========== 会员端 ========== */
+function setMode(target,mode,fromH5){
+  state[target]=mode; pass[target]=false; render();
+}
+function syncH5(){
+  $('lg-mode').textContent=MODE_T(state.login);
+  $('rg-mode').textContent=MODE_T(state.reg);
+  document.querySelectorAll('#page-h5 .h5col').forEach((col,i)=>{
+    const k=i===0?'login':'reg';
+    col.querySelectorAll('.seg button').forEach((b,j)=>b.classList.toggle('on',MODES[j].k===state[k]));
+  });
+  drawCap('login','lg-cap','lg-btn');
+  drawCap('reg','rg-cap','rg-btn');
+}
+function drawCap(k,boxId,btnId){
+  const box=$(boxId),btn=$(btnId),m=state[k];
+  if(m==='none'){ box.innerHTML=''; pass[k]=true; }
+  else if(m==='slider'){
+    box.innerHTML=`<div class="slider ${pass[k]?'done':''}" id="sl-${k}">
+      <div class="fill"></div><div class="txt">${pass[k]?'✓ 验证通过':'按住滑块拖动到最右侧'}</div>
+      <div class="hd">${pass[k]?'✓':'⟩⟩'}</div></div>`;
+    if(!pass[k]) bindSlider(k);
+  } else {
+    box.innerHTML=`<div class="cf ${pass[k]?'ok':''}" onclick="cfCheck('${k}')">
+      <div class="cb">${pass[k]?'✓':''}</div>
+      <div class="t">${pass[k]?'验证成功':'确认您是真人'}</div>
+      <div class="brand"><b>CLOUDFLARE</b>隐私 · 条款</div></div>`;
+  }
+  btn.classList.toggle('dis',!pass[k]);
+}
+function bindSlider(k){
+  const sl=$('sl-'+k); if(!sl) return;
+  const hd=sl.querySelector('.hd'), fill=sl.querySelector('.fill');
+  let drag=false,sx=0,max=0;
+  const start=e=>{drag=true;sx=(e.touches?e.touches[0].clientX:e.clientX);max=sl.offsetWidth-hd.offsetWidth;hd.style.cursor='grabbing';};
+  const move=e=>{
+    if(!drag)return; e.preventDefault();
+    let d=(e.touches?e.touches[0].clientX:e.clientX)-sx;
+    d=Math.max(0,Math.min(max,d));
+    hd.style.left=d+'px'; fill.style.width=(d+hd.offsetWidth)+'px';
+    if(d>=max-1){drag=false;pass[k]=true;drawCap(k,k==='login'?'lg-cap':'rg-cap',k==='login'?'lg-btn':'rg-btn');
+      toast('图形滑块验证通过','ok');}
+  };
+  const end=()=>{if(!drag)return;drag=false;hd.style.cursor='grab';hd.style.left='0px';fill.style.width='0px';};
+  hd.addEventListener('mousedown',start); hd.addEventListener('touchstart',start,{passive:true});
+  document.addEventListener('mousemove',move); document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('mouseup',end); document.addEventListener('touchend',end);
+}
+function cfCheck(k){
+  if(pass[k])return;
+  const box=$(k==='login'?'lg-cap':'rg-cap'), el=box.querySelector('.cf');
+  el.classList.add('load'); el.querySelector('.t').textContent='正在验证…';
+  setTimeout(()=>{pass[k]=true;drawCap(k,k==='login'?'lg-cap':'rg-cap',k==='login'?'lg-btn':'rg-btn');
+    toast('CF 人机验证通过','ok');},900);
+}
+function trySubmit(k){
+  if(!pass[k]){ toast(state[k]==='slider'?'请先完成图形滑块验证':'请先完成 CF 人机验证','warn'); return; }
+  toast((k==='login'?'登录':'注册')+'成功　|　验证方式：'+MODE_T(state[k]),'ok');
+}
+
+render();
+</script>
+</body>
+</html>
