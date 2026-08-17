@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>同IP登录限制 · IP黑名单 原型</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f5;color:#333;font-size:13px}
+  .tabs{display:flex;background:#fff;border-bottom:1px solid #e6e8eb;padding:0 16px;position:sticky;top:0;z-index:30;box-shadow:0 1px 3px rgba(0,0,0,.05);flex-wrap:wrap}
+  .tab{padding:13px 20px;cursor:pointer;font-size:14px;color:#5a6472;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap}
+  .tab:hover{color:#1E9FFF}
+  .tab.active{color:#1E9FFF;border-bottom-color:#1E9FFF}
+  .tab .nw{display:inline-block;background:#2ecc71;color:#fff;font-size:10px;border-radius:3px;padding:1px 4px;margin-left:5px;vertical-align:1px}
+  .tab .md{display:inline-block;background:#f39c12;color:#fff;font-size:10px;border-radius:3px;padding:1px 4px;margin-left:5px;vertical-align:1px}
+  .page{display:none}
+  .page.active{display:block}
+
+  /* ===== 参数配置页（layui 风格） ===== */
+  .cfg-wrap{background:#fff;min-height:82vh}
+  .cfg-topline{height:4px;background:#d9dc9a}
+  .cfg-nav{display:flex;padding:10px 14px 0;border-bottom:1px solid #e6e8eb;background:#fff}
+  .cfg-nav a{display:inline-block;padding:7px 18px;font-size:13px;border:1px solid transparent;border-radius:3px 3px 0 0;text-decoration:none;color:#5a6472}
+  .cfg-nav a.on{background:#7c4dff;color:#fff}
+  .cfg-nav a:not(.on){border-color:#e0e2e6;background:#fafbfc;margin-left:4px}
+  .cfg-body{padding:16px 20px 40px}
+  .sec-h{display:flex;align-items:center;gap:7px;margin-top:6px}
+  .bar{display:inline-block;width:4px;height:17px;background:#FFB800;border-radius:1px}
+  .sec-t{background:#eceff3;color:#1a2733;font-weight:600;font-size:16px;padding:1px 9px;border-radius:2px}
+  .cfg-hr{border:none;border-top:1px solid #ebedf0;margin:9px 0 12px}
+  .row{display:flex;align-items:center;gap:12px;padding:5px 0 12px;flex-wrap:wrap}
+  .lb{width:150px;text-align:right;font-size:13px;color:#3d4453;flex-shrink:0}
+  .inp{border:1px solid #e6e6e6;border-radius:2px;height:33px;padding:0 10px;font-size:13px;width:190px;outline:none;color:#3d4453}
+  .inp:focus{border-color:#1E9FFF}
+  .inp.sm{width:92px;text-align:center}
+  .hint{color:#8a94a3;font-size:12.5px}
+  .subhint{margin:-6px 0 14px 162px}
+  .save{margin-left:auto;margin-right:30px;background:#1E9FFF;color:#fff;border:none;border-radius:2px;height:33px;padding:0 20px;font-size:13px;cursor:pointer;flex-shrink:0}
+  .save:hover{background:#0d8ee0}
+  .newblk{position:relative;background:#fffdf6;outline:2px solid #e03131;outline-offset:6px;border-radius:3px;margin:16px 0 26px;padding:4px 6px}
+  .newtag{position:absolute;top:-11px;right:6px;background:#e03131;color:#fff;font-size:10.5px;border-radius:3px;padding:1px 7px}
+  .sent{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:#3d4453}
+  .sent .tm{color:#FF5722;font-weight:600}
+  .inp.sm.tm{color:#FF5722;font-weight:600;border-color:#ffc7b3}
+  .inp.sm.tm:focus{border-color:#FF5722}
+  .preview{background:#f0f7ff;border:1px solid #b9dcff;border-radius:4px;padding:10px 14px;margin:2px 0 8px 150px;font-size:12.5px;color:#0958d9;line-height:1.95}
+  .preview b{color:#003a9b}
+  .preview .off{color:#8a94a3}
+
+  /* ===== IP黑名单页（还原截图风格） ===== */
+  .bl-head{background:#fff;padding:14px 22px;border-bottom:1px solid #eef0f3;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:4px solid #d9dc9a}
+  .bl-head .t{font-size:17px;color:#1E9FFF;font-weight:600}
+  .bl-head .bc{font-size:12.5px;color:#8a8f9a}
+  .bl-body{background:#fff;padding:18px 22px 30px;min-height:70vh}
+  .srch{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .fld{display:flex;align-items:center}
+  .fld .k{background:#f5f6f8;border:1px solid #e2e5ea;border-right:none;border-radius:4px 0 0 4px;padding:8px 14px;font-size:13px;color:#3d4453;white-space:nowrap}
+  .fld input,.fld select{border:1px solid #e2e5ea;border-radius:0 4px 4px 0;padding:8px 10px;font-size:13px;min-width:180px;outline:none;background:#fff}
+  .fld input:focus,.fld select:focus{border-color:#1E9FFF}
+  .acts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .btn{border:none;border-radius:4px;padding:8px 18px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:5px;color:#fff}
+  .b-q{background:#1E9FFF}.b-r{background:#7c4dff}.b-a{background:#2ecc71}.b-d{background:#e74c3c}
+  .btn.gray{background:#eef0f3;color:#5a6472}
+  .btn:hover{opacity:.9}
+  .tw{border:1px solid #eef0f3;border-radius:4px;overflow-x:auto}
+  table.dt{border-collapse:collapse;width:100%;font-size:12.5px;min-width:1050px}
+  .dt th{background:#f5f7fa;color:#3d4453;font-weight:600;text-align:left;padding:11px 12px;border-bottom:1px solid #eef0f3;white-space:nowrap}
+  .dt td{padding:10px 12px;border-bottom:1px solid #f5f6f8;color:#3d4453;vertical-align:middle}
+  .dt tr:hover td{background:#fafcff}
+  .dt td.wrap{white-space:normal;min-width:260px;line-height:1.75}
+  .mono{font-family:Menlo,Consolas,monospace;font-size:11.5px}
+  .tg{display:inline-block;border-radius:3px;padding:2px 9px;font-size:11.5px;margin-right:5px;white-space:nowrap}
+  .tg-login{background:#eaf4ff;color:#1E9FFF;border:1px solid #b9dcff}
+  .tg-reg{background:#fff4e6;color:#e08e0b;border:1px solid #ffd9a0}
+  .tg-sys{background:#fdedeb;color:#c0392b;border:1px solid #f5c6c0}
+  .tg-man{background:#f0f2f5;color:#5a6472;border:1px solid #e0e4e9}
+  .op-btn{border:none;border-radius:3px;padding:5px 11px;cursor:pointer;font-size:11.5px;color:#fff;margin-right:5px}
+  .op-e{background:#1E9FFF}.op-d{background:#e74c3c}.op-i{background:#7c4dff}
+  .op-btn:disabled{background:#e0e4e9;color:#a8b0ba;cursor:not-allowed}
+  .dtl-h{display:flex;flex-wrap:wrap;gap:10px 26px;background:#f7f9fb;border:1px solid #eef0f3;border-radius:6px;padding:12px 14px;margin-bottom:12px}
+  .dtl-h .k{font-size:11.5px;color:#8a94a3}
+  .dtl-h .v{font-size:13px;color:#1a2733;font-weight:600;margin-top:2px}
+  .pager{display:flex;align-items:center;gap:8px;padding:14px 2px;justify-content:flex-end;font-size:12.5px;color:#5a6472}
+  .pager .pg{border:1px solid #e2e5ea;background:#fff;border-radius:4px;padding:5px 11px;cursor:pointer}
+  .pager .pg.on{background:#7c4dff;color:#fff;border-color:#7c4dff}
+  .pager .info{margin-right:auto;color:#8a94a3}
+
+  /* ===== 演示 ===== */
+  .simwrap{padding:18px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+  .card{background:#fff;border:1px solid #e6e8eb;border-radius:10px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .card h3{font-size:14px;color:#1a2733;margin-bottom:12px;font-weight:600}
+  .simcfg{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:6px}
+  .simcfg .k{font-size:11.5px;color:#8a94a3}
+  .simcfg .v{font-size:18px;font-weight:600;color:#1E9FFF;margin-top:2px}
+  .simcfg .v small{font-size:12px;color:#8a94a3;font-weight:400}
+  .rulebox{border:1px solid #e6e8eb;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+  .rulebox.hit{border-color:#e74c3c;background:#fff6f5}
+  .rulebox .rt{font-size:12.5px;color:#5a6472;font-weight:600;margin-bottom:8px}
+  .bar2{height:11px;border-radius:6px;background:#eef0f3;overflow:hidden}
+  .fill{height:100%;background:#2ecc71;transition:.25s;width:0}
+  .fill.warn{background:#f39c12}.fill.over{background:#e74c3c}
+  .rulebox .n{font-size:12.5px;color:#5a6472;margin-top:6px}
+  .rulebox .n b{font-size:15px;color:#1a2733}
+  .loglist{border:1px solid #e6e8eb;border-radius:6px;max-height:230px;overflow-y:auto;margin-top:10px}
+  .badge{display:inline-block;border-radius:3px;padding:1px 7px;font-size:11px}
+  .b-ok{background:#e7f7ee;color:#237a4b;border:1px solid #b7e4cb}
+  .b-no{background:#fdedeb;color:#c0392b;border:1px solid #f5c6c0}
+  .grey{color:#98a2b0}
+  .phone{width:280px;border:10px solid #2c3440;border-radius:24px;background:#f7f8fb;overflow:hidden;box-shadow:0 8px 26px rgba(0,0,0,.16)}
+  .ph-bar{background:#1E9FFF;color:#fff;text-align:center;padding:11px;font-size:14px;font-weight:600}
+  .ph-body{padding:16px;min-height:220px;position:relative}
+  .ph-fld{margin-bottom:12px}
+  .ph-lb{font-size:11px;color:#8a94a3;margin-bottom:5px}
+  .ph-in{background:#fff;border:1px solid #e2e5ea;border-radius:8px;padding:11px 12px;font-size:13px;color:#3d4453}
+  .ph-btn{background:#1E9FFF;color:#fff;text-align:center;padding:11px;border-radius:8px;font-size:14px;cursor:pointer;margin-top:6px;font-weight:600}
+  .ph-toast{position:absolute;left:16px;right:16px;bottom:16px;background:rgba(0,0,0,.85);color:#fff;padding:12px;border-radius:8px;font-size:12.5px;line-height:1.75;text-align:center;opacity:0;transition:.25s}
+  .ph-toast.show{opacity:1}
+
+  /* ===== 弹窗 ===== */
+  .mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-start;justify-content:center;overflow-y:auto;padding:50px 16px}
+  .mask.show{display:flex}
+  .modal{background:#fff;border-radius:8px;width:560px;max-width:100%;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+  .modal-head{color:#1a2733;font-size:15px;font-weight:600;padding:15px 22px;border-bottom:1px solid #eef0f3;display:flex;justify-content:space-between}
+  .modal-head .x{cursor:pointer;color:#b6bec7;font-size:19px;line-height:1}
+  .modal-body{padding:20px 24px}
+  .frow{display:flex;align-items:flex-start;margin-bottom:15px;gap:12px}
+  .frow>label{width:80px;text-align:right;font-size:13px;color:#5a6472;padding-top:8px;flex-shrink:0}
+  .frow>label i{color:#e74c3c;font-style:normal;margin-right:3px}
+  .fctrl{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+  .fctrl input,.fctrl textarea{width:100%;border:1px solid #e2e5ea;border-radius:4px;padding:8px 10px;font-size:13px;outline:none;font-family:inherit}
+  .fctrl textarea{resize:vertical;min-height:60px}
+  .cbs{display:flex;gap:18px;padding-top:8px}
+  .cbs label{display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer}
+  .note{font-size:12px;color:#8a94a3;line-height:1.7}
+  .alertbox{background:#fff2f0;border:1px solid #f5c6c0;border-radius:6px;padding:11px 14px;font-size:12.5px;color:#c0392b;line-height:1.85}
+  .modal-foot{display:flex;justify-content:center;gap:12px;padding:14px 22px 22px;border-top:1px solid #f5f6f8}
+  .btn-s{background:#1E9FFF;color:#fff;border:none;border-radius:4px;padding:9px 26px;cursor:pointer;font-size:13px}
+  .btn-c{background:#8792a2;color:#fff;border:none;border-radius:4px;padding:9px 26px;cursor:pointer;font-size:13px}
+
+  /* ===== 需求说明 ===== */
+  .prd{max-width:960px;margin:0 auto;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .prd-head{background:#1E9FFF;color:#fff;padding:16px 24px}
+  .prd-head .h1{font-size:16px;font-weight:600}
+  .prd-head .h2{font-size:12px;opacity:.9;margin-top:4px}
+  .prd-sec{padding:18px 24px 8px;border-bottom:1px solid #f0f2f5}
+  .prd-sec:last-child{border-bottom:none;padding-bottom:22px}
+  .prd-t{font-size:14px;font-weight:600;color:#2d3748;margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid #eef2f7}
+  .prd-t2{font-size:13px;font-weight:600;color:#1E9FFF;margin:14px 0 7px}
+  .prd ul{list-style:none}
+  .prd li{font-size:13.5px;line-height:1.95;color:#555;padding-left:18px;position:relative}
+  .prd li::before{content:"·";position:absolute;left:5px;color:#1E9FFF;font-weight:700}
+  .prd li b{color:#1a2733}
+  .prd .em{color:#c0392b;font-weight:600}
+  .prd table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0 4px}
+  .prd th,.prd td{border:1px solid #e6e8eb;padding:7px 10px;text-align:left;vertical-align:top;line-height:1.7}
+  .prd th{background:#f7f9fb;color:#5a6472;font-weight:600;white-space:nowrap}
+  .prd .req{color:#c0392b}
+  .ac td:first-child{white-space:nowrap;font-weight:600;color:#1E9FFF}
+  .tagn{display:inline-block;background:#e7f7ee;color:#237a4b;border:1px solid #b7e4cb;border-radius:3px;padding:0 5px;font-size:11px;margin-left:4px}
+  .tagm{display:inline-block;background:#fdf3e2;color:#b9770e;border:1px solid #f6dfb4;border-radius:3px;padding:0 5px;font-size:11px;margin-left:4px}
+
+  .toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:99;background:#2c3440;color:#fff;padding:11px 20px;border-radius:6px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:.25s;pointer-events:none;text-align:center;line-height:1.75;max-width:92%}
+  .toast.show{opacity:1;top:70px}
+  .toast.ok{background:#237a4b}.toast.err{background:#c0392b}.toast.warn{background:#b9770e}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" data-tab="prd">需求说明</div>
+  <div class="tab" data-tab="cfg">参数配置页<span class="nw">新增</span></div>
+  <div class="tab" data-tab="bl">IP黑名单<span class="md">改造</span></div>
+</div>
+
+<!-- ==================== TAB 1 需求说明 ==================== -->
+<div class="page active" id="page-prd">
+<div class="prd">
+  <div class="prd-head">
+    <div class="h1">同 IP 登录限制 &amp; IP 黑名单改造 —— 需求说明</div>
+    <div class="h2">适用系统：V1 后台 · 系统管理 → 参数配置 / IP 黑名单　|　版本：V1.2</div>
+  </div>
+
+  <div class="prd-sec">
+    <div class="prd-t">需求目标</div>
+    <ul>
+      <li>同一个 IP 短时间内<b>批量登录多个账号</b>或<b>高频发起登录</b>时，自动拉入 IP 黑名单并拒绝其后续登录。</li>
+      <li>覆盖：批量养号与群控、撞库与暴力破解、账号枚举、脚本刷登录接口。</li>
+      <li>阈值后台可配、即时生效；运营可在 IP 黑名单页查看触发依据并自行解除。</li>
+    </ul>
+  </div>
+
+  <!-- ============ 一 ============ -->
+  <div class="prd-sec">
+    <div class="prd-t">一、改造 / 新增界面与字段</div>
+
+    <div class="prd-t2">1.1 参数配置页新增区块「同 IP 登录限制」<span class="tagn">新增</span></div>
+    <ul style="margin-bottom:8px">
+      <li>位置：<b>紧邻「同 IP 注册数」之上</b>。含两条规则，各占一行、各有一个「确认保存」按钮。</li>
+    </ul>
+    <table>
+      <tr><th style="width:110px">规则</th><th>页面文案</th><th style="width:210px">输入项与取值范围</th></tr>
+      <tr>
+        <td><b>规则一</b><br>登录账号数量</td>
+        <td>同一个 ip <span class="req">[A]</span> 分钟内登录账号数量 &gt;= <span class="req">[B]</span> 个，直接拉入 ip 黑名单</td>
+        <td>A：时间，整数 <b>1~1440</b> 分钟<br>B：账号数，整数 <b>1~999999</b> 个</td>
+      </tr>
+      <tr>
+        <td><b>规则二</b><br>登录次数</td>
+        <td>同一个 ip <span class="req">[C]</span> 分钟内登录次数 &gt;= <span class="req">[D]</span> 次，直接拉入 ip 黑名单</td>
+        <td>C：时间，整数 <b>1~1440</b> 分钟<br>D：次数，整数 <b>1~99999999</b> 次</td>
+      </tr>
+    </table>
+    <ul>
+      <li>每条规则下方以<b>灰色小字</b>显示随取值变化的口径回显；<b style="color:#FF5722">时间、数量、次数相关文字标红</b>。</li>
+      <li>保存后<b>即时生效</b>，沿用本页现有的单区块保存交互；变更自动进入现有「配置记录」页。</li>
+    </ul>
+
+    <div class="prd-t2">1.2 IP 黑名单页改造<span class="tagm">改造</span></div>
+    <table>
+      <tr><th style="width:100px">区域</th><th>字段 / 按钮</th><th style="width:250px">说明</th></tr>
+      <tr><td>查询条件</td><td>IP、封禁类型、<b>来源</b>、创建时间（起止）</td><td>封禁类型：全部 / 禁止登录 / 禁止注册<br>来源：全部 / 人工添加 / 系统自动</td></tr>
+      <tr>
+        <td>列表字段</td>
+        <td>序号、IP 地址、封禁类型、封禁原因、<b>来源</b>、创建人、创建时间</td>
+        <td>封禁类型以标签展示，可同时为「禁止登录 + 禁止注册」<br>创建人：人工＝后台账号，系统自动＝<span class="mono">system</span><br>封禁原因内容见 2.4</td>
+      </tr>
+      <tr><td>行操作</td><td><b>明细</b>、编辑、删除</td><td><b>明细</b>：弹窗展示该次触发涉及的会员清单，见 2.5；<span class="em">仅系统自动 / 系统补充的记录可用</span>，人工添加的记录该按钮置灰<br>编辑可改封禁类型与原因；删除的效果见 2.6</td></tr>
+      <tr><td>页面按钮</td><td>查询、重置、新增、<b>批量删除</b></td><td>新增＝人工拉黑，必填 IP、封禁类型（多选）、封禁原因<br>批量删除＝按当前查询条件筛选后批量清理</td></tr>
+    </table>
+
+    <div class="prd-t2">1.3 会员端（H5）</div>
+    <ul>
+      <li><b>无界面改造</b>。命中黑名单时登录页提示：<b>「当前网络环境异常，请联系客服处理」</b>。</li>
+      <li>提示语不透出规则、阈值与黑名单状态。</li>
+    </ul>
+  </div>
+
+  <!-- ============ 二 ============ -->
+  <div class="prd-sec">
+    <div class="prd-t">二、口径定义与业务规则</div>
+
+    <div class="prd-t2">2.1 两条规则的统计口径</div>
+    <table>
+      <tr><th style="width:110px">规则</th><th style="width:180px">统计对象</th><th>计数口径</th></tr>
+      <tr>
+        <td>规则一<br>登录账号数量</td>
+        <td>窗口内<b>尝试登录过的<br>不同会员账号数</b></td>
+        <td>· 登录<b>成功与失败均计入</b><br>· 同一账号多次尝试<b>只计 1 个</b><br>· <b>仅统计系统中真实存在的账号</b>，账号不存在的请求不计入</td>
+      </tr>
+      <tr>
+        <td>规则二<br>登录次数</td>
+        <td>窗口内<b>登录请求总次数</b></td>
+        <td>· 登录<b>成功与失败均计入</b><br>· 同一账号重复登录<b>累计计次</b><br>· 账号是否存在<b>均计入</b></td>
+      </tr>
+    </table>
+    <ul>
+      <li><b>含失败为刻意设计</b>：撞库、暴力破解、账号枚举的绝大多数请求都是失败的，只统计成功会使规则失效。</li>
+      <li><b>时间窗为滑动窗口</b>：统计「距当前时刻往前 N 分钟」内的请求，精确到秒，不按整点切分。</li>
+      <li><b>两条规则独立配置、独立计数、任一命中即拉黑</b>，无需同时满足。两者<b>不可相互替代</b>——单账号反复试密码只有规则二能拦，海量账号各试一次只有规则一能拦，<b>建议同时开启</b>。</li>
+      <li><b>规则开关</b>：某条规则的两个输入框<b>任一为 0 或留空</b>，则该条规则不生效，另一条不受影响。</li>
+      <li><b>不计入统计的请求</b>：已被 IP 黑名单拦下的请求（该 IP 的计数不再增长）。</li>
+    </ul>
+
+    <div class="prd-t2">2.2 触发边界</div>
+    <ul>
+      <li>取 <b>&gt;=</b> 语义：配置为 N 时，<span class="em">第 N 个</span>（账号 / 次）即触发，<b>不是第 N+1 个</b>。</li>
+      <li>例：规则一配 10，同一 IP 尝试登录第 <b>10</b> 个不同账号时命中；前 9 个按正常流程处理。</li>
+    </ul>
+
+    <div class="prd-t2">2.3 命中后的动作</div>
+    <ul>
+      <li>将该 IP 写入 IP 黑名单：封禁类型＝<b>禁止登录</b>，来源＝<b>系统自动</b>，创建人＝<span class="mono">system</span>，封禁原因按 2.4 生成。</li>
+      <li><b>触发的那一次请求一并拒绝</b>，<span class="em">即使该次账号密码正确也不发放登录态</span>。</li>
+      <li><b>该 IP 已有黑名单记录且不含「禁止登录」类型时</b>（即人工添加的仅「禁止注册」记录）：<b>为原记录补上「禁止登录」类型</b>并在原因后追加本次触发信息，<b>不新增记录</b>。</li>
+      <li><b>黑名单长期生效，无自动解除</b>，只能由运营手动删除。</li>
+      <li><b>不影响已登录会话</b>：不强制下线、不中断游戏与投注，仅作用于新的登录请求。</li>
+    </ul>
+
+    <div class="prd-t2">2.4 封禁原因的生成规则（系统自动）</div>
+    <table>
+      <tr><th style="width:100px">触发规则</th><th>封禁原因文案</th></tr>
+      <tr><td>规则一</td><td><span class="mono">[系统自动] 10 分钟内尝试登录 12 个不同账号（成功 2 个 / 失败 10 个），达到阈值 10 个（触发时间 2026-08-17 14:22:07）</span></td></tr>
+      <tr><td>规则二</td><td><span class="mono">[系统自动] 5 分钟内登录请求 187 次（成功 6 次 / 失败 181 次），达到阈值 150 次（触发时间 2026-08-17 14:25:31）</span></td></tr>
+      <tr><td>补充触发</td><td>在原记录的封禁原因后追加：<span class="mono">｜2026-08-17 15:02:11 触发登录限制，补充禁止登录（…同上格式…）</span></td></tr>
+    </table>
+    <ul>
+      <li><b>必含四项</b>：触发规则与时间窗、实际值（<b>成功 / 失败拆开</b>）、阈值、触发时间。<span class="em">封禁原因只写原因，不放会员清单</span>——会员清单在「明细」弹窗中查看，见 2.5。</li>
+      <li>封禁原因<b>在触发时一次性写入，后续不再更新</b>。</li>
+    </ul>
+
+    <div class="prd-t2">2.5 触发明细（涉及会员）</div>
+    <ul>
+      <li>入口：IP 黑名单列表行操作的<b>「明细」</b>按钮。<b>仅系统自动 / 系统补充的记录有明细</b>，人工添加的记录无明细、按钮置灰。</li>
+    </ul>
+    <table>
+      <tr><th style="width:100px">区域</th><th>字段</th><th style="width:240px">说明</th></tr>
+      <tr><td>弹窗头部</td><td>IP、触发规则、时间窗、实际值（成功 / 失败）、阈值、触发时间</td><td>与封禁原因一致，便于对照</td></tr>
+      <tr><td>会员清单</td><td>会员 ID、会员账号、尝试次数、其中成功 / 失败次数、最近尝试时间</td><td>取触发时段内该 IP 上<b>尝试登录过的会员</b>，按尝试次数倒序<br><b>最多记录 50 个</b>，超出时提示「仅展示尝试次数最高的 50 个」</td></tr>
+    </table>
+    <ul>
+      <li>明细在<b>触发时一次性写入，后续不再更新</b>；删除黑名单记录时明细一并删除。</li>
+      <li><b>用途</b>：判断该 IP 上的是什么人——<span class="em">多为有充值记录的老会员 ⇒ 疑似误伤；多为新注册空号 ⇒ 养号 / 群控</span>。这是判断误伤最直接的依据。</li>
+    </ul>
+
+    <div class="prd-t2">2.6 IP 黑名单的生效口径<span class="tagm">本次接通</span></div>
+    <ul>
+      <li><b>校验位置</b>：登录 / 注册流程<b>最前置</b>，先判 IP 黑名单，再走验证码与账号密码校验。</li>
+      <li><b>禁止登录</b>：该 IP 的<b>所有</b>登录请求被拒绝，无论使用哪个会员账号。</li>
+      <li><b>禁止注册</b>：该 IP 的注册请求被拒绝。<span class="em">仅支持人工添加</span>，系统自动拉黑不写入该类型。</li>
+      <li>一条记录可同时具备两种类型。</li>
+      <li><b>删除即解除</b>：删除后该 IP 立即恢复；其此前的请求不再计入规则统计，等同于计数从零开始。</li>
+    </ul>
+
+  </div>
+
+  <!-- ============ 三 ============ -->
+  <div class="prd-sec">
+    <div class="prd-t">三、验收标准</div>
+    <table class="ac">
+      <tr><th style="width:70px">编号</th><th style="width:150px">场景</th><th>预期结果</th></tr>
+      <tr><td>AC-01</td><td>配置项展示</td><td>参数配置页「同 IP 注册数」上方出现「同 IP 登录限制」区块，两条规则文案、四个输入框、各自的确认保存按钮完整；说明为灰色小字，时间 / 数量 / 次数相关文字标红；排版与本页其他区块一致。</td></tr>
+      <tr><td>AC-02</td><td>保存生效</td><td>修改并保存后提示成功，刷新回显新值，<b>无需重启即时生效</b>；变更在「配置记录」页可查。</td></tr>
+      <tr><td>AC-03</td><td>取值校验</td><td>非整数、负数、超范围（时间 1~1440、账号数 1~999999、次数 1~99999999）时提示且不保存。</td></tr>
+      <tr><td>AC-04</td><td><b>规则一触发</b></td><td>配置 10 分钟 / 10 个账号。同一 IP 依次登录 10 个不同账号（其中 8 个密码错误）：<b>第 1~9 个按正常流程返回</b>（成功或密码错误）；<b>第 10 个的请求被拒绝</b>，该 IP 出现在黑名单中。</td></tr>
+      <tr><td>AC-05</td><td><b>规则二触发</b></td><td>配置 5 分钟 / 50 次。同一 IP 发起 50 次登录请求（全部密码错误）：<b>第 1~49 次返回密码错误</b>；<b>第 50 次被拒绝</b>并进入黑名单。</td></tr>
+      <tr><td>AC-06</td><td>单账号暴力破解</td><td>同一 IP 对<b>同一个账号</b>连续试错 50 次：规则一计数始终为 1、不触发；规则二按次数正常触发并拉黑。</td></tr>
+      <tr><td>AC-07</td><td>规则一去重</td><td>同一账号在窗口内尝试登录 20 次，规则一计数仍为 1。</td></tr>
+      <tr><td>AC-08</td><td>不存在的账号</td><td>用系统中<b>不存在</b>的账号发起登录：<b>规则一计数不增加</b>；<b>规则二仍按次数累计</b>，达到阈值时正常触发拉黑。</td></tr>
+      <tr><td>AC-09</td><td>滑动窗口</td><td>规则一配 10 分钟 / 10 个账号：先登录 5 个账号，等待 11 分钟后再登录 6 个新账号，<b>不触发</b>（前 5 个已滑出窗口）。</td></tr>
+      <tr><td>AC-10</td><td>触发那次一并拒绝</td><td>触发阈值的那一次请求<b>即使账号密码完全正确</b>，也被拒绝、不发放登录态。</td></tr>
+      <tr><td>AC-11</td><td>封禁原因完整</td><td>自动拉黑记录的封禁原因包含<b>触发规则与时间窗、实际值（成功 / 失败拆分）、阈值、触发时间</b>四项，<b>不含会员清单</b>；来源＝系统自动，创建人＝system。</td></tr>
+      <tr><td>AC-12</td><td><b>触发明细</b></td><td>系统自动记录点「明细」可打开弹窗，展示 IP、触发规则、实际值、阈值、触发时间，以及涉及会员清单（会员 ID / 账号 / 尝试次数 / 成功失败 / 最近尝试时间），按尝试次数倒序、最多 50 条。<b>人工添加的记录「明细」按钮置灰。</b></td></tr>
+      <tr><td>AC-13</td><td>补充触发</td><td>某 IP 已有「仅禁止注册」的人工记录，其后触发登录规则时<b>不新增记录</b>，而是为原记录<b>补上「禁止登录」类型</b>并在原因后追加触发信息，来源显示为人工添加 + 系统补充。</td></tr>
+      <tr><td>AC-14</td><td><b>黑名单真正拦截</b></td><td>黑名单中「禁止登录」的 IP，其<b>所有</b>登录请求被拒（含此前正常登录过的账号），提示「当前网络环境异常，请联系客服处理」。</td></tr>
+      <tr><td>AC-15</td><td>被拦请求不计入统计</td><td>IP 被拉黑后持续发起登录请求，其规则计数<b>不再增长</b>。</td></tr>
+      <tr><td>AC-16</td><td>禁止注册生效</td><td>人工添加且勾选「禁止注册」的 IP，注册请求被拒绝。</td></tr>
+      <tr><td>AC-17</td><td>删除即解除</td><td>删除黑名单记录后该 IP <b>立即</b>恢复登录，且其删除前的请求不再计入统计（计数从零开始）。</td></tr>
+      <tr><td>AC-18</td><td>不踢下线（已知口子）</td><td>IP 被拉黑时该 IP 下已登录的会员<b>不被强制下线</b>，可继续投注 / 充值 / 提现。此为设计内的已知行为，验收确认符合设计即可。</td></tr>
+      <tr><td>AC-19</td><td>换 IP 可用</td><td>被拒会员切换网络后可正常登录，说明封禁对象是 IP 而非账号。</td></tr>
+      <tr><td>AC-20</td><td>规则独立开关</td><td>规则一置 0 后不再产生规则一的自动拉黑，规则二仍正常工作；反之亦然。</td></tr>
+      <tr><td>AC-21</td><td>规则全关</td><td>两条规则均置 0 时不再自动拉黑，但<b>人工添加的黑名单仍然拦截</b>。</td></tr>
+      <tr><td>AC-22</td><td>来源筛选</td><td>按「来源＝系统自动 / 人工添加」筛选结果正确；<b>人工添加 + 系统补充</b>的记录在两种筛选下均能查到。</td></tr>
+      <tr><td>AC-23</td><td>批量清理</td><td>按创建时间 + 来源筛选后可批量删除，删除后对应 IP 全部恢复。</td></tr>
+      <tr><td>AC-24</td><td>人工新增</td><td>可手动新增 IP 黑名单，封禁类型支持同时勾选禁止登录与禁止注册，封禁原因必填。</td></tr>
+      <tr><td>AC-25</td><td>与账号锁定独立</td><td>本功能不影响既有的「密码错误 N 次锁定账号」逻辑，反之亦然。</td></tr>
+      <tr><td>AC-26</td><td>权限与日志</td><td>无权限角色看不到菜单 / 按钮；人工新增、编辑、删除、批量删除均在后台操作日志留痕。</td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ==================== TAB 2 参数配置 ==================== -->
+<div class="page" id="page-cfg">
+  <div class="cfg-wrap">
+    <div class="cfg-topline"></div>
+    <div class="cfg-nav">
+      <a href="javascript:;" class="on">参数配置</a>
+      <a href="javascript:;" onclick="toast('沿用现有「配置记录」页，本配置的修改自动纳入','ok')">配置记录</a>
+    </div>
+    <div class="cfg-body">
+
+      <div class="sec-h"><span class="bar"></span><span class="sec-t">投注费率</span></div>
+      <hr class="cfg-hr">
+      <div class="row">
+        <span class="lb">投注费率</span><input class="inp" value="0.02">
+        <span class="hint">(会员在彩票投注时需要扣除投注金额百分比的手续费)</span>
+        <button class="save" onclick="toast('演示原型：存量配置，本次不改动','warn')">确认保存</button>
+      </div>
+
+      <div class="newblk">
+        <span class="newtag">本次新增</span>
+        <div class="sec-h"><span class="bar"></span><span class="sec-t">同IP登录限制</span></div>
+        <hr class="cfg-hr">
+
+        <div class="row">
+          <span class="lb">登录账号数量</span>
+          <div class="sent">
+            <span>同一个ip</span>
+            <input class="inp sm tm" id="r1w" type="number" min="0" max="1440" value="10" oninput="prev()">
+            <span class="tm">分钟内</span>
+            <span>登录账号数量 &gt;=</span>
+            <input class="inp sm tm" id="r1n" type="number" min="0" max="999999" value="30" oninput="prev()">
+            <span class="tm">个</span><span>，直接拉入ip黑名单</span>
+          </div>
+          <button class="save" onclick="saveRule(1)">确认保存</button>
+        </div>
+        <div class="subhint"><span class="hint" id="p1"></span></div>
+
+        <div class="row">
+          <span class="lb">登录次数</span>
+          <div class="sent">
+            <span>同一个ip</span>
+            <input class="inp sm tm" id="r2w" type="number" min="0" max="1440" value="5" oninput="prev()">
+            <span class="tm">分钟内</span>
+            <span>登录次数 &gt;=</span>
+            <input class="inp sm tm" id="r2n" type="number" min="0" max="99999999" value="200" oninput="prev()">
+            <span class="tm">次</span><span>，直接拉入ip黑名单</span>
+          </div>
+          <button class="save" onclick="saveRule(2)">确认保存</button>
+        </div>
+        <div class="subhint"><span class="hint" id="p2"></span></div>
+      </div>
+
+      <div class="sec-h"><span class="bar"></span><span class="sec-t">同IP注册数</span></div>
+      <hr class="cfg-hr">
+      <div class="row">
+        <span class="lb">注册数量</span><input class="inp" value="99999999">
+        <span class="hint">(一个IP最多只能注册多少个账号)</span>
+        <button class="save" onclick="toast('演示原型：存量配置，本次不改动','warn')">确认保存</button>
+      </div>
+
+      <div class="sec-h"><span class="bar"></span><span class="sec-t">同浏览器指纹注册数</span></div>
+      <hr class="cfg-hr">
+      <div class="row">
+        <span class="lb">注册数量</span><input class="inp" value="1000">
+        <span class="hint">(一个浏览器指纹最多只能注册多少个账号)</span>
+        <button class="save" onclick="toast('演示原型：存量配置，本次不改动','warn')">确认保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB 3 IP黑名单 ==================== -->
+<div class="page" id="page-bl">
+  <div class="bl-head">
+    <div class="t">IP黑名单</div>
+    <div class="bc">用户管理 &gt;&nbsp; IP黑名单 &gt;&nbsp; IP黑名单</div>
+  </div>
+  <div class="bl-body">
+    <div class="srch">
+      <div class="fld"><span class="k">IP</span><input id="q-ip" placeholder="请输入IP"></div>
+      <div class="fld"><span class="k">封禁类型</span>
+        <select id="q-type"><option value="">请选择</option><option value="login">禁止登录</option><option value="reg">禁止注册</option></select>
+      </div>
+      <div class="fld"><span class="k">来源</span>
+        <select id="q-src"><option value="">请选择</option><option value="sys">系统自动</option><option value="man">人工添加</option></select>
+      </div>
+    </div>
+    <div class="acts">
+      <button class="btn b-q" onclick="renderBL()">🔍 查 询</button>
+      <button class="btn b-r" onclick="resetBL()">↺ 重 置</button>
+      <button class="btn b-a" onclick="openAdd()">＋ 新 增</button>
+      <button class="btn gray" onclick="toast('演示原型：批量删除需先勾选行','warn')">批量删除</button>
+    </div>
+    <div class="tw">
+      <table class="dt">
+        <thead><tr>
+          <th style="width:60px">序号</th><th style="width:200px">IP地址</th><th style="width:150px">封禁类型</th>
+          <th>封禁原因</th><th style="width:110px">来源</th><th style="width:100px">创建人</th>
+          <th style="width:160px">创建时间</th><th style="width:210px">操作</th>
+        </tr></thead>
+        <tbody id="bl-body"></tbody>
+      </table>
+    </div>
+    <div class="pager"><span class="info" id="bl-info"></span>
+      <span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span><span>20 条/页</span></div>
+  </div>
+</div>
+
+<!-- 明细弹窗 -->
+<div class="mask" id="mask-dtl">
+  <div class="modal" style="width:760px">
+    <div class="modal-head"><span>触发明细</span><span class="x" onclick="closeMask('mask-dtl')">×</span></div>
+    <div class="modal-body" style="max-height:66vh;overflow-y:auto">
+      <div class="dtl-h" id="dtl-head"></div>
+      <div class="tw"><table class="dt" style="min-width:auto">
+        <thead><tr><th>会员 ID</th><th>会员账号</th><th>尝试次数</th><th>成功 / 失败</th><th>最近尝试时间</th></tr></thead>
+        <tbody id="dtl-body"></tbody>
+      </table></div>
+      <div class="note" style="margin-top:9px" id="dtl-note"></div>
+    </div>
+    <div class="modal-foot"><button class="btn-c" onclick="closeMask('mask-dtl')">关 闭</button></div>
+  </div>
+</div>
+
+<!-- 新增弹窗 -->
+<div class="mask" id="mask-add">
+  <div class="modal">
+    <div class="modal-head"><span>新增 IP 黑名单</span><span class="x" onclick="closeMask('mask-add')">×</span></div>
+    <div class="modal-body">
+      <div class="frow"><label><i>*</i>IP</label><div class="fctrl">
+        <input id="a-ip" placeholder="支持 IPv4 / IPv6">
+      </div></div>
+      <div class="frow"><label><i>*</i>封禁类型</label><div class="fctrl">
+        <div class="cbs">
+          <label><input type="checkbox" id="a-login" checked> 禁止登录</label>
+          <label><input type="checkbox" id="a-reg"> 禁止注册</label>
+        </div>
+        <div class="note">可同时勾选；至少选择一项</div>
+      </div></div>
+      <div class="frow"><label><i>*</i>封禁原因</label><div class="fctrl">
+        <textarea id="a-why" placeholder="必填，便于后续复核"></textarea>
+      </div></div>
+      <div class="alertbox">IP 黑名单<b>长期生效、无自动解除</b>。共享出口 IP（网吧 / 公司 / 运营商 NAT）下会连带影响该 IP 上的全部真实用户，请确认后再提交。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-s" onclick="doAdd()">确 定</button>
+      <button class="btn-c" onclick="closeMask('mask-add')">取 消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+function toast(m,c){const t=$('toast');t.className='toast '+(c||'')+' show';t.innerHTML=m;clearTimeout(t._h);t._h=setTimeout(()=>t.className='toast '+(c||''),3200);}
+function closeMask(i){$(i).classList.remove('show');}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active'); $('page-'+t.dataset.tab).classList.add('active');
+  if(t.dataset.tab==='bl') renderBL();
+  window.scrollTo(0,0);
+});
+function now(){const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
+function clock(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
+
+/* ============ 配置 ============ */
+let cfg={r1w:10,r1n:30,r2w:5,r2n:200};
+function prev(){
+  const R=v=>`<span style="color:#FF5722">${v}</span>`;
+  const a=+$('r1w').value,b=+$('r1n').value,c=+$('r2w').value,d=+$('r2n').value;
+  $('p1').innerHTML=(!a||!b)
+    ? '(时间或数量任一填 0，本条规则不生效)'
+    : `(最近 ${R(a+' 分钟')}内，同一个ip上已有 ${R(b+' 个')}不同会员账号尝试登录，则拒绝本次登录，并将该ip自动拉入黑名单；登录成功与失败均计入，仅统计真实存在的账号)`;
+  $('p2').innerHTML=(!c||!d)
+    ? '(时间或次数任一填 0，本条规则不生效)'
+    : `(最近 ${R(c+' 分钟')}内，同一个ip上登录请求累计已达 ${R(d+' 次')}，则拒绝本次登录，并将该ip自动拉入黑名单；登录成功与失败、同一账号重复登录均计入)`;
+}
+function saveRule(k){
+  const w=+(k===1?$('r1w'):$('r2w')).value, n=+(k===1?$('r1n'):$('r2n')).value;
+  if(w<0||n<0||!Number.isInteger(w)||!Number.isInteger(n)){toast('请输入非负整数','err');return;}
+  if(w>1440){toast('时间取值范围 1 ~ 1440 分钟','err');return;}
+  if(k===1&&n>999999){toast('账号数取值范围 1 ~ 999999','err');return;}
+  if(k===2&&n>99999999){toast('次数取值范围 1 ~ 99999999','err');return;}
+  if(k===1){cfg.r1w=w;cfg.r1n=n;}else{cfg.r2w=w;cfg.r2n=n;}
+  toast(!w||!n ? `保存成功　|　当前取值下<b>该规则不生效</b>`
+    : `保存成功　|　最近 <b>${w}</b> 分钟内${k===1?`已有 <b>${n}</b> 个不同会员账号登录成功`:`累计登录成功已达 <b>${n}</b> 次`}，即自动拉入 IP 黑名单　已即时生效`,'ok');
+}
+
+/* ============ IP 黑名单 ============ */
+let bl=[
+  {ip:'47.236.215.251',login:true,reg:false,src:'sys',by:'system',t:'2026-08-17 08:47:02',rule:'规则二 · 登录次数',win:'5 分钟',act:'登录请求 213 次（成功 0 次 / 失败 213 次）',thr:'200 次',members:[{id:'100234',un:'9812345601',n:38,ok:0,last:'08:46:58'},{id:'100999',un:'9876501234',n:31,ok:0,last:'08:46:51'},{id:'101877',un:'raj.kumar88@gmail.com',n:29,ok:0,last:'08:46:44'},{id:'102300',un:'9903221144',n:27,ok:0,last:'08:46:30'},{id:'101055',un:'9844336677',n:25,ok:0,last:'08:46:12'},{id:'100120',un:'9811002233',n:22,ok:0,last:'08:45:55'},{id:'100388',un:'9822114455',n:19,ok:0,last:'08:45:31'},{id:'100742',un:'9833225566',n:12,ok:0,last:'08:45:02'},{id:'101690',un:'9855447788',n:10,ok:0,last:'08:44:48'}],
+   why:'[系统自动] 5 分钟内登录请求 213 次（成功 0 次 / 失败 213 次），达到阈值 200 次（触发时间 2026-08-17 08:47:02）'},
+  {ip:'103.30.248.19',login:true,reg:false,src:'sys',by:'system',t:'2026-08-17 09:12:44',rule:'规则一 · 登录账号数量',win:'10 分钟',act:'尝试登录 34 个不同账号（成功 3 个 / 失败 31 个）',thr:'30 个',members:[{id:'103301',un:'9700110022',n:3,ok:0,last:'09:12:41'},{id:'103302',un:'9700110023',n:2,ok:0,last:'09:12:33'},{id:'103305',un:'9700110026',n:2,ok:1,last:'09:12:20'},{id:'103311',un:'9700110032',n:1,ok:0,last:'09:11:58'},{id:'103318',un:'9700110039',n:1,ok:0,last:'09:11:40'}],
+   why:'[系统自动] 10 分钟内尝试登录 34 个不同账号（成功 3 个 / 失败 31 个），达到阈值 30 个（触发时间 2026-08-17 09:12:44）'},
+  {ip:'8.211.42.128',login:true,reg:true,src:'both',by:'luna',t:'2026-08-15 16:20:08',rule:'规则一 · 登录账号数量',win:'10 分钟',act:'尝试登录 30 个不同账号（成功 1 个 / 失败 29 个）',thr:'30 个',members:[{id:'104120',un:'9611220033',n:2,ok:0,last:'11:05:29'},{id:'104121',un:'9611220034',n:1,ok:0,last:'11:05:18'},{id:'104126',un:'9611220039',n:1,ok:1,last:'11:04:52'}],
+   why:'恶意注册机，短时间注册大量小号｜2026-08-17 11:05:33 触发登录限制，补充禁止登录（10 分钟内尝试登录 30 个不同账号，成功 1 个 / 失败 29 个）'},
+  {ip:'2a0d:3344:6e28:2608:21f6:2006:a6d4:1dcf',login:true,reg:false,src:'sys',by:'system',t:'2026-08-16 22:03:51',rule:'规则二 · 登录次数',win:'5 分钟',act:'登录请求 207 次（成功 12 次 / 失败 195 次）',thr:'200 次',members:[{id:'100511',un:'9866558899',n:74,ok:5,last:'22:03:47'},{id:'101204',un:'9877669900',n:68,ok:4,last:'22:03:39'},{id:'101533',un:'deepak.v@outlook.com',n:65,ok:3,last:'22:03:20'}],
+   why:'[系统自动] 5 分钟内登录请求 207 次（成功 12 次 / 失败 195 次），达到阈值 200 次（触发时间 2026-08-16 22:03:51）'},
+  {ip:'124.43.79.125',login:true,reg:false,src:'sys',by:'system',t:'2026-08-16 20:31:15',rule:'规则一 · 登录账号数量',win:'10 分钟',act:'尝试登录 31 个不同账号（成功 29 个 / 失败 2 个）',thr:'30 个',members:[{id:'100120',un:'9811002233',n:2,ok:2,last:'20:31:12'},{id:'100388',un:'9822114455',n:1,ok:1,last:'20:30:44'},{id:'100742',un:'9833225566',n:1,ok:1,last:'20:29:51'},{id:'101055',un:'9844336677',n:1,ok:1,last:'20:28:33'},{id:'101690',un:'9855447788',n:1,ok:0,last:'20:27:19'}],
+   why:'[系统自动] 10 分钟内尝试登录 31 个不同账号（成功 29 个 / 失败 2 个），达到阈值 30 个（触发时间 2026-08-16 20:31:15）'},
+  {ip:'8.8.8.8',login:false,reg:true,src:'man',by:'raymond',t:'2026-04-10 12:54:27',
+   why:'恶意注册机，注册大量小号'},
+  {ip:'7.7.7.7',login:true,reg:false,src:'man',by:'raymond',t:'2026-04-10 12:54:12',
+   why:'客诉核实为代打工作室出口'},
+  {ip:'2a09:bac5:50c:2e6::4a:5f',login:true,reg:true,src:'man',by:'micheal',t:'2026-04-09 13:23:06',
+   why:'风控通报可疑代理出口'}
+];
+let seq=1;
+function typeTags(r){
+  return (r.login?'<span class="tg tg-login">禁止登录</span>':'')+(r.reg?'<span class="tg tg-reg">禁止注册</span>':'');
+}
+function renderBL(){
+  const qi=$('q-ip').value.trim().toLowerCase(), qt=$('q-type').value, qs=$('q-src').value;
+  const rows=bl.filter(r=>{
+    if(qi && !r.ip.toLowerCase().includes(qi)) return false;
+    if(qt==='login' && !r.login) return false;
+    if(qt==='reg' && !r.reg) return false;
+    if(qs==='sys' && !(r.src==='sys'||r.src==='both')) return false;
+    if(qs==='man' && !(r.src==='man'||r.src==='both')) return false;
+    return true;
+  });
+  $('bl-body').innerHTML = rows.length? rows.map((r,i)=>`<tr>
+    <td>${i+1}</td>
+    <td class="mono">${r.ip}</td>
+    <td>${typeTags(r)}</td>
+    <td class="wrap">${r.src==='man'?r.why:'<b style="color:#c0392b">'+r.why+'</b>'}</td>
+    <td>${r.src==='sys'?'<span class="tg tg-sys">系统自动</span>':(r.src==='both'?'<span class="tg tg-man">人工添加</span><span class="tg tg-sys">系统补充</span>':'<span class="tg tg-man">人工添加</span>')}</td>
+    <td>${r.by}</td><td class="mono">${r.t}</td>
+    <td><button class="op-btn op-i" ${r.members?`onclick="openDetail('${r.ip}')"`:'disabled title="人工添加的记录无触发明细"'}>☰ 明细</button><button class="op-btn op-e" onclick="toast('演示原型：编辑封禁类型与原因','warn')">✎ 编辑</button><button class="op-btn op-d" onclick="delBL('${r.ip}')">🗑 删除</button></td>
+  </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:#b6bec7;padding:34px">暂无数据</td></tr>';
+  const sys=bl.filter(r=>r.src==='sys'||r.src==='both').length;
+  $('bl-info').innerHTML=`共 ${rows.length} 条${sys?`　|　其中<b style="color:#c0392b">系统自动 ${sys} 条</b>，建议每日复核`:''}`
+    +`　|　<span class="grey">封禁原因中<b>成功占比偏高</b>、且涉及会员多为老会员 ⇒ 疑似误伤</span>`;
+}
+function resetBL(){$('q-ip').value='';$('q-type').value='';$('q-src').value='';renderBL();}
+function delBL(ip){
+  const r=bl.find(x=>x.ip===ip);
+  if(!confirm(`确认删除该 IP 的封禁？\n\nIP：${ip}\n\n删除后该 IP 立即恢复登录，规则计数清零重新开始。`)) return;
+  bl=bl.filter(x=>x.ip!==ip);
+  renderBL();
+  toast(`已删除　|　<b class="mono">${ip}</b> 恢复正常登录，规则计数清零`,'ok');
+}
+function openDetail(ip){
+  const r=bl.find(x=>x.ip===ip); if(!r||!r.members) return;
+  $('dtl-head').innerHTML=`
+    <div><div class="k">IP 地址</div><div class="v mono">${r.ip}</div></div>
+    <div><div class="k">触发规则</div><div class="v">${r.rule}</div></div>
+    <div><div class="k">时间窗</div><div class="v" style="color:#FF5722">${r.win}</div></div>
+    <div><div class="k">实际值</div><div class="v" style="color:#c0392b">${r.act}</div></div>
+    <div><div class="k">阈值</div><div class="v">${r.thr}</div></div>
+    <div><div class="k">触发时间</div><div class="v mono">${r.t}</div></div>`;
+  $('dtl-body').innerHTML=r.members.map(m=>`<tr>
+    <td><b>${m.id}</b></td><td class="mono">${m.un}</td>
+    <td><b style="font-size:14px">${m.n}</b></td>
+    <td>${m.ok?`<span class="tg tg-login">成功 ${m.ok}</span>`:''}<span class="tg tg-sys">失败 ${m.n-m.ok}</span></td>
+    <td class="mono">${m.last}</td></tr>`).join('');
+  const okAll=r.members.reduce((a,b)=>a+b.ok,0);
+  $('dtl-note').innerHTML=`共 ${r.members.length} 个会员，按尝试次数倒序，最多记录 50 个。`
+    +(okAll/r.members.reduce((a,b)=>a+b.n,0)>0.5
+      ? '　<b style="color:#c0392b">⚠ 成功占比偏高，且多为已有会员，需重点核查是否误伤</b>'
+      : '　<span class="grey">失败占绝大多数，符合攻击特征</span>');
+  $('mask-dtl').classList.add('show');
+}
+function openAdd(){$('a-ip').value='';$('a-why').value='';$('a-login').checked=true;$('a-reg').checked=false;$('mask-add').classList.add('show');}
+function doAdd(){
+  const ip=$('a-ip').value.trim(), why=$('a-why').value.trim();
+  if(!ip){toast('请填写 IP','err');return;}
+  if(!$('a-login').checked && !$('a-reg').checked){toast('封禁类型至少选择一项','err');return;}
+  if(!why){toast('请填写封禁原因','err');return;}
+  if(bl.some(r=>r.ip===ip)){toast('该 IP 已在黑名单中','err');return;}
+  bl.unshift({ip,login:$('a-login').checked,reg:$('a-reg').checked,why,src:'man',by:'admin',t:now()});
+  closeMask('mask-add'); renderBL();
+  toast(`已加入 IP 黑名单　|　<b class="mono">${ip}</b>`,'ok');
+}
+
+prev(); renderBL();
+</script>
+</body>
+</html>
