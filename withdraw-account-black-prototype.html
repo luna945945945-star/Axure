@@ -254,44 +254,43 @@
       <tr><th style="width:110px">区域</th><th>字段</th><th style="width:290px">说明</th></tr>
       <tr>
         <td>查询条件</td>
-        <td>提现账号（模糊）、提现账号类型、状态、添加人、添加时间（起止）</td>
-        <td>提现账号类型下拉：全部 / 银行卡 / UPI / 电子钱包 / 加密货币 / PIX<br>状态下拉：生效中 / 已解除</td>
+        <td>提现账号（模糊）、状态、添加人、添加时间（起止）</td>
+        <td>状态下拉：生效中 / 已解除</td>
       </tr>
       <tr>
         <td>列表字段</td>
-        <td>提现账号类型、提现账号、备注、状态、添加人、添加时间、解除人 / 解除时间</td>
+        <td>提现账号、备注、状态、添加人、添加时间、解除人 / 解除时间</td>
         <td>提现账号默认掩码显示（首 4 末 4），点击可展开全量；首列为勾选框，供批量解除使用</td>
       </tr>
       <tr>
         <td>行操作</td>
         <td><b>绑定历史</b>、解除</td>
-        <td><b>绑定历史</b>：跳转「相同提现账号」页，<b>自动填充该提现账号与提现账号类型并精确查询</b>，直接展开该账号的绑定明细<br>已解除的行不再显示「解除」</td>
+        <td><b>绑定历史</b>：跳转「相同提现账号」页，<b>自动填充该提现账号并精确查询</b>，直接展开该账号的绑定明细<br>已解除的行不再显示「解除」</td>
       </tr>
       <tr>
         <td>页面按钮</td>
         <td>查询、重置、<b>导出</b>、<b>批量导入</b>、<b>添加</b>、批量解除</td>
-        <td><b>导出</b>：按当前查询条件导出 Excel（提现账号类型、提现账号、备注、状态、操作人与时间）</td>
+        <td><b>导出</b>：按当前查询条件导出 Excel（提现账号、备注、状态、操作人与时间）</td>
       </tr>
     </table>
 
     <div class="prd-t2">1.2 新增弹窗：添加提现账号黑名单<span class="tagn">新增</span></div>
     <table>
       <tr><th style="width:110px">字段</th><th style="width:110px">类型</th><th>规则</th></tr>
-      <tr><td><span class="req">*</span> 提现账号</td><td>文本</td><td>粘贴或输入后<b>自动识别提现账号类型</b>，并实时回显归一化结果（见 2.2）</td></tr>
-      <tr><td><span class="req">*</span> 提现账号类型</td><td>下拉单选</td><td>银行卡 / UPI / 电子钱包 / 加密货币 / PIX。<b>由系统按账号格式自动识别并预选，运营可手动修正</b>；识别规则见 2.3。手动改过之后不再被自动覆盖</td></tr>
+      <tr><td><span class="req">*</span> 提现账号</td><td>文本</td><td>按原样填写，输入后实时回显归一化结果（见 2.1）。<b>无需选择账号类型</b></td></tr>
       <tr><td>备注</td><td>多行文本</td><td>选填，≤ 200 字</td></tr>
     </table>
     <ul>
-      <li><b>录入只需两个必填项</b>（账号 + 账号类型），且账号类型自动识别，风控可以秒加秒查。</li>
+      <li><b>录入只需一个必填项</b>（提现账号），风控可以秒加秒查。</li>
     </ul>
 
     <div class="prd-t2">1.3 批量导入<span class="tagn">新增</span></div>
     <table>
       <tr><th style="width:110px">项</th><th>内容</th></tr>
-      <tr><td>模板列</td><td><b>提现账号类型、提现账号、备注</b>（备注选填）</td></tr>
-      <tr><td>校验</td><td>提现账号为空、提现账号类型非法、账号格式与所选类型明显不符、与已有黑名单重复的行<b>逐行跳过</b>，并生成失败明细（行号 / 类型 / 账号 / 失败原因）可导出</td></tr>
+      <tr><td>模板列</td><td><b>提现账号、备注</b>（备注选填）</td></tr>
+      <tr><td>校验</td><td>提现账号为空、与已有黑名单重复的行<b>逐行跳过</b>，并生成失败明细（行号 / 提现账号 / 失败原因）可导出</td></tr>
       <tr><td>行数上限</td><td>单次 <b>2000 行</b>（<span class="em">在不影响性能与实现难度的前提下的最大值</span>，沿用后台既有同步导入能力，无需引入异步任务机制）。<b>超出则整单不导入</b>并提示「超出单次导入上限 2000 行，请拆分后重试」</td></tr>
-      <tr><td>类型来源</td><td>导入<span class="em">不做类型自动识别</span>，一律以模板中填写的「提现账号类型」为准（与手工录入的自动识别规则不同）</td></tr>
+      
       <tr><td>生效</td><td>导入成功的提现账号立即生效，该账号下一次提现即被拒绝</td></tr>
     </table>
 
@@ -303,12 +302,12 @@
       <tr><th style="width:110px">区域</th><th>字段</th><th style="width:290px">说明</th></tr>
       <tr>
         <td>查询条件</td>
-        <td>提现账号（模糊）、<b>会员 ID</b>、提现账号类型、<b>累计绑定次数 ≥ N</b>、黑名单状态</td>
-        <td>累计绑定次数默认 <b>≥ 2</b>（正常账号只会被绑定 1 次，≥ 2 即异常）<br>从黑名单页「绑定历史」跳入时，自动填充提现账号与类型、阈值放开为 1，做<b>精确查询</b></td>
+        <td>提现账号（模糊）、<b>会员 ID</b>、<b>累计绑定次数 ≥ N</b>、黑名单状态</td>
+        <td>累计绑定次数默认 <b>≥ 2</b>（正常账号只会被绑定 1 次，≥ 2 即异常）<br>从黑名单页「绑定历史」跳入时，自动填充提现账号、阈值放开为 1，做<b>精确查询</b></td>
       </tr>
       <tr>
         <td>列表字段</td>
-        <td>提现账号类型、提现账号、<b>累计绑定次数</b>、最近绑定时间、当前绑定会员、黑名单状态</td>
+        <td>提现账号、<b>累计绑定次数</b>、最近绑定时间、当前绑定会员、黑名单状态</td>
         <td><b>按累计绑定次数倒序</b>，普通分页展示，无条数上限<br><b>累计绑定次数为实时值</b>，会员绑定完成后立即体现，无延迟<br>当前绑定会员展示会员 ID；正常为 0 或 1 个，出现 2 个及以上时打「⚠ 跨通道并存」告警（见 2.5）</td>
       </tr>
       <tr>
@@ -331,45 +330,26 @@
   <div class="prd-sec">
     <div class="prd-t">二、口径定义与业务规则</div>
 
-    <div class="prd-t2">2.1 提现账号类型归并口径</div>
+    <div class="prd-t2">2.1 归一化与匹配口径</div>
     <ul>
-      <li>黑名单的对象是<b>提现账号</b>（会员绑定的收款账号），不是会员，也不是某一条绑卡记录。</li>
-      <li>同一账号在多个提现通道上使用时，<span class="em">视为同一个账号，拉黑一次即全通道生效</span>：</li>
+      <li><b>归一化规则（唯一一套，不区分账号类型）</b>：<span class="em">去除全部空格 → 去除全部连字符 → 转为小写</span>。</li>
+      <li><b>录入侧与提现校验侧必须共用同一个归一化方法</b>，不得各自实现。两侧规则不一致会导致<span class="em">拉黑后拦不住且不报错</span>。</li>
+      <li><b>匹配方式</b>：拿归一化后的完整账号值做<b>精确匹配</b>。<span class="em">系统不维护「提现账号类型」这一概念</span>——录入、匹配、列表、导出、导入全链路均只使用账号值本身。</li>
+      <li><span class="em">不去除点号</span>：<span class="mono">.</span> 在邮箱型账号与 CPF（<span class="mono">123.456.789-00</span>）中有语义，去除会造成不同账号相互命中。</li>
     </ul>
     <table>
-      <tr><th style="width:120px">提现账号类型</th><th style="width:230px">覆盖的提现通道</th><th>取值来源</th></tr>
-      <tr><td>银行卡</td><td>银行卡</td><td>银行卡号</td></tr>
-      <tr><td><b>UPI</b></td><td><b>UPI、NewUPI、FastUPI（三代通道合并）</b></td><td>UPI ID</td></tr>
-      <tr><td><b>加密货币</b></td><td><b>USDT、USDT2（两个通道合并）</b></td><td>钱包地址</td></tr>
-      <tr><td>电子钱包</td><td>各电子钱包通道</td><td>钱包账号 / 绑定手机号</td></tr>
-      <tr><td>PIX</td><td>PIX</td><td>PIX 账号</td></tr>
-    </table>
-
-    <div class="prd-t2">2.2 提现账号识别（归一化）口径</div>
-    <table>
-      <tr><th style="width:120px">提现账号类型</th><th style="width:230px">归一化规则</th><th>示例</th></tr>
-      <tr><td>银行卡</td><td>去除全部空格与连字符</td><td><span class="mono">6238-8812-3434-5678</span> ≡ <span class="mono">6238 8812 3434 5678</span> ≡ <span class="mono">6238881234345678</span></td></tr>
-      <tr><td>UPI / 电子钱包 / PIX</td><td>去首尾空格 + 统一转小写</td><td><span class="mono">RajKumar@YBL</span> ≡ <span class="mono">rajkumar@ybl</span></td></tr>
-      <tr><td>加密货币</td><td>仅去首尾空格，<span class="em">区分大小写</span></td><td><span class="mono">TXk9…</span> ≠ <span class="mono">txk9…</span>（链上地址大小写敏感，转换会误伤）</td></tr>
+      <tr><th style="width:190px">录入 / 绑定的原始值</th><th style="width:190px">归一化结果</th><th>是否互相命中</th></tr>
+      <tr><td><span class="mono">6238 8812 3434 5678</span></td><td rowspan="2"><span class="mono">6238881234345678</span></td><td rowspan="2"><b>命中</b></td></tr>
+      <tr><td><span class="mono">6238-8812-3434-5678</span></td></tr>
+      <tr><td><span class="mono">RajKumar@YBL</span></td><td rowspan="2"><span class="mono">rajkumar@ybl</span></td><td rowspan="2"><b>命中</b></td></tr>
+      <tr><td><span class="mono">rajkumar@ybl</span></td></tr>
     </table>
     <ul>
-      <li><span class="em">不同账号类型之间不做任何跨类型关联</span>。电子钱包账号与 UPI ID 即使数字部分相同也互不命中（单站模式下两类通道不会同时开放，跨类型匹配只会带来误伤）。</li>
+      <li><b>同一账号跨通道天然命中</b>：同一个 UPI ID 无论从 UPI / NewUPI / FastUPI 绑定，归一化结果相同，命中同一条黑名单记录。USDT 两个通道同理。<span class="em">这是归一化的自然结果，不需要额外配置</span>。</li>
+      <li><b>存量数据需一次性回填</b>：上线时按本规则重算所有已绑定账号的归一化值，否则存量数据的聚合统计不准。</li>
     </ul>
 
-    <div class="prd-t2">2.3 提现账号类型自动识别规则</div>
-    <ul>
-      <li>录入时由系统按账号格式<b>自动识别并预选</b>提现账号类型，运营可手动修正；<span class="em">识别结果不作为最终依据，以提交时下拉框的实际取值为准</span>。</li>
-    </ul>
-    <table>
-      <tr><th style="width:120px">识别为</th><th style="width:270px">判定条件（按顺序命中即止）</th><th>示例</th></tr>
-      <tr><td>UPI</td><td>包含 <span class="mono">@</span></td><td><span class="mono">rajkumar9821@ybl</span></td></tr>
-      <tr><td>加密货币</td><td><span class="mono">T</span> 开头共 34 位，或 <span class="mono">0x</span> 开头共 42 位</td><td><span class="mono">TXk9pQm3…</span> / <span class="mono">0x3f5C…</span></td></tr>
-      <tr><td>银行卡</td><td>去空格连字符后为 <b>16~19 位纯数字</b></td><td><span class="mono">6238 8812 3434 5678</span></td></tr>
-      <tr><td>电子钱包</td><td>去空格连字符后为 <b>10~12 位纯数字</b></td><td><span class="mono">9821034567</span></td></tr>
-      <tr><td><b>无法判定</b></td><td>以上均不命中（如 PIX 的随机密钥、邮箱型账号）</td><td>提示<b>「未能识别，请手动选择」</b>，下拉框保持上次取值，<span class="em">不阻断提交</span></td></tr>
-    </table>
-
-    <div class="prd-t2">2.4 拉黑生效口径</div>
+    <div class="prd-t2">2.2 拉黑生效口径</div>
     <ul>
       <li>拉黑后的效果<b>仅限：禁止使用该账号提现</b>。不影响登录、投注、充值。</li>
       <li><span class="em">不拦截绑定</span>：黑名单账号仍可被任意会员正常绑定，只有在<b>发起提现时</b>才拦截。此为刻意设计——绑定即报错会让套利者立刻察觉并更换账号，情报链断裂；放行绑定可持续沉淀关联关系。</li>
@@ -380,7 +360,7 @@
       <li>拉黑 / 解除 / 导入 / 导出均需记录操作人与操作时间，并写入后台操作日志。</li>
     </ul>
 
-    <div class="prd-t2">2.5 累计绑定次数口径</div>
+    <div class="prd-t2">2.3 累计绑定次数口径</div>
     <ul>
       <li><b>只统计「绑定」动作</b>的累计次数：解绑<span class="em">不减少</span>，后台修改<span class="em">不计数</span>。</li>
       <li>一个提现账号被 3 个会员先后绑定过（中间各有解绑），其累计绑定次数为 <b>3</b>。</li>
@@ -389,7 +369,7 @@
       <li>提现账号的<b>黑名单状态</b>与其统计数据属于<b>同一份账号数据</b>：在任一页面拉黑或解除后，另一页面<b>立即同步</b>，不存在两边不一致的中间态。</li>
     </ul>
 
-    <div class="prd-t2">2.6 绑定历史记录规则</div>
+    <div class="prd-t2">2.4 绑定历史记录规则</div>
     <ul>
       <li>会员的提现账号发生<b>绑定、解绑、后台修改</b>时，均留存一条历史记录，<span class="em">解绑后记录永久保留</span>。</li>
       <li>记录内容：发生时间、动作、<b>会员 ID</b>、<b>会员账号</b>（注册手机号或邮箱）、收款人姓名、提现账号值、<b>操作来源</b>、操作人 / 工单号。</li>
@@ -421,13 +401,13 @@
       <tr><td>B1</td><td>历史数据不可追溯</td><td>上线前已解绑的记录无法还原，绑定历史<b>自上线日起累计</b>。上线时对当前仍在绑定状态的账号补录一条「绑定」记录，时间取原始绑定时间。需提前与运营 / 风控对齐预期。</td></tr>
       <tr><td>B2</td><td>不拦截绑定</td><td>黑名单账号可被正常绑定，会员在绑定环节无任何异常提示。若后续需要改为绑定即拦，属独立需求。</td></tr>
       <tr><td>B3</td><td>只拦账号、不连坐会员</td><td>本期<b>只限制被拉黑的账号本身</b>，不会自动限制曾绑定过该账号的其他会员。换号套利者用同一账号提现会被挡住，但换成另一个新账号提现仍可放行——需风控发现后再拉黑新账号。</td></tr>
-      <tr><td>B4</td><td>不跨账号类型关联</td><td>电子钱包与 UPI、银行卡与 UPI 之间不做数字主体匹配。跨类型嫌疑需人工通过账号模糊搜索排查。</td></tr>
-      <tr><td>B5</td><td>加密货币大小写敏感</td><td>大小写不同的地址视为两个账号，需分别拉黑。</td></tr>
+      <tr><td>B4</td><td>不做片段 / 主体提取匹配</td><td>只按归一化后的<b>完整账号值</b>精确匹配，不做子串、片段或「数字主体提取」的关联（如 <span class="mono">9821034567</span> 不会去关联 <span class="mono">rajkumar9821@ybl</span>）。此类嫌疑需人工通过账号模糊搜索排查。</td></tr>
+      <tr><td>B5</td><td>归一化统一转小写</td><td>加密货币地址等大小写敏感的账号也会被转小写后比对。因<b>录入与校验两侧做相同变换</b>，同一账号的匹配不受影响；仅存在「两个不同地址仅大小写不同」时相互命中的理论可能，实际不会自然发生。</td></tr>
       <tr><td>B6</td><td>单站范围</td><td>V1 为单站模式，黑名单与绑定历史均在本站范围内生效，不涉及跨站点共享或查询。</td></tr>
       <tr><td>B7</td><td>不处理在途订单</td><td>拉黑<b>只对之后发起的提现生效</b>。拉黑前已提交、仍在审核 / 出款流程中的订单<b>不受影响，按原流程处理</b>——本期不做联动驳回，避免与出款审核流程耦合。如需拦截，由审核人在出款审核环节人工处置。</td></tr>
       <tr><td>B8</td><td><span class="em">后台人工出款不受拦截</span></td><td>后台代客出款、人工确认出款不经过会员端提现校验，<b>黑名单对这条路径不生效</b>。<b>本期不做后台出款侧的校验改造</b>，列为已知风险，由出款审核人在操作时自行留意。<br>此路径需人工发起，非会员可自助触发，风险敞口可控。</td></tr>
       <tr><td>B9</td><td>仅覆盖提现收款账号</td><td>不涉及充值收款账号、C2C 卖家账号等其他账号体系。</td></tr>
-      <tr><td>B10</td><td>自动识别仅为录入辅助</td><td>提现账号类型自动识别<b>不保证 100% 准确</b>——如 <b>10~12 位纯数字</b>既可能是电子钱包账号，也可能是以手机号作为密钥的 PIX 账号，系统会一律预选为「电子钱包」。最终<b>以提交时下拉框的实际取值为准</b>，运营需自行核对。PIX 随机密钥、邮箱型账号无法自动识别，需手动选择。</td></tr>
+      <tr><td>B10</td><td><span class="em">两侧归一化必须一致</span></td><td>录入侧与提现校验侧<b>必须调用同一个归一化方法</b>。若两侧规则不一致，表现为<span class="em">拉黑成功但拦不住，且无任何报错与日志</span>——属静默失效，最难排查。上线前需专项验证。</td></tr>
       <tr><td>B11</td><td>不做模糊 / 片段匹配</td><td>本条约束的是<b>拉黑命中判定</b>：一律按归一化后的<b>全量精确匹配</b>，不支持按账号片段拉黑（短数字片段做包含匹配会大面积误伤正常会员）。<br>后台列表的<b>提现账号搜索框仍支持模糊查询</b>，仅用于查找，不影响拦截判定。</td></tr>
       <tr><td>B12</td><td>统计与明细的一致性校对</td><td>累计绑定次数为<b>累加值</b>，正常情况下与绑定明细完全一致。为防止异常写入（如绕过系统直接改库）造成数值偏差，需提供一个<b>后台可手动触发的「绑定次数校对」维护动作</b>，按明细重算并修正。低频使用，不做定时执行。</td></tr>
       <tr><td>B13</td><td>掩码与权限</td><td>账号全量值需具备相应数据权限方可展开查看；黑名单的添加 / 解除 / 导入 / 导出需分别配置权限点。</td></tr>
@@ -441,34 +421,36 @@
       <tr><th style="width:70px">编号</th><th style="width:140px">场景</th><th>预期结果</th></tr>
       <tr><td>AC-01</td><td>基础拦截</td><td>拉黑账号 A 后，当前绑定 A 的会员发起提现，被拒绝并提示「您的账号当前无法提现，若有疑问请联系客服处理」，订单不生成、余额不冻结。</td></tr>
       <tr><td>AC-02</td><td><b>换号套利</b></td><td>新注册会员绑定账号 A（<b>绑定成功、无报错</b>），发起提现被拒绝，提示同 AC-01。</td></tr>
-      <tr><td>AC-03</td><td>UPI 跨代</td><td>某 UPI ID 以 UPI 通道被拉黑后，同一 ID 通过 NewUPI、FastUPI 提现同样被拒绝。</td></tr>
-      <tr><td>AC-04</td><td>加密货币跨通道</td><td>某钱包地址被拉黑后，USDT 与 USDT2 两个通道提现均被拒绝。</td></tr>
-      <tr><td>AC-05</td><td>归一化 - 银行卡</td><td>以「6238 8812 3434 5678」拉黑后，会员绑定的「6238-8812-3434-5678」提现被拒绝。</td></tr>
-      <tr><td>AC-06</td><td>归一化 - 大小写</td><td>以「RajKumar@ybl」拉黑后，「rajkumar@YBL」提现被拒绝；加密货币地址大小写不同时<b>不</b>互相命中。</td></tr>
-      <tr><td>AC-07</td><td>不跨类型</td><td>电子钱包账号 9821034567 被拉黑后，UPI ID「rajkumar9821@ybl」提现<b>正常放行</b>。</td></tr>
-      <tr><td>AC-08</td><td>提现账号类型自动识别</td><td>输入 <span class="mono">xxx@ybl</span> 自动选中 UPI；16~19 位数字自动选中银行卡；<span class="mono">T</span> 开头 34 位自动选中加密货币；10~12 位数字自动选中电子钱包；无法判定时提示「未能识别，请手动选择」且不阻断提交。手动改过类型后，继续编辑账号不会被自动覆盖。</td></tr>
-      <tr><td>AC-09</td><td>录入必填项</td><td>添加弹窗仅提现账号与提现账号类型为必填，备注选填；两项填齐即可提交成功。</td></tr>
-      <tr><td>AC-10</td><td>即时生效</td><td>确认拉黑后<b>无需其他操作</b>，该提现账号下一次发起提现即被拒绝、不生成订单；拉黑前已提交的在途订单<b>不受影响</b>。</td></tr>
-      <tr><td>AC-11</td><td>解除拉黑</td><td>解除后该提现账号恢复正常提现。</td></tr>
-      <tr><td>AC-12</td><td><b>预拉黑</b></td><td>对从未有会员绑定过的提现账号可直接加入黑名单；日后有会员绑定该账号并发起提现时被拒绝。</td></tr>
-      <tr><td>AC-13</td><td>批量解除</td><td>勾选多行后批量解除，被勾选的提现账号状态全部变为「已解除」并恢复提现。</td></tr>
-      <tr><td>AC-14</td><td>影响范围</td><td>被拉黑账号的持有会员，登录、投注、充值、绑定新账号均<b>不受影响</b>。</td></tr>
-      <tr><td>AC-15</td><td>历史 - 绑定</td><td>会员绑定任一类型提现账号后，绑定明细即时可查，时间 / 动作 / 会员 ID / 会员账号 / 收款人姓名 / 操作来源 / 操作人字段完整。</td></tr>
-      <tr><td>AC-16</td><td>历史 - 解绑</td><td>解绑后原记录<b>不消失</b>，新增一条「解绑」记录，操作来源为<b>客服工单</b>并可看到工单号。</td></tr>
-      <tr><td>AC-17</td><td>历史 - 多会员先后绑定</td><td>同一账号先后被 3 个会员绑定 / 解绑，在同一个面板内按时间倒序完整呈现全部动作，并汇总「历史绑定过 3 个会员、累计绑定 3 次」。</td></tr>
-      <tr><td>AC-18</td><td>历史 - 全类型</td><td>银行卡、电子钱包、加密货币、UPI、PIX 的绑定与解绑均能记录并查询。</td></tr>
-      <tr><td>AC-19</td><td><b>绑定历史入口</b></td><td>在提现账号黑名单列表点击某行「绑定历史」，跳转「相同提现账号」页并<b>自动填充该提现账号与提现账号类型、精确查询</b>，直接展开该账号的绑定明细。</td></tr>
-      <tr><td>AC-20</td><td><b>累计绑定次数口径</b></td><td>同一提现账号被 3 个会员先后绑定（各有解绑）后，累计绑定次数显示 3；解绑不减少；后台修改不计数；绑定完成后数值<b>立即</b>变化，无需等待。</td></tr>
-      <tr><td>AC-21</td><td>黑名单与统计同源</td><td>在提现账号黑名单页拉黑某账号后，相同提现账号页该账号的黑名单状态<b>立即</b>变为「已拉黑」；反之解除亦然。</td></tr>
-      <tr><td>AC-22</td><td>发现能力</td><td>相同提现账号列表默认按<b>累计绑定次数倒序</b>、筛选 ≥ 2，仅绑定过 1 次的正常账号不出现在默认列表中；点击累计绑定次数可就地展开绑定明细。</td></tr>
-      <tr><td>AC-23</td><td>唯一绑定</td><td>同一账号的「当前绑定会员」正常为 0 或 1 个会员 ID；出现 2 个及以上时展示<b>「⚠ 跨通道并存」</b>红色告警。</td></tr>
-      <tr><td>AC-24</td><td>存量补录</td><td>上线后当前在绑的存量账号均能查到一条「绑定」记录，时间为其原始绑定时间。</td></tr>
-      <tr><td>AC-25</td><td>批量导入</td><td>模板列为提现账号类型、提现账号、备注；格式错误 / 类型非法 / 重复账号<b>逐行跳过</b>并给出具体失败原因，失败明细可导出；成功部分正常入库并即时生效。<b>导入以模板中的类型为准，不做自动识别。</b></td></tr>
-      <tr><td>AC-26</td><td>导入行数上限</td><td>文件超过 <b>2000 行</b>时<b>整单不导入</b>并提示「超出单次导入上限 2000 行，请拆分后重试」。</td></tr>
-      <tr><td>AC-27</td><td><b>会员 ID 反查</b></td><td>在相同提现账号页输入完整会员 ID（精确匹配），可列出该会员历史绑定过的全部提现账号（含仅绑定过 1 次的）；命中账号的绑定明细<b>自动展开</b>，属于该会员的明细行高亮。填入部分 ID 不命中。</td></tr>
-      <tr><td>AC-28</td><td>导出</td><td>按当前查询条件导出 Excel，列与列表一致，数据行数与列表总数一致。</td></tr>
-      <tr><td>AC-29</td><td>菜单归属</td><td>「提现账号黑名单」「相同提现账号」出现在<b>风控管理</b>菜单下；系统管理下既有的 IP 名单、设备管理、会员活动黑名单、会员提现限制名单<b>位置与功能均不变</b>。</td></tr>
-      <tr><td>AC-30</td><td>权限与日志</td><td>无权限角色看不到菜单 / 按钮；拉黑、解除、导入、导出均在后台操作日志留痕（操作人、时间、账号）。</td></tr>
+      <tr><td>AC-03</td><td>UPI 跨代</td><td>某 UPI ID 拉黑后，同一 ID 通过 UPI / NewUPI / FastUPI 任一通道提现均被拒绝。</td></tr>
+      <tr><td>AC-04</td><td>加密货币跨通道</td><td>某钱包地址拉黑后，USDT 与 USDT2 两个通道提现均被拒绝。</td></tr>
+      <tr><td>AC-05</td><td>归一化 - 分隔符</td><td>以「6238-8812-3434-5678」拉黑后，会员绑定的「6238 8812 3434 5678」提现被拒绝。</td></tr>
+      <tr><td>AC-06</td><td>归一化 - 大小写</td><td>以「RajKumar@ybl」拉黑后，会员绑定的「rajkumar@YBL」提现被拒绝。</td></tr>
+      <tr><td>AC-07</td><td>不做片段匹配</td><td>账号 9821034567 被拉黑后，UPI ID「rajkumar9821@ybl」提现<b>正常放行</b>（不做数字主体提取）。</td></tr>
+      <tr><td>AC-08</td><td><b>归一化即时回显</b></td><td>录入框输入账号后，下方实时显示归一化结果（去空格、去连字符、转小写）。添加弹窗<b>无账号类型选项</b>。</td></tr>
+      <tr><td>AC-09</td><td><b>两侧归一化一致</b></td><td>后台录入与提现校验调用同一归一化方法：以任意书写形式拉黑后，会员用该账号的任意书写形式提现均被拒绝。</td></tr>
+      <tr><td>AC-10</td><td>不去除点号</td><td>拉黑 <span class="mono">a.b@mail.com</span> 后，<span class="mono">ab@mail.com</span> 提现<b>正常放行</b>。</td></tr>
+      <tr><td>AC-11</td><td>录入必填项</td><td>添加弹窗<b>仅提现账号为必填</b>，备注选填；填写账号即可提交成功。</td></tr>
+      <tr><td>AC-12</td><td>即时生效</td><td>确认拉黑后<b>无需其他操作</b>，该提现账号下一次发起提现即被拒绝、不生成订单；拉黑前已提交的在途订单<b>不受影响</b>。</td></tr>
+      <tr><td>AC-13</td><td>解除拉黑</td><td>解除后该提现账号恢复正常提现。</td></tr>
+      <tr><td>AC-14</td><td><b>预拉黑</b></td><td>对从未有会员绑定过的提现账号可直接加入黑名单；日后有会员绑定该账号并发起提现时被拒绝。</td></tr>
+      <tr><td>AC-15</td><td>批量解除</td><td>勾选多行后批量解除，被勾选的提现账号状态全部变为「已解除」并恢复提现。</td></tr>
+      <tr><td>AC-16</td><td>影响范围</td><td>被拉黑账号的持有会员，登录、投注、充值、绑定新账号均<b>不受影响</b>。</td></tr>
+      <tr><td>AC-17</td><td>历史 - 绑定</td><td>会员绑定任一类型提现账号后，绑定明细即时可查，时间 / 动作 / 会员 ID / 会员账号 / 收款人姓名 / 操作来源 / 操作人字段完整。</td></tr>
+      <tr><td>AC-18</td><td>历史 - 解绑</td><td>解绑后原记录<b>不消失</b>，新增一条「解绑」记录，操作来源为<b>客服工单</b>并可看到工单号。</td></tr>
+      <tr><td>AC-19</td><td>历史 - 多会员先后绑定</td><td>同一账号先后被 3 个会员绑定 / 解绑，在同一个面板内按时间倒序完整呈现全部动作，并汇总「历史绑定过 3 个会员、累计绑定 3 次」。</td></tr>
+      <tr><td>AC-20</td><td>历史 - 全类型</td><td>银行卡、电子钱包、加密货币、UPI、PIX 的绑定与解绑均能记录并查询。</td></tr>
+      <tr><td>AC-21</td><td><b>绑定历史入口</b></td><td>在提现账号黑名单列表点击某行「绑定历史」，跳转「相同提现账号」页并<b>自动填充该提现账号、精确查询</b>，直接展开该账号的绑定明细。</td></tr>
+      <tr><td>AC-22</td><td><b>累计绑定次数口径</b></td><td>同一提现账号被 3 个会员先后绑定（各有解绑）后，累计绑定次数显示 3；解绑不减少；后台修改不计数；绑定完成后数值<b>立即</b>变化，无需等待。</td></tr>
+      <tr><td>AC-23</td><td>黑名单与统计同源</td><td>在提现账号黑名单页拉黑某账号后，相同提现账号页该账号的黑名单状态<b>立即</b>变为「已拉黑」；反之解除亦然。</td></tr>
+      <tr><td>AC-24</td><td>发现能力</td><td>相同提现账号列表默认按<b>累计绑定次数倒序</b>、筛选 ≥ 2，仅绑定过 1 次的正常账号不出现在默认列表中；点击累计绑定次数可就地展开绑定明细。</td></tr>
+      <tr><td>AC-25</td><td>唯一绑定</td><td>同一账号的「当前绑定会员」正常为 0 或 1 个会员 ID；出现 2 个及以上时展示<b>「⚠ 跨通道并存」</b>红色告警。</td></tr>
+      <tr><td>AC-26</td><td>存量补录</td><td>上线后当前在绑的存量账号均能查到一条「绑定」记录，时间为其原始绑定时间。</td></tr>
+      <tr><td>AC-27</td><td>批量导入</td><td>模板列为提现账号、备注；账号为空 / 与已有黑名单重复的行<b>逐行跳过</b>并给出具体失败原因，失败明细可导出；成功部分正常入库并即时生效。</td></tr>
+      <tr><td>AC-28</td><td>导入行数上限</td><td>文件超过 <b>2000 行</b>时<b>整单不导入</b>并提示「超出单次导入上限 2000 行，请拆分后重试」。</td></tr>
+      <tr><td>AC-29</td><td><b>会员 ID 反查</b></td><td>在相同提现账号页输入完整会员 ID（精确匹配），可列出该会员历史绑定过的全部提现账号（含仅绑定过 1 次的）；命中账号的绑定明细<b>自动展开</b>，属于该会员的明细行高亮。填入部分 ID 不命中。</td></tr>
+      <tr><td>AC-30</td><td>导出</td><td>按当前查询条件导出 Excel，列与列表一致，数据行数与列表总数一致。</td></tr>
+      <tr><td>AC-31</td><td>菜单归属</td><td>「提现账号黑名单」「相同提现账号」出现在<b>风控管理</b>菜单下；系统管理下既有的 IP 名单、设备管理、会员活动黑名单、会员提现限制名单<b>位置与功能均不变</b>。</td></tr>
+      <tr><td>AC-32</td><td>权限与日志</td><td>无权限角色看不到菜单 / 按钮；拉黑、解除、导入、导出均在后台操作日志留痕（操作人、时间、账号）。</td></tr>
     </table>
   </div>
 </div>
@@ -496,9 +478,6 @@
   <div class="search">
     <div class="grid">
       <div class="fld"><label>提现账号</label><input id="q-acc" placeholder="支持模糊查询"></div>
-      <div class="fld"><label>提现账号类型</label>
-        <select id="q-type"><option value="">全部</option><option value="BANK">银行卡</option><option value="UPI">UPI</option><option value="EWALLET">电子钱包</option><option value="CRYPTO">加密货币</option><option value="PIX">PIX</option></select>
-      </div>
       <div class="fld"><label>状　　态</label>
         <select id="q-state"><option value="">全部</option><option value="1">生效中</option><option value="0">已解除</option></select>
       </div>
@@ -520,7 +499,7 @@
     <table class="dt">
       <thead><tr>
         <th style="width:34px"><input type="checkbox"></th>
-        <th>提现账号类型</th><th>提现账号</th><th>备注</th>
+        <th>提现账号</th><th>备注</th>
         <th>状态</th><th>添加人</th><th>添加时间</th><th>解除人 / 时间</th><th style="width:170px">操作</th>
       </tr></thead>
       <tbody id="black-body"></tbody>
@@ -544,9 +523,6 @@
       <div class="grid">
         <div class="fld"><label>提现账号</label><input id="h-acc" placeholder="支持模糊查询"></div>
         <div class="fld"><label>会员 ID</label><input id="h-uid" placeholder="输入完整会员 ID 精确查询"></div>
-        <div class="fld"><label>提现账号类型</label>
-          <select id="h-type"><option value="">全部</option><option value="BANK">银行卡</option><option value="UPI">UPI</option><option value="EWALLET">电子钱包</option><option value="CRYPTO">加密货币</option><option value="PIX">PIX</option></select>
-        </div>
         <div class="fld"><label>累计绑定次数 ≥</label>
           <select id="h-min"><option value="1">1（全部）</option><option value="2" selected>2</option><option value="3">3</option><option value="5">5</option></select>
         </div>
@@ -557,16 +533,16 @@
       <div class="acts">
         <button class="btn btn-primary" onclick="renderHistList()">🔍 查 询</button>
         <button class="btn btn-reset" onclick="resetHist()">↺ 重 置</button>
-        <button class="btn btn-exp" onclick="toast('已导出当前列表（含账号、累计绑定次数、当前绑定会员、黑名单状态）','ok')">⬆ 导 出</button>
+        <button class="btn btn-exp" onclick="toast('已导出当前列表（含提现账号、累计绑定次数、当前绑定会员、黑名单状态）','ok')">⬆ 导 出</button>
       </div>
     </div>
 
     <div class="tbl-wrap">
       <table class="dt">
         <thead>
-          <tr><th colspan="7" style="text-align:center;background:#f1f3f7;color:#3d4453;font-size:12.5px">相同提现账号（按累计绑定次数倒序）</th></tr>
+          <tr><th colspan="6" style="text-align:center;background:#f1f3f7;color:#3d4453;font-size:12.5px">相同提现账号（按累计绑定次数倒序）</th></tr>
           <tr>
-            <th>提现账号类型</th><th>提现账号</th><th>累计绑定次数 ↓</th>
+            <th>提现账号</th><th>累计绑定次数 ↓</th>
             <th>最近绑定时间</th><th>当前绑定会员</th><th>黑名单状态</th><th style="width:110px">操作</th>
           </tr>
         </thead>
@@ -631,22 +607,8 @@
     <div class="modal-head"><span>添加提现账号黑名单</span><span class="x" onclick="closeMask('mask-add')">×</span></div>
     <div class="modal-body">
       <div class="frow"><label><i>*</i>提现账号</label><div class="fctrl">
-        <input id="a-acc" placeholder="粘贴或输入提现账号，系统自动识别类型" oninput="onAccInput()">
+        <input id="a-acc" placeholder="粘贴或输入提现账号" oninput="normPreview()">
         <div class="note" id="a-norm">归一化结果：—</div>
-      </div></div>
-
-      <div class="frow"><label><i>*</i>提现账号类型</label><div class="fctrl">
-        <div class="inline">
-          <select id="a-type" onchange="onTypeChange()" style="flex:1">
-            <option value="BANK">银行卡</option>
-            <option value="UPI">UPI（含 UPI / NewUPI / FastUPI）</option>
-            <option value="EWALLET">电子钱包</option>
-            <option value="CRYPTO">加密货币（含 USDT / USDT2）</option>
-            <option value="PIX">PIX</option>
-          </select>
-          <span id="a-auto"></span>
-        </div>
-        <div class="note" id="a-typenote">拉黑后，该银行卡号在提现环节全通道失效。归一化：去除空格与连字符。</div>
       </div></div>
 
       <div class="frow"><label>备　　注</label><div class="fctrl">
@@ -684,17 +646,17 @@
         <div class="stephd"><span class="stepno">1</span>下载导入模板</div>
         <div class="stepbd">
           <button class="btn btn-exp" onclick="dlTpl()">⬇ 下载 Excel 模板</button>
-          <div class="note" style="margin-top:8px">模板包含三列，<b>提现账号类型</b>与<b>提现账号</b>必填，<b>备注</b>选填：</div>
+          <div class="note" style="margin-top:8px">模板包含两列，<b>提现账号</b>必填，<b>备注</b>选填：</div>
           <div class="tplbox">
             <table class="dt">
-              <thead><tr><th>提现账号类型</th><th>提现账号</th><th>备注</th></tr></thead>
+              <thead><tr><th>提现账号</th><th>备注</th></tr></thead>
               <tbody>
                 <tr><td>银行卡</td><td class="mono">4521 7788 1122 3344</td><td class="grey">风控名单批次 A</td></tr>
                 <tr><td>UPI</td><td class="mono">vikas.n@okicici</td><td class="grey"></td></tr>
               </tbody>
             </table>
           </div>
-          <div class="note">提现账号类型请填写：银行卡 / UPI / 电子钱包 / 加密货币 / PIX</div>
+          <div class="note">提现账号按原样填写即可，系统入库时统一归一化（去空格、去连字符、转小写）</div>
         </div>
       </div>
 
@@ -730,7 +692,7 @@
           </div>
           <div class="tplbox" id="imp-failbox" style="display:none">
             <table class="dt">
-              <thead><tr><th style="width:60px">行号</th><th>提现账号类型</th><th>提现账号</th><th>失败原因</th></tr></thead>
+              <thead><tr><th style="width:60px">行号</th><th>提现账号</th><th>失败原因</th></tr></thead>
               <tbody id="imp-failbody"></tbody>
             </table>
           </div>
@@ -749,7 +711,6 @@
 
 <script>
 /* ============ 数据 ============ */
-const TYPE_NAME={BANK:'银行卡',UPI:'UPI',EWALLET:'电子钱包',CRYPTO:'加密货币',PIX:'PIX'};
 const TYPE_NOTE={
   BANK:'拉黑后，该银行卡号在提现环节全通道失效。归一化：去除空格与连字符。',
   UPI:'UPI / NewUPI / FastUPI 三代通道合并为同一账号，拉黑一次三代同时生效。归一化：去首尾空格 + 转小写。',
@@ -825,11 +786,9 @@ let seq=2;
 const $=id=>document.getElementById(id);
 const acc=id=>accounts.find(a=>a.id===id);
 function mask(s){ if(s.length<=8) return s; return s.slice(0,4)+'****'+s.slice(-4); }
-function normalize(type,v){
-  v=(v||'').trim();
-  if(type==='BANK') return v.replace(/[\s-]/g,'');
-  if(type==='CRYPTO') return v;
-  return v.toLowerCase();
+/* 统一归一化：去空格 + 去连字符 + 转小写。录入侧与提现侧必须共用本方法 */
+function normalize(v){
+  return (v||'').replace(/[\s-]/g,'').toLowerCase();
 }
 function toast(msg,cls){
   const t=$('toast'); t.className='toast '+(cls||'')+' show'; t.innerHTML=msg;
@@ -849,12 +808,11 @@ function goTab(name){ document.querySelector('.tab[data-tab="'+name+'"]').click(
 
 /* ============ 黑名单列表 ============ */
 function renderBlack(){
-  const qa=$('q-acc').value.trim().toLowerCase(), qt=$('q-type').value,
+  const qa=$('q-acc').value.trim().toLowerCase(),
         qs=$('q-state').value;
   const rows=blacks.filter(b=>{
     const a=acc(b.acc);
     if(qa && !(a.raw.toLowerCase().includes(qa)||a.key.toLowerCase().includes(qa))) return false;
-    if(qt && a.type!==qt) return false;
     if(qs!=='' && String(b.state)!==qs) return false;
     return true;
   });
@@ -862,7 +820,6 @@ function renderBlack(){
     const a=acc(b.acc);
     return `<tr>
       <td><input type="checkbox"></td>
-      <td><span class="badge b-type">${TYPE_NAME[a.type]}</span></td>
       <td class="mono" title="${a.raw}" style="cursor:pointer" onclick="this.textContent='${a.raw}'">${mask(a.raw)}</td>
       <td class="wrap" style="color:#8a94a3">${b.remark||'—'}</td>
       <td>${b.state? '<span class="badge b-black">生效中</span>':'<span class="badge b-off">已解除</span>'}</td>
@@ -875,60 +832,21 @@ function renderBlack(){
   }).join('') : '<tr><td colspan="11" style="text-align:center;color:#b6bec7;padding:34px">暂无数据</td></tr>';
   $('black-info').textContent=`共 ${rows.length} 条记录`;
 }
-function resetBlack(){ ['q-acc','q-type','q-state'].forEach(i=>$(i).value=''); renderBlack(); }
+function resetBlack(){ ['q-acc','q-state'].forEach(i=>$(i).value=''); renderBlack(); }
 
 /* ============ 新增拉黑 ============ */
 function openAdd(){
-  $('a-acc').value=''; $('a-remark').value=''; $('a-type').value='BANK';
-  autoState='empty';
+  $('a-acc').value=''; $('a-remark').value='';
   normPreview(); $('mask-add').classList.add('show');
 }
 
-/* ---- 账号类型自动识别 ---- */
-let autoState='empty';   // empty / auto / fail / manual
-function detectType(v){
-  v=(v||'').trim();
-  if(!v) return null;
-  if(v.includes('@')) return 'UPI';                                  // UPI ID：xxx@ybl / xxx@okaxis
-  if(/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(v)) return 'CRYPTO';         // TRC20
-  if(/^0x[0-9a-fA-F]{40}$/.test(v)) return 'CRYPTO';                 // ERC20
-  const d=v.replace(/[\s-]/g,'');
-  if(/^\d{16,19}$/.test(d)) return 'BANK';                           // 银行卡号
-  if(/^\d{10,12}$/.test(d)) return 'EWALLET';                        // 钱包账号 / 手机号
-  return null;                                                       // 无法判定
-}
-function onAccInput(){
-  const v=$('a-acc').value;
-  if(autoState!=='manual'){
-    const t=detectType(v);
-    if(!v) autoState='empty';
-    else if(t){ $('a-type').value=t; autoState='auto'; }
-    else autoState='fail';
-  }
-  normPreview();
-}
-function onTypeChange(){
-  if($('a-acc').value.trim()) autoState='manual';
-  normPreview();
-}
-function autoTag(){
-  const el=$('a-auto');
-  if(autoState==='auto') el.innerHTML='<span class="autotag">✓ 已自动识别</span>';
-  else if(autoState==='fail') el.innerHTML='<span class="autotag man">⚠ 未能识别，请手动选择</span>';
-  else if(autoState==='manual') el.innerHTML='<span class="autotag man">已手动指定</span>';
-  else el.innerHTML='<span class="autotag no">输入账号后自动识别</span>';
-}
 function normPreview(){
-  const type=$('a-type').value, raw=$('a-acc').value;
-  $('a-typenote').innerHTML=TYPE_NOTE[type];
-  autoTag();
-  const key=normalize(type,raw);
-  $('a-norm').innerHTML = raw? `归一化结果：<b class="mono" style="color:#2b6cb0">${key||'—'}</b>` : '归一化结果：—';
-
-  const target=accounts.find(a=>a.type===type && a.key===key);
-
+  const raw=$('a-acc').value, key=normalize(raw);
+  $('a-norm').innerHTML = raw
+    ? `归一化结果：<b class="mono" style="color:#2b6cb0">${key||'—'}</b>　<span class="grey">（去空格、去连字符、转小写）</span>`
+    : '归一化结果：—';
   $('a-submit').disabled = !raw;
-  window._pv={type,key,raw,target};
+  window._pv={key,raw,target:accounts.find(a=>a.key===key)};
 }
 function doAdd(){
   const pv=window._pv;
@@ -938,7 +856,7 @@ function doAdd(){
 function execAdd(){
   const pv=window._pv;
   let a=pv.target;
-  if(!a){ a={id:'x'+(seq++),type:pv.type,raw:pv.raw,key:pv.key}; accounts.push(a); }
+  if(!a){ a={id:'x'+(seq++),type:null,raw:pv.raw,key:pv.key}; accounts.push(a); }
   if(blackOf(a.id)){ toast('该账号已在黑名单中','err'); return; }
   const bid='b'+(seq++);
   blacks.unshift({id:bid,acc:a.id,remark:$('a-remark').value,
@@ -953,7 +871,7 @@ function openRelease(bid){
   relId=bid;
   const b=blacks.find(x=>x.id===bid), a=acc(b.acc);
   $('rel-txt').innerHTML=`
-    <div>账号：<b class="mono">${a.raw}</b>（${TYPE_NAME[a.type]}）</div>
+    <div>提现账号：<b class="mono">${a.raw}</b></div>
     <div style="margin-top:8px">解除后该账号<b>可正常提现</b>，绑定该账号的会员恢复出款。</div>
     `;
   $('mask-rel').classList.add('show');
@@ -996,14 +914,14 @@ function curCell(a,s){
     <br><span class="badge b-black">⚠ 跨通道并存</span>`;
 }
 function renderHistList(){
-  const qa=$('h-acc').value.trim().toLowerCase(), qt=$('h-type').value,
+  const qa=$('h-acc').value.trim().toLowerCase(),
         qm=+$('h-min').value, qb=$('h-bk').value, qu=$('h-uid').value.trim();
   const list=accounts.map(a=>({a,s:stat(a)}))
     .filter(({a,s})=>{
       if(qa && !(a.raw.toLowerCase().includes(qa)||a.key.toLowerCase().includes(qa))) return false;
-      if(qt && a.type!==qt) return false;
       if(qu && !logs.some(l=>l.acc===a.id && l.uid===qu)) return false;   // 会员ID 精确匹配
-      if(!qu && s.bindCnt<qm) return false;   // 按会员ID查询时不受次数阈值限制
+      // 按会员 ID 或按账号查询时，不受累计绑定次数阈值限制
+      if(!qu && !qa && s.bindCnt<qm) return false;
       if(qb==='1' && !s.black) return false;
       if(qb==='0' && s.black) return false;
       return true;
@@ -1015,7 +933,6 @@ function renderHistList(){
 
   $('hist-body').innerHTML = list.length? list.map(({a,s})=>{
     const row=`<tr>
-      <td><span class="badge b-type">${TYPE_NAME[a.type]}</span></td>
       <td class="mono" title="${a.raw}" style="cursor:pointer" onclick="this.textContent='${a.raw}'">${mask(a.raw)}</td>
       <td><a href="javascript:;" style="color:#2b6cb0;font-weight:700;font-size:14px" onclick="toggleMembers('${a.id}')">${s.bindCnt}</a>
           <span class="grey" style="font-size:11px">${expanded.has(a.id)?'▲':'▼'}</span></td>
@@ -1026,7 +943,7 @@ function renderHistList(){
         ${s.black?`<button class="op-btn" onclick="openRelease('${s.black.id}')">解除</button>`:`<button class="op-btn del" onclick="quickBlack('${a.id}')">拉黑</button>`}
       </div></td></tr>`;
     return row + (expanded.has(a.id)? memberRow(a) : '');
-  }).join('') : '<tr><td colspan="7" style="text-align:center;color:#b6bec7;padding:34px">暂无符合条件的账号</td></tr>';
+  }).join('') : `<tr><td colspan="6" style="text-align:center;color:#b6bec7;padding:34px">${qa?'该提现账号暂无绑定记录（预拉黑账号）':'暂无符合条件的账号'}</td></tr>`;
 
   const hidden=accounts.length-list.length;
   $('hist-info').innerHTML=`共 ${list.length} 个账号${hidden>0?`　|　<span class="grey">另有 ${hidden} 个账号不符合当前筛选（含仅绑定过 1 次的正常账号）</span>`:''}`;
@@ -1045,7 +962,7 @@ function memberRow(a){
       <td>${l.op}</td><td class="mono">${l.by||'—'}</td>
     </tr>`;
   }).join('');
-  return `<tr><td colspan="7" style="background:#f7fafd;padding:0">
+  return `<tr><td colspan="6" style="background:#f7fafd;padding:0">
     <div style="padding:10px 14px 12px">
       <div style="font-size:12px;color:#5a6472;margin-bottom:7px">
         绑定明细 · <b class="mono">${a.raw}</b>　
@@ -1054,17 +971,17 @@ function memberRow(a){
         <span class="grey">（绑定 / 解绑 / 后台修改，按时间倒序）</span></div>
       <table class="dt" style="background:#fff;border:1px solid #e6e8eb;border-radius:6px">
         <thead><tr><th>时间</th><th>动作</th><th>会员 ID</th><th>会员账号</th><th>收款人姓名</th><th>操作来源</th><th>操作人 / 工单号</th></tr></thead>
-        <tbody>${rows}</tbody>
+        <tbody>${rows||'<tr><td colspan="7" style="text-align:center;color:#b6bec7;padding:20px">暂无绑定记录</td></tr>'}</tbody>
       </table>
     </div></td></tr>`;
 }
 function toggleMembers(id){ expanded.has(id)? expanded.delete(id) : expanded.add(id); renderHistList(); }
-function resetHist(){ $('h-acc').value='';$('h-uid').value='';$('h-type').value='';$('h-min').value='2';$('h-bk').value=''; expanded=new Set(); renderHistList(); }
+function resetHist(){ $('h-acc').value='';$('h-uid').value='';$('h-min').value='2';$('h-bk').value=''; expanded=new Set(); renderHistList(); }
 /* 「绑定历史」→ 跳转相同提现账号，自动填充账号+类型精确查询并展开明细 */
 function gotoHist(id){
   const a=acc(id); if(!a) return;
   goTab('hist');
-  $('h-acc').value=a.raw; $('h-uid').value=''; $('h-type').value=a.type; $('h-min').value='1'; $('h-bk').value='';
+  $('h-acc').value=a.raw; $('h-uid').value=''; $('h-min').value='1'; $('h-bk').value='';
   expanded=new Set([a.id]);
   renderHistList(); window.scrollTo(0,0);
   toast(`已按账号 <b class="mono">${a.raw}</b> 精确查询绑定历史`,'ok');
@@ -1072,20 +989,17 @@ function gotoHist(id){
 function quickBlack(id){
   const a=acc(id);
   goTab('black'); openAdd();
-  $('a-acc').value=a.raw; onAccInput();
-  if($('a-type').value!==a.type){ $('a-type').value=a.type; autoState='manual'; normPreview(); }
+  $('a-acc').value=a.raw; normPreview();
 }
 /* ============ 批量导入 ============ */
 const IMP_ROWS=[
-  {n:2,type:'银行卡',   raw:'4521 7788 1122 3344', note:'风控名单批次 A'},
-  {n:3,type:'UPI',      raw:'vikas.n@okicici',     note:''},
-  {n:4,type:'电子钱包', raw:'9765001122',          note:''},
-  {n:5,type:'加密货币', raw:'TQm5rTn8xLd2sHvB4tYcZ2eWvR2aJ5kQ8b'.slice(0,34), note:'链上归集地址'},
-  {n:6,type:'银行卡',   raw:'6238 8812 3434 5678', note:''},
-  {n:7,type:'钱包',     raw:'9911000022',          note:''},
-  {n:8,type:'银行卡',   raw:'88',                  note:''}
+  {n:2,raw:'4521 7788 1122 3344', note:'风控名单批次 A'},
+  {n:3,raw:'vikas.n@okicici',     note:''},
+  {n:4,raw:'9765001122',          note:''},
+  {n:5,raw:'TQm5rTn8xLd2sHvB4tYcZ2eWvR2aJ5kQ8b', note:'链上归集地址'},
+  {n:6,raw:'6238 8812 3434 5678', note:''},
+  {n:7,raw:'',                    note:'空行'}
 ];
-const T2K={'银行卡':'BANK','UPI':'UPI','电子钱包':'EWALLET','加密货币':'CRYPTO','PIX':'PIX'};
 function openImport(){
   resetPick(); $('imp-step3').style.display='none'; $('mask-imp').classList.add('show');
 }
@@ -1104,14 +1018,11 @@ function resetPick(){
 function doImport(){
   let ok=0; const fails=[];
   IMP_ROWS.forEach(r=>{
-    const type=T2K[r.type];
-    if(!type){ fails.push({...r,why:'提现账号类型非法，仅支持 银行卡 / UPI / 电子钱包 / 加密货币 / PIX'}); return; }
     if(!r.raw.trim()){ fails.push({...r,why:'提现账号为空'}); return; }
-    const key=normalize(type,r.raw);
-    let a=accounts.find(x=>x.type===type&&x.key===key);
+    const key=normalize(r.raw);
+    let a=accounts.find(x=>x.key===key);
     if(a && blackOf(a.id)){ fails.push({...r,why:'该提现账号已在黑名单中'}); return; }
-    if(type==='BANK' && !/^\d{16,19}$/.test(key)){ fails.push({...r,why:'提现账号格式与所选类型不符'}); return; }
-    if(!a){ a={id:'x'+(seq++),type,raw:r.raw,key}; accounts.push(a); }
+    if(!a){ a={id:'x'+(seq++),type:null,raw:r.raw,key}; accounts.push(a); }
     blacks.unshift({id:'b'+(seq++),acc:a.id,remark:r.note,state:1,addUser:'admin',addTime:now(),relUser:'',relTime:''});
     ok++;
   });
@@ -1119,7 +1030,7 @@ function doImport(){
   $('imp-step3').style.display='';
   $('imp-dl').style.display=fails.length?'':'none';
   $('imp-failbox').style.display=fails.length?'':'none';
-  $('imp-failbody').innerHTML=fails.map(f=>`<tr><td>${f.n}</td><td>${f.type}</td>
+  $('imp-failbody').innerHTML=fails.map(f=>`<tr><td>${f.n}</td>
     <td class="mono">${f.raw||'<span class="grey">（空）</span>'}</td><td class="red">${f.why}</td></tr>`).join('');
   $('imp-go').disabled=true;
   renderAll();
@@ -1128,7 +1039,7 @@ function doImport(){
 
 function doExport(){
   const n=blacks.length;
-  toast(`已导出 <b>${n}</b> 条黑名单账号（含提现账号类型、提现账号、备注、状态、操作人与时间）`,'ok');
+  toast(`已导出 <b>${n}</b> 条黑名单账号（含提现账号、备注、状态、操作人与时间）`,'ok');
 }
 
 /* ============ 会员端演示 ============ */
