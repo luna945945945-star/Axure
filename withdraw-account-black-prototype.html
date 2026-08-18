@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提现账号黑名单 · 账号绑定历史 原型</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#333;font-size:13px}
+
+  /* 顶部 TAB */
+  .tabs{display:flex;background:#fff;border-bottom:1px solid #e6e8eb;padding:0 16px;position:sticky;top:0;z-index:20;box-shadow:0 1px 3px rgba(0,0,0,.04);flex-wrap:wrap}
+  .tab{padding:14px 20px;cursor:pointer;font-size:14px;color:#5a6472;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap}
+  .tab:hover{color:#2b6cb0}
+  .tab.active{color:#2b6cb0;border-bottom-color:#2b6cb0}
+  .tab .nw{display:inline-block;background:#2ecc71;color:#fff;font-size:10px;border-radius:3px;padding:1px 4px;margin-left:5px;vertical-align:1px}
+  .tab .md{display:inline-block;background:#f39c12;color:#fff;font-size:10px;border-radius:3px;padding:1px 4px;margin-left:5px;vertical-align:1px}
+  .page{display:none;padding:16px}
+  .page.active{display:block}
+
+  /* 需求说明 */
+  .prd{max-width:960px;margin:0 auto;background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .prd-head{background:#2b6cb0;color:#fff;padding:16px 24px}
+  .prd-head .h1{font-size:16px;font-weight:600}
+  .prd-head .h2{font-size:12px;opacity:.85;margin-top:4px}
+  .prd-sec{padding:18px 24px 8px;border-bottom:1px solid #f0f2f5}
+  .prd-sec:last-child{border-bottom:none;padding-bottom:22px}
+  .prd-t{font-size:14px;font-weight:600;color:#2d3748;margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid #eef2f7}
+  .prd-t2{font-size:13px;font-weight:600;color:#2b6cb0;margin:14px 0 7px}
+  .prd ul{list-style:none}
+  .prd li{font-size:13.5px;line-height:1.95;color:#555;padding-left:18px;position:relative}
+  .prd li::before{content:"·";position:absolute;left:5px;color:#2b6cb0;font-weight:700}
+  .prd li b{color:#1a2733}
+  .prd .em{color:#c0392b;font-weight:600}
+  .prd .ok{color:#237a4b;font-weight:600}
+  .prd table{border-collapse:collapse;width:100%;font-size:12.5px;margin:8px 0 4px}
+  .prd th,.prd td{border:1px solid #e6e8eb;padding:7px 10px;text-align:left;vertical-align:top;line-height:1.7}
+  .prd th{background:#f7f9fb;color:#5a6472;font-weight:600;white-space:nowrap}
+  .prd td b{color:#1a2733}
+  .prd .req{color:#c0392b}
+  .tagn{display:inline-block;background:#e7f7ee;color:#237a4b;border:1px solid #b7e4cb;border-radius:3px;padding:0 5px;font-size:11px;margin-left:4px}
+  .tagm{display:inline-block;background:#fdf3e2;color:#b9770e;border:1px solid #f6dfb4;border-radius:3px;padding:0 5px;font-size:11px;margin-left:4px}
+  .ac td:first-child{white-space:nowrap;font-weight:600;color:#2b6cb0}
+
+  /* 通用面包屑 */
+  .crumb{color:#8a94a3;font-size:12.5px;margin-bottom:10px}
+  .crumb b{color:#2d3748}
+
+  /* 风控管理 · 二级 TAB（对齐竞品分组） */
+  .rcbar{background:#fff;border:1px solid #e6e8eb;border-radius:8px 8px 0 0;border-bottom:none;padding:14px 18px 0;margin-bottom:0}
+  .rcbar .rt{font-size:15px;font-weight:600;color:#1a2733;margin-bottom:12px}
+  .subtabs{display:flex;gap:26px;border-bottom:1px solid #eef0f3;flex-wrap:wrap}
+  .subtab{padding:0 0 10px;font-size:13.5px;color:#8a94a3;border-bottom:2px solid transparent;cursor:default;position:relative;white-space:nowrap}
+  .subtab.on{color:#2b6cb0;border-bottom-color:#2b6cb0;font-weight:600}
+  .subtab .ex{font-size:10px;background:#f0f2f5;color:#98a2b0;border-radius:3px;padding:1px 4px;margin-left:5px;vertical-align:1.5px}
+  .subtab .nn{font-size:10px;background:#e7f7ee;color:#237a4b;border:1px solid #b7e4cb;border-radius:3px;padding:0 4px;margin-left:5px;vertical-align:1.5px}
+  .rcbody{background:#fff;border:1px solid #e6e8eb;border-top:none;border-radius:0 0 8px 8px;padding:16px 18px 18px;margin-bottom:12px}
+  .rcbody .search{border:none;padding:0;margin-bottom:0;background:transparent}
+
+  /* 搜索区 */
+  .search{background:#fff;border:1px solid #e6e8eb;border-radius:8px;padding:14px;margin-bottom:12px}
+  .search .grid{display:flex;flex-wrap:wrap;gap:12px 18px}
+  .fld{display:flex;align-items:center;gap:6px}
+  .fld label{font-size:12.5px;color:#5a6472;white-space:nowrap}
+  .fld input,.fld select{border:1px solid #d6dbe0;border-radius:5px;padding:6px 8px;font-size:12.5px;min-width:140px;outline:none;background:#fff}
+  .fld input:focus,.fld select:focus{border-color:#2b6cb0;box-shadow:0 0 0 2px rgba(43,108,176,.12)}
+  .search .acts{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:none;border-radius:5px;padding:7px 16px;cursor:pointer;font-size:12.5px;display:inline-flex;align-items:center;gap:5px}
+  .btn-primary{background:#2b6cb0;color:#fff}
+  .btn-reset{background:#eef0f3;color:#5a6472}
+  .btn-add{background:#2ecc71;color:#fff}
+  .btn-imp{background:#7c5cff;color:#fff}
+  .btn-exp{background:#2ecc71;color:#fff}
+  .btn-danger{background:#e74c3c;color:#fff}
+  .btn:hover{opacity:.9}
+
+  /* 提示条 */
+  .hintbar{display:flex;align-items:center;gap:10px;background:#e6f4ff;border:1px solid #a9d4ff;border-radius:8px;padding:9px 14px;margin-bottom:12px;font-size:12.5px;color:#0958d9;flex-wrap:wrap}
+  .hintbar.warn{background:#fffbe6;border-color:#ffe58f;color:#ad6800}
+  .hintbar.new{background:#e7f7ee;border-color:#b7e4cb;color:#237a4b}
+
+  /* 表格 */
+  .tbl-wrap{background:#fff;border:1px solid #e6e8eb;border-radius:8px;overflow-x:auto}
+  table.dt{border-collapse:collapse;width:100%;font-size:12px}
+  .dt th,.dt td{padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid #f0f2f5}
+  .dt th{background:#fafbfc;color:#5a6472;font-weight:600}
+  .dt tr:hover td{background:#f7fafd}
+  .dt td.wrap{white-space:normal;min-width:150px}
+  .mono{font-family:Menlo,Consolas,monospace;font-size:11.5px}
+  .red{color:#c0392b}.grey{color:#98a2b0}.green{color:#237a4b}
+  .badge{display:inline-block;border-radius:3px;padding:1px 7px;font-size:11px;white-space:nowrap}
+  .b-black{background:#fdedeb;color:#c0392b;border:1px solid #f5c6c0}
+  .b-ok{background:#e7f7ee;color:#237a4b;border:1px solid #b7e4cb}
+  .b-off{background:#f0f2f5;color:#8a94a3;border:1px solid #e0e4e9}
+  .b-type{background:#eef2ff;color:#3b4fd8;border:1px solid #ccd5ff}
+  .b-man{background:#fdf3e2;color:#b9770e;border:1px solid #f6dfb4}
+  .op{display:flex;gap:5px}
+  .op-btn{border:1px solid #2b6cb0;color:#2b6cb0;background:#fff;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11.5px;white-space:nowrap}
+  .op-btn:hover{background:#eef4fb}
+  .op-btn.del{border-color:#e74c3c;color:#e74c3c}
+  .op-btn.del:hover{background:#fdedeb}
+  .op-btn.gr{border-color:#2ecc71;color:#27ae60}
+  .op-btn.gr:hover{background:#eafaf0}
+  .op-btn:disabled{border-color:#dfe3e8;color:#b6bec7;cursor:not-allowed;background:#fafbfc}
+
+  /* 分页 */
+  .pager{display:flex;align-items:center;gap:6px;padding:12px 4px;justify-content:flex-end}
+  .pager button{border:1px solid #d6dbe0;background:#fff;border-radius:5px;padding:5px 11px;cursor:pointer;font-size:12.5px;color:#5a6472}
+  .pager button.on{background:#2b6cb0;color:#fff;border-color:#2b6cb0}
+  .pager .info{margin-right:auto;color:#8a94a3;font-size:12px}
+
+  /* 账号档案头 */
+  .profile{background:#fff;border:1px solid #e6e8eb;border-radius:8px;padding:16px 18px;margin-bottom:12px}
+  .profile .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .profile .acc{font-family:Menlo,Consolas,monospace;font-size:17px;font-weight:600;color:#1a2733;letter-spacing:.5px}
+  .profile .stats{display:flex;gap:26px;flex-wrap:wrap;border-top:1px solid #f0f2f5;padding-top:12px}
+  .profile .st .k{font-size:11.5px;color:#8a94a3}
+  .profile .st .v{font-size:18px;font-weight:600;color:#2b6cb0;margin-top:2px}
+  .profile .st .v.r{color:#c0392b}
+  .profile .st .v small{font-size:12px;color:#8a94a3;font-weight:400}
+
+  /* 时间线 */
+  .tl{background:#fff;border:1px solid #e6e8eb;border-radius:8px;padding:6px 18px 18px}
+  .tl-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px dashed #eef0f3;position:relative}
+  .tl-item:last-child{border-bottom:none}
+  .tl-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
+  .tl-dot.bind{background:#2ecc71}
+  .tl-dot.unbind{background:#e74c3c}
+  .tl-dot.edit{background:#f39c12}
+  .tl-main{flex:1;min-width:0}
+  .tl-l1{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:4px}
+  .tl-time{font-family:Menlo,Consolas,monospace;font-size:12px;color:#5a6472}
+  .tl-act{font-weight:600;font-size:13px}
+  .tl-act.bind{color:#237a4b}.tl-act.unbind{color:#c0392b}.tl-act.edit{color:#b9770e}
+  .tl-l2{font-size:12.5px;color:#5a6472;line-height:1.9}
+  .tl-l2 b{color:#1a2733}
+  .tl-l2 .sep{color:#d6dbe0;margin:0 8px}
+  .tl-flag{background:#fdedeb;color:#c0392b;border:1px solid #f5c6c0;border-radius:3px;padding:0 6px;font-size:11px}
+
+  /* 弹窗 */
+  .mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+  .mask.show{display:flex}
+  .modal{background:#fff;border-radius:10px;width:780px;max-width:100%;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+  .modal.sm{width:560px}
+  .modal-head{color:#2b6cb0;font-size:16px;font-weight:600;padding:16px 24px;border-bottom:1px solid #eef0f3;display:flex;justify-content:space-between;align-items:center}
+  .modal-head .x{cursor:pointer;color:#b6bec7;font-size:20px;line-height:1}
+  .modal-body{padding:20px 28px;max-height:62vh;overflow-y:auto}
+  .frow{display:flex;align-items:flex-start;margin-bottom:15px;gap:14px}
+  .frow>label{width:120px;text-align:right;font-size:13px;color:#5a6472;padding-top:8px;flex-shrink:0}
+  .frow>label i{color:#e74c3c;font-style:normal;margin-right:3px}
+  .fctrl{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+  .fctrl input,.fctrl select,.fctrl textarea{width:100%;border:1px solid #d6dbe0;border-radius:6px;padding:8px 10px;font-size:13px;outline:none;background:#fff;font-family:inherit}
+  .fctrl textarea{resize:vertical;min-height:60px}
+  .fctrl input:focus,.fctrl select:focus,.fctrl textarea:focus{border-color:#2b6cb0;box-shadow:0 0 0 2px rgba(43,108,176,.12)}
+  .inline{display:flex;align-items:center;gap:10px}
+  .autotag{display:inline-flex;align-items:center;gap:4px;background:#e7f7ee;color:#237a4b;border:1px solid #b7e4cb;border-radius:4px;padding:5px 9px;font-size:11.5px;white-space:nowrap}
+  .autotag.man{background:#fdf3e2;color:#b9770e;border-color:#f6dfb4}
+  .autotag.no{background:#f0f2f5;color:#8a94a3;border-color:#e0e4e9}
+  .note{font-size:12px;color:#8a94a3;line-height:1.7}
+  .note.r{color:#c0392b}
+  .modal-foot{display:flex;justify-content:center;gap:12px;padding:16px 24px 24px;border-top:1px solid #f5f6f8}
+  .btn-save{background:#2b6cb0;color:#fff;border:none;border-radius:6px;padding:9px 26px;cursor:pointer;font-size:13px}
+  .btn-save:disabled{background:#b6c7da;cursor:not-allowed}
+  .btn-back{background:#8792a2;color:#fff;border:none;border-radius:6px;padding:9px 26px;cursor:pointer;font-size:13px}
+  .btn-danger2{background:#e74c3c;color:#fff;border:none;border-radius:6px;padding:9px 26px;cursor:pointer;font-size:13px}
+
+  /* 批量导入 */
+  .impstep{border:1px solid #e6e8eb;border-radius:8px;margin-bottom:14px;overflow:hidden}
+  .stephd{background:#f7f9fb;padding:9px 14px;font-size:13px;font-weight:600;color:#2d3748;border-bottom:1px solid #e6e8eb;display:flex;align-items:center;gap:8px}
+  .stepno{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#2b6cb0;color:#fff;font-size:11.5px}
+  .stepbd{padding:13px 14px}
+  .tplbox{border:1px solid #e6e8eb;border-radius:6px;overflow-x:auto;margin:8px 0}
+  .uploader{border:2px dashed #cbd5e0;border-radius:8px;padding:22px 14px;text-align:center;cursor:pointer;background:#fafbfd;transition:.15s}
+  .uploader:hover{border-color:#2b6cb0;background:#f5f9fe}
+  .impsum{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+  .sumbox{border:1px solid #e6e8eb;border-radius:8px;padding:9px 18px;min-width:104px}
+  .sumbox .k{font-size:11.5px;color:#8a94a3}
+  .sumbox .v{font-size:22px;font-weight:600;margin-top:2px}
+  .sumbox.ok{background:#f2fbf6;border-color:#b7e4cb}
+  .sumbox.ok .v{color:#237a4b}
+  .sumbox.err{background:#fff5f4;border-color:#f5c6c0}
+  .sumbox.err .v{color:#c0392b}
+
+  /* 弹窗内预览面板 */
+  .preview{border:1px solid #e6e8eb;border-radius:8px;overflow:hidden;margin-top:6px}
+  .preview .ph{background:#f7f9fb;padding:9px 14px;font-size:12.5px;color:#5a6472;font-weight:600;border-bottom:1px solid #e6e8eb;display:flex;justify-content:space-between;align-items:center}
+  .preview .ph .cnt{color:#c0392b;font-size:14px}
+  .preview .pb{max-height:220px;overflow-y:auto}
+  .alertbox{background:#fff2f0;border:1px solid #f5c6c0;border-radius:8px;padding:11px 14px;margin-top:12px;font-size:12.5px;color:#c0392b;line-height:1.85}
+  .alertbox b{color:#a5281b}
+
+  /* 改造标注 */
+  .annot{background:#fff;border:1px solid #e6e8eb;border-radius:8px;margin-bottom:16px;overflow:hidden}
+  .annot-h{background:#fdf3e2;border-bottom:1px solid #f6dfb4;padding:10px 16px;font-size:13px;font-weight:600;color:#b9770e}
+  .annot-b{padding:14px 16px}
+  .hl{outline:2px solid #f39c12;outline-offset:-2px;background:#fffdf5!important;position:relative}
+  .hl-note{display:inline-block;background:#f39c12;color:#fff;font-size:10px;border-radius:3px;padding:1px 5px;margin-left:5px;vertical-align:1px}
+
+  /* toast */
+  .toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:99;background:#2c3440;color:#fff;padding:11px 20px;border-radius:8px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:.25s;pointer-events:none;max-width:90%;text-align:center;line-height:1.7}
+  .toast.show{opacity:1;top:74px}
+  .toast.ok{background:#237a4b}
+  .toast.err{background:#c0392b}
+  .toast.warn{background:#b9770e}
+
+  /* H5 演示 */
+  .phone{width:300px;border:10px solid #2c3440;border-radius:26px;background:#f5f6f8;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+  .ph-bar{background:#2b6cb0;color:#fff;text-align:center;padding:11px;font-size:14px;font-weight:600}
+  .ph-body{padding:16px;min-height:330px;position:relative}
+  .ph-card{background:#fff;border-radius:10px;padding:13px;margin-bottom:11px}
+  .ph-lb{font-size:11px;color:#8a94a3;margin-bottom:5px}
+  .ph-val{font-size:13.5px;color:#1a2733;font-family:Menlo,Consolas,monospace}
+  .ph-btn{background:#2b6cb0;color:#fff;text-align:center;padding:11px;border-radius:8px;font-size:14px;cursor:pointer;margin-top:6px}
+  .ph-toast{position:absolute;left:16px;right:16px;bottom:22px;background:rgba(0,0,0,.82);color:#fff;padding:13px;border-radius:8px;font-size:12.5px;line-height:1.75;text-align:center;opacity:0;transition:.25s}
+  .ph-toast.show{opacity:1}
+  .flexrow{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+</style>
+</head>
+<body>
+
+<div class="tabs">
+  <div class="tab active" data-tab="prd">需求说明</div>
+  <div class="tab" data-tab="black">提现账号黑名单<span class="nw">新增</span></div>
+  <div class="tab" data-tab="hist">相同提现账号<span class="nw">新增</span></div>
+  <div class="tab" data-tab="h5">会员端表现</div>
+</div>
+
+<!-- ==================== TAB 1 需求说明 ==================== -->
+<div class="page active" id="page-prd">
+<div class="prd">
+  <div class="prd-head">
+    <div class="h1">提现账号黑名单 &amp; 账号绑定历史 —— 需求说明</div>
+    <div class="h2">适用系统：V1 后台 · 风控管理　|　版本：V1.0</div>
+  </div>
+
+  <div class="prd-sec">
+    <div class="prd-t">需求目标</div>
+    <ul>
+      <li><b>拉黑提现账号后禁止提款</b>：银行卡 / 电子钱包 / 加密货币 / UPI 等提现账号被拉黑后，无法用于提现；<span class="em">即使换一个新会员 ID 绑定同一账号继续套利，同样无法取款</span>。</li>
+      <li><b>补齐解绑后的绑定历史</b>：V1 已有绑定唯一校验，但解绑即无痕。需要一处可查——同一账号曾被哪些会员绑定过、何时绑定、何时解绑。</li>
+      <li>两者互为支撑：绑定历史提供发现线索，黑名单提供处置手段。</li>
+    </ul>
+  </div>
+
+  <!-- ---------- 一 ---------- -->
+  <div class="prd-sec">
+    <div class="prd-t">一、改造 / 新增界面与字段</div>
+
+    <div class="prd-t2">1.1 新增页面：风控管理 → 提现账号黑名单<span class="tagn">新增</span></div>
+    <ul style="margin-bottom:8px">
+      <li><b>菜单归属</b>：新建一级菜单<b>「风控管理」</b>，本期在其下新增「提现账号黑名单」与「相同提现账号」两个页面。V1 现有的黑名单类功能（IP 名单、设备管理、会员活动黑名单、会员提现限制名单）散落在「系统管理」下，<b>后续逐步归拢至风控管理</b>，本期不迁移、不改动。</li>
+    </ul>
+    <table>
+      <tr><th style="width:110px">区域</th><th>字段</th><th style="width:290px">说明</th></tr>
+      <tr>
+        <td>查询条件</td>
+        <td>提现账号（模糊）、提现账号类型、状态、添加人、添加时间（起止）</td>
+        <td>提现账号类型下拉：全部 / 银行卡 / UPI / 电子钱包 / 加密货币 / PIX<br>状态下拉：生效中 / 已解除</td>
+      </tr>
+      <tr>
+        <td>列表字段</td>
+        <td>提现账号类型、提现账号、备注、状态、添加人、添加时间、解除人 / 解除时间</td>
+        <td>提现账号默认掩码显示（首 4 末 4），点击可展开全量；首列为勾选框，供批量解除使用</td>
+      </tr>
+      <tr>
+        <td>行操作</td>
+        <td><b>绑定历史</b>、解除</td>
+        <td><b>绑定历史</b>：跳转「相同提现账号」页，<b>自动填充该提现账号与提现账号类型并精确查询</b>，直接展开该账号的绑定明细<br>已解除的行不再显示「解除」</td>
+      </tr>
+      <tr>
+        <td>页面按钮</td>
+        <td>查询、重置、<b>导出</b>、<b>批量导入</b>、<b>添加</b>、批量解除</td>
+        <td><b>导出</b>：按当前查询条件导出 Excel（提现账号类型、提现账号、备注、状态、操作人与时间）</td>
+      </tr>
+    </table>
+
+    <div class="prd-t2">1.2 新增弹窗：添加提现账号黑名单<span class="tagn">新增</span></div>
+    <table>
+      <tr><th style="width:110px">字段</th><th style="width:110px">类型</th><th>规则</th></tr>
+      <tr><td><span class="req">*</span> 提现账号</td><td>文本</td><td>粘贴或输入后<b>自动识别提现账号类型</b>，并实时回显归一化结果（见 2.2）</td></tr>
+      <tr><td><span class="req">*</span> 提现账号类型</td><td>下拉单选</td><td>银行卡 / UPI / 电子钱包 / 加密货币 / PIX。<b>由系统按账号格式自动识别并预选，运营可手动修正</b>；识别规则见 2.3。手动改过之后不再被自动覆盖</td></tr>
+      <tr><td>备注</td><td>多行文本</td><td>选填，≤ 200 字</td></tr>
+    </table>
+    <ul>
+      <li><b>录入只需两个必填项</b>（账号 + 账号类型），且账号类型自动识别，风控可以秒加秒查。</li>
+    </ul>
+
+    <div class="prd-t2">1.3 批量导入<span class="tagn">新增</span></div>
+    <table>
+      <tr><th style="width:110px">项</th><th>内容</th></tr>
+      <tr><td>模板列</td><td><b>提现账号类型、提现账号、备注</b>（备注选填）</td></tr>
+      <tr><td>校验</td><td>提现账号为空、提现账号类型非法、账号格式与所选类型明显不符、与已有黑名单重复的行<b>逐行跳过</b>，并生成失败明细（行号 / 类型 / 账号 / 失败原因）可导出</td></tr>
+      <tr><td>行数上限</td><td>单次 <b>2000 行</b>（<span class="em">在不影响性能与实现难度的前提下的最大值</span>，沿用后台既有同步导入能力，无需引入异步任务机制）。<b>超出则整单不导入</b>并提示「超出单次导入上限 2000 行，请拆分后重试」</td></tr>
+      <tr><td>类型来源</td><td>导入<span class="em">不做类型自动识别</span>，一律以模板中填写的「提现账号类型」为准（与手工录入的自动识别规则不同）</td></tr>
+      <tr><td>生效</td><td>导入成功的提现账号立即生效，该账号下一次提现即被拒绝</td></tr>
+    </table>
+
+    <div class="prd-t2">1.4 新增页面：风控管理 → 相同提现账号（提现账号绑定历史）<span class="tagn">新增</span></div>
+    <ul style="margin-bottom:8px">
+      <li>参考后台既有<b>「相同 IP」</b>页的形态做成聚合列表：<b>按累计绑定次数倒序，打开即嫌疑名单</b>，无需事先怀疑某个账号。</li>
+    </ul>
+    <table>
+      <tr><th style="width:110px">区域</th><th>字段</th><th style="width:290px">说明</th></tr>
+      <tr>
+        <td>查询条件</td>
+        <td>提现账号（模糊）、<b>会员 ID</b>、提现账号类型、<b>累计绑定次数 ≥ N</b>、黑名单状态</td>
+        <td>累计绑定次数默认 <b>≥ 2</b>（正常账号只会被绑定 1 次，≥ 2 即异常）<br>从黑名单页「绑定历史」跳入时，自动填充提现账号与类型、阈值放开为 1，做<b>精确查询</b></td>
+      </tr>
+      <tr>
+        <td>列表字段</td>
+        <td>提现账号类型、提现账号、<b>累计绑定次数</b>、最近绑定时间、当前绑定会员、黑名单状态</td>
+        <td><b>按累计绑定次数倒序</b>，普通分页展示，无条数上限<br><b>累计绑定次数为实时值</b>，会员绑定完成后立即体现，无延迟<br>当前绑定会员展示会员 ID；正常为 0 或 1 个，出现 2 个及以上时打「⚠ 跨通道并存」告警（见 2.5）</td>
+      </tr>
+      <tr>
+        <td><b>绑定明细</b>（点击次数展开）</td>
+        <td>时间、动作、会员 ID、<b>会员账号</b>、收款人姓名、<b>操作来源</b>、操作人 / 工单号</td>
+        <td>动作：绑定 / 解绑 / 后台修改，按时间倒序<br>面板顶部汇总：<b>历史绑定过 N 个会员、累计绑定 M 次</b><br><b>会员账号</b>即会员的注册账号（手机号或邮箱）<br>操作来源三类，见 2.5</td>
+      </tr>
+      <tr><td>行操作</td><td>拉黑 / 解除</td><td>「拉黑」带出该账号打开添加弹窗，提现账号与类型自动填好</td></tr>
+      <tr><td>页面按钮</td><td>查询、重置、导出</td><td>导出按当前查询条件</td></tr>
+    </table>
+
+    <div class="prd-t2">1.5 会员端（H5）</div>
+    <ul>
+      <li><b>无界面改造、无新增文案</b>。提现被拦截时沿用现有提示：「您的账号当前无法提现，若有疑问请联系客服处理」。</li>
+      <li>绑定流程完全不变，会员感知不到账号已被拉黑。</li>
+    </ul>
+  </div>
+
+  <!-- ---------- 二 ---------- -->
+  <div class="prd-sec">
+    <div class="prd-t">二、口径定义与业务规则</div>
+
+    <div class="prd-t2">2.1 提现账号类型归并口径</div>
+    <ul>
+      <li>黑名单的对象是<b>提现账号</b>（会员绑定的收款账号），不是会员，也不是某一条绑卡记录。</li>
+      <li>同一账号在多个提现通道上使用时，<span class="em">视为同一个账号，拉黑一次即全通道生效</span>：</li>
+    </ul>
+    <table>
+      <tr><th style="width:120px">提现账号类型</th><th style="width:230px">覆盖的提现通道</th><th>取值来源</th></tr>
+      <tr><td>银行卡</td><td>银行卡</td><td>银行卡号</td></tr>
+      <tr><td><b>UPI</b></td><td><b>UPI、NewUPI、FastUPI（三代通道合并）</b></td><td>UPI ID</td></tr>
+      <tr><td><b>加密货币</b></td><td><b>USDT、USDT2（两个通道合并）</b></td><td>钱包地址</td></tr>
+      <tr><td>电子钱包</td><td>各电子钱包通道</td><td>钱包账号 / 绑定手机号</td></tr>
+      <tr><td>PIX</td><td>PIX</td><td>PIX 账号</td></tr>
+    </table>
+
+    <div class="prd-t2">2.2 提现账号识别（归一化）口径</div>
+    <table>
+      <tr><th style="width:120px">提现账号类型</th><th style="width:230px">归一化规则</th><th>示例</th></tr>
+      <tr><td>银行卡</td><td>去除全部空格与连字符</td><td><span class="mono">6238-8812-3434-5678</span> ≡ <span class="mono">6238 8812 3434 5678</span> ≡ <span class="mono">6238881234345678</span></td></tr>
+      <tr><td>UPI / 电子钱包 / PIX</td><td>去首尾空格 + 统一转小写</td><td><span class="mono">RajKumar@YBL</span> ≡ <span class="mono">rajkumar@ybl</span></td></tr>
+      <tr><td>加密货币</td><td>仅去首尾空格，<span class="em">区分大小写</span></td><td><span class="mono">TXk9…</span> ≠ <span class="mono">txk9…</span>（链上地址大小写敏感，转换会误伤）</td></tr>
+    </table>
+    <ul>
+      <li><span class="em">不同账号类型之间不做任何跨类型关联</span>。电子钱包账号与 UPI ID 即使数字部分相同也互不命中（单站模式下两类通道不会同时开放，跨类型匹配只会带来误伤）。</li>
+    </ul>
+
+    <div class="prd-t2">2.3 提现账号类型自动识别规则</div>
+    <ul>
+      <li>录入时由系统按账号格式<b>自动识别并预选</b>提现账号类型，运营可手动修正；<span class="em">识别结果不作为最终依据，以提交时下拉框的实际取值为准</span>。</li>
+    </ul>
+    <table>
+      <tr><th style="width:120px">识别为</th><th style="width:270px">判定条件（按顺序命中即止）</th><th>示例</th></tr>
+      <tr><td>UPI</td><td>包含 <span class="mono">@</span></td><td><span class="mono">rajkumar9821@ybl</span></td></tr>
+      <tr><td>加密货币</td><td><span class="mono">T</span> 开头共 34 位，或 <span class="mono">0x</span> 开头共 42 位</td><td><span class="mono">TXk9pQm3…</span> / <span class="mono">0x3f5C…</span></td></tr>
+      <tr><td>银行卡</td><td>去空格连字符后为 <b>16~19 位纯数字</b></td><td><span class="mono">6238 8812 3434 5678</span></td></tr>
+      <tr><td>电子钱包</td><td>去空格连字符后为 <b>10~12 位纯数字</b></td><td><span class="mono">9821034567</span></td></tr>
+      <tr><td><b>无法判定</b></td><td>以上均不命中（如 PIX 的随机密钥、邮箱型账号）</td><td>提示<b>「未能识别，请手动选择」</b>，下拉框保持上次取值，<span class="em">不阻断提交</span></td></tr>
+    </table>
+
+    <div class="prd-t2">2.4 拉黑生效口径</div>
+    <ul>
+      <li>拉黑后的效果<b>仅限：禁止使用该账号提现</b>。不影响登录、投注、充值。</li>
+      <li><span class="em">不拦截绑定</span>：黑名单账号仍可被任意会员正常绑定，只有在<b>发起提现时</b>才拦截。此为刻意设计——绑定即报错会让套利者立刻察觉并更换账号，情报链断裂；放行绑定可持续沉淀关联关系。</li>
+      <li><b>在会员端即拦截</b>：拉黑后该提现账号<span class="em">下一次提现即被拒绝</span>，后台不会产生新的提现订单。</li>
+      <li><b>支持预拉黑</b>：允许对<span class="em">尚无任何会员绑定过的提现账号</span>直接加入黑名单（风控提前拿到的可疑名单）。日后有会员绑定该账号并发起提现时同样被拒绝。</li>
+      <li><b>解除拉黑</b>：该提现账号恢复正常提现。</li>
+      <li>已出款成功的历史订单不做追溯。</li>
+      <li>拉黑 / 解除 / 导入 / 导出均需记录操作人与操作时间，并写入后台操作日志。</li>
+    </ul>
+
+    <div class="prd-t2">2.5 累计绑定次数口径</div>
+    <ul>
+      <li><b>只统计「绑定」动作</b>的累计次数：解绑<span class="em">不减少</span>，后台修改<span class="em">不计数</span>。</li>
+      <li>一个提现账号被 3 个会员先后绑定过（中间各有解绑），其累计绑定次数为 <b>3</b>。</li>
+      <li><b>实时更新</b>：会员绑定完成后该数值立即变化，列表与明细<span class="em">始终一致，无延迟</span>。</li>
+      <li><b>预拉黑</b>的账号（从未被任何会员绑定）该数值为 <b>0</b>，因此在默认筛选（≥ 2）下不出现在列表中，需把筛选放开到 1 或按账号 / 会员 ID 查询才能看到。</li>
+      <li>提现账号的<b>黑名单状态</b>与其统计数据属于<b>同一份账号数据</b>：在任一页面拉黑或解除后，另一页面<b>立即同步</b>，不存在两边不一致的中间态。</li>
+    </ul>
+
+    <div class="prd-t2">2.6 绑定历史记录规则</div>
+    <ul>
+      <li>会员的提现账号发生<b>绑定、解绑、后台修改</b>时，均留存一条历史记录，<span class="em">解绑后记录永久保留</span>。</li>
+      <li>记录内容：发生时间、动作、<b>会员 ID</b>、<b>会员账号</b>（注册手机号或邮箱）、收款人姓名、提现账号值、<b>操作来源</b>、操作人 / 工单号。</li>
+      <li><b>操作来源共三类</b>，对应 V1 现有的三条实际操作路径：</li>
+    </ul>
+    <table>
+      <tr><th style="width:100px">操作来源</th><th style="width:190px">对应动作</th><th style="width:150px">操作人 / 工单号</th><th>说明</th></tr>
+      <tr><td><b>会员自助</b></td><td>绑定</td><td><b>会员 ID</b></td><td>会员在客户端自行绑定提现账号，操作人记该会员的会员 ID</td></tr>
+      <tr><td><b>客服工单</b></td><td><b>解绑</b></td><td>工单号</td><td><span class="em">V1 的解绑走客服工单</span>，客户端没有会员自助解绑入口；批量清理某会员的某类提现账号也由工单触发</td></tr>
+      <tr><td><b>后台修改</b></td><td>后台修改、后台新增 / 删除</td><td>后台账号</td><td>客服 / 管理员在后台直接修改收款人姓名、IFSC、UPI ID 等</td></tr>
+    </table>
+    <ul>
+      <li><b>会员账号</b>取会员的<b>注册账号</b>——V1 注册方式为手机号或邮箱二选一，故该字段为手机号或邮箱。</li>
+      <li>查询支持<b>两个维度</b>：
+        <br>· <b>以提现账号为主体</b>——给定一个账号，完整看到「谁、在什么时间绑定、什么时间解绑」的全量记录，跨会员、跨通道、跨时间；
+        <br>· <b>以会员 ID 反查</b>——给定一个会员，列出其历史绑定过的全部提现账号。</li>
+      <li>银行卡、电子钱包、加密货币、UPI、PIX 全部纳入，规则一致。</li>
+      <li><b>唯一绑定前提</b>：V1 已有全站唯一校验，<span class="em">同一账号在同一时刻只有 1 个会员处于绑定中</span>；历史上可被多个会员<b>先后</b>绑定（绑定 → 解绑 → 再被他人绑定）。因此「累计绑定次数 &gt; 1」表示的是<b>时间维度上的先后关系</b>，不是同时绑定。</li>
+      <li><b>例外与告警</b>：UPI 三代等通道的唯一校验口径不一致，存在<b>同一账号在两个通道各被一个会员绑定</b>的缺口。此类情况在列表「当前绑定会员」列打「⚠ 跨通道并存」告警，供风控识别既有脏数据。</li>
+      <li>历史记录为<b>只读</b>，任何角色不可编辑或删除。</li>
+    </ul>
+  </div>
+
+  <!-- ---------- 三 ---------- -->
+  <div class="prd-sec">
+    <div class="prd-t">三、边界与限制</div>
+    <table>
+      <tr><th style="width:40px">#</th><th style="width:170px">边界</th><th>说明</th></tr>
+      <tr><td>B1</td><td>历史数据不可追溯</td><td>上线前已解绑的记录无法还原，绑定历史<b>自上线日起累计</b>。上线时对当前仍在绑定状态的账号补录一条「绑定」记录，时间取原始绑定时间。需提前与运营 / 风控对齐预期。</td></tr>
+      <tr><td>B2</td><td>不拦截绑定</td><td>黑名单账号可被正常绑定，会员在绑定环节无任何异常提示。若后续需要改为绑定即拦，属独立需求。</td></tr>
+      <tr><td>B3</td><td>只拦账号、不连坐会员</td><td>本期<b>只限制被拉黑的账号本身</b>，不会自动限制曾绑定过该账号的其他会员。换号套利者用同一账号提现会被挡住，但换成另一个新账号提现仍可放行——需风控发现后再拉黑新账号。</td></tr>
+      <tr><td>B4</td><td>不跨账号类型关联</td><td>电子钱包与 UPI、银行卡与 UPI 之间不做数字主体匹配。跨类型嫌疑需人工通过账号模糊搜索排查。</td></tr>
+      <tr><td>B5</td><td>加密货币大小写敏感</td><td>大小写不同的地址视为两个账号，需分别拉黑。</td></tr>
+      <tr><td>B6</td><td>单站范围</td><td>V1 为单站模式，黑名单与绑定历史均在本站范围内生效，不涉及跨站点共享或查询。</td></tr>
+      <tr><td>B7</td><td>不处理在途订单</td><td>拉黑<b>只对之后发起的提现生效</b>。拉黑前已提交、仍在审核 / 出款流程中的订单<b>不受影响，按原流程处理</b>——本期不做联动驳回，避免与出款审核流程耦合。如需拦截，由审核人在出款审核环节人工处置。</td></tr>
+      <tr><td>B8</td><td><span class="em">后台人工出款不受拦截</span></td><td>后台代客出款、人工确认出款不经过会员端提现校验，<b>黑名单对这条路径不生效</b>。<b>本期不做后台出款侧的校验改造</b>，列为已知风险，由出款审核人在操作时自行留意。<br>此路径需人工发起，非会员可自助触发，风险敞口可控。</td></tr>
+      <tr><td>B9</td><td>仅覆盖提现收款账号</td><td>不涉及充值收款账号、C2C 卖家账号等其他账号体系。</td></tr>
+      <tr><td>B10</td><td>自动识别仅为录入辅助</td><td>提现账号类型自动识别<b>不保证 100% 准确</b>——如 <b>10~12 位纯数字</b>既可能是电子钱包账号，也可能是以手机号作为密钥的 PIX 账号，系统会一律预选为「电子钱包」。最终<b>以提交时下拉框的实际取值为准</b>，运营需自行核对。PIX 随机密钥、邮箱型账号无法自动识别，需手动选择。</td></tr>
+      <tr><td>B11</td><td>不做模糊 / 片段匹配</td><td>本条约束的是<b>拉黑命中判定</b>：一律按归一化后的<b>全量精确匹配</b>，不支持按账号片段拉黑（短数字片段做包含匹配会大面积误伤正常会员）。<br>后台列表的<b>提现账号搜索框仍支持模糊查询</b>，仅用于查找，不影响拦截判定。</td></tr>
+      <tr><td>B12</td><td>统计与明细的一致性校对</td><td>累计绑定次数为<b>累加值</b>，正常情况下与绑定明细完全一致。为防止异常写入（如绕过系统直接改库）造成数值偏差，需提供一个<b>后台可手动触发的「绑定次数校对」维护动作</b>，按明细重算并修正。低频使用，不做定时执行。</td></tr>
+      <tr><td>B13</td><td>掩码与权限</td><td>账号全量值需具备相应数据权限方可展开查看；黑名单的添加 / 解除 / 导入 / 导出需分别配置权限点。</td></tr>
+    </table>
+  </div>
+
+  <!-- ---------- 四 ---------- -->
+  <div class="prd-sec">
+    <div class="prd-t">四、验收标准</div>
+    <table class="ac">
+      <tr><th style="width:70px">编号</th><th style="width:140px">场景</th><th>预期结果</th></tr>
+      <tr><td>AC-01</td><td>基础拦截</td><td>拉黑账号 A 后，当前绑定 A 的会员发起提现，被拒绝并提示「您的账号当前无法提现，若有疑问请联系客服处理」，订单不生成、余额不冻结。</td></tr>
+      <tr><td>AC-02</td><td><b>换号套利</b></td><td>新注册会员绑定账号 A（<b>绑定成功、无报错</b>），发起提现被拒绝，提示同 AC-01。</td></tr>
+      <tr><td>AC-03</td><td>UPI 跨代</td><td>某 UPI ID 以 UPI 通道被拉黑后，同一 ID 通过 NewUPI、FastUPI 提现同样被拒绝。</td></tr>
+      <tr><td>AC-04</td><td>加密货币跨通道</td><td>某钱包地址被拉黑后，USDT 与 USDT2 两个通道提现均被拒绝。</td></tr>
+      <tr><td>AC-05</td><td>归一化 - 银行卡</td><td>以「6238 8812 3434 5678」拉黑后，会员绑定的「6238-8812-3434-5678」提现被拒绝。</td></tr>
+      <tr><td>AC-06</td><td>归一化 - 大小写</td><td>以「RajKumar@ybl」拉黑后，「rajkumar@YBL」提现被拒绝；加密货币地址大小写不同时<b>不</b>互相命中。</td></tr>
+      <tr><td>AC-07</td><td>不跨类型</td><td>电子钱包账号 9821034567 被拉黑后，UPI ID「rajkumar9821@ybl」提现<b>正常放行</b>。</td></tr>
+      <tr><td>AC-08</td><td>提现账号类型自动识别</td><td>输入 <span class="mono">xxx@ybl</span> 自动选中 UPI；16~19 位数字自动选中银行卡；<span class="mono">T</span> 开头 34 位自动选中加密货币；10~12 位数字自动选中电子钱包；无法判定时提示「未能识别，请手动选择」且不阻断提交。手动改过类型后，继续编辑账号不会被自动覆盖。</td></tr>
+      <tr><td>AC-09</td><td>录入必填项</td><td>添加弹窗仅提现账号与提现账号类型为必填，备注选填；两项填齐即可提交成功。</td></tr>
+      <tr><td>AC-10</td><td>即时生效</td><td>确认拉黑后<b>无需其他操作</b>，该提现账号下一次发起提现即被拒绝、不生成订单；拉黑前已提交的在途订单<b>不受影响</b>。</td></tr>
+      <tr><td>AC-11</td><td>解除拉黑</td><td>解除后该提现账号恢复正常提现。</td></tr>
+      <tr><td>AC-12</td><td><b>预拉黑</b></td><td>对从未有会员绑定过的提现账号可直接加入黑名单；日后有会员绑定该账号并发起提现时被拒绝。</td></tr>
+      <tr><td>AC-13</td><td>批量解除</td><td>勾选多行后批量解除，被勾选的提现账号状态全部变为「已解除」并恢复提现。</td></tr>
+      <tr><td>AC-14</td><td>影响范围</td><td>被拉黑账号的持有会员，登录、投注、充值、绑定新账号均<b>不受影响</b>。</td></tr>
+      <tr><td>AC-15</td><td>历史 - 绑定</td><td>会员绑定任一类型提现账号后，绑定明细即时可查，时间 / 动作 / 会员 ID / 会员账号 / 收款人姓名 / 操作来源 / 操作人字段完整。</td></tr>
+      <tr><td>AC-16</td><td>历史 - 解绑</td><td>解绑后原记录<b>不消失</b>，新增一条「解绑」记录，操作来源为<b>客服工单</b>并可看到工单号。</td></tr>
+      <tr><td>AC-17</td><td>历史 - 多会员先后绑定</td><td>同一账号先后被 3 个会员绑定 / 解绑，在同一个面板内按时间倒序完整呈现全部动作，并汇总「历史绑定过 3 个会员、累计绑定 3 次」。</td></tr>
+      <tr><td>AC-18</td><td>历史 - 全类型</td><td>银行卡、电子钱包、加密货币、UPI、PIX 的绑定与解绑均能记录并查询。</td></tr>
+      <tr><td>AC-19</td><td><b>绑定历史入口</b></td><td>在提现账号黑名单列表点击某行「绑定历史」，跳转「相同提现账号」页并<b>自动填充该提现账号与提现账号类型、精确查询</b>，直接展开该账号的绑定明细。</td></tr>
+      <tr><td>AC-20</td><td><b>累计绑定次数口径</b></td><td>同一提现账号被 3 个会员先后绑定（各有解绑）后，累计绑定次数显示 3；解绑不减少；后台修改不计数；绑定完成后数值<b>立即</b>变化，无需等待。</td></tr>
+      <tr><td>AC-21</td><td>黑名单与统计同源</td><td>在提现账号黑名单页拉黑某账号后，相同提现账号页该账号的黑名单状态<b>立即</b>变为「已拉黑」；反之解除亦然。</td></tr>
+      <tr><td>AC-22</td><td>发现能力</td><td>相同提现账号列表默认按<b>累计绑定次数倒序</b>、筛选 ≥ 2，仅绑定过 1 次的正常账号不出现在默认列表中；点击累计绑定次数可就地展开绑定明细。</td></tr>
+      <tr><td>AC-23</td><td>唯一绑定</td><td>同一账号的「当前绑定会员」正常为 0 或 1 个会员 ID；出现 2 个及以上时展示<b>「⚠ 跨通道并存」</b>红色告警。</td></tr>
+      <tr><td>AC-24</td><td>存量补录</td><td>上线后当前在绑的存量账号均能查到一条「绑定」记录，时间为其原始绑定时间。</td></tr>
+      <tr><td>AC-25</td><td>批量导入</td><td>模板列为提现账号类型、提现账号、备注；格式错误 / 类型非法 / 重复账号<b>逐行跳过</b>并给出具体失败原因，失败明细可导出；成功部分正常入库并即时生效。<b>导入以模板中的类型为准，不做自动识别。</b></td></tr>
+      <tr><td>AC-26</td><td>导入行数上限</td><td>文件超过 <b>2000 行</b>时<b>整单不导入</b>并提示「超出单次导入上限 2000 行，请拆分后重试」。</td></tr>
+      <tr><td>AC-27</td><td><b>会员 ID 反查</b></td><td>在相同提现账号页输入完整会员 ID（精确匹配），可列出该会员历史绑定过的全部提现账号（含仅绑定过 1 次的）；命中账号的绑定明细<b>自动展开</b>，属于该会员的明细行高亮。填入部分 ID 不命中。</td></tr>
+      <tr><td>AC-28</td><td>导出</td><td>按当前查询条件导出 Excel，列与列表一致，数据行数与列表总数一致。</td></tr>
+      <tr><td>AC-29</td><td>菜单归属</td><td>「提现账号黑名单」「相同提现账号」出现在<b>风控管理</b>菜单下；系统管理下既有的 IP 名单、设备管理、会员活动黑名单、会员提现限制名单<b>位置与功能均不变</b>。</td></tr>
+      <tr><td>AC-30</td><td>权限与日志</td><td>无权限角色看不到菜单 / 按钮；拉黑、解除、导入、导出均在后台操作日志留痕（操作人、时间、账号）。</td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ==================== TAB 2 黑名单 ==================== -->
+<div class="page" id="page-black">
+  <div class="crumb">风控管理 <b>›</b> 提现账号黑名单</div>
+
+  <div class="hintbar new">
+    <span>🆕 新增页面。拉黑对象为<b>收款账号</b>；UPI 三代通道、USDT 两个通道各自合并为同一账号。拉黑仅禁止提现，<b>不拦截绑定</b>。</span>
+  </div>
+
+  <div class="rcbar">
+    <div class="rt">风控管理</div>
+    <div class="subtabs">
+      <div class="subtab">会员黑名单<span class="ex">已有 · 后续归拢</span></div>
+      <div class="subtab">IP 黑名单<span class="ex">已有 · 后续归拢</span></div>
+      <div class="subtab">设备号黑名单<span class="ex">已有 · 后续归拢</span></div>
+      <div class="subtab on">提现账号黑名单<span class="nn">本期新增</span></div>
+    </div>
+  </div>
+
+  <div class="rcbody">
+  <div class="search">
+    <div class="grid">
+      <div class="fld"><label>提现账号</label><input id="q-acc" placeholder="支持模糊查询"></div>
+      <div class="fld"><label>提现账号类型</label>
+        <select id="q-type"><option value="">全部</option><option value="BANK">银行卡</option><option value="UPI">UPI</option><option value="EWALLET">电子钱包</option><option value="CRYPTO">加密货币</option><option value="PIX">PIX</option></select>
+      </div>
+      <div class="fld"><label>状　　态</label>
+        <select id="q-state"><option value="">全部</option><option value="1">生效中</option><option value="0">已解除</option></select>
+      </div>
+      <div class="fld"><label>添 加 人</label><input placeholder="操作人账号"></div>
+      <div class="fld"><label>添加时间</label><input type="date"><span style="color:#8a94a3">~</span><input type="date"></div>
+    </div>
+    <div class="acts">
+      <button class="btn btn-primary" onclick="renderBlack()">🔍 查 询</button>
+      <button class="btn btn-reset" onclick="resetBlack()">↺ 重 置</button>
+      <button class="btn btn-exp" onclick="doExport()">⬆ 导 出</button>
+      <button class="btn btn-imp" onclick="openImport()">📄 批量导入</button>
+      <button class="btn btn-add" onclick="openAdd()">＋ 添 加</button>
+      <button class="btn btn-reset" onclick="toast('演示原型：批量解除需先勾选行','warn')">批量解除</button>
+    </div>
+  </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="dt">
+      <thead><tr>
+        <th style="width:34px"><input type="checkbox"></th>
+        <th>提现账号类型</th><th>提现账号</th><th>备注</th>
+        <th>状态</th><th>添加人</th><th>添加时间</th><th>解除人 / 时间</th><th style="width:170px">操作</th>
+      </tr></thead>
+      <tbody id="black-body"></tbody>
+    </table>
+  </div>
+  <div class="pager"><span class="info" id="black-info"></span>
+    <button>上一页</button><button class="on">1</button><button>下一页</button></div>
+</div>
+
+<!-- ==================== TAB 3 绑定历史 ==================== -->
+<div class="page" id="page-hist">
+
+  <div id="hist-list">
+    <div class="crumb">风控管理 <b>›</b> <b>相同提现账号</b></div>
+
+    <div class="hintbar new">
+      <span>🆕 新增页面。按<b>累计绑定次数倒序</b>排列，<b>打开即嫌疑名单</b>——无需事先怀疑某个账号。默认只看累计绑定次数 ≥ 2 的账号（正常账号只会被绑定 1 次）。点击次数展开绑定明细。</span>
+    </div>
+
+    <div class="search">
+      <div class="grid">
+        <div class="fld"><label>提现账号</label><input id="h-acc" placeholder="支持模糊查询"></div>
+        <div class="fld"><label>会员 ID</label><input id="h-uid" placeholder="输入完整会员 ID 精确查询"></div>
+        <div class="fld"><label>提现账号类型</label>
+          <select id="h-type"><option value="">全部</option><option value="BANK">银行卡</option><option value="UPI">UPI</option><option value="EWALLET">电子钱包</option><option value="CRYPTO">加密货币</option><option value="PIX">PIX</option></select>
+        </div>
+        <div class="fld"><label>累计绑定次数 ≥</label>
+          <select id="h-min"><option value="1">1（全部）</option><option value="2" selected>2</option><option value="3">3</option><option value="5">5</option></select>
+        </div>
+        <div class="fld"><label>黑名单状态</label>
+          <select id="h-bk"><option value="">全部</option><option value="1">已拉黑</option><option value="0">未拉黑</option></select>
+        </div>
+      </div>
+      <div class="acts">
+        <button class="btn btn-primary" onclick="renderHistList()">🔍 查 询</button>
+        <button class="btn btn-reset" onclick="resetHist()">↺ 重 置</button>
+        <button class="btn btn-exp" onclick="toast('已导出当前列表（含账号、累计绑定次数、当前绑定会员、黑名单状态）','ok')">⬆ 导 出</button>
+      </div>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="dt">
+        <thead>
+          <tr><th colspan="7" style="text-align:center;background:#f1f3f7;color:#3d4453;font-size:12.5px">相同提现账号（按累计绑定次数倒序）</th></tr>
+          <tr>
+            <th>提现账号类型</th><th>提现账号</th><th>累计绑定次数 ↓</th>
+            <th>最近绑定时间</th><th>当前绑定会员</th><th>黑名单状态</th><th style="width:110px">操作</th>
+          </tr>
+        </thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+    </div>
+    <div class="pager"><span class="info" id="hist-info"></span>
+      <button>上一页</button><button class="on">1</button><button>下一页</button></div>
+  </div>
+
+</div>
+
+<!-- ==================== TAB 6 会员端 ==================== -->
+<div class="page" id="page-h5">
+  <div class="hintbar">
+    <span>会员端<b>零改造</b>：绑定流程不变、提现拦截沿用现有提示文案，无需新增多语言配置。点击「立即提现」查看效果。</span>
+  </div>
+  <div class="flexrow">
+    <div>
+      <div style="font-size:13px;font-weight:600;color:#2d3748;margin-bottom:10px">场景一：新注册会员绑定黑名单银行卡</div>
+      <div class="phone">
+        <div class="ph-bar">绑定银行卡</div>
+        <div class="ph-body">
+          <div class="ph-card"><div class="ph-lb">收款人姓名</div><div class="ph-val">RAJ KUMAR</div></div>
+          <div class="ph-card"><div class="ph-lb">银行卡号</div><div class="ph-val">6238 8812 3434 5678</div></div>
+          <div class="ph-card"><div class="ph-lb">IFSC</div><div class="ph-val">SBIN0001234</div></div>
+          <div class="ph-btn" onclick="h5bind()">确认绑定</div>
+          <div class="ph-toast" id="h5t1"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:600;color:#2d3748;margin-bottom:10px">场景二：使用该卡发起提现</div>
+      <div class="phone">
+        <div class="ph-bar">提现</div>
+        <div class="ph-body">
+          <div class="ph-card"><div class="ph-lb">收款账号</div><div class="ph-val">6238 **** 5678</div></div>
+          <div class="ph-card"><div class="ph-lb">提现金额</div><div class="ph-val">₹ 48,600.00</div></div>
+          <div class="ph-card"><div class="ph-lb">提现密码</div><div class="ph-val">••••••</div></div>
+          <div class="ph-btn" onclick="h5draw()">立即提现</div>
+          <div class="ph-toast" id="h5t2"></div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:280px">
+      <div class="annot" style="margin-top:26px">
+        <div class="annot-h">设计说明</div>
+        <div class="annot-b">
+          <ul class="prd" style="list-style:none">
+            <li style="padding-left:18px;position:relative;font-size:13px;line-height:2;color:#555">绑定<b>成功</b>：套利者不会察觉账号已被标记，会继续使用同一批账号，便于沉淀完整的关联图谱。</li>
+            <li style="padding-left:18px;position:relative;font-size:13px;line-height:2;color:#555">提现<b>被拒</b>：沿用现有提示文案，H5 与多语言配置<b>零改动</b>。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：新增拉黑 ==================== -->
+<div class="mask" id="mask-add">
+  <div class="modal">
+    <div class="modal-head"><span>添加提现账号黑名单</span><span class="x" onclick="closeMask('mask-add')">×</span></div>
+    <div class="modal-body">
+      <div class="frow"><label><i>*</i>提现账号</label><div class="fctrl">
+        <input id="a-acc" placeholder="粘贴或输入提现账号，系统自动识别类型" oninput="onAccInput()">
+        <div class="note" id="a-norm">归一化结果：—</div>
+      </div></div>
+
+      <div class="frow"><label><i>*</i>提现账号类型</label><div class="fctrl">
+        <div class="inline">
+          <select id="a-type" onchange="onTypeChange()" style="flex:1">
+            <option value="BANK">银行卡</option>
+            <option value="UPI">UPI（含 UPI / NewUPI / FastUPI）</option>
+            <option value="EWALLET">电子钱包</option>
+            <option value="CRYPTO">加密货币（含 USDT / USDT2）</option>
+            <option value="PIX">PIX</option>
+          </select>
+          <span id="a-auto"></span>
+        </div>
+        <div class="note" id="a-typenote">拉黑后，该银行卡号在提现环节全通道失效。归一化：去除空格与连字符。</div>
+      </div></div>
+
+      <div class="frow"><label>备　　注</label><div class="fctrl">
+        <textarea id="a-remark" placeholder="≤ 200 字"></textarea>
+      </div></div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn-save" id="a-submit" onclick="doAdd()">确认拉黑</button>
+      <button class="btn-back" onclick="closeMask('mask-add')">取 消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：解除 ==================== -->
+<div class="mask" id="mask-rel">
+  <div class="modal sm">
+    <div class="modal-head"><span>解除账号拉黑</span><span class="x" onclick="closeMask('mask-rel')">×</span></div>
+    <div class="modal-body"><div id="rel-txt" style="font-size:13px;line-height:2;color:#555"></div></div>
+    <div class="modal-foot">
+      <button class="btn-save" onclick="doRelease()">确认解除</button>
+      <button class="btn-back" onclick="closeMask('mask-rel')">取 消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 弹窗：批量导入 ==================== -->
+<div class="mask" id="mask-imp">
+  <div class="modal">
+    <div class="modal-head"><span>批量导入提现账号黑名单</span><span class="x" onclick="closeMask('mask-imp')">×</span></div>
+    <div class="modal-body">
+
+      <!-- 步骤一：下载模板 -->
+      <div class="impstep">
+        <div class="stephd"><span class="stepno">1</span>下载导入模板</div>
+        <div class="stepbd">
+          <button class="btn btn-exp" onclick="dlTpl()">⬇ 下载 Excel 模板</button>
+          <div class="note" style="margin-top:8px">模板包含三列，<b>提现账号类型</b>与<b>提现账号</b>必填，<b>备注</b>选填：</div>
+          <div class="tplbox">
+            <table class="dt">
+              <thead><tr><th>提现账号类型</th><th>提现账号</th><th>备注</th></tr></thead>
+              <tbody>
+                <tr><td>银行卡</td><td class="mono">4521 7788 1122 3344</td><td class="grey">风控名单批次 A</td></tr>
+                <tr><td>UPI</td><td class="mono">vikas.n@okicici</td><td class="grey"></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note">提现账号类型请填写：银行卡 / UPI / 电子钱包 / 加密货币 / PIX</div>
+        </div>
+      </div>
+
+      <!-- 步骤二：上传文件 -->
+      <div class="impstep">
+        <div class="stephd"><span class="stepno">2</span>上传填好的文件</div>
+        <div class="stepbd">
+          <div class="uploader" id="imp-drop" onclick="document.getElementById('imp-file').click()">
+            <input type="file" id="imp-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="onPick(this)">
+            <div id="imp-empty">
+              <div style="font-size:26px;line-height:1">📄</div>
+              <div style="margin-top:6px;font-size:13px;color:#5a6472">点击选择文件，或将 Excel 拖到此处</div>
+              <div class="note" style="margin-top:4px">支持 .xlsx / .xls / .csv，单次上限 <b>2000 行</b></div>
+            </div>
+            <div id="imp-picked" style="display:none">
+              <div style="font-size:22px;line-height:1">✅</div>
+              <div style="margin-top:6px;font-size:13.5px;color:#237a4b;font-weight:600" id="imp-name"></div>
+              <div class="note" style="margin-top:4px">共解析到 <b id="imp-total">0</b> 行，点击下方「开始导入」执行 · <a href="javascript:;" style="color:#2b6cb0" onclick="event.stopPropagation();resetPick()">重新选择</a></div>
+            </div>
+          </div>
+          <div class="note" style="margin-top:8px">导入成功的提现账号<b>立即生效</b>，下一次提现即被拒绝；<b>重复账号、类型非法、账号为空</b>的行会被跳过并生成失败明细。</div>
+        </div>
+      </div>
+
+      <!-- 步骤三：导入结果 -->
+      <div class="impstep" id="imp-step3" style="display:none">
+        <div class="stephd"><span class="stepno">3</span>导入结果</div>
+        <div class="stepbd">
+          <div class="impsum">
+            <div class="sumbox ok"><div class="k">成功导入</div><div class="v" id="imp-ok">0</div></div>
+            <div class="sumbox err"><div class="k">失败跳过</div><div class="v" id="imp-fail">0</div></div>
+            <button class="btn btn-reset" id="imp-dl" style="margin-left:auto" onclick="toast('已导出失败明细 Excel','ok')">⬇ 导出失败明细</button>
+          </div>
+          <div class="tplbox" id="imp-failbox" style="display:none">
+            <table class="dt">
+              <thead><tr><th style="width:60px">行号</th><th>提现账号类型</th><th>提现账号</th><th>失败原因</th></tr></thead>
+              <tbody id="imp-failbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn-save" id="imp-go" onclick="doImport()" disabled>开始导入</button>
+      <button class="btn-back" onclick="closeMask('mask-imp')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 数据 ============ */
+const TYPE_NAME={BANK:'银行卡',UPI:'UPI',EWALLET:'电子钱包',CRYPTO:'加密货币',PIX:'PIX'};
+const TYPE_NOTE={
+  BANK:'拉黑后，该银行卡号在提现环节全通道失效。归一化：去除空格与连字符。',
+  UPI:'UPI / NewUPI / FastUPI 三代通道合并为同一账号，拉黑一次三代同时生效。归一化：去首尾空格 + 转小写。',
+  EWALLET:'归一化：去首尾空格 + 转小写。与 UPI 不做跨类型关联。',
+  CRYPTO:'USDT / USDT2 两个通道合并为同一账号。归一化：仅去首尾空格，<b>区分大小写</b>。',
+  PIX:'归一化：去首尾空格 + 转小写。'
+};
+
+const accounts=[
+  {id:'a1',type:'BANK',   raw:'6238 8812 3434 5678', key:'6238881234345678'},
+  {id:'a2',type:'UPI',    raw:'rajkumar9821@ybl',    key:'rajkumar9821@ybl'},
+  {id:'a3',type:'CRYPTO', raw:'TXk9pQm3nLd7sHvB4tYcZ2eWvR2aJ5kQ8b', key:'TXk9pQm3nLd7sHvB4tYcZ2eWvR2aJ5kQ8b'},
+  {id:'a4',type:'EWALLET',raw:'9821034567',          key:'9821034567'},
+  {id:'a5',type:'BANK',   raw:'5544 2210 8899 7733', key:'5544221088997733'},
+  {id:'a6',type:'EWALLET',raw:'9930112244',          key:'9930112244'},
+  {id:'a7',type:'UPI',    raw:'sunil.k@okaxis',      key:'sunil.k@okaxis'},
+  {id:'a8',type:'BANK',   raw:'3312 7788 4455 0091', key:'3312778844550091'}
+];
+
+/* 绑定历史流水 */
+const logs=[
+  {acc:'a1',t:'2026-05-12 14:22',act:'绑定',uid:'100234',un:'9812345601',bn:'RAJ KUMAR',ch:'银行卡',op:'会员自助',by:'100234',rm:''},
+  {acc:'a1',t:'2026-06-03 09:10',act:'解绑',uid:'100234',un:'9812345601',bn:'RAJ KUMAR',ch:'银行卡',op:'客服工单',by:'cs_anna（WO20260603-0117）',rm:''},
+  {acc:'a1',t:'2026-06-05 11:40',act:'绑定',uid:'100999',un:'9876501234',bn:'RAJ KUMAR',ch:'银行卡',op:'会员自助',by:'100999',rm:''},
+  {acc:'a1',t:'2026-07-18 16:05',act:'解绑',uid:'100999',un:'9876501234',bn:'RAJ KUMAR',ch:'银行卡',op:'客服工单',by:'cs_ravi（WO20260718-0342）',rm:''},
+  {acc:'a1',t:'2026-07-20 10:31',act:'绑定',uid:'101877',un:'raj.kumar88@gmail.com',bn:'RAJ KUMAR',ch:'银行卡',op:'会员自助',by:'101877',rm:''},
+  {acc:'a1',t:'2026-08-02 15:12',act:'后台修改',uid:'101877',un:'raj.kumar88@gmail.com',bn:'RAJ KUMAR',ch:'银行卡',op:'后台修改',by:'lisa',rm:'修改 IFSC：SBIN0001234'},
+
+  {acc:'a2',t:'2026-04-08 10:02',act:'绑定',uid:'100234',un:'9812345601',bn:'RAJ KUMAR',ch:'UPI',op:'会员自助',by:'100234',rm:''},
+  {acc:'a2',t:'2026-05-30 18:44',act:'解绑',uid:'100234',un:'9812345601',bn:'RAJ KUMAR',ch:'UPI',op:'客服工单',by:'cs_anna（WO20260530-0208）',rm:''},
+  {acc:'a2',t:'2026-06-06 12:20',act:'绑定',uid:'100999',un:'9876501234',bn:'RAJ KUMAR',ch:'NewUPI',op:'会员自助',by:'100999',rm:''},
+  {acc:'a2',t:'2026-07-22 09:15',act:'绑定',uid:'101877',un:'raj.kumar88@gmail.com',bn:'RAJ KUMAR',ch:'FastUPI',op:'会员自助',by:'101877',rm:'100999 的 NewUPI 绑定未解除，两个通道同时在绑',flag:'跨通道并存 · 唯一校验缺口'},
+
+  {acc:'a3',t:'2026-08-01 20:44',act:'绑定',uid:'101877',un:'raj.kumar88@gmail.com',bn:'—',ch:'USDT',op:'会员自助',by:'101877',rm:''},
+
+  {acc:'a4',t:'2026-03-19 11:07',act:'绑定',uid:'102300',un:'9903221144',bn:'AMIT SHAH',ch:'电子钱包',op:'会员自助',by:'102300',rm:''},
+
+  /* a5 疑冒用：5 个会员先后绑定、5 个不同姓名（严格串行，任一时刻仅 1 人在绑） */
+  {acc:'a5',t:'2026-02-11 09:20',act:'绑定',uid:'100120',un:'9811002233',bn:'VIKRAM SINGH',ch:'银行卡',op:'会员自助',by:'100120',rm:''},
+  {acc:'a5',t:'2026-02-28 17:04',act:'解绑',uid:'100120',un:'9811002233',bn:'VIKRAM SINGH',ch:'银行卡',op:'客服工单',by:'cs_meera（WO20260228-0091）',rm:''},
+  {acc:'a5',t:'2026-03-02 14:36',act:'绑定',uid:'100388',un:'9822114455',bn:'PRIYA NAIR',ch:'银行卡',op:'会员自助',by:'100388',rm:''},
+  {acc:'a5',t:'2026-04-10 08:52',act:'解绑',uid:'100388',un:'9822114455',bn:'PRIYA NAIR',ch:'银行卡',op:'客服工单',by:'cs_ravi（WO20260410-0163）',rm:''},
+  {acc:'a5',t:'2026-04-15 10:11',act:'绑定',uid:'100742',un:'9833225566',bn:'MOHAN LAL',ch:'银行卡',op:'会员自助',by:'100742',rm:''},
+  {acc:'a5',t:'2026-05-20 19:26',act:'解绑',uid:'100742',un:'9833225566',bn:'MOHAN LAL',ch:'银行卡',op:'客服工单',by:'cs_anna（WO20260520-0255）',rm:''},
+  {acc:'a5',t:'2026-05-27 16:48',act:'绑定',uid:'101055',un:'9844336677',bn:'SITA DEVI',ch:'银行卡',op:'会员自助',by:'101055',rm:''},
+  {acc:'a5',t:'2026-07-04 12:09',act:'解绑',uid:'101055',un:'9844336677',bn:'SITA DEVI',ch:'银行卡',op:'客服工单',by:'cs_meera（WO20260704-0319）',rm:''},
+  {acc:'a5',t:'2026-07-09 11:52',act:'绑定',uid:'101690',un:'9855447788',bn:'ARJUN RAO',ch:'银行卡',op:'会员自助',by:'101690',rm:''},
+
+  /* a6 疑套利：4 个会员先后绑定、同一收款人姓名（严格串行） */
+  {acc:'a6',t:'2026-04-02 13:05',act:'绑定',uid:'100511',un:'9866558899',bn:'DEEPAK VERMA',ch:'电子钱包',op:'会员自助',by:'100511',rm:''},
+  {acc:'a6',t:'2026-05-08 09:47',act:'解绑',uid:'100511',un:'9866558899',bn:'DEEPAK VERMA',ch:'电子钱包',op:'客服工单',by:'cs_ravi（WO20260508-0231）',rm:''},
+  {acc:'a6',t:'2026-05-09 20:13',act:'绑定',uid:'101204',un:'9877669900',bn:'DEEPAK VERMA',ch:'电子钱包',op:'会员自助',by:'101204',rm:''},
+  {acc:'a6',t:'2026-06-21 15:30',act:'解绑',uid:'101204',un:'9877669900',bn:'DEEPAK VERMA',ch:'电子钱包',op:'客服工单',by:'cs_anna（WO20260621-0288）',rm:''},
+  {acc:'a6',t:'2026-06-22 10:02',act:'绑定',uid:'101533',un:'deepak.v@outlook.com',bn:'DEEPAK VERMA',ch:'电子钱包',op:'会员自助',by:'101533',rm:''},
+  {acc:'a6',t:'2026-08-03 21:15',act:'解绑',uid:'101533',un:'deepak.v@outlook.com',bn:'DEEPAK VERMA',ch:'电子钱包',op:'客服工单',by:'cs_meera（WO20260803-0401）',rm:''},
+  {acc:'a6',t:'2026-08-04 18:26',act:'绑定',uid:'102011',un:'9899881122',bn:'DEEPAK VERMA',ch:'电子钱包',op:'会员自助',by:'102011',rm:''},
+
+  /* a7 UPI：2 个会员先后绑定（严格串行） */
+  {acc:'a7',t:'2026-06-14 08:55',act:'绑定',uid:'101322',un:'9911223344',bn:'SUNIL KUMAR',ch:'NewUPI',op:'会员自助',by:'101322',rm:''},
+  {acc:'a7',t:'2026-07-30 12:41',act:'解绑',uid:'101322',un:'9911223344',bn:'SUNIL KUMAR',ch:'NewUPI',op:'客服工单',by:'cs_ravi（WO20260730-0377）',rm:''},
+  {acc:'a7',t:'2026-08-01 09:18',act:'绑定',uid:'101984',un:'9922334455',bn:'SUNIL KUMAR',ch:'FastUPI',op:'会员自助',by:'101984',rm:''},
+
+  /* a8 正常账号：仅 1 个会员（默认筛选下不出现） */
+  {acc:'a8',t:'2026-07-05 19:33',act:'绑定',uid:'101777',un:'9933445566',bn:'RAHUL MEHTA',ch:'银行卡',op:'会员自助',by:'101777',rm:''}
+];
+
+let blacks=[
+  {id:'b1',acc:'a1',remark:'同一收款人姓名跨 3 个会员反复绑解，命中风控模型',state:1,addUser:'admin',addTime:'2026-08-16 17:20',relUser:'',relTime:''}
+];
+let seq=2;
+
+/* ============ 工具 ============ */
+const $=id=>document.getElementById(id);
+const acc=id=>accounts.find(a=>a.id===id);
+function mask(s){ if(s.length<=8) return s; return s.slice(0,4)+'****'+s.slice(-4); }
+function normalize(type,v){
+  v=(v||'').trim();
+  if(type==='BANK') return v.replace(/[\s-]/g,'');
+  if(type==='CRYPTO') return v;
+  return v.toLowerCase();
+}
+function toast(msg,cls){
+  const t=$('toast'); t.className='toast '+(cls||'')+' show'; t.innerHTML=msg;
+  clearTimeout(t._h); t._h=setTimeout(()=>t.className='toast '+(cls||''),3200);
+}
+function closeMask(id){ $(id).classList.remove('show'); }
+function blackOf(accId){ return blacks.find(b=>b.acc===accId&&b.state===1); }
+
+/* ============ TAB 切换 ============ */
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active'); $('page-'+t.dataset.tab).classList.add('active');
+  window.scrollTo(0,0);
+});
+function goTab(name){ document.querySelector('.tab[data-tab="'+name+'"]').click(); }
+
+/* ============ 黑名单列表 ============ */
+function renderBlack(){
+  const qa=$('q-acc').value.trim().toLowerCase(), qt=$('q-type').value,
+        qs=$('q-state').value;
+  const rows=blacks.filter(b=>{
+    const a=acc(b.acc);
+    if(qa && !(a.raw.toLowerCase().includes(qa)||a.key.toLowerCase().includes(qa))) return false;
+    if(qt && a.type!==qt) return false;
+    if(qs!=='' && String(b.state)!==qs) return false;
+    return true;
+  });
+  $('black-body').innerHTML = rows.length? rows.map(b=>{
+    const a=acc(b.acc);
+    return `<tr>
+      <td><input type="checkbox"></td>
+      <td><span class="badge b-type">${TYPE_NAME[a.type]}</span></td>
+      <td class="mono" title="${a.raw}" style="cursor:pointer" onclick="this.textContent='${a.raw}'">${mask(a.raw)}</td>
+      <td class="wrap" style="color:#8a94a3">${b.remark||'—'}</td>
+      <td>${b.state? '<span class="badge b-black">生效中</span>':'<span class="badge b-off">已解除</span>'}</td>
+      <td>${b.addUser}</td><td class="mono">${b.addTime}</td>
+      <td class="mono grey">${b.relUser? b.relUser+'<br>'+b.relTime : '—'}</td>
+      <td><div class="op">
+        <button class="op-btn" onclick="gotoHist('${a.id}')">绑定历史</button>
+        ${b.state? `<button class="op-btn del" onclick="openRelease('${b.id}')">解除</button>`:''}
+      </div></td></tr>`;
+  }).join('') : '<tr><td colspan="11" style="text-align:center;color:#b6bec7;padding:34px">暂无数据</td></tr>';
+  $('black-info').textContent=`共 ${rows.length} 条记录`;
+}
+function resetBlack(){ ['q-acc','q-type','q-state'].forEach(i=>$(i).value=''); renderBlack(); }
+
+/* ============ 新增拉黑 ============ */
+function openAdd(){
+  $('a-acc').value=''; $('a-remark').value=''; $('a-type').value='BANK';
+  autoState='empty';
+  normPreview(); $('mask-add').classList.add('show');
+}
+
+/* ---- 账号类型自动识别 ---- */
+let autoState='empty';   // empty / auto / fail / manual
+function detectType(v){
+  v=(v||'').trim();
+  if(!v) return null;
+  if(v.includes('@')) return 'UPI';                                  // UPI ID：xxx@ybl / xxx@okaxis
+  if(/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(v)) return 'CRYPTO';         // TRC20
+  if(/^0x[0-9a-fA-F]{40}$/.test(v)) return 'CRYPTO';                 // ERC20
+  const d=v.replace(/[\s-]/g,'');
+  if(/^\d{16,19}$/.test(d)) return 'BANK';                           // 银行卡号
+  if(/^\d{10,12}$/.test(d)) return 'EWALLET';                        // 钱包账号 / 手机号
+  return null;                                                       // 无法判定
+}
+function onAccInput(){
+  const v=$('a-acc').value;
+  if(autoState!=='manual'){
+    const t=detectType(v);
+    if(!v) autoState='empty';
+    else if(t){ $('a-type').value=t; autoState='auto'; }
+    else autoState='fail';
+  }
+  normPreview();
+}
+function onTypeChange(){
+  if($('a-acc').value.trim()) autoState='manual';
+  normPreview();
+}
+function autoTag(){
+  const el=$('a-auto');
+  if(autoState==='auto') el.innerHTML='<span class="autotag">✓ 已自动识别</span>';
+  else if(autoState==='fail') el.innerHTML='<span class="autotag man">⚠ 未能识别，请手动选择</span>';
+  else if(autoState==='manual') el.innerHTML='<span class="autotag man">已手动指定</span>';
+  else el.innerHTML='<span class="autotag no">输入账号后自动识别</span>';
+}
+function normPreview(){
+  const type=$('a-type').value, raw=$('a-acc').value;
+  $('a-typenote').innerHTML=TYPE_NOTE[type];
+  autoTag();
+  const key=normalize(type,raw);
+  $('a-norm').innerHTML = raw? `归一化结果：<b class="mono" style="color:#2b6cb0">${key||'—'}</b>` : '归一化结果：—';
+
+  const target=accounts.find(a=>a.type===type && a.key===key);
+
+  $('a-submit').disabled = !raw;
+  window._pv={type,key,raw,target};
+}
+function doAdd(){
+  const pv=window._pv;
+  if(!pv||!pv.raw){ toast('请填写账号','err'); return; }
+  execAdd();
+}
+function execAdd(){
+  const pv=window._pv;
+  let a=pv.target;
+  if(!a){ a={id:'x'+(seq++),type:pv.type,raw:pv.raw,key:pv.key}; accounts.push(a); }
+  if(blackOf(a.id)){ toast('该账号已在黑名单中','err'); return; }
+  const bid='b'+(seq++);
+  blacks.unshift({id:bid,acc:a.id,remark:$('a-remark').value,
+    state:1,addUser:'admin',addTime:now(),relUser:'',relTime:''});
+  closeMask('mask-add'); renderAll();
+  toast(`拉黑成功　|　提现账号：<b class="mono">${a.raw}</b><br>该账号<b>下一次提现即被拒绝</b>', `,'ok');
+}
+
+/* ============ 解除 ============ */
+let relId=null;
+function openRelease(bid){
+  relId=bid;
+  const b=blacks.find(x=>x.id===bid), a=acc(b.acc);
+  $('rel-txt').innerHTML=`
+    <div>账号：<b class="mono">${a.raw}</b>（${TYPE_NAME[a.type]}）</div>
+    <div style="margin-top:8px">解除后该账号<b>可正常提现</b>，绑定该账号的会员恢复出款。</div>
+    `;
+  $('mask-rel').classList.add('show');
+}
+function doRelease(){
+  const b=blacks.find(x=>x.id===relId), a=acc(b.acc);
+  b.state=0; b.relUser='admin'; b.relTime=now();
+  closeMask('mask-rel'); renderAll();
+  toast(`已解除拉黑　|　账号：<b class="mono">${a.raw}</b> 恢复正常提现`,'ok');
+}
+
+/* ============ 绑定历史 · 第一层：相同提现账号 ============ */
+let expanded=new Set();
+
+/* 单账号聚合指标 */
+function stat(a){
+  const ls=logs.filter(l=>l.acc===a.id);
+  const users=[...new Set(ls.map(l=>l.uid))];
+  const names=[...new Set(ls.map(l=>l.bn).filter(n=>n&&n!=='—'))];
+  const binds=ls.filter(l=>l.act==='绑定');
+  // V1 全站唯一校验：同一账号同一时刻仅 1 个会员处于绑定中
+  // curList.length > 1 属异常（跨通道唯一校验缺口），需在列表打标告警
+  const curList=users.filter(u=>{
+    const mine=ls.filter(l=>l.uid===u);
+    return mine[mine.length-1].act!=='解绑';
+  });
+  return {
+    users, names, bindCnt:binds.length,
+    lastBind: binds.length? binds[binds.length-1].t : '—',
+    curList, black: blackOf(a.id)
+  };
+}
+/* 当前绑定会员：正常为 0 或 1 个；>1 为跨通道唯一校验缺口，打红色告警 */
+function curCell(a,s){
+  const ls=logs.filter(l=>l.acc===a.id);
+  const nm=u=>u;
+  if(s.curList.length===0) return '<span class="grey">无</span>';
+  if(s.curList.length===1) return nm(s.curList[0]);
+  return `<span class="red">${s.curList.map(nm).join('<br>')}</span>
+    <br><span class="badge b-black">⚠ 跨通道并存</span>`;
+}
+function renderHistList(){
+  const qa=$('h-acc').value.trim().toLowerCase(), qt=$('h-type').value,
+        qm=+$('h-min').value, qb=$('h-bk').value, qu=$('h-uid').value.trim();
+  const list=accounts.map(a=>({a,s:stat(a)}))
+    .filter(({a,s})=>{
+      if(qa && !(a.raw.toLowerCase().includes(qa)||a.key.toLowerCase().includes(qa))) return false;
+      if(qt && a.type!==qt) return false;
+      if(qu && !logs.some(l=>l.acc===a.id && l.uid===qu)) return false;   // 会员ID 精确匹配
+      if(!qu && s.bindCnt<qm) return false;   // 按会员ID查询时不受次数阈值限制
+      if(qb==='1' && !s.black) return false;
+      if(qb==='0' && s.black) return false;
+      return true;
+    })
+    .sort((x,y)=>y.s.bindCnt-x.s.bindCnt || y.s.users.length-x.s.users.length);
+
+  // 按会员 ID 查询命中时，自动展开全部命中账号的绑定明细
+  if(qu && list.length) list.forEach(({a})=>expanded.add(a.id));
+
+  $('hist-body').innerHTML = list.length? list.map(({a,s})=>{
+    const row=`<tr>
+      <td><span class="badge b-type">${TYPE_NAME[a.type]}</span></td>
+      <td class="mono" title="${a.raw}" style="cursor:pointer" onclick="this.textContent='${a.raw}'">${mask(a.raw)}</td>
+      <td><a href="javascript:;" style="color:#2b6cb0;font-weight:700;font-size:14px" onclick="toggleMembers('${a.id}')">${s.bindCnt}</a>
+          <span class="grey" style="font-size:11px">${expanded.has(a.id)?'▲':'▼'}</span></td>
+      <td class="mono">${s.lastBind}</td>
+      <td class="mono">${curCell(a,s)}</td>
+      <td>${s.black?'<span class="badge b-black">已拉黑</span>':'<span class="badge b-ok">未拉黑</span>'}</td>
+      <td><div class="op">
+        ${s.black?`<button class="op-btn" onclick="openRelease('${s.black.id}')">解除</button>`:`<button class="op-btn del" onclick="quickBlack('${a.id}')">拉黑</button>`}
+      </div></td></tr>`;
+    return row + (expanded.has(a.id)? memberRow(a) : '');
+  }).join('') : '<tr><td colspan="7" style="text-align:center;color:#b6bec7;padding:34px">暂无符合条件的账号</td></tr>';
+
+  const hidden=accounts.length-list.length;
+  $('hist-info').innerHTML=`共 ${list.length} 个账号${hidden>0?`　|　<span class="grey">另有 ${hidden} 个账号不符合当前筛选（含仅绑定过 1 次的正常账号）</span>`:''}`;
+}
+/* 点「累计绑定次数」展开绑定明细 */
+function memberRow(a){
+  const ls=logs.filter(l=>l.acc===a.id).slice().reverse();
+  const qu=$('h-uid').value.trim();
+  const rows=ls.map(l=>{
+    const cls=l.act==='绑定'?'b-ok':(l.act==='解绑'?'b-black':'b-man');
+    const hit=qu&&l.uid===qu;
+    return `<tr${hit?' style="background:#fffbe6"':''}>
+      <td class="mono">${l.t}</td>
+      <td><span class="badge ${cls}">${l.act}</span></td>
+      <td><b>${l.uid}</b></td><td class="mono">${l.un}</td><td>${l.bn}</td>
+      <td>${l.op}</td><td class="mono">${l.by||'—'}</td>
+    </tr>`;
+  }).join('');
+  return `<tr><td colspan="7" style="background:#f7fafd;padding:0">
+    <div style="padding:10px 14px 12px">
+      <div style="font-size:12px;color:#5a6472;margin-bottom:7px">
+        绑定明细 · <b class="mono">${a.raw}</b>　
+        历史绑定过 <b style="color:#c0392b;font-size:14px">${[...new Set(ls.map(l=>l.uid))].length}</b> 个会员　
+        累计绑定 <b style="color:#2b6cb0;font-size:14px">${ls.filter(l=>l.act==='绑定').length}</b> 次　
+        <span class="grey">（绑定 / 解绑 / 后台修改，按时间倒序）</span></div>
+      <table class="dt" style="background:#fff;border:1px solid #e6e8eb;border-radius:6px">
+        <thead><tr><th>时间</th><th>动作</th><th>会员 ID</th><th>会员账号</th><th>收款人姓名</th><th>操作来源</th><th>操作人 / 工单号</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div></td></tr>`;
+}
+function toggleMembers(id){ expanded.has(id)? expanded.delete(id) : expanded.add(id); renderHistList(); }
+function resetHist(){ $('h-acc').value='';$('h-uid').value='';$('h-type').value='';$('h-min').value='2';$('h-bk').value=''; expanded=new Set(); renderHistList(); }
+/* 「绑定历史」→ 跳转相同提现账号，自动填充账号+类型精确查询并展开明细 */
+function gotoHist(id){
+  const a=acc(id); if(!a) return;
+  goTab('hist');
+  $('h-acc').value=a.raw; $('h-uid').value=''; $('h-type').value=a.type; $('h-min').value='1'; $('h-bk').value='';
+  expanded=new Set([a.id]);
+  renderHistList(); window.scrollTo(0,0);
+  toast(`已按账号 <b class="mono">${a.raw}</b> 精确查询绑定历史`,'ok');
+}
+function quickBlack(id){
+  const a=acc(id);
+  goTab('black'); openAdd();
+  $('a-acc').value=a.raw; onAccInput();
+  if($('a-type').value!==a.type){ $('a-type').value=a.type; autoState='manual'; normPreview(); }
+}
+/* ============ 批量导入 ============ */
+const IMP_ROWS=[
+  {n:2,type:'银行卡',   raw:'4521 7788 1122 3344', note:'风控名单批次 A'},
+  {n:3,type:'UPI',      raw:'vikas.n@okicici',     note:''},
+  {n:4,type:'电子钱包', raw:'9765001122',          note:''},
+  {n:5,type:'加密货币', raw:'TQm5rTn8xLd2sHvB4tYcZ2eWvR2aJ5kQ8b'.slice(0,34), note:'链上归集地址'},
+  {n:6,type:'银行卡',   raw:'6238 8812 3434 5678', note:''},
+  {n:7,type:'钱包',     raw:'9911000022',          note:''},
+  {n:8,type:'银行卡',   raw:'88',                  note:''}
+];
+const T2K={'银行卡':'BANK','UPI':'UPI','电子钱包':'EWALLET','加密货币':'CRYPTO','PIX':'PIX'};
+function openImport(){
+  resetPick(); $('imp-step3').style.display='none'; $('mask-imp').classList.add('show');
+}
+function dlTpl(){ toast('已下载模板：提现账号黑名单导入模板.xlsx','ok'); }
+function onPick(el){
+  const f=el.files&&el.files[0]; if(!f) return;
+  $('imp-empty').style.display='none'; $('imp-picked').style.display='';
+  $('imp-name').textContent=f.name;
+  $('imp-total').textContent=IMP_ROWS.length;
+  $('imp-go').disabled=false; $('imp-step3').style.display='none';
+}
+function resetPick(){
+  $('imp-file').value=''; $('imp-empty').style.display=''; $('imp-picked').style.display='none';
+  $('imp-go').disabled=true;
+}
+function doImport(){
+  let ok=0; const fails=[];
+  IMP_ROWS.forEach(r=>{
+    const type=T2K[r.type];
+    if(!type){ fails.push({...r,why:'提现账号类型非法，仅支持 银行卡 / UPI / 电子钱包 / 加密货币 / PIX'}); return; }
+    if(!r.raw.trim()){ fails.push({...r,why:'提现账号为空'}); return; }
+    const key=normalize(type,r.raw);
+    let a=accounts.find(x=>x.type===type&&x.key===key);
+    if(a && blackOf(a.id)){ fails.push({...r,why:'该提现账号已在黑名单中'}); return; }
+    if(type==='BANK' && !/^\d{16,19}$/.test(key)){ fails.push({...r,why:'提现账号格式与所选类型不符'}); return; }
+    if(!a){ a={id:'x'+(seq++),type,raw:r.raw,key}; accounts.push(a); }
+    blacks.unshift({id:'b'+(seq++),acc:a.id,remark:r.note,state:1,addUser:'admin',addTime:now(),relUser:'',relTime:''});
+    ok++;
+  });
+  $('imp-ok').textContent=ok; $('imp-fail').textContent=fails.length;
+  $('imp-step3').style.display='';
+  $('imp-dl').style.display=fails.length?'':'none';
+  $('imp-failbox').style.display=fails.length?'':'none';
+  $('imp-failbody').innerHTML=fails.map(f=>`<tr><td>${f.n}</td><td>${f.type}</td>
+    <td class="mono">${f.raw||'<span class="grey">（空）</span>'}</td><td class="red">${f.why}</td></tr>`).join('');
+  $('imp-go').disabled=true;
+  renderAll();
+  toast(`导入完成　|　成功 <b>${ok}</b> 条，失败 <b>${fails.length}</b> 条`, fails.length?'warn':'ok');
+}
+
+function doExport(){
+  const n=blacks.length;
+  toast(`已导出 <b>${n}</b> 条黑名单账号（含提现账号类型、提现账号、备注、状态、操作人与时间）`,'ok');
+}
+
+/* ============ 会员端演示 ============ */
+function h5bind(){
+  const t=$('h5t1');
+  t.innerHTML='✅ 绑定成功<br><span style="color:#8fd3a8;font-size:11.5px">（黑名单账号不拦截绑定，会员无感知）</span>';
+  t.className='ph-toast show'; setTimeout(()=>t.className='ph-toast',3600);
+}
+function h5draw(){
+  const t=$('h5t2');
+  t.innerHTML='您的账号当前无法提现，若有疑问请联系客服处理';
+  t.className='ph-toast show';
+  setTimeout(()=>t.className='ph-toast',4200);
+}
+
+/* ============ 公共 ============ */
+function now(){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function renderAll(){ renderBlack(); renderHistList(); }
+
+renderAll();
+</script>
+</body>
+</html>
