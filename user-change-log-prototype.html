@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>会员详情 · 近期修改记录 原型</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#eef0f4;color:#333;font-size:13px;padding:0 0 40px}
+
+  /* 用户详情弹窗外壳 */
+  .modal{background:#fff;margin:16px;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.12)}
+  .m-head{padding:13px 20px;border-bottom:1px solid #eef0f3;display:flex;justify-content:space-between;align-items:center}
+  .m-head .t{font-size:14px;color:#3d4453}
+  .m-head .x{color:#b6bec7;font-size:18px;cursor:pointer}
+  .m-body{background:#f7f8fb;padding:16px;border-radius:0 0 6px 6px}
+  .panel{background:#fff;border-radius:4px;padding:16px 18px}
+
+  .srch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .fld{display:flex;align-items:center;gap:8px}
+  .fld label{font-size:13px;color:#3d4453;white-space:nowrap}
+  .fld input{border:1px solid #dcdfe6;border-radius:4px;padding:7px 10px;font-size:13px;min-width:170px;outline:none}
+  .btn-q{background:#7c5cff;color:#fff;border:none;border-radius:4px;padding:8px 22px;font-size:13px;cursor:pointer}
+
+  .sec-title{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .sec-title .n{font-size:13.5px;color:#3d4453}
+  .btn-p{background:#7c5cff;color:#fff;border:none;border-radius:3px;padding:5px 11px;font-size:12px;cursor:pointer}
+
+  /* 数据网格 */
+  table.grid{border-collapse:collapse;width:100%;font-size:12px;table-layout:fixed}
+  .grid td{border:1px solid #e8eaee;padding:7px 9px;color:#3d4453;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .grid td.k{color:#5a6472;background:#fcfcfd}
+  .grid td.hd{text-align:center;color:#e03131;font-weight:700;font-size:13px;background:#fff}
+  .grid td.g{color:#2ecc71;font-weight:600}
+  .grid td.r{color:#e03131;font-weight:600}
+
+  /* 可修改字段行 */
+  .editrow{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid #e8eaee;border-top:none;margin-bottom:14px}
+  .ecell{display:flex;align-items:center;gap:10px;padding:10px 12px;border-right:1px solid #e8eaee;position:relative}
+  .ecell:last-child{border-right:none}
+  .ecell .k{font-size:12.5px;color:#5a6472;white-space:nowrap}
+  .ecell .v{flex:1;text-align:center;font-size:13px;color:#3d4453;font-weight:600}
+  .ecell .v.red{color:#e03131}
+  .btn-e{background:#fff;border:1px solid #67c23a;color:#67c23a;border-radius:3px;padding:3px 9px;font-size:11.5px;cursor:pointer;white-space:nowrap}
+  .btn-e:hover{background:#f0f9eb}
+  .btn-log{background:#fff;border:1px solid #7c5cff;color:#7c5cff;border-radius:3px;padding:3px 9px;font-size:11.5px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+  .btn-log:hover{background:#f4f1ff}
+  .btn-log .new{display:inline-block;background:#e03131;color:#fff;font-size:9.5px;line-height:13px;border-radius:2px;padding:0 4px;margin-left:4px;vertical-align:1px;font-weight:700;letter-spacing:.3px}
+
+  /* 方案A：行内展开 */
+  .inline-log{grid-column:1 / -1;border-top:1px solid #e8eaee;background:#fafbfd;padding:12px 14px}
+  .log-h{display:flex;align-items:center;gap:9px;margin-bottom:8px;flex-wrap:wrap}
+  .log-h .n{font-size:12.5px;color:#3d4453;font-weight:600}
+  .tag-new{display:inline-block;background:#e03131;color:#fff;font-size:9.5px;line-height:14px;border-radius:2px;padding:0 5px;margin-left:6px;vertical-align:1px;font-weight:700;letter-spacing:.3px}
+  .log-h .more{margin-left:auto;font-size:12px;color:#7c5cff;cursor:pointer}
+  table.lg{border-collapse:collapse;width:100%;font-size:12px;background:#fff}
+  .lg th{background:#f4f5f9;color:#5a6472;font-weight:600;text-align:left;padding:7px 10px;border:1px solid #e8eaee;white-space:nowrap}
+  .lg td{padding:7px 10px;border:1px solid #eef0f3;color:#3d4453;vertical-align:top}
+  .lg td.wrap{white-space:normal;line-height:1.7}
+  .mono{font-family:Menlo,Consolas,monospace;font-size:11.5px}
+  .old{color:#98a2b0}
+  .arw{color:#b6bec7;margin:0 5px}
+  .new{color:#1a2733;font-weight:600}
+  .delta{margin-left:7px;font-size:11px;border-radius:3px;padding:1px 6px}
+  .delta.up{background:#e7f7ee;color:#237a4b;border:1px solid #b7e4cb}
+  .delta.dn{background:#fdedeb;color:#c0392b;border:1px solid #f5c6c0}
+
+  /* 方案B：悬浮卡片 */
+  .pop{position:absolute;top:100%;left:0;margin-top:6px;width:560px;max-width:88vw;background:#fff;border:1px solid #dcdfe6;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.16);z-index:40;display:none;padding:12px 14px}
+  .pop .scroll{max-height:320px;overflow-y:auto}
+  .pop.show{display:block}
+  .pop::before{content:"";position:absolute;top:-6px;left:26px;width:10px;height:10px;background:#fff;border-left:1px solid #dcdfe6;border-top:1px solid #dcdfe6;transform:rotate(45deg)}
+
+  /* 方案C：弹窗 */
+  .mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:70;align-items:flex-start;justify-content:center;overflow-y:auto;padding:60px 16px}
+  .mask.show{display:flex}
+  .dlg{background:#fff;border-radius:6px;width:720px;max-width:100%;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+  .dlg-h{padding:14px 20px;border-bottom:1px solid #eef0f3;display:flex;justify-content:space-between;font-size:14px;color:#3d4453;font-weight:600}
+  .dlg-h .x{color:#b6bec7;font-size:18px;cursor:pointer;font-weight:400}
+  .dlg-b{padding:16px 20px;max-height:62vh;overflow-y:auto}
+  .dlg-f{padding:12px 20px 18px;text-align:center;border-top:1px solid #f4f5f8}
+  .btn-c{background:#8792a2;color:#fff;border:none;border-radius:4px;padding:8px 24px;font-size:13px;cursor:pointer}
+  .pager{display:flex;gap:6px;justify-content:flex-end;align-items:center;margin-top:10px;font-size:12px;color:#8a94a3}
+  .pager .pg{border:1px solid #dcdfe6;background:#fff;border-radius:3px;padding:3px 9px;cursor:pointer}
+  .pager .pg.on{background:#7c5cff;color:#fff;border-color:#7c5cff}
+
+  /* 底部小表 */
+  .bots{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
+  .bot h4{font-size:12.5px;color:#3d4453;margin-bottom:7px;font-weight:600}
+  table.mini{border-collapse:collapse;width:100%;font-size:11.5px}
+  .mini th{background:#f4f5f9;color:#5a6472;padding:6px 8px;border:1px solid #e8eaee;font-weight:600;white-space:nowrap}
+  .mini td{padding:6px 8px;border:1px solid #eef0f3;color:#3d4453;white-space:nowrap}
+
+  /* 说明 */
+  .note-card{background:#fff;border-radius:6px;margin:0 16px 16px;padding:16px 20px;border-left:4px solid #7c5cff}
+  .note-card h3{font-size:14px;color:#1a2733;margin-bottom:10px}
+  .note-card table{border-collapse:collapse;width:100%;font-size:12.5px}
+  .note-card th,.note-card td{border:1px solid #e8eaee;padding:8px 11px;text-align:left;vertical-align:top;line-height:1.75}
+  .note-card th{background:#f7f7fc;color:#5a6472;font-weight:600;white-space:nowrap}
+  .note-card .ok{color:#237a4b;font-weight:600}
+  .note-card .no{color:#c0392b;font-weight:600}
+
+  .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:99;background:#2c3440;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:1;top:80px}
+</style>
+</head>
+<body>
+
+<div class="modal">
+  <div class="m-head"><span class="t">用户详情</span><span class="x">✕</span></div>
+  <div class="m-body">
+    <div class="panel">
+
+      <div class="srch">
+        <div class="fld"><label>用户ID：</label><input value="2160646"></div>
+        <div class="fld"><label>开始时间</label><input placeholder="开始时间"></div>
+        <div class="fld"><label>结束时间</label><input placeholder="结束时间"></div>
+        <button class="btn-q">查 询</button>
+      </div>
+
+      <div class="sec-title"><span class="n">会员详细信息</span><button class="btn-p">打码游戏统计</button></div>
+
+      <table class="grid">
+        <tr><td class="hd" colspan="4">充值提现</td><td class="hd" colspan="4">活动奖励</td><td class="hd" colspan="2">VIP</td><td class="hd" colspan="2">保险箱</td></tr>
+        <tr><td class="k">人工充值</td><td>116580/19</td><td class="k">充值赠送</td><td>1042.65</td><td class="k">已领红包</td><td>0</td><td class="k">注册送金</td><td>0</td><td class="k">VIP经验值</td><td>3321612</td><td class="k">已领取收益</td><td>60.96</td></tr>
+        <tr><td class="k">累计充值</td><td>143721.52/29</td><td class="k">彩金充值</td><td>17098</td><td class="k">每周/日奖励</td><td>66/0</td><td class="k">首充奖励</td><td>131</td><td class="k">VIP等级</td><td>9</td><td class="k">待领取收益</td><td>16511.31</td></tr>
+        <tr><td class="k">累计提现</td><td>13936.00/6</td><td class="k">等待出款</td><td>0.00</td><td class="k">超级大奖</td><td>402</td><td class="k">每日签到</td><td>0</td><td class="k">VIP每月奖励</td><td>33/8</td><td class="k">保险箱利率</td><td>57.00%</td></tr>
+        <tr><td class="k">累计充提差</td><td class="g">129785.52</td><td class="k">累计提现手续费</td><td>0.00</td><td class="k">锦标赛奖励</td><td>4111</td><td class="k">新手礼包</td><td>90</td><td class="k">VIP升级礼包</td><td>8/900009</td><td class="k">—</td><td>—</td></tr>
+        <tr><td class="hd" colspan="2">余额</td><td class="hd" colspan="2">打码/洗码</td><td class="hd" colspan="2">代理数据</td><td class="hd" colspan="6">账号数据</td></tr>
+        <tr><td class="k">用户余额</td><td>679902.45</td><td class="k">累计打码量</td><td>0</td><td class="k">总获得佣金</td><td>2443.5</td><td class="k">充值等级</td><td>L6</td><td class="k">首次登录</td><td>2026-05-16</td><td class="k">注册时间</td><td>2025-03-29</td></tr>
+        <tr><td class="k">保险箱及三方余额</td><td>100 / 0.0</td><td class="k">需要打码量</td><td>0</td><td class="k">邀请奖励</td><td>12</td><td class="k">会员ID</td><td>2160646</td><td class="k">首充金额</td><td>5000</td><td class="k">首充日期</td><td>2025-06-19</td></tr>
+        <tr><td class="k">未开奖下注金额</td><td>300.00</td><td class="k">会员洗码量</td><td>1854903.98</td><td class="k">下级数量</td><td>16</td><td class="k">账号</td><td>+9122222222001</td><td class="k">用户积分</td><td>900014</td><td class="k">次充日期</td><td>2025-06-21</td></tr>
+      </table>
+
+      <!-- ===== 可修改字段行（本次改造位置） ===== -->
+      <div class="editrow" id="editrow">
+        <div class="ecell" style="position:relative">
+          <span class="k">用户备注</span>
+          <span class="v red" id="v-remark">测试</span>
+          <button class="btn-e">修改</button>
+          <button class="btn-log" onclick="toggle('remark',event)">近期修改记录<span class="new">NEW</span></button>
+          <div class="pop" id="pop-remark"></div>
+        </div>
+        <div class="ecell">
+          <span class="k">用户状态</span><span class="v">启用</span><button class="btn-e">修改</button>
+        </div>
+        <div class="ecell" style="position:relative">
+          <span class="k">打码量</span>
+          <span class="v" id="v-code">22728.29</span>
+          <button class="btn-e">修改</button>
+          <button class="btn-log" onclick="toggle('code',event)">近期修改记录<span class="new">NEW</span></button>
+          <div class="pop" id="pop-code"></div>
+        </div>
+        <div class="ecell">
+          <span class="k">积分</span><span class="v">900014</span><button class="btn-e">修改</button>
+        </div>
+      </div>
+
+      <div class="bots">
+        <div class="bot"><h4>最后3次充值信息：</h4>
+          <table class="mini"><tr><th>充值时间</th><th>金额</th><th>类型</th></tr>
+            <tr><td>2026-04-08 20:36</td><td>102</td><td>人工充值</td></tr>
+            <tr><td>2026-02-10 16:33</td><td>10</td><td>人工充值</td></tr>
+            <tr><td>2026-02-06 12:48</td><td>5000</td><td>USDT-TRC20</td></tr></table></div>
+        <div class="bot"><h4>最后3次提现信息：</h4>
+          <table class="mini"><tr><th>提现时间</th><th>金额</th><th>类型</th></tr>
+            <tr><td>2026-02-05 17:06</td><td>1000</td><td>人工确认-8</td></tr>
+            <tr><td>2026-02-03 16:51</td><td>8888</td><td>DeePayINR-BANK</td></tr>
+            <tr><td>2025-11-25 12:10</td><td>1056</td><td>DMPay-USDT</td></tr></table></div>
+        <div class="bot"><h4>最后3次登录信息：</h4>
+          <table class="mini"><tr><th>登录日期</th><th>IP</th><th>同ip用户数</th></tr>
+            <tr><td>2026-08-16 21:30</td><td>78.10…</td><td>1</td></tr>
+            <tr><td>2026-08-11 20:16</td><td>8.211…</td><td>56</td></tr>
+            <tr><td>2026-08-01 22:51</td><td>8.211…</td><td>41</td></tr></table></div>
+        <div class="bot"><h4>注册信息：</h4>
+          <table class="mini"><tr><th>注册时间</th><th>注册IP</th><th>同IP注册数</th></tr>
+            <tr><td>2025-03-29 14:31</td><td>8.21…</td><td>4</td></tr>
+            <tr><td colspan="2">注册浏览器指纹</td><td>0</td></tr></table></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="note-card">
+  <h3>交互与字段说明</h3>
+  <table>
+    <tr><th style="width:110px">项</th><th>说明</th></tr>
+    <tr><td>入口</td><td>用户备注、打码量两个字段的「修改」按钮旁新增「近期修改记录」按钮，<b>恒为可点</b>。其他字段不加。</td></tr>
+    <tr><td>悬浮卡片</td><td>点击按钮在其下方弹出，展示<b>最近 5 条</b>；点击卡片外或再次点击按钮关闭。卡片最高 <b>320px</b>，超出内部滚动。</td></tr>
+    <tr><td>查看全部</td><td>卡片右上角入口，打开弹窗分页查看完整历史，<b>20 条 / 页</b>。</td></tr>
+    <tr><td>记录字段</td><td>操作时间、操作人（后台账号）、变更内容（变更前 → 变更后）。</td></tr>
+    <tr><td>备注显示</td><td>原值为空显示「（空）」，被清空显示「（清空）」。</td></tr>
+    <tr><td>打码量显示</td><td>「前 → 后」之后追加差额，<span class="ok">增加为绿色</span>，<span class="no">减少为红色</span>。</td></tr>
+    <tr><td>无记录</td><td>卡片内显示「暂无修改记录」，隐藏「查看全部」。</td></tr>
+    <tr><td>记录范围</td><td>仅记录<b>后台人工修改</b>。系统自动产生的打码量变动不在范围内。</td></tr>
+    <tr><td>浮层渲染</td><td>浮层需<b>挂载至页面顶层</b>，避免被弹窗容器裁剪；下方空间不足时向上弹出。</td></tr>
+    <tr><td>数据保留</td><td>不做清理，全量保留。</td></tr>
+  </table>
+  <div style="margin-top:10px;font-size:12px;color:#8a94a3">原型中的 <span style="display:inline-block;background:#e03131;color:#fff;font-size:9.5px;border-radius:2px;padding:0 4px;font-weight:700">NEW</span> 为本次新增标识，实际页面不展示。</div>
+</div>
+
+<div class="mask" id="mask">
+  <div class="dlg">
+    <div class="dlg-h"><span id="dlg-t">修改记录</span><span class="x" onclick="closeDlg()">✕</span></div>
+    <div class="dlg-b"><div id="dlg-b"></div>
+      <div class="pager"><span style="margin-right:auto">共 <b id="dlg-n">0</b> 条</span><span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span><span>20 条/页</span></div>
+    </div>
+    <div class="dlg-f"><button class="btn-c" onclick="closeDlg()">关 闭</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+function toast(m){const t=$('toast');t.textContent=m;t.className='toast show';clearTimeout(t._h);t._h=setTimeout(()=>t.className='toast',2200);}
+
+const DATA={
+  remark:{title:'用户备注',rows:[
+    {t:'2026-08-16 11:20:04',by:'admin',    old:'已核实，暂不冻结',           nw:'测试'},
+    {t:'2026-08-08 20:55:37',by:'dhjjcw07', old:'多个账号同名，推广要求冻结账号', nw:'已核实，暂不冻结'},
+    {t:'2026-07-22 14:03:11',by:'lisa',     old:'',                        nw:'多个账号同名，推广要求冻结账号'},
+    {t:'2026-06-30 09:41:52',by:'dhjjcw07', old:'首充大额，重点关注',          nw:''},
+    {t:'2026-05-18 15:26:40',by:'raymond',  old:'',                        nw:'首充大额，重点关注'}
+  ]},
+  code:{title:'打码量',num:true,rows:[
+    {t:'2026-08-16 10:15:22',by:'admin',    old:'9452.08',  nw:'22728.29'},
+    {t:'2026-08-02 16:44:08',by:'lisa',     old:'30000.00', nw:'9452.08'},
+    {t:'2026-07-19 11:07:35',by:'dhjjcw07', old:'0.00',     nw:'30000.00'},
+    {t:'2026-06-11 19:52:03',by:'admin',    old:'12000.00', nw:'0.00'},
+    {t:'2026-05-20 08:31:17',by:'raymond',  old:'0.00',     nw:'12000.00'}
+  ]}
+};
+let open={remark:false,code:false};
+
+function fmtVal(k,r){
+  const d=DATA[k];
+  if(d.num){
+    const dt=(+r.nw)-(+r.old);
+    return `<span class="old mono">${r.old}</span><span class="arw">→</span><span class="new mono">${r.nw}</span>`
+      +`<span class="delta ${dt>=0?'up':'dn'}">${dt>=0?'+':''}${dt.toFixed(2)}</span>`;
+  }
+  const o=r.old===''?'<span class="old">（空）</span>':`<span class="old">${r.old}</span>`;
+  const n=r.nw===''?'<span class="new">（清空）</span>':`<span class="new">${r.nw}</span>`;
+  return `${o}<span class="arw">→</span>${n}`;
+}
+function table(k,limit){
+  const d=DATA[k], rows=d.rows.slice(0,limit||d.rows.length);
+  return `<table class="lg"><thead><tr><th style="width:150px">操作时间</th><th style="width:110px">操作人</th><th>变更内容</th></tr></thead><tbody>`
+    +rows.map(r=>`<tr><td class="mono">${r.t}</td><td>${r.by}</td><td class="wrap">${fmtVal(k,r)}</td></tr>`).join('')
+    +`</tbody></table>`;
+}
+function block(k){
+  const d=DATA[k];
+  return `<div class="log-h"><span class="n">${d.title} · 近期修改记录<span class="tag-new">NEW</span></span>
+      <span style="font-size:12px;color:#8a94a3">默认展示最近 5 条</span>
+      ${d.rows.length?`<span class="more" onclick="openDlg('${k}')">查看全部 (${d.rows.length}) ›</span>`:''}</div>`
+    +(d.rows.length
+      ? `<div class="scroll">`+table(k,5)+`</div>`
+      : `<div style="padding:26px 0;text-align:center;color:#b6bec7;font-size:12.5px;border:1px solid #eef0f3;border-radius:4px">暂无修改记录</div>`);
+}
+
+function toggle(k,ev){
+  ev.stopPropagation();
+  const p=$('pop-'+k), was=p.classList.contains('show');
+  document.querySelectorAll('.pop').forEach(x=>x.classList.remove('show'));
+  if(!was){ p.innerHTML=block(k); p.classList.add('show'); }
+}
+document.addEventListener('click',()=>document.querySelectorAll('.pop').forEach(x=>x.classList.remove('show')));
+
+function openDlg(k){
+  const d=DATA[k];
+  $('dlg-t').innerHTML=d.title+' · 修改记录<span class="tag-new">NEW</span>';
+  $('dlg-b').innerHTML=d.rows.length?table(k):'<div style="padding:40px 0;text-align:center;color:#b6bec7">暂无修改记录</div>';
+  $('dlg-n').textContent=d.rows.length;
+  $('mask').classList.add('show');
+}
+function closeDlg(){ $('mask').classList.remove('show'); }
+
+// 默认弹出备注卡片，便于直接看效果
+(function(){ const p=$('pop-remark'); p.innerHTML=block('remark'); p.classList.add('show'); })();
+</script>
+</body>
+</html>
