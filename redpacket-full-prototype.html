@@ -264,6 +264,7 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
     <span class="b-tab" onclick="showPage('p4',this)">输码兑换</span>
     <span class="b-tab" onclick="showPage('p5',this)">我的充值优惠券</span>
     <span class="b-tab" onclick="showPage('p6',this)">充值用券</span>
+    <span class="b-tab" onclick="showPage('pgift',this)">礼物兑换记录<span class="newb">NEW</span></span>
   </div>
 </div>
 
@@ -985,6 +986,97 @@ input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
 </div></div>
 
 <!-- ════ 需求说明 & 业务规则 ════ -->
+<!-- ════ PGIFT 会员·礼物兑换记录 ════ -->
+<div id="P-pgift" class="page-block" style="display:none">
+  <style>
+    #P-pgift .gbanner{height:150px;background:radial-gradient(circle at 50% 46%,#FFD08A 0%,#FF9A3C 46%,#FF7A1F 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    #P-pgift .gbanner .gift{font-size:60px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.16))}
+    #P-pgift .gbanner .c{position:absolute;font-size:19px;opacity:.92}
+    #P-pgift .hi{color:#4b6ea9;font-size:13.5px;line-height:1.9;margin-bottom:13px}
+    #P-pgift .rec-h{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+    #P-pgift .rec-h .ico{width:20px;height:20px;border-radius:4px;background:#FF4D4F;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+    #P-pgift .gitem{padding:14px 0;border-bottom:1px solid #f2f3f5}
+    #P-pgift .gitem:last-child{border-bottom:none}
+    #P-pgift .gl1{display:flex;align-items:flex-start;gap:10px}
+    #P-pgift .gst{font-size:15px;font-weight:600;color:#52c41a}
+    #P-pgift .gtime{font-size:12px;color:#98a2b0;margin-top:5px}
+    #P-pgift .gamt{margin-left:auto;border:1px solid #FFB84D;border-radius:6px;background:#FFF9EC;color:#E8890B;font-size:13px;font-weight:600;padding:3px 12px;white-space:nowrap}
+    #P-pgift .gkind{margin-left:auto;border:1px solid #C9B6FF;border-radius:6px;background:#F6F2FF;color:#7047EB;font-size:12px;font-weight:600;padding:3px 10px;white-space:nowrap}
+    #P-pgift .gnomore{text-align:center;color:#b6bec7;font-size:13px;padding:14px 0 2px}
+    #P-pgift .gtry{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:0 0 14px}
+    #P-pgift .gtry button{border:1px solid #FFB84D;background:#FFF9EC;color:#E8890B;border-radius:6px;padding:7px 13px;font-size:12.5px;cursor:pointer}
+    #P-pgift .gtry button:hover{background:#fff3d6}
+    #P-pgift .gspec{width:640px;max-width:100%;background:#fff;border-radius:8px;box-shadow:var(--shadow);padding:16px 20px;margin-top:18px;border-left:4px solid #FF4D4F}
+    #P-pgift .gspec h4{font-size:14px;margin-bottom:10px}
+    #P-pgift .gspec table{border-collapse:collapse;width:100%;font-size:12.5px}
+    #P-pgift .gspec th,#P-pgift .gspec td{border:1px solid #e8eaee;padding:8px 11px;text-align:left;vertical-align:top;line-height:1.75}
+    #P-pgift .gspec th{background:#fdf6f5;color:#5a6472;font-weight:600;white-space:nowrap}
+    #P-pgift .coupon-card{margin-top:11px;margin-bottom:0}
+  </style>
+
+  <div class="mobile-stage">
+    <div class="stage-cap">会员端 H5 · <b>礼物兑换记录</b> — 兑换码领取现金 / 优惠券的记录</div>
+
+    <div class="gtry">
+      <button onclick="giftAdd('cash')">现金红包（现状）</button>
+      <button onclick="giftAdd('coupon')">优惠券 · 待使用</button>
+      <button onclick="giftAdd('used')">优惠券 · 已使用</button>
+      <button onclick="giftAdd('exp')">优惠券 · 已过期</button>
+      <button onclick="giftReset()" style="border-color:#dcdfe6;background:#f5f6f8;color:#5a6472">重置</button>
+    </div>
+
+    <div class="phone">
+      <div class="phone-notch"></div><div class="phone-statusbar"><span>9:41</span><span>📶 📡 🔋</span></div>
+      <div class="phone-navbar"><span class="nav-back">‹</span><span class="nav-title">礼物</span><span style="width:20px"></span></div>
+      <div class="phone-body">
+        <div class="gbanner">
+          <span class="c" style="left:56px;top:38px">💰</span>
+          <span class="c" style="right:60px;top:32px">🎫</span>
+          <span class="c" style="left:74px;bottom:30px">🪙</span>
+          <span class="c" style="right:50px;bottom:38px">💎</span>
+          <span class="gift">🎁</span>
+        </div>
+        <div style="padding:14px">
+          <div class="card">
+            <div class="hi">尊敬的会员你好！<br>我们为你准备了一份礼物</div>
+            <div class="card-title mb-12" style="font-size:14px">请在下方输入礼物兑换码</div>
+            <input class="inp" id="gift-code" style="width:100%" placeholder="请输入兑换码">
+            <button class="btn coupon lg" style="width:100%;margin-top:12px" onclick="giftRedeem()">领取</button>
+            <div class="text-xs text-muted mt-8">试试输入 <b>CASH888</b>（现金）或 <b>COUPON20</b>（优惠券）</div>
+          </div>
+
+          <div class="card">
+            <div class="rec-h"><span class="ico">▤</span><span class="card-title">记录</span></div>
+            <div id="gift-list"></div>
+            <div class="gnomore">没有更多了</div>
+          </div>
+
+          <div class="rules">
+            <div class="rules-title">📋 说明</div>
+            <ul>
+              <li>一个兑换码可领取一份礼物，现金直接到账，优惠券进入「我的充值优惠券」</li>
+              <li>优惠券有使用门槛与有效期，请在有效期内使用</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gspec">
+      <h4>记录展示规则 <span class="newb">NEW</span></h4>
+      <table>
+        <tr><th style="width:100px">项</th><th>说明</th></tr>
+        <tr><td>适用范围</td><td>一个兑换码发放一个奖励（现金<b>或</b>优惠券），产生<b>一条</b>记录。<b>现金红包记录保持现状不改。</b></td></tr>
+        <tr><td>记录行结构</td><td>第一行：领取状态 + 右侧奖励标识；第二行：领取时间。现金为金额徽标，优惠券为「优惠券」标识。</td></tr>
+        <tr><td>优惠券展示</td><td>在时间下方追加一张券票，展示：面额、使用门槛、券名称、有效期至、状态标签、「去使用」按钮。</td></tr>
+        <tr><td>券状态</td><td>待使用 / 已使用 / 已过期，取券的<b>实时状态</b>。已使用、已过期的券置灰，「去使用」按钮不可点。</td></tr>
+        <tr><td>去使用</td><td>跳转至该券的适用场景（充值券跳充值页）。</td></tr>
+        <tr><td>排序</td><td>按领取时间倒序。</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div id="P-preq" class="page-block">
   <style>
     #P-preq{background:#eef0f3;min-height:100%}
@@ -1657,6 +1749,54 @@ try{setLang('zh');}catch(e){}
 <script>
 (function(){function _clampNum(el){if(el.value==="")return;var mn=el.getAttribute("min"),mx=el.getAttribute("max");var v=parseFloat(el.value),o=el.value;if(isNaN(v)){el.value=(mn!==null?mn:"");}else{if(mn!==null&&v<+mn)el.value=mn;if(mx!==null&&v>+mx)el.value=mx;}if(el.value!==o)el.dispatchEvent(new Event("input",{bubbles:true}));}
 document.addEventListener("change",function(e){var t=e.target;if(t&&t.type==="number")_clampNum(t);},true);})();
+
+/* ════ 会员端·礼物兑换记录 ════ */
+var GIFT_C={
+  c20  :{amt:'₹20', cond:'充值满 100 可用', nm:'充值彩金券', ex:'2026-08-24 23:59', st:'on'},
+  cUsed:{amt:'₹30', cond:'充值满 200 可用', nm:'充值彩金券', ex:'2026-08-30 23:59', st:'used'},
+  cExp :{amt:'₹15', cond:'充值满 100 可用', nm:'充值彩金券', ex:'2026-08-10 23:59', st:'exp'}
+};
+var GIFT_PRESET={cash:{cash:'1',c:null},coupon:{cash:null,c:'c20'},used:{cash:null,c:'cUsed'},exp:{cash:null,c:'cExp'}};
+var GIFT_LIST=[{cash:'1',c:null,t:'2026-08-17 18:10:01'}];
+function giftNow(){var d=new Date(),p=function(n){return String(n).padStart(2,'0')};
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());}
+function giftTicket(k){
+  var c=GIFT_C[k], gray=(c.st!=='on')?' gray':'';
+  var tag=c.st==='on'?'<span class="badge success">待使用</span>'
+        :c.st==='used'?'<span class="badge gray">已使用</span>':'<span class="badge gray">已过期</span>';
+  var btn=c.st==='on'
+    ?'<button class="btn coupon sm" onclick="goTab(\'p6\')">去使用</button>'
+    :'<button class="btn sm" disabled style="background:#e6e8eb;color:#b6bec7;cursor:not-allowed">去使用</button>';
+  return '<div class="coupon-card'+gray+'">'
+    +'<div class="cc-left"><div class="cc-ratio" style="font-size:22px">'+c.amt+'</div><div class="cc-cap">'+c.cond+'</div></div>'
+    +'<div class="cc-right"><div class="cc-name">'+c.nm+'</div>'
+      +'<div class="cc-meta">有效期至 '+c.ex+'</div><div>'+tag+'</div></div>'
+    +'<div class="cc-act">'+btn+'</div></div>';
+}
+function giftRender(){
+  var box=document.getElementById('gift-list'); if(!box)return;
+  box.innerHTML=GIFT_LIST.map(function(it){
+    var right=it.cash?'<span class="gamt">💰 '+it.cash+'</span>':'<span class="gkind">优惠券</span>';
+    return '<div class="gitem"><div class="gl1"><div><div class="gst">领取成功</div>'
+      +'<div class="gtime">'+it.t+'</div></div>'+right+'</div>'
+      +(it.c?giftTicket(it.c):'')+'</div>';
+  }).join('');
+}
+function giftAdd(kind){
+  var p=GIFT_PRESET[kind];
+  GIFT_LIST.unshift({cash:p.cash,c:p.c,t:giftNow()});
+  giftRender();
+  toast(p.cash?'领取成功　现金红包':'领取成功　优惠券');
+}
+function giftRedeem(){
+  var el=document.getElementById('gift-code'), v=(el.value||'').trim().toUpperCase();
+  var map={'CASH888':'cash','COUPON20':'coupon'};
+  if(!v){toast('请输入兑换码');return;}
+  if(!map[v]){toast('兑换码无效，请核对后重试');return;}
+  el.value=''; giftAdd(map[v]);
+}
+function giftReset(){ GIFT_LIST=[{cash:'1',c:null,t:'2026-08-17 18:10:01'}]; giftRender(); }
+giftRender();
 </script>
 </body>
 </html>
