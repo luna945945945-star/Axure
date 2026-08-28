@@ -21,14 +21,12 @@ body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;back
 .btn{display:inline-flex;align-items:center;gap:5px;background:#6C4FE0;color:#fff;border:0;border-radius:4px;padding:6px 13px;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap}
 .btn:hover{background:#5b3fd0}
 
-/* 改造前/后 开关 */
 .sw{background:#fffbe9;border:1px dashed #e3c67a;border-radius:5px;padding:9px 14px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px}
 .sw .lb{color:#8a6d1f;font-weight:600}
 .seg{display:inline-flex;border:1px solid #d9cfa8;border-radius:4px;overflow:hidden}
 .seg button{font:inherit;font-size:12px;padding:5px 16px;border:0;background:#fff;color:#7a6420;cursor:pointer}
 .seg button.on{background:#6C4FE0;color:#fff}
 
-/* 权限矩阵 */
 .mx{width:100%;border-collapse:collapse;font-size:12.5px}
 .mx td{border:1px solid #ebebf2;padding:7px 10px;vertical-align:middle}
 .mx td.grp{width:96px;text-align:center;background:#fafafd;font-weight:600;color:#555}
@@ -39,15 +37,13 @@ body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;back
 .pm .bx{width:13px;flex:0 0 13px;text-align:center;color:#b9a9f0;font-size:12px;font-style:normal}
 .pm.ck .bx{color:#6C4FE0}
 .pm.ck{color:#333}
-.pm.dead{opacity:.4}
-.pm.dead .bx{color:#c9c9d4}
 .pm.nw{background:#f3efff}
 .pm.nw .bx{color:#6C4FE0}
 .pm .nb{background:#f5222d;color:#fff;font-size:8.5px;line-height:1;padding:2px 3px;border-radius:2px;font-weight:700;margin-left:2px;font-style:normal}
+.pm .rb{background:#e6a23c;color:#fff;font-size:8.5px;line-height:1;padding:2px 3px;border-radius:2px;font-weight:700;margin-left:2px;font-style:normal}
 .pm.wide{width:auto;min-width:152px;padding-right:10px}
 .rowhi{outline:2px solid #f5222d;outline-offset:-2px}
 
-/* 抽屉 */
 .dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
 .dmask.on{opacity:1;pointer-events:auto}
 .drawer{position:fixed;top:0;right:0;height:100vh;width:660px;max-width:94vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s ease;display:flex;flex-direction:column}
@@ -60,7 +56,6 @@ body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;back
 .handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
 .handle:hover{background:#5b3fd0}
 
-/* 需求说明排版 */
 .prd h2{font-size:14px;color:#6C4FE0;margin:20px 0 9px;padding-bottom:5px;border-bottom:1px solid #eee}
 .prd h2:first-child{margin-top:0}
 .prd p{margin:7px 0;color:#555;font-size:13px}
@@ -72,7 +67,6 @@ body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;back
 code{background:#f2f2f7;padding:1px 4px;border-radius:3px;font-family:Consolas,Monaco,monospace;font-size:11.5px;color:#c7254e}
 .tip{background:#fff8e6;border-left:3px solid #e6a23c;padding:9px 12px;border-radius:3px;margin:10px 0;font-size:12.5px;color:#7a5b12}
 .tip b{color:#c47f0a}
-.nb2{display:inline-block;background:#f5222d;color:#fff;font-size:8.5px;line-height:1;padding:2px 3px;border-radius:2px;font-weight:700;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -94,7 +88,7 @@ code{background:#f2f2f7;padding:1px 4px;border-radius:3px;font-family:Consolas,M
 
   <div class="card">
     <h3>财务管理 · 权限项
-      <span class="sub">红框为本次改造的行；<span style="color:#6C4FE0">紫底 NEW</span> 为新增项，灰色为改造后移除的死权限。点击任意权限项可勾选 / 取消。</span>
+      <span class="sub">红框为本次改造的行；<span style="color:#6C4FE0">紫底 NEW</span> 为新增项，<span style="color:#e6a23c">橙标 兼容保留</span> 为过渡期继续生效、二期发版才移除的项。点击任意权限项可勾选 / 取消。</span>
     </h3>
     <table class="mx"><tbody id="mxBody"></tbody></table>
   </div>
@@ -119,12 +113,11 @@ code{background:#f2f2f7;padding:1px 4px;border-radius:3px;font-family:Consolas,M
     <tr><td>异常消除</td><td><code>withdrawexception</code></td><td>异常消除 → <code>WithdrawalThridPartCancel</code>（现状无鉴权）</td></tr>
     </tbody></table>
 
-    <h2>二、移除的动作码</h2>
-    <p><code>确认审核:audit</code>、<code>修改:update</code>、<code>确认取消(所有人):cancelall</code>、<code>确认审核(所有人):auditall</code>、<code>取消审核(所有人):notauditall</code> —— 代码从未校验，勾选不产生任何效果。</p>
+    <p>原有「确认审核」<code>audit</code> 本期<b>保留并继续生效</b>，四个判定均为「新权限 <b>或</b> <code>audit</code>」，待全部角色切换完成后由二期发版移除。其余既有权限项本次不做调整，如需清理由运营在菜单管理中自行勾选。</p>
 
-    <h2>三、业务规则</h2>
+    <h2>二、业务规则</h2>
     <ol>
-    <li>四个权限相互独立，可任意组合授予。</li>
+    <li>四个权限相互独立，可任意组合授予。过渡期内持有旧的「确认审核」<code>audit</code> 等同于同时持有四个权限，与改造前行为一致。</li>
     <li>确认取消（人工拒绝）执行后提现金额退回会员余额，退款逻辑不改动。</li>
     <li>三方出款不按通道细分，持有该权限即可使用全部已启用通道。</li>
     <li>订单锁定人限制不变，权限校验是锁定人校验之后的第二道闸，两者都通过才放行。</li>
@@ -133,7 +126,7 @@ code{background:#f2f2f7;padding:1px 4px;border-radius:3px;font-family:Consolas,M
     <li>「刷新确认」（<code>RefreshWithdrawState</code>）本期不动，接口维持无鉴权、按钮维持无显隐控制。</li>
     </ol>
 
-    <div class="tip"><b>上线必做：</b><code>withdrawalmanitou:audit</code> 拆分后不再被任何代码校验，须执行存量角色订正 SQL 把旧权限展开为新权限，否则出款停摆。<code>Authority</code> 格式为 <code>|a:b|c:d|</code>，相邻项共用一个竖线。完整脚本见 <code>withdraw-permission-split-prd.md</code> 第三节。</div>
+    <div class="tip"><b>上线说明（上线兼容）：</b>本期不动任何存量权限数据，发版前无需运营做任何准备。原有「确认审核」<code>withdrawalmanitou:audit</code> <b>保留并继续生效</b>——上线时所有角色维持原有勾选不变，靠 <code>audit</code> 的兼容判定照常出款。四个新权限由运营在<b>发版之后</b>按岗位自行勾选、逐步切换，切换进度不影响任何角色出款。<br><br>后端四个判定均为「新权限 <b>或</b> <code>audit</code>」，两种勾选状态可长期共存。待全部角色取消「确认审核」勾选后，由二期发版移除兼容判定并从菜单配置中去掉该项。</div>
 
   </div>
 </div>
@@ -143,7 +136,6 @@ const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 let MODE='new';
 const on={};
 
-/* 提现锁定行的权限（照搬截图，仅作视觉还原） */
 const LOCK=['查看','查看(所有人)','新增','修改','删除','测试','充值','提现','开通代理','设置下注返佣','设置首充返佣','批量生成开奖结果','预设开奖结果','查看期号投注统计','订单驳回','封号','查看详情','踢下线','查看图表','导入','导出','导出手机号','打印','查看成本','退款','查看库存','查看下单','设置权限','取消订单','确认付款','取消付款','审核','查看统计','top盈亏','查看(所有人)','修改(所有人)','删除(所有人)','导入(所有人)','导出(所有人)','打印(所有人)','取消订单(所有人)','确认付款(所有人)','确认取消(所有人)','确认审核(所有人)','取消审核(所有人)','查看图表(所有人)','锁定','房间设置','游戏修改','配置','房间玩家信息','修改手机绑定','修改上级','修改昵称','修改登录密码','修改支付姓名','修改支付宝账户','修改银行卡号','修改持卡人姓名','提现剩余打码量','修改提现剩余次数','修改提现密码','修改银行卡信息','查看手机号','查看邮箱','查看账号','登录用户账号','额度回收','修改密钥','修改状态','查看开奖结果','入款提示','出款提示','修改积分','修改银行卡','批量分组','批量隐藏','取消锁定','提现全局解锁','修改用户备注','批量删除用户备注','代收测试','代付测试','批量添加','批量操作Google验证码','提现转移渠道'];
 
 const MENUS=[
@@ -151,8 +143,8 @@ const MENUS=[
  {name:'提现锁定',perms:LOCK.map((t,i)=>[t,'lk'+i])},
  {name:'提现出款',hi:1,perms:[
    ['查看','view'],['查看(所有人)','viewall'],['导出','export'],['查看手机号','viewphone'],['查看邮箱','viewemail'],
-   ['确认审核','audit',{old:1}],['修改','update',{dead:1}],['确认取消(所有人)','cancelall',{dead:1}],
-   ['确认审核(所有人)','auditall',{dead:1}],['取消审核(所有人)','notauditall',{dead:1}],
+   ['确认审核','audit',{rm:1}],['修改','update'],['确认取消(所有人)','cancelall'],
+   ['确认审核(所有人)','auditall'],['取消审核(所有人)','notauditall'],
    ['人工确认','withdrawconfirm',{nw:1}],['三方出款（审核）','withdrawthirdpay',{nw:1}],
    ['确认取消','withdrawreject',{nw:1}],['异常消除','withdrawexception',{nw:1}]]},
  {name:'人工充值',perms:[['查看','rcview'],['充值','recharges'],['导入','rcimport']]},
@@ -160,17 +152,17 @@ const MENUS=[
 ];
 
 function visible(o){
-  if(!o)return true;
-  if(o.dead||o.old)return MODE==='old';   // 死权限与旧 audit：改造后移除
-  if(o.nw)return MODE==='new';            // 新增项：仅改造后
-  return true;
+  if(o&&o.nw)return MODE==='new';   // 新增项仅出现在改造后
+  return true;                      // 其余既有权限项两种模式下都保留
 }
 function drawMatrix(){
   $('#mxBody').innerHTML=MENUS.map((m,mi)=>{
     const cells=m.perms.filter(p=>visible(p[2])).map(p=>{
       const [txt,code,o]=p;
-      const cls=['pm',on[code]?'ck':'',o&&o.dead?'dead':'',o&&o.nw?'nw':'',txt.length>8?'wide':''].filter(Boolean).join(' ');
-      return `<span class="${cls}" data-code="${code}"><i class="bx">${on[code]?'✔':'☐'}</i>${txt}${o&&o.nw?'<i class="nb">NEW</i>':''}</span>`;
+      const cls=['pm',on[code]?'ck':'',o&&o.nw?'nw':'',txt.length>8?'wide':''].filter(Boolean).join(' ');
+      const tag=(o&&o.nw)?'<i class="nb">NEW</i>'
+               :((o&&o.rm&&MODE==='new')?'<i class="rb">兼容保留</i>':'');
+      return `<span class="${cls}" data-code="${code}"><i class="bx">${on[code]?'✔':'☐'}</i>${txt}${tag}</span>`;
     }).join('');
     return `<tr class="${m.hi?'rowhi':''}">`+
       (mi===0?`<td class="grp" rowspan="${MENUS.length}"><i style="color:#6C4FE0;font-style:normal">✔</i> 财务管理</td>`:'')+
@@ -179,14 +171,12 @@ function drawMatrix(){
   $$('.pm').forEach(el=>el.onclick=()=>{const c=el.dataset.code;on[c]=!on[c];drawMatrix();});
   $('#swNote').textContent = MODE==='old'
     ? '当前显示改造前：提现出款四个动作共用一个「确认审核」权限'
-    : '当前显示改造后：提现出款拆为 4 个独立权限';
+    : '当前显示改造后：新增 4 个独立权限，「确认审核」过渡期继续生效、二期发版才移除，其余权限项不动';
 }
 
-/* 对比开关 */
 $('#mOld').onclick=()=>{MODE='old';$('#mOld').classList.add('on');$('#mNew').classList.remove('on');drawMatrix();};
 $('#mNew').onclick=()=>{MODE='new';$('#mNew').classList.add('on');$('#mOld').classList.remove('on');drawMatrix();};
 
-/* 抽屉 */
 const openD=()=>{$('#drawer').classList.add('on');$('#dmask').classList.add('on');};
 const closeD=()=>{$('#drawer').classList.remove('on');$('#dmask').classList.remove('on');};
 $('#openDoc').onclick=openD;
@@ -195,7 +185,7 @@ $('#closeDoc').onclick=closeD;
 $('#dmask').onclick=closeD;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeD();});
 
-['view','viewall','export','viewphone','lgview','lgexport','updateuserremark'].forEach(k=>on[k]=true);
+['view','viewall','export','viewphone','audit'].forEach(k=>on[k]=true);
 drawMatrix();
 </script>
 </body>
