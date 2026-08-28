@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>系统角色 · 提现权限拆分</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333}
+
+.topbar{background:#fff;border-bottom:1px solid #eaeaf0;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:16px;color:#6C4FE0;font-weight:600}
+.tr{display:flex;align-items:center;gap:16px}
+.crumb{font-size:12px;color:#9a9aa8}
+.crumb b{color:#555;font-weight:600}
+.wrap{padding:18px 24px 60px;max-width:1700px}
+.card{background:#fff;border-radius:6px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:13px;color:#555;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card h3 .sub{font-weight:400;color:#9a9aa8;font-size:11.5px}
+
+.btn{display:inline-flex;align-items:center;gap:5px;background:#6C4FE0;color:#fff;border:0;border-radius:4px;padding:6px 13px;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:hover{background:#5b3fd0}
+
+/* 改造前/后 开关 */
+.sw{background:#fffbe9;border:1px dashed #e3c67a;border-radius:5px;padding:9px 14px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px}
+.sw .lb{color:#8a6d1f;font-weight:600}
+.seg{display:inline-flex;border:1px solid #d9cfa8;border-radius:4px;overflow:hidden}
+.seg button{font:inherit;font-size:12px;padding:5px 16px;border:0;background:#fff;color:#7a6420;cursor:pointer}
+.seg button.on{background:#6C4FE0;color:#fff}
+
+/* 权限矩阵 */
+.mx{width:100%;border-collapse:collapse;font-size:12.5px}
+.mx td{border:1px solid #ebebf2;padding:7px 10px;vertical-align:middle}
+.mx td.grp{width:96px;text-align:center;background:#fafafd;font-weight:600;color:#555}
+.mx td.menu{width:112px;background:#fdfdff;color:#444}
+.perms{display:flex;flex-wrap:wrap;gap:2px 0}
+.pm{width:152px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:#555;padding:2px 4px;border-radius:3px;font-size:12.5px;line-height:1.5}
+.pm:hover{background:#f4f1ff}
+.pm .bx{width:13px;flex:0 0 13px;text-align:center;color:#b9a9f0;font-size:12px;font-style:normal}
+.pm.ck .bx{color:#6C4FE0}
+.pm.ck{color:#333}
+.pm.dead{opacity:.4}
+.pm.dead .bx{color:#c9c9d4}
+.pm.nw{background:#f3efff}
+.pm.nw .bx{color:#6C4FE0}
+.pm .nb{background:#f5222d;color:#fff;font-size:8.5px;line-height:1;padding:2px 3px;border-radius:2px;font-weight:700;margin-left:2px;font-style:normal}
+.pm.wide{width:auto;min-width:152px;padding-right:10px}
+.rowhi{outline:2px solid #f5222d;outline-offset:-2px}
+
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:660px;max-width:94vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s ease;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:14px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px;color:#333}
+.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dhead .x:hover{color:#666}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.handle:hover{background:#5b3fd0}
+
+/* 需求说明排版 */
+.prd h2{font-size:14px;color:#6C4FE0;margin:20px 0 9px;padding-bottom:5px;border-bottom:1px solid #eee}
+.prd h2:first-child{margin-top:0}
+.prd p{margin:7px 0;color:#555;font-size:13px}
+.prd ol{margin:7px 0 7px 20px;color:#555;font-size:13px}
+.prd li{margin:5px 0}
+.prd table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.prd th,.prd td{border:1px solid #ebebf2;padding:6px 8px;text-align:left;vertical-align:top}
+.prd th{background:#fafafd;color:#555;font-size:11.5px;font-weight:600}
+code{background:#f2f2f7;padding:1px 4px;border-radius:3px;font-family:Consolas,Monaco,monospace;font-size:11.5px;color:#c7254e}
+.tip{background:#fff8e6;border-left:3px solid #e6a23c;padding:9px 12px;border-radius:3px;margin:10px 0;font-size:12.5px;color:#7a5b12}
+.tip b{color:#c47f0a}
+.nb2{display:inline-block;background:#f5222d;color:#fff;font-size:8.5px;line-height:1;padding:2px 3px;border-radius:2px;font-weight:700;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>系统角色</h1>
+  <div class="tr">
+    <button class="btn" id="openDoc">📋 需求说明</button>
+    <div class="crumb">系统管理 &nbsp;›&nbsp; 角色管理 &nbsp;›&nbsp; <b>角色权限配置</b></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="sw">
+    <span class="lb">▶ 对比开关</span>
+    <div class="seg"><button id="mOld">改造前</button><button id="mNew" class="on">改造后</button></div>
+    <span id="swNote" style="color:#7a6420"></span>
+  </div>
+
+  <div class="card">
+    <h3>财务管理 · 权限项
+      <span class="sub">红框为本次改造的行；<span style="color:#6C4FE0">紫底 NEW</span> 为新增项，灰色为改造后移除的死权限。点击任意权限项可勾选 / 取消。</span>
+    </h3>
+    <table class="mx"><tbody id="mxBody"></tbody></table>
+  </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>提现出款操作权限拆分 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <p style="color:#9a9aa8;font-size:12px;margin-top:0">需求编号 WITHDRAW-PERM-001 &nbsp;|&nbsp; 适用系统 V1 后台</p>
+
+    <h2>一、新增权限项</h2>
+    <table>
+    <thead><tr><th style="width:100px">权限显示名</th><th style="width:130px">动作码</th><th>对应按钮 / 接口</th></tr></thead>
+    <tbody>
+    <tr><td>人工确认</td><td><code>withdrawconfirm</code></td><td>人工确认 → <code>WithdrawalExamineState</code>（类型=8 且 State=1）</td></tr>
+    <tr><td>三方出款（审核）</td><td><code>withdrawthirdpay</code></td><td>各三方通道按钮 → <code>WithdrawalExamineState</code>（类型≠8）</td></tr>
+    <tr><td>确认取消</td><td><code>withdrawreject</code></td><td>确认取消 → <code>WithdrawalExamineState</code>（类型=8 且 State=2）</td></tr>
+    <tr><td>异常消除</td><td><code>withdrawexception</code></td><td>异常消除 → <code>WithdrawalThridPartCancel</code>（现状无鉴权）</td></tr>
+    </tbody></table>
+
+    <h2>二、移除的动作码</h2>
+    <p><code>确认审核:audit</code>、<code>修改:update</code>、<code>确认取消(所有人):cancelall</code>、<code>确认审核(所有人):auditall</code>、<code>取消审核(所有人):notauditall</code> —— 代码从未校验，勾选不产生任何效果。</p>
+
+    <h2>三、业务规则</h2>
+    <ol>
+    <li>四个权限相互独立，可任意组合授予。</li>
+    <li>确认取消（人工拒绝）执行后提现金额退回会员余额，退款逻辑不改动。</li>
+    <li>三方出款不按通道细分，持有该权限即可使用全部已启用通道。</li>
+    <li>订单锁定人限制不变，权限校验是锁定人校验之后的第二道闸，两者都通过才放行。</li>
+    <li>超管（<code>IsSuperAdmin</code>）不受四个权限约束。</li>
+    <li>提现出款四个权限全无时，操作列整列不渲染。</li>
+    <li>「刷新确认」（<code>RefreshWithdrawState</code>）本期不动，接口维持无鉴权、按钮维持无显隐控制。</li>
+    </ol>
+
+    <div class="tip"><b>上线必做：</b><code>withdrawalmanitou:audit</code> 拆分后不再被任何代码校验，须执行存量角色订正 SQL 把旧权限展开为新权限，否则出款停摆。<code>Authority</code> 格式为 <code>|a:b|c:d|</code>，相邻项共用一个竖线。完整脚本见 <code>withdraw-permission-split-prd.md</code> 第三节。</div>
+
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+let MODE='new';
+const on={};
+
+/* 提现锁定行的权限（照搬截图，仅作视觉还原） */
+const LOCK=['查看','查看(所有人)','新增','修改','删除','测试','充值','提现','开通代理','设置下注返佣','设置首充返佣','批量生成开奖结果','预设开奖结果','查看期号投注统计','订单驳回','封号','查看详情','踢下线','查看图表','导入','导出','导出手机号','打印','查看成本','退款','查看库存','查看下单','设置权限','取消订单','确认付款','取消付款','审核','查看统计','top盈亏','查看(所有人)','修改(所有人)','删除(所有人)','导入(所有人)','导出(所有人)','打印(所有人)','取消订单(所有人)','确认付款(所有人)','确认取消(所有人)','确认审核(所有人)','取消审核(所有人)','查看图表(所有人)','锁定','房间设置','游戏修改','配置','房间玩家信息','修改手机绑定','修改上级','修改昵称','修改登录密码','修改支付姓名','修改支付宝账户','修改银行卡号','修改持卡人姓名','提现剩余打码量','修改提现剩余次数','修改提现密码','修改银行卡信息','查看手机号','查看邮箱','查看账号','登录用户账号','额度回收','修改密钥','修改状态','查看开奖结果','入款提示','出款提示','修改积分','修改银行卡','批量分组','批量隐藏','取消锁定','提现全局解锁','修改用户备注','批量删除用户备注','代收测试','代付测试','批量添加','批量操作Google验证码','提现转移渠道'];
+
+const MENUS=[
+ {name:'入款记录',perms:[['查看','view0'],['导出','export0'],['确认付款','confirmpay']]},
+ {name:'提现锁定',perms:LOCK.map((t,i)=>[t,'lk'+i])},
+ {name:'提现出款',hi:1,perms:[
+   ['查看','view'],['查看(所有人)','viewall'],['导出','export'],['查看手机号','viewphone'],['查看邮箱','viewemail'],
+   ['确认审核','audit',{old:1}],['修改','update',{dead:1}],['确认取消(所有人)','cancelall',{dead:1}],
+   ['确认审核(所有人)','auditall',{dead:1}],['取消审核(所有人)','notauditall',{dead:1}],
+   ['人工确认','withdrawconfirm',{nw:1}],['三方出款（审核）','withdrawthirdpay',{nw:1}],
+   ['确认取消','withdrawreject',{nw:1}],['异常消除','withdrawexception',{nw:1}]]},
+ {name:'人工充值',perms:[['查看','rcview'],['充值','recharges'],['导入','rcimport']]},
+ {name:'直充短信',perms:[['查看','smsview']]},
+];
+
+function visible(o){
+  if(!o)return true;
+  if(o.dead||o.old)return MODE==='old';   // 死权限与旧 audit：改造后移除
+  if(o.nw)return MODE==='new';            // 新增项：仅改造后
+  return true;
+}
+function drawMatrix(){
+  $('#mxBody').innerHTML=MENUS.map((m,mi)=>{
+    const cells=m.perms.filter(p=>visible(p[2])).map(p=>{
+      const [txt,code,o]=p;
+      const cls=['pm',on[code]?'ck':'',o&&o.dead?'dead':'',o&&o.nw?'nw':'',txt.length>8?'wide':''].filter(Boolean).join(' ');
+      return `<span class="${cls}" data-code="${code}"><i class="bx">${on[code]?'✔':'☐'}</i>${txt}${o&&o.nw?'<i class="nb">NEW</i>':''}</span>`;
+    }).join('');
+    return `<tr class="${m.hi?'rowhi':''}">`+
+      (mi===0?`<td class="grp" rowspan="${MENUS.length}"><i style="color:#6C4FE0;font-style:normal">✔</i> 财务管理</td>`:'')+
+      `<td class="menu"><i style="color:#6C4FE0;font-style:normal">✔</i> ${m.name}</td><td><div class="perms">${cells}</div></td></tr>`;
+  }).join('');
+  $$('.pm').forEach(el=>el.onclick=()=>{const c=el.dataset.code;on[c]=!on[c];drawMatrix();});
+  $('#swNote').textContent = MODE==='old'
+    ? '当前显示改造前：提现出款四个动作共用一个「确认审核」权限'
+    : '当前显示改造后：提现出款拆为 4 个独立权限';
+}
+
+/* 对比开关 */
+$('#mOld').onclick=()=>{MODE='old';$('#mOld').classList.add('on');$('#mNew').classList.remove('on');drawMatrix();};
+$('#mNew').onclick=()=>{MODE='new';$('#mNew').classList.add('on');$('#mOld').classList.remove('on');drawMatrix();};
+
+/* 抽屉 */
+const openD=()=>{$('#drawer').classList.add('on');$('#dmask').classList.add('on');};
+const closeD=()=>{$('#drawer').classList.remove('on');$('#dmask').classList.remove('on');};
+$('#openDoc').onclick=openD;
+$('#handleDoc').onclick=openD;
+$('#closeDoc').onclick=closeD;
+$('#dmask').onclick=closeD;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeD();});
+
+['view','viewall','export','viewphone','lgview','lgexport','updateuserremark'].forEach(k=>on[k]=true);
+drawMatrix();
+</script>
+</body>
+</html>
