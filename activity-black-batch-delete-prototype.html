@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会员活动黑名单 · 批量导入删除</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333}
+a{color:inherit;text-decoration:none}
+
+.topbar{background:#fff;border-bottom:1px solid #eaeaf0;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:50}
+.topbar h1{font-size:16px;color:#6C4FE0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}
+.crumb b{color:#555;font-weight:600}
+
+
+.wrap{padding:18px 24px 60px;max-width:1560px}
+.card{background:#fff;border-radius:6px;padding:18px 20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+
+.btn{display:inline-flex;align-items:center;gap:5px;background:#6C4FE0;color:#fff;border:0;border-radius:4px;padding:7px 14px;font-size:13px;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap}
+.btn:hover{background:#5b3fd0}
+.btn.gray{background:#fff;color:#666;border:1px solid #dcdce4}
+.btn.gray:hover{background:#f7f7fb;color:#6C4FE0;border-color:#c3b8ee}
+.btn.green{background:#00a65a}
+.btn.green:hover{background:#009150}
+.btn.sm{padding:4px 10px;font-size:12px}
+.btn:disabled,.btn:disabled:hover{background:#c9c4de;cursor:not-allowed;border-color:#c9c4de;color:#fff}
+
+.sim{background:#fffbe9;border:1px dashed #e3c67a;border-radius:5px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;font-size:12px}
+.sim .lb{color:#8a6d1f;font-weight:600}
+.sim select{font:inherit;padding:3px 8px;border:1px solid #dcd2ae;border-radius:3px;background:#fff}
+.sim label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;color:#7a6420}
+
+/* 列表页模拟 */
+.filters{display:flex;align-items:center;gap:26px;flex-wrap:wrap;padding-bottom:14px}
+.fitem{display:flex;align-items:center;gap:10px;font-size:13px;color:#555}
+.fitem input,.fitem select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #dcdce4;border-radius:3px;background:#fff;width:170px;color:#333}
+.fitem input::placeholder{color:#c2c2cc}
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:14px}
+
+.tbl-box{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:960px}
+th,td{border:1px solid #ebebf2;padding:8px 10px;text-align:left;white-space:nowrap}
+th{background:#fafafd;color:#555;font-weight:600;font-size:12px;text-align:center}
+tbody tr:nth-child(even){background:#fbfbfe}
+tbody tr:hover{background:#f4f1ff}
+td.mid{text-align:center}
+.dash{color:#c0c0cc}
+.err{color:#f5222d}
+.ok{color:#00a65a}
+.warn{color:#e6a23c}
+.muted{color:#9a9aa8}
+
+/* 弹层 */
+.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:20px}
+.mask.on{display:flex}
+.modal{background:#fff;border-radius:6px;width:100%;max-width:620px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.m-head{padding:13px 18px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;border-radius:6px 6px 0 0;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.m-head .x{cursor:pointer;color:#aaa;font-size:18px;line-height:1}
+.m-head .x:hover{color:#666}
+.m-body{padding:20px 22px;overflow:auto;font-size:13px}
+.m-foot{padding:14px 18px;border-top:1px solid #eee;display:flex;justify-content:center;gap:14px}
+
+.frow{display:flex;gap:12px;margin-bottom:16px}
+.flabel{width:78px;flex:0 0 78px;text-align:right;color:#f5222d;font-size:13px;padding-top:7px}
+.fbody{flex:1;min-width:0}
+.fbody select{font:inherit;font-size:13px;padding:6px 10px;border:1px solid #dcdce4;border-radius:3px;background:#fff;width:220px}
+.fbody textarea{font:12px/1.7 Consolas,Monaco,monospace;width:100%;height:170px;padding:8px 10px;border:1px solid #dcdce4;border-radius:3px;resize:vertical;color:#333}
+.fbody textarea::placeholder{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:12px;color:#b0b0bd;line-height:1.7}
+.fbody textarea:focus{outline:0;border-color:#6C4FE0}
+.srcbar{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.demo-tag{font-size:11px;color:#c47f0a;background:#fff8e6;border:1px dashed #e3c67a;border-radius:3px;padding:2px 7px;white-space:nowrap}
+.btn.gray.demo{border-style:dashed;border-color:#e3c67a;color:#a37a1e;background:#fffdf5}
+.btn.gray.demo:hover{background:#fff8e6;color:#8a6d1f;border-color:#d9b95c}
+.hint{font-size:11.5px;color:#9a9aa8;margin-top:6px;line-height:1.7}
+
+.chk{background:#f7f7fb;border:1px solid #ececf4;border-radius:4px;padding:10px 12px;margin-top:10px;font-size:12px;display:none}
+.chk.on{display:block}
+.chk.bad{background:#fff4f4;border-color:#ffd6d6}
+.chk h5{font-size:12px;color:#555;margin-bottom:6px;font-weight:600}
+.chk ul{margin-left:18px;color:#f5222d;line-height:1.8}
+.chk .more{color:#9a9aa8;margin-top:4px}
+
+/* PRD */
+.prd h2{font-size:15px;color:#6C4FE0;margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid #eee}
+.prd h2:first-child{margin-top:0}
+.prd h3{font-size:13.5px;color:#444;margin:16px 0 7px}
+.prd p{margin:7px 0;color:#555}
+.prd ol,.prd ul{margin:7px 0 7px 22px;color:#555}
+.prd li{margin:5px 0}
+.prd table{min-width:0;font-size:12.5px}
+.prd td,.prd th{white-space:normal}
+.prd th{text-align:left}
+.tip{background:#fff8e6;border-left:3px solid #e6a23c;padding:9px 13px;border-radius:3px;margin:10px 0;font-size:12.5px;color:#7a5b12}
+.tip b{color:#c47f0a}
+code{background:#f2f2f7;padding:1px 5px;border-radius:3px;font-family:Consolas,Monaco,monospace;font-size:12px;color:#c7254e}
+.badge-new{display:inline-block;background:#f5222d;color:#fff;font-size:9px;line-height:1;padding:2px 4px;border-radius:2px;margin-left:4px;vertical-align:middle;font-weight:700}
+
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#f0ad4e;color:#fff;border-radius:3px;padding:12px 38px 12px 14px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:200;font-size:13px;line-height:1.55;display:none;min-width:250px;max-width:440px}
+.toast.ok{background:#5cb85c}
+.toast .ic{position:absolute;left:14px;top:11px;font-size:15px}
+.toast .bd{padding-left:24px}
+.toast b{display:block;font-weight:600;margin-bottom:1px}
+.toast .x{position:absolute;top:5px;right:10px;cursor:pointer;font-size:15px;line-height:1;opacity:.85}
+.toast .x:hover{opacity:1}
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:680px;max-width:94vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px;color:#333}
+.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dhead .x:hover{color:#666}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.handle:hover{background:#5b3fd0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>会员活动黑名单</h1>
+  <div style="display:flex;align-items:center;gap:16px">
+    <button class="btn" id="openDoc">📋 需求说明</button>
+    <div class="crumb">系统管理 &nbsp;›&nbsp; 会员活动黑名单 &nbsp;›&nbsp; <b>批量导入删除</b></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<div id="p2">
+
+  <div class="sim">
+    <span class="lb">▶ 原型模拟控制（仅用于演示，不属于需求）</span>
+    <span>黑名单命中率：
+      <select id="hitRate">
+        <option value="100">100% · 提交的ID全部在黑名单</option>
+        <option value="80" selected>80% · 约 2 成不在黑名单（演示跳过）</option>
+        <option value="50">50% · 一半不在黑名单</option>
+        <option value="0">0% · 全部不在黑名单</option>
+      </select>
+    </span>
+    <label><input type="checkbox" id="simFail"> 模拟第 5 批执行失败（演示部分成功）</label>
+  </div>
+
+  <div class="card">
+    <div class="filters">
+      <div class="fitem"><span>会员ID</span><input placeholder="会员ID"></div>
+      <div class="fitem"><span>会员账号</span><input placeholder="会员账号"></div>
+      <div class="fitem"><span>活动类型</span>
+        <select><option>请选择</option></select>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn">🔍 查 询</button>
+      <button class="btn">↺ 重 置</button>
+      <button class="btn">＋ 新增黑名单</button>
+      <button class="btn">▤ 批量增加</button>
+      <button class="btn" id="btnOpen" style="box-shadow:0 0 0 3px rgba(108,79,224,.25)">▤ 批量删除<span class="badge-new">NEW</span></button>
+    </div>
+
+    <div class="tbl-box">
+      <table>
+        <thead><tr>
+          <th style="width:110px">会员ID</th><th style="width:150px">会员账号</th><th style="width:180px">活动禁止类型</th>
+          <th style="width:170px">最后更新时间</th><th style="width:100px">操作人</th><th style="width:80px">备注</th><th style="width:90px">操作</th>
+        </tr></thead>
+        <tbody id="listBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ============ 批量删除弹窗 ============ -->
+<div class="mask" id="mask1">
+  <div class="modal">
+    <div class="m-head"><span>批量删除黑名单</span><span class="x" data-close="mask1">✕</span></div>
+    <div class="m-body">
+      <div class="frow">
+        <div class="flabel">活动类型：</div>
+        <div class="fbody">
+          <select id="actType"></select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="flabel">会员ID：</div>
+        <div class="fbody">
+          <div class="srcbar">
+            <button class="btn gray sm" id="btnFile">⬆ 导入文件</button>
+            <button class="btn gray sm" id="btnTpl">⬇ 模板下载</button>
+            <input type="file" id="fileInput" accept=".txt,.csv,.xlsx" style="display:none">
+            <span class="demo-tag" style="margin-left:auto">仅原型演示，非页面功能 ▸</span>
+            <button class="btn gray sm demo" data-sample="15000">15000条</button>
+            <button class="btn gray sm demo" data-sample="15001">15001条</button>
+            <button class="btn gray sm demo" data-sample="dirty">含无效行</button>
+            <button class="btn gray sm demo" data-sample="100000">100000（误输入）</button>
+          </div>
+          <textarea id="idInput" maxlength="180000" placeholder="单个ID输入后换行，最大支持单次15000个，如果仅填写“-100000”，则把对应活动的全部黑名单都删除"></textarea>
+          <div class="hint">仅校验ID是否为正整数。不校验会员是否存在；黑名单内无此ID的将直接跳过。<br>若仅填写 <b>-100000</b>，则删除所选活动类型下的全部会员黑名单。</div>
+          <div class="chk" id="chkBox"></div>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" id="btnConfirm">确 认</button>
+      <button class="btn gray" data-close="mask1">取 消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 二次确认 ============ -->
+<div class="mask" id="mask2">
+  <div class="modal" style="max-width:440px">
+    <div class="m-head"><span>确认删除</span><span class="x" data-close="mask2">✕</span></div>
+    <div class="m-body" id="confirmBody"></div>
+    <div class="m-foot">
+      <button class="btn" id="btnGo">确 认</button>
+      <button class="btn gray" data-close="mask2">取 消</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>会员活动黑名单 · 批量导入删除</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <p style="color:#9a9aa8;font-size:12px;margin-top:0">改造页面：系统管理 &rsaquo; 会员活动黑名单 &rsaquo; 批量删除</p>
+
+    <h2>需求来源</h2>
+    <p>批量删除弹窗的提示语写着「最大支持单次 100 个」，但这只是一句文案，系统并未真正限制条数，实际能粘贴的量取决于输入框的长度上限，约 620 个。运营在清理黑名单时经常需要一次处理上千个会员，只能拆成多批反复操作。</p>
+    <p>本次将上限明确放开到 <b>15000 个</b>，并补齐配套的文件导入、条数提示与结果反馈。</p>
+
+    <h2>一、改造字段</h2>
+    <table>
+    <thead><tr><th style="width:104px">字段</th><th style="width:210px">现状</th><th>改为</th></tr></thead>
+    <tbody>
+    <tr><td>活动类型</td><td>下拉，含「全部活动」与各具体活动</td><td>不变</td></tr>
+    <tr><td>会员ID 输入框</td><td>受输入长度限制，实际约 620 个封顶</td><td>支持一次输入 15000 个</td></tr>
+    <tr><td>提示语</td><td>最大支持单次 <b>100</b> 个</td><td>最大支持单次 <b>15000</b> 个</td></tr>
+    <tr><td>导入文件<span class="badge-new">NEW</span></td><td>无</td><td>新增「导入文件」按钮，支持 txt / csv / Excel，读取首列为会员ID，读入后填充至输入框，可继续手工增删</td></tr>
+    <tr><td>模板下载<span class="badge-new">NEW</span></td><td>无</td><td>新增「模板下载」，模板为单列「会员ID」</td></tr>
+    <tr><td>二次确认<span class="badge-new">NEW</span></td><td>无</td><td>点「确认」后弹出确认框，展示活动类型与去重后ID数</td></tr>
+    <tr><td>结果提示</td><td>仅提示「批量删除成功」，无明细</td><td>仍为顶部提示条，补充实际删除条数、跳过数、无效数（见第三节）</td></tr>
+    </tbody></table>
+
+    <h2>二、业务规则</h2>
+    <ol>
+    <li>单次上限 <b>15000 个会员ID</b>（按去重后计数），页面与服务端双重校验，以服务端为准。</li>
+    <li>ID 列表按换行拆分，逐行去除首尾空格，去掉空行，并自动去重；重复的ID只算一个。</li>
+    <li><b>仅校验ID本身是否有效</b> —— 能识别为正整数即视为有效。不校验会员是否存在、不校验会员状态、不做任何其他前置校验。</li>
+    <li>无效ID（字母、小数、负数、0 等）跳过该行并记录行号，不影响其余行正常执行。</li>
+    <li><b>黑名单里没有这个ID的，直接跳过</b>，不报错、不中断，计入「跳过」数。「没有」指该会员在所选活动类型下当前没有生效中的黑名单记录，包含从未拉黑与此前已被删除两种情况，不作区分。</li>
+    <li>全部行都是无效ID时整体失败，数据无任何变更。</li>
+    <li>活动类型选「全部活动」时，删除所选会员在所有活动类型下的全部黑名单记录。此时删除的<b>记录数可大于ID数</b>（一个会员可能被拉黑了多个活动）。</li>
+    <li>输入内容仅为 <code>-100000</code> 时，删除所选活动类型下的<b>全部</b>会员黑名单。此模式必须选择具体活动类型，选「全部活动」时提示「删除所有会员不能选择全部类型」，且不受 15000 上限约束。</li>
+    <li>删除为逻辑删除：记录保留并标记为已删除，同时记录操作人与操作时间，可追溯。</li>
+    <li>执行采用分批提交。中途某一批失败即中止，已完成的批次保留，提示实际成功条数；重复提交同一批ID不会产生副作用。</li>
+    <li>执行期间确认按钮置灰，防止重复提交。</li>
+    <li>操作权限与现状一致，不做调整。</li>
+    </ol>
+
+    <h2>三、结果提示与弹窗行为</h2>
+    <table>
+    <thead><tr><th style="width:170px">场景</th><th style="width:56px">类型</th><th style="width:210px">提示内容</th><th style="width:96px">弹窗</th></tr></thead>
+    <tbody>
+    <tr><td>有记录被删除</td><td>成功</td><td>批量删除成功 / 共删除 M 条〔，跳过 K 个〕〔，无效 J 个〕</td><td>关闭并刷新列表</td></tr>
+    <tr><td>全量删除模式完成</td><td>成功</td><td>批量删除成功 / 已清空【活动】下全部黑名单，共 M 条</td><td>关闭并刷新列表</td></tr>
+    <tr><td>有效ID全部不在黑名单</td><td>失败</td><td>操作失败 / 本次没有需要处理的数据</td><td><b>保持打开</b></td></tr>
+    <tr><td>全部行为无效ID</td><td>失败</td><td>操作失败 / 共 N 行，全部为无效ID，未执行任何删除</td><td><b>保持打开</b></td></tr>
+    <tr><td>超出 15000</td><td>失败</td><td>提交被拦截 / 最多支持一次删除 15000 个会员ID，当前 N 个</td><td><b>保持打开</b></td></tr>
+    <tr><td>全量删除未选具体活动</td><td>失败</td><td>操作失败 / 删除所有会员不能选择全部类型</td><td><b>保持打开</b></td></tr>
+    <tr><td>分批中途失败</td><td>失败</td><td>部分成功 / 已删除 M 条，第 B 批起未执行，请重新提交剩余ID</td><td><b>保持打开</b></td></tr>
+    </tbody></table>
+    <p>失败时弹窗保持打开、已输入内容保留，与现有交互一致，便于直接修改后重试。</p>
+
+    <h2>四、验收标准</h2>
+    <table>
+    <thead><tr><th style="width:62px">编号</th><th style="width:250px">验收项</th><th>预期结果</th></tr></thead>
+    <tbody>
+    <tr><td>AC-01</td><td>粘贴 15000 个有效ID，选具体活动类型</td><td>全部执行成功，删除条数与实际变更一致，5 秒内完成</td></tr>
+    <tr><td>AC-02</td><td>粘贴 15001 个ID</td><td>页面阻断并提示当前条数；绕过页面直接提交，服务端同样拒绝</td></tr>
+    <tr><td>AC-03</td><td>列表含重复ID</td><td>按去重后条数统计，重复项不重复执行</td></tr>
+    <tr><td>AC-04</td><td>列表含空行、含空格的行</td><td>自动清理，不计入任何统计，不报错</td></tr>
+    <tr><td>AC-05</td><td>列表含字母、小数、负数、0、全角数字</td><td>计入无效数并回显行号，其余行正常执行</td></tr>
+    <tr><td>AC-06</td><td>全部行均为无效ID</td><td>整体失败，数据无变更</td></tr>
+    <tr><td>AC-07</td><td>ID 有效但该会员不在黑名单</td><td>静默跳过并计入跳过数，不产生错误提示</td></tr>
+    <tr><td>AC-08</td><td>ID 有效但会员账号已不存在</td><td>按不在黑名单处理，计入跳过数，不报错</td></tr>
+    <tr><td>AC-09</td><td>导入 txt / csv / Excel 文件</td><td>首列会员ID读入输入框，行数与文件一致，可继续手工编辑</td></tr>
+    <tr><td>AC-10</td><td>导入文件超过 15000 行</td><td>提交时被阻断，提示最多 15000 个及当前条数</td></tr>
+    <tr><td>AC-11</td><td>选「全部活动」+ 会员被拉黑多个活动</td><td>该会员所有活动类型的记录全部删除，删除记录数大于ID数</td></tr>
+    <tr><td>AC-12</td><td>输入 -100000 + 具体活动类型</td><td>该活动下全部黑名单清空</td></tr>
+    <tr><td>AC-13</td><td>输入 -100000 + 全部活动</td><td>提示「删除所有会员不能选择全部类型」，不执行</td></tr>
+    <tr><td>AC-14</td><td>执行期间重复点击确认</td><td>按钮置灰，不产生重复提交</td></tr>
+    <tr><td>AC-15</td><td>有效ID全部不在黑名单</td><td>提示「操作失败 / 本次没有需要处理的数据」，弹窗保持打开且输入内容保留</td></tr>
+    <tr><td>AC-16</td><td>删除后前台验证</td><td>被删会员可正常参与对应活动；同活动下未被删除的会员仍在黑名单</td></tr>
+    <tr><td>AC-17</td><td>删除执行期间</td><td>洗码返水、VIP月奖、邀请奖励等派奖不受影响，不出现阻塞或超时</td></tr>
+    <tr><td>AC-18</td><td>操作日志</td><td>可查到本次操作，含活动类型、提交数、删除数、跳过数及ID样本</td></tr>
+    <tr><td>AC-19</td><td>无操作权限的账号</td><td>操作被拒绝</td></tr>
+    </tbody></table>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ========= 活动类型（与 ModelData.ActivityTypes() 一致） ========= */
+const ACTS=[[1,'每日签到'],[2,'充值赠送'],[3,'每日奖励'],[4,'每周奖励'],[5,'合伙人奖励'],[6,'彩金充值'],
+[7,'红包'],[8,'洗码返水'],[9,'VIP会员每月奖励'],[10,'邀请奖励'],[11,'大转盘'],[13,'大奖奖励'],[14,'锦标赛'],
+[16,'arb提现优惠'],[17,'新会员负盈利彩金'],[18,'邀请转盘'],[19,'App下载充值奖励'],[135,'VIP等级充值奖励'],
+[20,'ARPAY充值赠送'],[21,'USDT充值赠送']];
+const MAX=15000;
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+/* ========= 初始化 ========= */
+const sel=$('#actType');
+sel.innerHTML='<option value="-1">全部活动</option>'+ACTS.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join('');
+sel.value='6';
+
+$('#listBody').innerHTML=[
+ [2243947,'912******2012','彩金充值','2026-07-10 13:16:54','luna','测试'],
+ [2243947,'912******2012','充值赠送','2026-07-10 13:14:30','luna','测试'],
+ [1285142,'91******50','ARPAY充值赠送','2026-07-06 18:14:08','figo','1'],
+ [1285142,'91******50','USDT充值赠送','2026-07-06 18:14:08','figo','1'],
+ [1285142,'91******50','新会员负盈利彩金','2026-07-06 18:14:08','figo','1'],
+ [1285142,'91******50','App下载充值奖励','2026-07-06 18:14:08','figo','1'],
+ [1285142,'91******50','VIP等级充值奖励','2026-07-06 18:14:08','figo','1'],
+ [1285142,'91******50','VIP会员每月奖励','2026-07-06 18:14:08','figo','1'],
+ [1285142,'91******50','邀请奖励','2026-07-06 18:14:08','figo','1'],
+].map(r=>`<tr><td class="mid">${r[0]}</td><td class="mid">${r[1]}</td><td class="mid">${r[2]}</td>
+<td class="mid">${r[3]}</td><td class="mid">${r[4]}</td><td class="mid">${r[5]}</td>
+<td class="mid"><button class="btn green sm">删除</button></td></tr>`).join('');
+
+/* ========= TAB ========= */
+const openD=()=>{$('#drawer').classList.add('on');$('#dmask').classList.add('on')};
+const closeD=()=>{$('#drawer').classList.remove('on');$('#dmask').classList.remove('on')};
+$('#openDoc').onclick=openD;$('#handleDoc').onclick=openD;$('#closeDoc').onclick=closeD;$('#dmask').onclick=closeD;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeD()});
+
+/* ========= 弹层 ========= */
+const open=id=>$('#'+id).classList.add('on'), close=id=>$('#'+id).classList.remove('on');
+$$('[data-close]').forEach(b=>b.onclick=()=>close(b.dataset.close));
+$$('.mask').forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.remove('on')});
+
+let tmr;
+function toast(title,msg,ok){
+  const t=$('#toast');t.className='toast'+(ok==='ok'?' ok':'');
+  t.innerHTML=`<span class="ic">${ok==='ok'?'\u2714':'\u26a0'}</span><span class="x">\u00d7</span>`+
+              `<div class="bd"><b>${title}</b>${msg||''}</div>`;
+  t.style.display='block';
+  t.querySelector('.x').onclick=()=>t.style.display='none';
+  clearTimeout(tmr);tmr=setTimeout(()=>t.style.display='none',4200);
+}
+
+/* ========= 解析：仅校验是否为正整数 ========= */
+function parse(text){
+  const lines=text.split(/\r\n|\r|\n/);
+  const seen=new Set(), ids=[], invalid=[];
+  let submitted=0;
+  lines.forEach((raw,i)=>{
+    const s=raw.trim();
+    if(s==='')return;              // 空行不计入任何统计
+    submitted++;
+    if(!/^[1-9]\d*$/.test(s)){ invalid.push({line:i+1,val:s}); return; }
+    const n=Number(s);
+    if(!Number.isSafeInteger(n)){ invalid.push({line:i+1,val:s}); return; }
+    if(seen.has(n))return;         // 去重
+    seen.add(n); ids.push(n);
+  });
+  return {submitted,ids,invalid,isAll:text.trim()==='-100000'};
+}
+
+/* ========= 计数 ========= */
+function refresh(){
+  const t=$('#idInput').value, p=parse(t);
+  const over=!p.isAll&&p.ids.length>MAX;
+  const box=$('#chkBox');
+  if(p.isAll){
+    box.className='chk on';
+    box.innerHTML=`<h5>全量删除模式</h5><div class="muted">将删除所选活动类型下的<b>全部</b>会员黑名单，不受 15000 上限约束。必须选择具体活动类型。</div>`;
+  }else if(over){
+    box.className='chk on bad';
+    box.innerHTML=`<h5 class="err">超出单次上限</h5><div class="err">去重后 ${p.ids.length.toLocaleString()} 个ID，超出上限 ${MAX.toLocaleString()} 个，请拆分为多批提交。</div>`;
+  }else if(p.invalid.length){
+    box.className='chk on';
+    box.innerHTML=`<h5>无效ID ${p.invalid.length} 行（提交时将跳过，不影响其余行）</h5><ul>`+
+      p.invalid.slice(0,8).map(v=>`<li>第 ${v.line} 行：${v.val.slice(0,30).replace(/</g,'&lt;')}</li>`).join('')+
+      '</ul>'+(p.invalid.length>8?`<div class="more">…另有 ${p.invalid.length-8} 行</div>`:'');
+  }else box.className='chk';
+  return p;
+}
+$('#idInput').addEventListener('input',refresh);
+$('#actType').addEventListener('change',refresh);
+
+/* ========= 样例 ========= */
+$$('[data-sample]').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.sample;
+  if(k==='100000'){$('#idInput').value='100000';}
+  else if(k==='dirty'){
+    $('#idInput').value=['2243947','1285142','','  1285142  ','abc123','2243948','-500','0','3.14',
+      '1285143','9999999','１２３４５６','2243949'].join('\n');
+  }else{
+    const n=+k, a=[];
+    for(let i=0;i<n;i++)a.push(1200000+i*7);
+    $('#idInput').value=a.join('\n');
+  }
+  refresh();
+});
+
+/* ========= 文件导入 ========= */
+$('#btnFile').onclick=()=>$('#fileInput').click();
+$('#btnTpl').onclick=()=>toast('模板下载','原型不产出真实文件。生产环境下载「活动黑名单批量删除模板.xlsx」（单列：会员ID）','warn');
+$('#fileInput').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  if(/\.xlsx$/i.test(f.name)){
+    toast('已模拟读取',`原型无法解析 .xlsx，已用 3000 条样例代替。生产环境读取首列为会员ID。`,'warn');
+    const a=[];for(let i=0;i<3000;i++)a.push(1200000+i*7);
+    $('#idInput').value=a.join('\n');refresh();e.target.value='';return;
+  }
+  const r=new FileReader();
+  r.onload=()=>{
+    // 取每行首列（兼容 csv）
+    const rows=String(r.result).split(/\r\n|\r|\n/).map(l=>l.split(',')[0].trim());
+    $('#idInput').value=rows.join('\n');
+    const p=refresh();
+    toast('导入成功',`${f.name}，读入 ${p.submitted.toLocaleString()} 行，去重后 ${p.ids.length.toLocaleString()} 个ID`,'ok');
+  };
+  r.readAsText(f,'utf-8');
+  e.target.value='';
+};
+
+/* ========= 打开弹窗 ========= */
+$('#btnOpen').onclick=()=>{
+  $('#idInput').value='';refresh();
+  $('#btnConfirm').disabled=false;$('#btnConfirm').textContent='确 认';
+  open('mask1');
+};
+
+/* ========= 模拟：该ID在黑名单中有几条记录 ========= */
+function hitCount(id,type){
+  if(id===100000)return 0;                 // 演示：误把 -100000 输成 100000，该ID不在黑名单
+  const rate=+$('#hitRate').value;
+  const h=(id*2654435761)%100;               // 确定性散列
+  if(h>=rate)return 0;                       // 不在黑名单
+  return type==='-1' ? 1+(id%3) : 1;         // 全部活动时一个会员可能有多条
+}
+
+/* ========= 确认 ========= */
+$('#btnConfirm').onclick=()=>{
+  const p=refresh(), type=$('#actType').value;
+  const typeName=type==='-1'?'全部活动':ACTS.find(a=>a[0]==type)[1];
+
+  if($('#idInput').value.trim()===''){toast('错误信息','会员ID不能为空','bad');return;}
+  if(p.isAll){
+    if(type==='-1'){toast('操作失败','删除所有会员不能选择全部类型','bad');return;}
+    $('#confirmBody').innerHTML=`<p>将删除活动类型 <b>【${typeName}】</b> 下的<b class="err">全部</b>会员黑名单。</p>
+      <p class="muted" style="margin-top:8px">此操作不可撤销，确认继续？</p>`;
+    open('mask2');return;
+  }
+  if(p.ids.length>MAX){
+    toast('提交被拦截',`最多支持一次删除 ${MAX.toLocaleString()} 个会员ID，当前 ${p.ids.length.toLocaleString()} 个`,'bad');return;
+  }
+  if(p.ids.length===0){
+    toast('操作失败',`共 ${p.submitted} 行，全部为无效ID，未执行任何删除`,'bad');return;
+  }
+  $('#confirmBody').innerHTML=`<p>活动类型：<b>【${typeName}】</b></p>
+    <p style="margin-top:6px">共解析到 <b>${p.ids.length.toLocaleString()}</b> 个有效会员ID（已去重）`+
+    (p.invalid.length?`，另有 <b class="err">${p.invalid.length}</b> 行无效将被跳过`:'')+`。</p>
+    <p class="muted" style="margin-top:8px">黑名单内无此ID的将直接跳过。确认删除？</p>`;
+  open('mask2');
+};
+
+/* ========= 执行 ========= */
+$('#btnGo').onclick=()=>{
+  close('mask2');
+  const p=parse($('#idInput').value), type=$('#actType').value;
+  const typeName=type==='-1'?'全部活动':ACTS.find(a=>a[0]==type)[1];
+  const btn=$('#btnConfirm');btn.disabled=true;btn.textContent='执行中…';
+
+  if(p.isAll){
+    const total=1837;
+    runBatches(Math.ceil(total/500),()=>showResult({typeName,mode:'all',submitted:1,distinct:0,
+      invalid:[],deleted:total,skipped:0,failedAt:0}));
+    return;
+  }
+
+  // 命中计算
+  let deleted=0,skipped=0;
+  p.ids.forEach(id=>{const c=hitCount(id,type);c===0?skipped++:deleted+=c;});
+
+  const batches=Math.ceil(deleted/500)||1;
+  const failAt=$('#simFail').checked&&batches>=5?5:0;
+  runBatches(batches,()=>{
+    let d=deleted;
+    if(failAt){d=Math.min(deleted,(failAt-1)*500);}
+    showResult({typeName,mode:'ids',submitted:p.submitted,distinct:p.ids.length,
+      invalid:p.invalid,deleted:d,skipped,failedAt:failAt,batches});
+  },failAt);
+};
+
+function runBatches(n,done,failAt){
+  setTimeout(done, failAt?600:700);   // 模拟执行耗时，期间确认按钮置灰
+}
+
+/* ========= 结果：只弹 toast，不开结果弹窗 ========= */
+function showResult(r){
+  const btn=$('#btnConfirm');btn.disabled=false;btn.textContent='确 认';
+
+  // 全量删除模式
+  if(r.mode==='all'){
+    close('mask1');
+    toast('批量删除成功',`已清空【${r.typeName}】下全部黑名单，共 ${r.deleted.toLocaleString()} 条`,'ok');
+    return;
+  }
+  // 分批中途失败：弹窗保持打开，便于重新提交剩余ID
+  if(r.failedAt){
+    toast('部分成功',`已删除 ${r.deleted.toLocaleString()} 条，第 ${r.failedAt} 批起未执行，请重新提交剩余ID`);
+    return;
+  }
+  // 没有任何记录被删除：弹窗保持打开（与 V1 现有行为一致）
+  if(r.deleted===0){
+    toast('操作失败','本次没有需要处理的数据');
+    return;
+  }
+  let msg=`共删除 ${r.deleted.toLocaleString()} 条`;
+  if(r.skipped)msg+=`，跳过 ${r.skipped.toLocaleString()} 个`;
+  if(r.invalid.length)msg+=`，无效 ${r.invalid.length} 个`;
+  close('mask1');
+  toast('批量删除成功',msg,'ok');
+}
+
+refresh();
+</script>
+</body>
+</html>
