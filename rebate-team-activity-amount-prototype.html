@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>昨日返佣等级 · 团队活动领取金额</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.topbar .r{display:flex;gap:22px;align-items:center}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center}
+.sub h1{font-size:15px;color:#6C4FE0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:16px 22px 50px}
+.card{background:#fff;border-radius:4px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+
+.flt{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:center;font-size:12.5px;color:#555}
+.fi{display:flex;align-items:center;gap:8px}
+.fi>span{white-space:nowrap;color:#555}
+.fi input,.fi select{font:inherit;font-size:12.5px;padding:6px 9px;border:1px solid #dcdce4;border-radius:3px;background:#fff;color:#333;width:150px}
+.fi input::placeholder{color:#c2c2cc}
+.fi select{width:172px}
+.acts{display:flex;align-items:center;gap:9px;margin:14px 0 4px}
+.btn{display:inline-flex;align-items:center;gap:5px;background:#6C4FE0;color:#fff;border:0;border-radius:3px;padding:6px 14px;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:hover{background:#5b3fd0}
+.btn.gray{background:#fff;color:#666;border:1px solid #dcdce4}
+.btn.gray:hover{background:#f7f7fb;color:#6C4FE0;border-color:#c3b8ee}
+.day{margin-left:auto;display:flex;gap:8px}
+
+.tbl{overflow-x:auto;margin-top:12px;border:1px solid #ebebf2;border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:1780px}
+th,td{border-right:1px solid #ebebf2;border-bottom:1px solid #ebebf2;padding:8px 9px;text-align:center;white-space:nowrap}
+th{background:#f7f7fb;color:#555;font-weight:600;font-size:11.5px}
+td{color:#444}
+tbody tr:hover{background:#f7f5ff}
+.uid{color:#6C4FE0;cursor:pointer}.uid:hover{text-decoration:underline}
+.lv{color:#6C4FE0}
+.newcol{background:#f5f2ff}
+th.newcol{background:#ece5ff;color:#5b3fd0}
+.nb{display:inline-block;background:#f5222d;color:#fff;font-size:8.5px;line-height:1;padding:2px 3px;border-radius:2px;font-weight:700;margin-left:3px;vertical-align:middle}
+.amt{color:#6C4FE0;cursor:pointer;font-weight:600}
+.amt:hover{text-decoration:underline}
+.amt.hi{color:#f5222d}
+.sumrow td{background:#eef1f7;font-weight:600;color:#f5222d}
+.sumrow td.l{text-align:left;padding-left:22px}
+.pager{display:flex;align-items:center;gap:9px;padding:14px 4px 0;font-size:12.5px;color:#666;flex-wrap:wrap}
+.pager input,.pager select{font:inherit;font-size:12.5px;padding:4px 7px;border:1px solid #dcdce4;border-radius:3px}
+.pager button{font:inherit;font-size:12.5px;padding:4px 11px;border:1px solid #dcdce4;background:#fff;border-radius:3px;cursor:pointer;color:#666}
+.pager button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+
+.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:20px}
+.mask.on{display:flex}
+.modal{background:#fff;border-radius:5px;width:100%;max-width:720px;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.m-head{padding:12px 18px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;border-radius:5px 5px 0 0;font-weight:600;font-size:13.5px;display:flex;justify-content:space-between;align-items:center}
+.m-head .x{cursor:pointer;color:#aaa;font-size:18px;line-height:1}
+.m-body{padding:16px 18px;overflow:auto}
+.m-body table{min-width:0;font-size:12px}
+.m-body th,.m-body td{border:1px solid #ebebf2}
+.m-body td.l,.m-body th.l{text-align:left}
+.meta{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:#666;margin-bottom:12px;padding:9px 12px;background:#f7f7fb;border-radius:3px}
+.meta b{color:#333}
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:680px;max-width:94vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px;color:#333}
+.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dhead .x:hover{color:#666}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.handle:hover{background:#5b3fd0}
+.prd h2{font-size:14px;color:#6C4FE0;margin:20px 0 9px;padding-bottom:5px;border-bottom:1px solid #eee}
+.prd h2:first-child{margin-top:0}
+.prd p{margin:7px 0;color:#555;font-size:13px}
+.prd ol,.prd ul{margin:7px 0 7px 20px;color:#555;font-size:13px}
+.prd li{margin:5px 0}
+.prd table{width:100%;min-width:0;font-size:12px;margin:8px 0}
+.prd th,.prd td{border:1px solid #ebebf2;padding:6px 8px;text-align:left;white-space:normal;vertical-align:top}
+.prd th{background:#fafafd;color:#555;font-size:11.5px}
+.prd code{background:#f2f2f7;padding:1px 4px;border-radius:3px;font-family:Consolas,Monaco,monospace;font-size:11.5px;color:#c7254e}
+.tip{background:#fff8e6;border-left:3px solid #e6a23c;padding:9px 12px;border-radius:3px;margin:10px 0;font-size:12.5px;color:#7a5b12}
+.tip b{color:#c47f0a}
+.bar{display:inline-block;width:46px;height:6px;background:#eceaf6;border-radius:3px;overflow:hidden;vertical-align:middle;margin-right:5px}
+.bar i{display:block;height:100%;background:#6C4FE0}
+.note{font-size:11.5px;color:#9a9aa8;margin-top:10px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
+  <div class="r"><span>2026年08月29日 11:58 星期六</span><span>当前币种：<b style="color:#c0392b">INR</b></span><span>在线人数：4</span></div>
+</div>
+<div class="sub">
+  <h1>昨日返佣等级</h1>
+  <div style="display:flex;align-items:center;gap:16px">
+  <button class="btn" id="openDoc">📋 需求说明</button>
+  <div class="crumb">返佣管理 &nbsp;›&nbsp; 新版返佣管理 &nbsp;›&nbsp; <b>昨日返佣等级</b></div>
+  </div>
+</div>
+
+<div class="wrap">
+<div class="card">
+
+  <div class="flt">
+    <div class="fi"><span>返佣等级</span><select id="fLv"><option value="">请选择</option><option>0</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+    <div class="fi"><span>会员ID</span><input id="fUid" placeholder="会员ID"></div>
+    <div class="fi"><span>团队人数</span><input id="fPeoMin" placeholder="团队最小人数"></div>
+    <div class="fi"><span>团队人数</span><input id="fPeoMax" placeholder="团队最大人数"></div>
+    <div class="fi"><span>团队充值</span><input id="fRecMin" placeholder="团队充值最小金额"></div>
+    <div class="fi"><span>团队充值</span><input id="fRecMax" placeholder="团队充值最大金额"></div>
+    <div class="fi"><span>游戏金额</span><input id="fBetMin" placeholder="团队游戏最小金额"></div>
+    <div class="fi"><span>游戏金额</span><input id="fBetMax" placeholder="团队游戏最大金额"></div>
+    <div class="fi"><span>日期</span><input id="fDate" type="date" value="2026-08-28"></div>
+    <div class="fi"><span>排序</span>
+      <select id="fSort">
+        <option value="peo">团队人数降序</option>
+        <option value="rec">团队充值金额降序</option>
+        <option value="act">团队活动领取金额降序</option>
+        <option value="bet">团队游戏金额降序</option>
+        <option value="lot">彩票团队游戏金额降序</option>
+        <option value="slot">电子团队游戏金额降序</option>
+        <option value="calc">计算返佣金额降序</option>
+        <option value="paid">派发返佣金额降序</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="acts">
+    <button class="btn" id="btnQ">🔍 查 询</button>
+    <button class="btn gray" id="btnR">↺ 重 置</button>
+    <div class="day"><button class="btn gray" id="btnPrev">上一日</button><button class="btn gray" id="btnNext">下一日</button></div>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead>
+        <tr>
+          <th rowspan="2" style="width:92px">日期</th>
+          <th rowspan="2" style="width:74px">会员ID</th>
+          <th rowspan="2" style="width:70px">团队人数</th>
+          <th rowspan="2" style="width:108px">团队充值金额</th>
+          <th rowspan="2" style="width:96px">游戏金额</th>
+          <th rowspan="2" class="newcol" style="width:128px">团队活动<br>领取金额<span class="nb">NEW</span></th>
+          <th rowspan="2" style="width:66px">返佣等级</th>
+          <th colspan="2">彩票</th><th colspan="2">电子</th><th colspan="2">视讯</th><th colspan="2">体育</th><th colspan="2">棋牌</th>
+          <th rowspan="2" style="width:96px">计算返佣金额</th>
+          <th rowspan="2" style="width:96px">派发返佣金额</th>
+          <th rowspan="2" style="width:132px">派发时间</th>
+        </tr>
+        <tr>
+          <th style="width:92px">游戏金额</th><th style="width:80px">返佣金额</th>
+          <th style="width:92px">游戏金额</th><th style="width:80px">返佣金额</th>
+          <th style="width:82px">游戏金额</th><th style="width:74px">返佣金额</th>
+          <th style="width:82px">游戏金额</th><th style="width:74px">返佣金额</th>
+          <th style="width:82px">游戏金额</th><th style="width:74px">返佣金额</th>
+        </tr>
+      </thead>
+      <tbody id="tb"></tbody>
+      <tfoot id="tf"></tfoot>
+    </table>
+  </div>
+
+  <div class="pager">
+    <span id="pgInfo"></span>
+    <span style="margin-left:auto"></span>
+    <button>首页</button><button>上一页</button><button class="on">1</button><button>下一页</button><button>尾页</button>
+    <select><option>20条/页</option><option>50条/页</option></select>
+  </div>
+</div>
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="m-head"><span id="mTitle">活动领取明细</span><span class="x" id="mX">✕</span></div>
+    <div class="m-body" id="mBody"></div>
+  </div>
+</div>
+
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>昨日返佣等级 · 新增团队活动领取金额</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <p style="color:#9a9aa8;font-size:12px;margin-top:0">改造页面：返佣管理 &rsaquo; 新版返佣管理 &rsaquo; 昨日返佣等级（<code>Views/UserInfo/User_RebateLv_Last.cshtml</code>）</p>
+
+    <h2>一、改造字段</h2>
+    <table>
+    <thead><tr><th style="width:112px">位置</th><th>改造内容</th></tr></thead>
+    <tbody>
+    <tr><td>列表新增列</td><td><b>团队活动领取金额</b>，位于「游戏金额」与「返佣等级」之间。展示该代理团队在所选日期内领取的全部活动奖励总额</td></tr>
+    <tr><td>排序下拉</td><td>新增「<b>团队活动领取金额降序</b>」，置于「团队充值金额降序」之后</td></tr>
+    <tr><td>金额交互</td><td>金额可点击，弹出该代理团队的<b>各活动领取明细</b></td></tr>
+    <tr><td>合计行</td><td>「页面总计」「总计」两行增加该列合计</td></tr>
+    <tr><td>导出</td><td>导出文件同步增加该列</td></tr>
+    </tbody></table>
+
+    <h2>二、明细弹窗</h2>
+    <p>按活动类型分组展示，字段：活动名称 / 领取人数 / 领取次数 / 领取金额 / 占比。顶部同时展示团队人数、团队充值金额、活动领取金额及<b>活动/充值比</b>，便于直接判断该线是否只领奖不充值。</p>
+
+    <h2>三、数据来源与口径</h2>
+    <table>
+    <thead><tr><th style="width:100px">项</th><th>说明</th></tr></thead>
+    <tbody>
+    <tr><td>团队定义</td><td><b>该代理往下六层</b>，与返佣统计口径完全一致（返佣基础数据 <code>GetRebateBasisRsp.ParentSixUserID</code> 即六层上级链）。与同行「团队充值金额」为同一批成员，可直接对比</td></tr>
+    <tr><td>统计范围</td><td><code>FinancialLogTypeEnum</code> 中的活动发奖类型共 <b>30 项</b>，完整清单见下节「活动统计范围」</td></tr>
+    <tr><td>数据源</td><td><code>Lottery_Chart.dbo.tab_Chart_Finance_Type</code>，粒度「日期 × 会员 × 账变类型」，聚簇主键 <code>(Time, UserID, Type)</code></td></tr>
+    <tr><td>落库路径</td><td>会员日活动领取额 → <code>tab_2_Rebate_Where</code>（团队聚合，照现有 <code>Children_RechargeAmount</code> 模式）→ <code>tab_3_Commission_Record</code>（页面直接读取）</td></tr>
+    <tr><td>时效</td><td>T+1，与页面现有数据一致</td></tr>
+    </tbody></table>
+
+    <h2>四、活动统计范围</h2>
+    <p>「团队活动领取金额」= 团队成员当日在下列<b>账变类型</b>上的入账金额合计，共 <b>30 项</b>。类型编号取自 <code>FinancialLogTypeEnum</code>。</p>
+
+    <table>
+    <thead><tr><th style="width:96px">活动大类</th><th style="width:44px">项数</th><th>纳入的账变类型（编号 · 名称）</th></tr></thead>
+    <tbody>
+    <tr><td>充值赠送类</td><td>8</td><td>10 充值赠送、13 彩金充值、14 首充满赠送、131 下载APP充值奖励、132 充值等级奖励、133 VIP充值等级奖励、134 回归新充值奖励、112 C2C充值奖励</td></tr>
+    <tr><td>抽奖大奖类</td><td>5</td><td>3 红包、119 转盘奖励、130 邀请转盘奖励、114 锦标赛奖励、<b>103 电子大奖</b><br><span style="color:#9a9aa8">电子大奖由后台「大奖奖励配置」按大奖倍率对电子注单发放，属平台活动奖励，非游戏内彩池中奖</span></td></tr>
+    <tr><td>VIP 类</td><td>3</td><td>29 VIP会员升级礼包、30 VIP会员每月奖励、31 VIP会员充值奖励</td></tr>
+    <tr><td>新会员类</td><td>3</td><td>12 注册送金、116 新会员首充负盈利送彩金、117 新会员玩游戏送彩金</td></tr>
+    <tr><td>绑定行为类</td><td>3</td><td>25 绑卡赠送、104 绑定手机奖励、106 绑定邮箱奖励</td></tr>
+    <tr><td>签到任务类</td><td>2</td><td>7 每日签到、20 任务奖金</td></tr>
+    <tr><td>周期奖励类</td><td>2</td><td>107 每周奖励、115 回归奖励</td></tr>
+    <tr><td>返水类</td><td>2</td><td>28 投注返水、102 一键洗码反水</td></tr>
+    <tr><td>提现活动类</td><td>2</td><td>126 提现活动奖励、108 C2C提现奖励</td></tr>
+    </tbody></table>
+
+    <h3 style="font-size:13px;color:#444;margin:14px 0 6px">明确不纳入的类型</h3>
+    <p style="font-size:12.5px">返佣（1 代理佣金、15 首充返佣 —— 代理佣金即本页已有的「派发返佣金额」，纳入会与同页数据重复计算）、游戏输赢（0 投注金额减少、2 中奖增加、24 电子中奖、26 游戏退还）、充值（4 充值增加、11 人工充值、27 USDT充值、111 C2C充值、125 充值补单）、提现（5 提现减少、6 提现退回、9 出款拒绝、101 人工提款、109 C2C提现、110 C2C提现退回）、理财（16~19）、游戏转账（21、22）、扣款与撤单（100 彩金扣除、105 XOSO期号取消）、代理行为（8 代理红包充值）。</p>
+
+    <div class="tip"><b>建议：</b>类型集合做成<b>可配置</b>，后续新增活动时只需追加类型编号，无需改代码发版。</div>
+
+    <h2>五、业务规则</h2>
+    <ol>
+    <li>新字段<b>仅作统计展示</b>，不参与返佣等级判定，也不进入任何佣金计算公式。</li>
+    <li>团队口径固定为六层，超过六层的下线不计入 —— 与返佣算法保持一致，非遗漏。</li>
+    <li>排序、筛选、导出的行为与现有各列一致。</li>
+    <li>金额为 0 时不可点击。</li>
+    </ol>
+
+    <h2>六、对现有业务的影响</h2>
+    <ol>
+    <li><b>返佣金额计算不受影响。</b>返佣等级取决于团队充值金额与各品类投注额，佣金 = 等级 × 费率，新字段不进入这两条链路，运营看到的返佣数字不会变化。</li>
+    <li><b>不改动现有任何一列。</b>为新增列（<code>ALTER TABLE ADD COLUMN</code>），历史行填 0，既有列与既有数据不变。</li>
+    <li><b>页面现有功能不受影响。</b>页面是对单表拼条件分页查询，多一列不改变现有筛选、排序、导出、合计的行为。</li>
+    </ol>
+
+    <h2>七、上线说明</h2>
+    <ol>
+    <li>新字段自功能上线当天起有数据，此前的历史日期显示为 <code>0</code>。</li>
+    <li>历史数据技术上可补算（数据源保有历史），需单独排期执行，不会自动出现。</li>
+    </ol>
+
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const m2=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+/* 活动类型（FinancialLogTypeEnum 中的发奖类型） */
+const ACTS=['充值赠送','彩金充值','首充满赠送','下载APP充值奖励','充值等级奖励','VIP充值等级奖励','回归新充值奖励','C2C充值奖励',
+'红包','转盘奖励','邀请转盘奖励','锦标赛奖励','电子大奖','VIP会员升级礼包','VIP会员每月奖励','VIP会员充值奖励',
+'注册送金','新会员首充负盈利送彩金','新会员玩游戏送彩金','绑卡赠送','绑定手机奖励','绑定邮箱奖励',
+'每日签到','任务奖金','每周奖励','回归奖励','投注返水','一键洗码反水','提现活动奖励','C2C提现奖励'];
+
+/* 数据：uid,团队人数,团队充值,游戏金额,活动领取,返佣等级,[彩票投注,彩票返佣,电子投注,电子返佣,视讯投注,视讯返佣,体育投注,体育返佣,棋牌投注,棋牌返佣],计算返佣,派发返佣 */
+const D=[
+[100201,3871,3649341.00,36880801.21,58420.36,6,[18634016.00,12448.42,17680323.11,5983.83,408325.00,140.04,42260.49,28.03,115876.61,47.94],18648.26,18648.26],
+[100614,3769,3214301.00,25191778.79,49207.83,6,[14922088.00,14020.07,9951960.18,4927.68,240410.04,135.52,32189.63,26.94,45130.94,26.03],19136.24,19136.24],
+[100200,3721,3095146.00,23798976.55,44115.20,6,[13555081.00,10634.17,9701072.90,3901.05,456563.63,230.33,37843.63,18.78,48415.39,16.28],14800.61,14800.61],
+[105929,3246,2967132.00,28025351.15,41982.65,6,[15999611.00,17881.17,11571204.63,6248.78,417941.02,145.10,2011.38,1.58,34583.12,11.09],24287.72,24287.72],
+[100202,3176,2461823.00,19184209.35,36740.11,6,[10777513.00,8507.34,8034450.08,3655.17,292429.00,107.56,35085.60,13.01,44731.67,15.98],12299.06,0.00],
+[103157,2997,3060231.00,27748460.53,38904.72,6,[15297034.00,16594.15,12130029.46,8428.64,292132.16,233.91,4577.38,2.46,24687.53,8.62],25267.78,25267.78],
+[106956,2405,2115551.00,18948243.04,29615.48,6,[11284493.00,11842.04,7266584.73,3807.73,364603.25,128.48,883.38,0.61,31678.68,14.78],15793.64,15793.64],
+[100620,2124,2179122.00,21898211.34,27340.09,6,[11264909.00,12095.53,10339750.67,7458.01,231989.00,147.12,13884.72,8.12,47677.95,29.57],19738.35,19738.35],
+[100763,2032,2259644.00,19225453.43,25118.77,6,[10284607.00,8305.07,8686134.03,4078.81,243807.16,120.97,2294.00,1.05,8611.24,3.05],12508.95,0.00],
+[107783,1900,1587700.00,13600254.80,21063.44,5,[8058999.00,11575.69,5186263.62,3499.45,328533.25,144.48,1700.00,0.33,24758.93,14.64],15234.59,15234.59],
+[100765,1713,1238602.00,9733969.87,18402.19,5,[5677868.00,11804.21,3914740.42,3826.70,94572.98,100.35,7250.63,7.59,39537.84,35.67],15774.52,0.00],
+[101780,1552,1497935.00,11733234.34,17209.63,5,[4664138.00,5045.42,6859049.79,4083.97,192995.54,49.25,2329.23,1.21,14721.78,18.40],9198.25,0.00],
+[100626,1541,1260623.00,10100966.78,15880.42,5,[4481838.00,3357.70,5461078.12,2166.10,118706.54,46.23,24336.64,5.85,15007.48,8.40],5584.28,5584.28],
+[100619,1458,1213517.00,10305249.00,14722.08,5,[6592144.00,6605.59,3426021.26,1491.57,214149.78,64.40,14586.45,5.23,58347.51,43.95],8210.74,0.00],
+[110263,1242,1223184.00,9817179.91,13905.36,5,[3594614.00,5340.20,5978366.23,5336.90,231310.54,57.86,2329.23,2.69,10559.91,19.38],10757.03,10757.03],
+[100783,1157,1088600.00,12928126.21,12760.55,5,[4405248.00,7894.35,8311881.85,9808.00,159804.00,144.85,7805.00,7.11,43387.36,39.58],17893.89,0.00],
+[100771,1141,884631.00,8332477.19,11024.90,4,[5504217.00,9631.58,2633680.48,1951.20,139224.00,61.99,13511.75,9.28,41843.96,55.42],11709.47,0.00],
+[115343,1089,1007028.00,11492727.93,10847.31,5,[4117535.00,15457.17,7164234.57,13114.55,159804.00,321.91,7805.00,15.81,43349.36,87.78],28997.22,28997.22],
+[116285,1076,1001128.00,11408919.83,10406.02,5,[4096462.00,34192.58,7101499.47,28855.44,159804.00,715.34,7805.00,35.12,43349.36,195.07],63993.55,63993.55],
+[100622,956,655711.00,5416399.42,7128.63,3,[3313496.00,3207.47,1975234.82,1421.80,111875.00,43.96,2853.00,3.71,12940.60,3.07],4680.01,0.00],
+/* ↓ 异常线：团队小、充值少、活动领取畸高 */
+[118902,412,168400.00,486210.55,214830.72,2,[286210.00,142.60,182000.55,88.20,12000.00,4.10,3000.00,1.20,3000.00,0.90,],237.00,237.00],
+[121455,268,93200.00,214880.30,157402.18,1,[128880.00,64.10,74000.30,35.80,8000.00,2.60,2000.00,0.80,2000.00,0.60],103.90,0.00],
+[119773,197,61500.00,152340.90,121985.44,1,[92340.00,45.20,50000.90,24.10,6000.00,1.90,2000.00,0.70,2000.00,0.50],72.40,72.40],
+[123018,144,38900.00,88420.10,86307.55,1,[52420.00,26.00,28000.10,13.50,5000.00,1.60,1500.00,0.50,1500.00,0.40],41.90,0.00],
+];
+
+const KEY={peo:1,rec:2,bet:3,act:4,calc:7,paid:8,lot:'g0',slot:'g2'};
+let ROWS=[];
+
+function num(v){const n=parseFloat(v);return isNaN(n)?null:n}
+function apply(){
+  const uid=$('#fUid').value.trim(), lv=$('#fLv').value;
+  const pMin=num($('#fPeoMin').value),pMax=num($('#fPeoMax').value);
+  const rMin=num($('#fRecMin').value),rMax=num($('#fRecMax').value);
+  const bMin=num($('#fBetMin').value),bMax=num($('#fBetMax').value);
+  ROWS=D.filter(r=>{
+    if(uid && String(r[0])!==uid)return false;
+    if(lv!=='' && String(r[5])!==lv)return false;
+    if(pMin!==null&&r[1]<pMin)return false; if(pMax!==null&&r[1]>pMax)return false;
+    if(rMin!==null&&r[2]<rMin)return false; if(rMax!==null&&r[2]>rMax)return false;
+    if(bMin!==null&&r[3]<bMin)return false; if(bMax!==null&&r[3]>bMax)return false;
+    return true;
+  });
+  const s=$('#fSort').value, k=KEY[s];
+  ROWS.sort((a,b)=>typeof k==='string'?b[6][+k[1]]-a[6][+k[1]]:b[k]-a[k]);
+  draw();
+}
+function draw(){
+  const d=$('#fDate').value, pay=d.replace(/-/g,'/').replace(/^(\d{4})\/(\d{2})\/(\d{2})$/,(m,y,mo,dd)=>`${y}/${+mo}/${+dd+1} 2:00:00`);
+  $('#tb').innerHTML=ROWS.map(r=>{
+    const [uid,peo,rec,bet,act,lv,g,calc,paid]=r;
+    const hi=act>rec*0.5;
+    return `<tr>
+      <td>${d}</td><td><span class="uid">${uid}</span></td><td>${peo}</td>
+      <td>${m2(rec)}</td><td>${m2(bet)}</td>
+      <td class="newcol"><span class="amt ${hi?'hi':''}" data-uid="${uid}">${m2(act)}</span></td>
+      <td><span class="lv">${lv}</span></td>
+      ${g.map(v=>`<td>${m2(v)}</td>`).join('')}
+      <td>${m2(calc)}</td><td>${m2(paid)}</td><td>${pay}</td></tr>`;
+  }).join('');
+  const sum=i=>ROWS.reduce((s,r)=>s+r[i],0);
+  $('#tf').innerHTML=
+   `<tr class="sumrow"><td class="l" colspan="5">页面总计</td><td class="newcol">${m2(sum(4))}</td>
+      <td colspan="11"></td><td>${m2(sum(7))}</td><td>${m2(sum(8))}</td><td></td></tr>
+    <tr class="sumrow"><td class="l" colspan="5">总计</td><td class="newcol">${m2(sum(4))}</td>
+      <td colspan="11"></td><td>${m2(sum(7))}</td><td>${m2(sum(8))}</td><td></td></tr>`;
+  $('#pgInfo').textContent=`共 1 页，共 ${ROWS.length} 条`;
+  $$('.amt').forEach(el=>el.onclick=()=>detail(+el.dataset.uid));
+}
+
+/* 明细弹窗：该代理线下各活动的领取汇总 */
+function detail(uid){
+  const r=D.find(x=>x[0]===uid); const total=r[4];
+  let seed=uid, rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff};
+  const n=6+Math.floor(rnd()*7);
+  const picked=[...ACTS].sort(()=>rnd()-.5).slice(0,n);
+  let w=picked.map(()=>0.3+rnd()), sw=w.reduce((a,b)=>a+b,0);
+  const rows=picked.map((name,i)=>{
+    const amt=total*w[i]/sw;
+    const users=Math.max(1,Math.round(r[1]*(0.05+rnd()*0.5)));
+    const times=Math.max(users,Math.round(users*(1+rnd()*6)));
+    return {name,amt,users,times};
+  }).sort((a,b)=>b.amt-a.amt);
+  $('#mTitle').innerHTML=`代理 <b>${uid}</b> · 团队活动领取明细 <span style="font-weight:400;color:#9a9aa8;font-size:12px">（${$('#fDate').value}，团队六层）</span>`;
+  $('#mBody').innerHTML=
+   `<div class="meta"><span>团队人数 <b>${r[1]}</b></span><span>团队充值 <b>${m2(r[2])}</b></span>
+      <span>活动领取 <b style="color:#6C4FE0">${m2(total)}</b></span>
+      <span>活动/充值 <b style="color:${total>r[2]*.5?'#f5222d':'#333'}">${(total/r[2]*100).toFixed(1)}%</b></span></div>
+    <table><thead><tr><th class="l">活动名称</th><th style="width:78px">领取人数</th><th style="width:78px">领取次数</th>
+      <th style="width:104px">领取金额</th><th style="width:118px">占比</th></tr></thead><tbody>`+
+    rows.map(x=>{const p=x.amt/total*100;return `<tr><td class="l">${x.name}</td><td>${x.users}</td><td>${x.times}</td>
+      <td>${m2(x.amt)}</td><td><span class="bar"><i style="width:${p}%"></i></span>${p.toFixed(1)}%</td></tr>`}).join('')+
+    `</tbody><tfoot><tr class="sumrow"><td class="l">合计</td><td></td><td></td><td>${m2(total)}</td><td>100.0%</td></tr></tfoot></table>
+    <div class="note">口径：统计该代理往下六层团队成员在所选日期内领取的全部活动奖励，与「团队充值金额」为同一批成员，可直接对比。</div>`;
+  $('#mask').classList.add('on');
+}
+
+$('#btnQ').onclick=apply;
+$('#fSort').onchange=apply;
+$('#btnR').onclick=()=>{['fUid','fPeoMin','fPeoMax','fRecMin','fRecMax','fBetMin','fBetMax'].forEach(i=>$('#'+i).value='');
+  $('#fLv').value='';$('#fSort').value='peo';$('#fDate').value='2026-08-28';apply();};
+const shift=n=>{const d=new Date($('#fDate').value);d.setDate(d.getDate()+n);$('#fDate').value=d.toISOString().slice(0,10);apply();};
+$('#btnPrev').onclick=()=>shift(-1); $('#btnNext').onclick=()=>shift(1);
+$('#mX').onclick=()=>$('#mask').classList.remove('on');
+$('#mask').onclick=e=>{if(e.target===$('#mask'))$('#mask').classList.remove('on')};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#mask').classList.remove('on');closeD();}});
+const openD=()=>{$('#drawer').classList.add('on');$('#dmask').classList.add('on')};
+const closeD=()=>{$('#drawer').classList.remove('on');$('#dmask').classList.remove('on')};
+$('#openDoc').onclick=openD;$('#handleDoc').onclick=openD;$('#closeDoc').onclick=closeD;$('#dmask').onclick=closeD;
+apply();
+</script>
+</body>
+</html>
