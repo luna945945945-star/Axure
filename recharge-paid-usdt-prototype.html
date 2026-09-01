@@ -1,0 +1,376 @@
+<title>入款记录·实付USDT</title>
+<style>
+:root{
+  --pri:#6C4FE0; --pri-d:#5a3fd0;
+  --page:#F0F2F5; --card:#FFFFFF; --line:#E4E7ED; --line-2:#DCDFE6;
+  --ink:#303133; --ink-2:#606266; --ink-3:#909399; --ink-4:#C0C4CC;
+  --ok:#0f9d58; --warn:#E6A23C; --bad:#F5222D; --link:#2f6fd0;
+  --head:#FAFAFC; --hover:#F7F5FE; --sum:#FAFAFA;
+  --new:#0f9d58; --new-bg:#E8F6EE;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+
+.tabs{background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:stretch;gap:0}
+.tabs button{background:transparent;border:0;border-right:1px solid var(--line);padding:11px 26px;cursor:pointer;font-size:13.5px;color:var(--ink-2)}
+.tabs button[aria-pressed=true]{background:var(--pri);color:#fff;font-weight:500}
+.tabs .sp{flex:1;border-right:0}
+.tabs .tools{display:flex;align-items:center;gap:10px;padding:0 16px;border-right:0}
+.modesw{display:inline-flex;border:1px solid var(--pri);border-radius:4px;overflow:hidden}
+.modesw button{border:0;border-right:0;padding:4px 13px;font-size:12.5px;background:#fff;color:var(--pri)}
+.modesw button[aria-pressed=true]{background:var(--pri);color:#fff;font-weight:400}
+.docbtn{background:#fff;border:1px solid var(--line-2);color:var(--ink-2);padding:5px 13px;border-radius:4px;cursor:pointer;font-size:12.5px}
+.docbtn:hover{border-color:var(--pri);color:var(--pri)}
+
+.notice{background:#FFF8E6;border-bottom:1px solid #F5E4B8;color:#B07D1A;padding:9px 16px;font-size:12.5px}
+.main{padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:3px;margin-bottom:12px}
+
+.filters{padding:16px 14px 6px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px 14px}
+@media(max-width:1500px){.filters{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1000px){.filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.fi{display:flex;align-items:center;gap:8px;min-width:0}
+.fi>label{flex:0 0 68px;text-align:right;color:var(--ink-2);font-size:12.5px;white-space:nowrap}
+.fi .ctl{flex:1;min-width:0}
+.fi input,.fi select{width:100%;height:30px;padding:0 8px;border:1px solid var(--line-2);border-radius:3px;background:#fff;font-size:12.5px}
+.fi input::placeholder{color:var(--ink-4)}
+.fi .pair{display:flex;align-items:center;gap:5px}
+.fi .pair span{color:var(--ink-4)}
+
+.ops{padding:4px 14px 14px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.op{background:var(--pri);color:#fff;border:0;border-radius:3px;padding:6px 13px;font-size:12.5px;cursor:pointer}
+.op:hover{background:var(--pri-d)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:3px;overflow:hidden;margin-left:auto}
+.seg button{background:#fff;border:0;border-right:1px solid var(--line-2);padding:5px 14px;cursor:pointer;font-size:12.5px;color:var(--ink-2)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--pri);color:#fff}
+
+.tscroll{overflow-x:auto;border-top:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:2000px;font-size:12.5px}
+th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:9px 10px;text-align:center;vertical-align:middle}
+th:last-child,td:last-child{border-right:0}
+thead th{background:var(--head);font-weight:600;white-space:nowrap}
+tbody tr:hover td{background:var(--hover)}
+td.cell{text-align:left;white-space:nowrap}
+.k{color:var(--ink-2)}
+.uid{color:var(--pri);cursor:pointer}
+.copy{border:1px solid var(--line-2);background:#fff;border-radius:3px;font-size:11px;padding:1px 6px;margin-left:5px;cursor:pointer;color:var(--ink-2)}
+.lnk{color:var(--link)}
+.g{color:var(--ok)} .r{color:var(--bad)} .o{color:var(--warn)}
+.btn-sm{border:1px solid #8FD4AD;background:#fff;color:var(--ok);border-radius:3px;padding:3px 10px;font-size:12px;cursor:pointer}
+.sumrow td{background:var(--sum);color:var(--bad);font-weight:600;text-align:left;white-space:nowrap}
+.newline{background:var(--new-bg);display:inline-block;border-radius:2px;padding:0 4px;margin-top:2px}
+.newtag{font-size:10px;background:var(--new);color:#fff;border-radius:2px;padding:0 4px;margin-left:4px;letter-spacing:.3px;vertical-align:middle}
+th.newcol .newtag{margin-left:5px}
+.diff{color:var(--bad);font-size:11.5px;margin-left:4px}
+
+.pager{display:flex;align-items:center;gap:10px;padding:13px 14px;flex-wrap:wrap;justify-content:center;position:relative}
+.pager .left{position:absolute;left:14px;display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12.5px}
+.pager .left input{width:74px;height:28px;border:1px solid var(--line-2);border-radius:3px;padding:0 7px}
+.pager .left select{height:28px;border:1px solid var(--line-2);border-radius:3px;padding:0 5px}
+.pg{background:#fff;border:1px solid var(--line-2);border-radius:3px;padding:5px 12px;cursor:pointer;font-size:12.5px;color:var(--ink-2)}
+.pg.cur{background:var(--pri);border-color:var(--pri);color:#fff}
+.pager .cnt{position:absolute;right:14px;color:var(--ink-2);font-size:12.5px}
+@media(max-width:900px){.pager .left,.pager .cnt{position:static}}
+
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:760px;max-width:94vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dhead{padding:13px 20px;border-bottom:1px solid var(--line);border-top:3px solid var(--pri);display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}
+.dhead .x{cursor:pointer;color:var(--ink-4);font-size:20px;line-height:1;background:none;border:0}
+.dbody{padding:18px 22px 50px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--pri);color:#fff;writing-mode:vertical-rl;padding:14px 7px;border:0;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd h2{font-size:14.5px;color:var(--pri);margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.prd h2:first-child{margin-top:0}
+.prd h3{font-size:13px;margin:16px 0 7px}
+.prd p{margin:7px 0;color:var(--ink-2)}
+.prd ul{margin:7px 0 7px 20px;color:var(--ink-2);padding:0}
+.prd li{margin:4px 0}
+.prd table{min-width:0;font-size:12.5px;width:100%}
+.prd th,.prd td{border:1px solid var(--line);padding:6px 8px;text-align:left;white-space:normal;vertical-align:top}
+.prd th{background:var(--head)}
+.prd td{color:var(--ink-2)}
+.prd .q{background:#FFFBF0;border-left:3px solid var(--warn);padding:9px 13px;border-radius:0 3px 3px 0;margin:10px 0;font-size:12.5px;color:#7a5b12}
+.prd .q b{color:#c47f0a}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="tabs">
+  <button aria-pressed="true">快速查询</button>
+  <button aria-pressed="false">历史数据</button>
+  <span class="sp"></span>
+  <span class="tools">
+    <span class="modesw" id="modesw">
+      <button data-m="before" aria-pressed="false">改造前</button>
+      <button data-m="after" aria-pressed="true">改造后</button>
+    </span>
+    <button class="docbtn" id="openDoc">需求说明</button>
+  </span>
+</div>
+
+<div class="notice">温馨提示：当前页面仅支持查询最近 88 天数据，更早数据请到「历史数据」页查询</div>
+
+<div class="main">
+  <div class="card">
+    <div class="filters" id="filters"></div>
+    <div class="ops">
+      <button class="op">🔍 查 询</button>
+      <button class="op">📄 导 出</button>
+      <button class="op">↺ 重 置</button>
+      <span class="seg" id="rangeSeg">
+        <button aria-pressed="false">今天</button><button aria-pressed="false">昨天</button>
+        <button aria-pressed="false">本周</button><button aria-pressed="false">上周</button>
+        <button aria-pressed="false">本月</button><button aria-pressed="true">上月</button>
+        <button aria-pressed="false">所有</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tscroll">
+      <table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table>
+    </div>
+    <div class="pager">
+      <div class="left">共1页，前往 <input type="text"> 页，
+        <select><option>20条/页</option></select><button class="pg">GO</button></div>
+      <button class="pg">首页</button><button class="pg">上一页</button>
+      <button class="pg cur">1</button><button class="pg">下一页</button><button class="pg">尾页</button>
+      <span class="cnt" id="cnt">共6条</span>
+    </div>
+  </div>
+</div>
+
+<button class="handle" id="handleDoc">需求说明</button>
+<div class="dmask" id="dmask"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dhead"><b>入款记录 · 新增「实付USDT」· 需求说明</b><button class="x" id="closeDoc">✕</button></div>
+  <div class="dbody prd">
+
+    <h2>一、改造页面与字段</h2>
+    <p>改造页面：财务管理 › 入款记录（快速查询 / 历史数据两个页签）</p>
+    <table>
+      <tr><th style="width:150px">位置</th><th>改造内容</th></tr>
+      <tr><td>「实付金额/手续费」列</td><td>新增一行「实付USDT」，展示三方回调回传的会员实际支付 U 数量</td></tr>
+      <tr><td>「订单金额」列的 USDT 数量</td><td>含义明确为<b>会员下单时的 U 数量</b>，支付成功后不再被改动</td></tr>
+      <tr><td>充值订单</td><td>新增一个字段专门存放实付 U 数量</td></tr>
+      <tr><td>报表管理 › 数据统计</td><td>页面上的「U数量」改为取<b>实付 U 数量</b></td></tr>
+    </table>
+
+    <h2>二、功能与规则</h2>
+
+    <h3>2.1 两个 U 数量的区别</h3>
+    <table>
+      <tr><th style="width:120px">名称</th><th style="width:120px">所在列</th><th>含义</th></tr>
+      <tr><td>USDT</td><td>订单金额</td><td>会员下单时选择的 U 数量，下单那一刻确定，之后不再变化</td></tr>
+      <tr><td><b>实付USDT</b></td><td>实付金额/手续费</td><td>三方回调回来时告知的、会员实际转账的 U 数量</td></tr>
+    </table>
+
+    <h3>2.2 取值与展示</h3>
+    <ul>
+      <li>实付USDT 取三方回调回传的实付 U 数量，订单本身不做换算。</li>
+      <li>订单未支付、已取消时，实付USDT 显示 <b>--</b>，与实付金额的显示规则一致。</li>
+      <li>非 USDT 类型的充值订单（银行卡、UPI 等）不显示实付USDT 这一行。</li>
+      <li>实付USDT 与下单 USDT 不一致时，在数值后面标出差额，方便财务一眼看出多付或少付。</li>
+    </ul>
+
+    <h3>2.3 必须同步调整的现有逻辑</h3>
+    <p><b>这一条是本需求能否成立的前提。</b></p>
+    <ul>
+      <li>现状：充值回调回来时，如果三方带回了 U 数量，系统会<b>直接把订单上的 U 数量覆盖掉</b>。也就是说已支付订单的「订单金额」列里显示的其实是实付 U，下单时的 U 已经丢失。</li>
+      <li>改造：回调不再覆盖订单的 U 数量，改为写入新的实付 U 字段。这样订单列保持下单 U、实付列显示实付 U，两者才能对比。</li>
+      <li>涉及回调的入口不止一处（三方回调、内部补单接口、回调失败重试任务），<b>要全部改到，不能只改一处</b>。</li>
+    </ul>
+
+    <h3>2.4 历史订单</h3>
+    <ul>
+      <li>改造前已支付的订单，实付 U 字段没有值，实付USDT 一律显示 <b>--</b>。</li>
+      <li>这些订单「订单金额」列里的 U 数量，实际上是被覆盖过的实付 U，不是真正的下单 U，<b>无法恢复</b>。</li>
+      <li>需要向运营说明：只有改造上线之后的订单，两个 U 数量才具备对比意义。</li>
+    </ul>
+
+    <h3>2.5 合计行</h3>
+    <ul>
+      <li>页面总计、总计两行里的「U额」含义变更为<b>下单 U 合计</b>，统计口径与改造前一致（所有订单，不分状态）。</li>
+      <li>新增「实付U额」合计，只统计已支付订单。</li>
+    </ul>
+
+    <h3>2.6 导出</h3>
+    <ul><li>导出文件在实付金额之后增加「实付USDT」一列，取值规则与页面一致。</li></ul>
+
+    <h3>2.7 报表管理 › 数据统计</h3>
+    <ul>
+      <li>该页面充值相关的「U数量」，取值从下单 U 改为<b>实付 U 数量</b>。</li>
+      <li>提现相关的 U 数量不在本次范围内，保持现状。</li>
+    </ul>
+
+    <h2>三、验收标准</h2>
+    <table>
+      <tr><th style="width:62px">编号</th><th style="width:150px">验收项</th><th>预期结果</th></tr>
+      <tr><td>AC-01</td><td>已支付且三方回传U</td><td>实付列显示「实付USDT：X」，数值等于三方回传值</td></tr>
+      <tr><td>AC-02</td><td>下单U 与 实付U 一致</td><td>两列数值相同，不显示差额</td></tr>
+      <tr><td>AC-03</td><td>差额提示</td><td>实付USDT 与订单 USDT 不一致时，数值后面标出差额，能看出是多付还是少付</td></tr>
+      <tr><td>AC-04</td><td>订单金额列不再被改动</td><td>支付成功后，订单金额列的 USDT 数量仍等于会员下单时选择的数量</td></tr>
+      <tr><td>AC-05</td><td>未支付订单</td><td>实付USDT 显示 --</td></tr>
+      <tr><td>AC-06</td><td>已取消订单</td><td>实付USDT 显示 --</td></tr>
+      <tr><td>AC-07</td><td>非 USDT 充值订单</td><td>实付列不出现实付USDT 这一行，其余展示不变</td></tr>
+      <tr><td>AC-08</td><td>改造前的历史订单</td><td>实付USDT 显示 --，页面不报错</td></tr>
+      <tr><td>AC-09</td><td>三个回调入口</td><td>三方回调、内部补单、回调失败重试三条路径，实付U 都能正确写入且不覆盖下单U</td></tr>
+      <tr><td>AC-10</td><td>U额合计</td><td>「U额」等于当前结果内所有订单的下单U 之和，与改造前口径一致</td></tr>
+      <tr><td>AC-11</td><td>实付U额合计</td><td>「实付U额」只累计已支付订单，未支付和已取消的不计入</td></tr>
+      <tr><td>AC-12</td><td>导出</td><td>导出文件含「实付USDT」列，取值与页面一致</td></tr>
+      <tr><td>AC-13</td><td>历史数据页签</td><td>历史数据页签的展示规则与快速查询一致</td></tr>
+      <tr><td>AC-14</td><td>数据统计取值</td><td>报表管理 › 数据统计里充值的「U数量」等于同期订单的实付 U 之和，与入款记录的「实付U额」对得上</td></tr>
+      <tr><td>AC-15</td><td>提现U数量不变</td><td>数据统计里提现相关的 U 数量与改造前完全一致</td></tr>
+      <tr><td>AC-16</td><td>历史数据不受影响</td><td>上线后查看改造前日期的数据统计，数值与上线前一致，没有被改动</td></tr>
+    </table>
+
+  </div>
+</aside>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(i){return document.getElementById(i)};
+  var mode="after";
+
+  var FILTERS=[
+    {l:"会员ID",p:"会员ID"},{l:"订单编号",p:"订单编号"},{l:"充值方式",v:"Wallet66-USDT",sel:1},
+    {l:"充值状态",sel:1,ph:"请选择"},{l:"收款卡",sel:1,ph:"请选择"},{l:"收款UPI",sel:1,ph:"请选择"},
+    {l:"RefID",p:"RefID"},{l:"会员等级",sel:1,ph:"请选择"},{l:"充值金额",pair:1},
+    {l:"数据排序",sel:1,ph:"请选择"},{l:"开始时间",v:"2026-08-01 00:00:00"},{l:"结束时间",v:"2026-08-31 23:59:59"},
+    {l:"开始时间",p:"到账日期"},{l:"结束时间",p:"到账日期"},{l:"用户状态",sel:1,ph:"全部"},
+    {l:"充值次数",pair:1,pmin:"最小次数",pmax:"最大次数"},{l:"VIP等级",sel:1,ph:"请选择"}
+  ];
+
+  // 订单U / 实付U(null=三方未回传) / 是否USDT类型
+  var ROWS=[
+    {id:159881,lv:"L3",no:"RC20260808190438372002005a",amt:"951.50",rate:"95.15",u:10,paid:null,fee:null,feeRate:null,credit:null,pu:null,times:4,state:"已取消",remark:"",date:"2026-08-08 19:04:38",arrive:"----",act:1,op:"三方充值自动取消时间",usdt:1},
+    {id:100000,lv:"L6",no:"RC20260808105619102002003a",amt:"951.50",rate:"95.15",u:10,paid:null,fee:null,feeRate:null,credit:null,pu:null,times:129,state:"已取消",remark:"",date:"2026-08-08 10:56:19",arrive:"----",act:1,op:"三方充值自动取消时间",usdt:1},
+    {id:100000,lv:"L6",no:"RC20260807121236352002002a",amt:"952.40",rate:"95.24",u:10,paid:null,fee:null,feeRate:null,credit:null,pu:null,times:129,state:"已取消",remark:"",date:"2026-08-07 12:12:36",arrive:"----",act:1,op:"三方充值自动取消时间",usdt:1},
+    {id:100000,lv:"L6",no:"RC20260807103604792002001a",amt:"952.50",rate:"95.25",u:10,paid:"952.50",fee:"9.53",feeRate:"1%",credit:"942.97",pu:10,times:129,state:"已支付",remark:"test",date:"2026-08-07 10:36:04",arrive:"2026-08-07 10:40:52",act:0,op:"alex",usdt:1},
+    {id:159876,lv:"L6",no:"RC20260801120139712002002a",amt:"9540.00",rate:"95.4",u:100,paid:null,fee:null,feeRate:null,credit:null,pu:null,times:40,state:"已取消",remark:"",date:"2026-08-01 12:01:39",arrive:"----",act:1,op:"三方充值自动取消时间",usdt:1},
+    {id:160233,lv:"L2",no:"RC20260805094512330002007a",amt:"4770.00",rate:"95.40",u:50,paid:"4732.80",fee:"47.33",feeRate:"1%",credit:"4685.47",pu:49.61,times:12,state:"已支付",remark:"",date:"2026-08-05 09:45:12",arrive:"2026-08-05 09:48:30",act:0,op:"system",usdt:1}
+  ];
+
+  var COLS=["会员ID","会员等级","订单号","客户信息","充值类型","银行/UPI/ORCode","订单金额",
+            "实付金额/手续费","上分金额","充值次数","状态","备注","订单日期","到账日期","操作","操作人"];
+
+  function buildFilters(){
+    var box=$("filters");box.innerHTML="";
+    FILTERS.forEach(function(f){
+      var d=document.createElement("div");d.className="fi";
+      var ctl=f.sel
+        ? '<select><option>'+esc(f.v||f.ph||"请选择")+'</option></select>'
+        : f.pair
+          ? '<div class="pair"><input type="text" placeholder="'+esc(f.pmin||"最小金额")+'"><span>~</span><input type="text" placeholder="'+esc(f.pmax||"最大金额")+'"></div>'
+          : '<input type="text" '+(f.v?'value="'+esc(f.v)+'"':'placeholder="'+esc(f.p||f.l)+'"')+'>';
+      d.innerHTML='<label>'+esc(f.l)+'</label><div class="ctl">'+ctl+'</div>';
+      box.appendChild(d);
+    });
+  }
+
+  function buildHead(){
+    var tr=$("thead");tr.innerHTML="";
+    COLS.forEach(function(t){
+      var th=document.createElement("th");
+      if(t==="实付金额/手续费"&&mode==="after"){
+        th.className="newcol";
+        th.innerHTML=esc(t)+'<span class="newtag">新增实付USDT</span>';
+      }else th.textContent=t;
+      tr.appendChild(th);
+    });
+  }
+
+  function fmt(n){return Number(n).toFixed(2)}
+
+  function paidCell(r){
+    var lines=[];
+    lines.push('实付金额：'+(r.paid?r.paid:'--'));
+    lines.push('手续费：'+(r.fee?(r.fee+(r.feeRate?'（'+r.feeRate+'）':'')):'--'));
+    if(mode==="after"&&r.usdt){
+      var v='--',diff='';
+      if(r.pu!==null&&r.pu!==undefined){
+        v=fmt(r.pu);
+        var d=r.pu-r.u;
+        if(Math.abs(d)>0.0001) diff='<span class="diff">('+(d>0?'多付 +':'少付 ')+fmt(d)+')</span>';
+      }
+      lines.push('<span class="newline">实付USDT：'+v+'</span>'+diff);
+    }
+    return lines.join('<br>');
+  }
+
+  function buildBody(){
+    var tb=$("tbody");tb.innerHTML="";
+    ROWS.forEach(function(r){
+      var tr=document.createElement("tr");
+      tr.innerHTML=
+        '<td><span class="uid">'+r.id+'</span><button class="copy">复制</button></td>'+
+        '<td>'+esc(r.lv)+'</td>'+
+        '<td class="cell">'+esc(r.no)+'</td>'+
+        '<td><span class="lnk">转账地址：</span></td>'+
+        '<td>USDT</td>'+
+        '<td><span class="lnk">Wallet66-USDT</span></td>'+
+        '<td class="cell"><span class="k">金额：</span>'+r.amt+'<br><span class="k">兑换比例：</span>'+r.rate+'<br><span class="k">USDT：</span>'+r.u+'</td>'+
+        '<td class="cell">'+paidCell(r)+'</td>'+
+        '<td>'+(r.credit||'--')+'</td>'+
+        '<td>'+r.times+'</td>'+
+        '<td><span class="'+(r.state==="已支付"?"g":"o")+'">'+esc(r.state)+'</span></td>'+
+        '<td>'+esc(r.remark)+'</td>'+
+        '<td class="cell">'+esc(r.date)+'</td>'+
+        '<td class="cell">'+esc(r.arrive)+'</td>'+
+        '<td>'+(r.act?'<button class="btn-sm">确认补单</button>':'------------')+'</td>'+
+        '<td class="cell">'+esc(r.op)+'</td>';
+      tb.appendChild(tr);
+    });
+
+    var sumAmt=0,sumU=0,sumPaid=0,sumFee=0,sumCredit=0,sumPU=0;
+    ROWS.forEach(function(r){
+      sumAmt+=parseFloat(r.amt);sumU+=r.u;
+      if(r.paid){sumPaid+=parseFloat(r.paid);sumFee+=parseFloat(r.fee);sumCredit+=parseFloat(r.credit)}
+      if(r.pu!==null&&r.pu!==undefined)sumPU+=r.pu;
+    });
+    ["页面总计","总计"].forEach(function(t){
+      var tr=document.createElement("tr");tr.className="sumrow";
+      tr.innerHTML='<td colspan="6">'+t+'</td>'+
+        '<td>金额：'+fmt(sumAmt)+'<br>U额：'+fmt(sumU)+'</td>'+
+        '<td>实付金额：'+fmt(sumPaid)+'<br>手续费：'+fmt(sumFee)+
+          (mode==="after"?'<br><span class="newline">实付U额：'+fmt(sumPU)+'</span>':'')+'</td>'+
+        '<td colspan="8">上分金额：'+fmt(sumCredit)+'</td>';
+      tb.appendChild(tr);
+    });
+  }
+
+  function render(){buildFilters();buildHead();buildBody()}
+
+  $("modesw").addEventListener("click",function(e){
+    var m=e.target.getAttribute("data-m");if(!m)return;
+    mode=m;
+    [].forEach.call(this.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",b.getAttribute("data-m")===m)});
+    render();
+  });
+  $("rangeSeg").addEventListener("click",function(e){
+    if(e.target.tagName!=="BUTTON")return;
+    [].forEach.call(this.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",b===e.target)});
+  });
+
+  function openD(){$("drawer").classList.add("on");$("dmask").classList.add("on");$("drawer").setAttribute("aria-hidden","false")}
+  function closeD(){$("drawer").classList.remove("on");$("dmask").classList.remove("on");$("drawer").setAttribute("aria-hidden","true")}
+  $("openDoc").addEventListener("click",openD);
+  $("handleDoc").addEventListener("click",openD);
+  $("closeDoc").addEventListener("click",closeD);
+  $("dmask").addEventListener("click",closeD);
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")closeD()});
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+
+  render();
+})();
+</script>
