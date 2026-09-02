@@ -1,0 +1,276 @@
+<title>短信商多开轮发</title>
+<style>
+:root{
+  --pri:#6C4FE0; --pri-d:#5a3fd0;
+  --page:#F0F2F5; --card:#FFFFFF; --line:#E4E7ED; --line-2:#DCDFE6;
+  --ink:#303133; --ink-2:#606266; --ink-3:#909399; --ink-4:#C0C4CC;
+  --ok:#0f9d58; --bad:#F5222D; --warn:#E6A23C;
+  --head:#FAFAFC; --hover:#F7F5FE;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+
+.pagebar{background:var(--card);border-bottom:1px solid var(--line);padding:13px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pagebar .t{color:var(--pri);font-size:15px;font-weight:600}
+.pagebar .sp{flex:1}
+.crumb{color:var(--ink-3);font-size:12.5px}
+.crumb i{font-style:normal;margin:0 6px;color:var(--ink-4)}
+.crumb b{color:var(--ink-2);font-weight:400}
+.modesw{display:inline-flex;border:1px solid var(--pri);border-radius:4px;overflow:hidden}
+.modesw button{background:#fff;border:0;color:var(--pri);padding:4px 13px;cursor:pointer;font-size:12.5px}
+.modesw button[aria-pressed=true]{background:var(--pri);color:#fff}
+.docbtn{background:#fff;border:1px solid var(--line-2);color:var(--ink-2);padding:5px 13px;border-radius:4px;cursor:pointer;font-size:12.5px}
+.docbtn:hover{border-color:var(--pri);color:var(--pri)}
+
+.main{padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:3px}
+.switches{padding:18px 20px;display:flex;gap:60px;flex-wrap:wrap;font-size:13px}
+.switches label{display:inline-flex;align-items:center;gap:8px}
+
+.tabs{padding:0 20px;display:flex;gap:0;border-bottom:1px solid var(--line)}
+.tabs button{background:#fff;border:1px solid var(--line);border-bottom:0;padding:9px 20px;cursor:pointer;font-size:13px;color:var(--ink-2);margin-right:-1px;border-radius:3px 3px 0 0}
+.tabs button[aria-pressed=true]{background:var(--pri);border-color:var(--pri);color:#fff}
+
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border-bottom:1px solid var(--line);padding:11px 14px;text-align:left}
+thead th{background:var(--head);font-weight:600;color:var(--ink)}
+tbody tr:hover td{background:var(--hover)}
+td.mid,th.mid{text-align:center}
+.url{color:var(--ink-2)}
+.edit{border:1px solid #8FD4AD;background:#fff;color:var(--ok);border-radius:3px;padding:4px 14px;font-size:12px;cursor:pointer}
+
+/* 开关 */
+.sw{position:relative;display:inline-block;width:42px;height:22px;vertical-align:middle;cursor:pointer;border:0;padding:0;background:none}
+.sw i{position:absolute;inset:0;background:#D8DCE3;border-radius:99px;transition:background .18s}
+.sw b{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .18s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw[aria-checked=true] i{background:var(--ok)}
+.sw[aria-checked=true] b{transform:translateX(20px)}
+
+.pager{display:flex;align-items:center;gap:10px;padding:14px;flex-wrap:wrap;justify-content:center;position:relative}
+.pager .left{position:absolute;left:14px;display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12.5px}
+.pager .left input{width:74px;height:28px;border:1px solid var(--line-2);border-radius:3px;padding:0 7px}
+.pager .left select{height:28px;border:1px solid var(--line-2);border-radius:3px;padding:0 5px}
+.pg{background:#fff;border:1px solid var(--line-2);border-radius:3px;padding:5px 12px;cursor:pointer;font-size:12.5px;color:var(--ink-2)}
+.pg.cur{background:var(--pri);border-color:var(--pri);color:#fff}
+.pager .cnt{position:absolute;right:14px;color:var(--ink-2);font-size:12.5px}
+@media(max-width:900px){.pager .left,.pager .cnt{position:static}}
+
+.chgtag{font-size:10px;background:#0f9d58;color:#fff;border-radius:2px;padding:1px 5px;margin-left:6px;letter-spacing:.3px;vertical-align:middle;font-weight:400}
+th.chgcol{background:#E8F6EE;color:#0b6b3d}
+
+
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:680px;max-width:94vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dhead{padding:13px 20px;border-bottom:1px solid var(--line);border-top:3px solid var(--pri);display:flex;justify-content:space-between;align-items:center}
+.dhead b{font-size:14px}
+.dhead .x{cursor:pointer;color:var(--ink-4);font-size:20px;line-height:1;background:none;border:0}
+.dbody{padding:18px 22px 50px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--pri);color:#fff;writing-mode:vertical-rl;padding:14px 7px;border:0;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd h2{font-size:14.5px;color:var(--pri);margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.prd h2:first-child{margin-top:0}
+.prd h3{font-size:13px;margin:16px 0 7px}
+.prd p{margin:7px 0;color:var(--ink-2)}
+.prd ul{margin:7px 0 7px 20px;color:var(--ink-2);padding:0}
+.prd li{margin:4px 0}
+.prd table{font-size:12.5px;width:100%}
+.prd th,.prd td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.prd th{background:var(--head)}
+.prd td{color:var(--ink-2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="pagebar">
+  <span class="t">短信商设置</span>
+  <span class="modesw" id="modesw">
+    <button data-m="before" aria-pressed="false">改造前</button>
+    <button data-m="after" aria-pressed="true">改造后</button>
+  </span>
+  <span class="sp"></span>
+  <button class="docbtn" id="openDoc">需求说明</button>
+  <span class="crumb">配置管理<i>›</i>设置<i>›</i><b>短信商设置</b></span>
+</div>
+
+<div class="main">
+  <div class="card">
+    <div class="switches">
+      <label><span>新增提现方式短信验证：</span><input type="checkbox"></label>
+      <label><span>忘记密码短信验证：</span><input type="checkbox" checked></label>
+      <label><span>注册短信验证：</span><input type="checkbox"></label>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button data-t="1" aria-pressed="true">验证码短信商配置</button>
+      <button data-t="2" aria-pressed="false">语音短信商配置</button>
+      <button data-t="3" aria-pressed="false">通知短信商配置</button>
+    </div>
+
+    <table>
+      <thead><tr>
+        <th style="width:70px">ID</th><th style="width:180px">名称</th>
+        <th style="width:320px">模板</th><th>请求地址</th>
+        <th class="mid" style="width:170px" id="stateTh">状态</th><th class="mid" style="width:100px">操作</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="pager">
+      <div class="left">共1页，前往 <input type="text"> 页，
+        <select><option>20条/页</option></select><button class="pg">GO</button></div>
+      <button class="pg">首页</button><button class="pg">上一页</button>
+      <button class="pg cur">1</button><button class="pg">下一页</button><button class="pg">尾页</button>
+      <span class="cnt" id="cnt"></span>
+    </div>
+  </div>
+</div>
+
+<button class="handle" id="handleDoc">需求说明</button>
+<div class="dmask" id="dmask"></div>
+
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dhead"><b>短信商多开轮发 · 需求说明</b><button class="x" id="closeDoc">✕</button></div>
+  <div class="dbody prd">
+
+    <h2>一、改造页面与字段</h2>
+    <p>改造页面：配置管理 › 设置 › 短信商设置 › 验证码短信商配置</p>
+    <table>
+      <tr><th style="width:120px">位置</th><th>改造内容</th></tr>
+      <tr><td>状态开关</td><td>允许同时开启多个短信商</td></tr>
+    </table>
+
+    <h2>二、功能与规则</h2>
+
+    <h3>2.1 状态开关</h3>
+    <ul>
+      <li>验证码短信商配置下，可同时开启多个短信商。</li>
+      <li>开启或关闭其中一个，不影响其他短信商的状态。</li>
+      <li>可以全部关闭，与现状一致。</li>
+    </ul>
+
+    <h3>2.2 发送</h3>
+    <ul>
+      <li>发送验证码短信时，从该页签下所有开启的短信商中随机取一个发送。</li>
+      <li>只开启一个时，全部由该短信商发送。</li>
+      <li>没有开启的短信商时不发送，与现状一致。</li>
+    </ul>
+
+    <h3>2.3 范围</h3>
+    <ul>
+      <li>语音短信商配置、通知短信商配置保持现状，仍为单选。</li>
+    </ul>
+
+    <h2>三、验收标准</h2>
+    <table>
+      <tr><th style="width:62px">编号</th><th style="width:130px">验收项</th><th>预期结果</th></tr>
+      <tr><td>AC-01</td><td>同时开启多个</td><td>依次开启 3 个短信商，3 个状态均为开启，互不影响</td></tr>
+      <tr><td>AC-02</td><td>关闭其中一个</td><td>该短信商关闭，其余保持开启</td></tr>
+      <tr><td>AC-03</td><td>全部关闭</td><td>可以把该页签下所有短信商都关闭，页面不报错；此时不发送验证码短信，与改造前一致</td></tr>
+      <tr><td>AC-04</td><td>操作日志</td><td>开启或关闭短信商后，后台操作日志能查到对应记录，含操作人、短信商ID与状态值</td></tr>
+      <tr><td>AC-05</td><td>多家轮发</td><td>开启 3 个后连续发送 30 条验证码，3 家都有发送记录</td></tr>
+      <tr><td>AC-06</td><td>单家发送</td><td>只开启 1 个时，全部由该短信商发送</td></tr>
+      <tr><td>AC-07</td><td>短信可正常收到</td><td>轮发过程中每一条验证码短信均能正常送达，验证码可用</td></tr>
+    </table>
+
+  </div>
+</aside>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(i){return document.getElementById(i)};
+  var mode="after", tab=1;
+
+  var DATA={
+    1:[
+      {id:18,name:"畅亿云",tpl:"Your verification code is {0}",url:"http://101.44.162.101:9090/sms...",on:true},
+      {id:17,name:"linksee",tpl:"Your verification code is {0}",url:"http://sms-api.minibe.net/sms/...",on:false},
+      {id:16,name:"kmicloud",tpl:"Your verification code is {0}",url:"http://api.kmicloud.com/sms/se...",on:false},
+      {id:15,name:"节点融合",tpl:"Your verification code is {0}",url:"https://api.nodesms.com/send/j...",on:false},
+      {id:14,name:"chuanxin",tpl:"Your verification code is {0}",url:"http://47.242.85.7:9090/sms/ba...",on:false},
+      {id:13,name:"颂量",tpl:"Your verification code is {0}",url:"https://api.itniotech.com/sms/...",on:false},
+      {id:12,name:"onbuka",tpl:"Your verification code is {0}",url:"https://api.onbuka.com/v3/send...",on:false},
+      {id:7,name:"yunpian",tpl:"Your verification code is {0}",url:"https://sms.yunpian.com/v2/sms...",on:false},
+      {id:6,name:"mysubmail",tpl:"Your verification code is {0}",url:"https://api.mysubmail.com/inte...",on:false}
+    ],
+    2:[
+      {id:200,name:"语音呼叫",tpl:"Your verification code is {0}",url:"https://api.voice-provider.com/call...",on:true},
+      {id:201,name:"语音备用",tpl:"Your verification code is {0}",url:"https://api.voice-backup.com/call...",on:false}
+    ],
+    3:[
+      {id:300,name:"通知短信",tpl:"{0}",url:"https://api.notify-provider.com/sms...",on:true},
+      {id:301,name:"通知备用",tpl:"{0}",url:"https://api.notify-backup.com/sms...",on:false}
+    ]
+  };
+
+  function rows(){return DATA[tab]}
+  function onCount(){return rows().filter(function(r){return r.on}).length}
+  // 改造后：仅验证码页签可多开；语音/通知仍单选
+  function multi(){return mode==="after" && tab===1}
+
+  function render(){
+    var tb=$("tbody");tb.innerHTML="";
+    rows().forEach(function(r){
+      var tr=document.createElement("tr");
+      tr.innerHTML='<td>'+r.id+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.tpl)+'</td>'+
+        '<td class="url">'+esc(r.url)+'</td>'+
+        '<td class="mid"><button class="sw" role="switch" aria-checked="'+r.on+'" data-id="'+r.id+'"><i></i><b></b></button></td>'+
+        '<td class="mid"><button class="edit">修改</button></td>';
+      tb.appendChild(tr);
+    });
+    $("cnt").textContent="共"+rows().length+"条";
+    var th=$("stateTh"), changed=multi();
+    th.className="mid"+(changed?" chgcol":"");
+    th.innerHTML="状态"+(changed?'<span class="chgtag">本次改造</span>':"");
+  }
+
+  $("tbody").addEventListener("click",function(e){
+    var sw=e.target.closest(".sw"); if(!sw) return;
+    var id=+sw.getAttribute("data-id");
+    var row=rows().filter(function(r){return r.id===id})[0];
+
+    if(row.on){
+      row.on=false;
+    }else{
+      if(!multi()) rows().forEach(function(r){r.on=false});   // 单选：先全关
+      row.on=true;
+    }
+    render();
+  });
+
+  $("tabs").addEventListener("click",function(e){
+    var t=e.target.getAttribute("data-t"); if(!t) return;
+    tab=+t;
+    [].forEach.call(this.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",b.getAttribute("data-t")===t)});
+    render();
+  });
+
+  $("modesw").addEventListener("click",function(e){
+    var m=e.target.getAttribute("data-m"); if(!m) return;
+    mode=m;
+    [].forEach.call(this.querySelectorAll("button"),function(b){b.setAttribute("aria-pressed",b.getAttribute("data-m")===m)});
+    // 切模式时回到只开一家的初始状态
+    Object.keys(DATA).forEach(function(k){
+      DATA[k].forEach(function(r,i){r.on=(i===0)});
+    });
+    render();
+  });
+
+  function openD(){$("drawer").classList.add("on");$("dmask").classList.add("on");$("drawer").setAttribute("aria-hidden","false")}
+  function closeD(){$("drawer").classList.remove("on");$("dmask").classList.remove("on");$("drawer").setAttribute("aria-hidden","true")}
+  $("openDoc").addEventListener("click",openD);
+  $("handleDoc").addEventListener("click",openD);
+  $("closeDoc").addEventListener("click",closeD);
+  $("dmask").addEventListener("click",closeD);
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")closeD()});
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+
+  render();
+})();
+</script>
