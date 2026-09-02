@@ -28,10 +28,11 @@ body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;back
 .btn:hover{background:#5b3fd0}
 .btn.gray{background:#fff;color:#666;border:1px solid #dcdce4}
 .btn.gray:hover{background:#f7f7fb;color:#6C4FE0;border-color:#c3b8ee}
+.btn.gray.act{color:#6C4FE0;border-color:#6C4FE0;background:#f5f2ff}
 .day{margin-left:auto;display:flex;gap:8px}
 
 .tbl{overflow-x:auto;margin-top:12px;border:1px solid #ebebf2;border-radius:3px}
-table{width:100%;border-collapse:collapse;font-size:12px;min-width:1180px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:1260px}
 th,td{border-right:1px solid #ebebf2;border-bottom:1px solid #ebebf2;padding:8px 10px;text-align:right;white-space:nowrap}
 th{background:#f7f7fb;color:#555;font-weight:600;font-size:11.5px;text-align:center}
 td.l,th.l{text-align:left}td.c,th.c{text-align:center}
@@ -40,6 +41,17 @@ tbody tr:hover{background:#f7f5ff}
 .amt{color:#6C4FE0;cursor:pointer;font-weight:600}
 .amt:hover{text-decoration:underline}
 .amt.hi{color:#f5222d}
+.sep{color:#c2c2cc;margin:0 3px}
+.cnt2{color:#666}
+.q{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;
+   background:#c0c4cc;color:#fff;font-size:9px;font-style:normal;font-weight:400;cursor:help;
+   margin-left:4px;vertical-align:middle;flex:none}
+.q:hover{background:#6C4FE0}
+#tip{position:fixed;z-index:300;max-width:250px;background:#2b2b38;color:#fff;padding:8px 11px;border-radius:4px;
+     font-size:11.5px;line-height:1.65;font-weight:400;text-align:left;white-space:normal;
+     box-shadow:0 4px 14px rgba(0,0,0,.24);display:none}
+#tip::after{content:"";position:absolute;top:-5px;left:var(--ax,50%);transform:translateX(-50%);
+     border:5px solid transparent;border-top:0;border-bottom-color:#2b2b38}
 .grp-a{background:#fbfaff}
 th.grp-a{background:#f2eeff;color:#5b3fd0}
 .sumrow td{background:#eef1f7;font-weight:600;color:#f5222d}
@@ -47,9 +59,6 @@ th.grp-a{background:#f2eeff;color:#5b3fd0}
 .pager{display:flex;align-items:center;gap:9px;padding:14px 4px 0;font-size:12.5px;color:#666;flex-wrap:wrap}
 .pager button{font:inherit;font-size:12.5px;padding:4px 11px;border:1px solid #dcdce4;background:#fff;border-radius:3px;cursor:pointer;color:#666}
 .pager button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
-.bar{display:inline-block;width:40px;height:6px;background:#eceaf6;border-radius:3px;overflow:hidden;vertical-align:middle;margin-right:5px}
-.bar i{display:block;height:100%;background:#6C4FE0}
-.bar i.hi{background:#f5222d}
 
 .mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:20px}
 .mask.on{display:flex}
@@ -65,14 +74,16 @@ th.grp-a{background:#f2eeff;color:#5b3fd0}
 .m-body th,.m-body td{border:1px solid #ebebf2}
 .meta{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#666;margin-bottom:12px;padding:9px 12px;background:#f7f7fb;border-radius:3px}
 .meta b{color:#333}
-.scgrp{margin-bottom:12px}
-.scgrp h5{font-size:12px;color:#6C4FE0;font-weight:600;margin-bottom:6px}
-.scgrp .items{display:flex;flex-wrap:wrap;gap:4px 0}
-.sc{width:186px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:12.5px;color:#666;padding:3px 5px;border-radius:3px;user-select:none}
+#scList{column-count:3;column-gap:20px}
+.scgrp{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:9px}
+.scgrp h5{font-size:11.5px;color:#6C4FE0;font-weight:600;margin-bottom:3px}
+.scgrp .items{display:flex;flex-direction:column}
+.sc{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:#666;padding:2px 4px;border-radius:3px;user-select:none;line-height:1.5}
 .sc:hover{background:#f4f1ff}
-.sc i{width:13px;text-align:center;color:#c9c9d4;font-style:normal}
+.sc i{width:12px;text-align:center;color:#c9c9d4;font-style:normal;flex:none}
 .sc.on{color:#333}.sc.on i{color:#6C4FE0}
-.note{font-size:11.5px;color:#9a9aa8;margin-top:10px;line-height:1.7}
+.note{font-size:11.5px;color:#f5222d;line-height:1.6;margin-bottom:10px}
+@media(max-width:820px){#scList{column-count:2}}
 
 .dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
 .dmask.on{opacity:1;pointer-events:auto}
@@ -84,15 +95,12 @@ th.grp-a{background:#f2eeff;color:#5b3fd0}
 .handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
 .prd h2{font-size:14px;color:#6C4FE0;margin:20px 0 9px;padding-bottom:5px;border-bottom:1px solid #eee}
 .prd h2:first-child{margin-top:0}
-.prd h3{font-size:13px;color:#444;margin:14px 0 6px}
 .prd p{margin:7px 0;color:#555;font-size:13px}
 .prd ol,.prd ul{margin:7px 0 7px 20px;color:#555;font-size:13px}
 .prd li{margin:5px 0}
-.prd table{width:100%;min-width:0;font-size:12px;margin:8px 0}
+.prd table{width:100%;min-width:0;font-size:12px;margin:8px 0;border-collapse:collapse}
 .prd th,.prd td{border:1px solid #ebebf2;padding:6px 8px;text-align:left;white-space:normal;vertical-align:top}
 .prd th{background:#fafafd;color:#555;font-size:11.5px}
-.tip{background:#fff8e6;border-left:3px solid #e6a23c;padding:9px 12px;border-radius:3px;margin:10px 0;font-size:12.5px;color:#7a5b12}
-.tip b{color:#c47f0a}
 .toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#5cb85c;color:#fff;border-radius:3px;padding:10px 18px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:200;font-size:12.5px;display:none}
 </style>
 </head>
@@ -102,7 +110,7 @@ th.grp-a{background:#f2eeff;color:#5b3fd0}
   <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
   <div style="display:flex;gap:16px;align-items:center">
     <button class="btn" id="openDoc">📋 需求说明</button>
-    <span>2026年08月29日</span><span>当前币种：<b style="color:#c0392b">INR</b></span>
+    <span>2026年09月02日</span><span>当前币种：<b style="color:#c0392b">INR</b></span>
   </div>
 </div>
 <div class="sub">
@@ -118,7 +126,7 @@ th.grp-a{background:#f2eeff;color:#5b3fd0}
     <div class="fi rng"><span>团队充值</span><input id="fRecMin" placeholder="最小金额"><i>～</i><input id="fRecMax" placeholder="最大金额"></div>
     <div class="fi rng"><span>团队游戏</span><input id="fBetMin" placeholder="最小金额"><i>～</i><input id="fBetMax" placeholder="最大金额"></div>
     <div class="fi rng"><span>活动领取</span><input id="fActMin" placeholder="最小金额"><i>～</i><input id="fActMax" placeholder="最大金额"></div>
-    <div class="fi"><span>日期</span><input id="fDate" type="date" value="2026-08-28"></div>
+    <div class="fi"><span>日期</span><input id="fDate" type="date" value="2026-09-01"></div>
     <div class="fi"><span>排序</span>
       <select id="fSort">
         <option value="peo">团队人数降序</option>
@@ -132,7 +140,7 @@ th.grp-a{background:#f2eeff;color:#5b3fd0}
     <button class="btn" id="btnQ">🔍 查 询</button>
     <button class="btn gray" id="btnR">↺ 重 置</button>
     <button class="btn gray" id="btnE">⬇ 导 出</button>
-    <button class="btn gray" id="btnScope">⚙ 活动统计范围</button>
+    <button class="btn gray" id="btnScope">⚙ 活动数据显示筛选</button>
     <div class="day"><button class="btn gray" id="btnPrev">上一日</button><button class="btn gray" id="btnNext">下一日</button></div>
   </div>
 
@@ -142,15 +150,21 @@ th.grp-a{background:#f2eeff;color:#5b3fd0}
         <tr>
           <th rowspan="2" style="width:92px">日期</th>
           <th rowspan="2" style="width:80px">会员ID</th>
-          <th rowspan="2" style="width:74px">团队人数</th>
+          <th rowspan="2" style="width:88px">团队人数<i class="q" data-tip="该代理往下六层的全部下级总人数，不随当日有无行为变化。">?</i></th>
           <th colspan="3">团队充值</th>
           <th colspan="3">团队游戏</th>
           <th colspan="3" class="grp-a">团队活动领取</th>
         </tr>
         <tr>
-          <th style="width:120px">金额</th><th style="width:74px">人数</th><th style="width:96px">人均充值</th>
-          <th style="width:126px">金额</th><th style="width:74px">人数</th><th style="width:96px">人均游戏</th>
-          <th class="grp-a" style="width:120px">金额</th><th class="grp-a" style="width:74px">人数</th><th class="grp-a" style="width:104px">人均领取</th>
+          <th style="width:130px">金额<i class="q" data-tip="当日团队成员的充值总额。">?</i></th>
+          <th style="width:132px">人数 / 充值笔数<i class="q" data-tip="人数为去重后的自然人，同一会员当日多次充值只计 1 人；笔数不去重，按当日实际充值条数统计。">?</i></th>
+          <th style="width:110px">人均充值<i class="q" data-tip="充值金额 ÷ 充值人数。合计行按合计金额 ÷ 合计人数重新计算。">?</i></th>
+          <th style="width:136px">金额<i class="q" data-tip="当日团队成员的投注总额。">?</i></th>
+          <th style="width:132px">人数 / 投注笔数<i class="q" data-tip="人数为去重后的自然人，同一会员当日多次投注只计 1 人；笔数不去重，按当日实际注单条数统计。">?</i></th>
+          <th style="width:110px">人均游戏<i class="q" data-tip="游戏金额 ÷ 投注人数。合计行按合计金额 ÷ 合计人数重新计算。">?</i></th>
+          <th class="grp-a" style="width:130px">金额<i class="q" data-tip="当日团队成员领取的活动奖励总额，受「活动数据显示筛选」影响。">?</i></th>
+          <th class="grp-a" style="width:132px">人数 / 领取次数<i class="q" data-tip="人数为去重后的自然人，同一会员当日领取多个活动只计 1 人；次数不去重，按当日实际领取条数统计。">?</i></th>
+          <th class="grp-a" style="width:114px">人均领取<i class="q" data-tip="领取金额 ÷ 领取人数。合计行按合计金额 ÷ 合计人数重新计算。">?</i></th>
         </tr>
       </thead>
       <tbody id="tb"></tbody>
@@ -163,23 +177,24 @@ th.grp-a{background:#f2eeff;color:#5b3fd0}
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="tip"></div>
 <div class="handle" id="handleDoc">需求说明</div>
 <div class="dmask" id="dmask"></div>
 <div class="mask" id="scopeMask">
-  <div class="modal" style="max-width:760px">
-    <div class="m-head"><span>活动统计范围 · 纳入「团队活动领取」统计的活动</span><span class="x" id="scX">✕</span></div>
+  <div class="modal" style="max-width:900px">
+    <div class="m-head"><span>活动数据显示筛选 · 选择要展示的活动</span><span class="x" id="scX">✕</span></div>
     <div class="m-body">
-      <div class="meta" style="margin-bottom:12px">
-        <span>已选 <b id="scCount">0</b> / <span id="scTotal">30</span> 项</span>
+      <div class="note">一项都不勾表示展示全部活动。筛选只影响展示，不保存，重新进入页面回到全部活动。</div>
+      <div class="meta" style="margin-bottom:10px;padding:7px 12px">
+        <span>已勾选 <b id="scCount">0</b> / <span id="scTotal">30</span> 项</span>
         <span style="margin-left:auto"></span>
         <button class="btn gray" id="scAll" style="padding:3px 10px;font-size:12px">全选</button>
         <button class="btn gray" id="scNone" style="padding:3px 10px;font-size:12px">清空</button>
       </div>
       <div id="scList"></div>
-      <div class="note">系统始终统计全部活动的数据，此处勾选的是<b>展示范围</b>。保存后<b>立即生效</b>，历史日期一并按新范围展示。<br>后续平台新增活动时会自动同步到本列表并<b>默认勾选</b>，如不需纳入统计，在此取消勾选即可。已废弃的活动不再展示。</div>
     </div>
     <div class="m-foot" style="padding:12px 18px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:10px">
-      <button class="btn" id="scSave">保 存</button>
+      <button class="btn" id="scSave">确 定</button>
       <button class="btn gray" id="scCancel">取 消</button>
     </div>
   </div>
@@ -196,80 +211,75 @@ th.grp-a{background:#f2eeff;color:#5b3fd0}
   <div class="dhead"><b>下级数据统计 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
   <div class="dbody prd">
 
-    <h2>需求来源</h2>
-    <p>运营在排查活动薅羊毛时，需要判断多笔异常领取是否集中在同一条代理线下。现有报表都要求<b>先知道查哪个代理</b>，但「哪条代理线有问题」本身正是排查要得出的结论，而不是起点。</p>
-    <p>各活动领取记录页是按时间倒序的流水明细，即使补上代理信息，几十万条记录逐页比对也看不出集中趋势。因此需要一个按代理线聚合、可排序的统计页面，让异常代理线自动前置。</p>
-    <p>该能力原计划加在「昨日返佣等级」页，评估后调整为<b>独立新页面</b> —— 「昨日返佣等级」是用于返佣计算与核对的页面，每项数据都服务于返佣结果，活动领取金额与返佣无关，放在一起会让页面职责不清，也容易被误认为参与了返佣计算。</p>
-
     <h2>一、新增页面与字段</h2>
-    <p><b>新增页面：</b>报表管理 &rsaquo; 下级数据统计。按「代理 × 日期」统计其下级团队数据，一个代理一行。</p>
+    <p>新增页面：报表管理 › 下级数据统计。按「代理 × 日期」统计，一个代理一行。</p>
     <table>
-    <thead><tr><th style="width:130px">字段</th><th>说明</th></tr></thead>
+    <thead><tr><th style="width:150px">字段</th><th>说明</th></tr></thead>
     <tbody>
     <tr><td>日期</td><td>统计日期</td></tr>
-    <tr><td>会员ID</td><td>该条代理线的代理会员ID</td></tr>
-    <tr><td>团队人数</td><td><b>该代理的团队总人数，统计其往下六层的全部下级</b>（与返佣口径一致），不区分当日是否有行为</td></tr>
-    <tr><td>团队充值<br><span style="color:#9a9aa8">金额 / 人数 / 人均充值</span></td><td>当日团队充值总额、产生过充值的人数，以及人均充值。<b>金额</b>可点击，按<b>充值大类</b>展开；<b>人数</b>可点击，按<b>会员</b>展开</td></tr>
-    <tr><td>团队游戏<br><span style="color:#9a9aa8">金额 / 人数 / 人均游戏</span></td><td>当日团队游戏总额、产生过游戏的人数，以及人均游戏。<b>金额</b>可点击，按<b>游戏大类</b>展开；<b>人数</b>可点击，按<b>会员</b>展开</td></tr>
-    <tr><td>团队活动领取<br><span style="color:#9a9aa8">金额 / 人数 / 人均领取</span></td><td>当日团队领取的活动奖励总额、领取过的人数，以及人均领取。<b>金额</b>可点击，按<b>活动</b>展开；<b>人数</b>可点击，按<b>会员</b>展开</td></tr>
+    <tr><td>会员ID</td><td>代理的会员ID</td></tr>
+    <tr><td>团队人数</td><td>该代理往下六层的全部下级总人数</td></tr>
+    <tr><td>团队充值<br><span style="color:#9a9aa8">金额 / 人数·充值笔数 / 人均充值</span></td><td>当日团队充值总额、充值人数与充值笔数、人均充值</td></tr>
+    <tr><td>团队游戏<br><span style="color:#9a9aa8">金额 / 人数·投注笔数 / 人均游戏</span></td><td>当日团队投注总额、投注人数与投注笔数、人均游戏</td></tr>
+    <tr><td>团队活动领取<br><span style="color:#9a9aa8">金额 / 人数·领取次数 / 人均领取</span></td><td>当日团队领取的活动奖励总额、领取人数与领取次数、人均领取</td></tr>
     </tbody></table>
-    <p><b>筛选条件：</b>会员ID、日期，以及四组区间筛选 —— 团队人数（最小人数～最大人数）、团队充值（最小金额～最大金额）、团队游戏（最小金额～最大金额）、活动领取（最小金额～最大金额）。区间两端均可只填其一。</p>
-    <p><b>排序：</b>支持按团队人数、团队充值金额、团队游戏金额、团队活动领取金额降序排列。</p>
-    <p><b>明细弹窗：</b>三组的金额与人数均可点击，展开维度不同，均<b>支持导出</b>：</p><table><thead><tr><th style="width:110px">点击位置</th><th style="width:96px">展开维度</th><th>内容</th></tr></thead><tbody><tr><td>团队充值 · 金额</td><td>充值大类</td><td>各充值大类的笔数、金额、占比</td></tr><tr><td>团队充值 · 人数</td><td>会员</td><td>各会员的充值金额，按金额倒序</td></tr><tr><td>团队游戏 · 金额</td><td>游戏大类</td><td>各游戏大类的注单数、金额、占比</td></tr><tr><td>团队游戏 · 人数</td><td>会员</td><td>各会员的游戏金额，按金额倒序</td></tr><tr><td>团队活动领取 · 金额</td><td>活动</td><td>各活动的领取人数、次数、金额、占比</td></tr><tr><td>团队活动领取 · 人数</td><td>会员</td><td>各会员的领取金额，按金额倒序</td></tr></tbody></table>
-    <p><b>其他：</b>提供上一日 / 下一日切换、页面总计与总计行、导出。</p>
+    <p><b>筛选：</b>会员ID、日期，以及团队人数、团队充值、团队游戏、活动领取四组区间，区间两端均可只填其一。</p>
+    <p><b>排序：</b>团队人数、团队充值金额、团队游戏金额、团队活动领取金额，降序。</p>
+    <p><b>其他：</b>上一日 / 下一日切换、页面总计与总计行、导出。</p>
+    <p><b>列头说明：</b>团队人数、三组的金额、人数 / 笔数、人均各列，列名后带 ? 图标，鼠标悬浮显示该列口径。悬浮层需挂在页面顶层，避免被表格横向滚动区域裁剪。</p>
 
-    <h2>二、业务规则</h2>
+    <h2>二、功能与规则</h2>
     <ol>
-    <li><b>团队人数</b>＝该代理往下<b>六层</b>的全部下级总人数，与返佣统计口径一致。它是团队规模的基数，不随当日有无行为变化。</li>
-    <li>三组数据均按<b>金额 / 人数 / 人均</b>三列展示。同样领取 10 万，2 个人领与 200 个人领性质完全不同，需要同时看总量、参与广度与人均强度。</li>
-    <li><b>人均 ＝ 该组金额 ÷ 该组人数</b>（即人均充值＝充值金额÷充值人数），分母为当日实际产生该行为的人数，不是团队总人数。合计行的人均按合计金额÷合计人数重新计算，不是各行人均的简单相加。</li>
-    <li>三组的人数均为<b>去重后的自然人</b>，同一会员当日多次充值 / 游戏 / 领取只计 1 人。三组统计的是同一批团队成员，可直接横向对比。</li>
-    <li>本页为纯统计展示，<b>不参与任何返佣计算</b>，也不影响返佣结果。</li>
-    <li>数据为 T+1，看的是前一天的情况。</li>
+    <li>团队人数 ＝ 该代理往下六层的全部下级总人数，不随当日有无行为变化。</li>
+    <li>人数为去重后的自然人，同一会员当日多次充值 / 投注 / 领取只计 1 人。</li>
+    <li>笔数与次数不去重，按当日实际发生的条数统计。</li>
+    <li>人均 ＝ 该组金额 ÷ 该组人数。合计行的人均按合计金额 ÷ 合计人数重新计算。</li>
+    <li>数据为 T+1。</li>
+    <li>本页为纯统计展示，不参与返佣计算。</li>
     </ol>
 
-    <h2>三、活动统计范围</h2>
-    <p>「团队活动领取金额」统计团队成员当日领取的全部活动奖励，共 <b>30 项</b>，按大类归纳如下：</p>
+    <h2>三、明细弹窗</h2>
+    <p>三组的金额与人数均可点击展开，均支持导出。</p>
     <table>
-    <thead><tr><th style="width:96px">活动大类</th><th style="width:44px">项数</th><th>包含的活动（括号内为账变类型编号）</th></tr></thead>
+    <thead><tr><th style="width:120px">点击位置</th><th style="width:80px">展开维度</th><th>内容</th></tr></thead>
+    <tbody>
+    <tr><td>团队充值 · 金额</td><td>充值大类</td><td>各充值大类的笔数、金额、占比</td></tr>
+    <tr><td>团队充值 · 人数</td><td>会员</td><td>各会员的充值金额，按金额倒序</td></tr>
+    <tr><td>团队游戏 · 金额</td><td>游戏大类</td><td>各游戏大类的注单数、金额、占比</td></tr>
+    <tr><td>团队游戏 · 人数</td><td>会员</td><td>各会员的游戏金额，按金额倒序</td></tr>
+    <tr><td>团队活动领取 · 金额</td><td>活动</td><td>各活动的领取人数、次数、金额、占比</td></tr>
+    <tr><td>团队活动领取 · 人数</td><td>会员</td><td>各会员的领取金额，按金额倒序</td></tr>
+    </tbody></table>
+
+    <h2>四、活动数据显示筛选</h2>
+    <ol>
+    <li>页面默认统计并展示全部活动。</li>
+    <li>点「活动数据显示筛选」勾选活动，确定后表格与明细只展示勾选活动的数据。</li>
+    <li>一项都不勾表示展示全部活动。</li>
+    <li>筛选只影响展示，不保存，重新进入页面回到全部活动。</li>
+    </ol>
+
+    <h2>五、纳入统计的活动</h2>
+    <p>共 30 项，括号内为账变类型编号。</p>
+    <table>
+    <thead><tr><th style="width:88px">活动大类</th><th style="width:36px">项数</th><th>包含的活动</th></tr></thead>
     <tbody>
     <tr><td>充值赠送类</td><td>7</td><td>充值赠送(10)、彩金充值(13)、首充满赠送(14)、下载APP充值奖励(131)、充值等级奖励(132)、VIP充值等级奖励(133)、回归新充值奖励(134)</td></tr>
-    <tr><td>抽奖大奖类</td><td>5</td><td>红包(3)、转盘奖励(119)、邀请转盘奖励(130)、锦标赛奖励(114)、电子大奖(103)<br><span style="color:#9a9aa8">电子大奖由后台「大奖奖励配置」按倍率对电子注单发放，属平台活动奖励，非游戏内彩池中奖</span></td></tr>
+    <tr><td>抽奖大奖类</td><td>5</td><td>红包(3)、转盘奖励(119)、邀请转盘奖励(130)、锦标赛奖励(114)、电子大奖(103)</td></tr>
     <tr><td>VIP 类</td><td>3</td><td>VIP会员升级礼包(29)、VIP会员每月奖励(30)、VIP会员充值奖励(31)</td></tr>
     <tr><td>新会员类</td><td>4</td><td>注册送金(12)、新手礼包(113)、新会员首充负盈利送彩金(116)、新会员玩游戏送彩金(117)</td></tr>
     <tr><td>周期奖励类</td><td>4</td><td>每日签到(7)、每日奖励(118)、每周奖励(107)、回归奖励(115)</td></tr>
-    <tr><td>邀请推广类</td><td>2</td><td>邀请奖励(20)、合伙人奖励(122)<br><span style="color:#9a9aa8">编号 20 在后台旧枚举中名为「任务奖金」，前台实际发放的是邀请奖励，以前台为准</span></td></tr>
-    <tr><td>绑定行为类</td><td>4</td><td>绑卡赠送(25)、绑定手机奖励(104)、绑定邮箱奖励(106)、加入频道奖励(124)<br><span style="color:#9a9aa8">加入频道奖励即数据统计页显示的「TG频道活动」</span></td></tr>
+    <tr><td>邀请推广类</td><td>2</td><td>邀请奖励(20)、合伙人奖励(122)</td></tr>
+    <tr><td>绑定行为类</td><td>4</td><td>绑卡赠送(25)、绑定手机奖励(104)、绑定邮箱奖励(106)、加入频道奖励(124)</td></tr>
     <tr><td>返水类</td><td>1</td><td>一键洗码反水(102)</td></tr>
     </tbody>
     </table>
-    <h3>不纳入统计的类型</h3>
-    <p style="font-size:12.5px">返佣（代理佣金、首充返佣 —— 属返佣性质，不计入活动）、游戏输赢、充值、提现、理财、游戏转账、扣款与撤单、代理红包充值。</p>
-    <div class="tip"><b>建议：</b>活动类型集合做成可配置，后续上新活动时只需追加，无需改代码发版。</div>
+    <p><b>不纳入：</b>代理佣金、首充返佣、游戏输赢、充值、提现、理财、游戏转账、扣款与撤单、代理红包充值、C2C充值奖励、提现活动奖励、C2C提现奖励、投注返水(28)。</p>
 
-    <h3>活动统计范围可配置</h3>
-    <p>页面提供「<b>活动统计范围</b>」按钮，弹窗内按大类分组列出全部活动，勾选保存后调整「团队活动领取」的统计口径，<b>无需改代码发版</b>。至少需选择一项。</p>
+    <h2>六、上线说明</h2>
     <ol>
-    <li><b>配置只影响展示，不影响计算。</b>系统始终按全部活动统计并保留到活动类型这一层，勾选决定的是<b>展示哪几个活动的数据</b>。</li>
-    <li><b>保存后立即生效</b>，且历史日期一并按新范围展示，不存在「某天含、某天不含」的口径错乱，也无需重算历史数据。</li>
-    <li>平台<b>新增活动时自动同步</b>到本列表，并<b>默认勾选</b>（即默认纳入统计）；如不需纳入，由运营在此取消勾选。</li>
-    <li><b>已废弃、不再使用的活动不展示</b>在列表中，避免无效勾选项堆积。当前已排除：C2C充值奖励、提现活动奖励、C2C提现奖励，以及已被「一键洗码反水(102)」取代、不再产生新数据的「投注返水(28)」。</li>
-    </ol>
-
-    <h3>口径说明（供开发参考）</h3>
-    <table>
-    <thead><tr><th style="width:120px">列</th><th>按勾选范围展示时的取值</th></tr></thead>
-    <tbody>
-    <tr><td>团队活动领取金额</td><td>所选活动的金额之和。金额可加，直接汇总</td></tr>
-    <tr><td>团队活动领取人数</td><td>所选活动内<b>去重</b>的领取会员数。人数不可加（同一会员领多个活动只算 1 人），需按去重口径统计</td></tr>
-    <tr><td>人均领取</td><td>上述金额 ÷ 上述人数</td></tr>
-    </tbody></table>
-    <div class="tip"><b>排序约束：</b>排序项只提供团队人数、团队充值金额、团队游戏金额、团队活动领取金额四项，均为可加的量。<b>不提供按「团队活动领取人数」排序</b> —— 人数需去重，无法在全量代理上低成本排序。</div>
-
-    <h2>四、上线说明</h2>
-    <ol>
-    <li>数据自功能上线当天起有值，此前的历史日期显示为 0。</li>
-    <li>历史数据可补算，需单独排期执行，不会自动出现。</li>
+    <li>数据自上线当天起有值，此前日期显示为 0。</li>
+    <li>历史数据可补算，需单独排期。</li>
     </ol>
   </div>
 </div>
@@ -326,19 +336,32 @@ const ACTGRP=[
  ['邀请推广类',['邀请奖励','合伙人奖励']],
  ['绑定行为类',['绑卡赠送','绑定手机奖励','绑定邮箱奖励','加入频道奖励']],
  ['返水类',['一键洗码反水']]];
-const ACTON=new Set(ACTS);                       // 当前纳入统计的活动
+
+/* 展示范围：空集合 = 全部活动。每次进入页面为空 */
+let ACTSEL=new Set();
+const selList=()=>ACTSEL.size?ACTS.filter(n=>ACTSEL.has(n)):ACTS;
+const isFiltered=()=>ACTSEL.size>0;
+
 const SPLIT={};                                  // 每代理每活动的金额拆分（确定性）
+const TIMES={};                                  // 每代理的笔数/次数（确定性）
 D.forEach(r=>{
   let sd=r[0]*13; const rd=()=>{sd=(sd*1103515245+12345)&0x7fffffff;return sd/0x7fffffff};
   const w=ACTS.map(()=>0.15+rd()), sw=w.reduce((a,b)=>a+b,0);
   SPLIT[r[0]]=Object.fromEntries(ACTS.map((n,i)=>[n, r[6]*w[i]/sw]));
+  TIMES[r[0]]={
+    rec:Math.round(r[3]*(1.3+rd()*1.2)),        // 充值笔数
+    bet:Math.round(r[5]*(9+rd()*11)),           // 投注笔数
+    act:Math.round(r[7]*(1.6+rd()*2.4))         // 领取次数
+  };
 });
-/* 按当前统计范围重算活动领取金额与人数 */
+/* 按当前展示范围重算活动领取金额、人数与次数 */
 function actOf(r){
-  const sel=ACTS.filter(n=>ACTON.has(n));
+  const sel=selList();
   const amt=sel.reduce((s,n)=>s+SPLIT[r[0]][n],0);
   const ratio=r[6]?amt/r[6]:0;
-  return {amt, users:Math.round(r[7]*Math.pow(ratio,0.55))};
+  return {amt,
+          users:Math.round(r[7]*Math.pow(ratio,0.55)),
+          times:Math.round(TIMES[r[0]].act*ratio)};
 }
 const K={peo:1,rec:2,bet:4,act:6};
 let ROWS=[];
@@ -359,28 +382,37 @@ function apply(){
 }
 function draw(){
   const d=$('#fDate').value;
+  const bs=$('#btnScope');
+  bs.textContent = isFiltered() ? `⚙ 活动数据显示筛选（已选 ${ACTSEL.size} 项）` : '⚙ 活动数据显示筛选';
+  bs.classList.toggle('act', isFiltered());
+
   $('#tb').innerHTML=ROWS.length?ROWS.map(r=>{
     const [uid,peo,rec,recP,bet,betP]=r;
-    const A=actOf(r), act=A.amt, actP=A.users;
+    const A=actOf(r), act=A.amt, actP=A.users, actT=A.times;
+    const T=TIMES[uid];
     const hi=act>rec*0.5;
-    const cell=(v,uidv,kind,mode,cls)=>`<span class="amt ${cls||''}" data-uid="${uidv}" data-k="${kind}" data-m="${mode}">${v}</span>`;
+    const money=(v,uidv,kind,cls)=>`<span class="amt ${cls||''}" data-uid="${uidv}" data-k="${kind}" data-m="amt">${v}</span>`;
+    const pcnt=(p,t,uidv,kind)=>`<span class="amt" data-uid="${uidv}" data-k="${kind}" data-m="cnt">${fmt(p)}</span><span class="sep">/</span><span class="cnt2">${fmt(t)}</span>`;
     return `<tr>
       <td class="c">${d}</td><td class="c"><span class="uid">${uid}</span></td><td>${fmt(peo)}</td>
-      <td>${cell(m2(rec),uid,'rec','amt')}</td><td>${cell(fmt(recP),uid,'rec','cnt')}</td><td>${m2(recP?rec/recP:0)}</td>
-      <td>${cell(m2(bet),uid,'bet','amt')}</td><td>${cell(fmt(betP),uid,'bet','cnt')}</td><td>${m2(betP?bet/betP:0)}</td>
-      <td class="grp-a">${cell(m2(act),uid,'act','amt',hi?'hi':'')}</td>
-      <td class="grp-a">${cell(fmt(actP),uid,'act','cnt')}</td>
+      <td>${money(m2(rec),uid,'rec')}</td><td>${pcnt(recP,T.rec,uid,'rec')}</td><td>${m2(recP?rec/recP:0)}</td>
+      <td>${money(m2(bet),uid,'bet')}</td><td>${pcnt(betP,T.bet,uid,'bet')}</td><td>${m2(betP?bet/betP:0)}</td>
+      <td class="grp-a">${money(m2(act),uid,'act',hi?'hi':'')}</td>
+      <td class="grp-a">${pcnt(actP,actT,uid,'act')}</td>
       <td class="grp-a">${m2(actP?act/actP:0)}</td>
     </tr>`;}).join('')
    :'<tr><td colspan="12" style="text-align:center;color:#b5b5c2;padding:30px">暂无数据</td></tr>';
+
   const S=i=>i===6?ROWS.reduce((s,r)=>s+actOf(r).amt,0)
             :i===7?ROWS.reduce((s,r)=>s+actOf(r).users,0)
             :ROWS.reduce((s,r)=>s+r[i],0);
+  const ST=k=>k==='act'?ROWS.reduce((s,r)=>s+actOf(r).times,0)
+             :ROWS.reduce((s,r)=>s+TIMES[r[0]][k],0);
   const av=(a,b)=>m2(S(b)?S(a)/S(b):0);
   const sum=`<td>${fmt(S(1))}</td>
-    <td>${m2(S(2))}</td><td>${fmt(S(3))}</td><td>${av(2,3)}</td>
-    <td>${m2(S(4))}</td><td>${fmt(S(5))}</td><td>${av(4,5)}</td>
-    <td class="grp-a">${m2(S(6))}</td><td class="grp-a">${fmt(S(7))}</td><td class="grp-a">${av(6,7)}</td>`;
+    <td>${m2(S(2))}</td><td>${fmt(S(3))}<span class="sep">/</span>${fmt(ST('rec'))}</td><td>${av(2,3)}</td>
+    <td>${m2(S(4))}</td><td>${fmt(S(5))}<span class="sep">/</span>${fmt(ST('bet'))}</td><td>${av(4,5)}</td>
+    <td class="grp-a">${m2(S(6))}</td><td class="grp-a">${fmt(S(7))}<span class="sep">/</span>${fmt(ST('act'))}</td><td class="grp-a">${av(6,7)}</td>`;
   $('#tf').innerHTML=`<tr class="sumrow"><td class="l" colspan="2">页面总计</td>${sum}</tr>
     <tr class="sumrow"><td class="l" colspan="2">总计</td>${sum}</tr>`;
   $('#pgInfo').textContent=`共 1 页，共 ${ROWS.length} 条`;
@@ -390,11 +422,11 @@ const RECCAT=['本地银行卡','UPI','USDT','ARPAY','C2C','网关支付','人�
 const GAMECAT=['彩票','电子','视讯','体育','棋牌'];
 const KIND={
   rec:{t:'团队充值',   amtI:2, cntI:3, cat:RECCAT,  catName:'充值大类', cAmt:'充值金额', c2:'充值人数'},
-  bet:{t:'团队游戏',   amtI:4, cntI:5, cat:GAMECAT, catName:'游戏大类', cAmt:'游戏金额', c2:'游戏人数'},
+  bet:{t:'团队游戏',   amtI:4, cntI:5, cat:GAMECAT, catName:'游戏大类', cAmt:'游戏金额', c2:'投注人数'},
   act:{t:'团队活动领取',amtI:6, cntI:7, cat:ACTS,    catName:'活动名称', cAmt:'领取金额', c2:'领取人数'}
 };
-/* ========== 明细弹窗：统一渲染，金额列可排序，按会员时分页 ========== */
-let MD=null;                 // {rows,cols,dir,page,paged,title,meta,footLabel,total,people}
+/* ========== 明细弹窗 ========== */
+let MD=null;
 const MPAGE=20;
 function drawDetail(){
   const M=MD;
@@ -450,7 +482,7 @@ function detail(uid,kind,mode){
     cols=[{t:'会员ID',cls:'l',f:x=>x.uid},{t:K.cAmt,w:180,sort:1,f:x=>m2(x.amt)}];
   }else if(kind==='act'){
     sec='按活动';
-    const list=ACTS.filter(n=>ACTON.has(n)&&SPLIT[uid][n]>0);
+    const list=selList().filter(n=>SPLIT[uid][n]>0);
     rows=list.map(n=>{const users=Math.max(1,Math.round(people*(0.10+rnd()*0.5)));
       return {name:n,amt:SPLIT[uid][n],users,times:Math.max(users,Math.round(users*(1+rnd()*5)))}});
     cols=[{t:'活动名称',cls:'l',f:x=>x.name},{t:'领取人数',w:78,f:x=>fmt(x.users)},
@@ -469,7 +501,7 @@ function detail(uid,kind,mode){
   drawDetail(); $('#mask').classList.add('on');
 }
 
-/* ---- 统计范围配置 ---- */
+/* ---- 活动数据显示筛选 ---- */
 let SCTMP=new Set();
 function drawScope(){
   $('#scList').innerHTML=ACTGRP.map(g=>
@@ -480,14 +512,13 @@ function drawScope(){
   $$('#scList .sc').forEach(el=>el.onclick=()=>{
     const n=el.dataset.n; SCTMP.has(n)?SCTMP.delete(n):SCTMP.add(n); drawScope();});
 }
-$('#btnScope').onclick=()=>{SCTMP=new Set(ACTON);drawScope();$('#scopeMask').classList.add('on')};
+$('#btnScope').onclick=()=>{SCTMP=new Set(ACTSEL);drawScope();$('#scopeMask').classList.add('on')};
 $('#scAll').onclick=()=>{SCTMP=new Set(ACTS);drawScope()};
 $('#scNone').onclick=()=>{SCTMP=new Set();drawScope()};
 $('#scSave').onclick=()=>{
-  if(!SCTMP.size){alert('至少选择一项活动');return;}
-  ACTON.clear(); SCTMP.forEach(n=>ACTON.add(n));
+  ACTSEL = (SCTMP.size===0 || SCTMP.size===ACTS.length) ? new Set() : new Set(SCTMP);
   $('#scopeMask').classList.remove('on'); apply();
-  toast(`已保存 ${ACTON.size} 项活动，展示范围已即时更新`);
+  toast(isFiltered()?`已按 ${ACTSEL.size} 项活动展示`:'已展示全部活动');
 };
 const scClose=()=>$('#scopeMask').classList.remove('on');
 $('#scX').onclick=scClose; $('#scCancel').onclick=scClose;
@@ -495,7 +526,8 @@ $('#scopeMask').onclick=e=>{if(e.target===$('#scopeMask'))scClose()};
 
 $('#btnQ').onclick=apply; $('#fSort').onchange=apply;
 $('#btnR').onclick=()=>{['fUid','fPeoMin','fPeoMax','fRecMin','fRecMax','fBetMin','fBetMax','fActMin','fActMax']
-  .forEach(i=>$('#'+i).value='');$('#fSort').value='peo';$('#fDate').value='2026-08-28';apply()};
+  .forEach(i=>$('#'+i).value='');$('#fSort').value='peo';$('#fDate').value='2026-09-01';
+  ACTSEL=new Set();apply()};
 $('#btnE').onclick=()=>alert('原型不产出真实文件。生产环境按当前筛选与排序导出。');
 const shift=n=>{const d=new Date($('#fDate').value);d.setDate(d.getDate()+n);$('#fDate').value=d.toISOString().slice(0,10);apply()};
 $('#btnPrev').onclick=()=>shift(-1); $('#btnNext').onclick=()=>shift(1);
@@ -505,6 +537,22 @@ $('#mask').onclick=e=>{if(e.target===$('#mask'))$('#mask').classList.remove('on'
 const openD=()=>{$('#drawer').classList.add('on');$('#dmask').classList.add('on')};
 const closeD=()=>{$('#drawer').classList.remove('on');$('#dmask').classList.remove('on')};
 $('#openDoc').onclick=openD;$('#handleDoc').onclick=openD;$('#closeDoc').onclick=closeD;$('#dmask').onclick=closeD;
+
+/* ---- 列头悬浮说明：挂在 body 上，避免被表格横向滚动容器裁剪 ---- */
+const TIP=$('#tip');
+document.addEventListener('mouseover',e=>{
+  const q=e.target.closest('.q'); if(!q) return;
+  TIP.textContent=q.dataset.tip; TIP.style.display='block';
+  const r=q.getBoundingClientRect(), tw=TIP.offsetWidth;
+  let left=r.left+r.width/2-tw/2;
+  left=Math.max(8,Math.min(left,window.innerWidth-tw-8));
+  TIP.style.left=left+'px';
+  TIP.style.top=(r.bottom+9)+'px';
+  TIP.style.setProperty('--ax',(r.left+r.width/2-left)+'px');
+});
+document.addEventListener('mouseout',e=>{
+  if(e.target.closest('.q')) TIP.style.display='none';
+});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeD();$('#mask').classList.remove('on');scClose()}});
 apply();
 </script>
