@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>入款记录·实付USDT</title>
 <style>
 :root{
@@ -101,6 +106,8 @@ th.newcol .newtag{margin-left:5px}
 .prd .q b{color:#c47f0a}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+</head>
+<body>
 
 <div class="tabs">
   <button aria-pressed="true">快速查询</button>
@@ -293,7 +300,6 @@ th.newcol .newtag{margin-left:5px}
   function paidCell(r){
     var lines=[];
     lines.push('实付金额：'+(r.paid?r.paid:'--'));
-    lines.push('手续费：'+(r.fee?(r.fee+(r.feeRate?'（'+r.feeRate+'）':'')):'--'));
     if(mode==="after"&&r.usdt){
       var v='--',diff='';
       if(r.pu!==null&&r.pu!==undefined){
@@ -303,6 +309,7 @@ th.newcol .newtag{margin-left:5px}
       }
       lines.push('<span class="newline">实付USDT：'+v+'</span>'+diff);
     }
+    lines.push('手续费：'+(r.fee?(r.fee+(r.feeRate?'（'+r.feeRate+'）':'')):'--'));
     return lines.join('<br>');
   }
 
@@ -340,8 +347,9 @@ th.newcol .newtag{margin-left:5px}
       var tr=document.createElement("tr");tr.className="sumrow";
       tr.innerHTML='<td colspan="6">'+t+'</td>'+
         '<td>金额：'+fmt(sumAmt)+'<br>U额：'+fmt(sumU)+'</td>'+
-        '<td>实付金额：'+fmt(sumPaid)+'<br>手续费：'+fmt(sumFee)+
-          (mode==="after"?'<br><span class="newline">实付U额：'+fmt(sumPU)+'</span>':'')+'</td>'+
+        '<td>实付金额：'+fmt(sumPaid)+
+          (mode==="after"?'<br><span class="newline">实付U额：'+fmt(sumPU)+'</span>':'')+
+          '<br>手续费：'+fmt(sumFee)+'</td>'+
         '<td colspan="8">上分金额：'+fmt(sumCredit)+'</td>';
       tb.appendChild(tr);
     });
@@ -374,3 +382,5 @@ th.newcol .newtag{margin-left:5px}
   render();
 })();
 </script>
+</body>
+</html>
