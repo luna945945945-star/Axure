@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IP黑名单·风控期间登录成功账号增加会员ID 原型</title>
+<style>
+:root{
+  --pri:#409EFF; --pri-d:#3183e0; --purple:#8b5cf6; --green:#22c55e; --red:#f56c6c;
+  --page:#f0f2f5; --card:#fff; --line:#e6e8eb; --line-2:#ebeef5;
+  --ink:#303133; --ink-2:#606266; --ink-3:#909399; --ink-4:#c0c4cc;
+  --head:#fafbfc;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+body{background:var(--page);color:var(--ink);font-family:-apple-system,"PingFang SC","Microsoft YaHei",Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5}
+
+/* 顶部演示工具条（非真实页面的一部分） */
+.demobar{position:sticky;top:0;z-index:80;background:#1a2733;color:#fff;padding:9px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;font-size:12.5px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.demobar b{color:#8ec2ff}
+.seg{display:inline-flex;border:1px solid #445266;border-radius:5px;overflow:hidden}
+.seg button{border:0;background:#26374a;color:#c8d3e0;padding:6px 14px;font-size:12.5px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--pri);color:#fff}
+.demobar .tip{color:#a9b6c6;margin-left:auto}
+.docbtn{background:#26374a;color:#fff;border:1px solid #445266;border-radius:5px;padding:6px 14px;font-size:12.5px;cursor:pointer}
+.docbtn:hover{background:#33475d}
+
+/* ===== 页面本体（还原截图样式） ===== */
+.page{max-width:1400px;margin:18px auto;background:var(--card);border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.phead{padding:20px 26px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line-2)}
+.phead .t{font-size:20px;color:var(--pri);font-weight:600}
+.phead .bc{font-size:13px;color:#8a94a3}
+.pbody{padding:20px 26px 30px}
+.srch{display:flex;gap:26px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.fld{display:flex;align-items:center;gap:12px}
+.fld .k{font-size:14px;color:#3d4453;white-space:nowrap}
+.fld input,.fld select{border:1px solid #dcdfe6;border-radius:4px;padding:8px 12px;font-size:13.5px;min-width:200px;outline:none;background:#fff;color:#606266}
+.fld input:focus,.fld select:focus{border-color:var(--pri)}
+.acts{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.btn{border:none;border-radius:4px;padding:9px 18px;cursor:pointer;font-size:13.5px;display:inline-flex;align-items:center;gap:6px;color:#fff;font-weight:500}
+.b-q{background:var(--pri)}.b-r{background:var(--purple)}.b-a{background:var(--green)}
+.btn:hover{filter:brightness(0.94)}
+.tw{border:1px solid var(--line-2);border-radius:4px;overflow-x:auto}
+table.dt{border-collapse:collapse;width:100%;font-size:13.5px;min-width:1240px}
+.dt th{background:var(--head);color:#3d4453;font-weight:600;text-align:left;padding:13px 14px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+.dt td{padding:13px 14px;border-bottom:1px solid var(--line-2);color:#3d4453;vertical-align:middle}
+.dt tr:hover td{background:#fafcff}
+.tag{display:inline-block;border-radius:3px;padding:4px 10px;font-size:12.5px;white-space:nowrap}
+.tg-login{background:#fef0f0;color:#f56c6c}
+.tg-reg{background:#fdf6ec;color:#e6a23c}
+.riskcell{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.viewall{border:1px solid var(--pri);color:var(--pri);background:#fff;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+.viewall:hover{background:#ecf5ff}
+.cnt-badge{background:var(--pri);color:#fff;border-radius:9px;padding:1px 8px;font-size:12px;font-weight:600;white-space:nowrap}
+.prev{color:#606266;font-size:12.5px;max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prev .idp{color:#8a94a3}
+.grey3{color:#c0c4cc}
+.op-btn{border:none;border-radius:3px;padding:6px 13px;cursor:pointer;font-size:12.5px;color:#fff;margin-right:6px;font-weight:500}
+.op-e{background:var(--pri)}.op-d{background:var(--red)}
+.newcol{position:relative}
+.newcol::after{content:"改造新增";position:absolute;top:-9px;right:4px;background:#e03131;color:#fff;font-size:9.5px;border-radius:3px;padding:1px 5px;letter-spacing:.5px}
+
+/* ===== 弹窗 ===== */
+.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;align-items:flex-start;justify-content:center;overflow-y:auto;padding:60px 16px}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:6px;width:860px;max-width:100%;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.modal-head{color:#1a2733;font-size:15.5px;font-weight:600;padding:16px 24px;border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center}
+.modal-head .x{cursor:pointer;color:#b6bec7;font-size:20px;line-height:1;background:none;border:0}
+.modal-body{padding:20px 26px 26px}
+.ruletext{font-size:13px;color:#3d4453;line-height:2;margin-bottom:14px}
+.warnline{background:#fff2f0;border:1px solid #ffccc7;color:#f5222d;font-size:12.5px;padding:9px 13px;border-radius:4px;margin-bottom:14px;line-height:1.8}
+.acctbox{border:1px solid var(--line-2);border-radius:4px;padding:16px;min-height:110px;font-size:13.5px;color:#303133;line-height:2.1;word-break:break-all;background:#fafbfc}
+.acctbox .idp{color:#8a94a3;font-weight:500}
+.acctbox .idp b{color:#409EFF}
+.acctbox .sep{color:#c0c4cc}
+
+/* ===== 需求说明抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:210;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:760px;max-width:94vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:220;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dhead{padding:14px 22px;border-bottom:1px solid var(--line);border-top:3px solid var(--pri);display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14.5px}
+.dhead .x{cursor:pointer;color:var(--ink-4);font-size:20px;line-height:1;background:none;border:0}
+.dbody{padding:18px 24px 50px;overflow-y:auto;flex:1}
+.prd h2{font-size:14.5px;color:var(--pri);margin:22px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.prd h2:first-child{margin-top:0}
+.prd p{margin:7px 0;color:var(--ink-2)}
+.prd ul{margin:7px 0 7px 20px;color:var(--ink-2);padding:0}
+.prd li{margin:5px 0}
+.prd table{min-width:0;font-size:12.5px;width:100%;border-collapse:collapse;margin:8px 0}
+.prd th,.prd td{border:1px solid var(--line);padding:7px 10px;text-align:left;white-space:normal;vertical-align:top}
+.prd th{background:var(--head)}
+.prd td{color:var(--ink-2)}
+.prd b{color:#1a2733}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--pri);color:#fff;writing-mode:vertical-rl;padding:14px 7px;border:0;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(64,158,255,.35)}
+</style>
+</head>
+<body>
+
+<div class="demobar">
+  <span><b>演示开关</b></span>
+  <span class="seg" id="modesw">
+    <button data-m="before" aria-pressed="false">改造前</button>
+    <button data-m="after" aria-pressed="true">改造后</button>
+  </span>
+  <span class="seg" id="permsw">
+    <button data-p="yes" aria-pressed="true">当前账号：有「查看账号」权限</button>
+    <button data-p="no" aria-pressed="false">当前账号：无「查看账号」权限</button>
+  </span>
+  <span class="tip" id="tip"></span>
+  <button class="docbtn" id="openDoc">需求说明</button>
+</div>
+
+<div class="page">
+  <div class="phead">
+    <div class="t">IP黑名单</div>
+    <div class="bc">用户管理 &gt; IP黑名单 &gt; IP黑名单</div>
+  </div>
+  <div class="pbody">
+    <div class="srch">
+      <div class="fld"><span class="k">IP</span><input placeholder="请输入IP"></div>
+      <div class="fld"><span class="k">封禁类型</span><select><option>请选择</option><option>禁止登录</option><option>禁止注册</option></select></div>
+    </div>
+    <div class="acts">
+      <button class="btn b-q">🔍 查询</button>
+      <button class="btn b-r">↻ 重置</button>
+      <button class="btn b-a">＋ 新增</button>
+    </div>
+    <div class="tw">
+      <table class="dt">
+        <thead><tr>
+          <th style="width:56px">序号</th><th style="width:200px">IP地址</th><th style="width:110px">封禁类型</th>
+          <th style="width:130px">风控类型</th><th style="width:260px">封禁原因</th>
+          <th class="newcol" style="width:300px">风控期间登录成功账号</th>
+          <th style="width:90px">创建人</th><th style="width:150px">操作</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 查看全部 弹窗 -->
+<div class="mask" id="mask-dtl">
+  <div class="modal">
+    <div class="modal-head"><span id="dtl-title">风控期间登录成功账号</span><button class="x" onclick="closeMask()">×</button></div>
+    <div class="modal-body">
+      <div class="ruletext" id="dtl-rule"></div>
+      <div class="warnline" id="dtl-warn" hidden></div>
+      <div class="acctbox" id="dtl-list"></div>
+    </div>
+  </div>
+</div>
+
+<button class="handle" id="handleDoc">需求说明</button>
+<div class="dmask" id="dmask"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dhead"><b>IP黑名单 · 风控期间登录成功账号增加会员ID · 需求说明</b><button class="x" id="closeDoc">✕</button></div>
+  <div class="dbody prd">
+
+    <h2>一、改造页面与字段</h2>
+    <p>改造页面：用户管理 › IP黑名单 › 列表</p>
+    <table>
+      <tr><th style="width:190px">位置</th><th style="width:230px">改造前</th><th>改造后</th></tr>
+      <tr><td>列表「风控期间登录成功账号」单元格</td><td>仅显示账号（已按权限脱敏）</td><td>每个账号前附加会员ID，如 <b>100234／986****034</b></td></tr>
+      <tr><td>「查看全部」弹窗内的账号清单</td><td>逗号分隔的账号列表</td><td>逗号分隔的「会员ID／账号」列表，格式同上</td></tr>
+    </table>
+    <ul>
+      <li>会员ID<b>不脱敏、不受「查看账号」权限限制</b>：不管当前账号有没有查看权限，会员ID都直接明文展示——这正是本次要解决的问题，没有查看手机号权限时靠会员ID定位人。</li>
+      <li>账号本身的脱敏规则维持不变，仍受「查看账号」权限控制。</li>
+      <li>弹窗顶部的规则说明、触发时间等既有信息不变。</li>
+    </ul>
+
+    <h2>二、业务规则</h2>
+    <ul>
+      <li><b>采集时机</b>：会员ID随「登录成功」这个动作一并记录，与现有账号的记录时机、触发条件完全一致，不新增采集动作、不改变触发规则。</li>
+      <li><b>生效范围</b>：仅本次上线后新产生的黑名单记录会带会员ID；<b>历史已有记录采集时没存会员ID，无法回填</b>，会员ID处显示为空（--）。</li>
+      <li>展示顺序、去重、超长截断等现有规则不变，只是在原来的账号前面附加对应会员ID，两者一一对应。</li>
+      <li>会员ID与账号如果对不上（理论上不会出现，账号在系统内是唯一的），以会员ID为准。</li>
+    </ul>
+
+    <h2>三、验收标准</h2>
+    <table>
+      <tr><th style="width:60px">编号</th><th style="width:150px">场景</th><th>预期结果</th></tr>
+      <tr><td>AC-01</td><td>无权限账号查看</td><td>未勾选「查看账号」权限的后台账号打开列表/弹窗，账号仍显示脱敏，但<b>会员ID清晰可见</b>，可据此定位会员。</td></tr>
+      <tr><td>AC-02</td><td>有权限账号查看</td><td>勾选权限的账号，账号明文 + 会员ID同时展示。</td></tr>
+      <tr><td>AC-03</td><td>新触发记录</td><td>本次上线后新命中风控拉黑的IP，其账号清单每一项都带会员ID。</td></tr>
+      <tr><td>AC-04</td><td>历史记录</td><td>上线前已存在的黑名单记录，会员ID显示为空，不报错、不影响其余字段展示。</td></tr>
+      <tr><td>AC-05</td><td>追加记录</td><td>拉黑后处于「在途登录成功」而被追加进清单的账号，同样带上对应会员ID。</td></tr>
+    </table>
+
+  </div>
+</aside>
+
+<script>
+const $=id=>document.getElementById(id);
+let mode='after', perm='yes';
+
+function mask(p){ return p.slice(0,3)+'****'+p.slice(-3); }
+
+function genList(n, seed){
+  const out=[];
+  for(let i=0;i<n;i++){
+    out.push({ id: 100000+seed*37+i*3, phone: '9'+String(80000000000+seed*911+i*173).slice(0,10) });
+  }
+  return out;
+}
+
+const ROWS=[
+  {ip:'2409:40e6:243:65fb::/64', login:true, risk:'同IP登录次数', why:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次...', by:'system', accounts:null},
+  {ip:'2401:4900:38c5:8d84::/64', login:true, risk:'同IP登录次数', why:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次...', by:'system', accounts:null},
+  {ip:'2401:4900:72d8:f9fd::/64', login:true, risk:'同IP登录次数', why:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次...', by:'system', accounts:null},
+  {ip:'223.176.5.246', login:true, risk:'同IP登录次数', why:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次...', by:'system', accounts:null},
+  {ip:'2401:4900:1ca8:8756::/64', login:true, risk:'同IP登录次数', ruleFull:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次,直接拉入IP黑名单(禁止登录)｜实际：51 次｜触发时间：2026-09-07 00:37:42｜拉黑对象：2401:4900:1ca8:8756::/64(IPv6 按 /64 段拉黑,触发客户端IP 2401:4900:1ca8:8756:372e:b221:37be:3924)｜触发时登录账号：9866204411｜风控期间登录成功账号：拉黑时 11 个(拉黑瞬间仍在处理中、随后登录成功的账号会继续追加进「风控期间登录成功账号」列,以该列为准,超长只保留前面能放下的)｜解封：在本页删除该记录', why:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次...', by:'system', accounts:genList(11,1)},
+  {ip:'2401:4900:b003:a0f7::/64', login:true, risk:'同IP登录次数', ruleFull:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次,直接拉入IP黑名单(禁止登录)｜实际：64 次｜触发时间：2026-09-07 01:15:09｜拉黑对象：2401:4900:b003:a0f7::/64(IPv6 按 /64 段拉黑)｜触发时登录账号：9871345522｜解封：在本页删除该记录', why:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次...', by:'system', accounts:genList(14,2)},
+  {ip:'2409:40e4:11ef:a948::/64', login:true, risk:'同IP登录次数', ruleFull:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次,直接拉入IP黑名单(禁止登录)｜实际：53 次｜触发时间：2026-09-06 22:40:31｜拉黑对象：2409:40e4:11ef:a948::/64(IPv6 按 /64 段拉黑)｜触发时登录账号：9803321190｜解封：在本页删除该记录', why:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次...', by:'system', accounts:genList(1,3)},
+  {ip:'2401:4900:5da4:35a2::/64', login:true, risk:'同IP登录次数', why:'登录风控自动拉黑｜规则：同一IP 30 分钟内登录次数 > 50 次...', by:'system', accounts:null},
+];
+
+function rowRiskCell(r){
+  if(!r.accounts || !r.accounts.length) return '<span class="grey3">--</span>';
+  const list = r.accounts;
+  let previewTxt;
+  if(mode==='after'){
+    previewTxt = list.slice(0,2).map(a=>a.id+'／'+(perm==='yes'?a.phone:mask(a.phone))).join(', ')+(list.length>2?' ...':'');
+  }else{
+    previewTxt = list.slice(0,3).map(a=>(perm==='yes'?a.phone:mask(a.phone))).join(', ')+(list.length>3?' ...':'');
+  }
+  return `<div class="riskcell">
+    <button class="viewall" onclick="openDetail('${r.ip}')">查看全部</button>
+    <span class="cnt-badge">${list.length}</span>
+    <span class="prev">${previewTxt}</span>
+  </div>`;
+}
+
+function render(){
+  $('tbody').innerHTML = ROWS.map((r,i)=>`<tr>
+    <td>${i+1}</td>
+    <td>${r.ip}</td>
+    <td><span class="tag tg-login">禁止登录</span></td>
+    <td>${r.risk}</td>
+    <td>${r.why}</td>
+    <td>${rowRiskCell(r)}</td>
+    <td>${r.by}</td>
+    <td><button class="op-btn op-e">✎ 编辑</button><button class="op-btn op-d">🗑 删除</button></td>
+  </tr>`).join('');
+  $('tip').textContent = mode==='after'
+    ? (perm==='yes' ? '当前为改造后 + 有权限：会员ID与账号均明文展示' : '当前为改造后 + 无权限：账号已脱敏，但会员ID仍明文可见 —— 这是本次改造要达成的效果')
+    : (perm==='yes' ? '当前为改造前 + 有权限：只有账号，没有会员ID' : '当前为改造前 + 无权限：账号已脱敏且没有会员ID，无法定位是哪个会员');
+}
+
+let curDetailIp=null;
+function openDetail(ip){
+  const r = ROWS.find(x=>x.ip===ip);
+  if(!r || !r.accounts) return;
+  curDetailIp=ip;
+  $('dtl-title').textContent = `风控期间登录成功账号（${r.accounts.length} 个）— IP：${r.ip}`;
+  $('dtl-rule').textContent = r.ruleFull || r.why;
+  if(perm==='no'){
+    $('dtl-warn').hidden = false;
+    $('dtl-warn').textContent = '当前角色没有本模块「查看账号」权限，账号已脱敏显示；需要明文请联系管理员在 角色管理 中为「IP黑名单」勾选「查看账号」。';
+  }else{
+    $('dtl-warn').hidden = true;
+  }
+  const pieces = r.accounts.map(a=>{
+    const acc = perm==='yes' ? a.phone : mask(a.phone);
+    return mode==='after' ? `<span class="idp"><b>${a.id}</b>／${acc}</span>` : acc;
+  });
+  $('dtl-list').innerHTML = pieces.join('<span class="sep">, </span>');
+  $('mask-dtl').classList.add('show');
+}
+function closeMask(){ $('mask-dtl').classList.remove('show'); curDetailIp=null; }
+
+function refreshAll(){
+  render();
+  if(curDetailIp && $('mask-dtl').classList.contains('show')) openDetail(curDetailIp);
+}
+document.querySelectorAll('#modesw button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#modesw button').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); mode=b.dataset.m; refreshAll();
+});
+document.querySelectorAll('#permsw button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#permsw button').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); perm=b.dataset.p; refreshAll();
+});
+
+function openD(){$("drawer").classList.add("on");$("dmask").classList.add("on");$("drawer").setAttribute("aria-hidden","false")}
+function closeD(){$("drawer").classList.remove("on");$("dmask").classList.remove("on");$("drawer").setAttribute("aria-hidden","true")}
+$("openDoc").addEventListener("click",openD);
+$("handleDoc").addEventListener("click",openD);
+$("closeDoc").addEventListener("click",closeD);
+$("dmask").addEventListener("click",closeD);
+document.addEventListener("keydown",function(e){if(e.key==="Escape"){closeD();closeMask();}});
+
+render();
+</script>
+</body>
+</html>
