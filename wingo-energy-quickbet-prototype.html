@@ -113,10 +113,10 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 .autobar .tx{min-width:0;flex:1;font-size:11px;color:#8A5312;line-height:1.45}
 .autobar .tx b{display:block;font-size:12.5px;color:#B4560A}
 .autobar button{flex:none;border:1px solid var(--d-orange);background:#fff;color:#B4560A;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:700}
-.autobar.paused{border-color:#B6BAC2;background:#F5F6F8}
-.autobar.paused .ic{background:#B6BAC2}
-.autobar.paused .tx,.autobar.paused .tx b{color:#6E737C}
-.autobar.paused button{border-color:#9AA0A8;color:#4A4F57}
+.autobar.away{border-color:#B6BAC2;background:#F5F6F8}
+.autobar.away .ic{background:#B6BAC2}
+.autobar.away .tx,.autobar.away .tx b{color:#6E737C}
+.autobar.away button{border-color:#9AA0A8;color:#4A4F57}
 
 .rankcard{margin-top:11px;border:1px solid var(--d-line);border-radius:12px;padding:11px 9px 6px}
 .rt{display:flex;align-items:baseline;gap:6px;padding:0 4px 9px;font-weight:700;font-size:13px}
@@ -132,9 +132,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 .sbar.locked{border-color:#EFD79B}
 .sbar.locked .ic{background:#CFD4DB}
 .chip2{flex:none;border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;background:#F3F4F6;color:var(--d-sub);white-space:nowrap}
-.chip2.warn{background:#FFF0D9;color:#B4560A}
+.chip2.soon{background:#FFE9EC;color:var(--d-red)}
 .chip2.hot{background:var(--d-red);color:#fff;animation:beat .9s infinite}
-.chip2.snapped{animation:bump .5s}
 @keyframes beat{0%,100%{opacity:1}50%{opacity:.4}}
 .pct.flash{animation:bump .5s}
 @keyframes bump{0%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}60%{transform:translateY(0)}}
@@ -376,7 +375,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
         <div class="toast" id="toast"></div>
         <div class="hiddenmask" id="hiddenmask">
           <b>页面已切到后台（模拟）</b>
-          <span>连投已暂停，不漏投也不补投。回到前台后会询问是继续还是结束。</span>
+          <span>期次在服务端照常开奖。离开期间不自动下单、也不补投，局数不消耗；回到前台后连投直接继续，不弹窗打断。</span>
           <button class="btn-ghost" id="btnBack" style="background:#fff;color:#222;border:none">回到前台</button>
         </div>
       </div>
@@ -406,7 +405,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
           <button data-inj="fail">下一局第 3 笔失败<span>演示：部分失败 → 整个计划停止 + 逐号结果</span></button>
           <button data-inj="empty">下一局榜单未形成<span>演示：跟榜模式跳过本局，不消耗局数</span></button>
           <button data-inj="poor">把余额改成 ₹300<span>演示：开局前校验不足 → 计划停止</span></button>
-          <button data-inj="hide">模拟切到后台<span>演示：暂停 → 回前台询问继续或结束</span></button>
+          <button data-inj="hide">模拟切到后台<span>演示：离开期间不下单，回前台自动继续</span></button>
         </div>
       </div>
 
@@ -429,7 +428,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
           <li><span class="i">1</span><span>点 <b>随机5码</b> → 选号保持 <b>固定这组</b> → 连投选 <b>5局</b> → 确认。看 5 局自动下单、能量自动到手。</span></li>
           <li><span class="i">2</span><span>连投期间点已解锁号码 <b>消耗能量助力</b>，看百分比和奖牌变化——这就是省下来的时间要花的地方。</span></li>
           <li><span class="i">3</span><span>停止后再点 <b>随机5码</b>，选号切到 <b>跟榜前三</b>，看每局号码随榜单变化、确认前不可预知。</span></li>
-          <li><span class="i">4</span><span>注入 <b>榜单未形成</b> 与 <b>余额 ₹300</b>，看跳过与停止两种中断。</span></li>
+          <li><span class="i">4</span><span>注入 <b>榜单未形成</b>、<b>余额 ₹300</b>、<b>切到后台</b>，看跳过、停止、离开自动继续三种情况。</span></li>
         </ol>
       </div>
     </aside>
@@ -459,18 +458,18 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 
     <h3>三、状态横幅承载倒计时（删掉号码网格中间那个数字）</h3>
     <p>面板里已经有一条状态横幅。倒计时应该落在它<b>右侧的芯片</b>里，不要另起元件，也不要放在 0–9 号码球网格正中央——那个位置的裸数字读起来像第 11 个球或者开奖号。</p>
-    <p>横幅左边讲<b>此刻该做什么</b>，右边芯片讲<b>时间</b>。刷新节奏和封盘提示在时间上互斥（封盘后公开榜就不再刷新），所以一个芯片切两种含义就够：</p>
+    <p>横幅左边讲<b>此刻该做什么</b>，右边芯片讲<b>时间</b>。芯片<b>全程跟随彩票倒计时的真实剩余秒数</b>，数值与顶部完全一致——面板会遮住顶部倒计时，芯片正好补位。只有最后 3 秒改口播「最后助力」：</p>
     <table class="modes" style="margin:6px 0 10px">
       <thead><tr><th>剩余</th><th>横幅主文案</th><th>右侧芯片</th></tr></thead>
       <tbody>
-        <tr><td>30–11</td><td>点击号码下注并解锁助力 / 能量 N · 点号码球助力 / 能量已用完</td><td class="e">榜单刷新 3s</td></tr>
-        <tr><td>10–06</td><td>同上</td><td class="e">最后一次刷新 3s</td></tr>
-        <tr><td>05–03</td><td>最后助力 · 榜单已停止刷新</td><td class="e">最后助力 3s → 1s</td></tr>
-        <tr><td>02–00</td><td>最终排名已锁定 · 有无加奖资格</td><td class="e">已锁定</td></tr>
+        <tr><td>30–11</td><td>点击号码下注并解锁助力 / 能量 N · 点号码球助力 / 能量已用完</td><td class="e">23 秒（灰）</td></tr>
+        <tr><td>10–06</td><td>同上</td><td class="e">8 秒（转粉）</td></tr>
+        <tr><td>05–03</td><td>最后助力 · 投注已封盘，仅可使用已有能量</td><td class="e">最后助力 3 → 1 秒（红，脉冲）</td></tr>
+        <tr><td>02–00</td><td>最终排名已锁定 · 有无加奖资格</td><td class="e">已锁定（灰）</td></tr>
       </tbody>
     </table>
-    <p>横幅整体在 05 转红并发光，02 转灰。号码球位置全程不动，符合「最后几秒快速点击不能误触」的要求。</p>
-    <p>关键是<b>一个期次只保留一个权威秒数</b>，就是顶部彩票倒计时。芯片讲的是榜单节奏和助力阶段，不是第二个计时器——所以它不再显示期次剩余秒数。两个数字同时跳且数值不同，一定会被会员理解成系统出错。</p>
+    <p>横幅整体在剩余 5 秒转红发光，剩余 2 秒转灰。号码球位置全程不动，符合「最后几秒快速点击不能误触」的要求。</p>
+    <p><b>5 秒刷新不给数字。</b>「还有 2 秒刷新」不影响用户的任何决定，「还能投几秒」才影响。刷新节奏交给前三「百分比 + 奖牌」在每次 Snapshot 的短促弹跳——规则本来就要求这个动效，用户看得见就够了。</p>
 
     <h3>四、两种授权，要说清楚</h3>
     <p><b>固定这组</b>授权的是具体号码，确认前完全可预知。<b>跟榜前三 / 后三</b>授权的是选号规则，各局号码可能不同——确认层必须明写这句，运行条必须实时显示本局实际投了哪几个号。</p>
@@ -485,7 +484,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
       <div><b>✓</b><span>跟榜取本期第 5 秒首个榜单，不取上期锁定结果</span></div>
       <div><b>✓</b><span>停止只对下一期生效，本期已投不可撤，这句写在按钮旁</span></div>
       <div><b>✓</b><span>任一局部分失败，整个计划停止并展示逐号结果</span></div>
-      <div><b>✓</b><span>页面不可见立即暂停，不漏投不补投；回前台询问继续或结束</span></div>
+      <div><b>✓</b><span>页面不可见期间不下单、也不补投，局数不消耗；回到前台自动继续，不弹窗打断</span></div>
       <div><b>✓</b><span>榜单未形成则跳过本局且不消耗局数，连续跳过 3 局停止</span></div>
       <div><b>✓</b><span>局数最多 10 局，不提供无限连投</span></div>
       <div><b>✓</b><span>能量助力本身不自动化——那是活动唯一保留的用户决策</span></div>
@@ -569,7 +568,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
   /* ---------- clock ---------- */
   function start(){ if(timer) clearInterval(timer); timer=setInterval(tick, Math.round(1000/S.speed)); }
   function tick(){
-    if(S.hidden||S.busy) return;
+    if(S.busy) return;  /* 切到后台时期次照常走——服务端不会停，只是客户端不下单 */
     S.t--;
     botGrow();
     if(SNAP.indexOf(S.t)>=0){ S.prevPct=S.pct.slice(); publish(); S.snapAt=Date.now(); }
@@ -644,10 +643,12 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
   /* ---------- auto plan ---------- */
   function autoRun(phase){
     var a=S.auto;
-    if(!a || a.paused || S.hidden) return;
+    if(!a) return;
     if(phase==="fixed" && a.pick!=="fixed") return;
     if(phase==="board" && a.pick==="fixed") return;
     if(a.done>=a.rounds) return;
+    /* 页面不可见：本局不下单也不补投，局数不消耗，回前台后自动继续 */
+    if(S.hidden){ a.missed++; renderAll(); return; }
 
     var nums, amts={};
     if(a.pick==="fixed"){ nums=a.nums.slice(); amts=a.amts; }
@@ -816,7 +817,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     h+='<div class="agree"><span class="bx">✓</span>我同意<a href="#">《预售规则》</a></div>';
     h+='<div class="summary"><span>余额 <b id="sumBal">₹'+S.balance.toLocaleString()+'</b></span>'
       +'<span>每局能量 <b style="color:#F5821F">+'+estEnergy(sh)+'</b></span></div>';
-    if(sh.rounds>1) h+='<div style="padding:0 0 10px;font-size:11px;color:var(--d-sub);line-height:1.6">停止只对下一期生效，本期已投不可撤。页面切到后台会自动暂停。</div>';
+    if(sh.rounds>1) h+='<div style="padding:0 0 10px;font-size:11px;color:var(--d-sub);line-height:1.6">停止只对下一期生效，本期已投不可撤。切到后台期间不下单，回来后自动继续。</div>';
 
     body.innerHTML=h;
 
@@ -842,7 +843,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 
     if(sh.rounds>1 || sh.pick!=="fixed"){
       S.auto={ pick:sh.pick, nums:sh.nums.slice(), amts:{}, perAmt:per,
-               rounds:sh.rounds, done:0, spent:0, skipped:0, paused:false, thisRound:[], progress:0,
+               rounds:sh.rounds, done:0, spent:0, skipped:0, missed:0, thisRound:[], progress:0,
                label: sh.pick==="fixed"? (isFollowFixed?"跟上轮":"固定这组") : (sh.pick==="top3"?"跟榜前三":"跟榜后三") };
       sh.nums.forEach(function(n){ S.auto.amts[n]= isFollowFixed? sh.amts[n] : per; });
     }
@@ -922,16 +923,18 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     /* auto bar */
     var bar=$("#autobar");
     if(S.auto){
-      bar.hidden=false; bar.classList.toggle("paused", !!S.auto.paused);
-      $("#autoTitle").textContent=(S.auto.paused?"已暂停 · ":"")+S.auto.label
+      bar.hidden=false;
+      bar.classList.toggle("away", S.hidden);
+      $("#autoTitle").textContent=(S.hidden?"后台中 · ":"")+S.auto.label
         +(S.auto.rounds>1? " 连投 "+S.auto.done+"/"+S.auto.rounds+" 局" : " · 仅本期");
       $("#autoSub").textContent = (S.auto.thisRound.length? "本局已投 "+S.auto.thisRound.join("·")+" · " : "等待第 5 秒榜单 · ")
-        +"已用 ₹"+S.auto.spent.toLocaleString()+(S.auto.skipped?" · 跳过 "+S.auto.skipped+" 局":"");
-      $("#autoStop").textContent=S.auto.paused?"结束":"停止";
+        +"已用 ₹"+S.auto.spent.toLocaleString()
+        +(S.auto.skipped?" · 榜单未形成跳过 "+S.auto.skipped+" 局":"")
+        +(S.auto.missed?" · 离开期间未投 "+S.auto.missed+" 局":"");
     } else bar.hidden=true;
 
     var justSnapped=(Date.now()-S.snapAt)<520;
-    renderStatus(justSnapped);
+    renderStatus();
 
     /* grid */
     var g="";
@@ -959,10 +962,11 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     if(S.sheet && S.sheet.mode!=="result" && !S.busy) updateFoot();
   }
   /* 状态横幅：主文案 = 此刻该做什么，右侧芯片 = 时间。
-     正常期芯片讲「榜单刷新」，封盘后讲「最后助力」——两者时间上互斥，一个芯片就够，
-     期次剩余秒数交给顶部彩票倒计时，面板内不再出现第二个秒数。 */
-  function renderStatus(justSnapped){
-    var b=$("#sbar"), t=S.t, un=unlockedList(), title, sub="", chip, cls="";
+     芯片全程跟随彩票倒计时的真实剩余秒数，数值与顶部完全一致（面板会遮住顶部倒计时，芯片补位）；
+     只有最后 3 秒改口播「最后助力」，锁榜后变「已锁定」。
+     5 秒刷新不给数字——它不影响任何决策，节奏交给前三百分比的弹跳。 */
+  function renderStatus(){
+    var b=$("#sbar"), t=Math.max(0,S.t), un=unlockedList(), title, sub="", chip, cls="";
     b.className="sbar";
     if(t<=LOCK_AT){
       b.classList.add("locked");
@@ -972,15 +976,13 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     } else if(t<=CLOSE_AT){
       b.classList.add("final");
       title="最后助力";
-      sub = S.energy>0? "榜单已停止刷新 · 剩余能量 "+S.energy : "榜单已停止刷新 · 能量已用完";
-      chip="最后助力 "+(t-LOCK_AT)+"s"; cls="hot";
+      sub = "投注已封盘 · "+(S.energy>0? "仅可使用已有能量 "+S.energy : "能量已用完");
+      chip="最后助力 "+(t-LOCK_AT)+" 秒"; cls="hot";
     } else {
-      var nx=Math.floor((t-1)/5)*5, wait=t-nx;
       if(!un.length){ title="点击号码下注并解锁助力"; sub="解锁后才能把能量投给该号码"; }
       else if(S.energy>0){ title="能量 "+S.energy+" · 点号码球助力"; sub="可助力 "+un.join(" · ")+" · 每次 "+(S.energy>10?10:1); }
       else { title="能量已用完"; sub="继续下注可获得更多能量"; }
-      chip=(nx===CLOSE_AT? "最后一次刷新 " : "榜单刷新 ")+wait+"s";
-      cls=(nx===CLOSE_AT?"warn":"")+(justSnapped?" snapped":"");
+      chip=t+" 秒"; cls = t<=10? "soon" : "";
     }
     $("#sbarTitle").textContent=title;
     var s=$("#sbarSub"); s.textContent=sub; s.hidden=!sub;
@@ -1003,7 +1005,6 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
   $("#qFollow").onclick=function(){ openSheet("follow") };
   $("#mask").onclick=closeSheet;
   $("#autoStop").onclick=function(){
-    if(S.auto&&S.auto.paused){ S.auto=null; toast("连投已结束"); renderAll(); return; }
     S.auto=null; toast("连投已停止 · 停止只对下一期生效，本期已投不可撤"); renderAll();
   };
 
@@ -1016,19 +1017,12 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     if(k==="fail"){ S.inject.fail=true; b.classList.add("armed"); toast("已预约：下一次自动下单第 3 笔失败"); }
     if(k==="empty"){ S.inject.empty=true; b.classList.add("armed"); toast("已预约：下一局榜单不形成，跟榜模式将跳过"); }
     if(k==="poor"){ S.balance=300; toast("余额已改为 ₹300"); renderAll(); }
-    if(k==="hide"){ S.hidden=true; if(S.auto) S.auto.paused=true; $("#hiddenmask").classList.add("on"); renderAll(); }
+    if(k==="hide"){ S.hidden=true; b.classList.add("armed"); $("#hiddenmask").classList.add("on"); renderAll(); }
   }});
   $("#btnBack").onclick=function(){
-    S.hidden=false; $("#hiddenmask").classList.remove("on");
-    document.querySelectorAll('[data-inj="hide"]').forEach(function(x){x.classList.remove("armed")});
-    if(S.auto&&S.auto.paused){
-      showPop('<h4>连投已暂停</h4><p>页面切到后台期间没有下单，也不会补投。</p>'
-        +'<p>剩余 <b>'+(S.auto.rounds-S.auto.done)+'</b> 局 · '+S.auto.label+'</p>'
-        +'<div class="actions"><button class="g" id="popEnd">结束</button><button class="p" id="popOk">继续</button></div>', function(){
-          S.auto.paused=false; hidePop(); toast("连投已继续"); renderAll();
-        });
-      $("#pop").querySelector("#popEnd").onclick=function(){ S.auto=null; hidePop(); toast("连投已结束"); renderAll(); };
-    }
+    S.hidden=false; $("#hiddenmask").classList.remove("on"); disarm("hide");
+    /* 不弹窗询问——直接继续，只用一条提示说明离开期间发生了什么 */
+    if(S.auto) toast(S.auto.missed? "连投继续 · 离开期间未投 "+S.auto.missed+" 局，局数未消耗" : "连投继续");
     renderAll();
   };
 
