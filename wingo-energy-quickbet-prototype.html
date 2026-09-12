@@ -189,6 +189,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 .pickbox .now{margin-top:6px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--d-sub)}
 .pickbox .now i{font-style:normal;width:24px;height:24px;border-radius:50%;border:2px solid var(--d-orange);color:#B4560A;display:grid;place-items:center;font-weight:700;font-size:12px;background:#fff}
 
+.dupnote{margin-top:9px;border-radius:8px;background:var(--d-orange-l);color:#B4560A;padding:6px 9px;font-size:10.5px;font-weight:600;line-height:1.5}
 .agree{display:flex;align-items:center;gap:7px;padding:10px 0 4px;font-size:11.5px;color:var(--d-sub)}
 .agree .bx{width:17px;height:17px;border-radius:50%;background:var(--d-yellow);color:#fff;display:grid;place-items:center;font-size:11px}
 .agree a{color:var(--d-red);text-decoration:none}
@@ -462,6 +463,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
       <div><b>✓</b><span>跟上轮只复制号码投注，颜色与大小不带过来</span></div>
       <div><b>✓</b><span>只复制上一期，上期没有号码投注就置灰，不追历史</span></div>
       <div><b>✓</b><span>只复制号码不复制金额，同号多笔直接去重成一个号码</span></div>
+      <div><b>✓</b><span>上期投了几个就带几个，不自动补也不自动删；想加号码就取消后改用随机5码或直接点号码球</span></div>
+      <div><b>✓</b><span>带回本期已投过的号码不自动剔除，芯片标橙并提示只 +5，用户自己决定删不删</span></div>
       <div><b>✓</b><span>随机只从本期未投注号码中抽；不足 5 个时按钮改成「随机3码」，为空则置灰</span></div>
       <div><b>✓</b><span>跟榜取当前已发布的榜单，确认层直接显示那三个号码，所见即所得</span></div>
       <div><b>✓</b><span>榜单未形成（开局前 5 秒、或全站无人下注）时跟榜入口置灰</span></div>
@@ -637,7 +640,12 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
   }
   function perAmt(sh){ return sh.unit*sh.qty }
   function sheetTotal(sh){ return perAmt(sh)*sh.nums.length }
-  function estEnergy(sh){ return Math.min(sh.nums.length*10,100) }
+  /* 本期已投过的号码再投只 +5，且受本期累计 100 上限约束 */
+  function estEnergy(sh){
+    var g=0;
+    sh.nums.forEach(function(n){ g += S.unlocked[n]? 5 : 10 });
+    return Math.max(0, Math.min(g, 100-S.earned));
+  }
   function footState(sh){
     var k=sh.nums.length, total=sheetTotal(sh);
     if(!canBet()) return {blocked:true,label:"本期已封盘"};
@@ -700,6 +708,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
       +'<button data-qty="-1">−</button><span class="val num">'+sh.qty+'</span><button data-qty="1">+</button>'
       +'</div><span style="font-size:11.5px;color:var(--d-sub)">每码 ₹'+perAmt(sh)+'</span></div></div>';
 
+    var dup=sh.nums.filter(function(n){return S.unlocked[n]});
+    if(dup.length) h+='<div class="dupnote">'+dup.join(" · ")+' 本期已投过，再投只 +5 能量</div>';
     h+='<div class="agree"><span class="bx">✓</span>我同意<a href="#">《预售规则》</a></div>';
     h+='<div class="summary"><span>余额 <b id="sumBal">₹'+S.balance.toLocaleString()+'</b></span>'
       +'<span>本期能量 <b style="color:#F5821F">+'+estEnergy(sh)+'</b></span></div>';
