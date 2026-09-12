@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>*{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>WinGo 能量连投</title>
+<title>WinGo 能量快捷投注</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap">
@@ -108,19 +108,14 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 .qbtn[disabled]{border-color:var(--d-line);background:#F5F6F8;color:#B6BAC2;cursor:not-allowed}
 .qbtn[disabled] small{color:#C3C7CE}
 
-.autobar{margin-top:9px;border-radius:10px;border:1.5px solid var(--d-orange);background:linear-gradient(100deg,#FFF6EA,#FFE9D2);padding:9px 10px;display:flex;align-items:center;gap:9px}
-.autobar .ic{width:26px;height:26px;border-radius:50%;background:var(--d-orange);color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
-.autobar .tx{min-width:0;flex:1;font-size:11px;color:#8A5312;line-height:1.45}
-.autobar .tx b{display:block;font-size:12.5px;color:#B4560A}
-.autobar button{flex:none;border:1px solid var(--d-orange);background:#fff;color:#B4560A;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:700}
-.autobar.away{border-color:#B6BAC2;background:#F5F6F8}
-.autobar.away .ic{background:#B6BAC2}
-.autobar.away .tx,.autobar.away .tx b{color:#6E737C}
-.autobar.away button{border-color:#9AA0A8;color:#4A4F57}
 
 .rankcard{margin-top:11px;border:1px solid var(--d-line);border-radius:12px;padding:11px 9px 6px}
-.rt{display:flex;align-items:baseline;gap:6px;padding:0 4px 9px;font-weight:700;font-size:13px}
-.rt small{font-weight:500;font-size:10px;color:var(--d-sub)}
+.rt{display:flex;align-items:center;gap:6px;padding:0 4px 9px;font-weight:700;font-size:13px}
+/* 跟榜两个入口挂在排行卡标题行上：位置本身就说明它们是关于榜单的，而且不多占一整行 */
+.rt .sp{margin-left:auto;display:flex;gap:6px}
+.bbtn{border:1.5px solid var(--d-orange);background:var(--d-orange-l);color:#B4560A;border-radius:8px;padding:4px 9px;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;transition:transform .1s}
+.bbtn:active{transform:scale(.95)}
+.bbtn[disabled]{border-color:var(--d-line);background:#F5F6F8;color:#B6BAC2;cursor:not-allowed}
 /* 状态横幅：主文案讲当前该做什么，右侧芯片讲时间——正常期是榜单刷新，封盘后切最后助力 */
 .sbar{margin-top:9px;display:flex;align-items:center;gap:10px;border:1.5px solid #FFE0B8;background:var(--d-card);border-radius:12px;padding:9px 10px;transition:border-color .2s,box-shadow .2s}
 .sbar .ic{width:30px;height:30px;border-radius:50%;background:linear-gradient(145deg,#FFB04A,var(--d-orange));color:#fff;display:grid;place-items:center;font-size:15px;flex:none}
@@ -129,8 +124,10 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 .sbar .tx span{display:block;font-size:10.5px;color:var(--d-sub);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sbar.final{border-color:var(--d-red);box-shadow:0 0 0 3px rgba(229,82,94,.13)}
 .sbar.final .ic{background:linear-gradient(145deg,#FF7A85,var(--d-red))}
-.sbar.locked{border-color:#EFD79B}
-.sbar.locked .ic{background:#CFD4DB}
+/* 类名叫 over 而不是 locked：抽屉里的规则列表已经占用了 .locked{display:grid}，
+   同为单类选择器且定义在后面，会把这里的 display:flex 覆盖掉，整条横幅竖排换行。 */
+.sbar.over{border-color:#EFD79B}
+.sbar.over .ic{background:#CFD4DB}
 .chip2{flex:none;border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:700;font-variant-numeric:tabular-nums;background:#F3F4F6;color:var(--d-sub);white-space:nowrap}
 .chip2.soon{background:#FFE9EC;color:var(--d-red)}
 .chip2.hot{background:var(--d-red);color:#fff;animation:beat .9s infinite}
@@ -179,17 +176,13 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 .chip.on{background:var(--d-green);border-color:var(--d-green);color:#fff}
 .chip.sm{padding:4px 9px;font-size:11.5px}
 .numchip{position:relative;width:38px;height:38px;border-radius:50%;border:2.5px solid var(--d-green);color:var(--d-green);background:#fff;font-size:16px;font-weight:700;display:grid;place-items:center}
+.numchip.done{border-color:var(--d-orange);color:var(--d-orange)}
 .numchip b{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--d-ink);color:#fff;font-size:11px;line-height:1;display:grid;place-items:center;font-weight:500}
 .reroll{border:1px dashed var(--d-green);background:#F1FBF7;color:var(--d-green);border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:700}
 .stepper{display:flex;align-items:center;gap:9px}
 .stepper button{width:28px;height:28px;border-radius:7px;border:none;background:var(--d-green);color:#fff;font-size:16px;font-weight:700;line-height:1}
 .stepper .val{min-width:54px;text-align:center;background:var(--d-bg);border-radius:7px;padding:5px 0;font-weight:700;font-variant-numeric:tabular-nums}
 
-.folrow{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px dashed var(--d-line);font-size:13px}
-.folrow .n{width:34px;height:34px;border-radius:50%;border:2.5px solid var(--d-green);color:var(--d-green);display:grid;place-items:center;font-weight:700;flex:none}
-.folrow .a{font-weight:700;font-variant-numeric:tabular-nums}
-.folrow .x{margin-left:auto;border:none;background:var(--d-bg);color:var(--d-sub);width:24px;height:24px;border-radius:50%;font-size:14px;line-height:1}
-.folrow .tag{font-size:10px;color:#B4560A;background:var(--d-orange-l);border-radius:4px;padding:1px 5px;font-weight:700}
 
 .pickbox{border:1.5px solid var(--d-orange);background:#FFF9F2;border-radius:10px;padding:9px 11px;font-size:11.5px;color:#8A5312;line-height:1.6}
 .pickbox b{color:#B4560A}
@@ -232,10 +225,6 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 .toast{position:absolute;left:50%;bottom:78px;transform:translateX(-50%) translateY(8px);background:rgba(29,30,34,.93);color:#fff;padding:9px 15px;border-radius:999px;font-size:12px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:12;max-width:86%;text-align:center;line-height:1.5}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
-.hiddenmask{position:absolute;inset:0;background:rgba(18,18,22,.86);color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;gap:9px;z-index:14;text-align:center;padding:26px}
-.hiddenmask.on{display:flex}
-.hiddenmask b{font-size:15px}
-.hiddenmask span{font-size:12px;color:#C8CAD0;line-height:1.7;max-width:250px}
 
 /* ---------- console ---------- */
 .console{display:flex;flex-direction:column;gap:14px}
@@ -278,9 +267,9 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 .dbody ul{margin:0 0 10px;padding-left:17px;font-size:12.5px;line-height:1.8}
 .dbody li{margin-bottom:3px}
 .dbody .k{background:var(--s-surface2);border:1px solid var(--s-line);border-radius:4px;padding:1px 5px;font-size:11.5px;font-weight:600;white-space:nowrap}
-.locked{display:grid;gap:7px;margin-bottom:10px}
-.locked div{display:flex;gap:9px;font-size:12.5px;line-height:1.6;background:var(--s-surface2);border-radius:8px;padding:8px 11px}
-.locked b{flex:none;color:var(--s-good);font-size:13px}
+.rulelist{display:grid;gap:7px;margin-bottom:10px}
+.rulelist div{display:flex;gap:9px;font-size:12.5px;line-height:1.6;background:var(--s-surface2);border-radius:8px;padding:8px 11px}
+.rulelist b{flex:none;color:var(--s-good);font-size:13px}
 .ask{border-left:3px solid var(--s-accent);background:var(--s-accent-soft);border-radius:0 8px 8px 0;padding:10px 13px;margin-bottom:9px;font-size:12.5px;line-height:1.7}
 .ask b{display:block;margin-bottom:2px}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .3s;z-index:50}
@@ -293,8 +282,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
   <header class="masthead">
     <div>
       <div class="lbl">WinGo 30秒 · 能量助力 · 交互原型</div>
-      <h1>快捷投注与连投</h1>
-      <p>三种连投选号模式全部可点：固定这组 / 跟榜前三 / 跟榜后三。右侧控制台可调演示速度、注入余额不足与榜单未形成等边界场景。</p>
+      <h1>快捷投注</h1>
+      <p>四个入口全部两次点击、全部单期、每局都要确认——那次确认是把用户拉回屏幕的节拍器，不能免。右侧控制台可调演示速度并注入边界场景。</p>
     </div>
     <div class="mh-actions">
       <button class="btn-ghost" id="btnSpec">需求说明</button>
@@ -342,22 +331,21 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
             <div class="sbar" id="sbar">
               <span class="ic">⚡</span>
               <span class="tx"><b id="sbarTitle">点击号码下注并解锁助力</b><span id="sbarSub" hidden></span></span>
-              <span class="chip2" id="sbarChip">榜单刷新 5s</span>
-            </div>
-
-            <div class="autobar" id="autobar" hidden>
-              <span class="ic">🔁</span>
-              <span class="tx"><b id="autoTitle">连投中 1/5 局</b><span id="autoSub">—</span></span>
-              <button id="autoStop">停止</button>
+              <span class="chip2" id="sbarChip">25 秒</span>
             </div>
 
             <div class="rankcard">
-              <div class="rt">能量排行 <small>前三 + 中奖 = 加奖 · 排行不影响开奖</small></div>
+              <div class="rt">能量排行
+                <span class="sp">
+                  <button class="bbtn" id="qTop">🥇 待出榜</button>
+                  <button class="bbtn" id="qBottom">❄️ 待出榜</button>
+                </span>
+              </div>
               <div class="grid" id="grid"></div>
               <div class="tiers">
                 <div class="tier a">🥇 +50%</div><div class="tier b">🥈 +20%</div><div class="tier c">🥉 +10%</div>
               </div>
-              <div class="tiernote">加奖按中奖号码的原始投注额计算</div>
+              <div class="tiernote">前三 + 中奖 = 加奖 · 按中奖号码原始投注额计算 · 排行不影响开奖</div>
             </div>
           </div>
         </div>
@@ -373,18 +361,13 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 
         <div class="popcard" id="pop"></div>
         <div class="toast" id="toast"></div>
-        <div class="hiddenmask" id="hiddenmask">
-          <b>页面已切到后台（模拟）</b>
-          <span>期次在服务端照常开奖。离开期间不自动下单、也不补投，局数不消耗；回到前台后连投直接继续，不弹窗打断。</span>
-          <button class="btn-ghost" id="btnBack" style="background:#fff;color:#222;border:none">回到前台</button>
-        </div>
       </div>
     </div>
 
     <aside class="console">
       <div class="card">
         <h3>演示控制台</h3>
-        <p class="hint">30 秒一期。加速只改演示节奏，规则时点（开局下单 / 第 5 秒榜单 / 剩余 5 秒封盘 / 剩余 2 秒锁榜）保持等比。</p>
+        <p class="hint">30 秒一期。加速只改演示节奏，规则时点（第 5 秒出榜 / 剩余 5 秒封盘 / 剩余 3 秒停止助力 / 剩余 2 秒锁榜）保持等比。</p>
         <div class="seg" id="segSpeed">
           <button data-s="1">1× 真实</button><button data-s="3" class="on">3× 演示</button><button data-s="6">6× 快进</button>
         </div>
@@ -392,7 +375,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
           <div><dt>本期能量</dt><dd id="rdEnergy">0</dd></div>
           <div><dt>本期累计</dt><dd id="rdEarned">0</dd></div>
           <div><dt>已解锁</dt><dd id="rdUnlock">0</dd></div>
-          <div><dt>连投进度</dt><dd id="rdAuto">—</dd></div>
+          <div><dt>已用能量</dt><dd id="rdUsed">0</dd></div>
           <div><dt>本期已投</dt><dd id="rdSpent">₹0</dd></div>
           <div><dt>余额</dt><dd id="rdBal">₹5,000</dd></div>
         </div>
@@ -400,24 +383,24 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 
       <div class="card">
         <h3>边界场景注入</h3>
-        <p class="hint">点一次即“预约”，在下一次自动下单时触发一次，用来给运营演示异常态。</p>
+        <p class="hint">点一次即“预约”，在下一次下单或下一期触发一次，用来给运营演示异常态。</p>
         <div class="inject">
-          <button data-inj="fail">下一局第 3 笔失败<span>演示：部分失败 → 整个计划停止 + 逐号结果</span></button>
-          <button data-inj="empty">下一局榜单未形成<span>演示：跟榜模式跳过本局，不消耗局数</span></button>
-          <button data-inj="poor">把余额改成 ₹300<span>演示：开局前校验不足 → 计划停止</span></button>
-          <button data-inj="hide">模拟切到后台<span>演示：离开期间不下单，回前台自动继续</span></button>
+          <button data-inj="fail">下一次下单第 3 笔失败<span>演示：部分成功 → 逐号结果 + 重试</span></button>
+          <button data-inj="empty">下一期榜单未形成<span>演示：跟榜两个入口置灰不可用</span></button>
+          <button data-inj="poor">把余额改成 ₹300<span>演示：确认层预校验 → 按钮变“余额不足”</span></button>
         </div>
       </div>
 
       <div class="card">
-        <h3>三种连投模式</h3>
-        <p class="hint">能量按「号码 + 金额」组合按期重算，所以每局同样的号码同样拿满首投能量。</p>
+        <h3>四个快捷入口</h3>
+        <p class="hint">全部单期、全部两次点击、全部只产出号码，金额统一走面额 / 数量。跟榜两个挂在排行卡标题行上，不占额外行高。</p>
         <table class="modes">
-          <thead><tr><th>模式</th><th>号码来源</th><th class="e">每局能量</th></tr></thead>
+          <thead><tr><th>入口</th><th>位置 / 号码来源</th><th class="e">能量</th></tr></thead>
           <tbody>
-            <tr><td>固定这组</td><td>确认时锁定，各局相同</td><td class="e">+50</td></tr>
-            <tr><td>跟榜前三</td><td>每局第 5 秒榜单前三</td><td class="e">+30</td></tr>
-            <tr><td>跟榜后三</td><td>每局第 5 秒榜单后三</td><td class="e">+30</td></tr>
+            <tr><td>随机5码</td><td>快捷条 · 本期未投号码中随机 5 个</td><td class="e">+50</td></tr>
+            <tr><td>跟上轮</td><td>快捷条 · 上期投过的号码去重</td><td class="e">+50</td></tr>
+            <tr><td>🥇 跟前三</td><td>排行卡标题行 · 号码印在按钮上</td><td class="e">+30</td></tr>
+            <tr><td>❄️ 跟后三</td><td>排行卡标题行 · 号码印在按钮上</td><td class="e">+30</td></tr>
           </tbody>
         </table>
       </div>
@@ -425,10 +408,11 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
       <div class="card">
         <h3>给运营的演示路径</h3>
         <ol class="steps">
-          <li><span class="i">1</span><span>点 <b>随机5码</b> → 选号保持 <b>固定这组</b> → 连投选 <b>5局</b> → 确认。看 5 局自动下单、能量自动到手。</span></li>
-          <li><span class="i">2</span><span>连投期间点已解锁号码 <b>消耗能量助力</b>，看百分比和奖牌变化——这就是省下来的时间要花的地方。</span></li>
-          <li><span class="i">3</span><span>停止后再点 <b>随机5码</b>，选号切到 <b>跟榜前三</b>，看每局号码随榜单变化、确认前不可预知。</span></li>
-          <li><span class="i">4</span><span>注入 <b>榜单未形成</b>、<b>余额 ₹300</b>、<b>切到后台</b>，看跳过、停止、离开自动继续三种情况。</span></li>
+          <li><span class="i">1</span><span>点 <b>随机5码</b> → 确认。两次点击拿到 5 个号码 + 50 能量，全程约 3 秒。</span></li>
+          <li><span class="i">2</span><span>马上点已解锁号码 <b>消耗能量助力</b>，看百分比和奖牌变化——省下来的 20 多秒就是花在这里。</span></li>
+          <li><span class="i">3</span><span>下一期等榜单出来，点 <b>跟榜前三</b>，确认层直接显示那三个号码：所见即所得，没有委托选号。</span></li>
+          <li><span class="i">4</span><span>看剩余 5 秒横幅转红「最后助力」、剩余 2 秒转灰「已锁定」，以及开奖后的加奖结算。</span></li>
+          <li><span class="i">5</span><span>注入 <b>第 3 笔失败</b>、<b>榜单未形成</b>、<b>余额 ₹300</b>，看三种边界。</span></li>
         </ol>
       </div>
     </aside>
@@ -440,25 +424,27 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
   <div class="dhead"><h2>需求说明</h2><button id="btnSpecClose">✕</button></div>
   <div class="dbody">
     <h3>一、改造页面与入口</h3>
-    <p>只改 <b>WinGo 30秒 / 1分钟</b> 的能量助力面板，主投注区与 3分钟/5分钟场次不动。面板状态条下方新增一条快捷条：</p>
+    <p>只改 <b>WinGo 30秒 / 1分钟</b> 的能量助力面板，主投注区与 3分钟/5分钟场次不动。面板状态条下方新增一条快捷条，四个入口：</p>
     <ul>
       <li><span class="k">🎲 随机5码</span> 从本期未投注号码中随机 5 个不重复</li>
-      <li><span class="k">🔁 跟上轮</span> 复刻上一期的号码与金额，同号多笔先合并</li>
+      <li><span class="k">🔁 跟上轮</span> 复刻上一期投过的号码（去重）</li>
     </ul>
-    <p>封盘后（剩余 5 秒起）整条置灰；上一期无号码投注时跟上轮置灰。</p>
+    <p>另外两个入口<b>挂在「能量排行」卡片的标题行右侧</b>，不单独占一行——位置本身就说明它们是关于榜单的：</p>
+    <ul>
+      <li><span class="k">🥇 跟 8·6·0</span> 当前榜单前三，号码直接印在按钮上</li>
+      <li><span class="k">❄️ 跟 3·1·2</span> 当前榜单后三</li>
+    </ul>
+    <p><b>四个入口都只产出一组号码，金额一律走确认层的面额 / 数量。</b>不复制上一期的金额——同号多笔、每号不同金额那套还原既复杂又容易踩三秒内重复提交；而面额在本次会话里是记住的，所以跟上轮实际拿到的总额通常和上次一样。</p>
+    <p>封盘后（剩余 5 秒起）四个全部置灰。上一期无号码投注时跟上轮置灰。<b>第一个榜单在开局第 5 秒才出来，出来之前两个跟榜入口显示「待出榜」并置灰。</b></p>
 
     <h3>二、确认层</h3>
-    <p>两个入口共用一个确认层，沿用现有下注抽屉的面额 / 数量 / 倍数控件，新增两行：</p>
-    <ul>
-      <li><b>选号</b>：固定这组 / 跟榜前三 / 跟榜后三。默认固定这组，常驻显示</li>
-      <li><b>连投</b>：本期 / 3局 / 5局 / 10局。默认本期，不连投的人完全无感</li>
-    </ul>
-    <p>两行相互独立：选号决定<b>投哪些号</b>，连投决定<b>投几局</b>。所以「本期 + 跟榜前三」也成立——本期等到第 5 秒榜单出来再按前三下单。</p>
-    <p>主按钮必须写出最大消耗额，例如 <span class="k">确认 · 5局 × ₹500 最多 ₹2,500</span>。</p>
+    <p>四个入口共用<b>同一个确认层、同一套布局</b>：号码球芯片（每个可删）+ 面额 / 数量 / 倍数，沿用现有下注抽屉的控件。只有右上角的重取按钮按来源变：随机是 <span class="k">换一批 ↻</span>，跟榜是 <span class="k">按最新榜单 ↻</span>，跟上轮没有。</p>
+    <p>主按钮必须写出金额，例如 <span class="k">确认 · 5码 ₹500</span>。余额不足时按钮直接置灰写「余额不足」，不要等下单失败。</p>
+    <p><b>全部单期，每局都要确认。</b>会员路径固定是两次点击：点入口 → 点确认，约 3 秒。金额记住本次会话上次用过的值，否则两次点击不成立。</p>
 
-    <h3>三、状态横幅承载倒计时（删掉号码网格中间那个数字）</h3>
-    <p>面板里已经有一条状态横幅。倒计时应该落在它<b>右侧的芯片</b>里，不要另起元件，也不要放在 0–9 号码球网格正中央——那个位置的裸数字读起来像第 11 个球或者开奖号。</p>
-    <p>横幅左边讲<b>此刻该做什么</b>，右边芯片讲<b>时间</b>。芯片<b>全程跟随彩票倒计时的真实剩余秒数</b>，数值与顶部完全一致——面板会遮住顶部倒计时，芯片正好补位。只有最后 3 秒改口播「最后助力」：</p>
+    <h3>三、状态横幅与倒计时</h3>
+    <p>倒计时落在状态横幅右侧的芯片里，<b>不要放在 0–9 号码球网格正中央</b>——那个位置的裸数字读起来像第 11 个球或者开奖号。</p>
+    <p>芯片<b>全程跟随彩票倒计时的真实剩余秒数</b>，数值与顶部完全一致（面板会遮住顶部倒计时，芯片正好补位）。只有最后 3 秒改口播「最后助力」：</p>
     <table class="modes" style="margin:6px 0 10px">
       <thead><tr><th>剩余</th><th>横幅主文案</th><th>右侧芯片</th></tr></thead>
       <tbody>
@@ -469,42 +455,43 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
       </tbody>
     </table>
     <p>横幅整体在剩余 5 秒转红发光，剩余 2 秒转灰。号码球位置全程不动，符合「最后几秒快速点击不能误触」的要求。</p>
-    <p><b>5 秒刷新不给数字。</b>「还有 2 秒刷新」不影响用户的任何决定，「还能投几秒」才影响。刷新节奏交给前三「百分比 + 奖牌」在每次 Snapshot 的短促弹跳——规则本来就要求这个动效，用户看得见就够了。</p>
+    <p><b>5 秒刷新不给数字。</b>「还有 2 秒刷新」不影响用户的任何决定，「还能投几秒」才影响。刷新节奏交给前三「百分比 + 奖牌」在每次 Snapshot 的短促弹跳——规则本来就要求这个动效。</p>
 
-    <h3>四、两种授权，要说清楚</h3>
-    <p><b>固定这组</b>授权的是具体号码，确认前完全可预知。<b>跟榜前三 / 后三</b>授权的是选号规则，各局号码可能不同——确认层必须明写这句，运行条必须实时显示本局实际投了哪几个号。</p>
-
-    <h3>五、已锁定的规则</h3>
-    <div class="locked">
+    <h3>四、已锁定的规则</h3>
+    <div class="rulelist">
       <div><b>✓</b><span>跟上轮只复制号码投注，颜色与大小不带过来</span></div>
       <div><b>✓</b><span>只复制上一期，上期没有号码投注就置灰，不追历史</span></div>
-      <div><b>✓</b><span>同号多笔合并成一笔（逐笔还原会被三秒内的重复提交拦截）</span></div>
-      <div><b>✓</b><span>只还原原始投注总额，不还原倍数与份数——能量按原始金额算，结果一致</span></div>
-      <div><b>✓</b><span>连投固定号码组，不每局重新随机——用户没看过的号码不构成授权</span></div>
-      <div><b>✓</b><span>跟榜取本期第 5 秒首个榜单，不取上期锁定结果</span></div>
-      <div><b>✓</b><span>停止只对下一期生效，本期已投不可撤，这句写在按钮旁</span></div>
-      <div><b>✓</b><span>任一局部分失败，整个计划停止并展示逐号结果</span></div>
-      <div><b>✓</b><span>页面不可见期间不下单、也不补投，局数不消耗；回到前台自动继续，不弹窗打断</span></div>
-      <div><b>✓</b><span>榜单未形成则跳过本局且不消耗局数，连续跳过 3 局停止</span></div>
-      <div><b>✓</b><span>局数最多 10 局，不提供无限连投</span></div>
+      <div><b>✓</b><span>只复制号码不复制金额，同号多笔直接去重成一个号码</span></div>
+      <div><b>✓</b><span>随机只从本期未投注号码中抽；不足 5 个时按钮改成「随机3码」，为空则置灰</span></div>
+      <div><b>✓</b><span>跟榜取当前已发布的榜单，确认层直接显示那三个号码，所见即所得</span></div>
+      <div><b>✓</b><span>榜单未形成（开局前 5 秒、或全站无人下注）时跟榜入口置灰</span></div>
+      <div><b>✓</b><span>确认层打开后若遇封盘，按钮失效并提示，绝不顺延到下一期</span></div>
+      <div><b>✓</b><span>多号码一次确认 = 逐笔串行提交，不回滚；部分失败展示逐号结果并可重试</span></div>
+      <div><b>✓</b><span>重试需等满 3 秒，否则会被重复提交拦截</span></div>
       <div><b>✓</b><span>能量助力本身不自动化——那是活动唯一保留的用户决策</span></div>
     </div>
 
-    <h3>六、为什么跟榜前三有真实价值</h3>
-    <p>加奖的四个条件里，真正卡人的是「中奖号码必须在最终前三」。同样投 ₹500：随机 5 码中奖率 50%、命中后约 30% 有加奖；跟榜前三中奖率 30%、命中后约 70% 有加奖。<b>正常派奖期望完全一样，差别全在加奖上——跟榜前三的加奖期望约 2.3 倍，综合返还率高约 1.1 个百分点。</b></p>
+    <h3>五、为什么不做连投</h3>
+    <p>方案中途讨论过「连投 N 局、每局系统自动下单」，评估后<b>一期不做</b>，理由是三条：</p>
+    <p><b>1. 加上每局确认之后，连投就等于跟上轮。</b>连投的全部实质就是免掉那次确认；确认不能免，连投的内容就归零。</p>
+    <p><b>2. 它和活动目的对冲。</b>每局那次确认是这一局里唯一强制用户回到屏幕前的动作，时点还极好——开局，第一个 Snapshot 马上要出。设 10 局走开的用户会下 50 笔注、拿 500 能量、用 0 能量、拿 0 加奖、看 0 次榜。活动层退化成自动投注器。<b>那次确认不是成本，是节拍器。</b></p>
+    <p><b>3. 边际收益本来就不划算。</b>随机5码已经把 15+ 次点击压到 2 次、15 秒压到 3 秒；连投再省约 3 秒，代价是授权模型、停止恢复语义、每局余额校验、部分失败即停、页面可见性处理，以及自动扣款的合规敞口。一个子系统换 3 秒。</p>
+    <p>这不是永久否决。确认层的结构留着，以后想加就是加一行「连投：本期 / 3局 / 5局」，前端两天的事。<b>先上线看人均助力次数</b>，健康就永远不必做；真有人抱怨 30 秒场来不及，再拿数据讨论。</p>
 
-    <h3>七、为什么前三和后三必须一起上</h3>
-    <p>只上跟榜前三会形成正反馈：前三被更多人下注 → 这些人拿到能量 → 能量又投给前三 → 榜单固化 → 最后三秒的隐藏反转失效。跟榜后三的用户把能量砸向冷门号，是天然的对冲。</p>
+    <h3>六、为什么跟榜前三值得做</h3>
+    <p>加奖的四个条件里，真正卡人的是「中奖号码必须在最终前三」。同样投 ₹500：随机 5 码中奖率 50%、命中后约 30% 有加奖；跟榜前三中奖率 30%、命中后约 70% 有加奖。<b>正常派奖期望完全一样，差别全在加奖上——跟榜前三的加奖期望约 2.3 倍，综合返还率高约 1.1 个百分点。</b></p>
+    <p>而且它把下注和助力绑成同一个动机：你押注当前的领先者，接下来这一局就有理由去守住它们。</p>
+    <p><b>前三和后三必须一起上。</b>只上前三会形成正反馈：前三被更多人下注 → 这些人拿到能量 → 能量又投给前三 → 榜单固化 → 最后三秒的隐藏反转失效。跟榜后三的用户把能量砸向冷门号，是天然的对冲。</p>
     <p>上线后盯一个指标：<b>前三百分比之和</b>。从约 40% 涨到 70%，说明已经固化。</p>
 
-    <h3>八、请运营确认</h3>
-    <div class="ask"><b>随机 5 码的号码池</b>建议只从本期未投注号码里抽——撞上已投号码只加少量能量，会员会觉得被坑。池不足 5 个时按钮文案变成「随机3码」，池为空则置灰。</div>
-    <div class="ask"><b>局数档位</b>建议 3 / 5 / 10 三档。10 局在 30 秒场是 5 分钟，天然的时间边界，比另外加总额上限更好理解。</div>
-    <div class="ask"><b>跟榜模式只有 3 个号码</b>，每局能量比随机 5 码少 40%。这是策略取舍，建议不要做成「前五 / 后五」去补齐——补齐了两个模式就互相支配，玩法反而塌了。</div>
-    <div class="ask"><b>上线节奏</b>建议一期只做随机5码 + 跟上轮 + 固定组连投，同时采集前三集中度基线；二期再上跟榜模式。没有基线就上跟榜，出了问题归因不了。</div>
+    <h3>七、请运营确认</h3>
+    <div class="ask"><b>跟榜只有 3 个号码</b>，本期能量比随机 5 码少 40%。这是策略取舍，建议不要做成「前五 / 后五」去补齐——补齐了两个入口就互相支配，玩法反而塌了。</div>
+    <div class="ask"><b>四个入口是否一次全上</b>。如果要分批，建议先上随机5码 + 跟上轮（解决速度问题、同时采集前三集中度基线），跟榜前三/后三放第二批。没有基线就上跟榜，榜单固化了归因不了。</div>
+    <div class="ask"><b>后三入口的套利风险</b>。会员可以买冷门号 + 把自己的能量全砸在其中一个上，试图把它自己推进前三。上线前请评估单用户单期能量占公共池的比重——小站点这可能真的做得到。</div>
+    <div class="ask"><b>部分失败不回滚</b>。5 个号码逐笔提交，中途失败已成功的不撤销，只展示逐号结果并提供重试。回滚需要后台具备撤单能力，现在没有。</div>
 
-    <h3>九、成本提醒</h3>
-    <p>这几个按钮不是纯体验优化。随机 5 码把会员从「投 1 个号」变成「投 5 个号」，连投再叠一层局数，加奖触发频次上升得比投注额更快。<b>上线前请按「连投渗透率 30% × 平均 5 局」跑一遍加奖池成本模型。</b></p>
+    <h3>八、成本提醒</h3>
+    <p>这几个入口不是纯体验优化。随机5码把会员从「投 1 个号」变成「投 5 个号」，中奖号命中率从 1/10 升到 5/10，加奖触发频次上升得比投注额更快。<b>上线前请按「快捷入口渗透率 30% / 50%」跑一遍加奖池成本模型。</b></p>
   </div>
 </aside>
 
@@ -513,7 +500,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
   "use strict";
   var $=function(s){return document.querySelector(s)};
   var RATE=[0.5,0.2,0.1], MEDAL=["🥇","🥈","🥉"];
-  var PERIOD=30, LOCK_AT=2, CLOSE_AT=5, SNAP=[25,20,15,10,5];
+  var PERIOD=30, LOCK_AT=2, CLOSE_AT=5, BOARD_AT=25, SNAP=[25,20,15,10,5];
 
   var S, timer=null, popTimer=null;
   function disarm(k){ var b=document.querySelector('[data-inj="'+k+'"]'); if(b) b.classList.remove("armed"); }
@@ -532,19 +519,17 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 
   function reset(){
     S={ issue:20260912100001812, t:PERIOD, speed:3, balance:5000,
-        energy:0, earned:0, used:0, unlocked:{}, myBets:{}, lastBets:{2:100,4:50,6:100,7:50,9:200},
-        spent:0, pool:[], reached:[], weight:[], pct:[], top3:[], locked:null, prevPct:null,
-        last5:[5,1,2,0,4], hidden:false, justUnlocked:{}, hasPlayed:false, snapAt:0,
-        auto:null, inject:{fail:false,empty:false},
-        sheet:null, busy:false };
+        energy:0, earned:0, used:0, unlocked:{}, myBets:{},
+        spent:0, pool:[], reached:[], weight:[], pct:[], top3:[], bottom3:[], locked:null, prevPct:null,
+        last5:[5,1,2,0,4], justUnlocked:{}, hasPlayed:false, snapAt:0,
+        lastNums:[2,4,6,7,9],
+        inject:{fail:false,empty:false}, sheet:null, busy:false, lastUnit:100, lastQty:1 };
     freshPeriod(true);
-    // seed a plausible resting state: leaderboard already formed
-    for(var k=0;k<40;k++) botGrow();
-    publish();
-    renderAll();
+    for(var k=0;k<40;k++) botGrow();   /* 开场就给一个已经成形的榜单 */
+    publish(); renderAll();
   }
 
-  /* ---------- ranking ---------- */
+  /* ---------- 排行 ---------- */
   function botGrow(){
     if(S.emptyPeriod) return;
     for(var i=0;i<10;i++){ if(Math.random()<0.5) S.pool[i]+=S.weight[i]*(1+Math.random()*3); }
@@ -553,32 +538,30 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     var sum=S.pool.reduce(function(a,b){return a+b},0);
     var pct=[], rem=[], total=0;
     if(sum<=0){ S.pct=[0,0,0,0,0,0,0,0,0,0]; S.top3=[]; S.bottom3=[]; return; }
-    for(var i=0;i<10;i++){ var raw=S.pool[i]/sum*100; var f=Math.floor(raw); pct.push(f); rem.push({i:i,r:raw-f}); total+=f; }
+    for(var i=0;i<10;i++){ var raw=S.pool[i]/sum*100, f=Math.floor(raw); pct.push(f); rem.push({i:i,r:raw-f}); total+=f; }
     rem.sort(function(a,b){return b.r-a.r});
     for(var j=0;j<100-total;j++) pct[rem[j%10].i]++;
     S.pct=pct;
-    var order=[];
-    for(var n=0;n<10;n++) order.push(n);
+    var order=[]; for(var n=0;n<10;n++) order.push(n);
     order.sort(function(a,b){ return S.pool[b]-S.pool[a] || S.reached[a]-S.reached[b]; });
     S.top3=order.slice(0,3);
     S.bottom3=order.slice(7).reverse();
   }
   function rankOf(n){ var k=S.top3.indexOf(n); return k<0?-1:k; }
 
-  /* ---------- clock ---------- */
+  /* ---------- 时钟 ---------- */
   function start(){ if(timer) clearInterval(timer); timer=setInterval(tick, Math.round(1000/S.speed)); }
   function tick(){
-    if(S.busy) return;  /* 切到后台时期次照常走——服务端不会停，只是客户端不下单 */
+    if(S.busy) return;
     S.t--;
     botGrow();
     if(SNAP.indexOf(S.t)>=0){ S.prevPct=S.pct.slice(); publish(); S.snapAt=Date.now(); }
-    if(S.t===25) autoRun("board");
     if(S.t===LOCK_AT && !S.locked){ publish(); S.locked=S.top3.slice(); }
     if(S.t<=0){ settle(); return; }
     renderAll();
   }
 
-  /* ---------- settlement ---------- */
+  /* ---------- 结算 ---------- */
   function settle(){
     S.busy=true;
     var draw=Math.floor(Math.random()*10);
@@ -588,33 +571,33 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     var bonus = (stake>0 && S.used>=1 && rank>=0)? Math.round(stake*RATE[rank]) : 0;
     S.balance += win+bonus;
     S.last5.unshift(draw); S.last5=S.last5.slice(0,5);
-    if(S.hasPlayed) S.lastBets = JSON.parse(JSON.stringify(S.myBets));
+    /* 跟上轮只记号码，不记金额 */
+    if(S.hasPlayed) S.lastNums = Object.keys(S.myBets).map(Number).sort(function(a,b){return a-b});
     clearTimeout(popTimer);
 
     if(stake>0){
       popTimer=setTimeout(function(){ if(S.busy) nextPeriod(); }, 2200);
-      showPop('<h4>'+(win?'恭喜中奖':'开奖')+'</h4>'
+      showPop('<h4>'+(win?"恭喜中奖":"开奖")+'</h4>'
         +'<div class="drawball">'+draw+'</div>'
         +'<p>本期开奖号码 <b>'+draw+'</b> · 你在该号码投注 ₹'+stake+'</p>'
         +'<p>正常派奖 <b>₹'+win+'</b>'+(bonus?' · 能量加奖 <b style="color:#F5821F">₹'+bonus+'</b>（'+MEDAL[rank]+' '+(RATE[rank]*100)+'%）':'')+'</p>'
         +'<div class="big">₹'+(win+bonus)+'</div>'
-        +'<div class="actions"><button class="p" id="popOk">继续</button></div>', function(){ nextPeriod(); });
-    } else { nextPeriod(); }
+        +'<div class="actions"><button class="p" id="popOk">继续</button></div>', nextPeriod);
+    } else nextPeriod();
     renderAll();
   }
   function nextPeriod(){
     clearTimeout(popTimer); hidePop(); S.busy=false;
-    freshPeriod(false);
-    autoRun("fixed");
-    renderAll();
+    freshPeriod(false); renderAll();
   }
 
-  /* ---------- betting ---------- */
-  function canBet(){ return S.t>CLOSE_AT; }
+  /* ---------- 下注 ---------- */
+  function canBet(){ return S.t>CLOSE_AT }
+  function boardReady(){ return S.t<=BOARD_AT && S.pct.some(function(p){return p>0}) }
   function unlockedList(){ return Object.keys(S.unlocked).map(Number).sort(function(a,b){return a-b}) }
 
+  /* 多号码一次确认 = 逐笔串行提交。V1 下注接口是单笔的，没有批量也没有回滚。 */
   function placeSerial(list, onStep, done){
-    // list: [{n, amt}] — 串行提交，逐笔返回结果
     var res=[], i=0, failAt = S.inject.fail? 3 : 0;
     S.busy=true;
     function step(){
@@ -627,95 +610,47 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
         S.balance-=b.amt; S.spent+=b.amt;
         var first = !S.myBets[b.n];
         S.myBets[b.n]=(S.myBets[b.n]||0)+b.amt;
-        S.unlocked[b.n]=true; S.justUnlocked[b.n]=true;
+        S.unlocked[b.n]=true; S.justUnlocked[b.n]=true; S.hasPlayed=true;
         var gain = Math.min(first?10:5, 100-S.earned);
-        S.earned+=gain; S.energy+=gain; S.hasPlayed=true;
+        S.earned+=gain; S.energy+=gain;
         r={n:b.n,amt:b.amt,ok:true,gain:gain};
       }
       res.push(r); i++;
-      if(onStep) onStep(i,list.length,res);
+      if(onStep) onStep(i,list.length);
       renderAll();
       setTimeout(step, Math.round(260/Math.max(1,S.speed/2)));
     }
     setTimeout(step, 120);
   }
 
-  /* ---------- auto plan ---------- */
-  function autoRun(phase){
-    var a=S.auto;
-    if(!a) return;
-    if(phase==="fixed" && a.pick!=="fixed") return;
-    if(phase==="board" && a.pick==="fixed") return;
-    if(a.done>=a.rounds) return;
-    /* 页面不可见：本局不下单也不补投，局数不消耗，回前台后自动继续 */
-    if(S.hidden){ a.missed++; renderAll(); return; }
-
-    var nums, amts={};
-    if(a.pick==="fixed"){ nums=a.nums.slice(); amts=a.amts; }
-    else {
-      if(!S.pct.length || S.pct.every(function(p){return p===0})){
-        a.skipped++;
-        toast(a.skipped>=3? "榜单连续 3 局未形成，连投已结束" : "本局榜单未形成，已跳过（不消耗局数）");
-        if(a.skipped>=3){ S.auto=null; }
-        renderAll(); return;
-      }
-      nums=(a.pick==="top3"? S.top3 : S.bottom3).slice();
-      nums.forEach(function(n){ amts[n]=a.perAmt });
-    }
-    var need=nums.reduce(function(s,n){return s+amts[n]},0);
-    if(S.balance<need){ S.auto=null; toast("余额不足 ₹"+need+"，连投已停止"); renderAll(); return; }
-
-    a.thisRound=nums.slice(); a.progress=0;
-    var list=nums.map(function(n){return {n:n,amt:amts[n]}});
-    placeSerial(list, function(i){ a.progress=i; }, function(res){
-      var bad=res.filter(function(r){return !r.ok});
-      a.done++; a.spent+= res.filter(function(r){return r.ok}).reduce(function(s,r){return s+r.amt},0);
-      if(bad.length){
-        S.auto=null;
-        openResult(res, "本局部分失败，连投已停止");
-      } else {
-        var g=res.reduce(function(s,r){return s+r.gain},0);
-        toast("第 "+a.done+"/"+a.rounds+" 局已投 "+nums.join("·")+" · 能量 +"+g);
-        if(a.done>=a.rounds){ toast("连投 "+a.rounds+" 局已完成"); S.auto=null; }
-      }
-      renderAll();
-    });
-  }
-
-  /* ---------- sheet ---------- */
+  /* ---------- 确认层 ---------- */
   function openSheet(src){
-    var sh={src:src, rounds:1, pick:"fixed", unit:100, qty:1, nums:[], amts:{}, mode:"form", res:null};
-    if(src==="rand"){ sh.nums=randomNums(5); sh.nums.forEach(function(n){sh.amts[n]=100}); }
-    else if(src==="follow"){ sh.nums=Object.keys(S.lastBets).map(Number); sh.nums.forEach(function(n){sh.amts[n]=S.lastBets[n]}); }
-    else { sh.nums=[src.n]; sh.amts[src.n]=100; }
-    S.sheet=sh; renderSheet(); $("#sheet").classList.add("open"); $("#mask").classList.add("on");
+    var sh={ src:(typeof src==="object"?"single":src), nums:[],
+             unit:S.lastUnit, qty:S.lastQty, mode:"form", res:null };
+    if(sh.src==="rand") sh.nums=randomNums(5);
+    else if(sh.src==="follow") sh.nums=S.lastNums.slice();
+    else if(sh.src==="top3") sh.nums=S.top3.slice();
+    else if(sh.src==="bottom3") sh.nums=S.bottom3.slice();
+    else sh.nums=[src.n];
+    S.sheet=sh; renderSheet();
+    $("#sheet").classList.add("open"); $("#mask").classList.add("on");
   }
   function closeSheet(){ S.sheet=null; $("#sheet").classList.remove("open"); $("#mask").classList.remove("on"); }
+
   function randomNums(k){
     var pool=[]; for(var i=0;i<10;i++) if(!S.unlocked[i]) pool.push(i);
-    for(var m=pool.length-1;m>0;m--){ var r=Math.floor(Math.random()*(m+1)); var t=pool[m];pool[m]=pool[r];pool[r]=t; }
+    for(var m=pool.length-1;m>0;m--){ var r=Math.floor(Math.random()*(m+1)), t=pool[m]; pool[m]=pool[r]; pool[r]=t; }
     return pool.slice(0,Math.min(k,pool.length)).sort(function(a,b){return a-b});
   }
   function perAmt(sh){ return sh.unit*sh.qty }
-  function sheetNums(sh){ return sh.pick==="fixed"? sh.nums : (sh.pick==="top3"? S.top3 : S.bottom3) }
-  function sheetTotal(sh){
-    if(sh.pick==="fixed"){
-      if(sh.src==="follow") return sh.nums.reduce(function(s,n){return s+sh.amts[n]},0)*sh.rounds;
-      return perAmt(sh)*sh.nums.length*sh.rounds;
-    }
-    return perAmt(sh)*3*sh.rounds;
-  }
-  function estEnergy(sh){
-    var k = sh.pick==="fixed"? sh.nums.length : 3;
-    return Math.min(k*10,100);
-  }
+  function sheetTotal(sh){ return perAmt(sh)*sh.nums.length }
+  function estEnergy(sh){ return Math.min(sh.nums.length*10,100) }
   function footState(sh){
-    var k = sh.pick==="fixed"? sh.nums.length : 3, total=sheetTotal(sh);
-    var blocked = !canBet() || k===0;
-    var label = sh.rounds===1
-      ? "确认 · "+k+"码 ₹"+total.toLocaleString()
-      : "确认 · "+sh.rounds+"局×₹"+(total/sh.rounds).toLocaleString()+" 最多 ₹"+total.toLocaleString();
-    return { blocked:blocked, label: blocked?(k===0?"请至少保留 1 个号码":"本期已封盘"):label };
+    var k=sh.nums.length, total=sheetTotal(sh);
+    if(!canBet()) return {blocked:true,label:"本期已封盘"};
+    if(k===0) return {blocked:true,label:"请至少保留 1 个号码"};
+    if(total>S.balance) return {blocked:true,label:"余额不足 · 需 ₹"+total.toLocaleString()};
+    return {blocked:false,label:"确认 · "+k+"码 ₹"+total.toLocaleString()};
   }
   /* 只刷新会随时间变化的部分，不重建抽屉 DOM——整体重绘会吞掉点击 */
   function updateFoot(){
@@ -723,14 +658,8 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     var b=$("#btnOk"); if(!b) return;
     var f=footState(sh);
     b.disabled=f.blocked; b.textContent=f.label;
-    b.className="ok"+(sh.rounds>1?" warn":"");
     b.onclick = f.blocked? null : confirmSheet;
     var bal=$("#sumBal"); if(bal) bal.textContent="₹"+S.balance.toLocaleString();
-    var now=$("#pickNow");
-    if(now && sh.pick!=="fixed"){
-      now.innerHTML="此刻榜单"+(sh.pick==="top3"?"前三":"后三")+"："
-        +sheetNums(sh).map(function(n){return '<i>'+n+'</i>'}).join("");
-    }
   }
 
   function renderSheet(){
@@ -739,19 +668,19 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 
     if(sh.mode==="result"){
       $("#shTitle").textContent="投注结果";
-      $("#shSub").textContent = sh.resNote||"";
+      $("#shSub").textContent=sh.resNote||"";
       body.innerHTML='<div class="reslist">'+sh.res.map(function(r){
         return '<div class="resrow '+(r.ok?"ok":"no")+'"><span class="n">'+r.n+'</span><span class="amt">₹'+r.amt+'</span>'
           +'<span class="st">'+(r.ok? "✓ 成功 · 能量 +"+r.gain : "✗ "+r.why)+'</span></div>';
       }).join("")+'</div>';
-      var retry=sh.res.filter(function(r){return !r.ok&&r.retry});
-      foot.innerHTML = (retry.length? '<button class="cancel" id="btnRetry">重试 ('+retry.length+')</button>':'')
+      var retry=sh.res.filter(function(r){return !r.ok && r.retry});
+      foot.innerHTML=(retry.length? '<button class="cancel" id="btnRetry">重试 ('+retry.length+')</button>':'')
         +'<button class="ok" id="btnDone">完成</button>';
       $("#btnDone").onclick=closeSheet;
       if(retry.length) $("#btnRetry").onclick=function(){
         toast("距上次提交不足 3 秒，正在等待…");
         setTimeout(function(){
-          placeSerial(retry.map(function(r){return {n:r.n,amt:r.amt}}),null,function(res){
+          placeSerial(retry.map(function(r){return {n:r.n,amt:r.amt}}), null, function(res){
             sh.res=sh.res.filter(function(r){return r.ok}).concat(res); sh.resNote="重试结果"; renderSheet();
           });
         }, 700);
@@ -759,128 +688,67 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
       return;
     }
 
-    var isFollowFixed = sh.src==="follow" && sh.pick==="fixed";
-    var nums=sheetNums(sh), total=sheetTotal(sh);
-    $("#shTitle").textContent = sh.pick!=="fixed" ? (sh.pick==="top3"?"跟榜前三":"跟榜后三")
-      : (sh.src==="follow"? "跟上轮" : sh.src==="rand"? "已选 "+sh.nums.length+" 码" : "选择 号码 "+sh.nums[0]);
-    $("#shSub").textContent = sh.src==="follow"&&sh.pick==="fixed" ? "复刻上一期 · "+(S.issue-1) : "WinGo 30秒";
+    var titles={rand:"已选 "+sh.nums.length+" 码", follow:"跟上轮", top3:"跟榜前三", bottom3:"跟榜后三"};
+    $("#shTitle").textContent = titles[sh.src] || ("选择 号码 "+sh.nums[0]);
+    $("#shSub").textContent = sh.src==="follow"? "复刻上一期 · "+(S.issue-1)
+      : (sh.src==="top3"||sh.src==="bottom3")? "来自当前已发布的榜单" : "WinGo 30秒";
 
-    var h="";
-    /* 号码区 */
-    if(sh.pick!=="fixed"){
-      h+='<div class="row" style="border-bottom:none;padding-bottom:2px"><div class="v" style="flex-direction:column;align-items:stretch;gap:0">'
-        +'<div class="pickbox"><b>每局号码由当期第 5 秒的榜单决定，各局可能不同。</b><br>确认后不可预知具体号码，运行中会实时显示本局实投号码。'
-        +'<div class="now" id="pickNow">此刻榜单'+(sh.pick==="top3"?"前三":"后三")+'：'+nums.map(function(n){return '<i>'+n+'</i>'}).join("")+'</div></div>'
-        +'</div></div>';
-    } else if(isFollowFixed){
-      h+='<div class="row" style="border-bottom:none;display:block;padding-bottom:0">';
-      sh.nums.forEach(function(n){
-        h+='<div class="folrow"><span class="n">'+n+'</span><span class="a">₹'+sh.amts[n]+'</span>'
-          +(S.unlocked[n]?'<span class="tag">本期已投</span>':'')
-          +'<button class="x" data-del="'+n+'">✕</button></div>';
-      });
-      h+='</div>';
-    } else {
-      h+='<div class="row" style="border-bottom:none"><div class="v">'
-        + sh.nums.map(function(n){return '<span class="numchip">'+n+'<b data-del="'+n+'">✕</b></span>'}).join("")
-        + (sh.src==="rand"? '<button class="reroll" id="btnReroll">换一批 ↻</button>':'')
-        +'</div></div>';
-    }
+    /* 四个入口的号码区完全一致：号码球芯片 + 一个重取按钮。金额一律走面额/数量。 */
+    var reroll = sh.src==="rand"? '<button class="reroll" id="btnReroll">换一批 ↻</button>'
+      : (sh.src==="top3"||sh.src==="bottom3")? '<button class="reroll" id="btnReboard">按最新榜单 ↻</button>' : '';
+    var h='<div class="row" style="border-bottom:none"><div class="v">'
+      + sh.nums.map(function(n){return '<span class="numchip'+(S.unlocked[n]?" done":"")+'">'+n+'<b data-del="'+n+'">✕</b></span>'}).join("")
+      + reroll +'</div></div>';
 
-    /* 金额 */
-    if(!isFollowFixed){
-      h+='<div class="row"><span class="k">面额</span><div class="v">'
-        +[1,10,100,1000].map(function(u){return '<button class="chip'+(sh.unit===u?" on":"")+'" data-unit="'+u+'">'+u+'</button>'}).join("")
-        +'</div></div>';
-      h+='<div class="row"><span class="k">数量</span><div class="v"><div class="stepper">'
-        +'<button data-qty="-1">−</button><span class="val num">'+sh.qty+'</span><button data-qty="1">+</button>'
-        +'</div><span style="font-size:11.5px;color:var(--d-sub)">每码 ₹'+perAmt(sh)+'</span></div></div>';
-    }
-
-    /* 选号模式 —— 常驻，进抽屉就能看到三种模式 */
-    if(sh.src==="follow"){
-      h+='<div class="row"><span class="k">选号</span><div class="v">'
-        +'<button class="chip sm on">固定这组</button>'
-        +'<span style="font-size:11px;color:var(--d-sub)">跟上轮固定复刻上期号码与金额</span></div></div>';
-    } else {
-      h+='<div class="row"><span class="k">选号</span><div class="v">'
-        +[["fixed","固定这组"],["top3","跟榜前三"],["bottom3","跟榜后三"]].map(function(p){
-          return '<button class="chip sm'+(sh.pick===p[0]?" on":"")+'" data-pick="'+p[0]+'">'+p[1]+'</button>'}).join("")
-        +'</div></div>';
-    }
-
-    /* 连投 */
-    h+='<div class="row"><span class="k">连投</span><div class="v">'
-      +[1,3,5,10].map(function(r){return '<button class="chip sm'+(sh.rounds===r?" on":"")+'" data-round="'+r+'">'+(r===1?"本期":r+"局")+'</button>'}).join("")
+    h+='<div class="row"><span class="k">面额</span><div class="v">'
+      +[1,10,100,1000].map(function(u){return '<button class="chip'+(sh.unit===u?" on":"")+'" data-unit="'+u+'">'+u+'</button>'}).join("")
       +'</div></div>';
+    h+='<div class="row"><span class="k">数量</span><div class="v"><div class="stepper">'
+      +'<button data-qty="-1">−</button><span class="val num">'+sh.qty+'</span><button data-qty="1">+</button>'
+      +'</div><span style="font-size:11.5px;color:var(--d-sub)">每码 ₹'+perAmt(sh)+'</span></div></div>';
 
     h+='<div class="agree"><span class="bx">✓</span>我同意<a href="#">《预售规则》</a></div>';
     h+='<div class="summary"><span>余额 <b id="sumBal">₹'+S.balance.toLocaleString()+'</b></span>'
-      +'<span>每局能量 <b style="color:#F5821F">+'+estEnergy(sh)+'</b></span></div>';
-    if(sh.rounds>1) h+='<div style="padding:0 0 10px;font-size:11px;color:var(--d-sub);line-height:1.6">停止只对下一期生效，本期已投不可撤。切到后台期间不下单，回来后自动继续。</div>';
+      +'<span>本期能量 <b style="color:#F5821F">+'+estEnergy(sh)+'</b></span></div>';
 
     body.innerHTML=h;
 
     var f=footState(sh);
     foot.innerHTML='<button class="cancel" id="btnCancel">取消</button>'
-      +'<button class="ok'+(sh.rounds>1?" warn":"")+'" id="btnOk"'+(f.blocked?" disabled":"")+'>'+f.label+'</button>';
+      +'<button class="ok" id="btnOk"'+(f.blocked?" disabled":"")+'>'+f.label+'</button>';
 
     body.querySelectorAll("[data-del]").forEach(function(el){ el.onclick=function(){
-      var n=+el.dataset.del; sh.nums=sh.nums.filter(function(x){return x!==n}); delete sh.amts[n]; renderSheet(); }});
-    body.querySelectorAll("[data-unit]").forEach(function(el){ el.onclick=function(){ sh.unit=+el.dataset.unit; renderSheet(); }});
-    body.querySelectorAll("[data-qty]").forEach(function(el){ el.onclick=function(){ sh.qty=Math.max(1,sh.qty+ +el.dataset.qty); renderSheet(); }});
-    body.querySelectorAll("[data-round]").forEach(function(el){ el.onclick=function(){ sh.rounds=+el.dataset.round; renderSheet(); }});
-    body.querySelectorAll("[data-pick]").forEach(function(el){ el.onclick=function(){ sh.pick=el.dataset.pick; renderSheet(); }});
-    var rr=body.querySelector("#btnReroll"); if(rr) rr.onclick=function(){ sh.nums=randomNums(5); sh.amts={}; sh.nums.forEach(function(n){sh.amts[n]=perAmt(sh)}); renderSheet(); };
+      var n=+el.dataset.del; sh.nums=sh.nums.filter(function(x){return x!==n}); renderSheet(); }});
+    body.querySelectorAll("[data-unit]").forEach(function(el){ el.onclick=function(){ sh.unit=+el.dataset.unit; S.lastUnit=sh.unit; renderSheet(); }});
+    body.querySelectorAll("[data-qty]").forEach(function(el){ el.onclick=function(){ sh.qty=Math.max(1,sh.qty+ +el.dataset.qty); S.lastQty=sh.qty; renderSheet(); }});
+    var rr=body.querySelector("#btnReroll"); if(rr) rr.onclick=function(){ sh.nums=randomNums(5); renderSheet(); };
+    var rb=body.querySelector("#btnReboard"); if(rb) rb.onclick=function(){
+      sh.nums=(sh.src==="top3"? S.top3 : S.bottom3).slice(); renderSheet(); toast("已按最新榜单更新"); };
     $("#btnCancel").onclick=closeSheet;
-    var ok=$("#btnOk"); if(ok&&!f.blocked) ok.onclick=confirmSheet;
+    var ok=$("#btnOk"); if(ok && !f.blocked) ok.onclick=confirmSheet;
   }
 
   function confirmSheet(){
-    var sh=S.sheet;
-    var isFollowFixed = sh.src==="follow" && sh.pick==="fixed";
-    var per=perAmt(sh);
-
-    if(sh.rounds>1 || sh.pick!=="fixed"){
-      S.auto={ pick:sh.pick, nums:sh.nums.slice(), amts:{}, perAmt:per,
-               rounds:sh.rounds, done:0, spent:0, skipped:0, missed:0, thisRound:[], progress:0,
-               label: sh.pick==="fixed"? (isFollowFixed?"跟上轮":"固定这组") : (sh.pick==="top3"?"跟榜前三":"跟榜后三") };
-      sh.nums.forEach(function(n){ S.auto.amts[n]= isFollowFixed? sh.amts[n] : per; });
-    }
-
-    if(sh.pick!=="fixed"){
-      closeSheet();
-      if(S.t>25){ toast("已开启"+(sh.pick==="top3"?"跟榜前三":"跟榜后三")+"连投 · 本期第 5 秒按榜单下单"); renderAll(); return; }
-      autoRunFirstBoard(); return;
-    }
-
-    var list=sh.nums.map(function(n){return {n:n, amt: isFollowFixed? sh.amts[n] : per}});
-    $("#btnOk").disabled=true; $("#btnOk").textContent="提交中 0/"+list.length;
-    placeSerial(list, function(i,total){ var b=$("#btnOk"); if(b) b.textContent="提交中 "+i+"/"+total; }, function(res){
+    var sh=S.sheet, per=perAmt(sh);
+    var list=sh.nums.map(function(n){ return {n:n, amt:per} });
+    var b=$("#btnOk"); b.disabled=true; b.textContent="提交中 0/"+list.length;
+    placeSerial(list, function(i,total){ var x=$("#btnOk"); if(x) x.textContent="提交中 "+i+"/"+total; }, function(res){
       var bad=res.filter(function(r){return !r.ok});
-      if(S.auto){ S.auto.done=1; S.auto.spent=res.filter(function(r){return r.ok}).reduce(function(s,r){return s+r.amt},0); }
-      if(bad.length){ if(S.auto){S.auto=null;} openResult(res, sh.rounds>1?"本局部分失败，连投已停止":"部分号码未成功"); }
+      if(bad.length) openResult(res, "部分号码未成功");
       else{
         var g=res.reduce(function(s,r){return s+r.gain},0);
         closeSheet();
-        toast(res.length+"码投注成功 · 能量 +"+g+(S.auto?" · 连投 1/"+S.auto.rounds+" 局":""));
-        if(S.auto && S.auto.done>=S.auto.rounds) S.auto=null;
+        toast(res.length+"码投注成功 · 能量 +"+g+" · 点号码球开始助力");
       }
       renderAll();
     });
   }
-  function autoRunFirstBoard(){
-    // 榜单已形成，立即按当前榜单下第一局
-    var a=S.auto; if(!a) return;
-    a.done=0; autoRun("board");
-  }
-
   function openResult(res, note){
-    if(!S.sheet) { S.sheet={src:"res",mode:"result"}; $("#sheet").classList.add("open"); $("#mask").classList.add("on"); }
+    if(!S.sheet){ S.sheet={src:"res"}; $("#sheet").classList.add("open"); $("#mask").classList.add("on"); }
     S.sheet.mode="result"; S.sheet.res=res; S.sheet.resNote=note; renderSheet();
   }
 
-  /* ---------- boost ---------- */
+  /* ---------- 助力 ---------- */
   function onBall(n){
     if(S.busy) return;
     if(!S.unlocked[n]){
@@ -888,13 +756,13 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
       openSheet({n:n}); return;
     }
     if(S.t<LOCK_AT){ toast("已锁榜，不能再助力"); return; }
-    if(S.energy<=0){ toast(canBet()? "能量已用完 · 可继续下注获得能量":"能量已用完"); return; }
+    if(S.energy<=0){ toast(canBet()? "能量已用完 · 可继续下注获得能量" : "能量已用完"); return; }
     var cost=S.energy>10?10:1;
     S.energy-=cost; S.used+=cost; S.pool[n]+=cost*3.2;
     renderAll();
   }
 
-  /* ---------- render ---------- */
+  /* ---------- 渲染 ---------- */
   function pad(v){ return v<10? "0"+v : ""+v }
   function renderAll(){
     $("#balance").textContent="₹"+S.balance.toLocaleString();
@@ -907,41 +775,33 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     $("#eNow").textContent=S.energy; $("#eEarned").textContent=S.earned;
     $("#fabBadge").textContent=S.energy;
 
-    /* quick bar */
-    var open=canBet();
-    var pool=0; for(var i=0;i<10;i++) if(!S.unlocked[i]) pool++;
+    /* 四个快捷入口 */
+    var open=canBet(), ready=boardReady(), pool=0;
+    for(var i=0;i<10;i++) if(!S.unlocked[i]) pool++;
     var qr=$("#qRand");
-    qr.disabled = !open || pool===0 || !!S.auto;
-    qr.firstChild.textContent = pool>0&&pool<5? "🎲 随机"+pool+"码" : "🎲 随机5码";
-    $("#qRandSub").textContent = !open? "本期已封盘" : S.auto? "连投进行中" : pool===0? "本期已投满 10 码" : "未投号码中随机";
-    var fn=Object.keys(S.lastBets).length;
-    var qf=$("#qFollow");
-    qf.disabled = !open || fn===0 || !!S.auto;
-    qf.firstChild.textContent = "🔁 跟上轮";
-    $("#qFollowSub").textContent = !open? "本期已封盘" : S.auto? "连投进行中" : fn===0? "上一期没有号码投注" : fn+"码 · ₹"+Object.keys(S.lastBets).reduce(function(s,k){return s+S.lastBets[k]},0);
+    qr.disabled = !open || pool===0;
+    qr.firstChild.textContent = (pool>0&&pool<5? "🎲 随机"+pool+"码" : "🎲 随机5码");
+    $("#qRandSub").textContent = !open? "本期已封盘" : pool===0? "本期已投满 10 码" : "未投号码中随机";
 
-    /* auto bar */
-    var bar=$("#autobar");
-    if(S.auto){
-      bar.hidden=false;
-      bar.classList.toggle("away", S.hidden);
-      $("#autoTitle").textContent=(S.hidden?"后台中 · ":"")+S.auto.label
-        +(S.auto.rounds>1? " 连投 "+S.auto.done+"/"+S.auto.rounds+" 局" : " · 仅本期");
-      $("#autoSub").textContent = (S.auto.thisRound.length? "本局已投 "+S.auto.thisRound.join("·")+" · " : "等待第 5 秒榜单 · ")
-        +"已用 ₹"+S.auto.spent.toLocaleString()
-        +(S.auto.skipped?" · 榜单未形成跳过 "+S.auto.skipped+" 局":"")
-        +(S.auto.missed?" · 离开期间未投 "+S.auto.missed+" 局":"");
-    } else bar.hidden=true;
+    var fn=S.lastNums.length;
+    $("#qFollow").disabled = !open || fn===0;
+    $("#qFollowSub").textContent = !open? "本期已封盘" : fn===0? "上一期没有号码投注" : S.lastNums.join(" · ");
+
+    var qt=$("#qTop"), qb=$("#qBottom");
+    qt.disabled = !open || !ready;
+    qt.textContent = ready? "🥇 跟 "+S.top3.join("·") : "🥇 待出榜";
+    qb.disabled = !open || !ready;
+    qb.textContent = ready? "❄️ 跟 "+S.bottom3.join("·") : "❄️ 待出榜";
 
     var justSnapped=(Date.now()-S.snapAt)<520;
     renderStatus();
 
-    /* grid */
+    /* 排行 */
     var g="";
     for(var n=0;n<10;n++){
-      var r=rankOf(n), un=!!S.unlocked[n];
-      var d="";
-      if(un && S.prevPct){ var dv=S.pct[n]-S.prevPct[n]; if(dv>0) d='<span class="delta u">↑'+dv+'</span>'; else if(dv<0) d='<span class="delta d">↓'+(-dv)+'</span>'; }
+      var r=rankOf(n), un=!!S.unlocked[n], d="";
+      if(un && S.prevPct){ var dv=S.pct[n]-S.prevPct[n];
+        if(dv>0) d='<span class="delta u">↑'+dv+'</span>'; else if(dv<0) d='<span class="delta d">↓'+(-dv)+'</span>'; }
       g+='<button class="cell" data-n="'+n+'">'
         +'<span class="pct'+(justSnapped&&r>=0?" flash":"")+'">'+S.pct[n]+'%'+(r>=0?'<span class="md">'+MEDAL[r]+'</span>':'')+'</span>'
         +'<span class="ball '+ballCls(n)+(un?"":" lock")+(S.justUnlocked[n]?" just":"")+'">'+n+(un?'<span class="unlock">⚡</span>':'')+'</span>'
@@ -952,24 +812,24 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
     S.justUnlocked={};
     $("#grid").querySelectorAll("[data-n]").forEach(function(el){ el.onclick=function(){ onBall(+el.dataset.n) }});
 
-    /* console */
     $("#rdEnergy").textContent=S.energy; $("#rdEarned").textContent=S.earned;
     $("#rdUnlock").textContent=unlockedList().length;
-    $("#rdAuto").textContent=S.auto? S.auto.done+"/"+S.auto.rounds : "—";
+    $("#rdUsed").textContent=S.used;
     $("#rdSpent").textContent="₹"+S.spent.toLocaleString();
     $("#rdBal").textContent="₹"+S.balance.toLocaleString();
 
     if(S.sheet && S.sheet.mode!=="result" && !S.busy) updateFoot();
   }
+
   /* 状态横幅：主文案 = 此刻该做什么，右侧芯片 = 时间。
-     芯片全程跟随彩票倒计时的真实剩余秒数，数值与顶部完全一致（面板会遮住顶部倒计时，芯片补位）；
+     芯片全程跟随彩票倒计时的真实剩余秒数，数值与顶部完全一致（面板会遮住顶部倒计时）；
      只有最后 3 秒改口播「最后助力」，锁榜后变「已锁定」。
      5 秒刷新不给数字——它不影响任何决策，节奏交给前三百分比的弹跳。 */
   function renderStatus(){
     var b=$("#sbar"), t=Math.max(0,S.t), un=unlockedList(), title, sub="", chip, cls="";
     b.className="sbar";
     if(t<=LOCK_AT){
-      b.classList.add("locked");
+      b.classList.add("over");
       title="最终排名已锁定";
       sub = S.used>=1? "本期已使用 "+S.used+" 能量，具备加奖资格" : "本期未使用能量，无加奖资格";
       chip="已锁定";
@@ -991,22 +851,21 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
   function ballCls(n){ return n===0?"rv":n===5?"gv":(n%2?"g":"r") }
   function ballColor(n){ return n===0?"linear-gradient(135deg,#E5525E 50%,#A05BD6 50%)":n===5?"linear-gradient(135deg,#1FA971 50%,#A05BD6 50%)":(n%2?"#1FA971":"#E5525E") }
 
-  /* ---------- ui helpers ---------- */
+  /* ---------- 小组件 ---------- */
   var tTimer=null;
   function toast(msg){ var t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(tTimer); tTimer=setTimeout(function(){t.classList.remove("on")},2400); }
-  function showPop(html, onOk){ var p=$("#pop"); p.innerHTML=html; p.classList.add("on"); var b=p.querySelector("#popOk"); if(b) b.onclick=onOk; }
+  function showPop(html,onOk){ var p=$("#pop"); p.innerHTML=html; p.classList.add("on"); var b=p.querySelector("#popOk"); if(b) b.onclick=onOk; }
   function hidePop(){ $("#pop").classList.remove("on") }
 
-  /* ---------- events ---------- */
+  /* ---------- 事件 ---------- */
   $("#fab").onclick=function(){ $("#panel").classList.add("open") };
   $("#btnClose").onclick=function(){ $("#panel").classList.remove("open") };
   $("#btnHelp").onclick=function(){ toast("规则与 4 步教程入口，本原型不展开") };
   $("#qRand").onclick=function(){ openSheet("rand") };
   $("#qFollow").onclick=function(){ openSheet("follow") };
+  $("#qTop").onclick=function(){ openSheet("top3") };
+  $("#qBottom").onclick=function(){ openSheet("bottom3") };
   $("#mask").onclick=closeSheet;
-  $("#autoStop").onclick=function(){
-    S.auto=null; toast("连投已停止 · 停止只对下一期生效，本期已投不可撤"); renderAll();
-  };
 
   $("#segSpeed").querySelectorAll("button").forEach(function(b){ b.onclick=function(){
     $("#segSpeed").querySelectorAll("button").forEach(function(x){x.classList.remove("on")});
@@ -1014,17 +873,10 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--s-accent);
 
   document.querySelectorAll("[data-inj]").forEach(function(b){ b.onclick=function(){
     var k=b.dataset.inj;
-    if(k==="fail"){ S.inject.fail=true; b.classList.add("armed"); toast("已预约：下一次自动下单第 3 笔失败"); }
-    if(k==="empty"){ S.inject.empty=true; b.classList.add("armed"); toast("已预约：下一局榜单不形成，跟榜模式将跳过"); }
+    if(k==="fail"){ S.inject.fail=true; b.classList.add("armed"); toast("已预约：下一次下单第 3 笔失败"); }
+    if(k==="empty"){ S.inject.empty=true; b.classList.add("armed"); toast("已预约：下一期榜单不形成，跟榜入口将置灰"); }
     if(k==="poor"){ S.balance=300; toast("余额已改为 ₹300"); renderAll(); }
-    if(k==="hide"){ S.hidden=true; b.classList.add("armed"); $("#hiddenmask").classList.add("on"); renderAll(); }
   }});
-  $("#btnBack").onclick=function(){
-    S.hidden=false; $("#hiddenmask").classList.remove("on"); disarm("hide");
-    /* 不弹窗询问——直接继续，只用一条提示说明离开期间发生了什么 */
-    if(S.auto) toast(S.auto.missed? "连投继续 · 离开期间未投 "+S.auto.missed+" 局，局数未消耗" : "连投继续");
-    renderAll();
-  };
 
   $("#btnSpec").onclick=function(){ $("#specDrawer").classList.add("on"); $("#scrim").classList.add("on"); };
   function closeDrawer(){ $("#specDrawer").classList.remove("on"); $("#scrim").classList.remove("on"); }
