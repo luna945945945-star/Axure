@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>三方余额汇总 · 交互原型</title>
+<style>
+:root{--ink:#1d2129;--bg:#f5f7fa;--line:#e5e6eb;--sub:#4e5969;--pri:#165dff;--gray:#86909c;--red:#f53f3f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;color:var(--ink);background:var(--bg);line-height:1.5}
+.page-block{padding:58px 18px 18px}
+.crumb{display:flex;justify-content:flex-end;margin-bottom:8px;font-size:12px;color:var(--gray)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--sub);font-weight:600}
+.subtabs{display:flex;gap:2px;margin-bottom:10px}
+.subtabs>span{padding:7px 18px;border-radius:4px 4px 0 0;font-size:13px;color:var(--sub);background:#eef0f3;cursor:pointer}
+.subtabs>span.on{background:#fff;color:var(--pri);font-weight:600;border:1px solid var(--line);border-bottom-color:#fff}
+.v3-panel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px}
+.v3-filter{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:12px}
+.v3-fi{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);white-space:nowrap}
+.v3-inp,.v3-sel{height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:0 9px;font-size:12.5px;min-width:140px;background:#fff;color:var(--ink)}
+.v3-btn{height:32px;padding:0 14px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid #dcdfe6;background:#fff;color:var(--sub)}
+.v3-btn:hover{color:var(--pri);border-color:var(--pri)}
+.v3-btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.v3-btn.pri:hover{opacity:.88;color:#fff}
+.f-right{margin-left:auto;display:flex;gap:8px}
+.v3-tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.v3-tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.v3-tbl th{background:#f7f8fa;color:var(--sub);font-weight:600;text-align:center;padding:9px 8px;border-bottom:1px solid var(--line);border-right:1px solid #f0f1f3}
+.v3-tbl td{padding:9px 8px;border-bottom:1px solid #f2f3f5;border-right:1px solid #f7f8fa;color:var(--ink);text-align:center;vertical-align:middle}
+.v3-tbl tr:hover td{background:#fafbfc}
+.v3-tbl td.l,.v3-tbl th.l{text-align:left}
+.v3-tbl td.r,.v3-tbl th.r{text-align:right}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 4px 2px;font-size:12px;color:var(--sub)}
+.pg-n{min-width:26px;height:26px;border:1px solid var(--pri);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;background:var(--pri);color:#fff}
+.ci{text-align:left;font-size:11.5px;line-height:1.75;color:var(--sub)}
+.ci b{color:var(--ink);font-weight:600}
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:3px;background:#e8f3ff;color:#165dff;white-space:nowrap}
+.tag.cur{background:#f2f3f5;color:var(--ink);font-weight:600}
+.tag.ok{background:#e8ffea;color:#00a02a}
+.tag.off{background:#f2f3f5;color:#86909c}
+.newf{background:#f5222d;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:1px 4px;margin-left:5px;letter-spacing:.3px;vertical-align:1px;white-space:nowrap}
+.dash{color:#c9cdd4}
+.low{color:var(--red);font-weight:700}
+.lowtag{display:inline-block;font-size:10.5px;color:#cb2634;background:#fff1f0;border:1px solid #ffccc7;border-radius:3px;padding:0 5px;margin-left:5px;font-weight:400}
+.bal{font-family:Menlo,Consolas,monospace;font-size:12.5px}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--pri)}
+.sort-ico{color:#c9cdd4;font-size:11px;margin-left:3px}
+.sort-ico.on{color:var(--pri)}
+.ago{font-size:11px;color:var(--gray)}
+
+/* 币种合计卡片 */
+.sum-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.sum-card{flex:1 1 220px;border:1px solid #bedaff;background:#f5f9ff;border-radius:6px;padding:10px 14px}
+.sum-card .c{font-size:12px;color:var(--sub);display:flex;justify-content:space-between;align-items:center}
+.sum-card .v{font-size:19px;font-weight:700;color:#165dff;margin:3px 0 2px;font-family:Menlo,Consolas,monospace}
+.sum-card .m{font-size:11.5px;color:var(--gray)}
+.sum-card .m b{color:#cb2634}
+.sum-note{font-size:11.5px;color:var(--gray);margin:-4px 0 10px}
+
+/* 现有三方商户页签（示意） */
+.legacy-note{font-size:12px;color:var(--gray);padding:6px 0 10px}
+
+/* 右侧需求说明抽屉 */
+.req-btn{position:fixed;top:14px;right:18px;z-index:500;height:32px;padding:0 14px;border-radius:16px;background:#fff;border:1px solid #adc6ff;color:var(--pri);font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(22,93,255,.12)}
+.req-btn:hover{background:#f0f7ff}
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:12px;padding:12px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:2px;box-shadow:-2px 0 8px rgba(22,93,255,.2)}
+.req-handle:hover{background:#0e42d2}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:800;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-500px;width:480px;max-width:90vw;height:100%;background:#fff;z-index:801;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:var(--gray);font-size:18px}
+.req-body{flex:1;overflow-y:auto;padding:16px 18px 40px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body .h1:first-child{margin-top:0}
+.req-body table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 6px}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 8px;text-align:left;font-weight:600;color:#1c4c8c}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 8px;vertical-align:top;line-height:1.7}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 11px;margin:6px 0;font-size:12px;line-height:1.75;border-radius:0 4px 4px 0}
+.req-body .br.key{background:#f0f6ff;border-left-color:#165dff}
+.req-body .br b{color:#1c4c8c}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+.req-body .br.key .bn{background:#165dff;color:#fff}
+.req-body .keybox{background:#f0f6ff;border:1px solid #bedaff;border-radius:6px;padding:10px 12px;margin:4px 0 10px;font-size:12px;line-height:1.8}
+.req-body .keybox b{color:#165dff}
+</style>
+</head>
+<body>
+
+<!-- 右侧需求说明入口：顶部按钮 + 边缘把手 -->
+<div class="req-btn" onclick="openReq()">📋 需求说明</div>
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="req-mask" onclick="closeReq()"></div>
+<div class="req-drawer" id="req-drawer">
+  <div class="req-head"><span class="t">需求说明 · 三方余额汇总</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body">
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:130px">页面</th><th>改动点</th></tr>
+      <tr><td>财务管理 → 支代付三方管理</td><td>新增「余额汇总」页签：按三方商户账号列出余额，按币种合计</td></tr>
+    </table>
+
+    <div class="h1">二、名词术语</div>
+    <table class="t">
+      <tr><th style="width:96px">术语</th><th>说明</th></tr>
+      <tr><td><b>三方商户账号</b></td><td>在某个三方支付平台开的一个商户号。余额属于这个账号；一个账号可以同时被多个商户（站点）、多条通道使用。</td></tr>
+      <tr><td><b>三方余额</b></td><td>系统定时向三方查询后记下的该账号最近一次余额，不是打开页面时实时查询的。</td></tr>
+      <tr><td><b>余额更新时间</b></td><td>上面这个余额是什么时候查到的。</td></tr>
+      <tr><td><b>自动关闭余额</b></td><td>代付通道上已有的设置：账号余额低于这个值时，该代付通道会被自动关闭。</td></tr>
+    </table>
+
+    <div class="h1">三、功能描述与业务规则</div>
+    <div class="keybox">🎯 一个三方商户账号一行、只算一次；按币种分别合计。<br>余额直接用系统已同步到的最近一次结果，并显示更新时间。</div>
+    <div class="br key"><span class="bn">01</span>每个三方商户账号占一行。同一账号被多个商户（站点）或多条通道共用时，只出现一次，合计时只算一次。</div>
+    <div class="br key"><span class="bn">02</span>列出的账号：至少绑定了一条代付通道的三方商户账号。只用于代收的账号不列出。</div>
+    <div class="br key"><span class="bn">03</span>顶部按币种分别显示合计余额、账号数、低于关闭线的账号数；不同币种不相加。合计范围是当前筛选条件下的全部账号，不受分页影响。</div>
+    <div class="br"><span class="bn">04</span>从未查到过余额的账号，余额和更新时间显示「--」，不计入合计余额和低于关闭线数，但计入账号数。</div>
+    <div class="br"><span class="bn">05</span>低于关闭线：余额低于该账号下代付通道设置的最高「自动关闭余额」时，余额标红并提示「低于关闭线」。未设置自动关闭余额的账号不判断，「自动关闭余额」列显示「--」。</div>
+    <div class="br"><span class="bn">06</span>「关联商户」列出使用这个账号的所有商户（站点）；按关联商户筛选时，共用账号在每个相关商户下都会出现。</div>
+    <div class="br"><span class="bn">07</span>同一币种的账号排在一起；币种内默认按余额从低到高，可点表头按余额、更新时间切换排序。</div>
+    <div class="br"><span class="bn">08</span>筛选：币种、三方映射码、三方商户昵称/商户号、关联商户、只看低于关闭线。</div>
+    <div class="br"><span class="bn">09</span>币种与「三方商户」页签中该账号显示的币种一致；能看到哪些账号与「三方商户」页签的可见范围一致。</div>
+
+    <div class="h1">四、限制条件</div>
+    <table class="t">
+      <tr><th style="width:96px">项</th><th>说明</th></tr>
+      <tr><td>刷新</td><td>页面不提供向三方实时查询；余额跟随系统定时同步更新</td></tr>
+      <tr><td>范围</td><td>不做余额历史、趋势；不做跨币种折算</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="page-block">
+  <div class="crumb">财务管理<span class="sep">-</span><span class="cur">支代付三方管理</span></div>
+  <div class="subtabs"><span id="tab-a" onclick="switchTab('a')">三方商户</span><span id="tab-b" class="on" onclick="switchTab('b')">余额汇总<span class="newf">NEW</span></span></div>
+
+  <!-- 现有：三方商户（示意，不改） -->
+  <div class="v3-panel" id="panel-a" style="display:none">
+    <div class="legacy-note">现有页签，本需求不改（以下为示意）。</div>
+    <div class="v3-tablewrap">
+      <table class="v3-tbl">
+        <thead><tr><th>币种</th><th>三方映射码</th><th class="l">三方商户昵称</th><th>三方商户号</th><th class="r">三方余额</th><th class="l">关联商户</th><th>状态</th><th>操作</th></tr></thead>
+        <tbody id="legacy-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 新增：余额汇总 -->
+  <div class="v3-panel" id="panel-b">
+    <div class="v3-filter">
+      <div class="v3-fi"><span>币种</span><select class="v3-sel" id="q-cur" onchange="render()"><option value="">全部</option></select></div>
+      <div class="v3-fi"><span>三方映射码</span><select class="v3-sel" id="q-pay" onchange="render()"><option value="">全部</option></select></div>
+      <div class="v3-fi"><span>三方商户昵称/商户号</span><input class="v3-inp" id="q-kw" placeholder="请输入" oninput="render()"></div>
+      <div class="v3-fi"><span>关联商户</span><select class="v3-sel" id="q-site" onchange="render()"><option value="">全部</option></select></div>
+      <div class="v3-fi"><label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="q-low" onchange="render()"> 只看低于关闭线</label></div>
+      <div class="f-right">
+        <button class="v3-btn pri" onclick="render()">🔍 搜索</button>
+        <button class="v3-btn" onclick="resetQ()">↻ 重置</button>
+      </div>
+    </div>
+
+    <div class="sum-row" id="sum-row"></div>
+    <div class="sum-note">合计按当前筛选条件下的全部账号计算（不受分页影响）；共用账号只算一次；不同币种不相加。</div>
+
+    <div class="v3-tablewrap">
+      <table class="v3-tbl">
+        <thead><tr>
+          <th style="width:64px">币种</th>
+          <th style="width:120px">三方映射码</th>
+          <th class="l" style="width:180px">三方商户昵称/商户号</th>
+          <th class="r sortable" style="width:170px" onclick="sortBy('bal')">三方余额<span class="sort-ico" id="ic-bal">⇅</span></th>
+          <th class="sortable" style="width:150px" onclick="sortBy('time')">余额更新时间<span class="sort-ico" id="ic-time">⇅</span></th>
+          <th class="r" style="width:110px">自动关闭余额</th>
+          <th class="l" style="width:200px">关联商户</th>
+          <th style="width:70px">状态</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="pager"><span id="total">共 0 条</span><span class="pg-n">1</span><span>20 / 页</span></div>
+  </div>
+</div>
+
+<script>
+/* ==================== 演示数据 ==================== */
+/* bal=null 表示从未查到过余额；close=该账号下代付通道设置的最高「自动关闭余额」，0 表示未设置 */
+var NOW=new Date('2026-09-19T15:34:00');
+var ACC=[
+  {cur:'INR', pay:'ArbPayINR',   nick:'Arb-主号',   no:'ARB00123',  bal:1285430.55, t:'2026-09-19 15:32:10', close:50000,  sites:['(2001)sit-inr','(2002)sit-inr2'], on:3,all:3,state:1},
+  {cur:'INR', pay:'UUPayINR',    nick:'UU-A',       no:'UU88120',   bal:42300.00,   t:'2026-09-19 15:31:42', close:50000,  sites:['(2001)sit-inr'],                  on:2,all:2,state:1},
+  {cur:'INR', pay:'EPayINR',     nick:'EPay-1',     no:'EP2001',    bal:356900.10,  t:'2026-09-19 15:30:05', close:20000,  sites:['(2002)sit-inr2'],                 on:1,all:2,state:1},
+  {cur:'INR', pay:'FriendPayINR',nick:'Friend-INR', no:'FR-7781',   bal:0,          t:'2026-09-19 15:30:51', close:10000,  sites:['(2001)sit-inr'],                  on:0,all:1,state:1},
+  {cur:'INR', pay:'ARPay',       nick:'ARPay自营',  no:'ARW0001',   bal:2810000.00, t:'2026-09-19 15:32:33', close:100000, sites:['(2001)sit-inr','(2002)sit-inr2'], on:2,all:2,state:1},
+  {cur:'INR', pay:'OX2PayINR',   nick:'OX2-主号',   no:'OX2P88213', bal:null,       t:null,                  close:0,      sites:['(2001)sit-inr'],                  on:1,all:1,state:1},
+  {cur:'USDT',pay:'CoinPayUSDT', nick:'Coin-U',     no:'CP9001',    bal:18220.35,   t:'2026-09-19 15:28:17', close:2000,   sites:['(2001)sit-inr','(3001)sit-pkr'],  on:1,all:1,state:1},
+  {cur:'USDT',pay:'TronPay',     nick:'Tron-A',     no:'TR-0021',   bal:950.00,     t:'2026-09-19 15:29:02', close:1000,   sites:['(3001)sit-pkr'],                  on:1,all:1,state:1},
+  {cur:'PKR', pay:'FriendPayPKR',nick:'Friend-PKR', no:'FRP-311',   bal:912300.00,  t:'2026-09-19 15:31:20', close:100000, sites:['(3001)sit-pkr'],                  on:2,all:2,state:1},
+  {cur:'PKR', pay:'OwenPayPKR',  nick:'Owen-1',     no:'OW-5512',   bal:150020.00,  t:'2026-09-19 15:25:44', close:0,      sites:['(3001)sit-pkr'],                  on:1,all:1,state:0}
+];
+/* 只用于代收的账号：不在余额汇总中出现（只在「三方商户」页签示意） */
+var RECHARGE_ONLY=[
+  {cur:'INR',pay:'ARUPI',nick:'ARUPI自营',no:'AU20260001',sites:['(2001)sit-inr'],state:1}
+];
+var sortState={field:'bal',dir:'asc'};
+
+function fmt(v){return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function isLow(a){return a.bal!==null && a.close>0 && a.bal<a.close}
+function ago(t){if(!t)return '';var m=Math.round((NOW-new Date(t.replace(' ','T')))/60000);return m<=0?'刚刚':(m+' 分钟前')}
+
+function initFilters(){
+  var curs=[],pays=[],sites=[];
+  ACC.forEach(function(a){
+    if(curs.indexOf(a.cur)<0)curs.push(a.cur);
+    if(pays.indexOf(a.pay)<0)pays.push(a.pay);
+    a.sites.forEach(function(s){if(sites.indexOf(s)<0)sites.push(s)});
+  });
+  document.getElementById('q-cur').innerHTML='<option value="">全部</option>'+curs.map(function(x){return '<option>'+x+'</option>'}).join('');
+  document.getElementById('q-pay').innerHTML='<option value="">全部</option>'+pays.map(function(x){return '<option>'+x+'</option>'}).join('');
+  document.getElementById('q-site').innerHTML='<option value="">全部</option>'+sites.map(function(x){return '<option>'+x+'</option>'}).join('');
+}
+function resetQ(){['q-cur','q-pay','q-kw','q-site'].forEach(function(id){document.getElementById(id).value=''});document.getElementById('q-low').checked=false;sortState={field:'bal',dir:'asc'};render()}
+function sortBy(f){
+  if(sortState.field===f){sortState.dir=sortState.dir==='asc'?'desc':'asc'}else{sortState.field=f;sortState.dir=f==='bal'?'asc':'desc'}
+  render();
+}
+function filtered(){
+  var qc=document.getElementById('q-cur').value,qp=document.getElementById('q-pay').value,qk=document.getElementById('q-kw').value.trim(),qs=document.getElementById('q-site').value,ql=document.getElementById('q-low').checked;
+  return ACC.filter(function(a){
+    if(qc&&a.cur!==qc)return false;
+    if(qp&&a.pay!==qp)return false;
+    if(qk&&a.nick.indexOf(qk)<0&&a.no.indexOf(qk)<0)return false;
+    if(qs&&a.sites.indexOf(qs)<0)return false;
+    if(ql&&!isLow(a))return false;
+    return true;
+  });
+}
+function render(){
+  var list=filtered();
+  /* 币种合计：不受分页影响；从未查到余额的账号不计入合计金额 */
+  var sums={};
+  list.forEach(function(a){
+    var s=sums[a.cur]=sums[a.cur]||{total:0,count:0,low:0,none:0};
+    s.count++;
+    if(a.bal===null){s.none++;return}
+    s.total+=a.bal;
+    if(isLow(a))s.low++;
+  });
+  document.getElementById('sum-row').innerHTML=Object.keys(sums).map(function(c){
+    var s=sums[c];
+    return '<div class="sum-card"><div class="c"><span>'+c+' 合计余额</span><span class="tag cur">'+c+'</span></div>'
+      +'<div class="v">'+fmt(s.total)+'</div>'
+      +'<div class="m">账号 '+s.count+' 个'+(s.none?('（其中 '+s.none+' 个未查到余额）'):'')+'　·　低于关闭线 <b>'+s.low+'</b> 个</div></div>';
+  }).join('')||'<div class="sum-card"><div class="m">无数据</div></div>';
+
+  list.sort(function(a,b){
+    var d=sortState.dir==='asc'?1:-1;
+    if(a.cur!==b.cur)return a.cur<b.cur?-1:1;   /* 同币种排在一起，币种内再排序 */
+    if(sortState.field==='bal'){
+      if(a.bal===null&&b.bal===null)return 0; if(a.bal===null)return 1; if(b.bal===null)return -1;
+      return (a.bal-b.bal)*d;
+    }
+    if(!a.t&&!b.t)return 0; if(!a.t)return 1; if(!b.t)return -1;
+    return (a.t<b.t?-1:a.t>b.t?1:0)*d;
+  });
+  var h='';
+  list.forEach(function(a){
+    var low=isLow(a);
+    h+='<tr>'
+      +'<td><span class="tag cur">'+a.cur+'</span></td>'
+      +'<td><span class="tag">'+a.pay+'</span></td>'
+      +'<td class="l"><div class="ci">昵称：<b>'+a.nick+'</b><br>商户号：'+a.no+'</div></td>'
+      +'<td class="r">'+(a.bal===null?'<span class="dash">--</span>':'<span class="bal '+(low?'low':'')+'">'+fmt(a.bal)+'</span>'+(low?'<span class="lowtag">低于关闭线</span>':''))+'</td>'
+      +'<td>'+(a.t?(a.t+'<br><span class="ago">'+ago(a.t)+'</span>'):'<span class="dash">--</span>')+'</td>'
+      +'<td class="r">'+(a.close>0?'<span class="bal">'+fmt(a.close)+'</span>':'<span class="dash">--</span>')+'</td>'
+      +'<td class="l">'+a.sites.join('<br>')+'</td>'
+      +'<td>'+(a.state?'<span class="tag ok">启用</span>':'<span class="tag off">禁用</span>')+'</td>'
+      +'</tr>';
+  });
+  document.getElementById('tbody').innerHTML=h||'<tr><td colspan="8" style="color:#86909c;padding:24px">暂无数据</td></tr>';
+  document.getElementById('total').textContent='共 '+list.length+' 条';
+  ['bal','time'].forEach(function(f){
+    var ic=document.getElementById('ic-'+f);
+    ic.className='sort-ico'+(sortState.field===f?' on':'');
+    ic.textContent=sortState.field===f?(sortState.dir==='asc'?'▲':'▼'):'⇅';
+  });
+}
+function renderLegacy(){
+  var h='';
+  ACC.concat(RECHARGE_ONLY).forEach(function(a){
+    h+='<tr><td>'+a.cur+'</td><td><span class="tag">'+a.pay+'</span></td><td class="l">'+a.nick+'</td><td>'+a.no+'</td>'
+      +'<td class="r">'+(a.bal===null||a.bal===undefined?'0.00':fmt(a.bal))+'</td><td class="l" style="color:#1677ff">'+a.sites.join(', ')+'</td>'
+      +'<td>'+(a.state?'<span class="tag ok">启用</span>':'<span class="tag off">禁用</span>')+'</td><td style="color:#165dff">编辑</td></tr>';
+  });
+  document.getElementById('legacy-tbody').innerHTML=h;
+}
+function switchTab(k){
+  document.getElementById('tab-a').className=k==='a'?'on':'';
+  document.getElementById('tab-b').className=k==='b'?'on':'';
+  document.getElementById('panel-a').style.display=k==='a'?'':'none';
+  document.getElementById('panel-b').style.display=k==='b'?'':'none';
+}
+function openReq(){document.getElementById('req-mask').classList.add('show');document.getElementById('req-drawer').classList.add('show')}
+function closeReq(){document.getElementById('req-mask').classList.remove('show');document.getElementById('req-drawer').classList.remove('show')}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeReq()});
+
+initFilters();
+renderLegacy();
+render();
+</script>
+</body>
+</html>
