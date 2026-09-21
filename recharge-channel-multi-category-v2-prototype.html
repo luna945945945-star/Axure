@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>充值通道 · 大类多选（最小改动版）· 交互原型</title>
+<style>
+:root{--ink:#1d2129;--bg:#f5f7fa;--line:#e5e6eb;--sub:#4e5969;--pri:#165dff;--gray:#86909c;--red:#f53f3f;--green:#00b42a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;color:var(--ink);background:var(--bg);line-height:1.5}
+.page-block{padding:20px 40px 24px}
+
+/* ============ 页面路径 + 子页签 ============ */
+.crumb{display:flex;justify-content:flex-end;margin-bottom:8px;font-size:12px;color:var(--gray)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--sub);font-weight:600}
+.subtabs{display:flex;gap:2px;margin-bottom:10px}
+.subtabs span{padding:7px 18px;border-radius:4px 4px 0 0;font-size:13px;color:var(--sub);background:#eef0f3;cursor:default}
+.subtabs span.on{background:#fff;color:var(--pri);font-weight:600;border:1px solid var(--line);border-bottom-color:#fff}
+
+/* ============ V3 中台外壳 ============ */
+.v3-panel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px}
+.v3-filter{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:10px}
+.v3-fi{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);white-space:nowrap}
+.v3-inp,.v3-sel{height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:0 9px;font-size:12.5px;min-width:150px;background:#fff;color:var(--ink)}
+.v3-btn{height:32px;padding:0 14px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid #dcdfe6;background:#fff;color:var(--sub)}
+.v3-btn:hover{color:var(--pri);border-color:var(--pri)}
+.v3-btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.v3-btn.pri:hover{opacity:.88;color:#fff}
+.f-right{margin-left:auto;display:flex;gap:8px}
+.v3-tip{background:#fffbe6;border:1px solid #ffe58f;color:#874d00;font-size:11.5px;border-radius:4px;padding:6px 10px;margin-bottom:10px;line-height:1.7}
+.v3-tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.v3-tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.v3-tbl th{background:#f7f8fa;color:var(--sub);font-weight:600;text-align:center;padding:9px 8px;border-bottom:1px solid var(--line);border-right:1px solid #f0f1f3}
+.v3-tbl td{padding:9px 8px;border-bottom:1px solid #f2f3f5;border-right:1px solid #f7f8fa;color:var(--ink);text-align:center;vertical-align:middle}
+.v3-tbl tr:hover td{background:#fafbfc}
+.v3-tbl tr.fresh td{background:#f0fff4;animation:fresh 2.4s ease}
+@keyframes fresh{0%{background:#b7f0c8}100%{background:#f0fff4}}
+.v3-tbl td.l,.v3-tbl th.l{text-align:left}
+.lnk{color:var(--pri);cursor:pointer;margin:0 4px}
+.lnk:hover{text-decoration:underline}
+.lnk.danger{color:var(--red)}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 4px 2px;font-size:12px;color:var(--sub)}
+.pg-n{min-width:26px;height:26px;border:1px solid var(--pri);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;background:var(--pri);color:#fff}
+.ci{text-align:left;font-size:11.5px;line-height:1.75;color:var(--sub)}
+.ci b{color:var(--ink);font-weight:600}
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:3px;background:#e8f3ff;color:#165dff;white-space:nowrap}
+.tag.sys{background:#f2f3f5;color:var(--sub)}
+.cats{display:flex;flex-wrap:wrap;gap:4px;max-width:100%}
+.tag.ok{background:#e8ffea;color:#00a02a}
+.tag.off{background:#fff1f0;color:#cb2634}
+.newf{background:#f5222d;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:1px 4px;margin-left:5px;letter-spacing:.3px;vertical-align:1px;white-space:nowrap}
+.sw{display:inline-block;width:34px;height:18px;border-radius:9px;background:#c9cdd4;position:relative;cursor:pointer;vertical-align:middle;transition:background .2s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s}
+.sw.on{background:var(--pri)}
+.sw.on::after{left:18px}
+
+/* ============ 新增/编辑弹窗（照 V3 真实弹窗两列栅格） ============ */
+.m-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:700;display:none;align-items:flex-start;justify-content:center;padding:36px 16px 30px;overflow-y:auto}
+.m-mask.show{display:flex}
+.m-panel{background:#fff;border-radius:8px;width:100%;max-width:820px;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.m-head{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.m-head .t{font-size:15px;font-weight:700}
+.m-x{cursor:pointer;color:var(--gray);font-size:18px}
+.m-body{padding:16px 20px 6px}
+.fg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.fi{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fi.wide{grid-column:1/-1}
+.fi>label{font-size:12.5px;color:var(--sub)}
+.fi>label .rq{color:#f5222d;margin-right:2px}
+.fi input,.fi select,.fi textarea{height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:0 9px;font-size:12.5px;background:#fff;color:var(--ink);width:100%;font-family:inherit}
+.fi textarea{height:60px;padding:6px 9px;resize:none}
+.fi input:disabled,.fi select:disabled{background:#f7f8fa;color:#86909c;cursor:not-allowed}
+.fi .hint{font-size:11.5px;color:var(--gray);line-height:1.6}
+.row2{display:flex;gap:8px;align-items:center}
+.row2 input{flex:1;min-width:0}
+.radio-line{display:flex;gap:18px;align-items:center;height:32px;font-size:12.5px}
+.chip-line{display:flex;flex-wrap:wrap;gap:6px;min-height:32px;align-items:center;border:1px solid #dcdfe6;border-radius:4px;padding:3px 6px;background:#fff}
+.chip{font-size:12px;border-radius:3px;padding:2px 8px;background:#f2f3f5;color:var(--sub);cursor:pointer;user-select:none;border:1px solid transparent}
+.chip.on{background:#e8f3ff;color:#165dff;border-color:#bedaff}
+.m-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--line);margin-top:14px}
+
+/* 充值大类多选（改造字段） */
+.cat-box{position:relative}
+.cat-field{min-height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:3px 26px 3px 6px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;cursor:pointer;background:#fff;position:relative}
+.cat-field.dis{background:#f7f8fa;cursor:not-allowed}
+.cat-field::after{content:"▾";position:absolute;right:9px;top:50%;transform:translateY(-50%);color:#86909c;font-size:11px}
+.cat-field .ph{color:#b8bcc4;font-size:12.5px;padding-left:3px}
+.ctag{display:inline-flex;align-items:center;gap:4px;font-size:12px;border-radius:3px;padding:2px 7px;background:#e8f3ff;color:#165dff;border:1px solid #bedaff;white-space:nowrap}
+.ctag.lock{background:#f2f3f5;color:#4e5969;border-color:#e5e6eb}
+.ctag .x{cursor:pointer;color:#6aa1ff;font-size:12px}
+.ctag .x:hover{color:#165dff}
+.cat-drop{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.12);z-index:20;display:none;max-height:260px;overflow-y:auto;padding:4px 0}
+.cat-drop.show{display:block}
+.cg{font-size:11px;color:var(--gray);padding:6px 12px 2px}
+.co{display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:12.5px;cursor:pointer}
+.co:hover{background:#f7f8fa}
+.co.dis{cursor:not-allowed;color:#a9aeb8}
+.co.dis:hover{background:#fff}
+.co .ck{width:14px;height:14px;border:1px solid #c9cdd4;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex:0 0 auto}
+.co.on .ck{background:var(--pri);border-color:var(--pri)}
+.co.dis.on .ck{background:#c9cdd4;border-color:#c9cdd4}
+.co .st{margin-left:auto;font-size:11px;color:var(--gray)}
+
+/* ============ 右侧需求说明抽屉（边缘把手打开，遮罩/✕/Esc 关闭） ============ */
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:12px;padding:12px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:2px;box-shadow:-2px 0 8px rgba(22,93,255,.2)}
+.req-handle:hover{background:#0e42d2}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:800;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-720px;width:680px;max-width:92vw;height:100%;background:#fff;z-index:801;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:var(--gray);font-size:18px}
+.req-body{flex:1;overflow-y:auto;padding:16px 18px 40px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body .h1:first-child{margin-top:0}
+.req-body table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 6px}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 8px;text-align:left;font-weight:600;color:#1c4c8c}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 8px;vertical-align:top;line-height:1.7}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 11px;margin:6px 0;font-size:12px;line-height:1.75;border-radius:0 4px 4px 0}
+.req-body .br.key{background:#f0f6ff;border-left-color:#165dff}
+.req-body .br b{color:#1c4c8c}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+.req-body .br.key .bn{background:#165dff;color:#fff}
+.req-body .keybox{background:#f0f6ff;border:1px solid #bedaff;border-radius:6px;padding:10px 12px;margin:4px 0 10px;font-size:12px;line-height:1.8}
+.req-body .keybox b{color:#165dff}
+</style>
+</head>
+<body>
+
+<!-- 右侧需求说明：只保留边缘把手入口 -->
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="req-mask" onclick="closeReq()"></div>
+<div class="req-drawer" id="req-drawer">
+  <div class="req-head"><span class="t">需求说明 · 充值通道支持多个充值大类</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body" id="req-body">
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:130px">页面</th><th>改动点</th></tr>
+      <tr><td>充值配置 → 充值通道 · 新增</td><td>「充值大类」由单选改为多选</td></tr>
+      <tr><td>充值配置 → 充值通道 · 编辑</td><td>「充值大类」由单选改为多选，可增减</td></tr>
+      <tr><td>会员端 · 充值下单</td><td>三方法币大类下被分配到 AR UPI 时能正常支付、到账</td></tr>
+      <tr><td>会员端 · 充值到账</td><td>充值赠送按会员下单所在的大类计算</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">🎯 一个通道可以同时挂多个充值大类，通道还是一条、通道ID 不变，配置对所挂的全部大类共用。</div>
+    <div class="br key"><span class="bn">01</span>新增、编辑通道时「充值大类」可多选，至少选 1 个。通道仍是一条记录，通道ID 不变；权重、可见等级、可用时间段、金额区间、手续费、状态等配置对所挂的全部大类共用，不按大类分别设置。</div>
+    <div class="br key"><span class="bn">02</span>编辑时取消勾选某个大类，该通道立即从这个大类下架，不再分配给该大类的会员；启用/禁用、删除对所挂的全部大类同时生效。</div>
+    <div class="br key"><span class="bn">03</span>可选大类范围：与该通道所属系统大类类型相同的大类；AR UPI 通道额外可选本商户的三方法币类型大类。</div>
+    <div class="br key"><span class="bn">04</span>AR UPI 挂到三方法币大类后，与该大类其它通道一起按轮询权重参与分配；被选中时按普通三方订单处理，跳转 AR UPI 收银台支付并回调到账，不套用 AR UPI 大类的推荐金额与限额。</div>
+    <div class="br key"><span class="bn">05</span>充值到账时，充值大类奖励、快捷金额赠送、VIP 充值赠送开关按会员下单所在的大类计算，充值通道奖励按该通道自身配置计算。</div>
+    <div class="br key"><span class="bn">06</span>原 AR UPI 大类下的订单不受影响：下单、提交 UTR、申诉、确认到账、回调入账仍按 AR UPI 大类处理。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:96px">项</th><th>说明</th></tr>
+      <tr><td>内置通道</td><td>本地银行卡、本地 USDT 等内置通道不支持多选，大类维持锁定</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== 充值通道列表 ==================== -->
+<div class="page-block">
+  <div class="crumb">财务管理<span class="sep">-</span>充值配置<span class="sep">-</span><span class="cur">充值通道</span></div>
+  <div class="subtabs"><span>充值大类</span><span class="on">充值通道</span></div>
+  <div class="v3-panel">
+    <div class="v3-filter">
+      <div class="v3-fi"><span>商户</span><select class="v3-sel"><option>(2001)sit-inr</option></select></div>
+      <div class="v3-fi"><span>三方映射码</span><select class="v3-sel" id="q-pay"><option value="">全部</option></select></div>
+      <div class="v3-fi"><span>通道ID/名称</span><input class="v3-inp" id="q-ch" placeholder="请输入通道ID/名称"></div>
+      <div class="v3-fi"><span>充值大类</span><select class="v3-sel" id="q-cat"><option value="">全部</option></select></div>
+      <div class="f-right">
+        <button class="v3-btn pri" onclick="renderList()">🔍 搜索</button>
+        <button class="v3-btn" onclick="resetQuery()">↻ 重置</button>
+        <button class="v3-btn pri" onclick="openModal(null)">＋ 新增</button>
+      </div>
+    </div>
+    <div class="v3-tip">💡 演示路径：① 点 <b>AR UPI</b>（通道ID 10801）那一行的「编辑」，在「充值大类」里勾上 <b>UPI</b>、<b>PhonePe</b> 保存 → 还是同一行、<b>通道ID 不变</b>，充值大类列多出两个标签。　② 再编辑它，取消勾选 <b>PhonePe</b> → 即从该大类下架。　③ 点「新增」，三方映射码选 <b>OX2PayINR</b>，通道选「OX2-主号 / OX2PayINR-唤醒」，大类可一次选多个，保存后只新增一条通道。</div>
+    <div class="v3-tablewrap">
+      <table class="v3-tbl">
+        <thead><tr>
+          <th style="width:110px">商户</th>
+          <th class="l" style="width:210px">通道信息</th>
+          <th class="l" style="width:160px">三方商户昵称/商户号</th>
+          <th style="width:70px">通道币种</th>
+          <th class="l" style="width:150px">成功率统计</th>
+          <th class="l" style="width:110px">轮询权重</th>
+          <th style="width:100px">充值大类</th>
+          <th style="width:96px">内置充值大类</th>
+          <th style="width:60px">状态</th>
+          <th style="width:76px">可用状态</th>
+          <th style="width:110px">可见充值等级</th>
+          <th style="width:100px">可用时间段</th>
+          <th style="width:110px">充值金额区间</th>
+          <th style="width:60px">手续费</th>
+          <th style="width:90px">备注</th>
+          <th style="width:86px">最后修改人</th>
+          <th style="width:140px">最后修改时间</th>
+          <th style="width:150px">操作</th>
+        </tr></thead>
+        <tbody id="list-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pager"><span id="total">共 0 条</span><span class="pg-n">1</span><span>10 / 页</span></div>
+  </div>
+</div>
+
+<!-- ==================== 新增 / 编辑弹窗 ==================== -->
+<div class="m-mask" id="m-mask">
+  <div class="m-panel">
+    <div class="m-head"><span class="t" id="m-title">新增充值通道</span><span class="m-x" onclick="closeModal()">✕</span></div>
+    <div class="m-body">
+      <div class="fg">
+        <div class="fi"><label><span class="rq">*</span>商户</label><select id="f-tenant" disabled><option>(2001)sit-inr</option></select></div>
+        <div class="fi"><label><span class="rq">*</span>三方映射码</label><select id="f-pay" onchange="onPayChange()"></select></div>
+        <div class="fi wide"><label><span class="rq">*</span>通道名称</label><select id="f-ch" onchange="onChannelChange()"></select><div class="hint" id="f-ch-hint"></div></div>
+        <div class="fi"><label>通道币种</label><input id="f-cur" disabled placeholder="选择三方映射码后自动带出"></div>
+        <div class="fi">
+          <label><span class="rq">*</span>充值大类<span class="newf">改</span></label>
+          <div class="cat-box" id="cat-box">
+            <div class="cat-field" id="cat-field" onclick="toggleDrop(event)"></div>
+            <div class="cat-drop" id="cat-drop"></div>
+          </div>
+          <div class="hint" id="cat-hint"></div>
+        </div>
+        <div class="fi"><label><span class="rq">*</span>前台显示名称</label><input id="f-name" maxlength="128" placeholder="请输入前台显示名称"></div>
+        <div class="fi"><label>三方通道编码</label><input id="f-code" placeholder="请输入三方通道编码"></div>
+        <div class="fi"><label><span class="rq">*</span>轮询权重</label><div class="row2"><input id="f-weight" type="number" min="0" placeholder="预设权重"><input id="f-rt" disabled placeholder="实时权重"></div></div>
+        <div class="fi"><label>可见充值等级</label><div class="chip-line" id="f-levels"></div></div>
+        <div class="fi"><label>可用时间段</label><div class="row2"><input id="f-start" value="00:00"><span>~</span><input id="f-end" value="23:59"></div></div>
+        <div class="fi"><label>充值金额区间</label><div class="row2"><input id="f-min" type="number" placeholder="最小金额"><span>~</span><input id="f-max" type="number" placeholder="最大金额"></div></div>
+        <div class="fi"><label>手续费</label><input id="f-fee" type="number" step="0.0001" placeholder="请输入手续费比例（0~1）"></div>
+        <div class="fi"><label>备注</label><textarea id="f-remark" maxlength="300"></textarea></div>
+        <div class="fi"><label>状态</label><div class="radio-line"><label><input type="radio" name="f-state" value="1" style="width:auto;height:auto"> 启用</label><label><input type="radio" name="f-state" value="0" style="width:auto;height:auto"> 禁用</label></div></div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="v3-btn" onclick="closeModal()">取消</button>
+      <button class="v3-btn pri" onclick="saveModal()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:34px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;padding:9px 18px;border-radius:5px;font-size:12.5px;z-index:2000;display:none;max-width:80vw;text-align:center;line-height:1.7"></div>
+
+<script>
+/* ==================== 演示数据 ==================== */
+/* type：大类类型。1=三方法币（一个商户最多 8 个），其它类型每个商户各 1 个 */
+var TYPE_NAME={1:'三方法币',26:'ArUpiPay',21:'ARPay',9:'本地银行卡',19:'本地USDT'};
+var CATS=[
+  {id:3101,name:'UPI',       type:1},
+  {id:3102,name:'PhonePe',   type:1},
+  {id:3103,name:'Paytm',     type:1},
+  {id:3104,name:'Fast UPI',  type:1},
+  {id:3126,name:'AR UPI',    type:26},
+  {id:3121,name:'ARPay',     type:21},
+  {id:3109,name:'Local Bank',type:9, builtIn:true}
+];
+/* 通道字典：type 为通道自身所属的大类类型 */
+var DICT=[
+  {id:260001,name:'ARUPI-UPI',         pay:'ARUPI',       type:26,cur:'INR'},
+  {id:100354,name:'OX2PayINR-扫码',     pay:'OX2PayINR',   type:1, cur:'INR'},
+  {id:100355,name:'OX2PayINR-唤醒',     pay:'OX2PayINR',   type:1, cur:'INR'},
+  {id:100353,name:'Speed2PayINR-唤醒',  pay:'Speed2PayINR',type:1, cur:'INR'},
+  {id:100350,name:'AntPayINR-UPI',      pay:'AntPayINR',   type:1, cur:'INR'},
+  {id:3,     name:'Local Bank',         pay:'',            type:9, cur:'INR',builtIn:true}
+];
+var MER=[
+  {id:88001,nick:'ARUPI自营',code:'AU20260001',pay:'ARUPI'},
+  {id:77021,nick:'OX2-主号', code:'OX2P88213', pay:'OX2PayINR'},
+  {id:77022,nick:'OX2-备用', code:'OX2P88214', pay:'OX2PayINR'},
+  {id:77035,nick:'Speed2-A', code:'SP2-10086', pay:'Speed2PayINR'},
+  {id:77050,nick:'Ant-INR',  code:'ANT99812',  pay:'AntPayINR'}
+];
+var LEVELS=['Lv0','Lv1','Lv2','Lv3','Lv4','Lv5'];
+/* 一条通道 = 一条记录，cats 是它挂的充值大类；挂多个大类不会多出记录，通道ID 不变，配置共用 */
+var ROWS=[
+  {id:10801,cats:[3126],dict:260001,mer:88001,name:'AR UPI',    code:'upi',   weight:100,state:1,levels:[],start:'00:00',end:'23:59',min:100,max:50000,fee:0,     remark:'自营三方',by:'ops_amy', at:'2026-09-18 10:12:05',sr:['18/20','52/60','101/118','2210/2530']},
+  {id:10760,cats:[3102],dict:100350,mer:77050,name:'Ant Pay',   code:'upi',   weight:50, state:1,levels:[],start:'00:00',end:'23:59',min:200,max:20000,fee:0.025, remark:'',        by:'ops_amy', at:'2026-09-15 09:40:11',sr:['9/12','30/41','66/90','1502/2011']},
+  {id:10755,cats:[3101],dict:100354,mer:77021,name:'OX2 Pay',   code:'8001',  weight:40, state:1,levels:[],start:'00:00',end:'23:59',min:100,max:30000,fee:0.028, remark:'',        by:'ops_leo', at:'2026-09-12 14:03:27',sr:['7/10','22/33','51/77','1203/1800']},
+  {id:10754,cats:[3101],dict:100353,mer:77035,name:'Speed2 Pay',code:'upi_h5',weight:30, state:1,levels:['Lv1','Lv2','Lv3','Lv4','Lv5'],start:'08:00',end:'23:59',min:300,max:10000,fee:0.03,remark:'',by:'ops_leo', at:'2026-09-10 11:20:45',sr:['3/6','11/20','25/44','640/1100']},
+  {id:10020,cats:[3109],dict:3,     mer:0,    name:'Local Bank',code:'',      weight:0,  state:1,levels:[],start:'00:00',end:'23:59',min:100,max:100000,fee:0,    remark:'内置',     by:'system',  at:'2026-08-01 00:00:00',sr:['0/0','0/0','0/0','0/0'],builtIn:true}
+];
+var nextId=10900;
+var freshIds=[];
+
+/* ==================== 工具 ==================== */
+function cat(id){return CATS.find(function(c){return c.id===id})}
+function dict(id){return DICT.find(function(d){return d.id===id})}
+function mer(id){return MER.find(function(m){return m.id===id})}
+function pct(v){return (Math.round(v*10000)/100)+'%'}
+var tmr;
+function toast(m){var t=document.getElementById('toast');t.innerHTML=m;t.style.display='block';clearTimeout(tmr);tmr=setTimeout(function(){t.style.display='none'},3600)}
+function nowStr(){var d=new Date(),p=function(n){return (n<10?'0':'')+n};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())}
+
+/* 该通道（三方商户 + 通道字典）可以挂的大类：与通道同类型的大类；AR UPI 通道额外可挂三方法币大类 */
+function allowedCats(d){
+  return CATS.filter(function(c){
+    if(c.builtIn) return c.type===d.type;
+    if(c.type===d.type) return true;
+    return d.type===26 && c.type===1;
+  });
+}
+/* 同一个（三方商户 + 通道字典）是否已经上架过（上架过就只能去编辑里改它挂的大类） */
+function pairExists(merId,dictId){
+  return ROWS.some(function(r){return r.mer===merId && r.dict===dictId});
+}
+/* 该通道挂的大类涉及的系统类型（列表「内置充值大类」列） */
+function catTypes(r){
+  var ts=[];
+  r.cats.forEach(function(id){var c=cat(id);if(c&&ts.indexOf(TYPE_NAME[c.type])<0)ts.push(TYPE_NAME[c.type])});
+  return ts;
+}
+
+/* ==================== 列表 ==================== */
+function initFilters(){
+  var pays=[];DICT.forEach(function(d){if(d.pay && pays.indexOf(d.pay)<0)pays.push(d.pay)});
+  document.getElementById('q-pay').innerHTML='<option value="">全部</option>'+pays.map(function(p){return '<option>'+p+'</option>'}).join('');
+  document.getElementById('q-cat').innerHTML='<option value="">全部</option>'+CATS.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>'}).join('');
+}
+function resetQuery(){document.getElementById('q-pay').value='';document.getElementById('q-ch').value='';document.getElementById('q-cat').value='';renderList()}
+function renderList(){
+  var qp=document.getElementById('q-pay').value, qc=document.getElementById('q-ch').value.trim(), qcat=document.getElementById('q-cat').value;
+  var list=ROWS.filter(function(r){
+    var d=dict(r.dict);
+    if(qp && d.pay!==qp) return false;
+    if(qcat && r.cats.indexOf(Number(qcat))<0) return false;   /* 挂了该大类的通道都要列出 */
+    if(qc && String(r.id).indexOf(qc)<0 && d.name.indexOf(qc)<0 && r.name.indexOf(qc)<0) return false;
+    return true;
+  }).sort(function(a,b){return b.id-a.id});
+  var h='';
+  list.forEach(function(r){
+    var d=dict(r.dict), m=mer(r.mer);
+    h+='<tr class="'+(freshIds.indexOf(r.id)>=0?'fresh':'')+'">'
+      +'<td>(2001)sit-inr</td>'
+      +'<td class="l"><div class="ci">通道ID：<b>'+r.id+'</b><br>通道名称：<b>'+d.name+'</b><br>前台显示名称：<b>'+r.name+'</b><br>三方映射码：'+(d.pay||'--')+'</div></td>'
+      +'<td class="l"><div class="ci">'+(m?('昵称：<b>'+m.nick+'</b><br>商户号：'+m.code):'<span style="color:#c9cdd4">--</span>')+'</div></td>'
+      +'<td>'+d.cur+'</td>'
+      +'<td class="l"><div class="ci">近10分钟：'+r.sr[0]+'<br>近30分钟：'+r.sr[1]+'<br>近1小时：'+r.sr[2]+'<br>近24小时：'+r.sr[3]+'</div></td>'
+      +'<td class="l"><div class="ci">轮询权重：<b>'+r.weight+'</b><br>实时权重：'+r.weight+'</div></td>'
+      +'<td class="l"><div class="cats">'+r.cats.map(function(id){return '<span class="tag">'+cat(id).name+'</span>'}).join('')+'</div></td>'
+      +'<td class="l"><div class="cats">'+catTypes(r).map(function(t){return '<span class="tag sys">'+t+'</span>'}).join('')+'</div></td>'
+      +'<td><span class="sw '+(r.state?'on':'')+'" onclick="toggleState('+r.id+')"></span></td>'
+      +'<td><span class="tag ok">可用</span></td>'
+      +'<td>'+(r.levels.length?r.levels.join(','):'全部')+'</td>'
+      +'<td>'+r.start+'~'+r.end+'</td>'
+      +'<td>'+r.min+'~'+r.max+'</td>'
+      +'<td>'+pct(r.fee)+'</td>'
+      +'<td>'+(r.remark||'--')+'</td>'
+      +'<td>'+r.by+'</td>'
+      +'<td>'+r.at+'</td>'
+      +'<td><span class="lnk" onclick="toast(\'演示原型：代收测试为现有功能，本需求不改\')">代收测试</span><span class="lnk" onclick="openModal('+r.id+')">编辑</span>'+(r.builtIn?'':'<span class="lnk danger" onclick="delRow('+r.id+')">删除</span>')+'</td>'
+      +'</tr>';
+  });
+  document.getElementById('list-tbody').innerHTML=h||'<tr><td colspan="18" style="color:#86909c;padding:24px">暂无数据</td></tr>';
+  document.getElementById('total').textContent='共 '+list.length+' 条';
+}
+function catNames(r){return r.cats.map(function(id){return cat(id).name}).join('、')}
+function toggleState(id){
+  var r=ROWS.find(function(x){return x.id===id});
+  r.state=r.state?0:1; r.by='当前账号'; r.at=nowStr();
+  renderList();
+  toast('「'+r.name+'」已'+(r.state?'启用':'禁用')+'，它挂的全部大类（'+catNames(r)+'）同时生效');
+}
+function delRow(id){
+  var r=ROWS.find(function(x){return x.id===id});
+  if(r.state){toast('需要禁用通道后才可以删除（现有规则）');return}
+  var names=catNames(r);
+  ROWS=ROWS.filter(function(x){return x.id!==id});
+  renderList();
+  toast('已删除「'+r.name+'」，它从 '+names+' 全部下架');
+}
+
+/* ==================== 弹窗 ==================== */
+var M={mode:'add',row:null,dict:null,mer:null,picked:[]};
+function openModal(id){
+  var r=id?ROWS.find(function(x){return x.id===id}):null;
+  M={mode:r?'edit':'add',row:r,dict:r?dict(r.dict):null,mer:r?r.mer:null,picked:r?r.cats.slice():[]};
+  document.getElementById('m-title').textContent=r?('编辑充值通道 -'+r.id):'新增充值通道';
+  var paySel=document.getElementById('f-pay'), chSel=document.getElementById('f-ch');
+  var pays=[];DICT.forEach(function(d){if(d.pay && !d.builtIn && pays.indexOf(d.pay)<0)pays.push(d.pay)});
+  if(r){
+    paySel.innerHTML='<option>'+(M.dict.pay||'--')+'</option>'; paySel.disabled=true;
+    var m=mer(r.mer);
+    chSel.innerHTML='<option>'+(m?m.nick+' / ':'')+M.dict.name+'</option>'; chSel.disabled=true;
+    document.getElementById('f-ch-hint').textContent='';
+    document.getElementById('f-cur').value=M.dict.cur;
+    fillForm(r);
+  }else{
+    paySel.innerHTML='<option value="">请选择三方映射码</option>'+pays.map(function(p){return '<option>'+p+'</option>'}).join(''); paySel.disabled=false;
+    chSel.innerHTML='<option value="">请先选择三方映射码</option>'; chSel.disabled=true;
+    document.getElementById('f-ch-hint').textContent='';
+    document.getElementById('f-cur').value='';
+    fillForm(null);
+  }
+  renderCat();
+  document.getElementById('m-mask').classList.add('show');
+}
+function closeModal(){document.getElementById('m-mask').classList.remove('show');document.getElementById('cat-drop').classList.remove('show')}
+function fillForm(r){
+  document.getElementById('f-name').value=r?r.name:'';
+  document.getElementById('f-code').value=r?r.code:'';
+  document.getElementById('f-weight').value=r?r.weight:'';
+  document.getElementById('f-rt').value=r?('实时 '+r.weight):'';
+  document.getElementById('f-start').value=r?r.start:'00:00';
+  document.getElementById('f-end').value=r?r.end:'23:59';
+  document.getElementById('f-min').value=r?r.min:'';
+  document.getElementById('f-max').value=r?r.max:'';
+  document.getElementById('f-fee').value=r?r.fee:'';
+  document.getElementById('f-remark').value=r?r.remark:'';
+  var st=r?String(r.state):'1';
+  document.querySelectorAll('input[name=f-state]').forEach(function(x){x.checked=(x.value===st)});
+  var lv=r?r.levels.slice():[];
+  document.getElementById('f-levels').innerHTML=LEVELS.map(function(l){return '<span class="chip '+(lv.indexOf(l)>=0?'on':'')+'" onclick="this.classList.toggle(\'on\')">'+l+'</span>'}).join('');
+}
+function onPayChange(){
+  var p=document.getElementById('f-pay').value, chSel=document.getElementById('f-ch');
+  M.dict=null;M.mer=null;M.picked=[];
+  if(!p){chSel.innerHTML='<option value="">请先选择三方映射码</option>';chSel.disabled=true;document.getElementById('f-cur').value='';renderCat();return}
+  var h='<option value="">请选择通道名称</option>';
+  MER.filter(function(m){return m.pay===p}).forEach(function(m){
+    h+='<optgroup label="'+m.nick+'（'+m.code+'）">';
+    DICT.filter(function(d){return d.pay===p}).forEach(function(d){
+      var used=pairExists(m.id,d.id);
+      h+='<option value="'+m.id+','+d.id+'"'+(used?' disabled':'')+'>'+m.nick+' / '+d.name+(used?'（已上架）':'')+'</option>';
+    });
+    h+='</optgroup>';
+  });
+  chSel.innerHTML=h;chSel.disabled=false;
+  document.getElementById('f-cur').value=(DICT.find(function(d){return d.pay===p})||{}).cur||'';
+  document.getElementById('f-ch-hint').textContent='已上架过的通道在这里置灰（维持现状）；要调整它挂的大类，请在列表里编辑这条通道。';
+  renderCat();
+}
+function onChannelChange(){
+  var v=document.getElementById('f-ch').value;
+  M.picked=[];
+  if(!v){M.dict=null;M.mer=null;renderCat();return}
+  var parts=v.split(',');M.mer=Number(parts[0]);M.dict=dict(Number(parts[1]));
+  renderCat();
+}
+
+/* ---------- 充值大类多选 ---------- */
+function catState(c){return M.picked.indexOf(c.id)>=0?'on':'off'}
+function renderCat(){
+  var field=document.getElementById('cat-field'), hint=document.getElementById('cat-hint'), drop=document.getElementById('cat-drop');
+  field.classList.remove('dis');
+  if(!M.dict){
+    field.classList.add('dis');field.innerHTML='<span class="ph">请先选择通道名称</span>';drop.innerHTML='';hint.textContent='';return;
+  }
+  if(M.dict.builtIn){
+    field.classList.add('dis');field.innerHTML='<span class="ctag lock">🔒 '+cat(M.row.cats[0]).name+'</span>';drop.innerHTML='';
+    hint.textContent='内置通道的充值大类不可修改，也不支持多选（维持现状）。';return;
+  }
+  var tags='';
+  CATS.forEach(function(c){
+    if(catState(c)!=='on') return;
+    tags+='<span class="ctag">'+c.name+'<span class="x" onclick="event.stopPropagation();pickCat('+c.id+')">✕</span></span>';
+  });
+  field.innerHTML=tags||'<span class="ph">请选择充值大类（可多选）</span>';
+  var list=allowedCats(M.dict), groups={};
+  list.forEach(function(c){(groups[c.type]=groups[c.type]||[]).push(c)});
+  var h='';
+  Object.keys(groups).sort(function(a,b){return Number(b===String(M.dict.type))-Number(a===String(M.dict.type))}).forEach(function(t){
+    h+='<div class="cg">'+TYPE_NAME[t]+(Number(t)!==M.dict.type?'（AR UPI 通道可额外挂载）':'')+'</div>';
+    groups[t].forEach(function(c){
+      var on=catState(c)==='on';
+      h+='<div class="co '+(on?'on':'')+'" onclick="event.stopPropagation();pickCat('+c.id+')"><span class="ck">'+(on?'✓':'')+'</span>'+c.name+'</div>';
+    });
+  });
+  drop.innerHTML=h;
+  hint.innerHTML='可多选，至少选 1 个。通道仍是一条，通道ID 不变；本弹窗的配置对所挂的全部大类共用。取消勾选即从该大类下架。';
+}
+function toggleDrop(e){
+  e.stopPropagation();
+  if(document.getElementById('cat-field').classList.contains('dis')) return;
+  document.getElementById('cat-drop').classList.toggle('show');
+}
+function pickCat(id){
+  var i=M.picked.indexOf(id);
+  if(i>=0) M.picked.splice(i,1); else M.picked.push(id);
+  renderCat();
+  document.getElementById('cat-drop').classList.add('show');
+}
+document.addEventListener('click',function(e){ if(!document.getElementById('cat-box').contains(e.target)) document.getElementById('cat-drop').classList.remove('show'); });
+
+/* ---------- 保存 ---------- */
+function readForm(){
+  var lv=[];document.querySelectorAll('#f-levels .chip.on').forEach(function(x){lv.push(x.textContent)});
+  var st=document.querySelector('input[name=f-state]:checked');
+  return {
+    name:document.getElementById('f-name').value.trim(),
+    code:document.getElementById('f-code').value.trim(),
+    weight:Number(document.getElementById('f-weight').value||0),
+    start:document.getElementById('f-start').value||'00:00',
+    end:document.getElementById('f-end').value||'23:59',
+    min:Number(document.getElementById('f-min').value||0),
+    max:Number(document.getElementById('f-max').value||0),
+    fee:Number(document.getElementById('f-fee').value||0),
+    remark:document.getElementById('f-remark').value.trim(),
+    state:st?Number(st.value):1,
+    levels:lv
+  };
+}
+function saveModal(){
+  if(!M.dict){toast('请选择通道名称');return}
+  var f=readForm();
+  if(!f.name){toast('请输入前台显示名称');return}
+  if(document.getElementById('f-weight').value===''){toast('请输入轮询权重');return}
+  if(M.picked.length===0){toast('请至少选择 1 个充值大类');return}
+  /* 前台显示名称：同商户下不能重名（通道只有一条记录，名称也只有一个） */
+  var clash=ROWS.some(function(r){return r.name===f.name && (!M.row || r.id!==M.row.id)});
+  if(clash){toast('当前商户中已存在相同的前台显示名称：'+f.name);return}
+
+  var stamp=nowStr(), row;
+  if(M.mode==='edit'){
+    row=M.row;
+    var before=row.cats.slice();
+    Object.assign(row,f,{cats:M.picked.slice(),by:'当前账号',at:stamp});
+    var added=row.cats.filter(function(c){return before.indexOf(c)<0}).map(function(c){return cat(c).name});
+    var removed=before.filter(function(c){return row.cats.indexOf(c)<0}).map(function(c){return cat(c).name});
+    freshIds=[row.id];
+    closeModal();document.getElementById('q-cat').value='';renderList();
+    toast('已保存：通道ID '+row.id+' 不变，当前挂载 '+catNames(row)
+      +(added.length?('；新增挂载 '+added.join('、')):'')
+      +(removed.length?('；已从 '+removed.join('、')+' 下架'):''));
+  }else{
+    row=Object.assign({id:nextId++,cats:M.picked.slice(),dict:M.dict.id,mer:M.mer,by:'当前账号',at:stamp,sr:['0/0','0/0','0/0','0/0']},f);
+    ROWS.push(row);
+    freshIds=[row.id];
+    closeModal();document.getElementById('q-cat').value='';renderList();
+    toast('已保存：新增 1 条通道（通道ID '+row.id+'），挂载 '+catNames(row));
+  }
+}
+
+/* ==================== 需求说明抽屉 ==================== */
+function openReq(){document.getElementById('req-mask').classList.add('show');document.getElementById('req-drawer').classList.add('show')}
+function closeReq(){document.getElementById('req-mask').classList.remove('show');document.getElementById('req-drawer').classList.remove('show')}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeReq();closeModal()}});
+document.getElementById('m-mask').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+initFilters();
+renderList();
+</script>
+</body>
+</html>
