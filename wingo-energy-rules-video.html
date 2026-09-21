@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WinGo Energy Gameplay Guide · 能量助力玩法说明</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Sans+Devanagari:wght@400;500;700&display=swap">
+<style>
+:root{
+  --ground:#F4F2EC; --surface:#FFFFFF; --surface2:#FAF8F3;
+  --ink:#26262B; --muted:#6E6A62; --line:#E2DED3;
+  --brand:#F2C230; --brand-d:#C9960B; --brand-soft:#FDF4D8;
+  --go:#1B8F5F; --go-soft:#E4F4EC;
+  --stop:#C93B47;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Noto Sans SC","Noto Sans Devanagari","PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.lbl{font-family:"Barlow Semi Condensed","Noto Sans SC",sans-serif;font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:11.5px;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--brand-d);outline-offset:2px}
+
+.wrap{max-width:980px;margin:0 auto;padding:30px 22px 70px}
+
+/* ── header ── */
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  padding-bottom:18px;border-bottom:2px solid var(--ink)}
+header h1{margin:4px 0 0;font-size:27px;line-height:1.2;font-weight:700;letter-spacing:-.01em}
+header .sub{margin:4px 0 0;font-size:13px;color:var(--muted)}
+.seg{display:flex;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden;flex:none}
+.seg button{border:none;background:var(--surface);color:var(--ink);padding:7px 16px;font-size:13px;font-weight:600;white-space:nowrap}
+.seg button + button{border-left:1.5px solid var(--ink)}
+.seg button.on{background:var(--ink);color:var(--surface)}
+
+/* ── video ── */
+.stage{margin:26px 0 8px;background:#15151A;border-radius:14px;overflow:hidden;position:relative;
+  box-shadow:0 14px 34px rgba(0,0,0,.16)}
+.stage video{display:block;width:100%;aspect-ratio:16/9;background:#15151A}
+.ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;color:#C8C6C0;text-align:center;padding:24px;background:
+  repeating-linear-gradient(135deg,#1C1C22 0 14px,#191920 14px 28px)}
+.ph b{font-size:16px;color:#F0EEE8;font-weight:700}
+.ph p{margin:0;font-size:12.5px;line-height:1.8;max-width:46ch}
+.ph code{background:rgba(255,255,255,.1);border-radius:4px;padding:2px 6px;font-size:12px}
+.ph .pick{border:1.5px solid #6A6A74;background:transparent;color:#F0EEE8;border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600}
+.ph .pick:hover{border-color:var(--brand);color:var(--brand)}
+.stage.has-video .ph{display:none}
+.cap{margin:0 0 30px;font-size:12px;color:var(--muted);text-align:center}
+
+/* ── sections ── */
+section{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:14px}
+section > h2{display:flex;align-items:center;gap:11px;margin:0 0 14px;font-size:18px;font-weight:700;letter-spacing:-.01em}
+section > h2 .i{flex:none;width:27px;height:27px;border-radius:7px;background:var(--brand);color:#5A4408;
+  display:grid;place-items:center;font-size:14px;font-weight:700;font-family:"Barlow Semi Condensed",sans-serif}
+section p{margin:0 0 10px}
+section p:last-child{margin-bottom:0}
+
+ul.rules{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+ul.rules li{position:relative;padding-left:20px;line-height:1.7}
+ul.rules li::before{content:"";position:absolute;left:4px;top:.72em;width:6px;height:6px;border-radius:50%;background:var(--brand-d)}
+
+/* quick buttons */
+.qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:4px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface2)}
+.q .name{font-family:"Barlow Semi Condensed","Noto Sans SC",sans-serif;font-weight:700;font-size:16px;letter-spacing:.02em;margin-bottom:2px}
+.q .desc{font-size:13px;color:var(--muted);line-height:1.6}
+
+/* timeline */
+.bar{display:flex;height:16px;border-radius:8px;overflow:hidden;margin:16px 0 12px;border:1px solid var(--line)}
+.bar i{display:block}
+.bar .s1{width:16.7%;background:#DAD6CB}
+.bar .s2{width:66.6%;background:var(--go)}
+.bar .s3{width:6.7%;background:var(--brand)}
+.bar .s4{width:10%;background:var(--stop)}
+.legend{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.legend li{display:flex;align-items:flex-start;gap:9px;font-size:13.5px;line-height:1.6}
+.legend .sw{flex:none;width:13px;height:13px;border-radius:4px;margin-top:4px;border:1px solid rgba(0,0,0,.08)}
+.legend .t{flex:none;min-width:108px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+@media(max-width:600px){.legend .t{min-width:0}.legend li{flex-wrap:wrap}}
+
+/* bonus conditions */
+.cond{display:grid;gap:9px;margin:2px 0 14px;padding:0;list-style:none;counter-reset:c}
+/* 用绝对定位放序号，不用 flex——flex 会把句子里的 <b> 拆成独立项，语序会乱 */
+.cond li{counter-increment:c;position:relative;background:var(--go-soft);
+  border-radius:9px;padding:11px 14px 11px 44px;line-height:1.65}
+.cond li::before{content:counter(c);position:absolute;left:14px;top:13px;width:21px;height:21px;border-radius:50%;
+  background:var(--go);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.formula{background:var(--ink);color:#F6F4EE;border-radius:10px;padding:14px 16px;font-size:14.5px;line-height:1.7;
+  font-variant-numeric:tabular-nums;overflow-x:auto}
+.formula b{color:var(--brand)}
+
+/* li 要单独写一条：section 里的 li 规则带类名，优先级高于纯属性选择器 */
+[data-lang]{display:none}
+li[data-lang]{display:none}
+body.zh [data-lang="zh"],body.en [data-lang="en"],body.hi [data-lang="hi"]{display:revert}
+
+@media print{
+  body{background:#fff}
+  .stage,.seg,.cap{display:none}
+  section{break-inside:avoid;box-shadow:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+</style>
+</head>
+<body class="en">
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="lbl">WinGo · Energy Boost</div>
+      <h1 data-lang="en">Energy Gameplay Guide</h1>
+      <h1 data-lang="zh">能量助力玩法说明</h1>
+      <h1 data-lang="hi">एनर्जी गेमप्ले गाइड</h1>
+      <p class="sub" data-lang="en">Switches · Configuration · Quick Betting · Rankings &amp; Cutoff · Bonus</p>
+      <p class="sub" data-lang="zh">开关配置 · 能量配置 · 快捷投注 · 排名与截止 · 奖金加成</p>
+      <p class="sub" data-lang="hi">स्विच · कॉन्फ़िगरेशन · क्विक बेटिंग · रैंकिंग और कटऑफ़ · बोनस</p>
+    </div>
+    <div class="seg" id="seg">
+      <button data-set="en" class="on">English</button>
+      <button data-set="zh">中文</button>
+      <button data-set="hi">हिन्दी</button>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       ▼▼▼  EMBED YOUR VIDEO HERE  /  在这里嵌入视频  ▼▼▼
+
+       Set src on the <source> tag below, e.g.
+       把下面 <source> 的 src 填成你的视频地址，例如：
+
+         same folder / 同目录     src="demo.mp4"
+         subfolder  / 子目录      src="video/demo.mp4"
+         online URL / 在线地址    src="https://example.com/demo.mp4"
+
+       poster="" = optional cover image / 可选封面图
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="stage" id="stage">
+    <video id="player" controls playsinline preload="metadata" poster="">
+      <source id="src" src="" type="video/mp4">
+    </video>
+    <div class="ph">
+      <b data-lang="en">Video slot</b>
+      <b data-lang="zh">视频位</b>
+      <b data-lang="hi">वीडियो स्लॉट</b>
+      <p data-lang="en">Open this file in an editor, set <code>&lt;source src=""&gt;</code> to your video path, then save.</p>
+      <p data-lang="zh">用编辑器打开本文件，把 <code>&lt;source src=""&gt;</code> 填成你的视频路径，保存即可。</p>
+      <p data-lang="hi">इस फ़ाइल को एडिटर में खोलें, <code>&lt;source src=""&gt;</code> में अपना वीडियो पाथ डालें और सेव करें।</p>
+      <button class="pick" id="pick" type="button">
+        <span data-lang="en">Or: preview a local video</span>
+        <span data-lang="zh">或：临时选择本地视频预览</span>
+        <span data-lang="hi">या: लोकल वीडियो प्रीव्यू करें</span>
+      </button>
+      <input type="file" id="file" accept="video/*" hidden>
+    </div>
+  </div>
+  <p class="cap">
+    <span data-lang="en">Local preview lasts for this session only. For a permanent embed, edit the src.</span>
+    <span data-lang="zh">临时预览只在当前窗口有效，刷新后失效；正式嵌入请修改 src。</span>
+    <span data-lang="hi">लोकल प्रीव्यू सिर्फ़ इसी सेशन तक रहता है। स्थायी रूप से जोड़ने के लिए src बदलें।</span>
+  </p>
+
+  <!-- 1 -->
+  <section>
+    <h2><span class="i">1</span>
+      <span data-lang="en">Gameplay Switches</span>
+      <span data-lang="zh">玩法开关</span>
+      <span data-lang="hi">गेमप्ले स्विच</span></h2>
+    <p data-lang="en">In GameSaaS, the Energy Gameplay switches in both <b>Lottery Management</b> and <b>Merchant Management</b> must be enabled <b>simultaneously</b> for players to participate.</p>
+    <p data-lang="zh">GameSaaS 中，<b>彩票管理</b>和<b>商户管理</b>的能量玩法开关必须<b>同时开启</b>，玩家才能参与。</p>
+    <p data-lang="hi">GameSaaS में, <b>Lottery Management</b> और <b>Merchant Management</b> दोनों में Energy Gameplay स्विच <b>एक साथ चालू</b> होने चाहिए, तभी खिलाड़ी इसमें भाग ले सकते हैं।</p>
+  </section>
+
+  <!-- 2 -->
+  <section>
+    <h2><span class="i">2</span>
+      <span data-lang="en">Energy Configuration</span>
+      <span data-lang="zh">能量配置</span>
+      <span data-lang="hi">एनर्जी कॉन्फ़िगरेशन</span></h2>
+    <p data-lang="en">Configure the following settings in GameSaaS &gt; <b>Lottery Management</b>:</p>
+    <p data-lang="zh">在 GameSaaS <b>彩票管理</b>中配置：</p>
+    <p data-lang="hi">GameSaaS &gt; <b>Lottery Management</b> में ये सेटिंग्स कॉन्फ़िगर करें:</p>
+    <ul class="rules">
+      <li data-lang="en">The amount of Energy a number can receive for the first participation in each round.</li>
+      <li data-lang="en">The amount of Energy awarded after the player reaches the specified betting amount.</li>
+      <li data-lang="en">The maximum total amount of Energy each player can obtain per round.</li>
+      <li data-lang="en">The bonus multiplier percentages for the Energy rankings of 1st, 2nd, and 3rd place.</li>
+      <li data-lang="zh">每个号码每局首次可获得的能量数量。</li>
+      <li data-lang="zh">满足指定投注金额后可获得的能量数量。</li>
+      <li data-lang="zh">每位玩家每局可获取的能量总量上限。</li>
+      <li data-lang="zh">能量排名第一、第二、第三对应的奖金加成比例。</li>
+      <li data-lang="hi">हर राउंड में किसी नंबर पर पहली बार भाग लेने पर मिलने वाली Energy की मात्रा।</li>
+      <li data-lang="hi">तय की गई बेटिंग राशि पूरी करने पर मिलने वाली Energy की मात्रा।</li>
+      <li data-lang="hi">हर खिलाड़ी को प्रति राउंड मिलने वाली अधिकतम कुल Energy।</li>
+      <li data-lang="hi">Energy रैंकिंग में पहले, दूसरे और तीसरे स्थान के लिए बोनस प्रतिशत।</li>
+    </ul>
+  </section>
+
+  <!-- 3 -->
+  <section>
+    <h2><span class="i">3</span>
+      <span data-lang="en">Quick Betting Buttons</span>
+      <span data-lang="zh">快捷投注按钮</span>
+      <span data-lang="hi">क्विक बेटिंग बटन</span></h2>
+    <p data-lang="en">The quick betting buttons become clickable <b>5 seconds after the round starts</b>.</p>
+    <p data-lang="zh">快捷投注按钮在<b>开局 5 秒后</b>可点击。</p>
+    <p data-lang="hi">क्विक बेटिंग बटन <b>राउंड शुरू होने के 5 सेकंड बाद</b> क्लिक किए जा सकते हैं।</p>
+    <div class="qgrid">
+      <div class="q"><div class="name">Random</div>
+        <div class="desc" data-lang="en">Randomly selects five different numbers.</div>
+        <div class="desc" data-lang="zh">随机选择五个不同号码。</div>
+        <div class="desc" data-lang="hi">पाँच अलग-अलग नंबर रैंडम चुनता है।</div></div>
+      <div class="q"><div class="name">Repeat</div>
+        <div class="desc" data-lang="en">Selects the numbers the player bet on in the previous round. If the player did not place any bets in the previous round, the button is disabled.</div>
+        <div class="desc" data-lang="zh">选择玩家上一局投注过的号码；上局没有投注时按钮置灰。</div>
+        <div class="desc" data-lang="hi">खिलाड़ी ने पिछले राउंड में जिन नंबरों पर बेट लगाई थी, उन्हें चुनता है। पिछले राउंड में कोई बेट न लगी हो तो बटन निष्क्रिय रहता है।</div></div>
+      <div class="q"><div class="name">Hot3</div>
+        <div class="desc" data-lang="en">Selects the three numbers currently ranked highest by Energy.</div>
+        <div class="desc" data-lang="zh">选择当前能量排名前三的号码。</div>
+        <div class="desc" data-lang="hi">Energy के हिसाब से इस समय सबसे ऊपर रैंक वाले तीन नंबर चुनता है।</div></div>
+      <div class="q"><div class="name">Cold3</div>
+        <div class="desc" data-lang="en">Selects the three numbers currently ranked lowest by Energy.</div>
+        <div class="desc" data-lang="zh">选择当前能量排名最低的三个号码。</div>
+        <div class="desc" data-lang="hi">Energy के हिसाब से इस समय सबसे नीचे रैंक वाले तीन नंबर चुनता है।</div></div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section>
+    <h2><span class="i">4</span>
+      <span data-lang="en">Rankings &amp; Betting Cutoff Times</span>
+      <span data-lang="zh">排名与截止时间</span>
+      <span data-lang="hi">रैंकिंग और बेटिंग कटऑफ़ समय</span></h2>
+    <ul class="rules">
+      <li data-lang="en">Energy rankings are updated <b>every 5 seconds</b>.</li>
+      <li data-lang="en">If multiple numbers have the same amount of Energy, the number that <b>reached that Energy value first</b> ranks higher.</li>
+      <li data-lang="en">When <b>5 seconds</b> remain on the countdown, <b>regular betting</b> is closed.</li>
+      <li data-lang="en">When <b>3 seconds</b> remain on the countdown, <b>Energy betting</b> is closed.</li>
+      <li data-lang="zh">能量排名<b>每 5 秒</b>更新一次。</li>
+      <li data-lang="zh">能量相同时，<b>先达到</b>该能量值的号码排名靠前。</li>
+      <li data-lang="zh">倒计时剩余 <b>5 秒</b>时，停止<b>普通投注</b>。</li>
+      <li data-lang="zh">倒计时剩余 <b>3 秒</b>时，停止<b>能量投注</b>。</li>
+      <li data-lang="hi">Energy रैंकिंग <b>हर 5 सेकंड</b> में अपडेट होती है।</li>
+      <li data-lang="hi">अगर कई नंबरों की Energy समान हो, तो जिस नंबर ने वह Energy <b>पहले हासिल की</b>, उसकी रैंक ऊपर रहती है।</li>
+      <li data-lang="hi">काउंटडाउन में <b>5 सेकंड</b> बचने पर <b>सामान्य बेटिंग</b> बंद हो जाती है।</li>
+      <li data-lang="hi">काउंटडाउन में <b>3 सेकंड</b> बचने पर <b>Energy बेटिंग</b> बंद हो जाती है।</li>
+    </ul>
+
+    <div class="bar" aria-hidden="true"><i class="s1"></i><i class="s2"></i><i class="s3"></i><i class="s4"></i></div>
+    <ul class="legend">
+      <li><span class="sw" style="background:#DAD6CB"></span><span class="t num">0 – 5s</span>
+        <span data-lang="en">Quick betting buttons not yet available</span>
+        <span data-lang="zh">快捷投注按钮尚未开放</span>
+        <span data-lang="hi">क्विक बेटिंग बटन अभी उपलब्ध नहीं</span></li>
+      <li><span class="sw" style="background:var(--go)"></span><span class="t num">5s →</span>
+        <span data-lang="en">Quick betting, regular betting and Energy betting all open</span>
+        <span data-lang="zh">快捷投注、普通投注、能量投注全部开放</span>
+        <span data-lang="hi">क्विक बेटिंग, सामान्य बेटिंग और Energy बेटिंग सभी चालू</span></li>
+      <li><span class="sw" style="background:var(--brand)"></span>
+        <span class="t num"><span data-lang="en">Last 5 – 3s</span><span data-lang="zh">剩余 5 – 3s</span><span data-lang="hi">अंतिम 5 – 3s</span></span>
+        <span data-lang="en">Regular betting closed; Energy betting still open</span>
+        <span data-lang="zh">普通投注已停止，仅能量投注开放</span>
+        <span data-lang="hi">सामान्य बेटिंग बंद; Energy बेटिंग चालू</span></li>
+      <li><span class="sw" style="background:var(--stop)"></span>
+        <span class="t num"><span data-lang="en">Last 3 – 0s</span><span data-lang="zh">剩余 3 – 0s</span><span data-lang="hi">अंतिम 3 – 0s</span></span>
+        <span data-lang="en">Energy betting closed; awaiting the draw</span>
+        <span data-lang="zh">能量投注停止，等待开奖</span>
+        <span data-lang="hi">Energy बेटिंग बंद; ड्रॉ की प्रतीक्षा</span></li>
+    </ul>
+  </section>
+
+  <!-- 5 -->
+  <section>
+    <h2><span class="i">5</span>
+      <span data-lang="en">Bonus Multiplier</span>
+      <span data-lang="zh">奖金加成</span>
+      <span data-lang="hi">बोनस मल्टीप्लायर</span></h2>
+    <p data-lang="en">A player receives a bonus multiplier <b>only when all</b> of the following conditions are met:</p>
+    <p data-lang="zh">玩家<b>同时</b>满足以下条件时获得加成：</p>
+    <p data-lang="hi">खिलाड़ी को बोनस तभी मिलता है जब नीचे दी गई <b>सभी शर्तें</b> पूरी हों:</p>
+    <ul class="cond">
+      <li data-lang="en">The number the player bet on is the winning number.</li>
+      <li data-lang="en">The winning number is ranked within the top three in Energy.</li>
+      <li data-lang="en">The player has participated in Energy betting on <b>any number</b> during the current round. The player does <b>not</b> need to have placed an Energy bet on the winning number specifically.</li>
+      <li data-lang="zh">投注的号码中奖。</li>
+      <li data-lang="zh">中奖号码的能量排名位于前三。</li>
+      <li data-lang="zh">玩家本局对<b>任意号码</b>参与过能量投注，<b>无须</b>给中奖号码投注能量。</li>
+      <li data-lang="hi">खिलाड़ी ने जिस नंबर पर बेट लगाई है, वही विजेता नंबर हो।</li>
+      <li data-lang="hi">विजेता नंबर Energy रैंकिंग में <b>शीर्ष तीन</b> में हो।</li>
+      <li data-lang="hi">खिलाड़ी ने इस राउंड में <b>किसी भी नंबर</b> पर Energy बेटिंग की हो। विजेता नंबर पर ही Energy लगाना <b>ज़रूरी नहीं</b> है।</li>
+    </ul>
+    <div class="formula">
+      <span data-lang="en">Additional Bonus = <b>Bet Amount</b> × <b>Configured Bonus Percentage for the Winning Number's Energy Rank</b></span>
+      <span data-lang="zh">额外加成奖金 = <b>投注金额</b> × <b>中奖号码对应名次的后台配置比例</b></span>
+      <span data-lang="hi">अतिरिक्त बोनस = <b>बेट राशि</b> × <b>विजेता नंबर की Energy रैंक के लिए कॉन्फ़िगर किया गया प्रतिशत</b></span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  var body=document.body, LANG={en:'en',zh:'zh-CN',hi:'hi'};
+  document.getElementById('seg').addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    this.querySelectorAll('button').forEach(function(x){x.classList.remove('on')});
+    b.classList.add('on');
+    body.className=b.dataset.set;
+    document.documentElement.lang=LANG[b.dataset.set]||'en';
+  });
+
+  /* 若已经填好 src，隐藏占位层 */
+  var stage=document.getElementById('stage'), src=document.getElementById('src');
+  if(src.getAttribute('src')) stage.classList.add('has-video');
+
+  /* 临时预览本地视频，不写入文件 */
+  var pick=document.getElementById('pick'), file=document.getElementById('file'), player=document.getElementById('player');
+  pick.addEventListener('click',function(){ file.click() });
+  file.addEventListener('change',function(){
+    var f=this.files && this.files[0]; if(!f) return;
+    src.removeAttribute('src');
+    player.src=URL.createObjectURL(f);
+    stage.classList.add('has-video');
+    player.load(); player.play().catch(function(){});
+  });
+})();
+</script>
+</body>
+</html>
