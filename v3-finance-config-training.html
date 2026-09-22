@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>充提配置入门手册</title>
+<style>
+:root{--ink:#1d2129;--sub:#4e5969;--gray:#86909c;--line:#e5e6eb;--bg:#f5f7fa;--pri:#165dff;--red:#f53f3f;--amber:#874d00}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;color:var(--ink);background:var(--bg);line-height:1.8}
+.wrap{max-width:980px;margin:0 auto;padding:28px 24px 60px}
+.cover{background:linear-gradient(135deg,#165dff 0%,#0e42d2 100%);color:#fff;border-radius:10px;padding:26px 28px;margin-bottom:20px}
+.cover h1{font-size:24px;font-weight:700;letter-spacing:.5px}
+.cover .sub{font-size:13.5px;opacity:.92;margin-top:8px}
+.cover .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.cover .meta span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:3px 12px;font-size:12.5px}
+
+.sec{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin-bottom:16px}
+.sec>h2{font-size:17px;font-weight:700;padding-left:11px;border-left:4px solid var(--pri);margin-bottom:6px}
+.sec>.lead{color:var(--sub);font-size:13px;margin-bottom:14px}
+h3{font-size:15px;font-weight:700;margin:18px 0 8px;color:#1c4c8c}
+h3:first-of-type{margin-top:8px}
+p{margin:6px 0}
+ul,ol{margin:6px 0 6px 20px}
+li{margin:3px 0}
+b{color:#1c4c8c}
+.path{display:inline-block;background:#f2f3f5;border-radius:4px;padding:1px 8px;font-size:12.5px;color:var(--sub)}
+
+table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 10px}
+th{background:#f2f6fc;border:1px solid #dbe2ea;padding:8px 10px;text-align:left;font-weight:600;color:#1c4c8c;white-space:nowrap}
+td{border:1px solid #e5e8ec;padding:8px 10px;vertical-align:top}
+td.c{text-align:center}
+.warn{background:#fffbe6;border:1px solid #ffe58f;border-radius:8px;padding:10px 13px;margin:10px 0;font-size:13px;color:var(--amber)}
+.warn::before{content:"⚠️ 注意";display:block;font-weight:700;font-size:12.5px;margin-bottom:3px}
+.key{background:#f0f6ff;border:1px solid #bedaff;border-radius:8px;padding:10px 13px;margin:10px 0;font-size:13.5px;line-height:1.85}
+.key::before{content:"✦ 记住这句";display:block;font-weight:700;color:var(--pri);font-size:12.5px;margin-bottom:3px}
+.quote{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 12px;margin:8px 0;font-size:12.5px;color:var(--sub);line-height:1.8}
+.quote::before{content:"页面原话：";color:var(--gray);font-size:12px}
+.self{background:#f6ffed;border:1px solid #b7eb8f;border-radius:8px;padding:10px 13px;margin:12px 0 2px;font-size:13px;color:#135200}
+.self::before{content:"自测";display:block;font-weight:700;font-size:12.5px;margin-bottom:3px}
+.self ol{margin:4px 0 0 18px}
+
+.flow{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.frow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap}
+.node{flex:1 1 200px;min-width:190px;border:1px solid #bedaff;background:#f5f9ff;border-radius:8px;padding:10px 12px}
+.node .t{font-weight:700;color:#0e42d2;font-size:13.5px}
+.node .d{font-size:12.5px;color:var(--sub);margin-top:3px;line-height:1.6}
+.node.gray{border-color:var(--line);background:#fafbfc}
+.node.gray .t{color:var(--sub)}
+.node.green{border-color:#b7eb8f;background:#f6ffed}
+.node.green .t{color:#135200}
+.arrow{text-align:center;color:var(--gray);font-size:13px;letter-spacing:4px}
+
+.num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--pri);color:#fff;font-size:11.5px;font-weight:700;margin-right:7px;flex:0 0 auto;vertical-align:1px}
+.chk{list-style:none;margin-left:0}
+.chk li{padding-left:22px;position:relative}
+.chk li::before{content:"□";position:absolute;left:0;color:var(--pri);font-size:15px}
+.foot{color:var(--gray);font-size:12px;text-align:center;padding:10px 0 0}
+
+@media print{
+  body{background:#fff}
+  .wrap{max-width:none;padding:0}
+  .sec{break-inside:avoid;border:none;border-bottom:1px solid var(--line);border-radius:0;padding:14px 0}
+  .cover{background:#165dff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="cover">
+  <h1>充提配置入门手册</h1>
+  <div class="sub">V3 中台 → 财务管理：充值类型管理 · 提现类型管理 · 本地收款账号管理</div>
+  <div class="meta"><span>新人自学用</span><span>配合后台页面对照看</span><span>每节末尾有自测</span></div>
+</div>
+
+<!-- ============ 0 ============ -->
+<div class="sec">
+  <h2>这份手册怎么用</h2>
+  <p>建议打开后台，一边看手册一边把对应页面点开对照。看完你应该能做到三件事：</p>
+  <ol>
+    <li>说清楚大类、通道、本地收款账号三者是什么关系；</li>
+    <li>独立看懂这三个菜单里每一列、每一个字段的含义；</li>
+    <li>会员反馈"充不了 / 提不了"时，知道按什么顺序去查。</li>
+  </ol>
+  <p>手册不覆盖具体的开通流程和审批规则，那部分以团队实际规范为准。</p>
+</div>
+
+<!-- ============ 1 关系 ============ -->
+<div class="sec">
+  <h2><span class="num">1</span>先搞清楚这几个页面的关系</h2>
+  <div class="lead">这套配置涉及好几个页面，先理清谁管谁，后面看每一页都会轻松很多。</div>
+
+  <div class="flow">
+    <div class="frow">
+      <div class="node gray"><div class="t">① 通道字典</div><div class="d">系统里所有能用的通道母表，由总控维护，商户只能挑、不能加。<br>在「充值配置」「提现配置」两个菜单里。</div></div>
+      <div class="node"><div class="t">② 支代付三方管理</div><div class="d">公司在某家三方支付商开的账户，存着商户号和密钥。同集团下多个商户可以共用同一个账户。</div></div>
+    </div>
+    <div class="arrow">↓　两者组合，才配得出一条真正能用的通道　↓</div>
+    <div class="frow">
+      <div class="node"><div class="t">③ 充值大类 / 提现大类</div><div class="d">会员在前台看到的分类入口，比如 UPI、本地银行卡、USDT。</div></div>
+      <div class="node"><div class="t">④ 充值通道 / 提现通道</div><div class="d">挂在大类下面、真正干活的那条路，一条通道绑一个三方商户。</div></div>
+      <div class="node green"><div class="t">⑤ 本地收款账号</div><div class="d">本地类大类用的是公司自己的银行卡、UPI、USDT 地址、电子钱包，不走三方。</div></div>
+    </div>
+    <div class="arrow">↓　会员端　↓</div>
+    <div class="frow">
+      <div class="node gray"><div class="t">⑥ 会员充值 / 提现</div><div class="d">会员只看得见"大类"。选完金额下单后，<b>系统自动在这个大类下面挑一条通道或一个收款账号</b>，会员不选具体走哪家。</div></div>
+    </div>
+  </div>
+
+  <div class="key">大类是"会员看得见的分类"，通道是"分类下面真正干活的那条路"。会员只选分类，走哪条路由系统自动分配。</div>
+
+  <h3>本手册覆盖的三个菜单</h3>
+  <table>
+    <tr><th style="width:180px">菜单</th><th>里面有什么</th></tr>
+    <tr><td><b>充值类型管理</b></td><td>两个子页签：<b>充值大类</b> + <b>充值通道</b></td></tr>
+    <tr><td><b>提现类型管理</b></td><td>两个子页签：<b>提现大类</b> + <b>提现通道</b></td></tr>
+    <tr><td><b>本地收款账号管理</b></td><td>四个页签：本地银行卡账号 / 本地 UPI 账号 / 本地 USDT 账号 / 本地 EWallet</td></tr>
+  </table>
+
+  <div class="warn">
+    「<b>充值配置</b>」「<b>提现配置</b>」这两个菜单是<b>通道字典</b>，是总控维护的通道母表（页面上连新增按钮都没有），和日常要配的"充值通道 / 提现通道"不是一回事，名字很像但别点错。<br>
+    配置有先后顺序：<b>先有三方商户，才配得出通道；先有大类，通道才有地方挂</b>。顺序反了，新增时下拉里会什么都选不到。
+  </div>
+
+  <div class="self"><ol>
+    <li>会员在充值页上看到的那一排入口，是大类还是通道？</li>
+    <li>"充值配置"和"充值类型管理 → 充值通道"分别是什么？</li>
+  </ol></div>
+</div>
+
+<!-- ============ 2 充值大类 ============ -->
+<div class="sec">
+  <h2><span class="num">2</span>充值类型管理 → 充值大类</h2>
+  <div class="lead"><span class="path">财务管理 → 充值类型管理 → 充值大类</span>　这里配的是会员充值页上那一排分类入口。列表顶部的"商户"是必选项，先选商户才有数据。</div>
+
+  <h3>三个重点字段</h3>
+  <table>
+    <tr><th style="width:150px">字段</th><th>说明</th></tr>
+    <tr><td><b>内置充值大类</b></td><td>新建时必须选一个系统预设类型（三方法币、本地银行卡、三方 USDT、本地 UPI、本地电子钱包、本地 USDT、三方银行卡、AR Pay 等，以页面下拉为准）。<b>类型决定这个大类下面挂什么</b>——三方类挂通道，本地类挂收款账号。<b>建完不能改</b>，编辑时这一项是灰的，选错只能删了重建。</td></tr>
+    <tr><td><b>数量限制</b></td><td>同一个商户，<b>三方法币类型最多建 8 个</b>（所以能出现 UPI、Paytm、PhonePe 这样多个并排的入口），其它类型<b>各只能建 1 个</b>。</td></tr>
+    <tr><td><b>快捷充值金额</b></td><td>会员充值页上的"一键选金额"按钮。每一行是：金额 + 赠送类型 + 赠送数额。条数有上限，超出会提示"最多配置 N 条快捷金额"；只剩一行时删除按钮是灰的。金额必须大于 0、不能重复。</td></tr>
+  </table>
+
+  <div class="key">充值的<b>赠送</b>配在大类层，<b>手续费</b>配在通道层。这两个位置经常被记反。</div>
+
+  <h3>其余字段</h3>
+  <ul>
+    <li><b>选中前 / 选中后图标</b>：前台图标的两种状态，要求 70×70，jpg/png/webp。</li>
+    <li><b>前台显示名称</b>：会员看到的名字，可以随时改。</li>
+    <li><b>排序</b>：决定前台入口的先后顺序。</li>
+    <li><b>会员最大待支付单数</b>：一个会员同时能挂多少笔未支付订单，<b>填 0 = 不限制</b>，列表里也会显示"不限制"。用来防刷单。</li>
+    <li><b>状态</b>：<b>不在编辑弹窗里</b>，只能在列表上用开关切换，切换时有二次确认。关掉后会员前台直接看不到这个入口。</li>
+    <li><b>VIP 充值赠送</b>：列表里的另一个开关。<div class="quote">开启后，该大类充值成功将按会员VIP等级比例发放VIP充值等级奖励</div></li>
+  </ul>
+
+  <p>每一行还有一个<b>【充值通道管理】</b>按钮，点了会直接跳到充值通道页，并自动带上这个大类的筛选条件。</p>
+
+  <div class="self"><ol>
+    <li>一个商户最多能建几个"三方法币"类型的大类？其它类型呢？</li>
+    <li>某个大类的状态开关在哪里切？编辑弹窗里能改吗？</li>
+  </ol></div>
+</div>
+
+<!-- ============ 3 充值通道 ============ -->
+<div class="sec">
+  <h2><span class="num">3</span>充值类型管理 → 充值通道</h2>
+  <div class="lead"><span class="path">财务管理 → 充值类型管理 → 充值通道</span>　整套配置里最容易配错的一页，建议重点看。</div>
+
+  <h3>新增一条通道的顺序（下拉是层层联动的）</h3>
+  <ol>
+    <li>选<b>商户</b>。不选商户，下面的三方映射码是灰的。</li>
+    <li>选<b>三方映射码</b>（哪一家三方）。不选它，通道名称是灰的。</li>
+    <li>选<b>通道名称</b>。这是个级联选择，按三方商户分组，每条还标着<b>已绑定 / 未绑定</b>——已绑定表示这条通道该商户已经配过。</li>
+    <li><b>通道币种</b>会自动带出，只读不能改。</li>
+    <li>选<b>充值大类</b>（挂到哪个入口下），填<b>前台显示名称</b>（会员看到的通道名）。</li>
+    <li>填<b>轮询权重</b>、可见等级、可用时间段、充值金额区间，需要时填手续费。</li>
+    <li>保存后用行内<b>【代收测试】</b>验证这条通道能不能正常拉起支付。</li>
+  </ol>
+
+  <div class="warn">编辑一条已有通道时，<b>商户、三方映射码、通道名称、充值大类都是灰的</b>，改不了。这是刻意做的限制，防止改完之后通道挂错到别家三方去。要换只能删了重建。</div>
+
+  <h3>列表上有两个"状态"列，不要混</h3>
+  <table>
+    <tr><th style="width:120px">列</th><th>是什么</th><th>取值</th></tr>
+    <tr><td><b>状态</b></td><td>本商户自己对这条通道的开关，可以点</td><td>启用 / 禁用</td></tr>
+    <tr><td><b>可用状态</b></td><td>上游是不是可用，<b>只读</b>。判定顺序：先看总控，再看三方商户</td><td>可用 / 总控通道关闭 / 三方商户关闭</td></tr>
+  </table>
+  <div class="key">自己这边开着、但"可用状态"是红的，会员照样用不了。最常见的原因是三方商户号被禁用，它下面所有通道被系统自动关掉。</div>
+
+  <h3>会员下单时，系统按 5 个条件挑通道（必须同时满足）</h3>
+  <table>
+    <tr><th class="c" style="width:40px">#</th><th>条件</th><th style="width:300px">说明</th></tr>
+    <tr><td class="c">①</td><td>状态是启用，且"可用状态"是可用</td><td>最常见的"通道怎么不见了"</td></tr>
+    <tr><td class="c">②</td><td>充值金额落在通道的金额区间内</td><td>会员充 50，通道最小 100，就轮不到它</td></tr>
+    <tr><td class="c">③</td><td>当前时间在通道的可用时间段内</td><td>配了 08:00~23:59 的通道，凌晨不出</td></tr>
+    <tr><td class="c">④</td><td>会员的充值等级在"可见等级"里</td><td>留空 = 所有等级都可见</td></tr>
+    <tr><td class="c">⑤</td><td>轮询权重大于 0</td><td>同一大类里只要还有权重大于 0 的通道，权重为 0 的那条就分不到订单</td></tr>
+  </table>
+
+  <h3>两个权重的区别</h3>
+  <p>列表"轮询权重"这一格是上下两行：上面是<b>预设权重</b>（人工配的），下面是<b>实时权重</b>（系统根据这条通道近期表现自动打折算出来的）。同一大类下多条通道<b>按权重比例分配，权重越大越容易被分到</b>。<b>实时权重掉到 0，说明系统已经临时把它降下来了</b>，这时应该去查通道是不是在报错。</p>
+
+  <h3>成功率统计这一列</h3>
+  <div class="quote">成功率统计 = 近10分钟/近30分钟/近1小时/近24小时 [成功订单状态数/所有状态数量]</div>
+
+  <h3>手续费</h3>
+  <div class="quote">针对越南部分通道如充值卡，会员充值时根据预设手续费扣除。请填写 0~1 之间的小数，如 0.25 表示 25%；以充值 1000、手续费 0.25（25%）为例，实际到账 750。</div>
+
+  <div class="self"><ol>
+    <li>一条通道"状态"是启用、但"可用状态"显示"三方商户关闭"，会员能用它吗？该去哪里处理？</li>
+    <li>预设权重和实时权重有什么区别？实时权重是 0 意味着什么？</li>
+    <li>编辑一条通道时，哪几个字段改不了？为什么这么设计？</li>
+  </ol></div>
+</div>
+
+<!-- ============ 4 提现大类 ============ -->
+<div class="sec">
+  <h2><span class="num">4</span>提现类型管理 → 提现大类</h2>
+  <div class="lead"><span class="path">财务管理 → 提现类型管理 → 提现大类</span>　结构和充值大类对称，但<b>费率和时间段配在这一层</b>，这是和充值最大的差别。</div>
+
+  <div class="warn">这一页<b>没有新增按钮</b>，只有编辑——提现大类由系统内置大类派生，商户只能改配置、不能自己加。页面顶部另有一个<b>【今日提现总次数配置】</b>，配的是这个商户当天的总次数上限，和每个大类里的"每日提现次数"不是一回事。</div>
+
+  <table>
+    <tr><th style="width:160px">字段</th><th>说明</th></tr>
+    <tr><td><b>内置提现大类</b></td><td>系统预设类型（银行卡、UPI、USDT、电子钱包、PIX、WavePay、KBZPay、AR Pay、Easypaisa、JazzCash、快速 UPI 等，以页面为准）。编辑时是灰的。</td></tr>
+    <tr><td><b>提现费率（%）</b></td><td>手续费在<b>大类层</b>配，填 0.10 表示 0.1%。</td></tr>
+    <tr><td><b>收取费率金额范围</b></td><td><div class="quote">即单笔提现多少范围内，会收取手续费，为空则表示不限制</div></td></tr>
+    <tr><td><b>每日提现次数</b></td><td>单个会员每天能提几笔。</td></tr>
+    <tr><td><b>最小 / 最大提现金额</b></td><td>单笔金额范围。</td></tr>
+    <tr><td><b>快捷提现金额</b></td><td>前台一键选择的按钮，可配多个。</td></tr>
+    <tr><td><b>可用时间段</b></td><td><b>配在大类层，下面的通道跟着继承</b>。充值不是这样——充值的时间段配在通道上。</td></tr>
+    <tr><td><b>提现提示</b></td><td>前台展示的一句提示文案。</td></tr>
+  </table>
+
+  <div class="key">充值：赠送在大类、手续费在通道。提现：费率和可用时间段都在大类。</div>
+
+  <div class="self"><ol>
+    <li>要调整某个提现大类的手续费，去哪一页改？</li>
+    <li>提现的可用时间段配在大类还是通道？充值呢？</li>
+  </ol></div>
+</div>
+
+<!-- ============ 5 提现通道 ============ -->
+<div class="sec">
+  <h2><span class="num">5</span>提现类型管理 → 提现通道</h2>
+  <div class="lead"><span class="path">财务管理 → 提现类型管理 → 提现通道</span>　配置方式和充值通道基本一样（同样是商户 → 三方映射码 → 通道名称层层联动，编辑时这几项也改不了），下面只讲提现独有的部分。</div>
+
+  <h3>提现独有的字段</h3>
+  <table>
+    <tr><th style="width:150px">字段</th><th>说明</th></tr>
+    <tr><td><b>自动出款权重</b></td><td>自动出款时按权重分配。<b>填 0 = 不参与自动出款，但人工审核时仍然可以手动选它</b>——这点和充值通道的权重 0 不一样。</td></tr>
+    <tr><td><b>自动关闭阈值</b></td><td><div class="quote">通道余额低于配置的阈值则自动关闭</div></td></tr>
+    <tr><td><b>是否整百提现</b></td><td>选"是"，会员提现金额必须是 100 的倍数。</td></tr>
+    <tr><td><b>三方通道余额</b></td><td>弹窗里只读展示。列表上则是"通道余额"一列，上下两行：余额 + 最后更新时间。<div class="quote">通道余额最后一次的更新时间</div>这个余额是系统<b>定时同步</b>的，不是打开页面实时查的，所以判断数据新不新要看更新时间。</td></tr>
+    <tr><td><b>出款显示名称</b></td><td>会员看到的通道名。<div class="quote">操作人员重新对通道自定义的名称</div></td></tr>
+  </table>
+
+  <div class="warn">自动关闭是单向的：<b>余额补回来以后通道不会自动重新打开</b>，必须人工到列表里手动启用。补完款以为就好了、结果通道一直关着不出款，是最常见的失误。</div>
+
+  <h3>代付测试</h3>
+  <p>每行有<b>【代付测试】</b>按钮，里面有四块：<b>查询通道余额</b>、代付拉单测试、代付订单查询、代付回调测试。日常用得最多的是查询通道余额。</p>
+
+  <p>提现的筛选条件比充值多，除了状态、金额区间、权重，还要看<b>是否整百、大类归属、大类上的可用时间段</b>。</p>
+
+  <div class="self"><ol>
+    <li>某条提现通道自动关闭了，补款之后需要做什么？</li>
+    <li>自动出款权重填 0，人工审核时还能选这条通道吗？</li>
+  </ol></div>
+</div>
+
+<!-- ============ 6 本地收款账号 ============ -->
+<div class="sec">
+  <h2><span class="num">6</span>本地收款账号管理</h2>
+  <div class="lead"><span class="path">财务管理 → 本地收款账号管理</span>　四个页签：本地银行卡账号 / 本地 UPI 账号 / 本地 USDT 账号 / 本地 EWallet。这是<b>本地类大类专用</b>——会员转账到的是公司自己的账户，中间没有三方。</div>
+
+  <h3>和三方通道的区别</h3>
+  <table>
+    <tr><th style="width:120px">对比</th><th>三方通道</th><th>本地收款账号</th></tr>
+    <tr><td>钱到哪</td><td>先到三方账户</td><td>直接到公司自己的账户</td></tr>
+    <tr><td>挂在哪</td><td>三方类大类下</td><td>本地类大类下</td></tr>
+    <tr><td>要不要三方商户</td><td>要</td><td>不要，只跟商户走</td></tr>
+    <tr><td>靠什么控制分配</td><td>轮询权重 + 金额区间 + 可见等级 + 时间段</td><td>金额区间 + 充值等级 + <b>日总笔数 / 日总限额</b></td></tr>
+    <tr><td>怎么到账</td><td>三方回调自动到账</td><td>会员转账后提交，由后台确认或系统匹配</td></tr>
+  </table>
+
+  <h3>关键字段</h3>
+  <ul>
+    <li><b>商户</b>：编辑时不可改。</li>
+    <li><b>收款信息</b>：银行卡页签是 银行名称 / 持卡人 / 银行卡号 / 支行 / IFSC Code / 二维码；UPI 页签是 UPI 账号；USDT 页签是 网络协议 / 钱包地址 / 二维码；EWallet 页签是 钱包类型 / 持卡人 / 手机号。<b>这些信息填错等于钱收不到，保存前务必双人核对。</b></li>
+    <li><b>自定义昵称</b>：内部识别用，不展示给会员。</li>
+    <li><b>单笔金额限制</b>：最小 / 最大。会员充值金额不在范围内，就不会分到这个账号。</li>
+    <li><b>【固定】日总笔数 / 【固定】日总限额</b>：这张卡一天最多收几笔、多少钱。列表里有一列<b>日限制统计（今日已收 / 日限制）</b>，格子里直接写着"限制笔数：x / y""限制金额：x / y"。<b>用满当天就不再往这张卡分配，第二天重置</b>——这是本地账号独有的，三方通道没有。</li>
+    <li><b>充值等级</b>：多选。<div class="quote">（不勾选表示任何等级都可见）</div></li>
+    <li><b>排序、备注、状态</b>：状态关掉后不再往这张卡分配新订单，已经下单未支付的不受影响。</li>
+  </ul>
+
+  <div class="warn">要换卡或改账号信息：<b>先把旧账号禁用，确认没有在途订单再改</b>。直接改号可能出现"会员按旧号转了钱、系统按新号对账"的坏账。</div>
+
+  <div class="self"><ol>
+    <li>某张收款卡今天一直没收到订单，有哪几种可能？</li>
+    <li>本地收款账号靠什么控制"今天最多收多少"？</li>
+  </ol></div>
+</div>
+
+<!-- ============ 7 常见错误 ============ -->
+<div class="sec">
+  <h2><span class="num">7</span>新人最容易犯的 8 个错</h2>
+  <ol>
+    <li><b>顺序搞反</b>：先建通道后建大类，新增时下拉里什么都选不到。正确顺序是 三方商户 → 大类 → 通道。</li>
+    <li><b>建完才发现类型选错</b>：大类的内置类型，通道的商户 / 映射码 / 通道名称 / 所属大类，建完都改不了，只能删了重建。</li>
+    <li><b>权重填 0 就以为配好了</b>：同大类里还有权重大于 0 的通道时，权重 0 的那条一单也分不到。</li>
+    <li><b>只看自己那个开关</b>：还要看"可用状态"这一列，上游关了照样不可用。</li>
+    <li><b>赠送和手续费记反</b>：充值赠送在大类、手续费在通道；提现费率在大类。</li>
+    <li><b>跑到通道上找提现时间段</b>：提现的可用时间段在大类，通道继承。</li>
+    <li><b>补完款没手动开通道</b>：被自动关闭阈值关掉的提现通道不会自动恢复。</li>
+    <li><b>直接改本地收款账号的卡号</b>：要先禁用、确认无在途订单再改。</li>
+  </ol>
+</div>
+
+<!-- ============ 8 排查 ============ -->
+<div class="sec">
+  <h2><span class="num">8</span>排查清单：会员说"充不了 / 提不了"</h2>
+
+  <h3>会员看不到某个充值方式</h3>
+  <ul class="chk">
+    <li>大类的状态是不是关了</li>
+    <li>大类下面有没有可用通道（本地类看有没有可用的收款账号）</li>
+    <li>通道的"状态"和"可用状态"是不是都正常</li>
+    <li>通道权重是不是 0</li>
+    <li>会员的充值等级是不是不在"可见等级"里</li>
+    <li>当前时间是不是不在通道的可用时间段内</li>
+  </ul>
+
+  <h3>某条通道一直没有订单</h3>
+  <ul class="chk">
+    <li>预设权重是不是太低；实时权重是不是被系统降到 0（说明近期失败较多）</li>
+    <li>金额区间是不是把常见充值金额挡在外面</li>
+    <li>可见等级是不是限制得太窄</li>
+    <li>本地收款账号还要看：日总限额、日总笔数是不是已经用满</li>
+  </ul>
+
+  <h3>提现通道突然不出款</h3>
+  <ul class="chk">
+    <li>通道余额是不是低于自动关闭阈值，被系统自动关了</li>
+    <li>补款之后有没有人工重新启用</li>
+    <li>自动出款权重是不是 0（这种情况只能人工出款）</li>
+    <li>金额是不是不符合整百提现或金额区间</li>
+    <li>大类上的可用时间段是不是已经过了</li>
+  </ul>
+</div>
+
+<!-- ============ 9 术语 ============ -->
+<div class="sec">
+  <h2><span class="num">9</span>术语速查</h2>
+  <table>
+    <tr><th style="width:150px">术语</th><th>一句话解释</th></tr>
+    <tr><td>三方商户</td><td>公司在某家三方支付商开的账户，含商户号和密钥，多个商户可共用</td></tr>
+    <tr><td>三方映射码</td><td>三方支付商的代号，选了它才能选到对应的通道</td></tr>
+    <tr><td>通道字典</td><td>总控维护的通道母表（在"充值配置 / 提现配置"菜单），商户只能挑不能加</td></tr>
+    <tr><td>大类</td><td>会员前台看到的充值 / 提现分类入口</td></tr>
+    <tr><td>内置大类</td><td>系统预设的大类种类，决定这个大类下面挂通道还是挂本地账号，建完不可改</td></tr>
+    <tr><td>通道</td><td>大类下面真正干活的那条路，一条通道绑一个三方商户</td></tr>
+    <tr><td>本地收款账号</td><td>本地类大类下公司自己的收款卡 / UPI / USDT 地址 / 电子钱包</td></tr>
+    <tr><td>预设权重</td><td>人工配置的分配比例，0 = 不参与</td></tr>
+    <tr><td>实时权重</td><td>系统按近期表现自动打折后的权重，掉到 0 说明这条通道近期不正常</td></tr>
+    <tr><td>可用状态</td><td>只读列，显示上游是否可用：可用 / 总控通道关闭 / 三方商户关闭</td></tr>
+    <tr><td>自动关闭阈值</td><td>提现通道专有，余额低于它系统自动关闭通道，且补款后不会自动恢复</td></tr>
+    <tr><td>日限制统计</td><td>本地收款账号专有，显示这张卡今天已收的笔数和金额 / 上限</td></tr>
+    <tr><td>代收测试 / 代付测试</td><td>在后台直接发起真实测试，验证通道通不通；代付测试里还能查通道余额</td></tr>
+  </table>
+</div>
+
+<div class="foot">本手册依据 2026-06-27 的后台代码与页面文案整理；若页面与手册不一致，以实际页面为准。</div>
+
+</div>
+</body>
+</html>
