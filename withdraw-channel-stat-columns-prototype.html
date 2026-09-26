@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>提现通道 · 新增统计列原型</title>
+<style>
+  :root{
+    --primary:#2f6fed;
+    --primary-weak:#e8f0ff;
+    --border:#e5e7eb;
+    --border-2:#eef0f3;
+    --text:#1f2733;
+    --text-2:#606a78;
+    --text-3:#98a2b3;
+    --bg:#f5f6f8;
+    --green:#18a058;
+    --green-bg:#eaf7ef;
+    --new-bg:#fff8e6;
+    --new-line:#f2c94c;
+    --tag-blue-bg:#eef3ff;
+    --tag-blue:#2f6fed;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;
+  }
+  .page{padding:16px 20px 40px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+
+  /* top tabs */
+  .tabs{display:flex;gap:4px;padding:10px 16px 0;border-bottom:1px solid var(--border-2);}
+  .tab{padding:8px 14px;font-size:14px;color:var(--text-2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600;}
+
+  /* search */
+  .search{padding:16px;border-bottom:1px solid var(--border-2);}
+  .search-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 22px;}
+  .field{display:flex;align-items:center;gap:8px;min-width:0;}
+  .field label{white-space:nowrap;color:var(--text-2);font-size:13px;}
+  .field label .req{color:#e53935;margin-right:2px;}
+  .ctrl{flex:1;min-width:0;height:32px;border:1px solid var(--border);border-radius:6px;background:#fff;
+    display:flex;align-items:center;padding:0 10px;color:var(--text-3);justify-content:space-between;font-size:13px;}
+  .ctrl.filled{color:var(--text);}
+  .ctrl .caret{color:var(--text-3);font-size:10px;}
+  .search-actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:14px;}
+  .btn{height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text-2);
+    cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;}
+  .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .btn.link{border:none;background:transparent;color:var(--primary);padding:0 4px;}
+
+  /* table */
+  .table-wrap{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;min-width:1680px;}
+  thead th{
+    background:#fafbfc;color:var(--text-2);font-weight:600;font-size:13px;
+    padding:10px 12px;text-align:center;border-bottom:1px solid var(--border-2);white-space:nowrap;position:relative;
+  }
+  tbody td{padding:12px;border-bottom:1px solid var(--border-2);vertical-align:middle;text-align:left;color:var(--text);}
+  tbody tr:hover{background:#f8fafd;}
+  .muted{color:var(--text-3);}
+  .sub{color:var(--text-2);font-size:12px;}
+  .stack{display:flex;flex-direction:column;gap:3px;}
+  .tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:4px;font-size:12px;line-height:1;}
+  .tag.blue{background:var(--tag-blue-bg);color:var(--tag-blue);}
+  .tag.green{background:var(--green-bg);color:var(--green);}
+  .tag.plain{background:#f2f4f7;color:var(--text-2);}
+  .center{text-align:center;}
+  .right{text-align:right;}
+  .num{font-variant-numeric:tabular-nums;}
+  .num-strong{font-size:15px;font-weight:600;color:var(--text);}
+  .num-zero{color:var(--text-3);}
+
+  /* new column marker: red floating NEW badge, no background */
+  th.new-col{overflow:visible;}
+  .new-badge{position:absolute;top:3px;right:6px;background:#e53935;color:#fff;font-size:9px;line-height:1;
+    padding:2px 5px;border-radius:8px;font-weight:700;letter-spacing:.5px;
+    box-shadow:0 1px 4px rgba(229,57,53,.35);}
+
+  /* header tooltip */
+  .hdr{display:inline-flex;align-items:center;gap:4px;justify-content:center;}
+  .qmark{width:14px;height:14px;border-radius:50%;border:1px solid var(--text-3);color:var(--text-3);
+    font-size:10px;line-height:12px;text-align:center;cursor:help;}
+  .tip{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:6px;z-index:20;
+    background:#1f2733;color:#fff;font-weight:400;font-size:12px;line-height:1.6;padding:8px 10px;border-radius:6px;
+    width:230px;text-align:left;white-space:normal;display:none;box-shadow:0 6px 20px rgba(0,0,0,.18);}
+  .tip::before{content:"";position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+    border:5px solid transparent;border-bottom-color:#1f2733;}
+  th:hover .tip{display:block;}
+
+  .switch{position:relative;width:38px;height:20px;border-radius:20px;background:#d0d5dd;cursor:pointer;transition:.2s;}
+  .switch.on{background:var(--primary);}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s;}
+  .switch.on::after{left:20px;}
+
+  /* footer */
+  .foot{display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:14px 16px;color:var(--text-2);}
+  .pager{display:flex;gap:6px;align-items:center;}
+  .pg{min-width:28px;height:28px;padding:0 6px;border:1px solid var(--border);border-radius:6px;background:#fff;
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer;}
+  .pg.active{border-color:var(--primary);color:var(--primary);}
+
+  /* toolbar above prototype */
+  .proto-bar{display:flex;align-items:center;gap:14px;margin-bottom:12px;color:var(--text-2);font-size:13px;}
+  .proto-bar .t{font-weight:600;color:var(--text);font-size:15px;}
+  .proto-bar .spacer{flex:1;}
+  .toggle-line{display:flex;align-items:center;gap:8px;}
+
+  /* drawer */
+  .handle{position:fixed;top:50%;right:0;transform:translateY(-50%);writing-mode:vertical-lr;
+    background:var(--primary);color:#fff;padding:16px 8px;border-radius:8px 0 0 8px;cursor:pointer;letter-spacing:3px;
+    font-size:14px;z-index:50;box-shadow:-2px 0 10px rgba(0,0,0,.12);}
+  .drawer{position:fixed;top:0;right:-700px;width:680px;max-width:92vw;height:100vh;background:#fff;z-index:60;
+    box-shadow:-8px 0 30px rgba(0,0,0,.15);transition:right .28s ease;overflow-y:auto;}
+  .drawer.open{right:0;}
+  .mask{position:fixed;inset:0;background:rgba(15,23,42,.35);opacity:0;visibility:hidden;transition:.28s;z-index:55;}
+  .mask.open{opacity:1;visibility:visible;}
+  .doc{padding:28px 34px 60px;color:var(--text);}
+  .doc h1{font-size:20px;margin:0 0 4px;}
+  .doc .meta{color:var(--text-3);font-size:12px;margin-bottom:20px;}
+  .doc h2{font-size:15px;margin:26px 0 10px;padding-left:9px;border-left:3px solid var(--primary);}
+  .doc p,.doc li{font-size:13.5px;line-height:1.85;color:#2b3440;}
+  .doc ul{margin:6px 0 6px;padding-left:20px;}
+  .doc .k{color:var(--primary);font-weight:600;}
+  .doc table{min-width:auto;width:100%;margin:8px 0;border:1px solid var(--border);}
+  .doc th,.doc td{border:1px solid var(--border);padding:7px 10px;font-size:13px;text-align:left;background:#fff;}
+  .doc th{background:#f7f9fc;font-weight:600;color:var(--text-2);white-space:nowrap;}
+  .doc .note{background:#fff8e6;border:1px solid #f2d98a;border-radius:6px;padding:10px 12px;font-size:12.5px;color:#7a5a00;}
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="proto-bar">
+      <span class="t">提现通道 · 新增统计列</span>
+      <span class="muted">（原型 · 贴合中台样式）</span>
+    </div>
+
+    <div class="card">
+      <!-- tabs -->
+      <div class="tabs">
+        <div class="tab">提现大类</div>
+        <div class="tab active">提现通道</div>
+      </div>
+
+      <!-- search -->
+      <div class="search">
+        <div class="search-grid">
+          <div class="field"><label><span class="req">*</span>商户</label><div class="ctrl filled">(1092)YAY.WIN <span class="caret">▾</span></div></div>
+          <div class="field"><label>三方映射码</label><div class="ctrl">请选择三方映射码 <span class="caret">▾</span></div></div>
+          <div class="field"><label>通道ID/名称</label><div class="ctrl">请选择通道ID/名称 <span class="caret">▾</span></div></div>
+          <div class="field"><label>三方商户昵称/商户号</label><div class="ctrl">请选择三方商户昵称/商户号 <span class="caret">▾</span></div></div>
+          <div class="field"><label>提现大类</label><div class="ctrl">请选择提现大类 <span class="caret">▾</span></div></div>
+          <div class="field"><label>通道币种</label><div class="ctrl">请选择通道币种 <span class="caret">▾</span></div></div>
+          <div class="field"><label>状态</label><div class="ctrl">请选择状态 <span class="caret">▾</span></div></div>
+          <div class="field"></div>
+        </div>
+        <div class="search-actions">
+          <button class="btn primary">🔍 搜索</button>
+          <button class="btn">↺ 重置</button>
+          <button class="btn link">收起 ▴</button>
+          <button class="btn link">⚙ 自定义列</button>
+        </div>
+      </div>
+
+      <!-- table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="min-width:130px">商户</th>
+              <th style="min-width:220px">通道信息</th>
+              <th style="min-width:220px">三方商户昵称/商户号</th>
+              <th style="min-width:90px">通道币种</th>
+              <th style="min-width:120px">三方通道编码</th>
+              <th style="min-width:190px">通道余额<br/>(UTC+5:00)</th>
+              <th style="min-width:100px">自动出款权重</th>
+
+              <th class="new-col" style="min-width:150px">
+                <span class="new-badge">NEW</span>
+                <div class="hdr">今日已提交笔数 <span class="qmark">?</span></div>
+                <div class="tip">按商户时区当天（0点起），该通道已提交三方出款的提现笔数；仅统计正式会员，无数据显示 0。</div>
+              </th>
+              <th class="new-col" style="min-width:150px">
+                <span class="new-badge">NEW</span>
+                <div class="hdr">近1小时成功笔数 <span class="qmark">?</span></div>
+                <div class="tip">当前时刻往前滚动 60 分钟内，该通道出款成功的提现笔数；仅统计正式会员，无数据显示 0。</div>
+              </th>
+
+              <th style="min-width:120px">提现大类</th>
+              <th style="min-width:120px">内置提现大类</th>
+              <th style="min-width:80px">状态</th>
+              <th style="min-width:140px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- footer -->
+      <div class="foot">
+        <span>共 34 条</span>
+        <div class="pager">
+          <span class="pg">‹</span>
+          <span class="pg active">1</span>
+          <span class="pg">2</span>
+          <span class="pg">3</span>
+          <span class="pg">4</span>
+          <span class="pg">›</span>
+          <span class="muted">10/页 ▾</span>
+        </div>
+        <span class="muted">跳至 1</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- drawer -->
+  <div class="handle" onclick="openDrawer()">需求说明</div>
+  <div class="mask" id="mask" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="doc">
+      <h1>提现通道 · 新增统计列</h1>
+      <div class="meta">提现通道管理 · 出入款</div>
+
+      <h2>一、改造页面</h2>
+      <p>提现通道列表，在<span class="k">「自动出款权重」</span>与<span class="k">「提现大类」</span>两列之间，新增两列：<span class="k">今日已提交笔数</span>、<span class="k">近1小时成功笔数</span>。</p>
+
+      <h2>二、业务规则</h2>
+      <table>
+        <tr><th>列</th><th>取值</th></tr>
+        <tr><td>今日已提交笔数</td><td>该通道当天已提交三方出款的提现笔数。</td></tr>
+        <tr><td>近1小时成功笔数</td><td>该通道最近 60 分钟内出款成功的提现笔数。</td></tr>
+      </table>
+      <ul>
+        <li>两列均只统计正式会员。</li>
+        <li>随列表实时计算，切换页码或筛选后跟随当前页刷新。</li>
+        <li>时间按商户所在时区：「当天」为商户时区 0 点起；「近1小时」为当前时刻往前滚动 60 分钟。</li>
+        <li>无数据显示 0。</li>
+      </ul>
+
+      <h2>三、限制</h2>
+      <ul>
+        <li>两列为只读展示，不参与搜索、排序、导出。</li>
+        <li>仅在「提现通道」页签显示，「提现大类」页签不显示。</li>
+      </ul>
+    </div>
+  </div>
+
+<script>
+  const rows = [
+    {mch:'(1092)YAY.WIN', cid:'3407', disp:'StarPago-EP', cname:'StarPagoPayPKR-Easy', map:'StarPagoPayPKR',
+      mname:'StarPagoPayPKR (1067)', mcode:'1a241f9f841e228a5614e…', cur:'PKR', code:'不使用',
+      bal:'27,979.24', bt:'2026-09-01 09:39:00', w:1, today:12, hour:3, cat:'EASYPAISA', builtin:'Easypaisa', on:false},
+    {mch:'(1092)YAY.WIN', cid:'3408', disp:'OkPay-EP', cname:'OkPayPKR-Easy', map:'OkPayPKR',
+      mname:'OkPayPKR (1067)', mcode:'2439', cur:'PKR', code:'不使用',
+      bal:'1,046,025.68', bt:'2026-09-01 09:39:23', w:1, today:0, hour:0, cat:'EASYPAISA', builtin:'Easypaisa', on:false},
+    {mch:'(1092)YAY.WIN', cid:'3409', disp:'DeePay-EP', cname:'DeePayPKR-Easy', map:'DeePayPKR',
+      mname:'DeePayPKR (1067)', mcode:'30106', cur:'PKR', code:'不使用',
+      bal:'265.35', bt:'2026-09-01 09:39:21', w:1, today:5, hour:1, cat:'EASYPAISA', builtin:'Easypaisa', on:false},
+    {mch:'(1092)YAY.WIN', cid:'3410', disp:'OpenPay-EP', cname:'OpenPayPKR-Easy', map:'OpenPayPKR',
+      mname:'OpenPayPKR (1067)', mcode:'6852242318616', cur:'PKR', code:'不使用',
+      bal:'883,249.807', bt:'2026-09-01 09:39:23', w:1, today:34, hour:8, cat:'EASYPAISA', builtin:'Easypaisa', on:true},
+    {mch:'(1092)YAY.WIN', cid:'3411', disp:'PkPay-EP', cname:'PkPayPKR-Easy', map:'PkPayPKR',
+      mname:'PkPayPKR (1067)', mcode:'M1760305682', cur:'PKR', code:'不使用',
+      bal:'0', bt:'2026-08-30 13:39:26', w:1, today:0, hour:0, cat:'EASYPAISA', builtin:'Easypaisa', on:false},
+  ];
+
+  function numCell(v){
+    if(v===0) return '<span class="num num-strong num-zero">0</span>';
+    return '<span class="num num-strong">'+v+'</span>';
+  }
+
+  function render(){
+    document.getElementById('tbody').innerHTML = rows.map((r,i)=>`
+      <tr>
+        <td><span class="tag blue">${r.mch}</span></td>
+        <td>
+          <div class="stack">
+            <span>${r.cid}</span>
+            <span class="sub">${r.disp}</span>
+            <span><span class="tag plain">${r.cname}</span></span>
+            <span><span class="tag green">${r.map}</span></span>
+          </div>
+        </td>
+        <td><div class="stack"><span class="sub">昵称：${r.mname}</span><span class="sub">商户号：${r.mcode}</span></div></td>
+        <td class="center"><span class="tag green">${r.cur}</span></td>
+        <td><span class="sub">类型：${r.code}</span></td>
+        <td><div class="stack"><span class="sub">通道余额：${r.bal}</span><span class="sub">更新时间：${r.bt}</span></div></td>
+        <td class="center">${r.w}</td>
+
+        <td class="new-col center">${numCell(r.today)}</td>
+        <td class="new-col center">${numCell(r.hour)}</td>
+
+        <td class="center">${r.cat}</td>
+        <td class="center"><span class="tag green">${r.builtin}</span></td>
+        <td class="center"><div class="switch ${r.on?'on':''}" onclick="toggleRow(${i})"></div></td>
+        <td class="center"><span class="btn link">代付测试</span> <span class="btn link">编辑</span> <span class="btn link">删除</span></td>
+      </tr>
+    `).join('');
+  }
+  function toggleRow(i){rows[i].on=!rows[i].on;render();}
+  function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('mask').classList.add('open');}
+  function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('mask').classList.remove('open');}
+  render();
+</script>
+</body>
+</html>
