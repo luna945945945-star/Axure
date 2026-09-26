@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>资金账变 · 三页签原型</title>
+<style>
+  :root{
+    --primary:#2f6fed;--primary-weak:#e8f0ff;--border:#e5e7eb;--border-2:#eef0f3;
+    --text:#1f2733;--text-2:#606a78;--text-3:#98a2b3;--bg:#f5f6f8;
+    --green:#18a058;--green-bg:#eaf7ef;--red:#d03050;--red-bg:#fcebef;
+    --tag-blue-bg:#eef3ff;--tag-blue:#2f6fed;--warn-bg:#fff8e6;--warn-line:#f2c94c;--warn-text:#8a6d1b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
+  .page{padding:16px 20px 40px;}
+  .card{background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .proto-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .proto-bar .t{font-weight:600;color:var(--text);font-size:15px;}
+  .proto-bar .muted{color:var(--text-3);}
+
+  /* tabs */
+  .tabs{display:flex;gap:2px;padding:10px 16px 0;border-bottom:1px solid var(--border-2);}
+  .tab{position:relative;padding:9px 18px;font-size:14px;color:var(--text-2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:6px 6px 0 0;}
+  .tab:hover{color:var(--primary);}
+  .tab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600;background:#f7faff;}
+  .tab .new-badge{position:absolute;top:-2px;right:-4px;background:#e53935;color:#fff;font-size:9px;line-height:1;padding:2px 5px;border-radius:8px;font-weight:700;letter-spacing:.4px;box-shadow:0 1px 4px rgba(229,57,53,.35);}
+
+  /* search */
+  .search{padding:16px 16px 0;}
+  .search-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px 22px;}
+  .field{display:flex;align-items:center;gap:8px;min-width:0;}
+  .field label{white-space:nowrap;color:var(--text-2);font-size:13px;min-width:56px;text-align:right;}
+  .field label .req{color:#e53935;margin-right:2px;}
+  .ctrl{flex:1;min-width:0;height:32px;border:1px solid var(--border);border-radius:6px;background:#fff;display:flex;align-items:center;padding:0 10px;color:var(--text-3);justify-content:space-between;font-size:13px;}
+  .ctrl.filled{color:var(--text);}
+  .ctrl .caret{color:var(--text-3);font-size:10px;}
+  .time-row{display:flex;align-items:center;gap:14px;margin-top:14px;}
+  .time-row .field.time{flex:0 1 600px;}
+  .time-row .spacer{flex:1;}
+  .time-actions{display:flex;align-items:center;gap:10px;}
+  .action-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border-2);}
+  .ab-left{display:flex;align-items:center;gap:12px;}
+  .ab-center{flex:1;display:flex;justify-content:center;}
+  .ab-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .btn{height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--text-2);cursor:pointer;font-size:13px;display:inline-flex;align-items:center;gap:6px;}
+  .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .btn.link{border:none;background:transparent;color:var(--primary);padding:0 4px;}
+  .quick-dates{display:flex;gap:4px;}
+  .qd{height:28px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text-2);cursor:pointer;font-size:12px;display:inline-flex;align-items:center;}
+  .qd.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .hint{color:var(--red);font-size:12px;display:inline-flex;align-items:center;gap:4px;}
+  .hint::before{content:"ⓘ";}
+  .banner{margin:0 16px 12px;background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-text);border-radius:6px;padding:8px 12px;font-size:12.5px;}
+
+  /* table */
+  .table-wrap{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;min-width:1500px;}
+  thead th{background:#fafbfc;color:var(--text-2);font-weight:600;font-size:13px;padding:10px 12px;text-align:center;border-bottom:1px solid var(--border-2);white-space:nowrap;position:relative;}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--border-2);vertical-align:middle;text-align:left;color:var(--text);white-space:nowrap;}
+  tbody tr:hover{background:#f8fafd;}
+  .center{text-align:center;}.right{text-align:right;}
+  .num{font-variant-numeric:tabular-nums;}
+  .pos{color:var(--green);}.neg{color:var(--red);}
+  .muted{color:var(--text-3);}
+  .tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:4px;font-size:12px;line-height:1;}
+  .tag.blue{background:var(--tag-blue-bg);color:var(--tag-blue);}
+  .tag.green{background:var(--green-bg);color:var(--green);}
+  .tag.plain{background:#f2f4f7;color:var(--text-2);}
+  .mid-link{color:var(--primary);cursor:pointer;}
+  th.new-col .new-badge{position:absolute;top:3px;right:6px;background:#e53935;color:#fff;font-size:9px;line-height:1;padding:2px 5px;border-radius:8px;font-weight:700;box-shadow:0 1px 4px rgba(229,57,53,.35);}
+  .empty{padding:70px 0;text-align:center;color:var(--text-3);}
+
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 16px;color:var(--text-2);flex-wrap:wrap;}
+  .sum{display:flex;gap:18px;color:var(--text-2);font-size:12.5px;}
+  .sum b{color:var(--text);font-variant-numeric:tabular-nums;}
+  .pager{display:flex;gap:6px;align-items:center;}
+  .pg{min-width:28px;height:28px;padding:0 6px;border:1px solid var(--border);border-radius:6px;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;}
+  .pg.active{border-color:var(--primary);color:var(--primary);}
+  .hidden{display:none;}
+
+  /* drawer */
+  .handle{position:fixed;top:50%;right:0;transform:translateY(-50%);writing-mode:vertical-lr;background:var(--primary);color:#fff;padding:16px 8px;border-radius:8px 0 0 8px;cursor:pointer;letter-spacing:3px;font-size:14px;z-index:50;box-shadow:-2px 0 10px rgba(0,0,0,.12);}
+  .drawer{position:fixed;top:0;right:-720px;width:680px;max-width:92vw;height:100vh;background:#fff;z-index:60;box-shadow:-8px 0 30px rgba(0,0,0,.15);transition:right .28s ease;overflow-y:auto;}
+  .drawer.open{right:0;}
+  .mask{position:fixed;inset:0;background:rgba(15,23,42,.35);opacity:0;visibility:hidden;transition:.28s;z-index:55;}
+  .mask.open{opacity:1;visibility:visible;}
+  .doc{padding:28px 34px 60px;color:var(--text);}
+  .doc h1{font-size:20px;margin:0 0 4px;}
+  .doc .meta{color:var(--text-3);font-size:12px;margin-bottom:20px;}
+  .doc h2{font-size:15px;margin:24px 0 8px;padding-left:9px;border-left:3px solid var(--primary);}
+  .doc h3{font-size:13.5px;margin:14px 0 4px;color:var(--primary);}
+  .doc p,.doc li{font-size:13.5px;line-height:1.85;color:#2b3440;}
+  .doc ul{margin:4px 0;padding-left:20px;}
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="proto-bar"><span class="t">资金账变 · 三页签</span><span class="muted">（原型 · 贴合中台样式）</span></div>
+
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" data-tab="fast" onclick="switchTab('fast')">快速查询</div>
+        <div class="tab" data-tab="agent" onclick="switchTab('agent')">代理查询<span class="new-badge">NEW</span></div>
+        <div class="tab" data-tab="log" onclick="switchTab('log')">历史数据<span class="new-badge">NEW</span></div>
+      </div>
+
+      <!-- ============ 快速查询 ============ -->
+      <div class="panel" id="panel-fast">
+        <div class="search">
+          <div class="search-grid">
+            <div class="field"><label><span class="req">*</span>商户</label><div class="ctrl filled">(2001)sit-inr <span class="caret">▾</span></div></div>
+            <div class="field"><label>会员ID</label><div class="ctrl">请输入会员ID</div></div>
+            <div class="field"><label>订单号</label><div class="ctrl">请输入订单号</div></div>
+            <div class="field"><label>账变类型</label><div class="ctrl">请选择账变类型 <span class="caret">▾</span></div></div>
+            <div class="field"><label>操作人</label><div class="ctrl">请输入操作人</div></div>
+          </div>
+          <div class="time-row">
+            <div class="field time"><label>时间区间</label><div class="ctrl filled">2026-09-26 00:00:00 &nbsp;→&nbsp; 2026-09-26 23:59:59</div></div>
+            <div class="spacer"></div>
+            <div class="time-actions">
+              <button class="btn primary">🔍 搜索</button>
+              <button class="btn">↺ 重置</button>
+              <button class="btn link">收起 ▴</button>
+            </div>
+          </div>
+        </div>
+        <div class="action-bar">
+          <div class="ab-left">
+            <button class="btn">⭳ 导出</button>
+            <span class="hint">会员ID / 订单号 / 账变类型 / 操作人 必须填写一项</span>
+          </div>
+          <div class="ab-center"><button class="btn link">收起 ▴</button></div>
+          <div class="ab-right">
+            <div class="quick-dates"><span class="qd active">今天</span><span class="qd">昨天</span><span class="qd">本周</span><span class="qd">上周</span><span class="qd">本月</span><span class="qd">上月</span><span class="qd">所有</span></div>
+            <button class="btn link">⚙ 自定义列</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table><thead id="head-fast"></thead><tbody id="body-fast"></tbody></table></div>
+        <div class="foot">
+          <div class="sum">本页账变合计：<b class="pos">+12,300.00</b> &nbsp;|&nbsp; 全部账变合计：<b class="neg">-4,850.00</b></div>
+          <div class="pager"><span class="pg">‹</span><span class="pg active">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">›</span><span class="muted">10/页 ▾</span></div>
+        </div>
+      </div>
+
+      <!-- ============ 代理查询 ============ -->
+      <div class="panel hidden" id="panel-agent">
+        <div class="search">
+          <div class="search-grid">
+            <div class="field"><label><span class="req">*</span>商户</label><div class="ctrl filled">(2001)sit-inr <span class="caret">▾</span></div></div>
+            <div class="field"><label><span class="req">*</span>代理ID</label><div class="ctrl filled">100086</div></div>
+            <div class="field"><label>会员ID</label><div class="ctrl">请输入会员ID</div></div>
+            <div class="field"><label>订单号</label><div class="ctrl">请输入订单号</div></div>
+            <div class="field"><label>账变类型</label><div class="ctrl">请选择账变类型 <span class="caret">▾</span></div></div>
+          </div>
+          <div class="time-row">
+            <div class="field time"><label>时间区间</label><div class="ctrl filled">2026-09-26 00:00:00 &nbsp;→&nbsp; 2026-09-26 23:59:59</div></div>
+            <div class="spacer"></div>
+            <div class="time-actions">
+              <button class="btn primary">🔍 搜索</button>
+              <button class="btn">↺ 重置</button>
+              <button class="btn link">收起 ▴</button>
+            </div>
+          </div>
+        </div>
+        <div class="action-bar">
+          <div class="ab-left">
+            <button class="btn">⭳ 导出</button>
+            <span class="hint">代理ID 必填，查询该代理名下所有下级会员的账变</span>
+          </div>
+          <div class="ab-center"><button class="btn link">收起 ▴</button></div>
+          <div class="ab-right">
+            <div class="quick-dates"><span class="qd active">今天</span><span class="qd">昨天</span><span class="qd">本周</span><span class="qd">上周</span><span class="qd">本月</span><span class="qd">上月</span><span class="qd">所有</span></div>
+            <button class="btn link">⚙ 自定义列</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table><thead id="head-agent"></thead><tbody id="body-agent"></tbody></table></div>
+        <div class="foot">
+          <div class="sum">本页账变合计：<b class="pos">+8,600.00</b> &nbsp;|&nbsp; 全部账变合计：<b class="pos">+21,450.00</b></div>
+          <div class="pager"><span class="pg">‹</span><span class="pg active">1</span><span class="pg">2</span><span class="pg">›</span><span class="muted">10/页 ▾</span></div>
+        </div>
+      </div>
+
+      <!-- ============ 历史数据 ============ -->
+      <div class="panel hidden" id="panel-log">
+        <div class="banner">温馨提示：本页查询已归档的历史账变数据；近期数据请到「快速查询」页。历史数据需按会员ID定位，会员ID为必填。</div>
+        <div class="search">
+          <div class="search-grid">
+            <div class="field"><label><span class="req">*</span>商户</label><div class="ctrl filled">(2001)sit-inr <span class="caret">▾</span></div></div>
+            <div class="field"><label><span class="req">*</span>会员ID</label><div class="ctrl filled">100231</div></div>
+            <div class="field"><label>订单号</label><div class="ctrl">请输入订单号</div></div>
+            <div class="field"><label>账变类型</label><div class="ctrl">请选择账变类型 <span class="caret">▾</span></div></div>
+            <div class="field"></div>
+          </div>
+          <div class="time-row">
+            <div class="field time"><label>时间区间</label><div class="ctrl filled">2026-09-25 00:00:00 &nbsp;→&nbsp; 2026-09-25 23:59:59</div></div>
+            <div class="spacer"></div>
+            <div class="time-actions">
+              <button class="btn primary">🔍 搜索</button>
+              <button class="btn">↺ 重置</button>
+              <button class="btn link">收起 ▴</button>
+            </div>
+          </div>
+        </div>
+        <div class="action-bar">
+          <div class="ab-left">
+            <button class="btn">⭳ 导出</button>
+            <span class="hint">会员ID 必填</span>
+          </div>
+          <div class="ab-center"><button class="btn link">收起 ▴</button></div>
+          <div class="ab-right">
+            <div class="quick-dates"><span class="qd">今天</span><span class="qd active">昨天</span><span class="qd">本周</span><span class="qd">上周</span><span class="qd">本月</span><span class="qd">上月</span><span class="qd">所有</span></div>
+            <button class="btn link">⚙ 自定义列</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table><thead id="head-log"></thead><tbody id="body-log"></tbody></table></div>
+        <div class="foot">
+          <div class="sum">本页账变合计：<b class="neg">-2,100.00</b> &nbsp;|&nbsp; 全部账变合计：<b class="neg">-9,700.00</b></div>
+          <div class="pager"><span class="pg">‹</span><span class="pg active">1</span><span class="pg">2</span><span class="pg">›</span><span class="muted">10/页 ▾</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- drawer -->
+  <div class="handle" onclick="openDrawer()">需求说明</div>
+  <div class="mask" id="mask" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="doc">
+      <h1>资金账变 · 三页签</h1>
+      <div class="meta">资金账变 · 会员管理</div>
+
+      <h2>一、改造页面</h2>
+      <p>资金账变由单页改为三个页签：<b>快速查询</b>、<b>代理查询</b>、<b>历史数据</b>。三页签商户均必选。</p>
+
+      <h2>二、查询逻辑与范围</h2>
+      <h3>快速查询</h3>
+      <ul>
+        <li>会员ID / 订单号 / 账变类型 / 操作人，四选一，配合时间查询账变记录。</li>
+        <li>范围：近期数据（已归档的更早数据不在本页）。默认今天。</li>
+      </ul>
+      <h3>代理查询</h3>
+      <ul>
+        <li>代理ID 必填；先取该代理名下所有下级会员（含各层级下线），再查这些会员的账变，可叠加 会员ID / 订单号 / 账变类型 / 时间 过滤。</li>
+        <li>范围：与快速查询相同（近期数据）。默认今天。</li>
+        <li>列表在会员ID后增加「上级ID」列。</li>
+      </ul>
+      <h3>历史数据</h3>
+      <ul>
+        <li>会员ID 必填；查询该会员的已归档历史账变，可叠加 订单号 / 账变类型 / 时间 过滤。</li>
+        <li>范围：已归档历史数据（近期数据请到快速查询）。默认昨天。</li>
+      </ul>
+    </div>
+  </div>
+
+<script>
+  const TYPES=['充值','提现','投注','中奖','充值赠送','投注返水','人工充值','提现退回','签到奖励'];
+  const DEDUCT=new Set(['提现','投注','彩金扣除']);
+  function amtCell(type,amt){const neg=DEDUCT.has(type);const s=(neg?'-':'+')+amt.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});return '<span class="num '+(neg?'neg':'pos')+'">'+s+'</span>';}
+  function money(v){return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function row(r,withSup){
+    const before=r.after - (DEDUCT.has(r.type)? -r.amt : r.amt); // display only
+    return '<tr>'
+      +'<td><span class="tag blue">(2001)sit-inr</span></td>'
+      +'<td><span class="mid-link">'+r.uid+'</span></td>'
+      +(withSup?'<td class="new-col2"><span class="mid-link">'+r.sup+'</span></td>':'')
+      +'<td>'+r.order+'</td>'
+      +'<td><span class="tag plain">'+r.type+'</span></td>'
+      +'<td class="center">INR</td>'
+      +'<td class="right num">'+money(r.before)+'</td>'
+      +'<td class="right">'+amtCell(r.type,r.amt)+'</td>'
+      +'<td class="right num">'+money(r.after)+'</td>'
+      +'<td>'+r.time+'</td>'
+      +'<td class="muted">'+(r.remark||'-')+'</td>'
+      +'<td>'+r.op+'</td>'
+      +'<td class="center"><span class="btn link">编辑备注</span></td>'
+      +'</tr>';
+  }
+  function headHtml(withSup){
+    return '<tr>'
+      +'<th>商户</th><th>会员ID</th>'
+      +(withSup?'<th class="new-col"><span class="new-badge">NEW</span>上级ID</th>':'')
+      +'<th>订单号</th><th>账变类型</th><th>币种</th><th>变动前余额</th><th>账变金额</th><th>变动后余额</th>'
+      +'<th>账变时间 (UTC+5:30)</th><th>备注说明</th><th>操作人</th><th>操作</th></tr>';
+  }
+  function mk(uid,sup,type,amt,after,time,remark,op){return {uid,sup,type,amt,before:DEDUCT.has(type)?after+amt:after-amt,after,order:'AR'+time.replace(/[-: ]/g,'').slice(2,12)+uid,type,time,remark,op};}
+
+  const fast=[
+    mk(100231,'','充值',500,1700,'2026-09-26 09:12:31','', 'admin'),
+    mk(100231,'','投注',100,1600,'2026-09-26 10:03:08','Win Go 1分','系统'),
+    mk(100231,'','中奖',196,1796,'2026-09-26 10:04:11','Win Go 1分','系统'),
+    mk(100544,'','提现',800,1200,'2026-09-26 11:20:45','', 'finance01'),
+    mk(100544,'','提现退回',800,2000,'2026-09-26 12:01:22','通道失败退回','system'),
+    mk(100987,'','充值赠送',50,1050,'2026-09-26 13:15:00','首充赠送','系统'),
+  ];
+  const agent=[
+    mk(100231,100086,'充值',500,1700,'2026-09-26 09:12:31','', 'admin'),
+    mk(100232,100086,'投注',200,800,'2026-09-26 09:40:10','K3','系统'),
+    mk(100233,100086,'中奖',540,1340,'2026-09-26 09:41:55','K3','系统'),
+    mk(100234,100120,'充值',1000,3000,'2026-09-26 10:22:31','', 'admin'),
+    mk(100235,100120,'提现',1500,1500,'2026-09-26 11:05:09','', 'finance01'),
+  ];
+  const log=[
+    mk(100231,'','投注',300,900,'2026-09-25 20:12:31','5D','系统'),
+    mk(100231,'','中奖',0,900,'2026-09-25 20:13:00','5D 未中','系统'),
+    mk(100231,'','提现',600,300,'2026-09-25 21:40:18','', 'finance02'),
+    mk(100231,'','签到奖励',10,310,'2026-09-25 08:00:03','每日签到','系统'),
+  ];
+
+  document.getElementById('head-fast').innerHTML=headHtml(false);
+  document.getElementById('body-fast').innerHTML=fast.map(r=>row(r,false)).join('');
+  document.getElementById('head-agent').innerHTML=headHtml(true);
+  document.getElementById('body-agent').innerHTML=agent.map(r=>row(r,true)).join('');
+  document.getElementById('head-log').innerHTML=headHtml(false);
+  document.getElementById('body-log').innerHTML=log.map(r=>row(r,false)).join('');
+
+  function switchTab(name){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+    ['fast','agent','log'].forEach(n=>document.getElementById('panel-'+n).classList.toggle('hidden',n!==name));
+  }
+  function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('mask').classList.add('open');}
+  function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('mask').classList.remove('open');}
+</script>
+</body>
+</html>
