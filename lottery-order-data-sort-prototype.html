@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>彩票投注订单 · 数据排序下拉 · 交互原型</title>
+<style>
+:root{--ink:#1d2129;--bg:#f5f7fa;--line:#e5e6eb;--sub:#4e5969;--pri:#165dff;--pri-d:#0e42d2;--gray:#86909c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;color:var(--ink);background:var(--bg);line-height:1.5}
+
+.page-block{padding:16px 46px 40px 22px}
+
+/* 面包屑 */
+.crumb{display:flex;justify-content:flex-end;margin-bottom:8px;font-size:12px;color:var(--gray)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--sub);font-weight:600}
+
+/* 顶部业务大 Tab */
+.top-tabs{display:flex;gap:26px;border-bottom:1px solid var(--line);background:#fff;padding:0 16px;border-radius:6px 6px 0 0}
+.top-tab{padding:13px 2px;font-size:14px;color:var(--sub);cursor:pointer;position:relative;white-space:nowrap}
+.top-tab.on{color:var(--pri);font-weight:600}
+.top-tab.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--pri)}
+.top-tab.dis{color:#c0c4cc;cursor:not-allowed}
+
+/* 主面板 */
+.v3-panel{background:#fff;border:1px solid var(--line);border-top:none;border-radius:0 0 6px 6px;padding:14px 16px 18px}
+
+/* 彩种壳：左竖 Tab + 右内容 */
+.lot{display:flex;gap:12px;min-height:520px}
+.lot-left{display:flex;flex-direction:column;gap:6px;flex:0 0 104px;width:104px}
+.lot-item{padding:16px 8px;text-align:center;border:1px solid #dcdfe6;border-radius:6px;background:#fff;cursor:pointer;transition:border-color .2s,color .2s}
+.lot-item:hover{border-color:#c0c4cc}
+.lot-item.on{border:2px solid var(--pri);padding:15px 7px}
+.lot-item .t1{font-size:13px;font-weight:600;color:#303133;line-height:1.3}
+.lot-item.on .t1{color:var(--pri)}
+.lot-item .t2{font-size:11px;color:#909399;margin-top:3px;line-height:1.2}
+.lot-right{flex:1;min-width:0}
+
+/* XOSO 区域小 Tab */
+.xoso-bar{display:flex;gap:8px;margin-bottom:10px}
+.xoso-tab{padding:7px 15px;font-size:12.5px;border:1px solid #dcdfe6;border-radius:6px;background:#fff;color:#606266;cursor:pointer}
+.xoso-tab.on{background:var(--pri);border-color:var(--pri);color:#fff}
+
+/* 筛选区 */
+.flt{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.fi{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);white-space:nowrap}
+.fi .lb{flex:0 0 auto}
+.fi .rq{color:#f5222d;margin-right:1px}
+.inp,.sel{height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:0 9px;font-size:12.5px;background:#fff;color:var(--ink);width:172px}
+.inp.ph,.sel.ph{color:#c0c4cc}
+.inp.sm{width:96px}
+.rng{display:flex;align-items:center;gap:6px}
+.rng .to{color:#c0c4cc}
+.tw{display:flex;align-items:center;border:1px solid #dcdfe6;border-radius:4px;overflow:hidden}
+.tw .tsel{height:30px;border:none;border-right:1px solid #dcdfe6;padding:0 8px;font-size:12.5px;color:var(--sub);background:#fafbfc;outline:none}
+.tw .tval{height:30px;border:none;padding:0 10px;font-size:12.5px;color:var(--ink);width:330px;background:#fff}
+.flt-btns{display:flex;gap:8px;margin-left:auto}
+.btn{height:32px;padding:0 15px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid #dcdfe6;background:#fff;color:var(--sub)}
+.btn:hover{color:var(--pri);border-color:var(--pri)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.pri:hover{opacity:.9;color:#fff}
+.btn.txt{border:none;background:none;color:var(--pri);padding:0 6px}
+
+/* 新增字段高亮 */
+.fi.newf{position:relative}
+.fi.newf .sel{border-color:#ffa940;box-shadow:0 0 0 2px rgba(250,140,22,.12)}
+.newb{background:#f5222d;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:1px 4px;letter-spacing:.3px;vertical-align:1px}
+
+/* 工具条 */
+.tools{display:flex;align-items:center;margin:14px 0 10px}
+.tools .btn{height:30px}
+
+/* 表格 */
+.twrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.tbl th{background:#f7f8fa;color:var(--sub);font-weight:600;text-align:center;padding:9px 10px;border-bottom:1px solid var(--line);border-right:1px solid #f0f1f3}
+.tbl td{padding:9px 10px;border-bottom:1px solid #f2f3f5;border-right:1px solid #f7f8fa;color:var(--ink);text-align:left;vertical-align:middle}
+.tbl th.c,.tbl td.c{text-align:center}
+.tbl th.r,.tbl td.r{text-align:right}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover td{background:#fafbfc}
+.tbl tr.sumrow td{background:#f5f9ff;font-weight:600;color:#1c4c8c}
+.tbl tr.sumrow:hover td{background:#f5f9ff}
+.lnk{color:var(--pri);cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.dash{color:#c9cdd4}
+.pos{color:#0f7a48;font-weight:600}
+.neg{color:#d03050;font-weight:600}
+.tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:3px;line-height:1.6}
+.tag.g{background:#e8f9ee;color:#0f7a48}
+.tag.b{background:#eaf3ff;color:#2d6cdf}
+.tag.o{background:#fff7e6;color:#ad6800}
+.tag.d{background:#f2f3f5;color:var(--sub)}
+.tag.cur{background:#e8f9ee;color:#0f7a48}
+.ball{display:inline-block;width:22px;height:22px;line-height:22px;border-radius:50%;color:#fff;font-weight:700;text-align:center;font-size:11px}
+
+/* 排序箭头（表头点击排序，页面原有能力） */
+.th-s{cursor:pointer;user-select:none}
+.th-s .ar{color:#c9cdd4;font-size:11px;margin-left:2px}
+.th-s .ar.on{color:var(--pri)}
+.th-s.sorted{color:var(--pri);background:#f0f7ff}
+
+/* 分页 */
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 2px 0;font-size:12px;color:var(--sub)}
+.pg{min-width:26px;height:26px;border:1px solid #dcdfe6;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff}
+.pg.on{background:var(--pri);border-color:var(--pri);color:#fff}
+
+/* 排序生效提示条 */
+.sortbar{display:none;align-items:center;gap:8px;background:#f0f7ff;border:1px solid #adc6ff;color:#1c4c8c;font-size:12px;border-radius:4px;padding:7px 12px;margin-bottom:10px}
+.sortbar.show{display:flex}
+.sortbar .x{margin-left:6px;color:var(--pri);cursor:pointer}
+
+/* 演示控制条 */
+.demo{background:#fffbe6;border:1px dashed #ffd666;border-radius:5px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#874d00;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.demo b{color:#ad6800}
+
+/* 右侧需求说明抽屉 */
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:13px;padding:16px 7px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:3px;box-shadow:-2px 0 8px rgba(22,93,255,.2)}
+.req-handle:hover{background:var(--pri-d)}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:600;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-720px;width:680px;max-width:92vw;height:100%;background:#fff;z-index:601;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .28s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:var(--gray);font-size:19px;line-height:1}
+.req-body{flex:1;overflow-y:auto;padding:18px 20px 48px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:24px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body .h1:first-child{margin-top:0}
+.req-body p{font-size:12.5px;color:var(--sub);line-height:1.85;margin:6px 0}
+.req-body table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 9px;text-align:left;font-weight:600;color:#1c4c8c}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 9px;vertical-align:top;line-height:1.7}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:9px 12px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0}
+.req-body .br b{color:#1c4c8c}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+.req-body .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:9px 12px;font-size:12px;color:#874d00;margin:9px 0;line-height:1.75}
+</style>
+</head>
+<body>
+
+<!-- 需求说明入口：仅边缘把手 -->
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="reqMask" onclick="closeReq()"></div>
+<div class="req-drawer" id="reqDrawer">
+  <div class="req-head"><span class="t">需求说明 · 彩票投注订单增加数据排序</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body">
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:120px">页面</th><th style="width:70px">改动</th><th>改动点</th></tr>
+      <tr><td>游戏管理 → 三方游戏记录 → 彩票投注订单</td><td>新增</td>
+        <td>筛选区新增「数据排序」下拉框。六个彩种子页（Win Go、K3、5D、TRX Win Go、XOSO、新彩种）全部新增。</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="br"><span class="bn">1</span>「数据排序」下拉三个选项：<b>请选择</b> / <b>投注金额升序</b> / <b>投注金额降序</b>。</div>
+    <div class="br"><span class="bn">2</span>选「投注金额升序 / 降序」时，按投注金额对<b>全部符合筛选条件的数据</b>排序后分页展示。</div>
+    <div class="br"><span class="bn">3</span>选「请选择」时，按下注时间倒序展示。</div>
+    <div class="br"><span class="bn">4</span>数据排序与搜索条件、页码一同提交；点「重置」时数据排序一并清回「请选择」。</div>
+    <div class="note">交互细节（下拉位置、选项样式、排序后表格回显）见本原型，说明书不重复描述。</div>
+
+    <div class="h1">三、限制条件</div>
+    <div class="br"><span class="bn">1</span>排序字段本期仅投注金额一项，不含派奖、盈亏等其它字段。</div>
+  </div>
+</div>
+
+<div class="page-block">
+  <div class="crumb">游戏管理<span class="sep">/</span><span class="cur">三方游戏记录</span></div>
+
+  <!-- 顶部业务 Tab -->
+  <div class="top-tabs">
+    <div class="top-tab on">彩票投注订单</div>
+    <div class="top-tab dis">视讯投注订单</div>
+    <div class="top-tab dis">体育投注订单</div>
+    <div class="top-tab dis">电子投注订单</div>
+    <div class="top-tab dis">棋牌投注订单</div>
+  </div>
+
+  <div class="v3-panel">
+    <!-- 演示控制条 -->
+    <div class="demo">
+      <b>演示控制（仅用于演示，不属于需求）：</b>
+      <span>点左侧彩种切换 / 下拉选择「数据排序」即时重排下表 / 「数据排序」为每个彩种独立存在</span>
+    </div>
+
+    <div class="lot">
+      <!-- 左侧彩种竖 Tab -->
+      <div class="lot-left" id="lotLeft"></div>
+
+      <!-- 右侧内容 -->
+      <div class="lot-right">
+        <!-- XOSO 区域条（仅 XOSO 显示） -->
+        <div class="xoso-bar" id="xosoBar" style="display:none">
+          <div class="xoso-tab on">北部75秒</div>
+          <div class="xoso-tab">中部75秒</div>
+          <div class="xoso-tab">南部45秒</div>
+        </div>
+
+        <!-- 筛选区 -->
+        <div class="flt" id="flt"></div>
+
+        <!-- 排序提示 -->
+        <div class="sortbar" id="sortBar"></div>
+
+        <!-- 工具条 -->
+        <div class="tools"><div class="btn pri" style="height:30px">导出</div></div>
+
+        <!-- 表格 -->
+        <div class="twrap">
+          <table class="tbl" id="tbl"></table>
+        </div>
+
+        <div class="pager">
+          <span>共 <b id="rowCnt">0</b> 条</span>
+          <span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">›</span>
+          <span>10 条/页</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ 彩种定义 ============ */
+const LOTS = [
+  {k:'wingo', t1:'Win Go', t2:'Win Go彩种', ball:true},
+  {k:'k3',    t1:'K3',     t2:'K3彩种'},
+  {k:'5d',    t1:'5D',     t2:'5D彩种'},
+  {k:'trx',   t1:'TRX Win Go', t2:'TRX Wingo彩种', ball:true},
+  {k:'xoso',  t1:'XOSO',   t2:'XOSO 越南彩', xoso:true},
+  {k:'new',   t1:'新彩种', t2:'MOTO Video', isnew:true},
+];
+let cur = 'wingo';
+// 每个彩种独立保存所选排序
+const sortState = {wingo:'', k3:'', '5d':'', trx:'', xoso:'', new:''};
+
+/* ============ 玩法类型选项（演示用） ============ */
+const PLAY = {
+  wingo:['Win Go 1分','Win Go 3分','Win Go 5分'],
+  k3:['K3 1分','K3 3分','K3 5分'],
+  '5d':['5D 1分','5D 3分','5D 5分'],
+  trx:['TRX 1分','TRX 3分'],
+  xoso:['北部75秒','两位数','三位数'],
+  new:['MOTO Video','Video Wingo'],
+};
+const BALLC=['#c0c4cc','#f5222d','#52c41a','#faad14','#1677ff','#722ed1','#eb2f96','#13c2c2','#fa8c16','#2f54eb'];
+
+/* ============ 模拟数据（每个彩种一份，含盈利/亏损/待开奖状态） ============ */
+function mkRows(lk){
+  const play = PLAY[lk];
+  const seeds = [
+    {uid:'100231', pl:0, mult:1, bet:100, valid:100, win:196, fee:2,  st:1},
+    {uid:'100418', pl:1, mult:2, bet:600, valid:600, win:0,   fee:12, st:0},
+    {uid:'100096', pl:0, mult:1, bet:50,  valid:50,  win:98,  fee:1,  st:1},
+    {uid:'100777', pl:2, mult:5, bet:1500,valid:1500,win:0,   fee:30, st:0},
+    {uid:'100512', pl:1, mult:1, bet:200, valid:200, win:0,   fee:0,  st:2},
+    {uid:'100304', pl:0, mult:3, bet:900, valid:900, win:1764,fee:18, st:1},
+    {uid:'100650', pl:2, mult:1, bet:300, valid:300, win:0,   fee:6,  st:0},
+    {uid:'100189', pl:1, mult:10,bet:80,  valid:80,  win:0,   fee:1.6,st:0},
+  ];
+  return seeds.map((s,i)=>{
+    const win = s.st===2?0:s.win;
+    const profit = s.st===2? null : (win - s.bet);
+    return {
+      merchant:'(2001)sit-inr',
+      uid:s.uid,
+      order:'LT'+lk.toUpperCase().slice(0,2)+'26092600'+(1000+i),
+      issue:'2026092600'+(120+i),
+      play:play[s.pl%play.length],
+      mult:s.mult,
+      betType:['大','小','单','双','数字'][i%5],
+      betContent:['大','小','5','双','7'][i%5],
+      result: s.st===2? null : (i%10),
+      cur:'INR',
+      bet:s.bet, valid:s.valid, win:win, energy:(s.bet*0.005),
+      fee:s.fee, profit:profit, st:s.st,
+      time:'2026-09-26 '+String(9+i).padStart(2,'0')+':'+String(12+i*3).padStart(2,'0')+':05',
+    };
+  });
+}
+const DATA={}; LOTS.forEach(l=>DATA[l.k]=mkRows(l.k));
+
+const ST_TAG={0:['未压中','d'],1:['已压中','g'],2:['待开奖','b'],3:['开奖中','o']};
+
+/* ============ 渲染左侧彩种 ============ */
+function renderLeft(){
+  document.getElementById('lotLeft').innerHTML = LOTS.map(l=>
+    `<div class="lot-item ${l.k===cur?'on':''}" onclick="switchLot('${l.k}')">
+       <div class="t1">${l.t1}</div><div class="t2">${l.t2}</div></div>`).join('');
+}
+
+/* ============ 渲染筛选区 ============ */
+function renderFilter(){
+  const play = PLAY[cur].map(p=>`<option>${p}</option>`).join('');
+  const sel = sortState[cur];
+  document.getElementById('flt').innerHTML = `
+    <div class="fi"><span class="lb"><span class="rq">*</span>商户</span>
+      <select class="sel"><option>(2001)sit-inr</option></select></div>
+    <div class="fi"><span class="lb">会员ID</span><input class="inp ph" placeholder="请输入会员ID"></div>
+    <div class="fi"><span class="lb">期号</span><input class="inp ph" placeholder="请输入期号"></div>
+    <div class="fi"><span class="lb">投注单号</span><input class="inp ph" placeholder="请输入投注单号"></div>
+    <div class="fi"><span class="lb">订单状态</span>
+      <select class="sel ph"><option value="">请选择订单状态</option><option>已压中</option><option>未压中</option><option>待开奖</option></select></div>
+
+    <div class="fi"><span class="lb">玩法类型</span>
+      <select class="sel ph"><option value="">请选择玩法类型</option>${play}</select></div>
+    <div class="fi"><span class="lb">投注类型</span><input class="inp ph" placeholder="请输入投注类型"></div>
+    <div class="fi"><span class="lb">投注内容</span><input class="inp ph" placeholder="请输入投注内容"></div>
+    <div class="fi"><span class="lb">投注金额</span>
+      <span class="rng"><input class="inp sm ph" placeholder="最小值"><span class="to">~</span><input class="inp sm ph" placeholder="最大值"></span></div>
+    <div class="fi"><span class="lb">盈亏金额</span>
+      <span class="rng"><input class="inp sm ph" placeholder="最小值"><span class="to">~</span><input class="inp sm ph" placeholder="最大值"></span></div>
+
+    <div class="fi"><span class="lb">时间</span>
+      <span class="tw"><select class="tsel"><option>下注时间</option><option>结算时间</option></select>
+      <input class="tval" value="2026-09-26 00:00:00  →  2026-09-26 23:59:59"></span></div>
+
+    <div class="fi newf"><span class="lb"><span class="newb">NEW</span> 数据排序</span>
+      <select class="sel ${sel?'':'ph'}" onchange="onSort(this.value)">
+        <option value="" ${sel===''?'selected':''}>请选择</option>
+        <option value="asc" ${sel==='asc'?'selected':''}>投注金额升序</option>
+        <option value="desc" ${sel==='desc'?'selected':''}>投注金额降序</option>
+      </select></div>
+
+    <div class="flt-btns">
+      <div class="btn pri" onclick="renderTable()">🔍 搜索</div>
+      <div class="btn" onclick="resetAll()">↻ 重置</div>
+      <div class="btn txt">︿ 收起</div>
+    </div>`;
+}
+
+/* ============ 排序切换 ============ */
+function onSort(v){
+  sortState[cur]=v;
+  renderSortBar();
+  renderTable();
+}
+function resetAll(){
+  sortState[cur]='';
+  renderFilter(); renderSortBar(); renderTable();
+}
+function renderSortBar(){
+  const v=sortState[cur], bar=document.getElementById('sortBar');
+  if(!v){bar.classList.remove('show');bar.innerHTML='';return;}
+  bar.classList.add('show');
+  bar.innerHTML=`已按<b style="margin:0 4px">投注金额${v==='asc'?'升序':'降序'}</b>对全部结果排序展示
+    <span class="x" onclick="resetSort()">取消排序 ✕</span>`;
+}
+function resetSort(){ sortState[cur]=''; renderFilter(); renderSortBar(); renderTable(); }
+
+/* ============ 渲染表格 ============ */
+function renderTable(){
+  const l = LOTS.find(x=>x.k===cur);
+  let rows = DATA[cur].slice();
+  const v = sortState[cur];
+  if(v==='asc') rows.sort((a,b)=>a.bet-b.bet);
+  else if(v==='desc') rows.sort((a,b)=>b.bet-a.bet);
+  else rows.sort((a,b)=>b.time.localeCompare(a.time)); // 默认下注时间倒序
+
+  const betSorted = v?'sorted':'';
+  const betAr = v==='asc'?'↑':(v==='desc'?'↓':'⇅');
+  const arOn = v?'on':'';
+
+  const resultCell = (r)=>{
+    if(r.result==null) return '<span class="dash">--</span>';
+    if(l.ball) return `<span class="ball" style="background:${BALLC[r.result]}">${r.result}</span>`;
+    return r.result;
+  };
+  const profitCell=(r)=>{
+    if(r.profit==null) return '<span class="dash">--</span>';
+    return r.profit>=0?`<span class="pos">+${r.profit.toFixed(2)}</span>`:`<span class="neg">${r.profit.toFixed(2)}</span>`;
+  };
+
+  // 汇总
+  const sum = rows.reduce((a,r)=>{a.bet+=r.bet;a.valid+=r.valid;a.win+=r.win;a.energy+=r.energy;a.fee+=r.fee;a.profit+=(r.profit||0);return a;},
+    {bet:0,valid:0,win:0,energy:0,fee:0,profit:0});
+
+  const head = `
+    <thead><tr>
+      <th class="c">商户</th><th class="c">会员ID</th><th class="c">投注单号</th><th class="c">期号</th>
+      <th class="c">玩法类型</th><th class="c">投注倍数</th><th class="c">投注类型</th><th class="c">投注内容</th>
+      <th class="c">开奖结果</th><th class="c">币种</th>
+      <th class="c th-s ${betSorted}" onclick="toggleHeadSort()">投注金额<span class="ar ${arOn}">${betAr}</span></th>
+      <th class="c">有效投注</th><th class="c">派奖金额</th><th class="c">能量奖励</th><th class="c">手续费</th>
+      <th class="c th-s">盈亏金额<span class="ar">⇅</span></th>
+      <th class="c">订单状态</th><th class="c">下注时间</th>
+    </tr></thead>`;
+
+  const body = rows.map(r=>`
+    <tr>
+      <td class="c"><span class="tag b">${r.merchant}</span></td>
+      <td class="c"><span class="lnk">${r.uid}</span></td>
+      <td>${r.order}</td><td class="c">${r.issue}</td>
+      <td class="c">${r.play}</td><td class="c">${r.mult}</td><td class="c">${r.betType}</td><td class="c">${r.betContent}</td>
+      <td class="c">${resultCell(r)}</td>
+      <td class="c"><span class="tag cur">${r.cur}</span></td>
+      <td class="r">${r.bet.toFixed(2)}</td>
+      <td class="r">${r.valid.toFixed(2)}</td>
+      <td class="r">${r.win.toFixed(2)}</td>
+      <td class="r">${r.energy.toFixed(2)}</td>
+      <td class="r">${r.fee.toFixed(2)}</td>
+      <td class="r">${profitCell(r)}</td>
+      <td class="c"><span class="tag ${ST_TAG[r.st][1]}">${ST_TAG[r.st][0]}</span></td>
+      <td class="c">${r.time}</td>
+    </tr>`).join('');
+
+  const sumRow = `
+    <tr class="sumrow">
+      <td class="c">页面总计</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      <td class="r">${sum.bet.toFixed(2)}</td><td class="r">${sum.valid.toFixed(2)}</td><td class="r">${sum.win.toFixed(2)}</td>
+      <td class="r">${sum.energy.toFixed(2)}</td><td class="r">${sum.fee.toFixed(2)}</td>
+      <td class="r">${sum.profit>=0?'<span class=pos>+'+sum.profit.toFixed(2)+'</span>':'<span class=neg>'+sum.profit.toFixed(2)+'</span>'}</td>
+      <td></td><td></td>
+    </tr>`;
+
+  document.getElementById('tbl').innerHTML = head + '<tbody>' + body + sumRow + '</tbody>';
+  document.getElementById('rowCnt').textContent = rows.length;
+}
+
+// 表头点击排序：与下拉联动（页面原有能力，演示为同一投注金额字段循环）
+function toggleHeadSort(){
+  const v=sortState[cur];
+  sortState[cur] = v==='desc'?'asc':(v==='asc'?'':'desc');
+  renderFilter(); renderSortBar(); renderTable();
+}
+
+/* ============ 切换彩种 ============ */
+function switchLot(k){
+  cur=k;
+  renderLeft();
+  document.getElementById('xosoBar').style.display = (k==='xoso')?'flex':'none';
+  renderFilter(); renderSortBar(); renderTable();
+}
+
+/* ============ 抽屉 ============ */
+function openReq(){document.getElementById('reqMask').classList.add('show');document.getElementById('reqDrawer').classList.add('show');}
+function closeReq(){document.getElementById('reqMask').classList.remove('show');document.getElementById('reqDrawer').classList.remove('show');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeReq();});
+
+/* init */
+renderLeft(); renderFilter(); renderSortBar(); renderTable();
+</script>
+</body>
+</html>
