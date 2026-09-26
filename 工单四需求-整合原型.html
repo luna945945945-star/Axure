@@ -1,0 +1,450 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>工单需求整合 · 原型</title>
+<style>
+:root{--pri:#2080f0;--pri-h:#4098fc;--bg:#f5f6fb;--card:#fff;--ink:#1f2733;--ink2:#5b6572;--ink3:#9aa3ad;--line:#ebeef2;--line2:#dfe3e8;--ok:#18a058;--okbg:#e9f7ef;--warn:#e6a23c;--warnbg:#fdf6ec;--rej:#d03050;--rejbg:#fdeeee;--new:#7b3fe4;--newbg:#f3edfd}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13.5px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+.demobar{background:#fff7e6;border-bottom:1px solid #ffe0a3;color:#8a5a12;font-size:12.5px;padding:8px 24px;line-height:1.7}
+.demobar .newbadge{margin:0 2px}
+.topnav{background:#fff;border-bottom:1px solid var(--line);padding:0 24px;display:flex;gap:4px;position:sticky;top:0;z-index:20}
+.topnav a{padding:14px 18px;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;font-size:14px}
+.topnav a.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:500}
+.wrap{padding:16px 22px 60px;max-width:1620px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+h1{font-size:17px;font-weight:600;margin:2px 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px}
+.filters{padding:16px 18px 8px;margin-bottom:12px}
+.frow{display:flex;flex-wrap:wrap;gap:12px 20px;margin-bottom:12px;align-items:center}
+.fi{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink2)}
+.fi label{white-space:nowrap}
+.inp{height:30px;border:1px solid var(--line2);border-radius:4px;padding:0 9px;font-size:13px;color:var(--ink3);background:#fff;display:flex;align-items:center;min-width:140px}
+.inp.sel::after{content:"⌄";margin-left:auto;padding-left:12px;color:var(--ink3)}
+.inp.new{border-color:var(--new);background:var(--newbg);color:var(--new)}
+.btn{height:32px;padding:0 15px;border:none;border-radius:4px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.btn-pri{background:var(--pri);color:#fff}.btn-pri:hover{background:var(--pri-h)}
+.btn-gh{background:#eef4fe;color:var(--pri)}
+.btn-line{background:#fff;border:1px solid var(--line2);color:var(--ink2)}
+.btn-sm{height:26px;padding:0 10px;font-size:12px}
+.tbar{display:flex;align-items:center;gap:8px;padding:12px 16px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.sp{flex:1}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:#fafbfc;color:var(--ink2);font-weight:500;padding:11px 10px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+tbody td.c{text-align:center}tbody tr:hover{background:#f7fafd}
+.tag{display:inline-block;padding:1px 9px;border-radius:3px;font-size:12px;white-space:nowrap}
+.t-ok{background:var(--okbg);color:var(--ok)}.t-wait{background:#eef1f4;color:var(--ink2)}.t-rej{background:var(--rejbg);color:var(--rej)}.t-prog{background:var(--warnbg);color:var(--warn)}
+.t-login{background:#eef4fe;color:var(--pri)}
+.t-new{background:var(--newbg);color:var(--new)}
+.no{color:var(--rej)}.mut{color:var(--ink3)}.mid{color:var(--pri)}
+.acct{background:var(--warnbg);color:#b9791c;padding:0 5px;border-radius:3px;font-size:12px}
+.op{color:var(--pri);cursor:pointer;margin-right:11px;white-space:nowrap}.op.r{color:var(--rej)}.op.g{color:var(--ok)}.op.o{color:var(--warn)}.op.new{color:var(--new);font-weight:500}
+.newbadge{display:inline-block;background:var(--rej);color:#fff;font-size:9px;font-weight:700;padding:0 4px;border-radius:2px;margin-left:4px;vertical-align:middle;letter-spacing:.3px}
+.newflag{display:inline-block;background:var(--rej);color:#fff;font-size:10px;font-weight:600;padding:1px 5px;border-radius:3px;margin-left:5px;vertical-align:middle;letter-spacing:.3px}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50}
+.mask.on{display:flex}
+.dlg{background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;max-height:92vh;display:flex;flex-direction:column}
+.dh{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.dh h3{font-size:15px;font-weight:600}.dh .x{cursor:pointer;color:var(--ink3);font-size:18px}
+.db{padding:18px 20px;overflow-y:auto}
+.df{padding:12px 20px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--line)}
+.sw{width:40px;height:22px;border-radius:11px;background:var(--pri);position:relative;cursor:pointer;flex:none}
+.sw.off{background:#cfd5dd}.sw::after{content:"";position:absolute;top:2px;left:20px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}.sw.off::after{left:2px}
+.optrow{display:flex;align-items:flex-start;gap:11px;padding:13px 12px;border:1px solid var(--line2);border-radius:6px;margin-bottom:10px;cursor:pointer}
+.optrow:hover{border-color:#b9d3f5;background:#f7fbff}.optrow.on{border-color:var(--pri);background:#f0f7ff}
+.ck{width:18px;height:18px;border:1.5px solid var(--line2);border-radius:4px;flex:none;margin-top:1px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px}
+.optrow.on .ck{background:var(--pri);border-color:var(--pri)}
+.optrow .t{font-size:13.5px;font-weight:500}.optrow .d{font-size:12px;color:var(--ink3);margin-top:3px}
+.scope{background:#f6f8fb;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:12.5px;color:var(--ink2);margin-bottom:14px;line-height:1.9}
+.scope b{color:var(--ink)}
+.hint{font-size:12px;color:var(--ink3);margin:2px 0 12px}
+.cfgtag{display:inline-flex;align-items:center;gap:6px;background:#f2f4f7;border:1px solid var(--line2);border-radius:4px;padding:4px 10px;font-size:12.5px;margin:0 8px 8px 0}
+.cfgtag .del{color:var(--rej);cursor:pointer;font-size:14px}
+.addline{display:flex;gap:8px;margin-top:6px}
+.addline input{flex:1;height:32px;border:1px solid var(--line2);border-radius:4px;padding:0 10px;font-size:13px}
+.rb{position:fixed;right:0;top:40%;background:var(--pri);color:#fff;writing-mode:vertical-lr;padding:16px 7px;border-radius:6px 0 0 6px;cursor:pointer;font-size:13px;letter-spacing:2px;z-index:40}
+.drawer{position:fixed;top:0;right:-1020px;width:960px;max-width:96vw;height:100%;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:60;transition:right .22s;overflow-y:auto}
+.drawer.on{right:0}
+.rtabs{display:flex;gap:2px;padding:0 22px;background:#fff;position:sticky;top:49px;z-index:5;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.rtab{padding:11px 14px;font-size:13px;color:var(--ink2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.rtab.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:600}
+.rpane{display:none}.rpane.on{display:block}
+.dwb h1{font-size:16px;margin:0 0 12px;color:var(--ink)}
+.dwb h2{font-size:14px;color:var(--pri);margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.dwb blockquote{background:#f6f8fb;border-left:3px solid var(--line2);padding:8px 12px;margin:0 0 12px;font-size:12px;color:var(--ink3);border-radius:0 5px 5px 0}
+.dwb table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:12.5px}
+.dwb table th{background:#fafbfc;text-align:left;padding:8px 10px;border:1px solid var(--line);font-weight:600}
+.dwb table td{padding:8px 10px;border:1px solid var(--line);vertical-align:top}
+.dwb code{background:#f2f4f7;border:1px solid var(--line);border-radius:3px;padding:1px 5px;font-size:11.5px;font-family:monospace;color:#b5304a;word-break:break-all}
+.dwh{position:sticky;top:0;z-index:6;background:#fff;padding:14px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.dwh h2{font-size:15px}.dwh .x{cursor:pointer;color:var(--ink3);font-size:20px}
+.dwb{padding:16px 24px 60px}
+.dwb h3{font-size:13.5px;color:var(--pri);margin:18px 0 7px;padding-left:9px;border-left:3px solid var(--pri)}
+.dwb h3:first-child{margin-top:0}.dwb h3.n{color:var(--new);border-color:var(--new)}
+.dwb p,.dwb li{font-size:12.8px;color:var(--ink2);margin-bottom:5px}.dwb ol,.dwb ul{padding-left:20px}
+.dwb .rl{background:var(--rejbg);border-left:3px solid var(--rej);padding:8px 12px;border-radius:0 5px 5px 0;color:#8a2330;font-size:12.5px;margin:8px 0}
+.toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#303a4b;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;z-index:80;opacity:0;pointer-events:none;transition:.2s}.toast.on{opacity:1}
+.field{margin-bottom:14px}.field label{display:block;font-size:13px;color:var(--ink2);margin-bottom:6px;font-weight:500}
+.textarea{width:100%;min-height:70px;border:1px solid var(--line2);border-radius:6px;padding:9px;font-size:13px;resize:vertical}
+.qtag{display:inline-block;background:var(--pri);color:#fff;font-size:12px;padding:5px 12px;border-radius:5px;margin:0 8px 8px 0;cursor:pointer}
+.selbox{height:34px;border:1px solid var(--new);background:var(--newbg);border-radius:5px;padding:0 11px;display:flex;align-items:center;color:var(--ink);font-size:13px;cursor:pointer;justify-content:space-between}
+.selbox .ph{color:var(--ink3)}
+.dropdown{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--line2);border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.18);z-index:100;max-height:280px;overflow-y:auto;padding:4px}
+.dropdown::-webkit-scrollbar{width:6px}.dropdown::-webkit-scrollbar-thumb{background:#cfd5dd;border-radius:3px}
+.dropdown.on{display:block}
+.ddopt{padding:9px 12px;font-size:13px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.ddopt:hover{background:#f0f7ff}
+.ddopt.sel{background:var(--newbg);color:var(--new);font-weight:500}
+.ddopt .chk{color:var(--new);font-size:14px}
+.ddopt.clear{color:var(--ink3);border-top:1px solid var(--line);margin-top:2px}
+.ddsearch{padding:4px 4px 6px;position:sticky;top:-4px;background:#fff}
+.ddsearch input{width:100%;height:30px;border:1px solid var(--line2);border-radius:4px;padding:0 9px;font-size:12.5px}
+.ddempty{padding:14px;text-align:center;color:var(--ink3);font-size:12.5px}
+</style></head>
+<body>
+<div class="demobar">原型演示 · 标 <span class="newbadge">NEW</span> 的为新增字段/入口：① 导出弹窗（勾选式）② 后台驳回原因（搜索/列/驳回下拉/配置）③ 参数配置·自动转发开关 ④ 所有状态导出带充值订单号（并入①）。点击对应按钮查看交互，右侧「需求说明」看完整规则。</div>
+<div class="topnav">
+  <a class="on" onclick="nav('list',this)">工单列表</a>
+  <a onclick="nav('cfg',this)">工单配置</a>
+</div>
+
+<!-- ============ 工单列表 ============ -->
+<div class="view on wrap" id="v-list">
+  <h1>工单管理</h1>
+  <div class="card filters">
+    <div class="frow">
+      <div class="fi"><label>会员账号</label><span class="inp mut" style="width:180px">请输入</span></div>
+      <div class="fi"><label>工单号</label><span class="inp mut">请输入</span></div>
+      <div class="fi"><label>订单号</label><span class="inp mut">请输入</span></div>
+      <div class="fi"><label>UTR</label><span class="inp mut">请输入</span></div>
+      <div class="fi"><label>状态</label><span class="inp sel">全部</span></div>
+    </div>
+    <div class="frow">
+      <div class="fi"><label>KYC连接</label><span class="inp sel mut">请选择</span></div>
+      <div class="fi"><label>后台驳回原因<span class="newbadge">NEW</span></label><input class="inp" style="min-width:150px" placeholder="模糊搜索"></div>
+      <div class="fi"><label>提交时间</label><span class="inp" style="min-width:160px">09-24 00:00</span><span class="mut">→</span><span class="inp" style="min-width:160px">09-25 23:59</span></div>
+      <div class="sp"></div>
+      <button class="btn btn-pri">查询</button><button class="btn btn-line">重置</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="tbar">
+      <button class="btn btn-pri" onclick="show('exp')">导出<span class="newbadge" style="background:#fff;color:var(--rej)">NEW</span></button>
+      <button class="btn btn-gh">批量三方查询</button><button class="btn btn-gh" onclick="show('batch')">批量驳回<span class="newbadge">NEW</span></button>
+      <button class="btn btn-gh">批量生成</button><button class="btn btn-gh">评论导出</button>
+      <button class="btn btn-pri">提交工单</button>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:34px"><input type="checkbox"></th><th>商户名称</th><th>工单号</th><th>工单类型</th><th>会员id</th>
+        <th>状态</th><th>后台驳回原因<span class="newbadge">NEW</span></th><th>是否匹配UTR</th><th>KYC连接</th><th>操作</th>
+      </tr></thead>
+      <tbody id="tb-list"></tbody>
+    </table>
+    <div style="padding:12px 16px;text-align:right;color:var(--ink3);font-size:13px">共 98 条　1 2 3 4 5</div>
+  </div>
+  
+</div>
+
+<!-- ============ 工单配置 ============ -->
+<div class="view wrap" id="v-cfg">
+  <h1>工单配置</h1>
+  <div class="card filters">
+    <div class="frow">
+      <div class="fi"><span class="inp sel" style="width:220px">AR062-diuwin</span></div>
+      <div class="fi"><span class="inp sel mut">工单类型名称</span></div>
+      <div class="fi"><span class="inp sel mut">工单限制类型</span></div>
+      <div class="fi"><span class="inp sel">启用</span></div>
+      <button class="btn btn-pri">查询</button><button class="btn btn-line">重置</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="tbar"><button class="btn btn-pri">添加类型</button></div>
+    <table>
+      <thead><tr><th>商户名称</th><th>工单类型名称</th><th>工单限制类型</th><th>开启状态</th><th>排序</th><th style="min-width:420px">操作</th></tr></thead>
+      <tbody id="tb-cfg"></tbody>
+    </table>
+    <div style="padding:12px 16px;text-align:right;color:var(--ink3);font-size:13px">共 26 条　1 2</div>
+  </div>
+  
+</div>
+
+<!-- 批量驳回弹窗 -->
+<div class="mask" id="m-batch"><div class="dlg" style="width:520px;overflow:visible">
+  <div class="dh"><h3>批量驳回</h3><span class="x" onclick="hide('batch')">×</span></div>
+  <div class="db" style="overflow:visible">
+    <div class="hint">已选 <b>2</b> 笔工单，将统一驳回并写入同一个后台驳回原因。</div>
+    <div class="field"><label>备注（会员可见）</label><textarea class="textarea" placeholder="请输入备注信息，会员可在进度查询看到"></textarea></div>
+    <div class="field" style="position:relative;margin-bottom:4px"><label style="color:var(--new)">后台驳回原因 <span class="newbadge">NEW</span></label>
+      <div class="selbox" onclick="toggleBReason(event)" id="bReasonBox"><span class="ph">请选择驳回原因（必选）</span><span id="bReasonArrow">⌄</span></div>
+      <div class="dropdown" id="bReasonDrop"></div>
+    </div>
+    <div class="hint" style="margin:6px 0 0">仅后台可见，不发给会员；只能选预设原因，不可自定义。</div>
+  </div>
+  <div class="df"><button class="btn btn-line" onclick="hide('batch')">取消</button><button class="btn" style="background:var(--rej);color:#fff" id="bConfirmBtn" onclick="confirmBatch()">确认驳回</button></div>
+</div></div>
+
+<!-- 导出弹窗 -->
+<div class="mask" id="m-exp"><div class="dlg" style="width:560px">
+  <div class="dh"><h3>导出选项</h3><span class="x" onclick="hide('exp')">×</span></div>
+  <div class="db">
+    <div class="scope"><div>本次导出范围（按当前筛选）：</div><div>状态 <b>全部</b>　提交时间 <b>09-24 ~ 09-25</b>　共 <b>98</b> 条</div></div>
+    <div class="hint">不勾选任何项即正常导出全部；勾选后按条件过滤。</div>
+    <div class="optrow" id="e1" onclick="tgOpt('e1')"><div class="ck">✓</div><div><div class="t">排除已延迟成功的订单</div><div class="d">去掉三方延迟成功、已自动到账的存款未到账工单，只留下需跟进的。客服人工办结的仍保留。</div></div></div>
+    <div class="optrow" id="e2" onclick="tgOpt('e2')"><div class="ck">✓</div><div><div class="t">订单号去重</div><div class="d">同一订单号有多张工单时只导最新一条，避免对账重复。所有工单类型均可用。</div></div></div>
+    
+  </div>
+  <div class="df"><button class="btn btn-line" onclick="hide('exp')">取消</button><button class="btn btn-pri" onclick="doExport()">确定导出</button></div>
+</div></div>
+
+<!-- 参数配置弹窗 -->
+<div class="mask" id="m-param"><div class="dlg" style="width:460px">
+  <div class="dh"><h3>参数配置</h3><span class="x" onclick="hide('param')">×</span></div>
+  <div class="db">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0"><span>多媒体附件转待处理</span><span class="sw" onclick="this.classList.toggle('off')"></span></div>
+    <div class="hint" style="margin:2px 0 0">（有视频或者PDF自动转发三方）</div>
+  </div>
+  <div class="df"><button class="btn btn-line" onclick="hide('param')">取消</button><button class="btn btn-pri" onclick="hide('param');toast('已保存')">保存</button></div>
+</div></div>
+
+<!-- 自动转发配置弹窗 -->
+<div class="mask" id="m-forward"><div class="dlg" style="width:520px">
+  <div class="dh"><h3>自动转发配置 · 存款未到账</h3><span class="x" onclick="hide('forward')">×</span></div>
+  <div class="db">
+    <div class="hint">配置三方回复关键字与对应工单状态。</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);margin-top:6px">
+      <span>KYC 已连接不命中驳回关键字 <span class="newbadge">NEW</span></span><span class="sw off" onclick="this.classList.toggle('off')"></span></div>
+    <div class="hint" style="margin:2px 0 0">开启后：转发到三方群的回复命中驳回类关键字时，若该工单 KYC 已连接，则不驳回、改转待处理（人工跟进）。与「参数配置·多媒体附件转待处理」为「或」关系，任一满足即转待处理。仅存款未到账生效。</div>
+  </div>
+  <div class="df"><button class="btn btn-line" onclick="hide('forward')">取消</button><button class="btn btn-pri" onclick="hide('forward');toast('已保存')">保存</button></div>
+</div></div>
+
+<!-- 驳回配置弹窗 -->
+<div class="mask" id="m-reject"><div class="dlg" style="width:600px">
+  <div class="dh"><h3>驳回原因配置 · 存款未到账</h3><span class="x" onclick="hide('reject')">×</span></div>
+  <div class="db">
+    <div class="hint">为该站点该工单类型维护「后台驳回原因」选项，客服驳回时可单选。仅后台可见，不发给会员。</div>
+    <div id="cfgTags"></div>
+    <div class="addline"><input id="newOpt" placeholder="输入新的驳回原因，如：退回到账号"><button class="btn btn-pri" onclick="addOpt()">添加</button></div>
+  </div>
+  <div class="df"><button class="btn btn-line" onclick="hide('reject')">取消</button><button class="btn btn-pri" onclick="hide('reject');toast('已保存')">保存</button></div>
+</div></div>
+
+<!-- 工单详情弹窗 -->
+<div class="mask" id="m-detail"><div class="dlg" style="width:820px">
+  <div class="dh"><h3>工单详情</h3><span class="x" onclick="hide('detail')">×</span></div>
+  <div class="db">
+    <div style="display:flex;gap:24px;font-size:13px;color:var(--ink2);margin-bottom:14px;flex-wrap:wrap">
+      <div>工单号：<b>2609260706540610400</b></div><div>工单类型：<span class="tag t-login">存款未到账</span></div>
+      <div>工单状态：<span class="tag t-prog">处理中</span></div><div>KYC连接：<span class="no">未连接 ↗</span></div>
+      <div>充值订单号：<b>DEP20260924001</b></div>
+    </div>
+    <div class="field"><label>备注（会员可见）</label><textarea class="textarea" placeholder="请输入备注信息"></textarea></div>
+    <div class="field"><label>快捷回复（会员可见）</label>
+      <span class="qtag">SUCCESS DEPOSIT</span><span class="qtag">NOT RECEIVED</span><span class="qtag">WRONG RECEIPT</span>
+      <span class="qtag">RECEIPT NO DATE&TIME</span><span class="qtag">WRONG UTR</span></div>
+    
+  </div>
+  <div class="df"><button class="btn btn-line" onclick="hide('detail')">取消</button><button class="btn" style="background:var(--rej);color:#fff" onclick="openReject()">驳回</button><button class="btn btn-pri" onclick="hide('detail');toast('已确认')">确认</button></div>
+</div></div>
+
+<!-- 驳回二次确认弹窗 -->
+<div class="mask" id="m-rconfirm"><div class="dlg" style="width:480px;overflow:visible">
+  <div class="dh"><h3>驳回确认</h3><span class="x" onclick="hide('rconfirm')">×</span></div>
+  <div class="db" style="overflow:visible">
+    <div class="hint">确认驳回该工单？请选择本次驳回的<b style="color:var(--new)">后台驳回原因</b>（仅后台可见，不发给会员）。</div>
+    <div class="field" style="margin-bottom:6px;position:relative"><label style="color:var(--new)">后台驳回原因 <span class="newbadge">NEW</span></label>
+      <div class="selbox" onclick="toggleReason(event)" id="reasonBox"><span class="ph">请选择驳回原因（必选）</span><span id="reasonArrow">⌄</span></div>
+      <div class="dropdown" id="reasonDrop"></div>
+    </div>
+    <div class="hint" style="margin:6px 0 0">从该工单类型已配置的原因中单选，<b style="color:var(--rej)">必选</b>；只能选预设，不可自定义。</div>
+  </div>
+  <div class="df"><button class="btn btn-line" onclick="hide('rconfirm')">取消</button><button class="btn" id="rConfirmBtn" style="background:var(--rej);color:#fff;opacity:.5;pointer-events:none" onclick="confirmReject()">确认驳回</button></div>
+</div></div>
+<div class="rb" onclick="dw(1)">需求说明</div>
+<div class="drawer" id="drawer"><div class="dwh"><h2>需求说明</h2><span class="x" onclick="dw(0)">×</span></div>
+<div class="rtabs"><span class="rtab on" onclick="rtab(0)">需求一 · 导出优化</span><span class="rtab" onclick="rtab(1)">需求二 · 后台驳回原因</span><span class="rtab" onclick="rtab(2)">需求三 · KYC不命中驳回</span></div>
+<div class="dwb"><div class="rpane on" id="rpane0"><h1>需求：工单列表 · 导出优化</h1>
+<blockquote>范围：仅工单后台 · 工单列表「导出」。不查询彩票平台、不改列表日常操作、无性能影响。</blockquote>
+<h2>一、改造页面与字段</h2>
+<p><b>页面</b>：工单后台 → 工单管理 → 点击「导出」</p>
+<p>点击导出时先弹出「导出选项」弹窗，运营按需勾选过滤条件后再导出。所有过滤基于工单已有的状态与备注完成，不对接彩票平台。另外，放开存款未到账工单在待处理状态下导出充值订单号的限制。</p>
+<h2>二、业务规则</h2>
+<h3 style="font-size:13px;margin:12px 0 6px">（一）勾选式导出</h3>
+<ul>
+<li>点击「导出」，弹出「导出选项」弹窗，含两个过滤开关，<b>默认均不勾选</b>。</li>
+<li><b>不勾任何项</b>：按当前筛选与时间段正常导出全量（与现状一致）。</li>
+<li>勾选「<b>排除已延迟成功的订单</b>」：导出结果去掉「三方延迟成功」的工单。</li>
+<li>判定：工单状态为「已处理/已完成」且备注为系统延迟到账回调固定文案。</li>
+<li>存款文案：<code>Deposit has been credited (previously delayed, now credited).</code></li>
+<li>该文案由平台延迟成功回调写入，系统固定内容、人工无法产生，可唯一识别。</li>
+<li>勾选「<b>订单号去重</b>」：同一充值订单号只导出一条，保留提交时间最新的一张。</li>
+<li>两个开关可任意组合，各自独立生效。</li>
+<li>弹窗内展示当前生效的筛选条件与时间段（只读提示），让运营导出前确认范围。</li>
+</ul>
+<h3 style="font-size:13px;margin:12px 0 6px">（二）导出充值订单号</h3>
+<ul>
+<li>存款未到账工单（含 USDT 存款未到账）导出时，<b>所有工单状态</b>均带出充值订单号。</li>
+<li>现状：待处理状态导出时充值订单号为空（其他状态已带出）；本次一并放开，使所有状态一致。</li>
+<li>充值订单号取值方式不变：优先取已落库的订单号，为空时从工单提交内容中识别。</li>
+</ul>
+<h2>三、限制</h2>
+<ul>
+<li>「排除已延迟成功」仅对<b>存款未到账类</b>工单（含 USDT 存款未到账）有意义，对其他类型该开关不产生排除效果。</li>
+<li>「订单号去重」对<b>所有工单类型</b>导出均可用。</li>
+<li>过滤只作用于<b>导出结果</b>，不改变列表展示与工单状态。</li>
+<li>不依据补单记录「本地状态(LocalState)」判断订单是否成功 —— 该字段轮询后可能未被回调更新，会漏判；一律以工单状态 + 回调备注为准。</li>
+<li>「排除已延迟成功」只排除三方延迟成功的单；客服<b>人工办结</b>的「已处理」工单（备注非上述文案）<b>予以保留</b>，因其订单未必成功。</li>
+<li>取款未到账<b>不纳入</b>「排除已延迟成功」（取款仅订单已完成才可提工单，无此场景）。</li>
+<li>导出充值订单号<b>仅改导出取数，不改工单列表页展示</b>（列表不新增充值订单号列），仅存款未到账类。</li>
+<li>导出弹窗本期仅「排除已延迟成功」「订单号去重」两项。</li>
+</ul>
+<h2>四、验收标准</h2>
+<ul>
+<li>点击导出 → 弹出导出选项弹窗，两个开关默认未勾选。</li>
+<li>不勾选直接导出 → 结果与改造前完全一致。</li>
+<li>只勾「排除已延迟成功」→ 三方延迟成功的存款未到账工单不出现在结果中；客服人工办结的仍保留；已驳回的正常导出。</li>
+<li>只勾「订单号去重」→ 同一订单号只出现一条，为提交时间最新的一张。</li>
+<li>两个都勾 → 先排除延迟成功、再去重，结果为「需跟进」清单。</li>
+<li>弹窗正确展示当前筛选条件与时间段。</li>
+<li>存款未到账工单在<b>各个状态</b>（待处理/处理中/系统处理中/已处理/已驳回）导出，「充值订单号」<b>均有值</b>。</li>
+<li>尤其<b>待处理</b>状态导出的充值订单号从空变为有值（其他状态行为不变）。</li>
+<li>导出的充值订单号内容与工单实际提交的订单号一致。</li>
+<li>工单列表页展示不发生变化。</li>
+<li>导出的列与内容，除上述过滤外与改造前一致。</li>
+<li>非存款未到账类型导出 → 行为与改造前一致。</li>
+</ul></div><div class="rpane" id="rpane1"><h1>需求：工单 · 后台驳回原因</h1>
+<blockquote>范围：工单配置、工单列表、工单处理弹窗、导出。</blockquote>
+<h2>一、改造页面与字段</h2>
+<table><tr><th>页面</th><th>改造</th></tr><tr><td>工单配置 · 操作栏</td><td>新增「驳回原因配置」，每站每工单类型各配一套选项</td></tr><tr><td>工单处理 · 单个驳回二次确认弹窗</td><td>点「驳回」弹出二次确认，内含「后台驳回原因」下拉，<b>必选</b>一个该工单已配选项</td></tr><tr><td>工单列表 · 批量驳回弹窗</td><td>「批量驳回」弹窗内新增「后台驳回原因」下拉，<b>必选</b>一个，应用到所选全部工单</td></tr><tr><td>工单列表</td><td>状态列旁新增一列「后台驳回原因」</td></tr><tr><td>工单列表 · 搜索区</td><td>新增「后台驳回原因」输入框，模糊搜索</td></tr><tr><td>工单列表 · 导出</td><td>导出带出「后台驳回原因」列</td></tr></table>
+<p><b>新增独立字段</b>存储所选原因，与工单现有备注（Remark）<b>完全隔离</b>。</p>
+<h2>二、业务规则</h2>
+<ul>
+<li><b>配置</b>：工单配置操作栏新增「驳回原因配置」，可对每个站点、每个工单类型分别维护一组驳回原因选项（新增 / 编辑 / 排序 / 启停 / 删除）。所有工单类型均开放配置，是否使用由运营决定。</li>
+<li><b>单个驳回</b>：客服点「驳回」时弹出<b>二次确认弹窗</b>，在弹窗内从「后台驳回原因」下拉中<b>单选并必选</b>一个该工单类型已配置的原因，方可确认驳回。<b>只能从预设选项中选，不可当场自定义编辑</b>。</li>
+<li><b>批量驳回</b>：「批量驳回」弹窗内新增「后台驳回原因」下拉，<b>必选</b>一个，选中的原因写入本次批量所选的全部工单。原选项均来自配置。</li>
+<li><b>展示</b>：工单列表状态列旁展示所选原因；未选则为空。</li>
+<li><b>筛选</b>：搜索区「后台驳回原因」输入框，对该字段做模糊匹配。</li>
+<li><b>导出</b>：导出结果包含该列。</li>
+<li><b>存快照</b>：工单保存的是所选原因的<b>文案快照</b>。配置项后续被修改或删除，历史工单已记录的原因文案<b>不变</b>。</li>
+</ul>
+<h2>三、限制</h2>
+<ul>
+<li><b>【红线】后台驳回原因为后台专用字段，任何会员端接口（含进度查询）均不得返回、不得展示。</b> 不得复用会员可见的现有备注（Remark）。</li>
+<li>一张工单只保留一个后台驳回原因（单选、必选）；批量驳回时全部所选工单写入同一个原因。</li>
+<li>配置与使用权限沿用现有工单配置权限，不单独新增。</li>
+<li>未配置任何驳回原因的工单类型，其驳回弹窗<b>不显示后台驳回原因下拉，可直接驳回</b>，不阻挡业务。</li>
+</ul>
+<h2>四、验收标准</h2>
+<ul>
+<li>工单配置操作栏出现「驳回原因配置」，可对某站某工单类型新增多个原因并保存。</li>
+<li>不同站点、不同工单类型的驳回原因相互独立，互不影响。</li>
+<li>单个驳回时必须选一个已配原因才能确认；未选时「确认驳回」不可用。下拉只能选预设，无自定义输入。</li>
+<li>工单列表状态旁正确展示所选原因；未选为空。</li>
+<li>搜索框输入部分文案，能模糊匹配到对应工单。</li>
+<li>导出结果包含「后台驳回原因」列，值与列表一致。</li>
+<li><b>会员端进度查询及任何会员可见页面，均看不到后台驳回原因。</b></li>
+<li>修改或删除某配置项后，此前已记录该原因的历史工单，展示文案不变。</li>
+<li>批量驳回弹窗内必须选一个后台驳回原因，选中的原因写入所选全部工单。</li>
+<li>未配置驳回原因的工单类型，驳回弹窗不显示后台驳回原因下拉，可直接驳回。</li>
+</ul></div><div class="rpane" id="rpane2"><h1>需求：存款未到账工单 · KYC 关联不自动驳回</h1>
+<blockquote>范围：工单配置 · 自动转发配置；自动转发回复消费逻辑。</blockquote>
+<h2>一、改造页面与字段</h2>
+<table><tr><th>页面</th><th>改造</th></tr><tr><td>工单配置 · 自动转发配置</td><td>新增开关「KYC 已连接不命中驳回关键字」，商户可配</td></tr></table>
+<h2>二、业务规则</h2>
+<p><b>现状</b>：存款未到账工单转发到三方 TG 群后，三方回复命中驳回类关键字时，工单被自动置为对应状态（可能驳回）。已有一个例外——工单带媒体附件且商户开启「包含媒体文件自动转待处理」时，改为转待处理（转人工）而不驳回。</p>
+<ul>
+<li>在「自动转发配置」中新增商户级开关「KYC 已连接不命中驳回关键字」，默认关闭。（放自动转发而非参数配置：命中驳回关键字本就是转发回复消费的逻辑，KYC 豁免是其自然延伸。）</li>
+<li>开关开启时：存款未到账工单在三方回复命中驳回关键字后，若该工单 <b>KYC 连接状态为「已连接」</b>，不自动驳回，改为<b>转待处理（人工跟进）</b>。</li>
+<li>与现有「媒体附件转待处理」（在参数配置）为<b>或</b>关系：工单带媒体附件、或 KYC 已连接，任一满足即不驳回、转待处理。两个开关分属自动转发/参数配置两处，逻辑上仍为或。</li>
+<li>两个条件都不满足时，维持现状按关键字配置置状态。</li>
+</ul>
+<h2>三、限制</h2>
+<ul>
+<li>仅对存款未到账类工单（含 USDT 存款未到账）生效；取款不涉及。</li>
+<li>KYC 关联判定以工单的 KYC 连接状态为准（已连接 / 未连接），仅「已连接」触发保护。</li>
+<li>开关默认关闭，不影响未开启该开关的商户现状。</li>
+<li>保护仅改变「命中驳回关键字后的处置」，不改变自动补单、自动转发本身的流程。</li>
+</ul>
+<h2>四、验收标准</h2>
+<ul>
+<li>自动转发配置出现「KYC 已连接不命中驳回关键字」开关，可保存。</li>
+<li>开关<b>关闭</b>时：KYC 已连接的存款未到账工单，三方回复命中驳回关键字 → 仍按现状驳回。</li>
+<li>开关<b>开启</b>时：KYC 已连接的工单，三方回复命中驳回关键字 → <b>不驳回，转待处理</b>。</li>
+<li>开关开启、但工单 KYC <b>未连接</b>、且无媒体附件 → 仍按关键字驳回。</li>
+<li>开关开启、工单带媒体附件（媒体开关也开）→ 转待处理（现有行为不变）。</li>
+<li>命中「成功类」关键字的工单 → 正常置完成，不受本开关影响。</li>
+<li>取款未到账及其他类型 → 行为不变。</li>
+</ul></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const st={e1:false,e2:false};
+let reasons=['退回到账号','资料不完整','P视频/PDF','UTR错误','收据无日期时间'];
+const listRows=[
+ ['AR062','2609251220086655773','存款未到账','2251031','918745125963','已处理','—','DEP001','否','未连接',{delayed:1,order:'DEP001',state:4}],
+ ['AR062','2609251218000000001','存款未到账','2251044','918745100002','已驳回','退回到账号','DEP002','否','未连接',{delayed:0,order:'DEP002',state:3}],
+ ['AR062','2609251159000000002','存款未到账','2251055','918745100003','待处理','—','DEP003','否','已连接',{delayed:0,order:'DEP003',pending:1,state:1}],
+ ['AR062','2609251140000000003','存款未到账','2251066','918745100004','处理中','—','DEP004','是','已连接',{delayed:0,order:'DEP004',state:2}],
+ ['AR062','2609251139000000004','存款未到账','2251055','918745100003','已驳回','资料不完整','DEP003','否','未连接',{delayed:0,order:'DEP003',state:3}],
+ ['AR062','2609241500029951200','修改登录密码','806187523','ft_806187523','待处理','—','--','--','--',{state:1}],
+];
+const cfgRows=[
+ ['删除USDT','已登录','启用','1',['禁用','编辑','vip配置','教程','快捷回复','驳回配置']],
+ ['其他问题','已登录','启用','1',['禁用','编辑','vip配置','限制配置','教程','快捷回复','驳回配置']],
+ ['存款未到账','已登录','启用','1',['禁用','编辑','参数配置','vip配置','教程','自动转发','快捷回复','驳回配置']],
+ ['取款未到账','已登录','启用','2',['禁用','编辑','参数配置','vip配置','教程','自动转发','快捷回复','驳回配置']],
+ ['修改ISFC','已登录','启用','3',['禁用','编辑','vip配置','教程','快捷回复','驳回配置']],
+];
+function stTag(s){const m={'已处理':'t-ok','已驳回':'t-rej','待处理':'t-wait','处理中':'t-prog'};return `<span class="tag ${m[s]||'t-wait'}">${s}</span>`}
+function renderList(){
+ document.getElementById('tb-list').innerHTML=listRows.map(r=>{
+  const utr=r[8]==='是'?'<span class="mid">是</span>':r[8]==='否'?'<span class="no">否</span>':'<span class="mut">--</span>';
+  const kyc=r[9]==='已连接'?'<span class="mid">已连接 ↗</span>':r[9]==='未连接'?'<span class="no">未连接 ↗</span>':'<span class="mut">--</span>';
+  const reason=r[6]==='—'?'<span class="mut">—</span>':`<span class="tag t-new">${r[6]}</span>`;
+    return `<tr><td class="c"><input type="checkbox"></td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td>
+  <td>会员id: <span class="mid">${r[3]}</span><br><span class="acct">${r[4]}</span></td>
+  <td class="c">${stTag(r[5])}</td><td class="c">${reason}</td><td class="c">${utr}</td><td class="c">${kyc}</td>
+  <td class="c"><span class="op" onclick="show('detail')">查看</span><span class="op">修改备注</span>${r[10].state===1?'<span class="op g">锁定</span>':'<span class="op">编辑</span>'}</td></tr>`;
+ }).join('');
+}
+function renderCfg(){
+ document.getElementById('tb-cfg').innerHTML=cfgRows.map(r=>{
+  const ops=r[4].map(o=>{
+   let cls='op',fn='';
+   if(o==='禁用')cls='op r';else if(o==='驳回配置'){cls='op new';fn=`onclick="show('reject')"`;o=`驳回配置<span class="newbadge">NEW</span>`;}
+   else if(o==='参数配置')fn=`onclick="show('param')"`;
+   else if(o==='自动转发'){cls='op new';fn=`onclick="show('forward')"`;}
+   return `<span class="${cls}" ${fn}>${o}</span>`;
+  }).join('');
+  return `<tr><td>AR062-diuwin</td><td>${r[0]}</td><td class="c"><span class="tag t-login">${r[1]}</span></td>
+  <td class="c"><span class="tag t-ok">${r[2]}</span></td><td class="c">${r[3]}</td><td>${ops}</td></tr>`;
+ }).join('');
+}
+function renderCfgTags(){
+ document.getElementById('cfgTags').innerHTML=reasons.map((r,i)=>`<span class="cfgtag">${r}<span class="del" onclick="delOpt(${i})">×</span></span>`).join('');
+}
+renderList();renderCfg();renderCfgTags();
+function nav(v,el){document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));document.getElementById('v-'+v).classList.add('on');document.querySelectorAll('.topnav a').forEach(a=>a.classList.remove('on'));el.classList.add('on');}
+function show(id){document.getElementById('m-'+id).classList.add('on');}
+function hide(id){document.getElementById('m-'+id).classList.remove('on');}
+function tgOpt(id){st[id]=!st[id];document.getElementById(id).classList.toggle('on',st[id]);}
+function addOpt(){const v=document.getElementById('newOpt').value.trim();if(!v)return;reasons.push(v);document.getElementById('newOpt').value='';renderCfgTags();}
+function delOpt(i){reasons.splice(i,1);renderCfgTags();}
+function openReject(){reasonSel='';document.getElementById('reasonBox').innerHTML='<span class="ph">请选择驳回原因（必选）</span><span id="reasonArrow">⌄</span>';const b=document.getElementById('rConfirmBtn');b.style.opacity='.5';b.style.pointerEvents='none';show('rconfirm');}
+function confirmReject(){if(!reasonSel){toast('请先选择后台驳回原因（必选）');return;}hide('rconfirm');hide('detail');toast('已驳回，原因：'+reasonSel);}
+let reasonSel='';
+function toggleReason(e){e.stopPropagation();const d=document.getElementById('reasonDrop');const open=!d.classList.contains('on');buildReasonDrop();d.classList.toggle('on',open);document.getElementById('reasonArrow').textContent=open?'⌃':'⌄';}
+function buildReasonDrop(kw){const d=document.getElementById('reasonDrop');kw=(kw||'').trim();const list=kw?reasons.filter(r=>r.includes(kw)):reasons;let h='<div class="ddsearch"><input placeholder="输入关键字过滤…" oninput="buildReasonDrop(this.value)" onclick="event.stopPropagation()" autofocus></div>';h+=list.length?list.map(r=>`<div class="ddopt${reasonSel===r?' sel':''}" onclick="chooseReason('${r.replace(/'/g,"")}')">${r}${reasonSel===r?'<span class="chk">✓</span>':''}</div>`).join(''):'<div class="ddempty">无匹配</div>';d.innerHTML=h;const inp=d.querySelector('.ddsearch input');if(inp&&kw!==undefined)inp.value=kw;if(inp)inp.focus();}
+function chooseReason(r){reasonSel=r;const box=document.getElementById('reasonBox');box.innerHTML=`<span>${r}</span><span id="reasonArrow">⌄</span>`;document.getElementById('reasonDrop').classList.remove('on');const b=document.getElementById('rConfirmBtn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+document.addEventListener('click',e=>{const d=document.getElementById('reasonDrop');if(d&&d.classList.contains('on')&&!e.target.closest('#reasonDrop')&&!e.target.closest('#reasonBox')){d.classList.remove('on');const a=document.getElementById('reasonArrow');if(a)a.textContent='⌄';}});
+function doExport(){let list=listRows.filter(r=>r[6]!==undefined);let msg=[];if(st.e1){const b=list.length;list=list.filter(r=>!r[10].delayed);if(b-list.length)msg.push('排除延迟成功 '+(b-list.length)+' 条');}if(st.e2){const seen=new Set(),keep=[];for(const r of list){const k=r[10].order;if(k&&k!=='--'&&seen.has(k))continue;seen.add(k);keep.push(r);}if(list.length-keep.length)msg.push('去重 '+(list.length-keep.length)+' 条');list=keep;}hide('exp');toast('已导出 '+list.length+' 条 （'+((!st.e1&&!st.e2)?'全量':msg.join('，'))+'）');}
+
+let bReasonSel='';
+function buildBReasonDrop(kw){const d=document.getElementById('bReasonDrop');kw=(kw||'').trim();const list=kw?reasons.filter(r=>r.includes(kw)):reasons;let h='<div class="ddsearch"><input placeholder="输入关键字过滤…" oninput="buildBReasonDrop(this.value)" onclick="event.stopPropagation()"></div>';h+=list.length?list.map(r=>`<div class="ddopt${bReasonSel===r?' sel':''}" onclick="chooseBReason('${r.replace(/'/g,"")}')">${r}${bReasonSel===r?'<span class="chk">✓</span>':''}</div>`).join(''):'<div class="ddempty">无匹配</div>';d.innerHTML=h;const inp=d.querySelector('.ddsearch input');if(inp)inp.value=kw||'';}
+function toggleBReason(e){e.stopPropagation();const d=document.getElementById('bReasonDrop');const open=!d.classList.contains('on');buildBReasonDrop('');d.classList.toggle('on',open);document.getElementById('bReasonArrow').textContent=open?'⌃':'⌄';}
+function chooseBReason(r){bReasonSel=r;document.getElementById('bReasonBox').innerHTML=`<span>${r}</span><span id="bReasonArrow">⌄</span>`;document.getElementById('bReasonDrop').classList.remove('on');}
+function confirmBatch(){if(!bReasonSel){toast('请先选择后台驳回原因（必选）');return;}hide('batch');toast('已批量驳回 2 笔，原因：'+bReasonSel);bReasonSel='';}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2600);}
+function dw(o){document.getElementById('drawer').classList.toggle('on',!!o);}
+function rtab(k){document.querySelectorAll('.rtab').forEach((t,i)=>t.classList.toggle('on',i===k));document.querySelectorAll('.rpane').forEach((p,i)=>p.classList.toggle('on',i===k));}
+</script>
+</body></html>
