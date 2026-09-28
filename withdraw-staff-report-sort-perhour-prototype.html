@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>出款员工报表 · 排序与每小时单次 · 交互原型</title>
+<style>
+:root{--ink:#1d2129;--bg:#f5f7fa;--line:#e5e6eb;--sub:#4e5969;--pri:#165dff;--gray:#86909c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;color:var(--ink);background:var(--bg);line-height:1.5}
+
+.page-block{padding:58px 18px 18px}
+
+/* ============ 页面路径面包屑 ============ */
+.crumb{display:flex;justify-content:flex-end;margin-bottom:8px;font-size:12px;color:var(--gray)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--sub);font-weight:600}
+
+/* ============ V3 中台外壳 ============ */
+.v3-panel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px}
+.v3-filter{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:10px}
+.v3-fi{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);white-space:nowrap}
+.v3-fi .rq{color:#f5222d}
+.v3-inp,.v3-sel{height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:0 9px;font-size:12.5px;min-width:150px;background:#fff;color:var(--ink)}
+.v3-sel{color:var(--gray)}
+.v3-btn{height:32px;padding:0 14px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid #dcdfe6;background:#fff;color:var(--sub)}
+.v3-btn:hover{color:var(--pri);border-color:var(--pri)}
+.v3-btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.v3-btn.pri:hover{opacity:.88;color:#fff}
+.v3-btn.txt{border:none;background:none;color:var(--sub);padding:0 8px}
+.v3-btn.exp{background:color-mix(in srgb,var(--pri) 12%,#fff);border-color:color-mix(in srgb,var(--pri) 32%,#fff);color:var(--pri);font-weight:600}
+.v3-btn.exp:hover{background:color-mix(in srgb,var(--pri) 18%,#fff);color:var(--pri)}
+.f-right{margin-left:auto;display:flex;gap:8px}
+.v3-tip{background:#fffbe6;border:1px solid #ffe58f;color:#874d00;font-size:11.5px;border-radius:4px;padding:6px 10px;margin-bottom:10px}
+.v3-tools{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.v3-tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.v3-tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.v3-tbl th{background:#f7f8fa;color:var(--sub);font-weight:600;text-align:center;padding:9px 8px;border-bottom:1px solid var(--line);border-right:1px solid #f0f1f3}
+.v3-tbl td{padding:9px 8px;border-bottom:1px solid #f2f3f5;border-right:1px solid #f7f8fa;color:var(--ink);text-align:center;vertical-align:middle}
+.v3-tbl tr:last-child td{border-bottom:none}
+.v3-tbl tr:hover td{background:#fafbfc}
+.v3-tbl td.l,.v3-tbl th.l{text-align:left}
+.lnk{color:var(--pri);cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 4px 2px;font-size:12px;color:var(--sub)}
+.pg-n{min-width:26px;height:26px;border:1px solid #dcdfe6;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:#fff}
+.pg-n.on{background:var(--pri);border-color:var(--pri);color:#fff}
+
+.ci{text-align:left;font-size:11.5px;line-height:1.75;color:var(--sub)}
+.ci b{color:var(--ink);font-weight:600}
+.pill{display:inline-block;font-size:11px;padding:1.5px 8px;border-radius:10px;white-space:nowrap}
+.pill.pos{background:#fff7e6;color:#ad6800}
+.pill.pos.lead{background:#e8f9ee;color:#0f7a48}
+.pill.role{background:#eaf3ff;color:#2d6cdf}
+.pill.tz{background:#f2f3f5;color:var(--sub)}
+.dash{color:#c9cdd4}
+.rate{font-weight:700;color:#165dff}
+.newf{background:#f5222d;color:#fff;font-size:8px;font-weight:700;border-radius:3px;padding:0 3px;margin-left:3px;letter-spacing:.2px;vertical-align:1px;white-space:nowrap}
+
+/* 单值列表头：文字 + 说明问号 + 单个排序箭头，flex 对齐避免错位 */
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover .th-flex{color:var(--pri)}
+.th-flex{display:inline-flex;align-items:center;gap:4px;line-height:1}
+.qm{position:relative;display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;border:1px solid #c9cdd4;color:#9aa1a9;font-size:9px;cursor:help;flex:0 0 auto}
+.qm .tip{display:none;position:absolute;top:calc(100% + 8px);left:-10px;z-index:200;background:#1f2733;color:#fff;text-align:left;font-weight:400;font-size:12px;line-height:1.7;padding:12px 14px;border-radius:8px;width:max-content;max-width:300px;box-shadow:0 8px 24px rgba(0,0,0,.22);white-space:normal;cursor:default}
+.qm .tip::before{content:"";position:absolute;bottom:100%;left:14px;border:6px solid transparent;border-bottom-color:#1f2733}
+.qm:hover .tip{display:block}
+.qm .tip .th{font-weight:700;margin:0 0 2px}
+.qm .tip .sec{margin-top:10px}
+.qm .tip .note{color:#ffffffb3}
+.qm .tip .hr{border-top:1px solid rgba(255,255,255,.16);margin:10px 0}
+.qm .tip .sk{margin-top:2px;color:#ffd666}
+.sort-ico{color:#c9cdd4;font-size:10px;flex:0 0 auto}
+.sort-ico.active{color:var(--pri)}
+th.sorted{color:var(--pri);background:#f0f7ff}
+
+/* 复合列表头：标题行 + 每个数值各一行、各配一个独立排序箭头 */
+.th-multi{text-align:center;vertical-align:middle;cursor:default}
+.th-multi .th-title{display:flex;align-items:center;justify-content:center;gap:3px;font-weight:600;margin-bottom:2px;white-space:nowrap;line-height:1.2}
+.th-multi .th-sub{display:flex;align-items:center;justify-content:center;gap:2px;font-weight:400;font-size:10.5px;line-height:1.3;padding:0 2px;border-radius:3px;cursor:pointer;white-space:nowrap}
+.th-multi .th-sub:hover{color:var(--pri);background:#f5f8ff}
+.th-multi .th-sub.active{color:var(--pri);background:#eaf3ff;font-weight:600}
+.th-multi .th-sub.active .sort-ico{color:var(--pri)}
+
+/* ============ 右侧需求说明抽屉（规范：顶部按钮 + 边缘把手，遮罩/✕/Esc 关闭） ============ */
+.req-btn{position:fixed;top:14px;right:18px;z-index:500;height:32px;padding:0 14px;border-radius:16px;background:#fff;border:1px solid #adc6ff;color:var(--pri);font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(22,93,255,.12)}
+.req-btn:hover{background:#f0f7ff}
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:12px;padding:12px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:2px;box-shadow:-2px 0 8px rgba(22,93,255,.2)}
+.req-handle:hover{background:#0e42d2}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:600;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-840px;width:820px;max-width:92vw;height:100%;background:#fff;z-index:601;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:var(--gray);font-size:18px}
+.req-body{flex:1;overflow-y:auto;padding:16px 18px 40px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body .h1:first-child{margin-top:0}
+.req-body table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 6px}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 8px;text-align:left;font-weight:600;color:#1c4c8c}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 8px;vertical-align:top;line-height:1.7}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 11px;margin:6px 0;font-size:12px;line-height:1.75;border-radius:0 4px 4px 0}
+.req-body .br b{color:#1c4c8c}
+.req-body .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:8px 11px;font-size:11.5px;color:#874d00;margin:8px 0;line-height:1.7}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+
+/* ============ 每日统计：弹窗形式（非抽屉） ============ */
+.detail-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:700;display:none;align-items:flex-start;justify-content:center;padding:40px 16px 30px;overflow-y:auto}
+.detail-mask.show{display:flex}
+.detail-panel{background:#fff;border-radius:8px;width:100%;max-width:920px;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.detail-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.detail-head .t{font-size:15px;font-weight:700}
+.detail-body{padding:16px 20px 24px;max-height:76vh;overflow-y:auto}
+.d-block{margin-bottom:16px}
+.d-title{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--sub)}
+.d-info{display:flex;gap:22px;flex-wrap:wrap;font-size:12.5px;color:var(--sub);background:#f7f8fa;border-radius:6px;padding:10px 14px}
+.d-info b{color:var(--ink)}
+.d-sum{display:flex;flex-wrap:wrap;gap:10px}
+.d-card{flex:1 1 140px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:#fff}
+.d-card.hl{border-color:#adc6ff;background:#f5f9ff}
+.d-card .v{font-size:16px;font-weight:700;color:var(--ink)}
+.d-card .v.pri{color:#165dff}
+.d-card .l{font-size:11px;color:var(--gray);margin-top:3px}
+</style>
+</head>
+<body>
+
+<!-- 右侧需求说明入口：顶部按钮 + 边缘把手 -->
+<div class="req-btn" onclick="openReq()">📋 需求说明</div>
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="req-mask" onclick="closeReq()"></div>
+<div class="req-drawer" id="req-drawer">
+  <div class="req-head"><span class="t">需求说明</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body">
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:120px">页面</th><th>改动点</th></tr>
+      <tr><td>出款员工报表 · 列表</td><td>订单统计 / 转单统计 / 审核平均耗时 / 工作时长统计 / 超时统计 / 暂停次数统计 / 暂停时长统计 支持点击排序；订单统计列展示 已完成单次 / 处理中单数 / 每小时单次（每小时单次为新增），各值均可点击排序；新增导出</td></tr>
+      <tr><td>出款员工报表 · 每日统计</td><td>汇总数据与订单统计列均新增「每小时单次」</td></tr>
+    </table>
+
+    <div class="h1">二、名词术语</div>
+    <table class="t">
+      <tr><th style="width:110px">术语</th><th>说明</th></tr>
+      <tr><td><b>每小时单次</b></td><td>已完成单次 ÷ 上班时长（小时），反映员工单位时间内的出款处理效率</td></tr>
+      <tr><td><b>排序</b></td><td>点击某个数值旁的箭头，按这个数值从高到低或从低到高重新排列当前列表</td></tr>
+    </table>
+
+    <div class="h1">三、功能描述与业务规则</div>
+    <div class="br"><span class="bn">01</span>订单统计、转单统计、超时统计、暂停次数统计、暂停时长统计这几列里放了不止一个数字，每个数字都可以单独点击排序，点哪个数字就按哪个排。审核平均耗时、工作时长统计本身只有一个数字，直接点排序。</div>
+    <div class="br"><span class="bn">02</span>同一时间只按一个数值排序，点了新的数值，原来的排序会被替换。</div>
+    <div class="br"><span class="bn">03</span>「每小时单次」显示在订单统计列里、已完成单次下方，不单独占一列；= 已完成单次 ÷ 上班时长（小时），也可单独点击排序。</div>
+    <div class="br"><span class="bn">04</span>列表里的「每小时单次」按查询的整个日期范围合计计算；每日统计里按每一天单独计算。</div>
+    <div class="br"><span class="bn">05</span>员工当天没有上班记录、上班时长为 0 时，「每小时单次」显示「--」，不显示 0，也排在最后。</div>
+    <div class="br"><span class="bn">06</span>列表新增导出，导出当前筛选条件下的完整数据，不受当前页码和排序影响。一格多值的列（订单统计 / 转单统计 / 超时统计 / 暂停次数统计 / 暂停时长统计）在导出文件中各拆成独立列（如订单统计拆为 已完成单次、处理中单数、每小时单次三列），便于二次排序与统计。</div>
+
+    <div class="h1">四、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>排序范围</td><td>每次只按一个数值排序，不支持多个数值组合排序</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 每日统计：弹窗 -->
+<div class="detail-mask" id="detail-mask">
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-head"><span class="t">员工每日统计</span><span class="req-x" onclick="closeDetail()">✕</span></div>
+    <div class="detail-body">
+      <div class="d-block">
+        <div class="d-title">员工信息</div>
+        <div class="d-info" id="d-info"></div>
+      </div>
+      <div class="d-block">
+        <div class="d-title">汇总数据</div>
+        <div class="d-sum" id="d-sum"></div>
+      </div>
+      <div class="d-block">
+        <div class="d-title">明细数据</div>
+        <div class="v3-tablewrap">
+          <table class="v3-tbl">
+            <thead><tr>
+              <th style="width:90px">日期</th>
+              <th style="width:80px">工作状态</th>
+              <th class="l" style="width:150px">上下班信息</th>
+              <th class="l" style="width:130px;background:#fff1f0">订单统计<span class="newf">NEW</span></th>
+              <th class="l" style="width:100px">转单统计</th>
+              <th style="width:90px">审核平均耗时</th>
+              <th class="l" style="width:110px">超时统计</th>
+              <th class="l" style="width:100px">暂停次数</th>
+            </tr></thead>
+            <tbody id="d-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 出款员工报表列表 ==================== -->
+<div class="page-block">
+  <div class="crumb">提现订单管理<span class="sep">-</span><span class="cur">出款员工报表</span></div>
+  <div class="v3-panel">
+    <div class="v3-filter">
+      <div class="v3-fi"><span>开始日期<span class="rq">*</span></span><input class="v3-inp" value="2026-09-11"></div>
+      <div class="v3-fi"><span>结束日期（可选）</span><input class="v3-inp" value="2026-09-17"></div>
+      <div class="v3-fi"><span>职位</span><select class="v3-sel"><option>全部</option></select></div>
+      <div class="v3-fi"><span>账号</span><input class="v3-inp" placeholder="请输入账号"></div>
+      <div class="f-right">
+        <button class="v3-btn pri" onclick="toast('演示原型，查询未接后端')">🔍 搜索</button>
+        <button class="v3-btn" onclick="toast('已重置')">↻ 重置</button>
+      </div>
+    </div>
+    <div class="v3-tip">💡 提示：开始时间必选且距今不超过65天；结束时间可选，若选择则与开始时间跨度不能超过35天</div>
+    <div class="v3-tools">
+      <button class="v3-btn exp" onclick="openExp()">🗋 导出<span class="newf">NEW</span></button>
+      <span style="font-size:11.5px;color:var(--gray)">列标题下每个数值都可单独点击排序（<b>⇅</b> 未排序 · <b>▲</b> 升序 · <b>▼</b> 降序，同一时间只排一个数值）；「每小时单次」显示在订单统计列内，= 已完成单次 ÷ 上班时长</span>
+      <div class="f-right">
+        <button class="v3-btn txt">⚙ 自定义列</button>
+      </div>
+    </div>
+    <div class="v3-tablewrap">
+      <table class="v3-tbl">
+        <thead>
+        <tr>
+          <th style="width:52px">序号</th>
+          <th style="width:100px">账号</th>
+          <th style="width:96px">出款组别</th>
+          <th style="width:56px">职位</th>
+          <th style="width:130px">系统角色</th>
+          <th style="width:66px">统计时区</th>
+          <th class="th-multi" style="width:126px">
+            <div class="th-title">订单统计<span class="qm">?<span class="tip"><div class="th">● 已完成单次</div><div>统计已审核完成的次数</div><div class="note">包含：已提交、出款成功、人工确认、人工取消</div><div class="note">※ 若一笔订单被多人操作过会计算多次</div><div class="hr"></div><div class="th">● 处理中单数</div><div>统计当前正在处理中的订单单数</div><div class="hr"></div><div class="th">● 每小时单次</div><div>已完成单次 ÷ 上班时长（小时）</div><div class="hr"></div><div class="th">排序键</div><div class="sk">点击各数值右侧箭头按该值排序：⇅ 未排序 · ▲ 升序 · ▼ 降序；同一时间只排一个数值。</div></span></span></div>
+            <div class="th-sub" onclick="sortBy('audited')">已完成单次<span class="sort-ico" id="ic-audited">⇅</span></div>
+            <div class="th-sub" onclick="sortBy('handling')">处理中单数<span class="sort-ico" id="ic-handling">⇅</span></div>
+            <div class="th-sub" onclick="sortBy('perHourSort')">每小时单次<span class="newf">NEW</span><span class="sort-ico" id="ic-perHourSort">⇅</span></div>
+          </th>
+          <th class="th-multi" style="width:112px">
+            <div class="th-title">转单统计<span class="qm">?<span class="tip"><div>转出单数：转派给他人的单数</div><div>转入单数：他人转派进来的单数</div></span></span></div>
+            <div class="th-sub" onclick="sortBy('transOut')">转出单数<span class="sort-ico" id="ic-transOut">⇅</span></div>
+            <div class="th-sub" onclick="sortBy('transIn')">转入单数<span class="sort-ico" id="ic-transIn">⇅</span></div>
+          </th>
+          <th class="sortable" style="width:98px" onclick="sortBy('avgAudit')"><span class="th-flex">审核平均耗时<span class="qm">?<span class="tip"><div>每笔出款单从领取到审核完成的平均耗时</div></span></span><span class="sort-ico" id="ic-avgAudit">⇅</span></span></th>
+          <th class="sortable" style="width:92px" onclick="sortBy('workDuration')"><span class="th-flex">工作时长统计<span class="qm">?<span class="tip"><div>统计时段内的累计上班时长</div></span></span><span class="sort-ico" id="ic-workDuration">⇅</span></span></th>
+          <th class="th-multi" style="width:112px">
+            <div class="th-title">超时统计<span class="qm">?<span class="tip"><div>未审核超时：领取后超时未审核的单数</div><div>审核超时：审核处理超时的单数</div></span></span></div>
+            <div class="th-sub" onclick="sortBy('unAuditTimeout')">未审核超时<span class="sort-ico" id="ic-unAuditTimeout">⇅</span></div>
+            <div class="th-sub" onclick="sortBy('auditedTimeout')">审核超时<span class="sort-ico" id="ic-auditedTimeout">⇅</span></div>
+          </th>
+          <th class="th-multi" style="width:118px">
+            <div class="th-title">暂停次数统计<span class="qm">?<span class="tip"><div>主动暂停：员工主动暂停的次数</div><div>超时暂停：超时被系统暂停的次数</div></span></span></div>
+            <div class="th-sub" onclick="sortBy('selfPause')">主动暂停<span class="sort-ico" id="ic-selfPause">⇅</span></div>
+            <div class="th-sub" onclick="sortBy('sysPause')">超时暂停<span class="sort-ico" id="ic-sysPause">⇅</span></div>
+          </th>
+          <th class="th-multi" style="width:118px">
+            <div class="th-title">暂停时长统计<span class="qm">?<span class="tip"><div>暂停总时长：累计暂停时长</div><div>平均暂停：每次暂停的平均时长</div></span></span></div>
+            <div class="th-sub" onclick="sortBy('pauseDuration')">暂停总时长<span class="sort-ico" id="ic-pauseDuration">⇅</span></div>
+            <div class="th-sub" onclick="sortBy('avgPauseDuration')">平均暂停<span class="sort-ico" id="ic-avgPauseDuration">⇅</span></div>
+          </th>
+          <th style="width:130px">操作</th>
+        </tr>
+        </thead>
+        <tbody id="list-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <span>共 7 条</span>
+      <span class="pg-n on">1</span>
+      <span>10 / 页</span>
+    </div>
+  </div>
+</div>
+
+<div class="detail-mask" id="exp-mask">
+  <div class="detail-panel" id="exp-panel" style="max-width:1180px">
+    <div class="detail-head"><span class="t">导出预览 <span style="font-size:12px;color:var(--sub);font-weight:400">· 复合列拆成独立列（方案1）</span></span><span class="req-x" onclick="closeExp()">✕</span></div>
+    <div class="detail-body">
+      <div class="d-info" style="margin-bottom:12px">导出当前筛选条件下的完整数据，不受当前页码 / 排序影响。「订单统计 / 转单统计 / 超时统计 / 暂停次数统计 / 暂停时长统计」这些一格多值的列，在文件里各拆成独立列，方便二次排序、求和、透视。下方为文件列结构示例（Excel / CSV）。</div>
+      <div class="v3-tablewrap"><table class="v3-tbl" id="exp-tbl"></table></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:34px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;padding:9px 18px;border-radius:5px;font-size:12.5px;z-index:2000;display:none;max-width:80vw;text-align:center"></div>
+
+<script>
+/* ==================== 数据 ==================== */
+/* 时长统一用秒存储，展示时再格式化；perHour = 已完成单次 / (工作时长秒/3600) */
+var STAFF=[
+ {id:100035,handling:2,user:'ben_jmeter_003',grp:'10001',      pos:'组员',role:'orgadmin',        tz:'UTC+7',audited:4, transOut:0,transIn:4,avgAudit:428,workDuration:83281, unAuditTimeout:0,auditedTimeout:9,selfPause:0,sysPause:0,pauseDuration:0},
+ {id:100039,handling:0,user:'milozz01',      grp:'milo-小额出款',pos:'组长',role:'提现组长',       tz:'UTC+7',audited:1, transOut:0,transIn:0,avgAudit:12, workDuration:166504,unAuditTimeout:0,auditedTimeout:1,selfPause:0,sysPause:0,pauseDuration:0},
+ {id:101534,handling:1,user:'milousdt',      grp:'milo-UDT出款', pos:'组员',role:'提现组员',       tz:'UTC+7',audited:1, transOut:0,transIn:0,avgAudit:4,  workDuration:83071, unAuditTimeout:0,auditedTimeout:0,selfPause:0,sysPause:0,pauseDuration:0},
+ {id:100017,handling:0,user:'org_peggy',     grp:'milo-小额出款',pos:'组长',role:'orgadmin,提现主管',tz:'UTC+7',audited:0, transOut:0,transIn:0,avgAudit:null,workDuration:0,     unAuditTimeout:0,auditedTimeout:0,selfPause:0,sysPause:0,pauseDuration:0},
+ {id:100021,handling:0,user:'org_figo',      grp:'milo-小额出款',pos:'组员',role:'orgadmin',        tz:'UTC+7',audited:0, transOut:0,transIn:0,avgAudit:null,workDuration:0,     unAuditTimeout:0,auditedTimeout:0,selfPause:0,sysPause:0,pauseDuration:0},
+ {id:100048,handling:3,user:'org_ken',       grp:'milo-小额出款',pos:'组长',role:'提现组长',       tz:'UTC+7',audited:56,transOut:8,transIn:6,avgAudit:98, workDuration:28800, unAuditTimeout:2,auditedTimeout:1,selfPause:2,sysPause:0,pauseDuration:600},
+ {id:100049,handling:1,user:'org_lisa',      grp:'milo-UDT出款', pos:'组员',role:'提现组员',       tz:'UTC+7',audited:5, transOut:0,transIn:1,avgAudit:320,workDuration:5400,  unAuditTimeout:1,auditedTimeout:3,selfPause:0,sysPause:2,pauseDuration:900}
+];
+/* 每日明细（用于「每日统计」弹窗演示，覆盖上班/未上班两种情况） */
+var DAILY={
+ 100048:[
+   {date:'2026-09-17',hasWork:false,start:'--',end:'--',workDuration:0,audited:0,transOut:0,transIn:0,avgAudit:null,unAuditTimeout:0,auditedTimeout:0,selfPause:0,sysPause:0},
+   {date:'2026-09-16',hasWork:true, start:'09:02',end:'18:10',workDuration:32880,audited:9,transOut:1,transIn:0,avgAudit:140,unAuditTimeout:0,auditedTimeout:0,selfPause:1,sysPause:0},
+   {date:'2026-09-15',hasWork:true, start:'09:00',end:'17:45',workDuration:31500,audited:7,transOut:0,transIn:1,avgAudit:160,unAuditTimeout:0,auditedTimeout:1,selfPause:0,sysPause:0},
+   {date:'2026-09-14',hasWork:true, start:'09:10',end:'18:00',workDuration:31800,audited:8,transOut:2,transIn:1,avgAudit:150,unAuditTimeout:1,auditedTimeout:0,selfPause:1,sysPause:1},
+   {date:'2026-09-13',hasWork:false,start:'--',end:'--',workDuration:0,audited:0,transOut:0,transIn:0,avgAudit:null,unAuditTimeout:0,auditedTimeout:0,selfPause:0,sysPause:0},
+   {date:'2026-09-12',hasWork:true, start:'08:55',end:'18:20',workDuration:34500,audited:9,transOut:1,transIn:1,avgAudit:130,unAuditTimeout:0,auditedTimeout:1,selfPause:1,sysPause:0},
+   {date:'2026-09-11',hasWork:true, start:'09:05',end:'17:50',workDuration:31500,audited:5,transOut:1,transIn:0,avgAudit:170,unAuditTimeout:0,auditedTimeout:0,selfPause:0,sysPause:0}
+ ]
+};
+
+var sortState={field:null,dir:null};
+
+/* ==================== 工具 ==================== */
+/* 工作时长 / 暂停总时长：大写空格格式，如 23H 8M 1S */
+function fmtDuration(sec){
+  if(sec===null || sec===undefined || sec<=0) return '0H 0M 0S';
+  var h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  return h+'H '+m+'M '+s+'S';
+}
+/* 审核平均耗时 / 平均暂停时长：分秒格式，如 7m:8s */
+function fmtShort(sec){
+  if(sec===null || sec===undefined) return '--';
+  var m=Math.floor(sec/60), s=Math.floor(sec%60);
+  return m+'m:'+s+'s';
+}
+function perHour(audited,workDuration){
+  if(!workDuration || workDuration<=0) return null;
+  return audited/(workDuration/3600);
+}
+function fmtPerHour(v){ return v===null||v===undefined ? '<span class="dash">--</span>' : '<b class="rate">'+v.toFixed(1)+'</b>'; }
+
+/* ==================== 列表渲染 + 排序 ==================== */
+/* 一格多个数值的列，每个数值各自一个排序键，互不影响 */
+var SORT_GETTER={
+  audited:function(x){return x.audited},
+  handling:function(x){return x.handling},
+  perHourSort:function(x){var v=perHour(x.audited,x.workDuration); return v===null?-1:v},
+  transOut:function(x){return x.transOut},
+  transIn:function(x){return x.transIn},
+  avgAudit:function(x){return x.avgAudit===null?-1:x.avgAudit},
+  workDuration:function(x){return x.workDuration},
+  unAuditTimeout:function(x){return x.unAuditTimeout},
+  auditedTimeout:function(x){return x.auditedTimeout},
+  selfPause:function(x){return x.selfPause},
+  sysPause:function(x){return x.sysPause},
+  pauseDuration:function(x){return x.pauseDuration},
+  avgPauseDuration:function(x){var c=x.selfPause+x.sysPause; return c>0?x.pauseDuration/c:-1}
+};
+function sortBy(field){
+  if(sortState.field===field){
+    sortState.dir = sortState.dir==='desc' ? 'asc' : (sortState.dir==='asc' ? null : 'desc');
+  }else{
+    sortState.field=field; sortState.dir='desc';
+  }
+  if(sortState.dir===null) sortState.field=null;
+  renderList();
+}
+function renderList(){
+  var list=STAFF.slice();
+  if(sortState.field){
+    var getter=SORT_GETTER[sortState.field];
+    list.sort(function(a,b){
+      var av=getter(a), bv=getter(b);
+      return sortState.dir==='asc' ? av-bv : bv-av;
+    });
+  }
+  var h='';
+  list.forEach(function(x,i){
+    var ph=perHour(x.audited,x.workDuration);
+    h+='<tr>'
+      +'<td>'+(i+1)+'</td>'
+      +'<td>'+x.user+'</td>'
+      +'<td>'+x.grp+'</td>'
+      +'<td><span class="pill '+(x.pos==='组长'?'pos lead':'pos')+'">'+x.pos+'</span></td>'
+      +'<td><span class="pill role">'+x.role+'</span></td>'
+      +'<td><span class="pill tz">'+x.tz+'</span></td>'
+      +'<td class="l" style="background:#fffafa"><div class="ci">已完成单次：<b>'+x.audited+'</b><br>处理中单数：<b>'+x.handling+'</b><br>每小时单次：'+fmtPerHour(ph)+'</div></td>'
+      +'<td class="l"><div class="ci">转出单数：<b>'+x.transOut+'</b><br>转入单数：<b>'+x.transIn+'</b></div></td>'
+      +'<td>'+fmtShort(x.avgAudit)+'</td>'
+      +'<td>'+fmtDuration(x.workDuration)+'</td>'
+      +'<td class="l"><div class="ci">未审核超时：<b>'+x.unAuditTimeout+'</b><br>审核超时：<b>'+x.auditedTimeout+'</b></div></td>'
+      +'<td class="l"><div class="ci">主动暂停总数：<b>'+x.selfPause+'</b><br>超时暂停次数：<b>'+x.sysPause+'</b></div></td>'
+      +'<td class="l"><div class="ci">暂停总时长：<b>'+fmtDuration(x.pauseDuration)+'</b><br>平均暂停：<b>'+(x.selfPause+x.sysPause>0?fmtShort(x.pauseDuration/(x.selfPause+x.sysPause)):'--')+'</b></div></td>'
+      +'<td><span class="lnk" onclick="openDetail('+x.id+')">每日统计<span class="newf">NEW</span></span>　<span class="lnk">已处理订单明细</span></td>'
+      +'</tr>';
+  });
+  document.getElementById('list-tbody').innerHTML=h;
+
+  // 表头排序状态高亮：单值列高亮整个表头，复合列只高亮命中的那一行数值
+  document.querySelectorAll('th.sortable').forEach(function(th){ th.classList.remove('sorted'); });
+  document.querySelectorAll('.th-sub').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.sort-ico').forEach(function(s){ s.classList.remove('active'); s.textContent='⇅'; });
+  if(sortState.field){
+    var icon=document.getElementById('ic-'+sortState.field);
+    if(icon){
+      var sub=icon.closest('.th-sub');
+      if(sub){ sub.classList.add('active'); } else { icon.closest('th').classList.add('sorted'); }
+      icon.classList.add('active');
+      icon.textContent = sortState.dir==='asc' ? '▲' : '▼';
+    }
+  }
+}
+
+/* ==================== 每日统计弹窗 ==================== */
+function openDetail(id){
+  var staff=STAFF.find(function(x){return x.id===id});
+  var days=DAILY[id] || DAILY[100048];
+  document.getElementById('d-info').innerHTML=
+    '账号：<b>'+staff.user+'</b>　出款组别：<b>'+staff.grp+'</b>　职位：<b>'+staff.pos+'</b>　系统角色：<b>'+staff.role+'</b>　时间：<b>2026-09-11 至 2026-09-17</b>';
+
+  var sumAudited=days.reduce(function(s,d){return s+d.audited},0);
+  var sumWork=days.reduce(function(s,d){return s+d.workDuration},0);
+  var sumPh=perHour(sumAudited,sumWork);
+  document.getElementById('d-sum').innerHTML=
+    '<div class="d-card"><div class="v">'+fmtDuration(sumWork)+'</div><div class="l">工作时长</div></div>'
+    +'<div class="d-card"><div class="v">'+sumAudited+'</div><div class="l">已完成单次</div></div>'
+    +'<div class="d-card hl"><div class="v pri">'+(sumPh===null?'--':sumPh.toFixed(1))+'</div><div class="l">每小时单次<span class="newf">NEW</span></div></div>'
+    +'<div class="d-card"><div class="v">'+days.reduce(function(s,d){return s+d.transOut},0)+' / '+days.reduce(function(s,d){return s+d.transIn},0)+'</div><div class="l">转出 / 转入</div></div>'
+    +'<div class="d-card"><div class="v">'+days.reduce(function(s,d){return s+d.unAuditTimeout},0)+' / '+days.reduce(function(s,d){return s+d.auditedTimeout},0)+'</div><div class="l">未审核超时 / 审核超时</div></div>';
+
+  var h='';
+  days.forEach(function(d){
+    var ph=perHour(d.audited,d.workDuration);
+    h+='<tr>'
+      +'<td>'+d.date+'</td>'
+      +'<td>'+(d.hasWork?'已上班':'<span style="color:#f5222d">未上班</span>')+'</td>'
+      +'<td class="l"><div class="ci">上班时间：'+d.start+'<br>下班时间：'+d.end+'<br>工作时长：'+fmtDuration(d.workDuration)+'</div></td>'
+      +'<td class="l" style="background:#fffafa"><div class="ci">已完成单次：<b>'+d.audited+'</b><br>每小时单次：'+fmtPerHour(ph)+'</div></td>'
+      +'<td class="l"><div class="ci">转出单数：<b>'+d.transOut+'</b><br>转入单数：<b>'+d.transIn+'</b></div></td>'
+      +'<td>'+fmtShort(d.avgAudit)+'</td>'
+      +'<td class="l"><div class="ci">未审核超时：<b>'+d.unAuditTimeout+'</b><br>审核超时：<b>'+d.auditedTimeout+'</b></div></td>'
+      +'<td class="l"><div class="ci">主动暂停：<b>'+d.selfPause+'</b><br>超时暂停：<b>'+d.sysPause+'</b></div></td>'
+      +'</tr>';
+  });
+  document.getElementById('d-tbody').innerHTML=h;
+
+  document.getElementById('detail-mask').classList.add('show');
+}
+function closeDetail(){
+  document.getElementById('detail-mask').classList.remove('show');
+}
+document.getElementById('detail-mask').addEventListener('click',function(e){ if(e.target===this) closeDetail(); });
+
+/* ==================== 需求说明抽屉 ==================== */
+function openReq(){ document.getElementById('req-mask').classList.add('show'); document.getElementById('req-drawer').classList.add('show'); }
+function closeReq(){ document.getElementById('req-mask').classList.remove('show'); document.getElementById('req-drawer').classList.remove('show'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeReq(); closeDetail(); closeExp(); } });
+
+var tmr;
+function toast(m){
+  var t=document.getElementById('toast'); t.innerHTML=m; t.style.display='block';
+  clearTimeout(tmr); tmr=setTimeout(function(){t.style.display='none'},3200);
+}
+
+/* ==================== 导出预览（方案1：复合列拆独立列） ==================== */
+var EXP_COLS=[
+  ['序号',function(x,i){return i+1}],
+  ['账号',function(x){return x.user}],
+  ['出款组别',function(x){return x.grp}],
+  ['职位',function(x){return x.pos}],
+  ['系统角色',function(x){return x.role}],
+  ['统计时区',function(x){return x.tz}],
+  ['已完成单次',function(x){return x.audited}],
+  ['处理中单数',function(x){return x.handling}],
+  ['每小时单次',function(x){var v=perHour(x.audited,x.workDuration);return v===null?'--':v.toFixed(1)}],
+  ['转出单数',function(x){return x.transOut}],
+  ['转入单数',function(x){return x.transIn}],
+  ['审核平均耗时',function(x){return fmtShort(x.avgAudit)}],
+  ['工作时长统计',function(x){return fmtDuration(x.workDuration)}],
+  ['未审核超时',function(x){return x.unAuditTimeout}],
+  ['审核超时',function(x){return x.auditedTimeout}],
+  ['主动暂停',function(x){return x.selfPause}],
+  ['超时暂停',function(x){return x.sysPause}],
+  ['暂停总时长',function(x){return fmtDuration(x.pauseDuration)}],
+  ['平均暂停',function(x){var c=x.selfPause+x.sysPause;return c>0?fmtShort(x.pauseDuration/c):'--'}]
+];
+function openExp(){
+  var th='<thead><tr>'+EXP_COLS.map(function(c){return '<th style="white-space:nowrap">'+c[0]+'</th>'}).join('')+'</tr></thead>';
+  var tb='<tbody>'+STAFF.map(function(x,i){
+    return '<tr>'+EXP_COLS.map(function(c){return '<td style="white-space:nowrap;text-align:center">'+c[1](x,i)+'</td>'}).join('')+'</tr>';
+  }).join('')+'</tbody>';
+  document.getElementById('exp-tbl').innerHTML=th+tb;
+  document.getElementById('exp-mask').classList.add('show');
+}
+function closeExp(){ document.getElementById('exp-mask').classList.remove('show'); }
+document.getElementById('exp-mask').addEventListener('click',function(e){ if(e.target===this) closeExp(); });
+
+renderList();
+</script>
+</body>
+</html>
