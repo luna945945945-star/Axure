@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>当前提现订单 · 银行卡详细列原型</title>
+<style>
+  :root{
+    --primary:#2f6fed;--border:#e5e7eb;--border-2:#eef0f3;
+    --text:#1f2733;--text-2:#606a78;--text-3:#98a2b3;--bg:#f5f6f8;
+    --green:#18a058;--green-bg:#eaf7ef;--orange:#e8963a;--orange-bg:#fdf1e3;
+    --tag-blue-bg:#eef3ff;--tag-blue:#2f6fed;--warn:#d03050;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
+  .page{padding:14px 18px 40px;}
+  .proto-bar{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .proto-bar .t{font-weight:600;font-size:15px;}
+  .proto-bar .muted{color:var(--text-3);}
+  .card{background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+
+  .subtabs{display:flex;gap:2px;padding:8px 14px 0;border-bottom:1px solid var(--border-2);font-size:13px;}
+  .subtab{padding:8px 12px;color:var(--text-2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .subtab.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600;}
+
+  .toolbar{display:flex;align-items:center;gap:8px;padding:12px 14px 0;flex-wrap:wrap;}
+  .status-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+  .st{height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text-2);cursor:pointer;font-size:13px;display:inline-flex;align-items:center;}
+  .st.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .st.warn{background:var(--orange);border-color:var(--orange);color:#fff;}
+  .spacer{flex:1;}
+  .note{color:var(--warn);font-size:12px;display:inline-flex;align-items:center;gap:4px;}
+  .note::before{content:"ⓘ";}
+  .btn.link{border:none;background:transparent;color:var(--primary);padding:0 4px;cursor:pointer;font-size:13px;}
+
+  .table-wrap{overflow-x:auto;margin-top:12px;}
+  table{border-collapse:collapse;width:100%;min-width:1900px;}
+  thead th{background:#fafbfc;color:var(--text-2);font-weight:600;font-size:13px;padding:10px 12px;text-align:center;border-bottom:1px solid var(--border-2);white-space:nowrap;position:relative;}
+  tbody td{padding:12px;border-bottom:1px solid var(--border-2);vertical-align:top;text-align:left;color:var(--text);}
+  tbody tr:hover{background:#f8fafd;}
+  .center{text-align:center;}.right{text-align:right;}
+  .num{font-variant-numeric:tabular-nums;}
+  .muted{color:var(--text-3);}
+  .tag{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:4px;font-size:12px;line-height:1;}
+  .tag.blue{background:var(--tag-blue-bg);color:var(--tag-blue);}
+  .tag.green{background:var(--green-bg);color:var(--green);}
+  .tag.orange{background:var(--orange-bg);color:var(--orange);}
+  .mono{font-family:monospace;font-size:12px;word-break:break-all;}
+  .mid-link{color:var(--primary);cursor:pointer;}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:12px;line-height:1.5;}
+  .kv .k{color:var(--text-3);white-space:nowrap;}
+  .kv .v{color:var(--text);overflow-wrap:anywhere;}
+  .ops{display:flex;flex-direction:column;gap:3px;}
+
+  /* bank detail cell */
+  th.new-col .new-badge{position:absolute;top:3px;right:6px;background:#e53935;color:#fff;font-size:9px;line-height:1;padding:2px 5px;border-radius:8px;font-weight:700;box-shadow:0 1px 4px rgba(229,57,53,.35);}
+  .bankcell{max-width:340px;}
+  .bank-kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px;line-height:1.5;overflow:hidden;transition:max-height .2s;}
+  .bank-kv.collapsed{max-height:58px;}
+  .bank-kv .k{color:var(--text-3);white-space:nowrap;}
+  .bank-kv .v{color:var(--text);overflow-wrap:anywhere;}
+  .toggle{color:var(--primary);cursor:pointer;font-size:12px;margin-top:4px;display:inline-block;}
+
+  .foot{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;color:var(--text-2);}
+  .pager{display:flex;gap:6px;align-items:center;}
+  .pg{min-width:28px;height:28px;padding:0 6px;border:1px solid var(--border);border-radius:6px;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;}
+  .pg.active{border-color:var(--primary);color:var(--primary);}
+
+  /* drawer */
+  .handle{position:fixed;top:50%;right:0;transform:translateY(-50%);writing-mode:vertical-lr;background:var(--primary);color:#fff;padding:16px 8px;border-radius:8px 0 0 8px;cursor:pointer;letter-spacing:3px;font-size:14px;z-index:50;box-shadow:-2px 0 10px rgba(0,0,0,.12);}
+  .drawer{position:fixed;top:0;right:-720px;width:680px;max-width:92vw;height:100vh;background:#fff;z-index:60;box-shadow:-8px 0 30px rgba(0,0,0,.15);transition:right .28s ease;overflow-y:auto;}
+  .drawer.open{right:0;}
+  .mask{position:fixed;inset:0;background:rgba(15,23,42,.35);opacity:0;visibility:hidden;transition:.28s;z-index:55;}
+  .mask.open{opacity:1;visibility:visible;}
+  .doc{padding:28px 34px 60px;}
+  .doc h1{font-size:20px;margin:0 0 4px;}
+  .doc .meta{color:var(--text-3);font-size:12px;margin-bottom:20px;}
+  .doc h2{font-size:15px;margin:24px 0 8px;padding-left:9px;border-left:3px solid var(--primary);}
+  .doc p,.doc li{font-size:13.5px;line-height:1.85;color:#2b3440;}
+  .doc ul{margin:4px 0;padding-left:20px;}
+  .doc code{background:#f2f4f7;padding:1px 5px;border-radius:4px;font-size:12px;}
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="proto-bar"><span class="t">当前提现订单 · 银行卡详细列</span><span class="muted">（原型 · 贴合中台样式）</span></div>
+    <div class="card">
+      <div class="subtabs">
+        <div class="subtab">出款看板</div>
+        <div class="subtab">出款员工操作台</div>
+        <div class="subtab">出款组别配置</div>
+        <div class="subtab">出款员工报表</div>
+        <div class="subtab active">当前提现订单</div>
+        <div class="subtab">全部提现记录</div>
+      </div>
+
+      <div class="toolbar">
+        <div class="status-tabs">
+          <span class="st active">全部</span><span class="st">待派发</span><span class="st">待审核</span><span class="st">审核中</span><span class="st">审核超时</span><span class="st">已提交</span><span class="st warn">批量转派</span>
+        </div>
+        <div class="spacer"></div>
+        <span class="note">仅保留近60天订单，更早记录见「全部提现记录」</span>
+        <button class="btn link">⚙ 自定义列</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="min-width:80px">商户</th>
+            <th style="min-width:90px">会员ID</th>
+            <th style="min-width:210px">订单号</th>
+            <th style="min-width:110px">提现大类</th>
+            <th class="new-col" style="min-width:300px"><span class="new-badge">NEW</span>银行卡详细</th>
+            <th style="min-width:180px">订单时间 (UTC+5:30)</th>
+            <th style="min-width:70px">币种</th>
+            <th style="min-width:80px">手续费</th>
+            <th style="min-width:90px">提现金额</th>
+            <th style="min-width:110px">实际到账金额</th>
+            <th style="min-width:200px">第三方详细</th>
+            <th style="min-width:110px">当前处理状态</th>
+            <th style="min-width:110px">当前订单状态</th>
+            <th style="min-width:90px">操作人</th>
+            <th style="min-width:100px">操作</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="foot">
+        <span>共 3 条</span>
+        <div class="pager"><span class="pg">‹</span><span class="pg active">1</span><span class="pg">›</span><span class="muted">10/页 ▾</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="handle" onclick="openDrawer()">需求说明</div>
+  <div class="mask" id="mask" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="doc">
+      <h1>当前提现订单 · 银行卡详细列</h1>
+      <div class="meta">提现订单管理 · 出款</div>
+      <h2>一、改造页面</h2>
+      <p>提现订单管理 →「当前提现订单」列表，在「提现大类」后新增一列「银行卡详细」（参照「全部提现记录」页同名列）。</p>
+      <h2>二、业务规则</h2>
+      <ul>
+        <li>取订单下单时快照的收款信息展示，无需回查会员绑定。</li>
+        <li>银行卡：银行名称 / 收款人 / 账号 / IFSC / 邮箱 / 手机号 / 城市编码 / 省份编码 / 支行地址。</li>
+        <li>电子钱包（EasyPaisa / JazzCash / KBZPay 等）：类型 / 收款人 / 账号（本质为手机号）。</li>
+        <li>USDT：仅展示 类型 / 钱包地址。</li>
+        <li><b>脱敏只针对手机号</b>：手机号字段、电子钱包账号（本质手机号）按权限脱敏，口径 <code>前3位 + 三个星号 + 后3位</code>（星号个数固定，不随长度变）。</li>
+        <li>银行卡账号、UPI VPA、USDT 钱包地址、IFSC、邮箱等非手机号信息明文展示。</li>
+        <li>内容较多时可折叠 / 展开。</li>
+      </ul>
+      <h2>三、限制</h2>
+      <ul>
+        <li>脱敏是否需要权限查看，沿用后台现有敏感信息权限。</li>
+        <li>本次仅新增「银行卡详细」列，其余列不动。</li>
+      </ul>
+    </div>
+  </div>
+
+<script>
+  function mask(v){v=String(v);if(v.length<=6)return v;return v.slice(0,3)+'***'+v.slice(-3);}
+  const rows=[
+    {tenant:'2001',uid:100000,order:'TestWD202609261546585020010028',cat:'BANK CARD',cur:'INR',fee:'0.00',amt:'200.00',actual:'200.00',
+      bank:{type:'bank',bankName:'STATE BANK OF INDIA',payee:'RAJESH KUMAR',account:'62100558123456158',ifsc:'SBIN0001234',email:'rajeshkumar@gmail.com',mobile:'9876543210',city:'DEL',prov:'DL',branch:'Connaught Place, New Delhi'},
+      third:{no:'331431 → KivoPayil NR-Bank',tx:'O21037909288996 94592U3487T818652',state:'等待回调',msg:'success',cnt:0},
+      proc:'已提交',ost:'已提交',op:'len_high'},
+    {tenant:'2001',uid:100088,order:'TestWD202609261505595620010018',cat:'Easypaisa',cur:'PKR',fee:'0.00',amt:'2,000.00',actual:'2,000.00',
+      bank:{type:'ewallet',walletType:'Easypaisa',payee:'ALI KHAN',mobile:'923001234567'},
+      third:{no:'331411 → EasyPay PK',tx:'O21037806152319 87712U3487T359682',state:'等待回调',msg:'success',cnt:0},
+      proc:'已提交',ost:'已提交',op:'len_high'},
+    {tenant:'2001',uid:100231,order:'TestWD202609261402113320010006',cat:'USDT-TRC20 提现',cur:'USDT',fee:'1.00',amt:'50.00',actual:'49.00',
+      bank:{type:'usdt',walletType:'USDT-TRC20',wallet:'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'},
+      third:{no:'220118 → TronPay',tx:'0x9af12b7743e5c1d0',state:'成功',msg:'success',cnt:1},
+      proc:'已提交',ost:'已提交',op:'wang01'},
+  ];
+
+  function bankHtml(b,idx){
+    let kv;
+    if(b.type==='usdt'){
+      kv=[['类型',b.walletType],['钱包地址',b.wallet]];
+    }else if(b.type==='ewallet'){
+      kv=[['类型',b.walletType],['收款人',b.payee],['账号（手机号）',mask(b.mobile)]];
+    }else{
+      kv=[['银行名称',b.bankName],['收款人',b.payee],['账号',b.account],['IFSC',b.ifsc],['邮箱',b.email],['手机号',mask(b.mobile)],['城市编码',b.city],['省份编码',b.prov],['支行地址',b.branch]];
+    }
+    const cells=kv.map(([k,v])=>'<span class="k">'+k+'</span><span class="v">'+v+'</span>').join('');
+    const collapsible=kv.length>3;
+    return '<div class="bank-kv '+(collapsible?'collapsed':'')+'" id="bk'+idx+'">'+cells+'</div>'
+      +(collapsible?'<span class="toggle" onclick="toggleBank('+idx+',this)">展开 ▾</span>':'');
+  }
+  function statusTag(s){const cls=s==='已提交'?'orange':'green';return '<span class="tag '+cls+'">'+s+'</span>';}
+
+  document.getElementById('tbody').innerHTML=rows.map((r,i)=>`
+    <tr>
+      <td><span class="tag blue">${r.tenant}</span></td>
+      <td><span class="mid-link">${r.uid}</span></td>
+      <td><span class="mono">${r.order}</span></td>
+      <td>${r.cat}</td>
+      <td class="bankcell">${bankHtml(r.bank,i)}</td>
+      <td><div class="kv"><span class="k">申请:</span><span class="v">2026-09-26 15:46:58</span><span class="k">派单:</span><span class="v">--</span><span class="k">更新:</span><span class="v">2026-09-26 15:46:58</span></div></td>
+      <td class="center"><span class="tag green">${r.cur}</span></td>
+      <td class="right num">${r.fee}</td>
+      <td class="right num">${r.amt}</td>
+      <td class="right num">${r.actual}</td>
+      <td><div class="kv"><span class="k">三方:</span><span class="v">${r.third.no}</span><span class="k">单号:</span><span class="v mono">${r.third.tx}</span><span class="k">状态:</span><span class="v">${r.third.state}</span><span class="k">消息:</span><span class="v">${r.third.msg}</span><span class="k">次数:</span><span class="v">${r.third.cnt}</span></div></td>
+      <td class="center">${statusTag(r.proc)}</td>
+      <td class="center">${statusTag(r.ost)}</td>
+      <td>${r.op}</td>
+      <td><div class="ops"><span class="btn link">查看详情</span><span class="btn link">订单重审</span><span class="btn link">人工确认</span></div></td>
+    </tr>
+  `).join('');
+
+  function toggleBank(i,el){
+    const box=document.getElementById('bk'+i);
+    const collapsed=box.classList.toggle('collapsed');
+    el.textContent=collapsed?'展开 ▾':'收起 ▴';
+  }
+  function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('mask').classList.add('open');}
+  function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('mask').classList.remove('open');}
+</script>
+</body>
+</html>
