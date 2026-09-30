@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>代理绩效对比</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center}
+.sub h1{font-size:15px;color:#6C4FE0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:16px 44px 60px 22px}
+.card{background:#fff;border-radius:4px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:14px}
+.intro{display:flex;align-items:center;gap:10px;background:#f3f0ff;border:1px solid #e3dcfb;color:#5b4bb5;border-radius:4px;padding:9px 14px;font-size:12.5px;margin-bottom:14px}
+.intro .i{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;flex:none}
+.intro .lnk{margin-left:auto;color:#6C4FE0;cursor:pointer;white-space:nowrap;font-weight:600}
+.intro .lnk:hover{text-decoration:underline}
+.flt{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:center;font-size:12.5px;color:#555}
+.fi{display:flex;align-items:center;gap:8px}
+.fi>span{white-space:nowrap}
+.fi input,.fi select{font:inherit;font-size:12.5px;padding:6px 9px;border:1px solid #dcdce4;border-radius:3px;background:#fff;color:#333;width:148px}
+.fi input:focus,.fi select:focus{outline:none;border-color:#6C4FE0;box-shadow:0 0 0 2px rgba(108,79,224,.12)}
+.fi input.short{width:96px}
+.fi input[type=date]{width:138px}
+.fi .to{color:#c2c2cc}
+.seg{display:inline-flex;border:1px solid #dcdce4;border-radius:3px;overflow:hidden}
+.seg button{font:inherit;font-size:12px;background:#fff;border:0;border-right:1px solid #dcdce4;padding:5px 11px;cursor:pointer;color:#555}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:#6C4FE0;color:#fff}
+.seg button:disabled{color:#c2c2cc;cursor:not-allowed;background:#fafafa}
+.acts{display:flex;align-items:center;gap:9px;margin:14px 0 2px}
+.btn{display:inline-flex;align-items:center;gap:5px;background:#6C4FE0;color:#fff;border:0;border-radius:3px;padding:6px 14px;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:hover{background:#5b3fd0}
+.btn.gray{background:#fff;color:#666;border:1px solid #dcdce4}
+.btn.gray:hover{background:#f7f7fb;color:#6C4FE0;border-color:#c3b8ee}
+.btn:disabled{opacity:.6;cursor:wait}
+.hint{margin-left:auto;font-size:12px;color:#9a9aa8}
+/* 图表 */
+.chart-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.chart-head h2{font-size:13.5px;font-weight:600;color:#333}
+.chart-head .metric{color:#6C4FE0}
+.chart-wrap{position:relative;height:300px}
+.chart-wrap svg{width:100%;height:100%;display:block}
+.chart-wrap .bar{fill:#6C4FE0;cursor:pointer;transition:fill .12s}
+.chart-wrap .bar:hover{fill:#5b3fd0}
+.chart-wrap .bar.zero{fill:#d9d4f2}
+.chart-wrap text{font-size:11px;fill:#777}
+.chart-wrap .grid{stroke:#ececf2;stroke-dasharray:3 3}
+.chart-wrap .axis{stroke:#d9d9e3}
+.chart-wrap .val{fill:#333;font-weight:600}
+.chart-wrap .xl{fill:#666}
+.chart-empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:#aaa;font-size:13px}
+.chart-empty.on{display:flex}
+/* 表格 */
+.tbl{overflow-x:auto;border:1px solid #ebebf2;border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:1720px}
+th,td{border-right:1px solid #ebebf2;border-bottom:1px solid #ebebf2;padding:7px 9px;white-space:nowrap;text-align:left}
+th{background:#f7f7fb;color:#555;font-weight:600;font-size:11.5px;text-align:center}
+th:last-child,td:last-child{border-right:0}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#f7f5ff}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+td.c{text-align:center}
+.uid{color:#6C4FE0;cursor:pointer;font-weight:600}.uid:hover{text-decoration:underline}
+.rank{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:11px;padding:0 6px;font-size:11.5px;font-weight:600;color:#fff;background:#b3b8c6}
+.rank.r1{background:#e74c3c}.rank.r2{background:#f39c12}.rank.r3{background:#27ae60}
+.lv{display:inline-block;min-width:40px;text-align:center;padding:1px 7px;border-radius:3px;font-size:11px;font-weight:600}
+.lv0{background:#fde8e8;color:#c0392b}.lv1{background:#fff4dc;color:#b7791f}.lv2{background:#e8f0ff;color:#2f5fd0}.lv3{background:#e6f7ea;color:#2e8b57}.lvx{background:#f0f0f4;color:#777}
+.fm{display:inline-block;margin-left:5px;padding:0 5px;border-radius:2px;font-size:10px;font-weight:600;background:#efe9ff;color:#6C4FE0;vertical-align:1px}
+.good{color:#2e8b57;font-weight:600}.bad{color:#c0392b;font-weight:600}.mid{color:#333}.na{color:#bbb}
+.q{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#c0c4cc;color:#fff;font-size:9px;font-style:normal;font-weight:400;cursor:help;margin-left:4px;vertical-align:middle}
+.q:hover{background:#6C4FE0}
+#tip{position:fixed;z-index:300;max-width:280px;background:#2b2b38;color:#fff;padding:8px 11px;border-radius:4px;font-size:11.5px;line-height:1.65;text-align:left;white-space:normal;box-shadow:0 4px 14px rgba(0,0,0,.24);display:none;pointer-events:none}
+.emptyrow td{text-align:center;color:#aaa;padding:40px 0}
+.pager{display:flex;align-items:center;gap:9px;padding:14px 4px 0;font-size:12.5px;color:#666;flex-wrap:wrap}
+.pager button{font:inherit;font-size:12.5px;padding:4px 11px;border:1px solid #dcdce4;background:#fff;border-radius:3px;cursor:pointer;color:#666}
+.pager button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.pager button:disabled{color:#c2c2cc;cursor:not-allowed}
+.pager select,.pager input{font:inherit;font-size:12px;padding:4px 7px;border:1px solid #dcdce4;border-radius:3px}
+.pager input{width:52px;text-align:center}
+.pager .cnt{margin-left:auto}
+/* 弹窗 */
+.mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:20px}
+.mask.on{display:flex}
+.modal{background:#fff;border-radius:5px;width:100%;max-width:720px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.m-head{padding:12px 18px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;border-radius:5px 5px 0 0;font-weight:600;font-size:13.5px;display:flex;justify-content:space-between;align-items:center}
+.m-head .x{cursor:pointer;color:#aaa;font-size:18px;line-height:1}
+.m-body{padding:14px 18px;overflow:auto}
+.def{width:100%;min-width:0;border-collapse:collapse;font-size:12.5px}
+.def th,.def td{border:1px solid #ebebf2;padding:7px 10px;text-align:left;white-space:normal;vertical-align:top}
+.def th{background:#f7f7fb;color:#555;font-size:11.5px;text-align:center}
+.def td:first-child{width:110px;font-weight:600;color:#333}
+.def td.grp{background:#fafafd;color:#6C4FE0;font-weight:600;font-size:11.5px}
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:680px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd h2{font-size:14px;color:#6C4FE0;margin:20px 0 9px;padding-bottom:5px;border-bottom:1px solid #eee}
+.prd h2:first-child{margin-top:0}
+.prd h3{font-size:13px;color:#333;margin:14px 0 6px}
+.prd p{margin:7px 0;color:#555;font-size:13px}
+.prd ol,.prd ul{margin:7px 0 7px 20px;color:#555;font-size:13px}
+.prd li{margin:5px 0}
+.prd table{width:100%;min-width:0;font-size:12px;margin:8px 0;border-collapse:collapse}
+.prd th,.prd td{border:1px solid #ebebf2;padding:6px 8px;text-align:left;white-space:normal;vertical-align:top}
+.prd th{background:#fafafd;color:#555;font-size:11.5px;text-align:center}
+.prd .src{background:#fffbe6;border-left:3px solid #e6a23c;padding:8px 12px;font-size:12.5px;color:#7a5b12;margin:6px 0 12px}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#5cb85c;color:#fff;border-radius:3px;padding:10px 18px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:200;font-size:12.5px;display:none;max-width:80vw}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
+  <div style="display:flex;gap:16px;align-items:center"><span id="today"></span><span>当前币种：<b style="color:#c0392b">INR</b></span></div>
+</div>
+<div class="sub">
+  <h1>代理绩效对比</h1>
+  <div class="crumb">代理管理 &nbsp;›&nbsp; <b>代理绩效对比</b></div>
+</div>
+
+<div class="wrap">
+<div class="card">
+  <div class="intro"><span class="i">i</span>
+    <span>横向对比各代理的拉新质量与产出效率：新增会员、首充转化、人均首充、佣金贡献比、活跃率综合排名。与「下级数据统计」按代理单查形成互补。</span>
+    <span class="lnk" id="openDef">数据定义 ›</span>
+  </div>
+  <div class="flt">
+    <div class="fi"><span>代理类型</span>
+      <select id="fType">
+        <option value="">全部有下级的会员</option>
+        <option value="formal">已开通代理</option>
+      </select></div>
+    <div class="fi"><span>代理层级</span>
+      <select id="fLv">
+        <option value="">全部层级</option>
+        <option value="0">0级（总代）</option>
+        <option value="1">1级</option>
+        <option value="2">2级</option>
+        <option value="3">3级</option>
+        <option value="4">4级</option>
+        <option value="5">5级</option>
+        <option value="6">6级</option>
+        <option value="7">7级</option>
+        <option value="8">8级</option>
+      </select></div>
+    <div class="fi"><span>排名依据</span>
+      <select id="fSort">
+        <option value="recharge">总充值金额降序</option>
+        <option value="newM">新增会员数降序</option>
+        <option value="conv">首充转化率降序</option>
+        <option value="actBonus">活动彩金降序</option>
+        <option value="manBonus">人工彩金降序</option>
+        <option value="comm">代理佣金降序</option>
+        <option value="contrib">佣金贡献比升序</option>
+        <option value="actRate">活跃率降序</option>
+      </select></div>
+    <div class="fi"><span>最少新增会员</span><input id="fMin" class="short" type="number" min="0" step="1" value="0" placeholder="0"></div>
+    <div class="fi"><span>日期</span>
+      <input id="fFrom" type="date"><span class="to">→</span><input id="fTo" type="date">
+      <div class="seg" id="quick">
+        <button data-q="yesterday" aria-pressed="true">昨天</button>
+        <button data-q="week" aria-pressed="false">本周</button>
+        <button data-q="lweek" aria-pressed="false">上周</button>
+        <button data-q="month" aria-pressed="false">本月</button>
+        <button data-q="lmonth" aria-pressed="false">上月</button>
+      </div>
+    </div>
+  </div>
+  <div class="acts">
+    <button class="btn" id="btnQ">🔍 查 询</button>
+    <button class="btn gray" id="btnR">↺ 重 置</button>
+    <button class="btn gray" id="btnE">⬇ 导 出</button>
+    <span class="hint">报表数据每日凌晨生成，可查到昨日为止</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="chart-head"><h2>TOP 10 代理对比 · <span class="metric" id="chartMetric">总充值金额</span></h2><i class="q" data-tip="取当前排名依据的前 10 名代理，指标与排名依据一致。">?</i></div>
+  <div class="chart-wrap"><svg id="chart" viewBox="0 0 1200 300" preserveAspectRatio="none"></svg><div class="chart-empty" id="chartEmpty">当前条件下没有代理数据</div></div>
+</div>
+
+<div class="card">
+  <div class="tbl">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:56px">排名</th>
+          <th style="width:120px">代理ID</th>
+          <th style="width:80px">代理层级<i class="q" data-tip="代理在推荐关系树中的绝对层级：总代为 0 级，其直属下级为 1 级，以此类推，与会员层级页的「用户绝对层级」同一口径。">?</i></th>
+          <th>新增会员<i class="q" data-tip="统计期内注册、且直属上级是该代理的会员数。只算直属下级，不含下级的下级。">?</i></th>
+          <th>首充会员<i class="q" data-tip="新增会员中，在统计期内完成首次成功充值的人数。">?</i></th>
+          <th>首充转化率<i class="q" data-tip="首充会员 ÷ 新增会员。新增会员为 0 时显示「—」。">?</i></th>
+          <th>首充金额<i class="q" data-tip="首充会员的首笔成功充值金额合计。">?</i></th>
+          <th>人均首充<i class="q" data-tip="首充金额 ÷ 首充会员。">?</i></th>
+          <th>团队总充值<i class="q" data-tip="统计期内该代理往下六层内全部会员的成功充值金额合计（含直属与非直属）。">?</i></th>
+          <th>团队总提现<i class="q" data-tip="统计期内该代理往下六层内全部会员的成功提现金额合计。">?</i></th>
+          <th>团队总打码<i class="q" data-tip="统计期内该代理往下六层内全部会员的有效投注金额合计。">?</i></th>
+          <th>活动彩金<span class="fm" style="background:#fde8e8;color:#c0392b">NEW</span><i class="q" data-tip="统计期内团队（六层内）会员通过系统活动自动领取的彩金合计，按入账日统计。清单沿用「下级数据统计」的活动范围，另含优惠券赠金与周期卡奖励；不含人工加的彩金、投注返水、代理佣金。">?</i></th>
+          <th>人工彩金<span class="fm" style="background:#fde8e8;color:#c0392b">NEW</span><i class="q" data-tip="统计期内团队（六层内）会员由后台人工存款页面加的彩金发放额合计，即该页面里的「活动彩金」选项，按入账日统计。只算发放额，不抵扣人工彩金扣除；人工存款是真钱，不计入。">?</i></th>
+          <th>代理佣金<i class="q" data-tip="统计期内该代理实际入账的代理佣金与首充返佣合计；不含合伙人奖励、投注返水、代理红包。">?</i></th>
+          <th>佣金贡献比<i class="q" data-tip="代理佣金 ÷ 团队总充值。≤5% 绿色（性价比高），≥15% 红色（偏高）。团队总充值为 0 时显示「—」。">?</i></th>
+          <th>活跃会员<i class="q" data-tip="统计期内团队（六层内）有投注行为的会员数，一个会员只算一次。">?</i></th>
+          <th>活跃率<i class="q" data-tip="活跃会员 ÷ 团队总会员数（六层内累计人数，不限注册时间）。">?</i></th>
+        </tr>
+      </thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <button id="pFirst">首页</button><button id="pPrev">上一页</button>
+    <span id="pNums"></span>
+    <button id="pNext">下一页</button><button id="pLast">尾页</button>
+    <span style="margin-left:6px">每页
+      <select id="pSize"><option>10</option><option selected>20</option><option>50</option><option>100</option></select> 条，跳至 <input id="pJump" type="text" value="1"> 页
+    </span>
+    <span class="cnt" id="pCnt"></span>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="tip"></div>
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- 数据定义 -->
+<div class="mask" id="defMask">
+  <div class="modal">
+    <div class="m-head"><span>代理绩效对比 · 数据定义</span><span class="x" id="defX">✕</span></div>
+    <div class="m-body">
+      <table class="def">
+        <tr><th style="width:110px">指标</th><th>口径</th></tr>
+        <tr><td class="grp" colspan="2">拉新</td></tr>
+        <tr><td>新增会员</td><td>统计期内注册、且直属上级是该代理的会员数。只算直属下级。</td></tr>
+        <tr><td>首充会员</td><td>新增会员中，在统计期内完成首次成功充值的人数。</td></tr>
+        <tr><td>首充转化率</td><td>首充会员 ÷ 新增会员。新增会员为 0 时显示「—」。</td></tr>
+        <tr><td>首充金额</td><td>首充会员的首笔成功充值金额合计。</td></tr>
+        <tr><td>人均首充</td><td>首充金额 ÷ 首充会员。</td></tr>
+        <tr><td class="grp" colspan="2">团队产出（该代理往下六层内的全部会员，与现有「代理团队日报」口径一致）</td></tr>
+        <tr><td>团队总充值</td><td>统计期内团队会员成功充值金额合计。</td></tr>
+        <tr><td>团队总提现</td><td>统计期内团队会员成功提现金额合计。</td></tr>
+        <tr><td>团队总打码</td><td>统计期内团队会员有效投注金额合计。</td></tr>
+        <tr><td class="grp" colspan="2">彩金（按入账日统计，只算发放额）</td></tr>
+        <tr><td>活动彩金</td><td>团队会员通过系统活动自动领取的彩金合计。活动清单沿用「下级数据统计」的范围：充值赠送、抽奖大奖、VIP、新会员、周期奖励、邀请推广、绑定行为、一键洗码反水，另含优惠券赠金与周期卡奖励。不含人工加的彩金、投注返水、代理佣金、首充返佣、C2C 充提奖励、提现活动奖励。</td></tr>
+        <tr><td>人工彩金</td><td>团队会员由后台人工存款页面加的彩金发放额合计，即该页面「活动彩金」选项加的钱。不抵扣人工彩金扣除；人工存款是真钱，不计入。</td></tr>
+        <tr><td class="grp" colspan="2">佣金</td></tr>
+        <tr><td>代理佣金</td><td>统计期内该代理实际入账的代理佣金与首充返佣合计；不含合伙人奖励、投注返水、代理红包。</td></tr>
+        <tr><td>佣金贡献比</td><td>代理佣金 ÷ 团队总充值。≤5% 标绿（性价比高），≥15% 标红（偏高）。团队总充值为 0 时显示「—」。</td></tr>
+        <tr><td class="grp" colspan="2">活跃</td></tr>
+        <tr><td>活跃会员</td><td>统计期内团队会员中有投注行为的人数，一个会员只算一次。</td></tr>
+        <tr><td>活跃率</td><td>活跃会员 ÷ 团队总会员数（六层内累计人数，不限注册时间）。</td></tr>
+        <tr><td class="grp" colspan="2">其他</td></tr>
+        <tr><td>代理层级</td><td>推荐关系树中的绝对层级：总代为 0 级，其直属下级为 1 级，以此类推，与会员层级页的「用户绝对层级」同一口径。</td></tr>
+        <tr><td>代理类型</td><td>「全部有下级的会员」按全民代理口径，有下级即为代理；「已开通代理」只看后台已开通代理身份的会员。</td></tr>
+        <tr><td>统计范围</td><td>统计期内有新增直属会员、或团队有充值 / 提现 / 投注 / 返佣任一行为的代理才会出现在列表中；完全没有动作的代理不展示。测试账号及其数据不计。</td></tr>
+        <tr><td>归属关系</td><td>上下级按查询时的当前关系归属；会员换绑上级后，其历史数据随新上级计算。</td></tr>
+        <tr><td>数据时效</td><td>报表数据每日凌晨生成，可查到昨日为止，当天不可查。</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 需求说明抽屉 -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>代理绩效对比 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+    <div class="src">来源：参考竞品后台「代理管理 › 代理绩效对比」，按 V1 现有代理体系与报表口径改造；「活动彩金」「人工彩金」两列为运营追加，竞品没有。交互细节以本原型为准，本说明不重复。</div>
+
+    <h2>一、改造页面</h2>
+    <p>新增页面：代理管理 › 代理绩效对比（新菜单，需配权限）。</p>
+    <table>
+      <tr><th style="width:120px">区域</th><th>内容</th></tr>
+      <tr><td>筛选区</td><td>代理类型、代理层级、排名依据、最少新增会员、日期区间（昨天 / 本周 / 上周 / 本月 / 上月 快捷键）</td></tr>
+      <tr><td>按钮</td><td>查询、重置、导出；「数据定义」入口在说明条右侧</td></tr>
+      <tr><td>TOP 10 图</td><td>按当前排名依据取前 10 名代理画柱状图，指标随排名依据切换</td></tr>
+      <tr><td>列表</td><td>排名、代理ID（已开通代理身份的带「已开通」标记）、代理层级、新增会员、首充会员、首充转化率、首充金额、人均首充、团队总充值、团队总提现、团队总打码、<b>活动彩金、人工彩金</b>、代理佣金、佣金贡献比、活跃会员、活跃率，共 17 列</td></tr>
+    </table>
+
+    <h2>二、业务规则</h2>
+    <h3>2.1 谁会出现在列表里</h3>
+    <ul>
+      <li>按全民代理口径：统计期内有新增直属会员、或团队有充值 / 提现 / 投注 / 返佣任一行为的会员即为一行；完全没有动作的不出现。</li>
+      <li>代理类型选「已开通代理」时，只保留后台已开通代理身份的会员；默认「全部有下级的会员」。</li>
+      <li>「最少新增会员」为门槛：新增会员数低于该值的代理不展示，默认 0 即不过滤。</li>
+      <li>测试账号不作为代理出现，其行为也不计入任何上级的团队数据。</li>
+    </ul>
+    <h3>2.2 层级与团队</h3>
+    <ul>
+      <li>代理层级取推荐关系树中的绝对层级：总代为 0 级，往下递增，与会员层级页的「用户绝对层级」同一口径；下拉从 0 级列到当前站点最大层级。</li>
+      <li>团队 = 该代理往下六层内的全部会员，与返佣、代理团队日报口径一致；六层以外不计。</li>
+      <li>「新增会员」只算直属下级；团队总充值 / 总提现 / 总打码 / 活跃会员算六层内全部会员。</li>
+      <li>上级与下级各自单独成行，团队数据会重复计入各自上级，列表不做去重合计。</li>
+      <li>上下级按查询时的当前关系归属；会员换绑上级后，其历史数据随新上级计算。</li>
+    </ul>
+    <h3>2.3 指标口径</h3>
+    <ul>
+      <li>首充：新增会员中在统计期内完成首次成功充值；首充金额取首笔成功充值。转化率的分子分母是同一批新增会员，不会超过 100%。</li>
+      <li>代理佣金：统计期内实际入账的代理佣金与首充返佣合计；不含合伙人奖励、投注返水、代理红包。</li>
+      <li>活动彩金：团队会员通过系统活动自动领取的彩金，按入账日统计。活动清单沿用「下级数据统计」的范围，另含优惠券赠金与周期卡奖励；两个页面数字必须对得上，清单要改就一起改。</li>
+      <li>人工彩金：团队会员由后台人工存款页面加的彩金，只算发放额，不抵扣人工彩金扣除。人工存款是真钱，不计入。</li>
+      <li>叫法：后台人工存款页面里的「活动彩金」选项记的是人工加彩金，对应本页的「人工彩金」；本页「活动彩金」只指系统自动发放。上线前统一口径，避免混用。</li>
+      <li>活跃会员：团队会员中有投注行为的人数，一个会员只算一次；活跃率的分母是团队累计总会员数。</li>
+      <li>比率分母为 0 时显示「—」，排序时「—」排在最后。</li>
+      <li>佣金贡献比 ≤5% 标绿、≥15% 标红，其余不标色；阈值固定，本期不做配置。</li>
+    </ul>
+    <h3>2.4 排序与分页</h3>
+    <ul>
+      <li>排序只通过「排名依据」下拉切换，列头不可点排序；排名依据共 8 项：总充值金额降序、新增会员数降序、首充转化率降序、活动彩金降序、人工彩金降序、代理佣金降序、佣金贡献比升序、活跃率降序。</li>
+      <li>排名按全部结果计算，不是当前页；数值相同按代理ID从大到小排。</li>
+      <li>TOP 10 图取排序后的前 10 名，指标随排名依据切换；筛选条件同时作用于图和列表。</li>
+      <li>快捷日期只回填日期，不自动查询；重置恢复默认（全部有下级的会员、全部层级、总充值金额降序、最少新增 0、昨天）并自动查询。</li>
+    </ul>
+    <h3>2.5 导出</h3>
+    <ul><li>按当前筛选与排序导出全部结果，列与页面一致，比率列导出为百分比数值。</li></ul>
+
+    <h2>三、限制</h2>
+    <ul>
+      <li>数据来自报表库，每日凌晨生成，只能查到昨日；日期上限为昨天，本周 / 本月截止到昨天。</li>
+      <li>单次查询区间最长 31 天；可查的历史范围与现有会员日报表保留期一致。</li>
+      <li>不做团队去重合计行、不做同比环比、不做列头排序、不做阈值配置。</li>
+      <li>代理ID 沿用现有会员ID 跳转规则进入会员详情，不新增代理详情页。</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+
+/* ---------- 日期工具（本地时间，避免时区差一天） ---------- */
+var TODAY=new Date(2026,8,26);
+function ymd(d){var m=d.getMonth()+1,dd=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(dd<10?'0':'')+dd}
+function addD(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
+function parse(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+var YEST=addD(TODAY,-1);
+function quickRange(q){
+  var s,e=YEST;
+  if(q==='yesterday'){s=YEST}
+  else if(q==='week'){var dow=(TODAY.getDay()+6)%7;s=addD(TODAY,-dow);if(s>YEST)s=YEST}
+  else if(q==='lweek'){var dw=(TODAY.getDay()+6)%7;e=addD(TODAY,-dw-1);s=addD(e,-6)}
+  else if(q==='month'){s=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);if(s>YEST)s=YEST}
+  else if(q==='lmonth'){s=new Date(TODAY.getFullYear(),TODAY.getMonth()-1,1);e=new Date(TODAY.getFullYear(),TODAY.getMonth(),0)}
+  return [ymd(s),ymd(e)];
+}
+$('today').textContent=TODAY.getFullYear()+'年'+(TODAY.getMonth()+1)+'月'+TODAY.getDate()+'日';
+
+/* ---------- 模拟数据 ---------- */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var R=rng(20260925);
+function ri(a,b){return Math.floor(R()*(b-a+1))+a}
+function rf(a,b){return R()*(b-a)+a}
+var AGENTS=[];
+(function(){
+  var ids=[];for(var i=0;i<64;i++)ids.push(ri(100000,168000));
+  ids.sort(function(a,b){return b-a});
+  for(var i=0;i<64;i++){
+    var t=R(),tier=t<.12?'big':t<.42?'mid':'small';
+    var lvR=R(),lv=lvR<.08?0:lvR<.30?1:lvR<.60?2:lvR<.85?3:lvR<.95?4:lvR<.985?5:6;
+    var formal=R()<(tier==='big'?.85:tier==='mid'?.45:.15);
+    var bonusR=rf(.02,.25),manual=R()<.18;
+    var team=tier==='big'?ri(400,3200):tier==='mid'?ri(40,320):ri(2,36);
+    var newD=tier==='big'?rf(4,22):tier==='mid'?rf(.6,5):rf(0,.9);
+    var conv=rf(.18,.8),avgFirst=rf(300,2600);
+    var rchPer=rf(20,180),wdr=rf(.3,.95),betX=rf(2,8);
+    var commR=tier==='small'?rf(.002,.04):rf(.001,.02);
+    var actD=rf(.02,.22);
+    AGENTS.push({uid:ids[i],lv:lv,formal:formal,bonusR:bonusR,manual:manual,team:team,newD:newD,conv:conv,avgFirst:avgFirst,rchPer:rchPer,wdr:wdr,betX:betX,commR:commR,actD:actD,j:R()});
+  }
+})();
+function rf2(r,a,b){return r()*(b-a)+a}
+function build(days){
+  var rows=[];
+  for(var i=0;i<AGENTS.length;i++){
+    var a=AGENTS[i],r2=rng(a.uid*31+days),jit=function(){return .85+r2()*.3};
+    var newM=Math.round(a.newD*days*jit());
+    var first=Math.min(newM,Math.round(newM*a.conv*jit()));
+    var firstAmt=first?Math.round(first*a.avgFirst*jit()):0;
+    var recharge=Math.round(firstAmt+a.team*a.rchPer*days*jit()*(a.j<.18?0:1));
+    var withdraw=Math.round(recharge*a.wdr*jit());
+    var bet=Math.round(recharge*a.betX*jit());
+    var comm=Math.round(bet*a.commR*jit());
+    var actBonus=Math.round(recharge*a.bonusR*jit()+first*rf2(r2,50,300));
+    var manBonus=a.manual&&r2()<Math.min(.95,.25*days)?Math.round(rf2(r2,200,6000)*Math.ceil(days/7)):0;
+    var active=Math.min(a.team,Math.round(a.team*a.actD*Math.pow(days,.4)*jit()));
+    if(recharge===0&&newM===0&&a.j<.1)continue;
+    rows.push({uid:a.uid,lv:a.lv,formal:a.formal,team:a.team,newM:newM,first:first,firstAmt:firstAmt,recharge:recharge,withdraw:withdraw,bet:bet,comm:comm,actBonus:actBonus,manBonus:manBonus,active:active,
+      conv:newM?first/newM:null,avgFirst:first?firstAmt/first:0,contrib:recharge?comm/recharge:null,actRate:a.team?active/a.team:0});
+  }
+  return rows;
+}
+
+/* ---------- 状态 ---------- */
+var SORT={recharge:{k:'recharge',dir:-1,label:'总充值金额',fmt:'money'},newM:{k:'newM',dir:-1,label:'新增会员数',fmt:'int'},conv:{k:'conv',dir:-1,label:'首充转化率',fmt:'pct'},actBonus:{k:'actBonus',dir:-1,label:'活动彩金',fmt:'money'},manBonus:{k:'manBonus',dir:-1,label:'人工彩金',fmt:'money'},comm:{k:'comm',dir:-1,label:'代理佣金',fmt:'money'},contrib:{k:'contrib',dir:1,label:'佣金贡献比',fmt:'pct'},actRate:{k:'actRate',dir:-1,label:'活跃率',fmt:'pct'}};
+var st={type:'',lv:'',sort:'recharge',min:0,from:'',to:'',page:1,size:20,rows:[]};
+function setDefaults(){$('fType').value='';$('fLv').value='';$('fSort').value='recharge';$('fMin').value='0';var r=quickRange('yesterday');$('fFrom').value=r[0];$('fTo').value=r[1];$('fFrom').max=ymd(YEST);$('fTo').max=ymd(YEST);pressQuick('yesterday')}
+function pressQuick(q){var bs=$('quick').querySelectorAll('button');for(var i=0;i<bs.length;i++)bs[i].setAttribute('aria-pressed',bs[i].getAttribute('data-q')===q?'true':'false')}
+
+function fmtMoney(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtInt(n){return n.toLocaleString('en-US')}
+function fmtPct(v){return v==null?'—':(v*100).toFixed(2)+'%'}
+function fmtBy(f,v){return f==='money'?fmtMoney(v):f==='int'?fmtInt(v):fmtPct(v)}
+
+function query(){
+  var from=$('fFrom').value,to=$('fTo').value;
+  if(!from||!to){toast('请选择日期区间','warn');return}
+  if(from>to){toast('开始日期不能晚于结束日期','warn');return}
+  if(to>ymd(YEST)){toast('报表数据每日凌晨生成，最晚只能查到昨天','warn');$('fTo').value=ymd(YEST);return}
+  var days=Math.round((parse(to)-parse(from))/864e5)+1;
+  if(days>31){toast('单次查询区间最长 31 天','warn');return}
+  st.type=$('fType').value;st.lv=$('fLv').value;st.sort=$('fSort').value;st.min=Math.max(0,parseInt($('fMin').value||'0',10)||0);st.from=from;st.to=to;
+  var rows=build(days).filter(function(r){
+    if(st.type==='formal'&&!r.formal)return false;
+    if(st.lv!==''&&r.lv!==+st.lv)return false;
+    if(r.newM<st.min)return false;
+    return true;
+  });
+  var s=SORT[st.sort];
+  rows.sort(function(a,b){
+    var x=a[s.k],y=b[s.k];
+    if(x==null&&y==null)return b.uid-a.uid;
+    if(x==null)return 1;if(y==null)return -1;
+    if(x!==y)return (x-y)*s.dir;
+    return b.uid-a.uid;
+  });
+  for(var i=0;i<rows.length;i++)rows[i].rank=i+1;
+  st.rows=rows;st.page=1;
+  renderChart();renderTable();
+}
+
+/* ---------- 图表 ---------- */
+function renderChart(){
+  var s=SORT[st.sort];$('chartMetric').textContent=s.label;
+  var top=st.rows.slice(0,10),svg=$('chart');
+  $('chartEmpty').classList.toggle('on',top.length===0);
+  if(!top.length){svg.innerHTML='';return}
+  var W=1200,H=300,L=70,Rr=20,T=26,B=46,iw=W-L-Rr,ih=H-T-B;
+  var vals=top.map(function(r){return r[s.k]==null?0:r[s.k]});
+  var max=Math.max.apply(null,vals);if(max<=0)max=1;
+  var isPct=s.fmt==='pct';
+  var nice=function(m){var p=Math.pow(10,Math.floor(Math.log10(m)));var f=m/p;var n=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10;return n*p};
+  var ymax=isPct?Math.min(1,nice(max*1.15)):nice(max*1.15);
+  if(isPct&&ymax<max)ymax=1;
+  var h='';
+  for(var g=0;g<=5;g++){var y=T+ih-ih*g/5,v=ymax*g/5;
+    h+='<line class="grid" x1="'+L+'" y1="'+y+'" x2="'+(W-Rr)+'" y2="'+y+'"/>';
+    h+='<text x="'+(L-8)+'" y="'+(y+4)+'" text-anchor="end">'+(isPct?(v*100).toFixed(0)+'%':fmtInt(Math.round(v)))+'</text>';}
+  h+='<line class="axis" x1="'+L+'" y1="'+(T+ih)+'" x2="'+(W-Rr)+'" y2="'+(T+ih)+'"/>';
+  var slot=iw/10,bw=Math.min(56,slot*.55);
+  top.forEach(function(r,i){
+    var v=vals[i],bh=ymax?ih*v/ymax:0,x=L+slot*i+(slot-bw)/2,y=T+ih-bh;
+    var lbl=r[s.k]==null?'—':fmtBy(s.fmt,r[s.k]);
+    h+='<rect class="bar'+(v<=0?' zero':'')+'" x="'+x+'" y="'+(v<=0?T+ih-2:y)+'" width="'+bw+'" height="'+(v<=0?2:bh)+'" rx="2" data-tip="代理 '+r.uid+'&lt;br&gt;'+s.label+'：'+lbl+'"/>';
+    h+='<text class="val" x="'+(x+bw/2)+'" y="'+((v<=0?T+ih-2:y)-6)+'" text-anchor="middle">'+lbl+'</text>';
+    h+='<text class="xl" x="'+(x+bw/2)+'" y="'+(T+ih+18)+'" text-anchor="middle">'+r.uid+'</text>';
+    h+='<text class="xl" x="'+(x+bw/2)+'" y="'+(T+ih+34)+'" text-anchor="middle" style="fill:#aaa;font-size:10px">第'+r.rank+'名</text>';
+  });
+  svg.innerHTML=h;
+}
+
+/* ---------- 表格 ---------- */
+function lvName(lv){return lv+'级'}
+function lvCls(lv){return lv<=3?'lv'+lv:'lvx'}
+function contribCls(v){return v==null?'na':v<=.05?'good':v>=.15?'bad':'mid'}
+function renderTable(){
+  var tb=$('tb'),rows=st.rows,total=rows.length,pages=Math.max(1,Math.ceil(total/st.size));
+  if(st.page>pages)st.page=pages;
+  var start=(st.page-1)*st.size,page=rows.slice(start,start+st.size),h='';
+  if(!page.length){h='<tr class="emptyrow"><td colspan="17">当前条件下没有代理数据</td></tr>'}
+  page.forEach(function(r){
+    h+='<tr>'+
+      '<td class="c"><span class="rank'+(r.rank<=3?' r'+r.rank:'')+'">'+r.rank+'</span></td>'+
+      '<td><span class="uid" data-uid="'+r.uid+'">'+r.uid+'</span>'+(r.formal?'<span class="fm" data-tip="后台已开通代理身份">已开通</span>':'')+'</td>'+
+      '<td class="c"><span class="lv '+lvCls(r.lv)+'">'+lvName(r.lv)+'</span></td>'+
+      '<td class="r">'+fmtInt(r.newM)+'</td>'+
+      '<td class="r">'+fmtInt(r.first)+'</td>'+
+      '<td class="r'+(r.conv==null?' na':'')+'" style="font-weight:600">'+fmtPct(r.conv)+'</td>'+
+      '<td class="r">'+fmtMoney(r.firstAmt)+'</td>'+
+      '<td class="r">'+fmtMoney(r.avgFirst)+'</td>'+
+      '<td class="r">'+fmtMoney(r.recharge)+'</td>'+
+      '<td class="r">'+fmtMoney(r.withdraw)+'</td>'+
+      '<td class="r">'+fmtMoney(r.bet)+'</td>'+
+      '<td class="r">'+fmtMoney(r.actBonus)+'</td>'+
+      '<td class="r'+(r.manBonus?'':' na')+'">'+fmtMoney(r.manBonus)+'</td>'+
+      '<td class="r">'+fmtMoney(r.comm)+'</td>'+
+      '<td class="r '+contribCls(r.contrib)+'">'+fmtPct(r.contrib)+'</td>'+
+      '<td class="r">'+fmtInt(r.active)+'</td>'+
+      '<td class="r">'+fmtPct(r.actRate)+'</td>'+
+    '</tr>';
+  });
+  tb.innerHTML=h;
+  /* 分页 */
+  var nums='',lo=Math.max(1,st.page-2),hi=Math.min(pages,lo+4);lo=Math.max(1,hi-4);
+  for(var p=lo;p<=hi;p++)nums+='<button data-p="'+p+'"'+(p===st.page?' class="on"':'')+'>'+p+'</button>';
+  $('pNums').innerHTML=nums;
+  $('pFirst').disabled=$('pPrev').disabled=st.page<=1;$('pNext').disabled=$('pLast').disabled=st.page>=pages;
+  $('pJump').value=st.page;
+  $('pCnt').textContent='共 '+total+' 条，第 '+st.page+' / '+pages+' 页 · 统计期 '+st.from+' 至 '+st.to;
+}
+function goPage(p){var pages=Math.max(1,Math.ceil(st.rows.length/st.size));p=Math.min(pages,Math.max(1,p));st.page=p;renderTable()}
+$('pFirst').onclick=function(){goPage(1)};$('pPrev').onclick=function(){goPage(st.page-1)};
+$('pNext').onclick=function(){goPage(st.page+1)};$('pLast').onclick=function(){goPage(1e9)};
+$('pNums').onclick=function(e){var b=e.target.closest('button');if(b)goPage(+b.getAttribute('data-p'))};
+$('pSize').onchange=function(){st.size=+this.value;st.page=1;renderTable()};
+$('pJump').onkeydown=function(e){if(e.key==='Enter')goPage(parseInt(this.value,10)||1)};
+$('tb').onclick=function(e){var u=e.target.closest('.uid');if(u)toast('跳转会员详情：'+u.getAttribute('data-uid')+'（沿用现有会员ID跳转）')};
+
+/* ---------- 交互 ---------- */
+$('quick').onclick=function(e){var b=e.target.closest('button');if(!b)return;var r=quickRange(b.getAttribute('data-q'));$('fFrom').value=r[0];$('fTo').value=r[1];pressQuick(b.getAttribute('data-q'))};
+$('fFrom').oninput=$('fTo').oninput=function(){pressQuick('')};
+$('btnQ').onclick=query;
+$('btnR').onclick=function(){setDefaults();query();toast('已重置为默认条件')};
+$('btnE').onclick=function(){var b=this;b.disabled=true;b.textContent='导出中…';setTimeout(function(){b.disabled=false;b.textContent='⬇ 导 出';toast('已导出：代理绩效对比_'+st.from+'_'+st.to+'.xlsx（按当前筛选与排序，共 '+st.rows.length+' 条）')},900)};
+$('openDef').onclick=function(){$('defMask').classList.add('on')};
+$('defX').onclick=function(){$('defMask').classList.remove('on')};
+$('defMask').onclick=function(e){if(e.target===this)this.classList.remove('on')};
+/* 抽屉 */
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on')}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on')}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeDoc();$('defMask').classList.remove('on')}});
+/* 提示 */
+var tip=$('tip');
+document.addEventListener('mouseover',function(e){var t=e.target.closest('[data-tip]');if(!t)return;tip.innerHTML=t.getAttribute('data-tip');tip.style.display='block';move(e)});
+document.addEventListener('mousemove',function(e){if(tip.style.display==='block')move(e)});
+document.addEventListener('mouseout',function(e){if(e.target.closest&&e.target.closest('[data-tip]'))tip.style.display='none'});
+function move(e){var x=e.clientX+14,y=e.clientY+16;var w=tip.offsetWidth,hh=tip.offsetHeight;if(x+w>window.innerWidth-8)x=e.clientX-w-10;if(y+hh>window.innerHeight-8)y=e.clientY-hh-10;tip.style.left=x+'px';tip.style.top=y+'px'}
+var tt;function toast(m,type){var t=$('toast');t.textContent=m;t.style.background=type==='warn'?'#e6a23c':'#5cb85c';t.style.display='block';clearTimeout(tt);tt=setTimeout(function(){t.style.display='none'},2600)}
+
+setDefaults();query();
+})();
+</script>
+</body>
+</html>
