@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>当前提现订单 · 主管/管理员转派给自己审核 · 交互原型</title>
+<style>
+:root{--ink:#1d2129;--bg:#f5f7fa;--line:#e5e6eb;--sub:#4e5969;--pri:#165dff;--gray:#86909c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;color:var(--ink);background:var(--bg);line-height:1.5}
+
+.page-block{padding:58px 18px 18px}
+
+/* ============ 页面路径面包屑 ============ */
+.crumb{display:flex;justify-content:flex-end;margin-bottom:8px;font-size:12px;color:var(--gray)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--sub);font-weight:600}
+
+/* ============ V3 中台外壳 ============ */
+.v3-panel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px}
+.v3-filter{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:10px}
+.v3-fi{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);white-space:nowrap}
+.v3-inp,.v3-sel{height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:0 9px;font-size:12.5px;min-width:150px;background:#fff;color:var(--ink)}
+.v3-sel{color:var(--gray)}
+.v3-btn{height:32px;padding:0 14px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid #dcdfe6;background:#fff;color:var(--sub)}
+.v3-btn:hover{color:var(--pri);border-color:var(--pri)}
+.v3-btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.v3-btn.pri:hover{opacity:.88;color:#fff}
+.v3-btn.warn{background:#ff9a2e;border-color:#ff9a2e;color:#fff}
+.v3-btn.danger{color:#cb2634;border-color:#f3b6bb}
+.f-right{margin-left:auto;display:flex;gap:8px}
+.v3-tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.v3-tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.v3-tbl th{background:#f7f8fa;color:var(--sub);font-weight:600;text-align:center;padding:9px 8px;border-bottom:1px solid var(--line);border-right:1px solid #f0f1f3}
+.v3-tbl td{padding:9px 8px;border-bottom:1px solid #f2f3f5;border-right:1px solid #f7f8fa;color:var(--ink);text-align:center;vertical-align:middle}
+.v3-tbl tr:last-child td{border-bottom:none}
+.v3-tbl tr:hover td{background:#fafbfc}
+.v3-tbl tr.submitted td{background:#fafafa;color:#a0a6ad}
+.v3-tbl td.l,.v3-tbl th.l{text-align:left}
+.lnk{color:var(--pri);cursor:pointer;display:block;line-height:2}
+.lnk:hover{text-decoration:underline}
+.lnk.off{color:#c2c7d0;cursor:not-allowed;text-decoration:none}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 4px 2px;font-size:12px;color:var(--sub)}
+.pg-n{min-width:26px;height:26px;border:1px solid #dcdfe6;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;background:#fff}
+.pg-n.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.ci{text-align:left;font-size:11.5px;line-height:1.75;color:var(--sub)}
+.pill{display:inline-block;font-size:11px;padding:1.5px 8px;border-radius:10px;white-space:nowrap}
+.pill.tn{background:#eaf3ff;color:#2d6cdf}
+.pill.cur{background:#e8f9ee;color:#0f7a48;border-radius:3px}
+.pill.cur.u{background:#e6fffb;color:#08979c}
+.pill.st{background:#fff7e6;color:#d46b08;border-radius:3px}
+.pill.st.done{background:#f2f3f5;color:#86909c}
+.pill.me{background:#eaf3ff;color:#165dff;font-weight:600}
+.pill.kyc{background:#fff1f0;color:#cb2634;border-radius:3px}
+.dash{color:#c9cdd4}
+.newf{background:#f5222d;color:#fff;font-size:8px;font-weight:700;border-radius:3px;padding:0 3px;margin-left:3px;letter-spacing:.2px;vertical-align:1px;white-space:nowrap}
+
+/* 页签与状态筛选 */
+.tabs{display:flex;gap:22px;border-bottom:1px solid var(--line);margin-bottom:12px;font-size:12.5px;color:var(--sub)}
+.tabs span{padding:6px 2px 9px}
+.tabs span.on{color:var(--pri);border-bottom:2px solid var(--pri);font-weight:600}
+.chips{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.chip{height:26px;padding:0 12px;border-radius:4px;border:1px solid #dcdfe6;background:#fff;font-size:12px;color:var(--sub);display:inline-flex;align-items:center;cursor:pointer}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.chips .hint{margin-left:auto;font-size:11.5px;color:#cb2634}
+
+/* 演示身份切换（仅原型用） */
+.demo-bar{position:fixed;top:12px;left:18px;z-index:500;display:flex;align-items:center;gap:8px;background:#fff;border:1px dashed #adc6ff;border-radius:18px;padding:4px 6px 4px 12px;font-size:12px;color:var(--sub);box-shadow:0 2px 8px rgba(22,93,255,.1)}
+.demo-bar b{color:#1c4c8c}
+.demo-bar .seg{display:inline-flex;border:1px solid #dcdfe6;border-radius:14px;overflow:hidden}
+.demo-bar .seg span{padding:3px 12px;cursor:pointer;background:#fff}
+.demo-bar .seg span.on{background:var(--pri);color:#fff}
+.demo-bar .rst{color:var(--pri);cursor:pointer;padding:0 8px}
+
+/* ============ 右侧需求说明抽屉 ============ */
+.req-btn{position:fixed;top:14px;right:18px;z-index:500;height:32px;padding:0 14px;border-radius:16px;background:#fff;border:1px solid #adc6ff;color:var(--pri);font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(22,93,255,.12)}
+.req-btn:hover{background:#f0f7ff}
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:12px;padding:12px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:2px;box-shadow:-2px 0 8px rgba(22,93,255,.2)}
+.req-handle:hover{background:#0e42d2}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:600;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-840px;width:820px;max-width:92vw;height:100%;background:#fff;z-index:601;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:var(--gray);font-size:18px}
+.req-body{flex:1;overflow-y:auto;padding:16px 18px 40px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body .h1:first-child{margin-top:0}
+.req-body table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 6px}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 8px;text-align:left;font-weight:600;color:#1c4c8c}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 8px;vertical-align:top;line-height:1.7}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 11px;margin:6px 0;font-size:12px;line-height:1.75;border-radius:0 4px 4px 0}
+.req-body .br b{color:#1c4c8c}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+
+/* ============ 转派弹窗（沿用现有样式） ============ */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;display:none;align-items:flex-start;justify-content:center;padding-top:9vh;overflow-y:auto}
+.mask.show{display:flex}
+.dlg{background:#fff;border-radius:8px;width:560px;max-width:94vw;box-shadow:0 12px 40px rgba(0,0,0,.25);margin-bottom:40px}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;padding:16px 18px 6px;font-size:15px;font-weight:700}
+.dlg-body{padding:8px 18px 4px}
+.dlg-tip{font-size:12.5px;margin-bottom:12px}
+.sum{background:#f5f7fa;border-radius:6px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;font-size:12px;color:var(--sub);margin-bottom:14px}
+.sum b{color:var(--ink);font-weight:500}
+.sum .amt{color:#cb2634;font-weight:700}
+.sum .full{grid-column:1/3}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:12.5px;margin-bottom:6px}
+.fld label .rq{color:#f5222d;margin-right:3px}
+.err{color:#cb2634;font-size:11.5px;margin-top:4px;display:none}
+.err.show{display:block}
+.dd{position:relative}
+.dd-box{height:34px;border:1px solid #dcdfe6;border-radius:4px;padding:0 30px 0 10px;display:flex;align-items:center;font-size:12.5px;cursor:pointer;background:#fff;color:var(--gray)}
+.dd-box.has{color:var(--ink)}
+.dd-box.open,.dd-box:hover{border-color:var(--pri)}
+.dd-box::after{content:"";position:absolute;right:11px;top:13px;border:5px solid transparent;border-top-color:#9aa1a9}
+.dd-list{position:absolute;left:0;right:0;top:38px;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:10;display:none;max-height:240px;overflow-y:auto;padding:4px}
+.dd-list.show{display:block}
+.dd-opt{padding:7px 10px;border-radius:4px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.dd-opt:hover{background:#f2f6ff}
+.dd-opt.self{background:#f0f7ff;border:1px solid #cfe0ff;margin-bottom:4px;font-weight:600;color:#1c4c8c}
+.dd-opt .meta{margin-left:auto;font-size:11px;color:var(--gray);font-weight:400}
+.dd-sep{font-size:11px;color:var(--gray);padding:4px 10px 2px}
+.self-hint{background:#f0f7ff;border:1px solid #cfe0ff;color:#1c4c8c;border-radius:5px;padding:8px 11px;font-size:12px;line-height:1.7;margin-top:8px;display:none}
+.self-hint.show{display:block}
+.ta{width:100%;height:68px;border:1px solid #dcdfe6;border-radius:4px;padding:7px 10px;font-size:12.5px;font-family:inherit;resize:vertical}
+.ta:focus{outline:none;border-color:var(--pri)}
+.cnt{text-align:right;font-size:11px;color:var(--gray);margin-top:2px}
+.dlg-foot{display:flex;justify-content:center;gap:14px;padding:6px 18px 20px}
+.dlg-foot .v3-btn{min-width:84px;justify-content:center}
+
+/* ============ 审核弹窗（现有审核详情弹窗的简化示意） ============ */
+.dlg.audit{width:860px}
+.a-sum{display:flex;gap:26px;flex-wrap:wrap;background:#f5f7fa;border-radius:6px;padding:12px 16px;margin-bottom:14px}
+.a-sum div{font-size:11.5px;color:var(--gray)}
+.a-sum div b{display:block;font-size:13.5px;color:var(--ink);font-weight:600}
+.a-sum div b.amt{color:#cb2634}
+.a-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 28px;font-size:12.5px;color:var(--sub);margin-bottom:14px}
+.a-grid b{color:var(--ink);font-weight:500}
+.a-warn{background:#fff7e6;border:1px solid #ffd591;color:#ad4e00;border-radius:5px;padding:7px 11px;font-size:12px;margin-bottom:14px}
+.a-ops{border-top:1px solid var(--line);padding:14px 18px 18px;display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+.a-card{border:1px solid var(--line);border-radius:6px;padding:12px}
+.a-card .t{font-weight:700;font-size:12.5px;margin-bottom:10px}
+.a-card .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+.toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#1f2733;color:#fff;padding:9px 18px;border-radius:6px;font-size:12.5px;z-index:900;display:none;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:80vw}
+</style>
+</head>
+<body>
+
+<!-- 演示身份（仅原型用） -->
+<div class="demo-bar">
+  <span><b>演示身份</b>（仅原型用）当前登录：luna</span>
+  <span class="seg" id="role-seg">
+    <span data-r="admin">管理员</span><span data-r="manager">主管</span><span data-r="leader">组长</span>
+  </span>
+  <span class="rst" onclick="resetData()">重置数据</span>
+</div>
+
+<!-- 右侧需求说明入口 -->
+<div class="req-btn" onclick="openReq()">📋 需求说明</div>
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="req-mask" onclick="closeReq()"></div>
+<div class="req-drawer" id="req-drawer">
+  <div class="req-head"><span class="t">需求说明</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body">
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:170px">页面</th><th>改动点</th></tr>
+      <tr><td>提现订单管理 → 当前提现订单 · 转派弹窗</td><td>「转派人员」下拉新增「转派给自己」，仅主管、管理员可见</td></tr>
+      <tr><td>提现订单管理 → 当前提现订单 · 列表</td><td>订单在自己名下时，操作列新增「继续审核」</td></tr>
+    </table>
+
+    <div class="h1">二、名词术语</div>
+    <table class="t">
+      <tr><th style="width:110px">术语</th><th>说明</th></tr>
+      <tr><td><b>转派给自己</b></td><td>主管或管理员把订单接到自己名下，并直接进入审核</td></tr>
+      <tr><td><b>下属</b></td><td>与现有转派范围一致：管理员为本集团全部出款人员；主管为自己的下级组长及其组员</td></tr>
+    </table>
+
+    <div class="h1">三、功能描述与业务规则</div>
+    <div class="br"><span class="bn">01</span>仅出款职级为<b>主管、管理员</b>的账号，在转派弹窗的「转派人员」下拉里能看到「转派给自己」，固定排在第一项；不需要打卡上班。组员、组长看不到这一项，和现在一样。</div>
+    <div class="br"><span class="bn">02</span>可以接手三种订单：还没分给任何人的订单、下属还没开始审的订单、下属正在审的订单。</div>
+    <div class="br"><span class="bn">03</span><b>不限制币种</b>：法币、USDT 的订单都可以转派给自己。</div>
+    <div class="br"><span class="bn">04</span>订单所属商户必须在本人的出款商户范围内；KYC 验证中断中的订单不可转派。这两条与现有转派一致。</div>
+    <div class="br"><span class="bn">05</span>选中「转派给自己」后，弹窗提示订单将转到自己名下，按钮文字变为「转派并审核」。备注仍为必填，与现有转派一致。</div>
+    <div class="br"><span class="bn">06</span>确认后订单的操作人变为自己，并直接打开审核弹窗，可提交三方出款、人工确认出款、人工取消出款。</div>
+    <div class="br"><span class="bn">07</span>订单已经在自己名下且未提交时，操作列显示「继续审核」，点击直接打开审核弹窗；这时转派弹窗里不再出现「转派给自己」。</div>
+    <div class="br"><span class="bn">08</span>接手下属的订单后，原处理人会收到「订单被转走」的站内信，该订单从其工作台消失。接手下属正在审的订单，审核计时从接手时重新开始。</div>
+    <div class="br"><span class="bn">09</span>接手后不想审，可在审核弹窗或列表里用「转派」把订单转给组员或组长。</div>
+    <div class="br"><span class="bn">10</span>主管、管理员审核的订单不计入出款员工报表，在全部提现记录中按操作人筛选查看。</div>
+
+    <div class="h1">四、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>批量转派</td><td>批量转派不支持转派给自己，本期只支持单笔</td></tr>
+      <tr><td>超时与数量</td><td>本期不做接手后的超时回收，也不限制接手数量；接手后未审核的订单会一直留在本人名下</td></tr>
+      <tr><td>权限</td><td>本期不新增权限码，入口沿用现有转派权限</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- 转派弹窗 -->
+<div class="mask" id="as-mask">
+  <div class="dlg">
+    <div class="dlg-head"><span>提示</span><span class="req-x" onclick="closeAssign()">✕</span></div>
+    <div class="dlg-body">
+      <div class="dlg-tip" id="as-tip">该操作即将将这笔单转派给其他人，请选择转派人员！</div>
+      <div class="sum" id="as-sum"></div>
+      <div class="fld">
+        <label><span class="rq">*</span>转派人员</label>
+        <div class="dd">
+          <div class="dd-box" id="dd-box" onclick="toggleDd()">请选择用户</div>
+          <div class="dd-list" id="dd-list"></div>
+        </div>
+        <div class="err" id="err-user">请选择转派人员</div>
+        <div class="self-hint" id="self-hint"></div>
+      </div>
+      <div class="fld">
+        <label><span class="rq">*</span>备注</label>
+        <textarea class="ta" id="as-remark" maxlength="200" placeholder="请填写转派备注" oninput="cnt()"></textarea>
+        <div class="cnt"><span id="as-cnt">0</span> / 200</div>
+        <div class="err" id="err-remark">请填写转派备注</div>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <div class="v3-btn" onclick="closeAssign()">关 闭</div>
+      <div class="v3-btn pri" id="as-ok" onclick="submitAssign()">转 派</div>
+    </div>
+  </div>
+</div>
+
+<!-- 审核弹窗（现有审核详情弹窗的简化示意） -->
+<div class="mask" id="au-mask">
+  <div class="dlg audit">
+    <div class="dlg-head"><span>订单审核</span><span class="req-x" onclick="closeAudit()">✕</span></div>
+    <div class="dlg-body">
+      <div class="a-sum" id="au-sum"></div>
+      <div class="a-warn" id="au-warn"></div>
+      <div class="a-grid" id="au-grid"></div>
+    </div>
+    <div class="a-ops">
+      <div class="a-card">
+        <div class="t">出款处理</div>
+        <div class="row">
+          <select class="v3-sel" style="min-width:200px"><option>请选择代付通道</option><option>[20001] DemoPay-INR</option><option>[20015] FastUPI</option></select>
+          <div class="v3-btn pri" onclick="auditDo('third')">提交三方出款</div>
+        </div>
+      </div>
+      <div class="a-card">
+        <div class="t">辅助处理</div>
+        <div class="row">
+          <div class="v3-btn" onclick="auditDo('confirm')">人工确认出款</div>
+          <div class="v3-btn danger" onclick="auditDo('cancel')">人工取消出款</div>
+          <div class="v3-btn" onclick="auditDo('assign')">转派</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ==================== 当前提现订单 ==================== -->
+<div class="page-block">
+  <div class="crumb">提现订单管理<span class="sep">-</span><span class="cur">当前提现订单</span></div>
+  <div class="v3-panel">
+    <div class="tabs"><span>出款看板</span><span>出款员工操作台</span><span>出款组别配置</span><span>出款员工报表</span><span class="on">当前提现订单</span><span>全部提现记录</span></div>
+    <div class="v3-filter">
+      <div class="v3-fi"><span>商户</span><select class="v3-sel"><option>全部商户</option></select></div>
+      <div class="v3-fi"><span>会员ID</span><input class="v3-inp" placeholder="请输入会员ID"></div>
+      <div class="v3-fi"><span>订单号</span><input class="v3-inp" placeholder="请输入订单号"></div>
+      <div class="v3-fi"><span>提现大类</span><select class="v3-sel"><option>请选择提现大类</option></select></div>
+      <div class="v3-fi"><span>操作人</span><input class="v3-inp" placeholder="请输入操作人"></div>
+      <div class="f-right"><div class="v3-btn pri">搜索</div><div class="v3-btn">重置</div></div>
+    </div>
+    <div class="chips">
+      <span class="chip on">全部</span><span class="chip">待派发</span><span class="chip">待审核</span><span class="chip">审核中</span><span class="chip">审核超时</span><span class="chip">已提交</span>
+      <span class="v3-btn warn" style="height:26px" onclick="batchAssign()">批量转派</span>
+      <span class="hint">仅保留近60天订单，更早记录见 "全部提现记录"</span>
+    </div>
+    <div class="v3-tablewrap">
+      <table class="v3-tbl">
+        <thead><tr>
+          <th style="width:36px"></th>
+          <th>会员ID</th><th>商户</th><th class="l">订单时间 (UTC+5:30)</th><th>提现大类</th><th>币种</th>
+          <th>提现金额</th><th>实际到账金额</th><th>当前审核已耗时</th><th>当前处理状态</th><th>当前订单状态</th>
+          <th>操作人</th><th style="width:110px">操作</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="pager"><span id="total"></span><span class="pg-n on">1</span><span>20 / 页</span></div>
+  </div>
+</div>
+
+<script>
+/* ==================== 演示数据 ==================== */
+var ME='luna';
+var ROLE='manager';
+var ROLE_TXT={admin:'管理员',manager:'主管',leader:'组长'};
+/* scope: mine=当前账号的下属；other=其他主管的下属（仅管理员能管到） */
+var STAFF=[
+  {name:'amy',rank:'组员',state:'接单中',scope:'mine'},
+  {name:'bob',rank:'组员',state:'暂停中',scope:'mine'},
+  {name:'cindy',rank:'组长',state:'上班未接单',scope:'mine'},
+  {name:'david',rank:'组员',state:'接单中',scope:'other'}
+];
+function seed(){ return [
+  {no:'WD20260930131720012001109a',uid:2247519,tn:'(2001)sit-inr',t:'2026-09-30 13:17:20',cat:'UPI',cur:'INR',amt:'7,182.00',real:'6,463.80',proc:'待派发',st:'待审核',op:'',el:'--'},
+  {no:'WD20260930131659012001877b',uid:2247520,tn:'(2001)sit-inr',t:'2026-09-30 13:16:59',cat:'银行卡',cur:'INR',amt:'7,792.00',real:'7,012.80',proc:'待审核',st:'待审核',op:'amy',el:'--'},
+  {no:'WD20260930131628012001553c',uid:2251033,tn:'(2001)sit-inr',t:'2026-09-30 13:16:28',cat:'银行卡',cur:'INR',amt:'520,000.00',real:'520,000.00',proc:'审核中',st:'待审核',op:'bob',el:'0H 6M 12S',big:1},
+  {no:'WD20260930131617012003221d',uid:2260418,tn:'(2003)sit-usdt',t:'2026-09-30 13:16:17',cat:'USDT',cur:'USDT',amt:'1,200.00',real:'1,199.00',proc:'待派发',st:'待审核',op:'',el:'--'},
+  {no:'WD20260930131607012001990e',uid:2247777,tn:'(2001)sit-inr',t:'2026-09-30 13:16:07',cat:'UPI',cur:'INR',amt:'7,634.00',real:'6,870.60',proc:'待派发',st:'待审核',op:'',el:'--',kyc:1},
+  {no:'WD20260930131536012001402f',uid:2249001,tn:'(2001)sit-inr',t:'2026-09-30 13:15:36',cat:'UPI',cur:'INR',amt:'3,129.00',real:'2,816.10',proc:'待审核',st:'待审核',op:'david',el:'--'},
+  {no:'WD20260930131525012001318g',uid:2248812,tn:'(2001)sit-inr',t:'2026-09-30 13:15:25',cat:'UPI',cur:'INR',amt:'5,247.00',real:'4,722.30',proc:'已提交',st:'已提交',op:'cindy',el:'0H 2M 40S'}
+];}
+var ORDERS=seed();
+var curNos=[], selUser=null, auditNo=null;
+
+/* ==================== 权限口径（与现有转派一致） ==================== */
+function canSelf(){ return ROLE==='admin'||ROLE==='manager'; }
+function staffInScope(){ return STAFF.filter(function(s){ return ROLE==='admin' ? true : (ROLE==='manager' ? s.scope==='mine' : (s.scope==='mine'&&s.rank==='组员')); }); }
+function visibleOrders(){
+  var names=staffInScope().map(function(s){return s.name});
+  return ORDERS.filter(function(o){ return ROLE==='admin'||o.op===''||o.op===ME||names.indexOf(o.op)>=0; });
+}
+function byNo(no){ return ORDERS.filter(function(o){return o.no===no})[0]; }
+
+/* ==================== 列表渲染 ==================== */
+function render(){
+  document.querySelectorAll('#role-seg span').forEach(function(e){ e.classList.toggle('on',e.dataset.r===ROLE); });
+  var list=visibleOrders(), h='';
+  list.forEach(function(o){
+    var sub=o.st==='已提交', mine=o.op===ME;
+    var acts='<span class="lnk" onclick="toast(\'打开只读详情（现有功能，不变）\')">查看详情</span>';
+    if(!sub){
+      if(mine) acts+='<span class="lnk" onclick="openAudit(\''+o.no+'\')">继续审核<span class="newf">NEW</span></span>';
+      acts+= o.kyc ? '<span class="lnk off" title="KYC 验证中断中的订单不可转派">转派</span>'
+                   : '<span class="lnk" onclick="openAssign([\''+o.no+'\'])">转派</span>';
+    }else{
+      acts+='<span class="lnk" onclick="toast(\'订单重审（现有功能，不变）\')">订单重审</span><span class="lnk" onclick="toast(\'人工确认（现有功能，不变）\')">人工确认</span>';
+    }
+    h+='<tr class="'+(sub?'submitted':'')+'">'
+      +'<td><input type="checkbox" class="ck" value="'+o.no+'" '+(sub||o.kyc?'disabled':'')+'></td>'
+      +'<td>'+o.uid+'</td><td><span class="pill tn">'+o.tn+'</span></td>'
+      +'<td class="l"><div class="ci">申请：'+o.t+'</div></td>'
+      +'<td>'+o.cat+'</td><td><span class="pill cur '+(o.cur==='USDT'?'u':'')+'">'+o.cur+'</span></td>'
+      +'<td>'+o.amt+(o.big?' <span class="pill kyc">大额</span>':'')+'</td><td>'+o.real+'</td>'
+      +'<td>'+(o.el==='--'?'<span class="dash">--</span>':o.el)+'</td>'
+      +'<td>'+o.proc+(o.kyc?' <span class="pill kyc">KYC 中断</span>':'')+'</td>'
+      +'<td><span class="pill st '+(sub?'done':'')+'">'+o.st+'</span></td>'
+      +'<td>'+(o.op?(mine?'<span class="pill me">'+o.op+'（我）</span>':o.op):'<span class="dash">--</span>')+'</td>'
+      +'<td>'+acts+'</td></tr>';
+  });
+  document.getElementById('tbody').innerHTML=h;
+  document.getElementById('total').textContent='共 '+list.length+' 条';
+}
+
+/* ==================== 转派弹窗 ==================== */
+function openAssign(nos){
+  curNos=nos; selUser=null;
+  var single=nos.length===1, o=single?byNo(nos[0]):null;
+  document.getElementById('as-tip').textContent= single ? '该操作即将将这笔单转派给其他人，请选择转派人员！' : '该操作即将把已选的 '+nos.length+' 笔订单转派给其他人，请选择转派人员！';
+  document.getElementById('as-sum').innerHTML= single
+    ? '<div>会员ID：<b>'+o.uid+'</b></div><div>订单号：<b>'+o.no+'</b></div><div>提现大类：<b>'+o.cat+'</b></div><div>币种：<b>'+o.cur+'</b></div><div>提现金额：<b class="amt">'+o.amt+'</b></div><div>当前操作人：<b>'+(o.op||'未分配')+(o.proc==='审核中'?'（审核中）':'')+'</b></div>'
+    : '<div class="full">已选订单：<b>'+nos.length+' 笔</b></div>';
+  /* 下拉选项：仅主管/管理员、单笔、且订单不在自己名下时，出现「转派给自己」 */
+  var h='';
+  if(single&&canSelf()&&o.op!==ME){
+    h+='<div class="dd-opt self" onclick="pick(\'__self\')">转派给自己<span class="newf">NEW</span><span class="meta">'+ME+' · '+ROLE_TXT[ROLE]+' · 无需打卡</span></div><div class="dd-sep">转派给其他人</div>';
+  }
+  staffInScope().forEach(function(s){
+    if(single&&s.name===o.op) return;
+    h+='<div class="dd-opt" onclick="pick(\''+s.name+'\')">'+s.name+'<span class="meta">'+s.rank+' · '+s.state+'</span></div>';
+  });
+  if(!single&&canSelf()) h+='<div class="dd-sep">批量转派不支持转派给自己</div>';
+  document.getElementById('dd-list').innerHTML=h;
+  var box=document.getElementById('dd-box'); box.textContent='请选择用户'; box.classList.remove('has');
+  document.getElementById('as-remark').value=''; cnt();
+  document.getElementById('self-hint').classList.remove('show');
+  document.getElementById('as-ok').textContent='转 派';
+  ['err-user','err-remark'].forEach(function(i){document.getElementById(i).classList.remove('show')});
+  document.getElementById('as-mask').classList.add('show');
+}
+function closeAssign(){ document.getElementById('as-mask').classList.remove('show'); closeDd(); }
+function toggleDd(){ document.getElementById('dd-list').classList.toggle('show'); document.getElementById('dd-box').classList.toggle('open'); }
+function closeDd(){ document.getElementById('dd-list').classList.remove('show'); document.getElementById('dd-box').classList.remove('open'); }
+function pick(u){
+  selUser=u; closeDd();
+  var box=document.getElementById('dd-box'), hint=document.getElementById('self-hint'), o=byNo(curNos[0]);
+  box.classList.add('has'); document.getElementById('err-user').classList.remove('show');
+  if(u==='__self'){
+    box.textContent='转派给自己（'+ME+' · '+ROLE_TXT[ROLE]+'）';
+    hint.innerHTML='订单将转到你名下，确认后直接进入审核。'+(o.op?'原处理人 <b>'+o.op+'</b> 会收到「订单被转走」的通知'+(o.proc==='审核中'?'，审核计时从现在重新开始。':'。'):'');
+    hint.classList.add('show');
+    document.getElementById('as-ok').textContent='转派并审核';
+  }else{
+    box.textContent=u; hint.classList.remove('show');
+    document.getElementById('as-ok').textContent='转 派';
+  }
+}
+function cnt(){ document.getElementById('as-cnt').textContent=document.getElementById('as-remark').value.length; }
+function submitAssign(){
+  var ok=true, rm=document.getElementById('as-remark').value.trim();
+  document.getElementById('err-user').classList.toggle('show',!selUser); if(!selUser) ok=false;
+  document.getElementById('err-remark').classList.toggle('show',!rm); if(!rm) ok=false;
+  if(!ok) return;
+  var self=selUser==='__self', target=self?ME:selUser, prev='';
+  curNos.forEach(function(no){ var o=byNo(no); prev=o.op; o.op=target; o.proc=self?'审核中':'待审核'; o.el=self?'0H 0M 1S':'--'; });
+  closeAssign(); render();
+  if(self){
+    toast('已转派给自己'+(prev?'，已通知原处理人 '+prev:'')+'。正在打开审核弹窗');
+    openAudit(curNos[0]);
+  }else{
+    toast('已转派给 '+target);
+  }
+}
+function batchAssign(){
+  var nos=[].slice.call(document.querySelectorAll('.ck:checked')).map(function(c){return c.value});
+  if(!nos.length){ toast('请先勾选要转派的订单'); return; }
+  openAssign(nos);
+}
+
+/* ==================== 审核弹窗 ==================== */
+function openAudit(no){
+  auditNo=no; var o=byNo(no);
+  if(o.proc!=='审核中'){ o.proc='审核中'; o.el='0H 0M 1S'; render(); }
+  document.getElementById('au-sum').innerHTML='<div>商户<b>'+o.tn+'</b></div><div>会员ID<b>'+o.uid+'</b></div><div>订单号<b>'+o.no+'</b></div><div>提现金额<b class="amt">'+o.amt+' '+o.cur+'</b></div><div>提现大类<b>'+o.cat+'</b></div>';
+  document.getElementById('au-warn').textContent='当前处理人：'+ME+'（'+ROLE_TXT[ROLE]+'）。主管、管理员审核的订单不计入出款员工报表，可在全部提现记录按操作人查看。';
+  document.getElementById('au-grid').innerHTML='<div>申请时间：<b>'+o.t+'</b></div><div>实际到账金额：<b>'+o.real+'</b></div><div>收款信息：<b>'+(o.cat==='USDT'?'TRC20 / TQ7x…9KpA':'HDFC Bank / 5010****8842')+'</b></div><div>用户备注：<b>138 1234 5678</b></div><div>审核开始时间：<b>刚刚</b></div><div>当前订单状态：<b>'+o.st+'</b></div>';
+  document.getElementById('au-mask').classList.add('show');
+}
+function closeAudit(){ document.getElementById('au-mask').classList.remove('show'); }
+function auditDo(act){
+  var o=byNo(auditNo);
+  if(act==='assign'){ closeAudit(); openAssign([auditNo]); return; }
+  closeAudit();
+  if(act==='cancel'){ ORDERS=ORDERS.filter(function(x){return x.no!==auditNo}); toast('已人工取消出款，订单从当前提现订单移出'); }
+  else{ o.st='已提交'; o.proc='已提交'; toast(act==='third'?'已提交三方出款':'已人工确认出款'); }
+  render();
+}
+
+/* ==================== 通用 ==================== */
+function openReq(){ document.getElementById('req-mask').classList.add('show'); document.getElementById('req-drawer').classList.add('show'); }
+function closeReq(){ document.getElementById('req-mask').classList.remove('show'); document.getElementById('req-drawer').classList.remove('show'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeReq(); closeAssign(); closeAudit(); } });
+document.addEventListener('click',function(e){ if(!e.target.closest('.dd')) closeDd(); });
+var tmr;
+function toast(m){ var t=document.getElementById('toast'); t.innerHTML=m; t.style.display='block'; clearTimeout(tmr); tmr=setTimeout(function(){t.style.display='none'},3200); }
+document.getElementById('role-seg').addEventListener('click',function(e){ var r=e.target.dataset.r; if(r){ ROLE=r; ORDERS=seed(); render(); toast('已切换为'+ROLE_TXT[r]+'视角'+(r==='leader'?'：转派弹窗里没有「转派给自己」':'')); } });
+function resetData(){ ORDERS=seed(); render(); toast('已重置演示数据'); }
+render();
+</script>
+</body>
+</html>
