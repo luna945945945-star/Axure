@@ -168,7 +168,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-s
     <div class="h1">一、改造页面</div>
     <table class="t">
       <tr><th style="width:170px">页面</th><th>改动点</th></tr>
-      <tr><td>提现订单管理 → 当前提现订单 · 转派弹窗</td><td>「转派人员」下拉新增「转派给自己」，仅主管、管理员可见</td></tr>
+      <tr><td>提现订单管理 → 当前提现订单 · 转派弹窗</td><td>「转派人员」下拉新增「转派给自己」，仅主管、管理员可见；单笔转派、批量转派都支持</td></tr>
       <tr><td>提现订单管理 → 当前提现订单 · 列表</td><td>订单在自己名下时，操作列新增「继续审核」</td></tr>
     </table>
 
@@ -180,21 +180,21 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-s
     </table>
 
     <div class="h1">三、功能描述与业务规则</div>
-    <div class="br"><span class="bn">01</span>仅出款职级为<b>主管、管理员</b>的账号，在转派弹窗的「转派人员」下拉里能看到「转派给自己」，固定排在第一项；不需要打卡上班。组员、组长看不到这一项，和现在一样。</div>
+    <div class="br"><span class="bn">01</span>仅出款职级为<b>主管、管理员</b>的账号，在转派弹窗（单笔、批量）的「转派人员」下拉里能看到「转派给自己」，固定排在第一项；不需要打卡上班。组员、组长看不到这一项，和现在一样。</div>
     <div class="br"><span class="bn">02</span>可以接手三种订单：还没分给任何人的订单、下属还没开始审的订单、下属正在审的订单。</div>
     <div class="br"><span class="bn">03</span><b>不限制币种</b>：法币、USDT 的订单都可以转派给自己。</div>
     <div class="br"><span class="bn">04</span>订单所属商户必须在本人的出款商户范围内；KYC 验证中断中的订单不可转派。这两条与现有转派一致。</div>
-    <div class="br"><span class="bn">05</span>选中「转派给自己」后，弹窗提示订单将转到自己名下，按钮文字变为「转派并审核」。备注仍为必填，与现有转派一致。</div>
-    <div class="br"><span class="bn">06</span>确认后订单的操作人变为自己，并直接打开审核弹窗，可提交三方出款、人工确认出款、人工取消出款。</div>
-    <div class="br"><span class="bn">07</span>订单已经在自己名下且未提交时，操作列显示「继续审核」，点击直接打开审核弹窗；这时转派弹窗里不再出现「转派给自己」。</div>
-    <div class="br"><span class="bn">08</span>接手下属的订单后，原处理人会收到「订单被转走」的站内信，该订单从其工作台消失。接手下属正在审的订单，审核计时从接手时重新开始。</div>
-    <div class="br"><span class="bn">09</span>接手后不想审，可在审核弹窗或列表里用「转派」把订单转给组员或组长。</div>
-    <div class="br"><span class="bn">10</span>主管、管理员审核的订单不计入出款员工报表，在全部提现记录中按操作人筛选查看。</div>
+    <div class="br"><span class="bn">05</span>单笔转派选中「转派给自己」后，弹窗提示订单将转到自己名下，按钮文字变为「转派并审核」。备注仍为必填，与现有转派一致。</div>
+    <div class="br"><span class="bn">06</span>单笔转派确认后，订单的操作人变为自己，并直接打开审核弹窗，可提交三方出款、人工确认出款、人工取消出款。</div>
+    <div class="br"><span class="bn">07</span><b>批量转派给自己</b>：所选订单需符合现有批量转派的要求（同一提现大类、同一币种）。确认后这些订单的操作人都变为自己，不自动打开审核弹窗，在列表里点「继续审核」逐笔处理。所选订单里已经在自己名下的保持不变。</div>
+    <div class="br"><span class="bn">08</span>订单已经在自己名下且未提交时，操作列显示「继续审核」，点击直接打开审核弹窗；所选订单全部在自己名下时，转派弹窗里不再出现「转派给自己」。</div>
+    <div class="br"><span class="bn">09</span>接手下属的订单后，原处理人会收到「订单被转走」的站内信，该订单从其工作台消失。接手下属正在审的订单，审核计时从接手时重新开始。</div>
+    <div class="br"><span class="bn">10</span>接手后不想审，可在审核弹窗或列表里用「转派」把订单转给组员或组长。</div>
+    <div class="br"><span class="bn">11</span>主管、管理员审核的订单不计入出款员工报表，在全部提现记录中按操作人筛选查看。</div>
 
     <div class="h1">四、限制条件</div>
     <table class="t">
       <tr><th style="width:110px">项</th><th>说明</th></tr>
-      <tr><td>批量转派</td><td>批量转派不支持转派给自己，本期只支持单笔</td></tr>
       <tr><td>超时与数量</td><td>本期不做接手后的超时回收，也不限制接手数量；接手后未审核的订单会一直留在本人名下</td></tr>
       <tr><td>权限</td><td>本期不新增权限码，入口沿用现有转派权限</td></tr>
     </table>
@@ -326,6 +326,7 @@ function visibleOrders(){
   var names=staffInScope().map(function(s){return s.name});
   return ORDERS.filter(function(o){ return ROLE==='admin'||o.op===''||o.op===ME||names.indexOf(o.op)>=0; });
 }
+function uniq(a){ return a.filter(function(v,i){return a.indexOf(v)===i}); }
 function byNo(no){ return ORDERS.filter(function(o){return o.no===no})[0]; }
 
 /* ==================== 列表渲染 ==================== */
@@ -366,16 +367,15 @@ function openAssign(nos){
   document.getElementById('as-sum').innerHTML= single
     ? '<div>会员ID：<b>'+o.uid+'</b></div><div>订单号：<b>'+o.no+'</b></div><div>提现大类：<b>'+o.cat+'</b></div><div>币种：<b>'+o.cur+'</b></div><div>提现金额：<b class="amt">'+o.amt+'</b></div><div>当前操作人：<b>'+(o.op||'未分配')+(o.proc==='审核中'?'（审核中）':'')+'</b></div>'
     : '<div class="full">已选订单：<b>'+nos.length+' 笔</b></div>';
-  /* 下拉选项：仅主管/管理员、单笔、且订单不在自己名下时，出现「转派给自己」 */
-  var h='';
-  if(single&&canSelf()&&o.op!==ME){
+  /* 下拉选项：仅主管/管理员、且所选订单不全在自己名下时，出现「转派给自己」（单笔、批量都支持） */
+  var h='', notMine=nos.filter(function(n){return byNo(n).op!==ME}).length;
+  if(canSelf()&&notMine>0){
     h+='<div class="dd-opt self" onclick="pick(\'__self\')">转派给自己<span class="newf">NEW</span><span class="meta">'+ME+' · '+ROLE_TXT[ROLE]+' · 无需打卡</span></div><div class="dd-sep">转派给其他人</div>';
   }
   staffInScope().forEach(function(s){
     if(single&&s.name===o.op) return;
     h+='<div class="dd-opt" onclick="pick(\''+s.name+'\')">'+s.name+'<span class="meta">'+s.rank+' · '+s.state+'</span></div>';
   });
-  if(!single&&canSelf()) h+='<div class="dd-sep">批量转派不支持转派给自己</div>';
   document.getElementById('dd-list').innerHTML=h;
   var box=document.getElementById('dd-box'); box.textContent='请选择用户'; box.classList.remove('has');
   document.getElementById('as-remark').value=''; cnt();
@@ -393,9 +393,17 @@ function pick(u){
   box.classList.add('has'); document.getElementById('err-user').classList.remove('show');
   if(u==='__self'){
     box.textContent='转派给自己（'+ME+' · '+ROLE_TXT[ROLE]+'）';
-    hint.innerHTML='订单将转到你名下，确认后直接进入审核。'+(o.op?'原处理人 <b>'+o.op+'</b> 会收到「订单被转走」的通知'+(o.proc==='审核中'?'，审核计时从现在重新开始。':'。'):'');
+    if(curNos.length===1){
+      hint.innerHTML='订单将转到你名下，确认后直接进入审核。'+(o.op?'原处理人 <b>'+o.op+'</b> 会收到「订单被转走」的通知'+(o.proc==='审核中'?'，审核计时从现在重新开始。':'。'):'');
+      document.getElementById('as-ok').textContent='转派并审核';
+    }else{
+      /* 批量：规则与单笔相同，只是不自动打开审核弹窗 */
+      var mineN=curNos.filter(function(n){return byNo(n).op===ME}).length;
+      var prevs=uniq(curNos.map(function(n){return byNo(n).op}).filter(function(x){return x&&x!==ME}));
+      hint.innerHTML='所选 <b>'+(curNos.length-mineN)+'</b> 笔订单将转到你名下，确认后在列表点「继续审核」逐笔处理。'+(mineN?'其中 '+mineN+' 笔已在你名下，保持不变。':'')+(prevs.length?'原处理人 <b>'+prevs.join('、')+'</b> 会收到「订单被转走」的通知。':'');
+      document.getElementById('as-ok').textContent='转 派';
+    }
     hint.classList.add('show');
-    document.getElementById('as-ok').textContent='转派并审核';
   }else{
     box.textContent=u; hint.classList.remove('show');
     document.getElementById('as-ok').textContent='转 派';
@@ -407,12 +415,19 @@ function submitAssign(){
   document.getElementById('err-user').classList.toggle('show',!selUser); if(!selUser) ok=false;
   document.getElementById('err-remark').classList.toggle('show',!rm); if(!rm) ok=false;
   if(!ok) return;
-  var self=selUser==='__self', target=self?ME:selUser, prev='';
-  curNos.forEach(function(no){ var o=byNo(no); prev=o.op; o.op=target; o.proc=self?'审核中':'待审核'; o.el=self?'0H 0M 1S':'--'; });
+  var self=selUser==='__self', target=self?ME:selUser, prev='', single=curNos.length===1, moved=0;
+  curNos.forEach(function(no){ var o=byNo(no);
+    if(self&&o.op===ME) return;              /* 已在自己名下的保持不变 */
+    prev=o.op; o.op=target; moved++;
+    var startNow=self&&single;               /* 只有单笔转派给自己才直接进入审核 */
+    o.proc=startNow?'审核中':'待审核'; o.el=startNow?'0H 0M 1S':'--';
+  });
   closeAssign(); render();
-  if(self){
+  if(self&&single){
     toast('已转派给自己'+(prev?'，已通知原处理人 '+prev:'')+'。正在打开审核弹窗');
     openAudit(curNos[0]);
+  }else if(self){
+    toast('已将 '+moved+' 笔订单转派给自己，可在列表点「继续审核」逐笔处理');
   }else{
     toast('已转派给 '+target);
   }
@@ -420,6 +435,9 @@ function submitAssign(){
 function batchAssign(){
   var nos=[].slice.call(document.querySelectorAll('.ck:checked')).map(function(c){return c.value});
   if(!nos.length){ toast('请先勾选要转派的订单'); return; }
+  /* 现有批量转派规则：所选订单的提现大类、币种必须一致 */
+  var f=byNo(nos[0]);
+  if(nos.some(function(n){var o=byNo(n); return o.cat!==f.cat||o.cur!==f.cur})){ toast('批量转派仅支持相同提现大类且相同币种的订单，请先使用筛选功能保证列表数据为相同提现大类、相同币种后再操作'); return; }
   openAssign(nos);
 }
 
