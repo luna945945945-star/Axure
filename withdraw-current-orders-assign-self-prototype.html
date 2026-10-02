@@ -169,6 +169,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-s
     <table class="t">
       <tr><th style="width:170px">页面</th><th>改动点</th></tr>
       <tr><td>提现订单管理 → 当前提现订单 · 转派弹窗</td><td>「转派人员」下拉新增「转派给自己」，仅主管、管理员可见；单笔转派、批量转派都支持</td></tr>
+      <tr><td>提现订单管理 → 当前提现订单 · 批量转派</td><td>选单规则放宽：同一币种的法币订单可以一起转派，不再要求同一提现大类</td></tr>
       <tr><td>提现订单管理 → 当前提现订单 · 列表</td><td>订单在自己名下时，操作列新增「继续审核」</td></tr>
     </table>
 
@@ -176,6 +177,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-s
     <table class="t">
       <tr><th style="width:110px">术语</th><th>说明</th></tr>
       <tr><td><b>转派给自己</b></td><td>主管或管理员把订单接到自己名下，并直接进入审核</td></tr>
+      <tr><td><b>USDT 订单 / 法币订单</b></td><td>提现大类为 USDT 的是 USDT 订单；其余大类（银行卡、UPI、电子钱包、PIX 等）都是法币订单</td></tr>
       <tr><td><b>下属</b></td><td>与现有转派范围一致：管理员为本集团全部出款人员；主管为自己的下级组长及其组员</td></tr>
     </table>
 
@@ -186,11 +188,12 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-s
     <div class="br"><span class="bn">04</span>订单所属商户必须在本人的出款商户范围内；KYC 验证中断中的订单不可转派。这两条与现有转派一致。</div>
     <div class="br"><span class="bn">05</span>单笔转派选中「转派给自己」后，弹窗提示订单将转到自己名下，按钮文字变为「转派并审核」。备注仍为必填，与现有转派一致。</div>
     <div class="br"><span class="bn">06</span>单笔转派确认后，订单的操作人变为自己，并直接打开审核弹窗，可提交三方出款、人工确认出款、人工取消出款。</div>
-    <div class="br"><span class="bn">07</span><b>批量转派给自己</b>：所选订单需符合现有批量转派的要求（同一提现大类、同一币种）。确认后这些订单的操作人都变为自己，不自动打开审核弹窗，在列表里点「继续审核」逐笔处理。所选订单里已经在自己名下的保持不变。</div>
-    <div class="br"><span class="bn">08</span>订单已经在自己名下且未提交时，操作列显示「继续审核」，点击直接打开审核弹窗；所选订单全部在自己名下时，转派弹窗里不再出现「转派给自己」。</div>
-    <div class="br"><span class="bn">09</span>接手下属的订单后，原处理人会收到「订单被转走」的站内信，该订单从其工作台消失。接手下属正在审的订单，审核计时从接手时重新开始。</div>
-    <div class="br"><span class="bn">10</span>接手后不想审，可在审核弹窗或列表里用「转派」把订单转给组员或组长。</div>
-    <div class="br"><span class="bn">11</span>主管、管理员审核的订单不计入出款员工报表，在全部提现记录中按操作人筛选查看。</div>
+    <div class="br"><span class="bn">07</span><b>批量转派给自己</b>：所选订单需符合批量转派的选单规则（见第 08 条）。确认后这些订单的操作人都变为自己，不自动打开审核弹窗，在列表里点「继续审核」逐笔处理。所选订单里已经在自己名下的保持不变。</div>
+    <div class="br"><span class="bn">08</span><b>批量转派选单规则调整</b>（转给别人、转给自己都适用）：所选订单要么都是同一币种的法币订单（银行卡、UPI、电子钱包等大类可以混选），要么都是 USDT 订单；USDT 订单不能和法币订单一起转派。不符合时提示「批量转派仅支持同一币种的法币订单，或全部为 USDT 订单；USDT 订单不能和法币订单一起转派」。</div>
+    <div class="br"><span class="bn">09</span>订单已经在自己名下且未提交时，操作列显示「继续审核」，点击直接打开审核弹窗；所选订单全部在自己名下时，转派弹窗里不再出现「转派给自己」。</div>
+    <div class="br"><span class="bn">10</span>接手下属的订单后，原处理人会收到「订单被转走」的站内信，该订单从其工作台消失。接手下属正在审的订单，审核计时从接手时重新开始。</div>
+    <div class="br"><span class="bn">11</span>接手后不想审，可在审核弹窗或列表里用「转派」把订单转给组员或组长。</div>
+    <div class="br"><span class="bn">12</span>主管、管理员审核的订单不计入出款员工报表，在全部提现记录中按操作人筛选查看。</div>
 
     <div class="h1">四、限制条件</div>
     <table class="t">
@@ -311,9 +314,11 @@ function seed(){ return [
   {no:'WD20260930131720012001109a',uid:2247519,tn:'(2001)sit-inr',t:'2026-09-30 13:17:20',cat:'UPI',cur:'INR',amt:'7,182.00',real:'6,463.80',proc:'待派发',st:'待审核',op:'',el:'--'},
   {no:'WD20260930131659012001877b',uid:2247520,tn:'(2001)sit-inr',t:'2026-09-30 13:16:59',cat:'银行卡',cur:'INR',amt:'7,792.00',real:'7,012.80',proc:'待审核',st:'待审核',op:'amy',el:'--'},
   {no:'WD20260930131628012001553c',uid:2251033,tn:'(2001)sit-inr',t:'2026-09-30 13:16:28',cat:'银行卡',cur:'INR',amt:'520,000.00',real:'520,000.00',proc:'审核中',st:'待审核',op:'bob',el:'0H 6M 12S',big:1},
-  {no:'WD20260930131617012003221d',uid:2260418,tn:'(2003)sit-usdt',t:'2026-09-30 13:16:17',cat:'USDT',cur:'USDT',amt:'1,200.00',real:'1,199.00',proc:'待派发',st:'待审核',op:'',el:'--'},
+  {no:'WD20260930131617012001221d',uid:2260418,tn:'(2001)sit-inr',t:'2026-09-30 13:16:17',cat:'USDT',cur:'INR',amt:'1,200.00',real:'1,199.00',proc:'待派发',st:'待审核',op:'',el:'--'},
   {no:'WD20260930131607012001990e',uid:2247777,tn:'(2001)sit-inr',t:'2026-09-30 13:16:07',cat:'UPI',cur:'INR',amt:'7,634.00',real:'6,870.60',proc:'待派发',st:'待审核',op:'',el:'--',kyc:1},
   {no:'WD20260930131536012001402f',uid:2249001,tn:'(2001)sit-inr',t:'2026-09-30 13:15:36',cat:'UPI',cur:'INR',amt:'3,129.00',real:'2,816.10',proc:'待审核',st:'待审核',op:'david',el:'--'},
+  {no:'WD20260930131510012005771h',uid:3301207,tn:'(2005)sit-bdt',t:'2026-09-30 13:15:10',cat:'银行卡',cur:'BDT',amt:'9,500.00',real:'9,500.00',proc:'待派发',st:'待审核',op:'',el:'--'},
+  {no:'WD20260930131502012005120k',uid:3301555,tn:'(2005)sit-bdt',t:'2026-09-30 13:15:02',cat:'USDT',cur:'BDT',amt:'30,000.00',real:'29,970.00',proc:'待派发',st:'待审核',op:'',el:'--'},
   {no:'WD20260930131525012001318g',uid:2248812,tn:'(2001)sit-inr',t:'2026-09-30 13:15:25',cat:'UPI',cur:'INR',amt:'5,247.00',real:'4,722.30',proc:'已提交',st:'已提交',op:'cindy',el:'0H 2M 40S'}
 ];}
 var ORDERS=seed();
@@ -435,9 +440,9 @@ function submitAssign(){
 function batchAssign(){
   var nos=[].slice.call(document.querySelectorAll('.ck:checked')).map(function(c){return c.value});
   if(!nos.length){ toast('请先勾选要转派的订单'); return; }
-  /* 现有批量转派规则：所选订单的提现大类、币种必须一致 */
-  var f=byNo(nos[0]);
-  if(nos.some(function(n){var o=byNo(n); return o.cat!==f.cat||o.cur!==f.cur})){ toast('批量转派仅支持相同提现大类且相同币种的订单，请先使用筛选功能保证列表数据为相同提现大类、相同币种后再操作'); return; }
+  /* 批量转派规则（调整后）：要么都是同一币种的法币单，要么都是 USDT 单。提现大类=USDT 的是 USDT 单，其余大类都是法币单 */
+  var grp=function(o){ return o.cat==='USDT' ? 'USDT' : 'FIAT:'+o.cur; }, g0=grp(byNo(nos[0]));
+  if(nos.some(function(n){ return grp(byNo(n))!==g0; })){ toast('批量转派仅支持同一币种的法币订单，或全部为 USDT 订单；USDT 订单不能和法币订单一起转派'); return; }
   openAssign(nos);
 }
 
