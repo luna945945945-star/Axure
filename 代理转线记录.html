@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>代理转线记录</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center}
+.sub h1{font-size:15px;color:#6C4FE0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:16px 44px 60px 22px}
+.card{background:#fff;border-radius:4px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:14px}
+.flt{display:flex;flex-wrap:wrap;gap:14px 26px;align-items:center;font-size:12.5px;color:#555}
+.fi{display:flex;align-items:center;gap:8px}
+.fi>span{white-space:nowrap}
+.fi input,.fi select{font:inherit;font-size:12.5px;padding:6px 9px;border:1px solid #dcdce4;border-radius:3px;background:#fff;color:#333;width:148px}
+.fi input:focus,.fi select:focus{outline:none;border-color:#6C4FE0;box-shadow:0 0 0 2px rgba(108,79,224,.12)}
+.fi input.dt{width:168px}
+.acts{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:14px 0 0}
+.btn{display:inline-flex;align-items:center;gap:5px;background:#6C4FE0;color:#fff;border:0;border-radius:3px;padding:6px 14px;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:hover{background:#5b3fd0}
+.btn.gray{background:#fff;color:#666;border:1px solid #dcdce4}
+.btn.gray:hover{background:#f7f7fb;color:#6C4FE0;border-color:#c3b8ee}
+.qtabs{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}
+.qtabs button{font:inherit;font-size:13px;height:32px;padding:0 15px;border:1px solid #9a9aa6;border-radius:2px;background:#fff;color:#555;cursor:pointer;white-space:nowrap}
+.qtabs button:hover{border-color:#6C4FE0;color:#6C4FE0}
+.qtabs button[aria-pressed=true]{background:#6C4FE0;border-color:#6C4FE0;color:#fff}
+/* 表格 */
+.tbl{overflow-x:auto;border:1px solid #ebebf2;border-radius:3px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:1320px}
+th,td{border-right:1px solid #ebebf2;border-bottom:1px solid #ebebf2;padding:8px 9px;white-space:nowrap;text-align:center}
+th{background:#f7f7fb;color:#555;font-weight:600;font-size:11.5px}
+th:last-child,td:last-child{border-right:0}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#f7f5ff}
+.uid{color:#6C4FE0;cursor:pointer;font-weight:600}.uid:hover{text-decoration:underline}
+.tag{display:inline-block;min-width:40px;text-align:center;padding:1px 8px;border-radius:3px;font-size:11px;font-weight:600}
+.st-ok{background:#e6f7ea;color:#2e8b57}.act-bind{background:#efeaff;color:#6C4FE0}.act-unbind{background:#fff4e5;color:#d46b08}.st-fail{background:#fde8e8;color:#c0392b;cursor:help}
+.na{color:#bbb;cursor:help}
+.q{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#c0c4cc;color:#fff;font-size:9px;font-style:normal;font-weight:400;cursor:help;margin-left:4px;vertical-align:middle}
+.q:hover{background:#6C4FE0}
+#tip{position:fixed;z-index:300;max-width:280px;background:#2b2b38;color:#fff;padding:8px 11px;border-radius:4px;font-size:11.5px;line-height:1.65;text-align:left;white-space:normal;box-shadow:0 4px 14px rgba(0,0,0,.24);display:none;pointer-events:none}
+.emptyrow td{color:#aaa;padding:40px 0}
+.pager{display:flex;align-items:center;gap:9px;padding:14px 4px 0;font-size:12.5px;color:#666;flex-wrap:wrap}
+.pager button{font:inherit;font-size:12.5px;padding:4px 11px;border:1px solid #dcdce4;background:#fff;border-radius:3px;cursor:pointer;color:#666}
+.pager button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.pager button:disabled{color:#c2c2cc;cursor:not-allowed}
+.pager select,.pager input{font:inherit;font-size:12px;padding:4px 7px;border:1px solid #dcdce4;border-radius:3px}
+.pager input{width:52px;text-align:center}
+.pager .cnt{margin-left:auto}
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd ul{padding-left:20px;margin:4px 0}
+.prd table.t{width:100%;min-width:0;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:left;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;white-space:normal;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#5cb85c;color:#fff;border-radius:3px;padding:10px 18px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:200;font-size:12.5px;display:none;max-width:80vw}
+.toast.err{background:#e74c3c}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
+  <div style="display:flex;gap:16px;align-items:center"><span id="today"></span><span>当前币种：<b style="color:#c0392b">INR</b></span></div>
+</div>
+<div class="sub">
+  <h1>代理转线记录</h1>
+  <div class="crumb">会员管理 &nbsp;›&nbsp; <b>代理转线记录</b></div>
+</div>
+
+<div class="wrap">
+<div class="card">
+  <div class="flt">
+    <div class="fi"><span>会员ID</span><input id="fUid" type="text" inputmode="numeric" placeholder="请输入会员ID"></div>
+    <div class="fi"><span>动作</span><select id="fAct"><option value="">全部</option><option value="bind">绑定</option><option value="unbind">解绑</option></select></div>
+    <div class="fi"><span>请选择时间</span>
+      <select id="fTimeType"><option value="start">转线发起时间</option><option value="end">转线完成时间</option></select></div>
+    <div class="fi"><span>开始时间</span><input id="fFrom" class="dt" type="text" placeholder="开始日期时间" autocomplete="off"></div>
+    <div class="fi"><span>结束时间</span><input id="fTo" class="dt" type="text" placeholder="结束日期时间" autocomplete="off"></div>
+  </div>
+  <div class="acts">
+    <button class="btn" id="btnQ">🔍 查 询</button>
+    <button class="btn gray" id="btnR">↺ 重 置</button>
+    <button class="btn gray" id="btnE">⬇ 导 出</button>
+    <div class="qtabs" id="quick">
+      <button data-q="today" aria-pressed="false">今天</button>
+      <button data-q="yesterday" aria-pressed="false">昨天</button>
+      <button data-q="week" aria-pressed="false">本周</button>
+      <button data-q="lweek" aria-pressed="false">上周</button>
+      <button data-q="month" aria-pressed="false">本月</button>
+      <button data-q="lmonth" aria-pressed="false">上月</button>
+      <button data-q="all" aria-pressed="true">所有</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="tbl">
+    <table>
+      <thead>
+        <tr>
+          <th>会员ID</th>
+          <th style="width:70px">动作<i class="q" data-tip="绑定：绑定邀请码。解绑：解除代理关系、批量解除代理关系。一次换线是先解绑、再绑定，记两条。">?</i></th>
+          <th>原上级ID<i class="q" data-tip="转线前的直属上级。0 表示没有上级（0 级总代）。">?</i></th>
+          <th>原层级<i class="q" data-tip="转线前该会员的绝对层级，总代为 0。">?</i></th>
+          <th>新上级ID<i class="q" data-tip="转线后的直属上级。0 表示没有上级（0 级总代）。">?</i></th>
+          <th>新层级<i class="q" data-tip="转线后该会员的绝对层级。解除后为 0；绑定后为新上级的层级 + 1。">?</i></th>
+          <th>转线时下级总数量<i class="q" data-tip="转线时该会员的全部下级人数，不含本人。这些下级跟着一起转。">?</i></th>
+          <th style="width:150px">转线发起时间<i class="q" data-tip="后台点击提交、开始执行转线的时间。">?</i></th>
+          <th style="width:150px">转线完成时间<i class="q" data-tip="这次转线执行结束、返回结果的时间。上下级关系实际生效还要约一分钟，本页不跟踪。">?</i></th>
+          <th style="width:70px">状态<i class="q" data-tip="成功：转线执行成功。失败：转线没有执行成功，上下级没有变化；鼠标移到「失败」上可看原因。">?</i></th>
+          <th>操作人</th>
+        </tr>
+      </thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <button id="pFirst">首页</button><button id="pPrev">上一页</button>
+    <span id="pNums"></span>
+    <button id="pNext">下一页</button><button id="pLast">尾页</button>
+    <span style="margin-left:6px">每页
+      <select id="pSize"><option>10</option><option selected>20</option><option>50</option><option>100</option></select> 条，跳至 <input id="pJump" type="text" value="1"> 页
+    </span>
+    <span class="cnt" id="pCnt"></span>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="tip"></div>
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- 需求说明抽屉 -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>代理转线记录 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身。筛选项、列表列、按钮与快捷时间的样子和交互，直接看原型页面。</div>
+    <table class="t">
+      <tr><th style="width:220px">页面</th><th>改动点</th></tr>
+      <tr><td>会员管理 → <b>代理转线记录</b>（新增菜单，与「会员层级」同级，排在它下面）</td><td>新增菜单与页面，查看后台每一次转线（绑定邀请码 / 解除代理关系）的记录，可导出；权限分「查看」「导出」</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">后台每执行一次转线就记一条，成功、失败都记；记录不可修改、不可删除</div>
+      <div class="kf">一次换线是先解绑、再绑定，记两条；用「动作」列区分，可按动作筛选</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>记录时机</b><span class="kb">核心</span>：会员层级页三个入口执行转线后写记录，成功、失败都写；没有执行的不写。记录永久保留。
+      <table class="t">
+        <tr><th style="width:150px">入口</th><th>写记录的时机</th><th style="width:150px">写几条</th></tr>
+        <tr><td>绑定邀请码</td><td>填写邀请码点提交、执行绑定后</td><td>1 条，动作为绑定</td></tr>
+        <tr><td>解除代理关系</td><td>确认解除、执行解除后</td><td>1 条，动作为解绑</td></tr>
+        <tr><td>批量解除代理关系</td><td>上传 Excel、点保存并确认提交后，系统逐个执行解除，每执行完一个会员写一条；上传时校验未通过的会员（会员ID 不是数字、重复、会员不存在）不提交，不写</td><td>每个提交的会员各 1 条，动作为解绑</td></tr>
+      </table>
+    </div>
+
+    <div class="br"><span class="bn">02</span><b>批量解除的记录</b>：同一批的每条记录，操作人都是提交这批的后台账号；转线发起时间、完成时间按每个会员各自执行的时间记；某个会员失败不影响同批其他会员，失败的那条状态为失败并显示原因。</div>
+
+    <div class="br key"><span class="bn">03</span><b>各列取值</b><span class="kb">核心</span>：
+      <table class="t">
+        <tr><th style="width:130px">列</th><th>绑定</th><th>解绑</th></tr>
+        <tr><td>动作</td><td>绑定</td><td>解绑（单个解除、批量解除都记为解绑）</td></tr>
+        <tr><td>原上级ID</td><td>0（没有上级）</td><td>解除前的直属上级</td></tr>
+        <tr><td>原层级</td><td>0</td><td>解除前的层级</td></tr>
+        <tr><td>新上级ID</td><td>所填邀请码对应的会员</td><td>0（没有上级）</td></tr>
+        <tr><td>新层级</td><td>新上级的层级 + 1</td><td>0</td></tr>
+        <tr><td>转线时下级总数量</td><td colspan="2">执行时该会员的全部下级人数，不含本人</td></tr>
+        <tr><td>转线发起时间</td><td colspan="2">后台提交、开始执行的时间</td></tr>
+        <tr><td>转线完成时间</td><td colspan="2">执行结束、返回结果的时间</td></tr>
+        <tr><td>状态</td><td colspan="2">成功 / 失败；失败时显示失败原因，沿用现有转线的失败提示</td></tr>
+        <tr><td>操作人</td><td colspan="2">执行转线的后台账号</td></tr>
+      </table>
+    </div>
+
+    <div class="br"><span class="bn">04</span><b>失败记录</b>：新上级ID、新层级记本次要转到的位置；没有取到的显示「—」。</div>
+
+    <div class="br"><span class="bn">05</span><b>查询</b>：默认不限时间，按转线发起时间从新到旧；会员ID 精确匹配；「动作」可选全部 / 绑定 / 解绑，按会员ID 查时一次换线的两条会挨在一起；「请选择时间」决定开始 / 结束时间按发起时间还是完成时间筛选。快捷时间按钮与会员列表一致（本周为周一至周日，本月为 1 号至月底）。</div>
+
+    <div class="br"><span class="bn">06</span><b>导出</b>：按当前筛选导出全部结果，列与页面一致，行数上限沿用后台现有导出上限。</div>
+
+    <div class="br key"><span class="bn">07</span><b>历史回补</b><span class="kb">核心</span>：上线时把操作日志里会员层级页的转线记录（成功、失败）一次性补入，批量解除拆成每个会员一条；日志时间同时作为发起时间和完成时间；动作按日志的操作类型取（绑定邀请码记绑定，解除代理关系、批量解除记解绑）；解除补原上级ID，绑定按日志中的邀请码反查新上级ID，查不到显示「—」；原层级、新层级、转线时下级总数量显示「—」。回补范围以各站操作日志的保留期为准。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:130px">项</th><th>说明</th></tr>
+      <tr><td>记录范围</td><td>只记后台人工转线；不含会员注册时的首次绑定，不含测试数据页的转线</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+
+/* ---------- 日期工具（本地时间） ---------- */
+var TODAY=new Date(2026,9,3);
+var LAUNCH=new Date(2026,8,20);           /* 演示用的上线日：此前的记录为历史补录 */
+function p2(n){return (n<10?'0':'')+n}
+function ymd(d){return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())}
+function ymdhms(d){return ymd(d)+' '+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds())}
+function addD(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x}
+function addS(d,s){return new Date(d.getTime()+s*1000)}
+/* 与后台现有页面一致：本周为周一至周日，本月为 1 号至月底；「所有」为清空 */
+function quickRange(q){
+  var s,e,dow=(TODAY.getDay()+6)%7;
+  if(q==='all')return ['',''];
+  if(q==='today'){s=e=TODAY}
+  else if(q==='yesterday'){s=e=addD(TODAY,-1)}
+  else if(q==='week'){s=addD(TODAY,-dow);e=addD(s,6)}
+  else if(q==='lweek'){s=addD(TODAY,-dow-7);e=addD(s,6)}
+  else if(q==='month'){s=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);e=new Date(TODAY.getFullYear(),TODAY.getMonth()+1,0)}
+  else {s=new Date(TODAY.getFullYear(),TODAY.getMonth()-1,1);e=new Date(TODAY.getFullYear(),TODAY.getMonth(),0)}
+  return [ymd(s)+' 00:00:00',ymd(e)+' 23:59:59'];
+}
+/* 解析「YYYY-MM-DD[ HH:mm:ss]」；只填日期时开始按 00:00:00、结束按 23:59:59 */
+function parseDT(v,isEnd){
+  var m=/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/.exec(v.trim());
+  if(!m)return null;
+  var d=m[4]!=null?new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)):new Date(+m[1],m[2]-1,+m[3],isEnd?23:0,isEnd?59:0,isEnd?59:0);
+  return isNaN(d)?null:d;
+}
+$('today').textContent=TODAY.getFullYear()+'年'+(TODAY.getMonth()+1)+'月'+TODAY.getDate()+'日';
+
+/* ---------- 模拟数据 ---------- */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var R=rng(20261003);
+function ri(a,b){return Math.floor(R()*(b-a+1))+a}
+function pick(a){return a[ri(0,a.length-1)]}
+var OPS=['admin','ops_lina','ops_ravi','cs_leader01'];
+function downCnt(){var x=R();return x<.45?0:x<.8?ri(1,40):x<.95?ri(41,600):ri(601,4200)}
+var SEQ=0, RECS=[];
+/* 没有上级时存本人 ID（V1 惯例），显示为 0；绑定约晚 7 秒完成、解除约晚 1 秒 */
+function mkRec(t,type,extra){
+  var uid=(extra&&extra.uid)||ri(100000,168000), o={seq:++SEQ,t:t,type:type,uid:uid,op:pick(OPS),ok:true,hist:false};
+  if(type==='unbind'){o.oldP=ri(100000,168000);o.oldLv=ri(1,7);o.newP=uid;o.newLv=0;o.et=addS(t,ri(1,2))}
+  else{o.oldP=uid;o.oldLv=0;o.newP=ri(100000,168000);o.newLv=ri(1,6);o.et=addS(t,ri(7,8))}
+  o.cnt=downCnt();
+  if(extra)for(var k in extra)o[k]=extra[k];
+  if(o.hist){o.oldLv=o.newLv=null;o.cnt=null;o.et=o.t}
+  return o;
+}
+function rndTime(dayBack){var d=addD(TODAY,-dayBack);d.setHours(ri(9,22),ri(0,59),ri(0,59));return d}
+(function(){
+  var launchBack=Math.round((TODAY-LAUNCH)/864e5), i;
+  /* 上线后：单个操作 */
+  for(i=0;i<24;i++)RECS.push(mkRec(rndTime(ri(1,launchBack-1)),R()<.55?'unbind':'bind'));
+  /* 上线后：两批批量解除 */
+  [[4,4],[10,3]].forEach(function(b){
+    var bt=rndTime(b[0]),op=pick(OPS);
+    for(var j=0;j<b[1];j++)RECS.push(mkRec(addS(bt,j*2),'unbind',{op:op}));
+  });
+  /* 一次完整换线：先解除、再绑定（解除生效约一分钟后才能绑定） */
+  var sw=rndTime(2), swUid=ri(100000,168000), swCnt=ri(5,80);
+  RECS.push(mkRec(sw,'unbind',{uid:swUid,cnt:swCnt,op:'ops_lina'}));
+  RECS.push(mkRec(addS(sw,ri(80,150)),'bind',{uid:swUid,cnt:swCnt,op:'ops_lina'}));
+  /* 失败：下级人数超过上限 / 邀请码不存在 / 关系尚未生成 */
+  RECS.push(mkRec(rndTime(5),'unbind',{ok:false,cnt:6239,reason:'下级用户数量6240人,超过上限5000人'}));
+  RECS.push(mkRec(rndTime(8),'bind',{ok:false,newP:null,newLv:null,cnt:null,reason:'邀请码不存在'}));
+  RECS.push(mkRec(rndTime(12),'bind',{ok:false,cnt:null,reason:'被邀请人未生成层级，请一分钟后再试'}));
+  /* 今天的两条 */
+  var n=new Date(), w=new Date(TODAY);w.setHours(n.getHours(),n.getMinutes(),n.getSeconds());w=addS(w,-25);
+  RECS.push(mkRec(w,'unbind',{op:'admin'}));
+  RECS.push(mkRec(addS(w,-ri(2,5)*3600),'bind'));
+  /* 上线前：历史补录（含一条失败） */
+  for(i=0;i<33;i++)RECS.push(mkRec(rndTime(ri(launchBack,170)),R()<.6?'unbind':'bind',{hist:true}));
+  RECS.push(mkRec(rndTime(ri(launchBack,170)),'unbind',{hist:true,ok:false,reason:'下级用户数量5310人,超过上限5000人'}));
+  var hb=RECS.filter(function(r){return r.hist&&r.type==='bind'});
+  if(hb[1])hb[1].newP=null; if(hb[4])hb[4].newP=null;   /* 邀请码已查不到归属 */
+})();
+
+/* ---------- 列表 ---------- */
+var state={page:1,size:20,rows:[]};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function na(r){return '<span class="na" data-tip="'+(r.hist?'历史补录：操作日志里没有这项数据，无法还原。':'转线没有执行成功，这项数据没有算出来。')+'">—</span>'}
+function idCell(v,r){return v==null?na(r):'<span class="uid">'+v+'</span>'}
+/* 上级：没有上级时记录里存本人 ID（V1 惯例），页面和导出显示 0 */
+function upCell(v,r){return v===r.uid?'0':idCell(v,r)}
+function numCell(v,r){return v==null?na(r):v.toLocaleString('en-US')}
+function stCell(r){return r.ok?'<span class="tag st-ok">成功</span>':'<span class="tag st-fail" data-tip="失败原因：'+esc(r.reason)+'">失败</span>'}
+function actCell(r){return r.type==='bind'?'<span class="tag act-bind">绑定</span>':'<span class="tag act-unbind">解绑</span>'}
+function rowHtml(r){
+  return '<tr>'+
+    '<td>'+idCell(r.uid,r)+'</td>'+
+    '<td>'+actCell(r)+'</td>'+
+    '<td>'+upCell(r.oldP,r)+'</td>'+
+    '<td>'+numCell(r.oldLv,r)+'</td>'+
+    '<td>'+upCell(r.newP,r)+'</td>'+
+    '<td>'+numCell(r.newLv,r)+'</td>'+
+    '<td>'+numCell(r.cnt,r)+'</td>'+
+    '<td>'+ymdhms(r.t)+'</td>'+
+    '<td>'+ymdhms(r.et)+'</td>'+
+    '<td>'+stCell(r)+'</td>'+
+    '<td>'+esc(r.op)+'</td>'+
+  '</tr>';
+}
+function query(){
+  var uid=$('fUid').value.trim(), act=$('fAct').value, tt=$('fTimeType').value,
+      fv=$('fFrom').value.trim(), tv=$('fTo').value.trim(),
+      f=fv?parseDT(fv,false):null, t=tv?parseDT(tv,true):null;
+  if((fv&&!f)||(tv&&!t)){toast('时间格式应为 2026-10-03 00:00:00',true);return}
+  if(f&&t&&f>t){toast('开始时间不能晚于结束时间',true);return}
+  state.rows=RECS.filter(function(r){
+    var x=tt==='end'?r.et:r.t;
+    if(f&&x<f)return false; if(t&&x>t)return false;
+    if(uid&&String(r.uid)!==uid)return false;
+    if(act&&r.type!==act)return false;
+    return true;
+  }).sort(function(a,b){return b.t-a.t||b.seq-a.seq});
+  markQuick();state.page=1;render();
+}
+function render(){
+  var total=state.rows.length, pages=Math.max(1,Math.ceil(total/state.size));
+  if(state.page>pages)state.page=pages;
+  var s=(state.page-1)*state.size, list=state.rows.slice(s,s+state.size);
+  $('tb').innerHTML=list.length?list.map(rowHtml).join(''):'<tr class="emptyrow"><td colspan="11">当前条件下没有转线记录</td></tr>';
+  var nums='',a=Math.max(1,state.page-2),b=Math.min(pages,a+4);a=Math.max(1,b-4);
+  for(var i=a;i<=b;i++)nums+='<button data-p="'+i+'"'+(i===state.page?' class="on"':'')+'>'+i+'</button>';
+  $('pNums').innerHTML=nums;
+  $('pFirst').disabled=$('pPrev').disabled=state.page<=1;
+  $('pNext').disabled=$('pLast').disabled=state.page>=pages;
+  $('pJump').value=state.page;
+  $('pCnt').textContent='共 '+total+' 条，第 '+state.page+' / '+pages+' 页';
+}
+/* 高亮：当前开始 / 结束时间正好等于某个快捷范围时亮起（与现有页面一致） */
+function markQuick(){
+  var fv=$('fFrom').value.trim(), tv=$('fTo').value.trim();
+  Array.prototype.forEach.call($('quick').children,function(b){
+    var r=quickRange(b.dataset.q);b.setAttribute('aria-pressed',r[0]===fv&&r[1]===tv?'true':'false');
+  });
+}
+function reset(){
+  ['fUid','fAct','fFrom','fTo'].forEach(function(id){$(id).value=''});
+  $('fTimeType').value='start';query();
+}
+/* 点快捷按钮：回填时间并立即查询 */
+$('quick').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  var r=quickRange(b.dataset.q);$('fFrom').value=r[0];$('fTo').value=r[1];query();
+});
+$('btnQ').addEventListener('click',query);
+$('btnR').addEventListener('click',reset);
+$('btnE').addEventListener('click',function(){
+  if(!state.rows.length){toast('当前条件下没有可导出的记录',true);return}
+  toast('已按当前筛选导出 '+state.rows.length+' 条记录（演示），列与页面一致');
+});
+document.querySelector('.flt').addEventListener('keydown',function(e){if(e.key==='Enter')query()});
+$('pNums').addEventListener('click',function(e){var b=e.target.closest('button');if(b){state.page=+b.dataset.p;render()}});
+$('pFirst').addEventListener('click',function(){state.page=1;render()});
+$('pPrev').addEventListener('click',function(){state.page--;render()});
+$('pNext').addEventListener('click',function(){state.page++;render()});
+$('pLast').addEventListener('click',function(){state.page=Math.ceil(state.rows.length/state.size);render()});
+$('pSize').addEventListener('change',function(){state.size=+this.value;state.page=1;render()});
+$('pJump').addEventListener('change',function(){
+  var pages=Math.max(1,Math.ceil(state.rows.length/state.size)),v=parseInt(this.value,10);
+  state.page=isNaN(v)?state.page:Math.min(pages,Math.max(1,v));render();
+});
+document.addEventListener('click',function(e){if(e.target.classList.contains('uid'))toast('跳转会员详情：'+e.target.textContent+'（沿用现有跳转）')});
+
+/* ---------- 提示 ---------- */
+var tipEl=$('tip');
+document.addEventListener('mouseover',function(e){
+  var q=e.target.closest('[data-tip]');if(!q)return;
+  tipEl.textContent=q.dataset.tip;tipEl.style.display='block';
+  var r=q.getBoundingClientRect(),w=tipEl.offsetWidth,h=tipEl.offsetHeight;
+  var x=Math.min(window.innerWidth-w-8,Math.max(8,r.left+r.width/2-w/2));
+  var y=r.bottom+8; if(y+h>window.innerHeight-8)y=r.top-h-8;
+  tipEl.style.left=x+'px';tipEl.style.top=y+'px';
+});
+document.addEventListener('mouseout',function(e){if(e.target.closest('[data-tip]'))tipEl.style.display='none'});
+var toastT;
+function toast(msg,isErr){
+  var t=$('toast');t.textContent=msg;t.className='toast'+(isErr?' err':'');t.style.display='block';
+  clearTimeout(toastT);toastT=setTimeout(function(){t.style.display='none'},2600);
+}
+
+/* ---------- 需求说明抽屉 ---------- */
+function drawer(on){$('drawer').classList.toggle('on',on);$('dmask').classList.toggle('on',on)}
+$('handleDoc').addEventListener('click',function(){drawer(true)});
+$('closeDoc').addEventListener('click',function(){drawer(false)});
+$('dmask').addEventListener('click',function(){drawer(false)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')drawer(false)});
+
+/* ---------- 初始化 ---------- */
+reset();
+})();
+</script>
+</body>
+</html>
