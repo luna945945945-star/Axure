@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>大小会员快捷金额</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333}
+button,input,select{font-family:inherit}
+.hidden{display:none!important}
+
+/* 页面切换条（原型导航，不属于产品页面） */
+.switcher{position:sticky;top:0;z-index:50;background:#2b2b38;color:#fff;display:flex;align-items:center;gap:18px;padding:8px 44px 8px 22px;flex-wrap:wrap}
+.switcher b{font-size:14px}
+.switcher .pages{display:flex;gap:6px;flex-wrap:wrap}
+.switcher .pages button{font-size:12.5px;height:30px;padding:0 14px;border:1px solid #5a5a6e;border-radius:3px;background:transparent;color:#d6d6e0;cursor:pointer}
+.switcher .pages button[aria-pressed=true]{background:#6C4FE0;border-color:#6C4FE0;color:#fff}
+.page{padding:16px 44px 60px 22px}
+
+/* NEW 角标（规范：红色悬浮 NEW） */
+.nb{position:relative;display:inline-block}
+.nb::after{content:"NEW";position:absolute;top:-10px;right:-30px;background:#f5222d;color:#fff;font-size:9px;font-weight:700;line-height:14px;padding:0 4px;border-radius:7px;letter-spacing:.3px}
+
+/* ================= 中台（naive 风格） ================= */
+.v3{background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.v3-tabs{display:flex;gap:28px;padding:0 20px;border-bottom:1px solid #efeff5}
+.v3-tabs span{padding:12px 0;font-size:14px;color:#333;cursor:default}
+.v3-tabs span.on{color:#2080f0;border-bottom:2px solid #2080f0;font-weight:500}
+.v3-search{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:16px 20px 4px}
+.v3-search .fi{display:flex;align-items:center;gap:8px;font-size:14px}
+.v3-search .fi i{color:#d03050;font-style:normal}
+.v3-sel{height:34px;border:1px solid #e0e0e6;border-radius:3px;padding:0 10px;background:#fff;min-width:200px;font-size:14px;color:#333}
+.v3-btn{height:34px;padding:0 14px;border:1px solid #e0e0e6;border-radius:3px;background:#fff;color:#333;font-size:14px;cursor:pointer}
+.v3-btn.p{background:#2080f0;border-color:#2080f0;color:#fff}
+.v3-btn.ghost{background:#fff;border-color:#2080f0;color:#2080f0}
+.v3-btn:disabled{opacity:.45;cursor:not-allowed}
+.v3-head{display:flex;justify-content:flex-start;padding:12px 20px 10px}
+.v3-tbl{overflow-x:auto;padding:0 20px 20px}
+.v3-tbl table{width:100%;border-collapse:collapse;font-size:13px;min-width:1500px}
+.v3-tbl th{background:#fafafc;color:#333;font-weight:500;padding:11px 10px;border-bottom:1px solid #efeff5;text-align:center;white-space:nowrap}
+.v3-tbl td{padding:11px 10px;border-bottom:1px solid #efeff5;text-align:left;white-space:nowrap}
+.v3-tag{display:inline-block;border:1px solid #2080f066;background:#2080f014;color:#2080f0;border-radius:3px;font-size:12px;padding:0 7px;line-height:20px}
+.v3-ico{display:inline-flex;width:28px;height:28px;border-radius:6px;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;margin-right:10px}
+.v3-link{color:#2080f0;cursor:pointer;margin-right:14px}
+.v3-mute{color:#999}
+.sw{position:relative;display:inline-block;width:40px;height:22px;border-radius:11px;background:#dbdbdf;vertical-align:middle;cursor:pointer;border:0;flex:none}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.15s}
+.sw.on{background:#2080f0}
+.sw.on::after{left:20px}
+
+/* 中台弹窗：左右两栏（本需求调整排版），内容区自身滚动，底部按钮固定 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.v3m{width:1120px;max-width:100%;max-height:calc(100vh - 40px);background:#fff;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.2);display:flex;flex-direction:column}
+.v3m-hd{display:flex;justify-content:space-between;align-items:center;padding:16px 24px 6px;flex:none}
+.v3m-hd b{font-size:18px;font-weight:600}
+.v3m-hd span{cursor:pointer;color:#666;font-size:20px;line-height:1}
+.v3m-bd{padding:4px 24px 14px;overflow-y:auto;flex:1;min-height:0}
+.v3m-ft{display:flex;justify-content:flex-end;gap:12px;padding:12px 24px 14px;border-top:1px solid #efeff5;flex:none}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:0 28px;align-items:start}
+.colR{border-left:1px solid #efeff5;padding-left:28px}
+@media (max-width:1180px){.v3m{width:640px}.cols{grid-template-columns:1fr}.colR{border-left:0;padding-left:0}}
+.fl{font-size:14px;color:#333;margin:6px 0 5px}
+.fl i{color:#d03050;font-style:normal;margin-left:2px}
+.fl .h{margin-left:4px;font-size:12px;color:#a2abbb}
+.icon-row{display:flex;gap:24px;margin-bottom:4px}
+.icon-row>div{flex:1}
+.up{width:84px;height:84px;border:1px solid #e0e0e6;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:#fff}
+.fb{font-size:12px;color:#8a94a6;margin:4px 0 8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.full{grid-column:1/-1}
+.ipt{width:100%;height:34px;border:1px solid #e0e0e6;border-radius:3px;padding:0 10px;background:#fff;font-size:14px;color:#333}
+.ipt:disabled{background:#fafafc;color:#c2c2c2}
+.num{display:flex;align-items:center;height:34px;border:1px solid #e0e0e6;border-radius:3px;background:#fff}
+.num input{flex:1;border:0;outline:0;height:32px;padding:0 10px;font-size:14px;min-width:0;background:transparent}
+.num em{font-style:normal;width:30px;text-align:center;color:#666;cursor:pointer;user-select:none;font-size:16px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 12px}
+.scard{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid #e5e7eb;border-radius:10px}
+.st{font-size:14px;font-weight:600;color:#1f2937}
+.sd{font-size:12px;color:#8a94a6;margin-top:4px}
+.gcard{display:flex;flex-direction:column;gap:8px;padding:14px 16px;margin-bottom:12px;border:1px solid #e5e7eb;border-radius:10px}
+.grow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.grow .gl{font-size:13px;color:#374151;white-space:nowrap}
+.grow .gi{width:180px}
+.grow .gp{font-size:13px;color:#8a94a6}
+.grow label{font-size:14px;display:flex;align-items:center;gap:6px;cursor:pointer}
+.qhead{display:flex;justify-content:space-between;align-items:center;margin:6px 0 6px}
+.qhead b{font-size:14px;font-weight:500;color:#1f2937}
+.qadd{height:22px;padding:0 8px;font-size:12px;border:1px solid #2080f0;color:#2080f0;background:#fff;border-radius:3px;cursor:pointer;margin-right:4px}
+.qadd:disabled{opacity:.45;cursor:not-allowed}
+.big{margin:12px 0 4px;padding:10px 12px;border:1px dashed #e0e0e6;border-radius:6px}
+.big .row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;color:#374151}
+.big .bl{font-size:14px;color:#1f2937;margin-bottom:6px}
+.big .ipt,.big .num{height:30px}
+.big .num{width:120px}
+.big .num input{height:28px}
+.big select.ipt{width:96px;padding:0 6px}
+.big .hint{font-size:12px;color:#8a94a6;margin-top:6px}
+.big .sum{font-size:12px;color:#374151;margin-top:4px}
+.big .sum b{color:#c25a00}
+.qlist{display:flex;flex-direction:column;gap:5px}
+.qrow{display:flex;align-items:center;gap:4px;min-height:32px}
+.qrow .ql{flex:none;width:54px;font-size:12px;color:#374151;text-align:right;white-space:nowrap}
+.qrow input{flex:1;min-width:0;height:32px;border:1px solid #e0e0e6;border-radius:3px;padding:0 10px;font-size:14px}
+.qrow .amtw{position:relative;flex:1;min-width:0;display:flex}
+.qrow .amtw input{width:100%;padding-right:48px}
+.qrow .lvtag{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:#fff1e6;color:#c25a00;border:1px solid #f5c89a;font-size:11px;font-weight:600;line-height:16px;padding:0 5px;border-radius:4px;pointer-events:none}
+.qrow select{flex:none;width:108px;height:32px;border:1px solid #e0e0e6;border-radius:3px;padding:0 6px;background:#fff;font-size:14px}
+.qrow .qd{flex:none;height:28px;padding:0 10px;border:0;background:transparent;color:#d03050;font-size:14px;cursor:pointer;border-radius:3px}
+.qrow .qd:hover{background:#d0305014}
+.qrow .qd:disabled{color:#e8a9b5;cursor:not-allowed;background:transparent}
+.qlimit{margin-top:4px;font-size:12px;color:#f0a020;text-align:right}
+.acts{display:flex;justify-content:flex-end;gap:12px;margin-top:12px}
+
+/* ================= 客户端演示（充值页照现网还原，本需求不改界面） ================= */
+.cl{display:grid;grid-template-columns:300px 370px minmax(320px,1fr);gap:16px;align-items:start}
+.panel{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding:14px 16px}
+.panel h4{font-size:14px;margin-bottom:10px}
+.ctl{margin-bottom:12px}
+.ctl .cap{font-size:12.5px;color:#666;margin-bottom:6px}
+.rd{display:flex;flex-direction:column;gap:5px;font-size:12.5px}
+.rd label{display:flex;gap:6px;align-items:flex-start;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid #dcdce4;background:#fff;border-radius:14px;padding:2px 10px;font-size:12px;color:#555;cursor:pointer}
+.chips button[aria-pressed=true]{background:#6C4FE0;border-color:#6C4FE0;color:#fff}
+.scn{display:flex;flex-direction:column;gap:5px}
+.scn button{text-align:left;border:1px solid #dcdce4;background:#fafbfc;border-radius:3px;padding:5px 9px;font-size:12px;color:#333;cursor:pointer}
+.scn button:hover{border-color:#6C4FE0;color:#6C4FE0}
+.phone{width:370px;height:760px;border-radius:34px;background:#111;padding:11px;box-shadow:0 10px 30px rgba(0,0,0,.25);position:relative}
+.screen{width:100%;height:100%;border-radius:25px;background:#f2f3f5;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.h5-top{height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#fff;color:#333;flex:none}
+.h5-top .bk{width:64px;font-size:22px;line-height:1}
+.h5-top b{font-size:17px;font-weight:600}
+.h5-top .rec{width:64px;text-align:right;font-size:12.5px}
+.h5-body{flex:1;overflow:auto;padding:8px 8px 74px}
+.h5-card{background:#fff;border-radius:10px;padding:8px;margin-bottom:8px}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cat{position:relative;border-radius:8px;background:#f7f7f8;padding:14px 2px 8px;text-align:center;font-size:11.5px;color:#555;cursor:pointer;overflow:hidden}
+.cat .ic{width:30px;height:30px;border-radius:7px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:10px}
+.cat.on{background:#e8524f;color:#fff}
+.cat .rib{position:absolute;top:0;right:0;background:#d9363e;color:#fff;font-size:9px;padding:1px 5px;border-radius:0 0 0 7px}
+.chs{display:flex;flex-direction:column;gap:6px}
+.ch{border:1px solid #e5e5e5;border-radius:6px;padding:8px 10px;font-size:12.5px;display:flex;justify-content:space-between;background:#fff;cursor:pointer}
+.ch.on{border-color:#e8524f;background:#fff1f0}
+.ch small{color:#999}
+.amt-h{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;color:#222;margin:4px 2px 10px}
+.amt-h i{width:22px;height:18px;border-radius:4px;background:#e8524f;display:inline-block}
+.amts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.amt{border:1px solid #e5e5e5;border-radius:6px;height:38px;display:flex;align-items:center;padding:0 10px;cursor:pointer;background:#fff}
+.amt s{text-decoration:none;color:#aaa;font-size:13px}
+.amt b{flex:1;text-align:center;color:#e8524f;font-size:16px;font-weight:500}
+.amt.on{border-color:#e8524f;background:#fff1f0}
+.aipt{display:flex;align-items:center;gap:12px;background:#f6f6f6;border-radius:20px;padding:0 14px;height:42px;margin-top:12px}
+.aipt span{color:#e8524f;font-weight:700;font-size:16px}
+.aipt i{width:1px;height:16px;background:#ddd}
+.aipt input{flex:1;border:0;outline:0;background:transparent;color:#e8524f;font-size:15px;min-width:0}
+.range{font-size:11px;color:#aaa;margin:6px 6px 0}
+.empty{font-size:12px;color:#999;padding:6px 0}
+.h5-bottom{position:absolute;left:0;right:0;bottom:0;height:62px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-top:1px solid #f0f0f0;z-index:3}
+.h5-bottom .pm{font-size:12px;color:#333;line-height:1.5}
+.h5-bottom button{height:42px;border:0;border-radius:6px;background:#e8524f;color:#fff;font-size:15px;padding:0 16px;cursor:pointer}
+.pop{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:5;padding:0 22px}
+.pop .box{background:#f5f5f5;width:100%;border-radius:10px;padding:10px 14px 14px;text-align:center}
+.pop .t{font-size:14px;font-weight:700;color:#222}
+.pop .d{font-size:13px;color:#333;margin:14px 4px 12px;line-height:1.5}
+.pop .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pop .opt{height:34px;border-radius:5px;border:1px solid #e3e3e3;background:#fff;color:#f45b5b;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pop .opt.on{background:linear-gradient(90deg,#f45b5b,#ff9384);border-color:transparent;color:#fff;font-weight:600}
+.pop .go{margin-top:10px;height:40px;border-radius:8px;border:0;background:#f45b5b;color:#fff;font-size:15px;width:100%;cursor:pointer}
+.pop .keep{margin-top:10px;height:40px;border-radius:8px;border:1px solid #f45b5b;background:#fff;color:#f45b5b;font-size:14px;width:100%;cursor:pointer}
+.ptoast{position:absolute;left:14px;right:14px;bottom:72px;background:rgba(30,30,30,.92);color:#fff;border-radius:10px;padding:9px 12px;font-size:12.5px;z-index:4}
+.log ol{padding-left:20px}
+.log li{margin:0 0 7px;font-size:12.5px;line-height:1.7}
+.log li .k{display:inline-block;min-width:64px;color:#999}
+.log li.ok{color:#2e8b57}.log li.warn{color:#b7791f}.log li.err{color:#c0392b}.log li.key{font-weight:600}
+.legend{font-size:12px;color:#999;margin-top:8px;border-top:1px solid #f0f0f0;padding-top:7px}
+
+/* ================= 需求说明抽屉（规范：右侧把手 + 820 抽屉） ================= */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+
+.prd .flowbox{border:1px solid #e3dcfb;border-radius:8px;padding:12px 12px 10px;margin:12px 0 14px;background:#fff}
+.prd .flowbox .ft{font-size:13px;font-weight:700;color:#4b3aa8;margin-bottom:8px}
+.prd .fl-legend{font-size:11.5px;color:#666;margin-top:8px;line-height:1.9}
+.prd .lg{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+.prd .lg.p{background:#f5f3ff;border:1px solid #c9bdf5}.prd .lg.d{background:#fffbe6;border:1px solid #f0c36d;border-radius:6px}
+.prd .lg.r{background:#eefaf1;border:1px solid #a8dcb6}.prd .lg.s{background:#fff1f0;border:1px solid #f3b0ac}
+.prd .lg.t{width:auto;height:auto;background:#f5222d;color:#fff;font-size:9.5px;font-weight:700;padding:0 6px;border-radius:7px;line-height:15px}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#5cb85c;color:#fff;border-radius:3px;padding:10px 18px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:200;font-size:12.5px;display:none;max-width:80vw}
+.toast.err{background:#e74c3c}
+@media (max-width:1100px){.cl{grid-template-columns:1fr}.phone{margin:0 auto}}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}.icon-row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div class="switcher">
+  <b>大小会员快捷金额 · 原型</b>
+  <div class="pages" id="pages">
+    <button data-p="v3" aria-pressed="true">中台后台 · 充值类型管理</button>
+    <button data-p="cl" aria-pressed="false">客户端 · 充值页效果演示</button>
+  </div>
+</div>
+
+<!-- ================= 中台：充值类型管理 › 充值大类 ================= -->
+<div class="page" id="p-v3">
+  <div class="v3">
+    <div class="v3-tabs"><span class="on">充值大类</span><span>充值通道</span></div>
+    <div class="v3-search">
+      <div class="fi"><span><i>*</i> 商户</span><select class="v3-sel"><option>(2001)sit-inr</option></select></div>
+      <div class="fi"><span>充值大类</span><select class="v3-sel" style="min-width:240px"><option>请选择前台显示名称</option></select></div>
+      <button class="v3-btn p">查询</button><button class="v3-btn">重置</button>
+    </div>
+    <div class="v3-head"><button class="v3-btn p" id="v3add">新增</button></div>
+    <div class="v3-tbl"><table>
+      <thead><tr><th>商户</th><th>ID</th><th>选中前图标/选中后图标</th><th>充值大类</th><th>内置充值大类</th><th>会员最大待支付单数</th><th>快捷充值金额</th><th>充值大类奖励</th><th>状态</th><th>VIP充值赠送</th><th>排序</th><th>最后修改人</th><th>最后修改时间</th><th>操作</th></tr></thead>
+      <tbody id="v3tb"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ================= 客户端：充值页效果演示 ================= -->
+<div class="page hidden" id="p-cl"><div id="clRoot"></div></div>
+
+<div class="toast" id="toast"></div>
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>大小会员快捷金额 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明只写业务规则本身。弹窗里新增项的样子和交互，直接看原型页面。第五节是上线前就有的 ArUpi 下单流程，供测试对照。</div>
+    <table class="t">
+      <tr><th style="width:300px">页面</th><th>改动点</th></tr>
+      <tr><td>中台后台 › 充值类型管理 › 充值大类 › 新增 / 编辑充值大类</td><td>快捷金额配置新增「大额金额」：金额起点 + 可见充值等级；弹窗改为左右两栏（左侧基础信息，右侧快捷金额配置），取消 / 确定固定在底部</td></tr>
+      <tr><td>客户端 › 充值页</td><td>快捷金额按会员充值等级显示；超出金额范围的不显示；ArUpi 只显示钱包当前能代收的金额</td></tr>
+      <tr><td>客户端 › 推荐金额弹窗</td><td>最多显示 4 个</td></tr>
+      <tr><td>AR 钱包 › 推荐金额推送</td><td>推送内容改为当前全部可代收金额</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">快捷金额 ≥ 大额金额起点的，只有充值等级 ≥ 设定等级的会员能看到</div>
+      <div class="kf">ArUpi 的快捷金额 = 会员可见的快捷金额中，AR 钱包当前能代收的部分</div>
+      <div class="kf">钱包推来的全部金额只用来对照和判断，不直接显示给会员</div>
+    </div>
+
+    <div class="flowbox">
+      <div class="ft">完整链路（配置 → 充值页显示 → 下单）</div>
+      <svg viewBox="0 0 760 1110" width="100%" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;font-size:12.5px">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8c8c8c"/></marker></defs>
+        <!-- ① 配置与数据准备 -->
+        <rect x="0.5" y="0.5" width="759" height="249" rx="8" fill="#fafbfc" stroke="#ebebf2"/>
+        <text x="14" y="22" font-weight="700" font-size="13.5" fill="#4b3aa8">① 配置与数据准备</text>
+        <text x="185" y="48" text-anchor="middle" fill="#666">中台后台（运营配置）</text>
+        <text x="575" y="48" text-anchor="middle" fill="#666">AR 钱包 → 站点</text>
+        <g fill="#f5f3ff" stroke="#c9bdf5">
+          <rect x="15" y="58" width="340" height="34" rx="5"/><rect x="15" y="106" width="340" height="34" rx="5"/><rect x="15" y="154" width="340" height="34" rx="5"/><rect x="15" y="202" width="340" height="34" rx="5"/>
+          <rect x="405" y="58" width="340" height="34" rx="5"/><rect x="405" y="106" width="340" height="34" rx="5"/><rect x="405" y="154" width="340" height="34" rx="5"/><rect x="405" y="202" width="340" height="34" rx="5"/>
+        </g>
+        <g text-anchor="middle" fill="#2d2366">
+          <text x="185" y="80">运营在充值大类配置快捷金额（最多 12 条）</text>
+          <text x="185" y="128">填「大额金额」：起点 + 可见充值等级</text>
+          <text x="185" y="176">保存校验：起点必须大于最小的快捷金额</text>
+          <text x="185" y="224">随大类配置同步到充值页</text>
+          <text x="575" y="80">卖单按钱包拆分规则预拆分</text>
+          <text x="575" y="128">得到全部可代收金额（去重、从小到大）</text>
+          <text x="575" y="176">名单变化 → 通知站点 → 站点反查</text>
+          <text x="575" y="224">站点存一份全站名单（新字段；没有就用老字段）</text>
+        </g>
+
+        <!-- ② 充值页显示 -->
+        <rect x="0.5" y="262.5" width="759" height="369" rx="8" fill="#fafbfc" stroke="#ebebf2"/>
+        <text x="14" y="284" font-weight="700" font-size="13.5" fill="#4b3aa8">② 会员进入充值页：显示哪些快捷金额</text>
+        <g fill="#f5f3ff" stroke="#c9bdf5">
+          <rect x="160" y="300" width="440" height="34" rx="5"/><rect x="160" y="348" width="440" height="34" rx="5"/><rect x="160" y="396" width="440" height="34" rx="5"/>
+          <rect x="440" y="508" width="280" height="48" rx="5"/>
+        </g>
+        <rect x="160" y="444" width="440" height="40" rx="20" fill="#fffbe6" stroke="#f0c36d"/>
+        <rect x="40" y="508" width="280" height="40" rx="5" fill="#eefaf1" stroke="#a8dcb6"/>
+        <rect x="160" y="580" width="440" height="34" rx="5" fill="#eefaf1" stroke="#a8dcb6"/>
+        <g text-anchor="middle" fill="#2d2366">
+          <text x="380" y="322">取会员当前所在大类的快捷金额（运营配置的）</text>
+          <text x="380" y="370">规则 01：会员充值等级低于设定等级 → 去掉 ≥ 起点的金额</text>
+          <text x="380" y="418">规则 03：去掉超出充值页最小 / 最大金额的</text>
+          <text x="380" y="469" fill="#7a5b00">是 ArUpiPay 大类，或会员选中了 ArUpi 通道？</text>
+          <text x="180" y="533" fill="#1f6b3a">否：直接显示</text>
+          <text x="580" y="528">是：规则 04 只留钱包名单里有的</text>
+          <text x="580" y="546" font-size="11.5" fill="#666">（一个都对不上就不过滤）</text>
+          <text x="380" y="602" fill="#1f6b3a">充值页显示快捷金额（不会直接显示钱包的全部金额）</text>
+        </g>
+
+        <!-- ③ 下单 -->
+        <rect x="0.5" y="644.5" width="759" height="464" rx="8" fill="#fafbfc" stroke="#ebebf2"/>
+        <text x="14" y="666" font-weight="700" font-size="13.5" fill="#4b3aa8">③ 会员点「充值」：怎么下单</text>
+        <g fill="#fffbe6" stroke="#f0c36d">
+          <rect x="130" y="682" width="320" height="40" rx="20"/><rect x="130" y="744" width="320" height="40" rx="20"/><rect x="130" y="806" width="320" height="40" rx="20"/><rect x="130" y="868" width="320" height="40" rx="20"/>
+        </g>
+        <rect x="480" y="682" width="265" height="40" rx="5" fill="#eefaf1" stroke="#a8dcb6"/>
+        <rect x="480" y="744" width="265" height="40" rx="5" fill="#fff1f0" stroke="#f3b0ac"/>
+        <rect x="480" y="806" width="265" height="40" rx="5" fill="#eefaf1" stroke="#a8dcb6"/>
+        <rect x="480" y="868" width="265" height="40" rx="5" fill="#f5f3ff" stroke="#c9bdf5"/>
+        <rect x="130" y="930" width="320" height="36" rx="5" fill="#f5f3ff" stroke="#c9bdf5"/>
+        <rect x="120" y="992" width="165" height="44" rx="5" fill="#eefaf1" stroke="#a8dcb6"/>
+        <rect x="295" y="992" width="165" height="44" rx="5" fill="#f5f3ff" stroke="#c9bdf5"/>
+        <g text-anchor="middle">
+          <text x="290" y="707" fill="#7a5b00">这单走 ArUpi 吗？（判断见下方 *）</text>
+          <text x="290" y="769" fill="#7a5b00">金额是整百吗？</text>
+          <text x="290" y="831" fill="#7a5b00">钱包这时能收这个金额吗？</text>
+          <text x="290" y="893" fill="#7a5b00">会员是手输的金额吗？</text>
+          <text x="612" y="698" fill="#1f6b3a">否：走三方通道</text>
+          <text x="612" y="715" font-size="11.5" fill="#666">按权重选，失败自动换下一条</text>
+          <text x="612" y="769" fill="#a8071a">否：提示「请输入整百」，不下单</text>
+          <text x="612" y="831" fill="#1f6b3a">能：跳钱包收银台付款</text>
+          <text x="612" y="884" fill="#2d2366">否（点的按钮）：钱包改用其他收款方式</text>
+          <text x="612" y="901" font-size="11.5" fill="#666">不行就提示失败，不弹推荐框</text>
+          <text x="290" y="953" fill="#2d2366">弹推荐金额框（最多 4 个，规则 05）</text>
+          <text x="202" y="1010" fill="#1f6b3a">选推荐金额</text>
+          <text x="202" y="1027" font-size="11.5" fill="#666">按所选金额重下，同一通道</text>
+          <text x="377" y="1010" fill="#2d2366">继续充值</text>
+          <text x="377" y="1027" font-size="11.5" fill="#666">原金额再下，钱包换方式</text>
+        </g>
+        <g font-size="11.5" fill="#666">
+          <text x="14" y="1060">* 走不走 ArUpi：ArUpiPay 大类、会员自己选了 ArUpi 通道 → 走；三方法币大类挂了 ArUpi（自动调整权重开）</text>
+          <text x="14" y="1078">   → 金额在钱包名单里才先走 ArUpi，ArUpi 下单失败再自动换三方通道。</text>
+          <text x="14" y="1096">钱包下单失败、超时、有未完成订单等其他情况，见第五节。</text>
+        </g>
+
+        <g stroke="#8c8c8c" stroke-width="1.2" fill="none" marker-end="url(#ar)">
+          <line x1="185" y1="92" x2="185" y2="105"/><line x1="185" y1="140" x2="185" y2="153"/><line x1="185" y1="188" x2="185" y2="201"/>
+          <line x1="575" y1="92" x2="575" y2="105"/><line x1="575" y1="140" x2="575" y2="153"/><line x1="575" y1="188" x2="575" y2="201"/>
+          <line x1="380" y1="334" x2="380" y2="347"/><line x1="380" y1="382" x2="380" y2="395"/><line x1="380" y1="430" x2="380" y2="443"/>
+          <line x1="180" y1="484" x2="180" y2="507"/><line x1="580" y1="484" x2="580" y2="507"/>
+          <line x1="180" y1="548" x2="180" y2="579"/><line x1="580" y1="556" x2="580" y2="579"/>
+          <line x1="450" y1="702" x2="479" y2="702"/><line x1="290" y1="722" x2="290" y2="743"/>
+          <line x1="450" y1="764" x2="479" y2="764"/><line x1="290" y1="784" x2="290" y2="805"/>
+          <line x1="450" y1="826" x2="479" y2="826"/><line x1="290" y1="846" x2="290" y2="867"/>
+          <line x1="450" y1="888" x2="479" y2="888"/><line x1="290" y1="908" x2="290" y2="929"/>
+          <polyline points="290,966 290,979 202,979 202,991"/><polyline points="290,979 377,979 377,991"/>
+        </g>
+        <g fill="#8c8c8c" font-size="11.5">
+          <text x="190" y="500">否</text><text x="590" y="500">是</text>
+          <text x="458" y="696">否</text><text x="298" y="738">是</text>
+          <text x="458" y="758">否</text><text x="298" y="800">是</text>
+          <text x="458" y="820">能</text><text x="298" y="862">不能</text>
+          <text x="458" y="882">否</text><text x="298" y="924">是</text>
+        </g>
+
+        <!-- 本需求标签 -->
+        <g font-size="9.5" font-weight="700" text-anchor="middle">
+          <g><rect x="307" y="99" width="46" height="15" rx="7" fill="#f5222d"/><text x="330" y="110" fill="#fff">本需求</text></g>
+          <g><rect x="307" y="147" width="46" height="15" rx="7" fill="#f5222d"/><text x="330" y="158" fill="#fff">本需求</text></g>
+          <g><rect x="697" y="99" width="46" height="15" rx="7" fill="#f5222d"/><text x="720" y="110" fill="#fff">本需求</text></g>
+          <g><rect x="697" y="195" width="46" height="15" rx="7" fill="#f5222d"/><text x="720" y="206" fill="#fff">本需求</text></g>
+          <g><rect x="552" y="341" width="46" height="15" rx="7" fill="#f5222d"/><text x="575" y="352" fill="#fff">本需求</text></g>
+          <g><rect x="552" y="389" width="46" height="15" rx="7" fill="#f5222d"/><text x="575" y="400" fill="#fff">本需求</text></g>
+          <g><rect x="672" y="501" width="46" height="15" rx="7" fill="#f5222d"/><text x="695" y="512" fill="#fff">本需求</text></g>
+          <g><rect x="402" y="923" width="46" height="15" rx="7" fill="#f5222d"/><text x="425" y="934" fill="#fff">本需求</text></g>
+        </g>
+      </svg>
+      <div class="fl-legend"><span class="lg p"></span>处理步骤　<span class="lg d"></span>判断　<span class="lg r"></span>结果　<span class="lg s"></span>提示 / 失败　<span class="lg t">本需求</span>这次新增或改动的地方，其余是现有流程</div>
+    </div>
+
+
+    <div class="br key"><span class="bn">01</span><b>大额金额</b><span class="kb">核心</span>：快捷金额 ≥ 大额金额起点的，仅当前充值等级 ≥ 设定等级的会员在充值页看到；未填大额金额起点时，所有会员看到全部快捷金额。大额金额起点必须大于最小的快捷金额。会员充值等级与通道「可见充值等级」用同一口径。</div>
+
+    <div class="br"><span class="bn">02</span><b>手动输入</b>：会员手动输入的金额不受大额金额限制，快捷赠送照常按金额匹配。</div>
+
+    <div class="br"><span class="bn">03</span><b>金额范围</b>：快捷金额低于充值页显示的最小金额、或高于最大金额的，不显示。</div>
+
+    <div class="br key"><span class="bn">04</span><b>ArUpi 快捷金额</b><span class="kb">核心</span>：ArUpiPay 大类，以及会员在充值页自己选中的 ArUpi 通道，只显示按规则 01、03 可见的快捷金额中 AR 钱包当前能代收的金额；钱包当前没有推送金额、或一个都对不上时，显示按规则 01、03 可见的快捷金额。快捷金额取会员当前所在大类的配置。</div>
+
+    <div class="br"><span class="bn">05</span><b>推荐金额弹窗</b>：会员手输金额被钱包退回、弹出推荐金额时，最多显示 4 个；钱包给的超过 4 个时，取与会员输入金额最接近的 4 个，按金额从小到大排列。</div>
+
+    <div class="br key"><span class="bn">06</span><b>AR 钱包推送</b><span class="kb">核心</span>：AR 钱包推送当前全部可代收金额，不区分会员，我方不向钱包传会员等级。按大类下单时，用这份金额判断是否走 ArUpi。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:130px">项</th><th>说明</th></tr>
+      <tr><td>适用范围</td><td>老彩票 V3 模式站点；V1 模式站点、SaaS 本期不做</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <div class="br key"><span class="bn">01</span><b>过滤要覆盖全部出口</b><span class="kb">核心</span>：过滤在服务端做。充值页大类列表、通道列表里所有带快捷金额的返回内容（金额档位、档位赠送、金额范围文字）都按同一规则过滤；三方大类、本地大类、币种大类、ArUpi 都要覆盖，不能只改其中一处。下单校验不按规则 01、03 收窄金额；推荐金额弹窗的数量限制（规则 05）也在服务端做。</div>
+    <div class="br"><span class="bn">02</span><b>配置同步</b>：大额金额起点、可见等级随大类配置一起下发给前台；前台所有读取大类快捷金额的地方（包括配置缺失时回查中台的兜底读取）都要带上这两项。</div>
+    <div class="br"><span class="bn">03</span><b>等级选项</b>：可见等级下拉取本站已配置的充值等级。</div>
+    <div class="br key"><span class="bn">04</span><b>钱包字段</b><span class="kb">核心</span>：钱包的全部可代收金额用新增字段下发，原有金额字段和下单退回时带的推荐金额都保持不变；我方 V3 模式优先读新字段，读不到时用原有字段；V1 模式站点继续读原有字段，充值页逻辑不动。</div>
+    <div class="br key"><span class="bn">05</span><b>推送防重</b><span class="kb">核心</span>：收到钱包推送通知时，1 秒内的重复通知不能直接丢弃，以最后一次通知为准更新金额。</div>
+    <div class="br"><span class="bn">06</span><b>名单用途</b>：按大类下单带给选路的金额改为全部可代收金额。</div>
+    <div class="br key"><span class="bn">07</span><b>上线顺序</b><span class="kb">核心</span>：运营先配好 ArUpiPay 大类的快捷金额（覆盖钱包常推的小额）→ 我方上线 → 钱包上新字段。ArUpiPay 大类没配好就上线，该大类显示的金额会变少。</div>
+
+    <div class="h1">五、现有 ArUpi 下单流程（供测试对照）</div>
+    <div class="note">📌 下面是上线前就有的流程。「本需求」一列标出有变化的地方，其余照旧回归。<br>
+      ① 会员充的钱转给钱包里正在卖的人，只能充钱包当下能对上的金额。<br>
+      ② 走 ArUpi 的金额必须是整百，范围以充值页显示为准（目前 ₹100–₹50,000）。<br>
+      ③ 钱包把当下能对上的金额推给站点，全站共用一份。</div>
+
+    <table class="t">
+      <tr><th style="width:170px">会员在哪碰到 ArUpi</th><th>会员看到什么</th><th style="width:150px">快捷金额（上线前）</th><th style="width:150px">本需求</th></tr>
+      <tr><td>ArUpiPay 大类</td><td>这个大类就是 ArUpi</td><td>钱包推的约 9 个</td><td>改为规则 01、03、04</td></tr>
+      <tr><td>三方法币大类挂了 ArUpi，自动调整权重开</td><td>只看到大类，系统选通道：金额在钱包名单里先走 ArUpi，不在就走其他三方通道</td><td>大类配置的金额</td><td>规则 01、03；判断用的名单改为全部可代收金额</td></tr>
+      <tr><td>同上，自动调整权重关</td><td>会员自己选通道</td><td>大类配置的金额</td><td>选中 ArUpi 通道时按规则 04</td></tr>
+    </table>
+
+    <table class="t">
+      <tr><th style="width:36px">#</th><th style="width:170px">点「充值」后的情况</th><th>会员看到 / 系统处理</th><th style="width:150px">本需求</th></tr>
+      <tr><td>1</td><td>走 ArUpi 但金额不是整百</td><td>提示「请输入整百的充值订单」，不下单</td><td>不变</td></tr>
+      <tr><td>2</td><td>低于最小或高于最大金额</td><td>提示最小 / 最大金额，不下单</td><td>不变</td></tr>
+      <tr><td>3</td><td>会员还有一笔 ArUpi 订单没完成</td><td>不新建订单，显示那笔未完成的订单</td><td>不变</td></tr>
+      <tr><td>4</td><td>钱包能收这个金额</td><td>下单成功，跳到钱包收银台，在钱包给的时限内付款</td><td>不变</td></tr>
+      <tr><td>5</td><td>手输的金额钱包收不了</td><td>弹「推荐金额」框，金额由钱包给出。选推荐金额并点「充值 推荐金额」→ 按所选金额重新下单，固定走刚才那条 ArUpi 通道；点「继续充值」→ 按原金额再下一次，钱包改用其他收款方式，仍不行就提示失败，不再弹框</td><td>框里最多显示 4 个（规则 05）</td></tr>
+      <tr><td>6</td><td>点快捷金额按钮，但钱包这时收不了</td><td>不弹推荐框，钱包改用其他收款方式；不行就提示失败</td><td>规则 04 后只显示钱包能收的金额，这种情况变少</td></tr>
+      <tr><td>7</td><td>钱包下单失败（单被别人买走、取消次数过多、没有买入权限、钱包暂不收款等）</td><td>订单作废并提示原因。挂了 ArUpi 的三方法币大类（自动调整权重开）：自动换下一条三方通道；ArUpiPay 大类：没有其他通道可换</td><td>不变</td></tr>
+      <tr><td>8</td><td>钱包 12 秒没有回应</td><td>订单保留，提示「服务器繁忙，请稍后重试」，不换通道</td><td>不变</td></tr>
+    </table>
+    <div class="note">第 3、5、7 种没下成单时，会员用了的充值优惠券立即退回。</div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
+function toast(msg,err){var t=$('toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.style.display='block';clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none'},2000)}
+function q(a,t,v){return {a:a,t:t||1,v:v||0}}
+function blank(){return {a:null,t:1,v:null}}
+function mk(arr,g){g=g||{};return arr.map(function(a){return g[a]?q(a,g[a][0],g[a][1]):q(a,1,0)})}
+function fmt(n){return '₹'+Number(n).toLocaleString('en-IN')}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+
+/* ---------- 模拟数据 ---------- */
+var LEVELS=[1,2,3,4,5,6,7,8,9,10];
+var W={ /* AR 钱包当前全部可代收金额（去重排序，大额在后） */
+  full:[100,200,300,400,500,600,700,800,1000,1100,1500,2000,2500,3000,4000,5000,10000,15000,20000,30000,50000],
+  legacy:[100,200,300,400,500,1500,2000,3000,5000], /* 下单退回时钱包带的推荐金额（现有流程，不改） */
+  hasBig:true, bigFrom:10000, min:100, max:50000
+};
+var V3=[
+  {id:101,name:'fa 1',sys:'三方法币',pend:3,sort:20,state:true,vip:false,giftRate:0,man:'luna001',time:'2026-10-02 18:21:07',color:'#5b8def',demo:true,
+   channels:[{id:10947,name:'PhonePe_QR',min:100,max:20000,w:40},{id:10696,name:'UPI-QR',min:300,max:50000,w:30},{id:26001,name:'ARUPI 快捷',min:100,max:50000,w:30,ar:true}],
+   quick:mk([100,200,300,500,1000,2000,3000,5000,8000,10000,20000,50000],{1000:[1,1],5000:[1,2],10000:[1,3],20000:[1,3],50000:[2,1000]}),bigFrom:10000,bigLv:2},
+  {id:102,name:'ArUpiPay',sys:'ArUpiPay',pend:1,sort:30,state:true,vip:false,giftRate:0,man:'luna001',time:'2026-10-02 18:25:44',color:'#ff8a00',demo:true,
+   channels:[{id:26000,name:'ARUPI-QR',min:100,max:50000,w:100,ar:true}],
+   quick:mk([100,200,300,500,1000,1500,2000,3000,5000,10000,20000,50000],{500:[1,1],3000:[1,1],10000:[1,2],20000:[1,3]}),bigFrom:10000,bigLv:2},
+  {id:103,name:'fa2',sys:'三方法币',pend:3,sort:10,state:true,vip:true,giftRate:0.02,man:'ops_ray',time:'2026-09-28 11:02:19',color:'#00a3e0',demo:true,
+   channels:[{id:11001,name:'PAYTM-WPay',min:500,max:10000,w:100}],
+   quick:mk([500,1000,2000,3000,5000,8000,10000,20000]),bigFrom:0,bigLv:0},
+  {id:104,name:'LocalUSDT',sys:'本地USDT',pend:1000,sort:12,state:true,vip:false,giftRate:0,man:'ops_ray',time:'2026-09-25 16:40:03',color:'#26a17b',demo:false,
+   channels:[],quick:[q(1000,1,0),q(200000,1,0)],bigFrom:0,bigLv:0}
+];
+
+/* ---------- 页面切换 ---------- */
+$('pages').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  Array.prototype.forEach.call($('pages').children,function(x){x.setAttribute('aria-pressed',String(x===b))});
+  ['v3','cl'].forEach(function(p){$('p-'+p).classList.toggle('hidden',p!==b.dataset.p)});
+  if(b.dataset.p==='cl')renderClient();
+});
+
+/* =================== 中台列表 =================== */
+function renderV3(){
+  $('v3tb').innerHTML=V3.map(function(r){
+    var amts=r.quick.filter(function(x){return +x.a>0}).map(function(x){return String(+x.a)}).join(' / ')||'--';
+    return '<tr>'+
+      '<td><span class="v3-tag">(2001)sit-inr</span></td>'+
+      '<td>'+r.id+'</td>'+
+      '<td><span class="v3-ico" style="background:'+r.color+'">'+esc(r.name.slice(0,2))+'</span><span class="v3-ico" style="background:'+r.color+';opacity:.75">'+esc(r.name.slice(0,2))+'</span></td>'+
+      '<td>'+esc(r.name)+'</td>'+
+      '<td>'+esc(r.sys)+'</td>'+
+      '<td>'+(r.pend>0?r.pend:'不限制')+'</td>'+
+      '<td title="'+esc(amts)+'" style="max-width:220px;overflow:hidden;text-overflow:ellipsis">'+esc(amts)+'</td>'+
+      '<td>'+(r.giftRate>0?'<span style="color:#2080f0">'+(+(r.giftRate*100).toFixed(4))+'%</span>':'<span class="v3-mute">未配置</span>')+'</td>'+
+      '<td><span class="sw'+(r.state?' on':'')+'"></span></td>'+
+      '<td><span class="sw'+(r.vip?' on':'')+'"></span></td>'+
+      '<td>'+r.sort+'</td>'+
+      '<td>'+esc(r.man)+'</td>'+
+      '<td>'+r.time+'</td>'+
+      '<td><span class="v3-link" data-edit="'+r.id+'">编辑</span><span class="v3-link">充值通道管理</span></td>'+
+    '</tr>';
+  }).join('');
+}
+$('v3add').addEventListener('click',function(){openV3(null)});
+$('v3tb').addEventListener('click',function(e){var t=e.target.closest('[data-edit]');if(t)openV3(+t.dataset.edit)});
+
+/* =================== 中台：编辑充值大类弹窗（原样 + 大额金额） =================== */
+function openV3(id){
+  var isAdd=id==null;
+  var r=isAdd?{id:0,name:'',sys:'三方法币',pend:0,sort:0,state:true,vip:false,giftRate:0,quick:[],bigFrom:0,bigLv:0,color:'#8c8c8c',channels:[],demo:false}:V3.filter(function(x){return x.id===id})[0];
+  var SYS=['三方法币','三方USDT','三方银行卡','ArUpiPay','ARPay','本地银行','本地USDT'];
+  var F={sys:r.sys,name:r.name,sort:r.sort,pend:r.pend,state:r.state,vip:r.vip,giftRate:r.giftRate,modify:false,google:'',
+    quick:r.quick.length?clone(r.quick):[blank(),blank(),blank(),blank(),blank(),blank()],bigFrom:r.bigFrom||'',bigLv:r.bigLv||''};
+  var m=document.createElement('div');m.className='mask';
+  var st=0;
+  function money(v){return v===null||v===''||v===undefined?'':Number(v).toFixed(2)}
+  function draw(){
+    var n=F.quick.length;
+    var rows=F.quick.map(function(x,i){
+      return '<div class="qrow">'+
+        '<span class="ql">金额'+(i+1)+':</span>'+
+        '<span class="amtw"><input data-i="'+i+'" data-k="a" placeholder="请输入金额" value="'+money(x.a)+'">'+((+F.bigFrom>0&&+F.bigLv>0&&x.a!==null&&x.a!==''&&+x.a>=+F.bigFrom)?'<span class="lvtag">Lv'+F.bigLv+'+</span>':'')+'</span>'+
+        '<select data-i="'+i+'" data-k="t"><option value="1"'+(x.t==1?' selected':'')+'>赠送比率</option><option value="2"'+(x.t==2?' selected':'')+'>固定金额</option></select>'+
+        '<input data-i="'+i+'" data-k="v" placeholder="0" value="'+money(x.v)+'">'+
+        '<button class="qd" data-del="'+i+'"'+(n<=1?' disabled':'')+'>删除</button>'+
+      '</div>';
+    }).join('');
+    m.innerHTML='<div class="v3m"><div class="v3m-hd"><b>'+(isAdd?'新增充值大类':'编辑充值大类')+'</b><span data-x>✕</span></div><div class="v3m-bd"><div class="cols"><div class="colL">'+
+      '<div class="icon-row">'+
+        '<div><div class="fl">选中前图标<i>*</i></div>'+(isAdd?'<div class="up" style="background:#fafafc;color:#bbb;font-weight:400">+</div>':'<div class="up" style="background:'+r.color+'">'+esc(r.name.slice(0,2))+'</div>')+'<div class="fb">尺寸：70px * 70px，格式：jpg/png/webp</div></div>'+
+        '<div><div class="fl">选中后图标<i>*</i></div>'+(isAdd?'<div class="up" style="background:#fafafc;color:#bbb;font-weight:400">+</div>':'<div class="up" style="background:'+r.color+';opacity:.8">'+esc(r.name.slice(0,2))+'</div>')+'<div class="fb">尺寸：70px * 70px，格式：jpg/png/webp</div></div>'+
+      '</div>'+
+      '<div class="grid2">'+
+        '<div><div class="fl">商户<i>*</i></div><select class="ipt"'+(isAdd?'':' disabled')+'><option>(2001)sit-inr</option></select></div>'+
+        '<div><div class="fl">内置充值大类<i>*</i></div><select class="ipt" data-f="sys"'+(isAdd?'':' disabled')+'>'+SYS.map(function(x){return '<option'+(x===F.sys?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div>'+
+        '<div><div class="fl">充值大类<i>*</i></div><input class="ipt" data-f="name" placeholder="请输入前台显示名称" value="'+esc(F.name)+'"></div>'+
+        '<div><div class="fl">排序<i>*</i></div><div class="num"><input data-f="sort" value="'+F.sort+'"><em data-step="sort:-1">—</em><em data-step="sort:1">+</em></div></div>'+
+        '<div class="full"><div class="fl">会员最大待支付单数<span class="h">(0 表示不限制)</span><i>*</i></div><div class="num"><input data-f="pend" value="'+F.pend+'"><em data-step="pend:-1">—</em><em data-step="pend:1">+</em></div></div>'+
+      '</div>'+
+      '<div class="cards">'+
+        '<div class="scard"><div><div class="st">状态</div><div class="sd">开启后该充值类型可用</div></div><button class="sw'+(F.state?' on':'')+'" data-sw="state"></button></div>'+
+        '<div class="scard"><div><div class="st">VIP充值赠送</div><div class="sd">开启后该充值大类按全局 VIP 充值赠送规则发放赠送</div></div><button class="sw'+(F.vip?' on':'')+'" data-sw="vip"></button></div>'+
+      '</div>'+
+      '<div class="gcard"><div class="st">充值大类奖励</div><div class="sd" style="margin-top:0">该大类下所有通道默认按此比率发放（通道可单独加码，取高生效）</div>'+
+        '<div class="grow"><span class="gl">充值赠送比率:</span><input class="ipt gi" data-f="giftRate" value="'+Number(F.giftRate).toFixed(4)+'"'+(F.modify?'':' disabled')+'><span class="gp">= '+(+(Number(F.giftRate)*100).toFixed(4))+'%</span><label><input type="checkbox" data-mod'+(F.modify?' checked':'')+'> '+(isAdd?'是否设置':'是否修改')+'</label></div>'+
+        (F.modify?'<div class="grow"><span class="gl">谷歌验证码:</span><input class="ipt gi" maxlength="6" placeholder="请输入谷歌验证码" data-f="google" value="'+esc(F.google)+'"></div>':'')+
+      '</div>'+
+      '</div><div class="colR">'+
+      '<div class="qhead"><b>快捷金额配置</b><button class="qadd" data-add'+(n>=12?' disabled':'')+'>新增</button></div>'+
+      '<div class="qlist">'+rows+'</div>'+
+      (n>=12?'<div class="qlimit">最多配置 12 条快捷金额</div>':'')+
+      '<div class="big">'+
+        '<div class="bl"><span class="nb">大额金额</span></div>'+
+        '<div class="row">金额 ≥ <div class="num"><input data-b="bigFrom" placeholder="请输入金额" value="'+money(F.bigFrom)+'"></div> 的快捷金额，仅充值等级 ≥ '+
+        '<select class="ipt" data-b="bigLv"><option value="">请选择</option>'+LEVELS.map(function(l){return '<option value="'+l+'"'+(+F.bigLv===l?' selected':'')+'>Lv'+l+'</option>'}).join('')+'</select> 的会员可见</div>'+
+        '<div class="hint">不填则所有会员显示全部快捷金额</div>'+
+        (function(){
+          var am=F.quick.filter(function(x){return x.a!==null&&x.a!==''&&+x.a>0}).map(function(x){return +x.a});
+          if(!(+F.bigFrom>0&&+F.bigLv>0)||!am.length)return '';
+          var lv=+F.bigLv,small=am.filter(function(a){return a<+F.bigFrom}).length;
+          return '<div class="sum">按当前配置：'+(lv-1<=0?'Lv0':'Lv0–Lv'+(lv-1))+' 看到 <b>'+small+'</b> 个，Lv'+lv+' 及以上看到 <b>'+am.length+'</b> 个</div>';
+        })()+
+      '</div>'+
+      '</div></div></div>'+
+      '<div class="v3m-ft"><button class="v3-btn" data-x>取消</button><button class="v3-btn p" data-ok>确定</button></div>'+
+    '</div>';
+    var bd=m.querySelector('.v3m-bd');bd.scrollTop=st;bd.onscroll=function(){st=bd.scrollTop};
+  }
+  m.addEventListener('click',function(e){
+    var t=e.target;
+    if(t.closest('[data-x]')){m.remove();return}
+    if(t.dataset.sw){F[t.dataset.sw]=!F[t.dataset.sw];draw();return}
+    if(t.dataset.step){var p=t.dataset.step.split(':');F[p[0]]=Math.max(0,(+F[p[0]]||0)+(+p[1]));draw();return}
+    if(t.hasAttribute('data-add')&&!t.disabled){F.quick.push(blank());draw();var bd=m.querySelector('.v3m-bd');bd.scrollTop=bd.scrollHeight;return}
+    if(t.dataset.del!==undefined&&!t.disabled){F.quick.splice(+t.dataset.del,1);draw();return}
+    if(t.hasAttribute('data-ok'))save();
+  });
+  m.addEventListener('change',function(e){
+    var t=e.target;
+    if(t.hasAttribute('data-mod')){F.modify=t.checked;if(!F.modify){F.giftRate=r.giftRate;F.google=''}draw();return}
+    if(t.dataset.f){F[t.dataset.f]=t.value;if(t.dataset.f==='giftRate')draw();return}
+    if(t.dataset.b){F[t.dataset.b]=t.value;draw();return}
+    if(t.dataset.k){var x=F.quick[+t.dataset.i];x[t.dataset.k]=t.dataset.k==='t'?+t.value:(t.value===''?null:Number(t.value));if(t.dataset.k==='a')draw();}
+  });
+  function save(){
+    var seen={},items=[];
+    for(var i=0;i<F.quick.length;i++){
+      var x=F.quick[i];
+      if((x.a===null||x.a==='')&&(x.v===null||x.v===''))continue;
+      if(!(+x.a>0)){toast('快捷金额必须大于 0',1);return}
+      if(seen[+x.a]){toast('快捷金额不能重复',1);return}
+      if(!(+x.v>=0)){toast('赠送数额必须大于或等于 0',1);return}
+      seen[+x.a]=1;items.push({a:+x.a,t:x.t,v:+x.v||0});
+    }
+    if(!String(F.name).trim()){toast('请输入充值大类',1);return}
+    if(+F.bigFrom>0&&!F.bigLv){toast('请选择大额金额的可见充值等级',1);return}
+    if(F.bigFrom!==''&&!(+F.bigFrom>0)){toast('大额金额必须大于 0',1);return}
+    if(+F.bigFrom>0&&items.length&&+F.bigFrom<=Math.min.apply(null,items.map(function(x){return x.a}))){toast('大额金额起点必须大于最小的快捷金额',1);return}
+    if(isAdd){r.id=Math.max.apply(null,V3.map(function(x){return x.id}))+1;r.sys=F.sys;r.man='luna001';V3.push(r)}
+    Object.assign(r,{name:F.name,sort:+F.sort||0,pend:+F.pend||0,state:F.state,vip:F.vip,giftRate:+F.giftRate||0,quick:items,bigFrom:+F.bigFrom||0,bigLv:+F.bigLv||0,time:'2026-10-03 15:08:12',man:'luna001'});
+    m.remove();toast('保存成功');renderV3();
+  }
+  draw();document.body.appendChild(m);
+}
+
+/* =================== 客户端演示 =================== */
+var C={mode:'auto',lv:0,cat:102,ch:null,amt:'',typed:false,pop:null,toast:'',logs:[],pm:''};
+var POP_N=2; /* 钱包下单退回时给几个推荐金额（演示切换） */
+function ruleOn(o){return +o.bigFrom>0&&+o.bigLv>0}
+function visible(o,lv){var all=o.quick.filter(function(x){return +x.a>0});if(!ruleOn(o)||lv>=o.bigLv)return {list:all,hid:[]};return {list:all.filter(function(x){return +x.a<o.bigFrom}),hid:all.filter(function(x){return +x.a>=o.bigFrom})}}
+function inRange(list,min,max){return {list:list.filter(function(x){return +x.a>=min&&+x.a<=max}),out:list.filter(function(x){return +x.a<min||+x.a>max})}}
+function wallet(){return W.hasBig?W.full:W.full.filter(function(a){return a<W.bigFrom})}
+/* 规则 04：可见快捷金额（规则 01、03）中钱包当前能代收的；一个都对不上时显示可见快捷金额 */
+function arList(o,lv){
+  var v=visible(o,lv),r=inRange(v.list,W.min,W.max),w=wallet();
+  var inter=r.list.filter(function(x){return w.indexOf(+x.a)>=0}),drop=r.list.filter(function(x){return w.indexOf(+x.a)<0});
+  if(!w.length||!inter.length)return {list:r.list,hid:v.hid,out:r.out,drop:[],src:'可见快捷金额（钱包没有推送或一个都对不上，按规则 04 显示可见快捷金额）'};
+  return {list:inter,hid:v.hid,out:r.out,drop:drop,src:'可见快捷金额中钱包当前能代收的（规则 04）'};
+}
+function kfmt(a){a=+a;return a>=1000?(Math.round(a/100)/10)+'K':String(a)}
+function fmt2(a){return '₹'+Number(a).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function nearest(list,a,n){var w=list.filter(function(x){return x!==a}).slice();w.sort(function(x,y){return Math.abs(x-a)-Math.abs(y-a)||x-y});return w.slice(0,n).sort(function(x,y){return x-y})}
+function model(){
+  var o={cats:[],chs:[],amts:[],hid:[],out:[],drop:[],min:0,max:0,src:'',owner:null,ch:null,cat:null,ar:false};
+  o.cats=V3.filter(function(x){return x.state&&x.demo});
+  if(!o.cats.some(function(x){return x.id===C.cat}))C.cat=102;
+  var cat=o.cat=o.owner=V3.filter(function(x){return x.id===C.cat})[0];
+  function useAr(){var r=arList(cat,C.lv);o.amts=r.list;o.hid=r.hid;o.out=r.out;o.drop=r.drop;o.src='大类'+r.src;o.min=W.min;o.max=W.max;o.ar=true}
+  function useCfg(min,max){var v=visible(cat,C.lv),r=inRange(v.list,min,max);o.amts=r.list;o.hid=v.hid;o.out=r.out;o.src='大类的快捷金额（规则 01、03）';o.min=min;o.max=max}
+  if(C.mode==='manual'){
+    o.chs=cat.channels;
+    if(!o.chs.some(function(x){return x.id===C.ch}))C.ch=o.chs[0].id;
+    var c2=o.ch=o.chs.filter(function(x){return x.id===C.ch})[0];
+    if(c2.ar)useAr();else useCfg(c2.min,c2.max);
+  }else{
+    if(cat.sys==='ArUpiPay')useAr();
+    else useCfg(Math.min.apply(null,cat.channels.map(function(x){return x.min})),Math.max.apply(null,cat.channels.map(function(x){return x.max})));
+  }
+  return o;
+}
+function order(){
+  var M=model(),a=Number(C.amt),L=[],w=wallet(),res=null,pop=null,other=false;
+  function log(c,k,t){L.push({c:c,k:k,t:t})}
+  if(!a){log('err','校验','请选择或输入金额');return {L:L}}
+  if(a<M.min){log('err','校验','低于最小金额 '+fmt(M.min)+'，不下单');return {L:L}}
+  if(a>M.max){log('err','校验','超过最大金额 '+fmt(M.max)+'，不下单');return {L:L}}
+  log('','金额',fmt(a)+(C.typed?'（手输）':'（点快捷金额按钮）'));
+  function toAr(ch){
+    if(a%100!==0){log('err','校验','走 ArUpi 但不是整百 → 提示「请输入整百的充值订单」，不下单');return}
+    if(w.indexOf(a)>=0){log('ok','通道',ch.name+'：钱包能收');res=ch;return}
+    if(C.typed){log('warn','通道',ch.name+'：钱包收不了手输的 '+fmt(a)+' → 退回并给推荐金额');pop={ch:ch};return}
+    log('warn','通道',ch.name+'：钱包这时收不了 '+fmt(a)+'，点的是快捷按钮 → 不弹推荐框，钱包改用其他收款方式（成功跳收银台，不行就提示失败）');other=true;
+  }
+  if(C.mode==='auto'){
+    var cat=M.cat;
+    log('','下单','会员只选了大类，由系统选通道');
+    if(cat.sys==='ArUpiPay')toAr(cat.channels[0]);
+    else{
+      var inR=cat.channels.filter(function(x){return a>=x.min&&a<=x.max}),ar=inR.filter(function(x){return x.ar}),th=inR.filter(function(x){return !x.ar});
+      if(ar.length&&w.indexOf(a)>=0){log('ok','通道','金额在钱包名单里 → 先走 '+ar[0].name+'，失败再切其他通道');res=ar[0]}
+      else if(th.length){if(ar.length)log('','通道','金额不在钱包名单里 → 不走 ArUpi');var p=th.slice().sort(function(x,y){return y.w-x.w})[0];log('ok','通道','按权重在 '+th.map(function(x){return x.name}).join('、')+' 中选（演示取 '+p.name+'）');res=p}
+      else if(ar.length)toAr(ar[0]);
+      else log('err','通道','没有通道能收这个金额');
+    }
+  }else{
+    var c=M.ch;
+    log('','下单','会员自己选了 '+c.name);
+    if(c.ar)toAr(c);else{log('ok','通道',c.name);res=c}
+  }
+  if(pop){
+    var given=nearest(w,a,POP_N),show=given.length>4?nearest(given,a,4):given;
+    pop.list=show;pop.sel=show[0];pop.orig=a;
+    log('warn','推荐','钱包给了 '+given.length+' 个：'+given.map(fmt).join('、')+(given.length>4?' → 只显示最接近的 4 个（规则 05）':' → 原样显示'));
+    return {L:L,pop:pop};
+  }
+  if(res)log('ok','结果','下单成功，跳转 '+res.name+' 收银台');
+  return {L:L,res:res,other:other};
+}
+function scenarios(){return [
+  ['ArUpiPay · Lv1（9 个）',{cat:102,lv:1}],
+  ['ArUpiPay · Lv2（12 个）',{cat:102,lv:2}],
+  ['ArUpiPay · Lv2 · 钱包此刻没有大额',{cat:102,lv:2,noBig:1}],
+  ['ArUpiPay · Lv1 手输 ₹8,000 → 推荐金额弹窗',{cat:102,lv:1,amt:'8000',typed:1}],
+  ['ArUpiPay · Lv1 手输 ₹8,000 · 钱包给 10 个推荐 → 只显示 4 个',{cat:102,lv:1,amt:'8000',typed:1,popN:10}],
+  ['ArUpiPay · Lv1 手输 ₹150 → 请输入整百',{cat:102,lv:1,amt:'150',typed:1}],
+  ['ArUpiPay · Lv0 手输 ₹20,000（手输不受大额限制）',{cat:102,lv:0,amt:'20000',typed:1}],
+  ['fa 1（挂了 ArUpi）· Lv2 点 ₹8,000 → 走三方',{cat:101,lv:2,amt:'8000'}],
+  ['自动调整权重关 · fa 1 选 ARUPI 快捷 · Lv2',{mode:'manual',cat:101,ch:26001,lv:2}],
+  ['fa2 · Lv3 · ₹20,000 超出通道上限不显示',{cat:103,lv:3}]
+]}
+function renderClient(){
+  var M=model(),scn=scenarios();
+  var notes=[];
+  if(M.hid.length)notes.push('按大额金额隐藏 '+M.hid.map(function(x){return fmt(x.a)}).join('、'));
+  if(M.out.length)notes.push('超出 '+fmt(M.min)+'–'+fmt(M.max)+' 不显示 '+M.out.map(function(x){return fmt(x.a)}).join('、'));
+  if(M.drop.length)notes.push('钱包此刻不能代收、不显示 '+M.drop.map(function(x){return fmt(x.a)}).join('、'));
+  var showCh=C.mode!=='auto';
+  $('clRoot').innerHTML='<div class="cl">'+
+    '<div class="panel"><h4>演示条件</h4>'+
+      '<div class="ctl"><div class="cap">站点形态</div><div class="rd">'+
+        '<label><input type="radio" name="md" value="auto"'+(C.mode==='auto'?' checked':'')+'> 自动调整权重开（只显示大类）</label>'+
+        '<label><input type="radio" name="md" value="manual"'+(C.mode==='manual'?' checked':'')+'> 自动调整权重关（会员选通道）</label></div></div>'+
+      '<div class="ctl"><div class="cap">会员充值等级</div><div class="chips">'+[0,1,2,3,4,5].map(function(l){return '<button data-lv="'+l+'" aria-pressed="'+(l===C.lv)+'">Lv'+l+'</button>'}).join('')+'</div></div>'+
+      '<div class="ctl"><div class="cap">AR 钱包此刻有没有大额可代收</div><div class="rd">'+
+        '<label><input type="radio" name="hb" value="1"'+(W.hasBig?' checked':'')+'> 有</label>'+
+        '<label><input type="radio" name="hb" value="0"'+(!W.hasBig?' checked':'')+'> 没有（≥ ₹10,000 都没有）</label></div></div>'+
+      '<div class="ctl"><div class="cap">手输金额被退回时，钱包给几个推荐金额</div><div class="rd">'+
+        '<label><input type="radio" name="pn" value="2"'+(POP_N===2?' checked':'')+'> 2 个（现网）</label>'+
+        '<label><input type="radio" name="pn" value="10"'+(POP_N===10?' checked':'')+'> 10 个（假设钱包改了）</label></div></div>'+
+      '<div class="ctl"><div class="cap">场景快捷切换</div><div class="scn">'+scn.map(function(s,i){return '<button data-scn="'+i+'">'+(i+1)+'. '+s[0]+'</button>'}).join('')+'</div></div>'+
+    '</div>'+
+    '<div class="phone"><div class="screen">'+
+      '<div class="h5-top"><span class="bk">‹</span><b>充值</b><span class="rec">充值记录</span></div>'+
+      '<div class="h5-body">'+
+        '<div class="h5-card"><div class="cats">'+M.cats.map(function(x){return '<div class="cat'+(x.id===C.cat?' on':'')+'" data-cat="'+x.id+'">'+(x.giftRate>0?'<span class="rib">+'+(+(x.giftRate*100).toFixed(2))+'%</span>':'')+'<div class="ic" style="background:'+x.color+'">'+esc(x.name.slice(0,2))+'</div>'+esc(x.name)+'</div>'}).join('')+'</div></div>'+
+        (showCh?'<div class="h5-card"><div class="chs">'+M.chs.map(function(x){return '<div class="ch'+(x.id===C.ch?' on':'')+'" data-ch="'+x.id+'"><span>'+esc(x.name)+'</span><small>'+(x.ar?fmt(W.min)+'–'+fmt(W.max):fmt(x.min)+'–'+fmt(x.max))+'</small></div>'}).join('')+'</div></div>':'')+
+        '<div class="h5-card"><div class="amt-h"><i></i>充值金额</div>'+
+          (M.amts.length?'<div class="amts">'+M.amts.map(function(x){return '<div class="amt'+(!C.typed&&+C.amt===+x.a?' on':'')+'" data-a="'+x.a+'"><s>₹</s><b>'+kfmt(x.a)+'</b></div>'}).join('')+'</div>':'<div class="empty">没有可显示的快捷金额</div>')+
+          '<div class="aipt"><span>₹</span><i></i><input id="ain" inputmode="numeric" placeholder="请输入充值金额" value="'+esc(C.amt)+'"></div><div class="range">'+fmt(M.min)+' - '+fmt(M.max)+'</div>'+
+        '</div>'+
+      '</div>'+
+      (C.toast?'<div class="ptoast">'+esc(C.toast)+'</div>':'')+
+      '<div class="h5-bottom"><div class="pm">充值方式:<br>'+esc(C.pm||M.cat.name)+'</div><button id="dep">充值'+(C.amt?' '+fmt2(C.amt):'')+'</button></div>'+
+      (C.pop?'<div class="pop"><div class="box"><div class="t">推荐金额</div><div class="d">为了提高您的充值成功率,我们给您推荐了几个充值金额</div><div class="opts">'+C.pop.list.map(function(a){return '<div class="opt'+(a===C.pop.sel?' on':'')+'" data-pa="'+a+'">'+fmt2(a)+'</div>'}).join('')+'</div><button class="go" data-pgo>充值 推荐金额</button><button class="keep" data-pkeep>继续充值 '+fmt2(C.pop.orig)+'</button></div></div>':'')+
+    '</div></div>'+
+    '<div class="panel log"><h4>演示说明（不属于页面）</h4><ol>'+
+      '<li class="key"><span class="k">会员</span>Lv'+C.lv+'</li>'+
+      '<li class="key"><span class="k">金额来源</span>'+M.src+'</li>'+
+      '<li><span class="k">显示</span>'+M.amts.length+' 个'+(notes.length?'；'+notes.join('；'):'')+'</li>'+
+      C.logs.map(function(x){return '<li class="'+x.c+'"><span class="k">'+x.k+'</span>'+x.t+'</li>'}).join('')+
+    '</ol><div class="legend">充值页界面、推荐金额弹窗都照现网，本需求不改界面。点快捷金额按钮或手输金额后点「充值」，看下单走向；手输和点按钮的处理不同（见需求说明第五节）。改中台弹窗里的配置后，这里同步生效。</div></div>'+
+  '</div>';
+}
+function reset(){C.amt='';C.typed=false;C.pop=null;C.toast='';C.logs=[];C.pm=''}
+$('clRoot').addEventListener('change',function(e){
+  var t=e.target;
+  if(t.name==='md'){C.mode=t.value;C.ch=null;C.cat=102;reset();renderClient()}
+  if(t.name==='hb'){W.hasBig=t.value==='1';reset();renderClient()}
+  if(t.name==='pn'){POP_N=+t.value;C.pop=null;C.logs=[];C.toast='';renderClient()}
+});
+$('clRoot').addEventListener('input',function(e){if(e.target.id==='ain'){C.amt=e.target.value.replace(/[^\d]/g,'');C.typed=true}});
+$('clRoot').addEventListener('click',function(e){
+  var t=e.target.closest('[data-lv],[data-scn],[data-cat],[data-ch],[data-a],[data-pa],[data-pgo],[data-pkeep],#dep');if(!t)return;
+  if(t.dataset.lv!==undefined){C.lv=+t.dataset.lv;reset()}
+  else if(t.dataset.scn!==undefined){var s=scenarios()[+t.dataset.scn][1];reset();W.hasBig=!s.noBig;POP_N=s.popN||2;C.mode=s.mode||'auto';C.cat=s.cat;C.ch=s.ch||null;C.lv=s.lv;C.amt=s.amt||'';C.typed=!!s.typed}
+  else if(t.dataset.cat!==undefined){C.cat=+t.dataset.cat;C.ch=null;reset()}
+  else if(t.dataset.ch!==undefined){C.ch=+t.dataset.ch;reset()}
+  else if(t.dataset.a!==undefined){C.amt=t.dataset.a;C.typed=false;C.toast='';C.logs=[];C.pm=''}
+  else if(t.id==='dep'){var r=order();C.logs=r.L;C.pop=r.pop||null;C.toast=r.res?'下单成功，跳转收银台':(r.other?'订单已提交':'');C.pm=r.pop?String(r.pop.ch.id):''}
+  else if(t.dataset.pa!==undefined){C.pop.sel=+t.dataset.pa}
+  else if(t.hasAttribute('data-pgo')){var ch=C.pop.ch,a=C.pop.sel;C.logs.push({c:'ok',k:'推荐金额',t:'会员选 '+fmt(a)+'，按所选金额重新下单，固定走同一通道 '+ch.name+' → 下单成功'});C.amt=String(a);C.typed=false;C.pop=null;C.toast='下单成功，跳转收银台'}
+  else if(t.hasAttribute('data-pkeep')){C.logs.push({c:'',k:'继续充值',t:'按原金额 '+fmt(C.pop.orig)+' 再下一次，钱包改用其他收款方式；仍不行就提示失败，不再弹框（结果由钱包决定）'});C.pop=null;C.toast='订单已提交'}
+  renderClient();
+});
+
+/* ---------- 需求说明抽屉 ---------- */
+function drawer(on){$('drawer').classList.toggle('on',on);$('dmask').classList.toggle('on',on)}
+$('handleDoc').addEventListener('click',function(){drawer(true)});
+$('closeDoc').addEventListener('click',function(){drawer(false)});
+$('dmask').addEventListener('click',function(){drawer(false)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){drawer(false);var mk=document.querySelector('.mask');if(mk)mk.remove()}});
+
+/* ---------- 初始化 ---------- */
+renderV3();
+})();
+</script>
+</body>
+</html>
