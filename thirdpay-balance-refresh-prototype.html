@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>支代付三方管理 · 余额刷新 · 交互原型</title>
+<style>
+/* 取值对齐 ar_platform_admin（origin/uat）默认主题：主题色 #0960bd、Naive UI small 控件 */
+:root{
+  --pri:#0960bd;--pri-h:#357dc9;--pri-soft:rgba(9,96,189,.08);
+  --line:#efeff5;--line2:#e0e0e6;--bg:#f5f7f9;
+  --t1:#1f2225;--t2:#333639;--t3:#767c82;--t4:#a2a7ad;
+  --ok:#18a058;--err:#d03050;--warn:#f0a020;--info:#2080f0;--link:#1677ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);background:var(--bg)}
+button{font:inherit}
+.newf{display:inline-block;background:#f5222d;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:0 4px;line-height:14px;letter-spacing:.2px;vertical-align:1px;margin-left:4px;font-style:normal}
+
+/* ============ 顶部路径 ============ */
+.top{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 0}
+.crumb{font-size:12px;color:var(--t3)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--t2);font-weight:600}
+.req-btn{height:30px;padding:0 14px;border-radius:15px;background:#fff;border:1px solid #9bbbe4;color:var(--pri);font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(9,96,189,.12)}
+.req-btn:hover{background:#f0f6fd}
+
+.page{padding:10px 16px 90px}
+.panel{background:#fff;border-radius:3px;padding:14px 12px 10px}
+
+/* ============ 搜索区 ============ */
+.sf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 24px;margin-bottom:12px}
+.fi{display:flex;align-items:center;min-width:0}
+.fi>label{flex:0 0 136px;text-align:right;padding-right:10px;color:var(--t2);white-space:nowrap}
+/* 状态放到关闭阈值范围前面，7 个条件 + 按钮正好两行 */
+.f-cur{order:1}.f-pc{order:2}.f-mc{order:3}.f-tn{order:4}.f-st{order:5}.f-thr{order:6}.f-rng{order:7}.f-act{order:8;grid-column:-2/-1}
+.fi select,.fi input{height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 8px;font-size:13px;background:#fff;color:var(--t1);outline:none;min-width:0}
+.fi select{flex:1}
+.fi select.ph{color:var(--t4)}
+.fi select:focus,.fi input:focus{border-color:var(--pri)}
+.rng{flex:1;min-width:0;display:flex;align-items:center;border:1px solid var(--line2);border-radius:3px;height:28px}
+.rng input{flex:1;width:0;min-width:0;border:none!important;height:26px}  /* 区间框宽度跟同列下拉框一致，不撑出列宽 */
+.rng span{color:var(--t4);padding:0 4px}
+.rg{display:inline-flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+.rg span{padding:0 14px;height:26px;line-height:26px;border-right:1px solid var(--line2);cursor:pointer;color:var(--t2);user-select:none}
+.rg span:last-child{border-right:none}
+.rg span.on{color:var(--pri);box-shadow:inset 0 0 0 1px var(--pri);background:#fff}
+.act{justify-content:flex-end;gap:8px}
+.sf.fold .more{display:none}
+.btn{height:28px;padding:0 14px;border-radius:3px;border:1px solid var(--line2);background:#fff;color:var(--t2);cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn:hover{color:var(--pri);border-color:var(--pri)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.pri:hover{background:var(--pri-h);border-color:var(--pri-h);color:#fff}
+.btn.xs{height:22px;padding:0 8px;font-size:12px}
+.lnk{color:var(--link);cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.fold-a{color:var(--pri);cursor:pointer;font-size:12.5px;white-space:nowrap}
+
+/* ============ 余额汇总：浅灰底汇总条，币种之间竖线分隔，金额加大 ============ */
+.sum{display:flex;align-items:stretch;flex-wrap:wrap;row-gap:10px;background:#f7f9fc;border:1px solid #e8edf3;border-radius:4px;padding:10px 0;margin-bottom:12px}
+.sum-t{display:flex;align-items:center;padding:0 16px;color:var(--t3);font-size:12px;border-right:1px solid #e3e8ef;white-space:nowrap}
+.sum-i{padding:0 24px;border-right:1px solid #e3e8ef;min-width:190px}
+.sum-i:last-child{border-right:none}
+.sum-i .r1{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--t3)}
+.sum-i .r1 b{color:var(--t1);font-size:12.5px}
+.sum-i .amt{font-size:18px;font-weight:700;line-height:1.45;font-variant-numeric:tabular-nums}
+.sum-i .low{display:inline-flex;align-items:center;gap:3px;background:#fdecef;color:var(--err);font-size:12px;line-height:18px;padding:0 6px;border-radius:3px;cursor:pointer;border:1px solid transparent}
+.sum-i .low:hover{border-color:#f4a7b6;background:#fbdde3}
+.sum-i .low i{font-style:normal;font-size:11px;opacity:.8}
+
+/* ============ 工具栏 ============ */
+.tb{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px}
+.tb-r{display:flex;align-items:center;gap:14px}
+.mid-fold{font-size:12px;color:#fff;background:var(--pri);border-radius:3px;padding:1px 8px;cursor:pointer}
+.ar{display:flex;align-items:center;gap:8px;padding:3px 10px;border:1px dashed #f5a3ab;border-radius:4px;background:#fff8f8}
+.sw{width:36px;height:20px;border-radius:10px;background:#dbdbdf;position:relative;cursor:pointer;transition:background .2s;flex:0 0 auto}
+.sw i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s}
+.sw.on{background:var(--pri)}
+.sw.on i{left:18px}
+.cd{min-width:118px;font-size:12px;color:var(--t3);font-variant-numeric:tabular-nums}
+.cd b{color:var(--pri);font-size:13px}
+.cd .ps{color:var(--warn)}
+.cd .okt{color:var(--ok)}
+
+/* ============ 表格 ============ */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:3px}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:2240px}
+th{background:#fafafc;font-weight:600;color:var(--t2);padding:10px 12px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle;background:#fff}
+td.l{text-align:left}
+tr:hover td{background:#f8f9fb}
+th.newcol{background:#fff1f0}
+th .tz{font-weight:400;color:var(--t3);font-size:12px}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--pri)}
+.si{margin-left:4px;color:#c2c6cc}
+.si.on{color:var(--pri)}
+.fx{position:sticky;right:0;box-shadow:-6px 0 6px -6px rgba(0,0,0,.18)}
+th.fx{background:#fafafc}
+.tg{display:inline-block;padding:0 7px;line-height:20px;border-radius:3px;border:1px solid;font-size:12px;white-space:nowrap}
+.tg.ok{color:var(--ok);border-color:rgba(24,160,88,.3);background:rgba(24,160,88,.08)}
+.tg.info{color:var(--info);border-color:rgba(32,128,240,.3);background:rgba(32,128,240,.08)}
+.tg.df{color:var(--t2);border-color:var(--line2);background:#fafafc}
+.bdg{display:inline-block;padding:0 6px;border-radius:3px;background:#f2f3f5;color:#8c8c8c;line-height:20px;font-size:12px;white-space:nowrap}
+.gw{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 8px;line-height:20px;width:296px}
+.gw .k{color:#64748b;white-space:nowrap}
+.gw .tv{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who .sub{font-size:12px;color:var(--t4);font-variant-numeric:tabular-nums}
+.qm{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid #b8bcc2;color:#999;font-size:9px;cursor:help;vertical-align:1px;font-weight:400}
+
+/* 三方余额单元格 */
+.bal{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.bal .l1{display:flex;align-items:center;gap:6px}
+.bal .v{font-weight:600;font-variant-numeric:tabular-nums;font-size:13px}
+.bal .v.low{color:var(--err)}
+.bal .v.nil{color:var(--t3);padding:0 2px}
+.bal .l2{font-size:12px;color:var(--t4);font-variant-numeric:tabular-nums;display:flex;gap:4px}
+.bal .l2 b{font-weight:600}
+.warn-i{width:15px;height:15px;border-radius:50%;background:var(--err);color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;cursor:help}
+.rf{width:22px;height:22px;border-radius:50%;border:1px solid var(--line2);display:inline-flex;align-items:center;justify-content:center;color:var(--pri);cursor:pointer;background:#fff;flex:0 0 auto}
+.rf:hover{border-color:var(--pri);background:var(--pri-soft)}
+.rf.dis{color:#c2c6cc;cursor:not-allowed;background:#f7f8fa}
+.rf.dis:hover{border-color:var(--line2);background:#f7f8fa}
+.rf.ld{cursor:wait}
+.rf.ld svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+td.flash{animation:fl 1.8s ease}
+@keyframes fl{0%,30%{background:#d6f0e0}100%{background:#fff}}
+.empty{padding:60px 0;color:var(--t4)}
+
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 4px 2px;font-size:12.5px;color:var(--t2)}
+.pg-n{min-width:24px;height:24px;border:1px solid var(--line2);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:var(--t3)}
+.pg-n.on{border-color:var(--pri);color:var(--pri)}
+
+/* ============ 消息（Naive UI message 样式） ============ */
+.msgs{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.msg{background:#fff;box-shadow:0 3px 6px -4px rgba(0,0,0,.12),0 6px 16px 0 rgba(0,0,0,.08),0 9px 28px 8px rgba(0,0,0,.05);border-radius:3px;padding:9px 14px;display:flex;gap:8px;align-items:flex-start;max-width:640px;transition:opacity .3s,transform .3s}
+.msg.out{opacity:0;transform:translateY(-6px)}
+.msg .ic{width:16px;height:16px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:2px}
+.msg.success .ic{background:var(--ok)}
+.msg.error .ic{background:var(--err)}
+.msg.warning .ic{background:var(--warn)}
+.msg.info .ic{background:var(--info)}
+
+/* ============ 浮动提示 ============ */
+.tip{position:fixed;z-index:1100;background:#1f2733;color:#fff;font-size:12px;line-height:1.7;padding:6px 10px;border-radius:4px;max-width:360px;white-space:pre-line;pointer-events:none;display:none;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+
+/* ============ 编辑弹窗（仅演示倒计时暂停） ============ */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:700;display:none;align-items:center;justify-content:center}
+.mask.show{display:flex}
+.modal{background:#fff;border-radius:4px;width:480px;max-width:92vw;padding:18px 20px}
+.modal h3{font-size:16px;margin-bottom:10px}
+.modal p{color:var(--t3);font-size:13px;line-height:1.8;margin-bottom:16px}
+.modal .ft{text-align:right}
+
+/* ============ 原型演示控制（不需开发） ============ */
+.demo{position:fixed;left:16px;bottom:16px;z-index:650;width:360px;max-width:calc(100vw - 32px);background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.12);font-size:12px}
+.demo-h{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-weight:600;cursor:pointer;color:#874d00}
+.demo-h span{font-weight:400;color:#ad6800}
+.demo-b{padding:0 12px 10px;display:flex;flex-direction:column;gap:7px}
+.demo.min .demo-b{display:none}
+.dr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:#594214}
+.dr select{height:22px;border:1px solid #e6d28a;border-radius:3px;font-size:12px;background:#fff}
+.dr b{color:#ad6800;font-variant-numeric:tabular-nums}
+.dn{color:#8c6d1f;line-height:1.7;border-top:1px dashed #ffe58f;padding-top:6px}
+
+/* ============ 右侧需求说明抽屉 ============ */
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:12px;padding:12px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:2px;box-shadow:-2px 0 8px rgba(9,96,189,.2)}
+.req-handle:hover{background:var(--pri-h)}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:800;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-860px;width:840px;max-width:94vw;height:100%;background:#fff;z-index:801;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 18px;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:var(--t3);font-size:18px}
+.req-body{flex:1;overflow-y:auto;padding:16px 18px 40px;font-size:12.5px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body .h1:first-child{margin-top:0}
+.req-body table.t{width:100%;min-width:0;border-collapse:collapse;font-size:12px;margin:8px 0 6px}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 8px;text-align:left;font-weight:600;color:#1c4c8c;white-space:normal}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 8px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.req-body table.t tr:hover td{background:#fff}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 11px;margin:6px 0;line-height:1.75;border-radius:0 4px 4px 0}
+.req-body .br b{color:#1c4c8c}
+.req-body .br ul{margin:4px 0 0 18px}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+.req-body code{font-family:Menlo,Consolas,monospace;font-size:11.5px;background:#f2f3f5;padding:0 4px;border-radius:3px}
+
+/* 宽屏 4 列：每列标签宽度取这一列最长的标签，整块靠左，和下面的余额汇总左边对齐 */
+@media (min-width:1536px){
+  .f-cur>label,.f-st>label{flex-basis:36px}
+  .f-pc>label,.f-thr>label{flex-basis:92px}
+  .f-mc>label,.f-rng>label{flex-basis:136px}
+  .f-tn>label{flex-basis:66px}
+}
+@media (max-width:1535px){.sf{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1100px){.sf{grid-template-columns:repeat(2,minmax(0,1fr))}.fi>label{flex-basis:120px}}
+@media (max-width:720px){.sf{grid-template-columns:1fr}.tb{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+
+<!-- 右侧需求说明 -->
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="req-mask" onclick="closeReq()"></div>
+<div class="req-drawer" id="req-drawer">
+  <div class="req-head"><span class="t">需求说明 · 三方余额手动刷新 / 查不到不显示 0</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body">
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:200px">页面</th><th>改动点</th></tr>
+      <tr><td>财务管理 → 支代付三方管理（三方商户列表）</td><td>① 三方余额列：区分「查到余额是 0」和「没查到」；② 每行三方余额加手动刷新按钮；③ 列表上方加「自动刷新列表」开关和倒计时。其余列、筛选、新增/编辑都不改</td></tr>
+    </table>
+
+    <div class="h1">二、名词</div>
+    <table class="t">
+      <tr><th style="width:120px">名词</th><th>说明</th></tr>
+      <tr><td><b>三方余额</b></td><td>三方商户号在三方那边的代付余额。由定时任务按代付通道去三方查询后写入，或运营点手动刷新查询后写入</td></tr>
+      <tr><td><b>最后更新</b></td><td>最近一次<b>查询成功</b>的时间，不是最近一次发起查询的时间</td></tr>
+      <tr><td><b>查询成功</b></td><td>三方接口正常返回，并且带了余额数值。三方返回成功但没有余额数值，按查询失败处理</td></tr>
+    </table>
+
+    <div class="h1">三、功能描述与业务规则</div>
+    <div class="br"><span class="bn">01</span><b>余额显示</b>：只有查询成功才显示金额。三方返回 0 就显示 0.00，表示真的没有余额。从没查询成功过的商户，余额显示「-」，最后更新显示「--」，不能显示 0.00。</div>
+    <div class="br"><span class="bn">02</span><b>查询失败不覆盖</b>：定时任务或手动刷新查询失败时，余额和最后更新时间都保留最近一次成功的值，不改成 0，也不清空。最后更新时间离现在越久，说明中间查询失败越久，运营可以自己点手动刷新。</div>
+    <div class="br"><span class="bn">03</span><b>手动刷新按钮</b>：每行三方余额旁加一个刷新按钮，只查询这一行的三方商户。
+      <ul>
+        <li>点击后按钮转圈，查询结束前不能再点；</li>
+        <li>查询成功：更新这一行的余额和最后更新时间，提示「查询成功，余额已更新为 xxx」；</li>
+        <li>查询失败：余额和最后更新时间不变，提示「查询失败：原因」，原因用三方或接口返回的内容；</li>
+        <li>查询成功但余额低于自动关闭阈值：余额标红，提示里加一句「低于自动关闭阈值 xxx，仅提醒，不会关闭通道」。手动刷新<b>不关闭通道、不生成预警记录、不发站内信</b>，关闭通道仍由定时任务按阈值处理；</li>
+        <li>三方商户状态为「禁用」也可以刷新。定时任务会跳过禁用的商户，所以禁用商户的余额只能靠手动刷新更新；</li>
+        <li>该商户下没有代付通道（自动关闭阈值显示「未配置任何通道」）：按钮置灰，悬停提示「无代付通道，无法查询余额」；</li>
+        <li>刷新成功后，顶部对应币种的汇总卡片同步更新；列表不重新排序，下次加载列表时再按排序规则排。</li>
+      </ul>
+    </div>
+    <div class="br"><span class="bn">04</span><b>自动刷新列表</b>：
+      <ul>
+        <li>列表右上方（「自定义列」左边）加「自动刷新列表」开关；打开后旁边显示倒计时「xx 秒后刷新」，每 60 秒重新加载一次列表和汇总卡片；</li>
+        <li>只重新读取系统里已有的数据，<b>不会去三方查询余额</b>。去三方查询只有定时任务和手动刷新按钮两种方式；</li>
+        <li>刷新时保留当前的筛选条件、页码、排序和滚动位置，不出现整个表格的加载遮罩；有变化的余额单元格闪一下底色；</li>
+        <li>点搜索、重置、翻页、排序后，倒计时从 60 秒重新开始；</li>
+        <li>浏览器切到别的页签、打开新增或编辑弹窗、有一行正在手动刷新时，倒计时暂停，并显示暂停原因；恢复后继续倒计时；</li>
+        <li>默认关闭，开关状态记在当前浏览器。</li>
+      </ul>
+    </div>
+    <div class="br"><span class="bn">05</span><b>余额为「-」的商户怎么统计</b>：
+      <ul>
+        <li>汇总卡片的余额合计不算它，「低于关闭线」也不算它；</li>
+        <li>关闭阈值范围选「低于阈值」或「高于阈值」时，都不显示它；</li>
+        <li>填了三方余额区间时，不显示它；</li>
+        <li>按三方余额排序时，升序、降序都排在最后。</li>
+      </ul>
+    </div>
+
+    <div class="br"><span class="bn">06</span><b>排版调整</b>（只改本页的配置和样式，不改通用表格组件）：
+      <ul>
+        <li>搜索区：宽屏（约 1536px 以上）每行 4 个条件，7 个条件加按钮正好两行；顺序为 币种、三方映射码、三方商户昵称/商户号、关联商户，第二行 状态、关闭阈值范围、三方余额区间、按钮。窄屏仍是每行 3 个；</li>
+        <li>标签宽度：宽屏时每一列的标签宽度取<b>这一列里最长的标签</b>（如第一列只有「币种」「状态」，就很窄），去掉现在固定的 180。这样搜索区整块靠左，左边和下面的余额汇总对齐，同一列的输入框上下对齐。窄屏 3 列时，所有标签用统一宽度（取最长标签）；</li>
+        <li>「三方余额区间」的输入框宽度和同一列上面的下拉框一致，左右两边都对齐；</li>
+        <li>汇总卡片改成一条浅灰底的「余额汇总」：每个币种一块，用竖线分开；第一行币种和账户数，第二行余额合计（加大加粗），有低于关闭线的商户时第三行显示红色小标签「低于关闭线 N 个」（可点击，见第 07 条）。去掉蓝色边框，避免看起来像输入框；</li>
+        <li>工具栏中间的「收起」是通用表格组件自带的（一起收起搜索区和汇总），所有列表页统一，不改；</li>
+        <li>「自动刷新列表」开关放在工具栏右侧、「自定义列」左边。</li>
+      </ul>
+    </div>
+    <div class="br"><span class="bn">07</span><b>点「低于关闭线 N 个」筛选</b>：
+      <ul>
+        <li>只改两个筛选条件：币种只保留该币种，关闭阈值范围设为「低于阈值」；其他筛选条件（映射码、商户、关联商户、状态、余额区间）保持不变，然后立即从第一页查询；</li>
+        <li>查询结果的条数应等于点击前标签上的 N（N 是按当前筛选条件统计的）；</li>
+        <li>标签悬停提示「点击筛选 xx 下低于关闭线的商户」；低于关闭线为 0 时不显示标签；</li>
+        <li>要恢复全部，点「重置」，或把关闭阈值范围切回「全部」。</li>
+      </ul>
+    </div>
+
+    <div class="h1">四、开发说明（已核对中台 uat 代码）</div>
+    <table class="t">
+      <tr><th style="width:130px">项</th><th>说明</th></tr>
+      <tr><td>怎么判断「-」</td><td>三方商户表 <code>Balance</code> 默认 0，<code>BalanceUpdateTime</code> 默认 -1，且只在查询成功时写入。<code>BalanceUpdateTime ≤ 0</code> 即从没查询成功过：列表接口余额返回空，前端显示「-」</td></tr>
+      <tr><td>假 0</td><td>PayApi 查询余额（<code>WithdrawPayApiService.QueryBalance</code>）里 <code>sdkResult.Balance ?? 0</code>：三方返回成功但没有余额会写成 0，需改为按查询失败处理</td></tr>
+      <tr><td>手动刷新接口</td><td>新增接口，入参三方商户 ID。取该商户下任意一个未删除的代付商户通道，调 PayApi <code>/api/Withdraw/QueryBalance</code>（这个接口本身不校验启停状态，禁用商户可以直接查）。成功只更新 <code>Balance</code>、<code>BalanceUpdateTime</code>，<b>不调用</b>自动关闭通道和余额预警；失败不写库，把失败原因返回给前端</td></tr>
+      <tr><td>定时任务</td><td>逻辑和频率都不改（仍然是成功才写、失败不写，跳过禁用商户，低于阈值自动关闭通道）</td></tr>
+      <tr><td>自动刷新列表</td><td>前端定时调用现有列表接口，不新增接口；开关放 ProCrudTable 的 <code>#toolbar-right</code> 插槽</td></tr>
+      <tr><td>排版</td><td><code>ThirdPartyMerchantTab.vue</code>：<code>search-cols</code> 增加 <code>xl:4</code>；去掉 <code>search-label-width="180"</code>；searchColumns 里把「状态」挪到「关闭阈值范围」前面。宽屏 4 列时给每个搜索字段设 <code>labelWidth</code>（ProSearchBar 已支持字段级 labelWidth），值取同一列最长标签的宽度，要按当前语言测量（可复用 <code>useAutoLabelWidth</code> 的测量方法），窄屏用组件默认的统一自动宽度。三方余额区间的输入组宽度设为 100%；汇总只改 <code>#table-alert</code> 插槽里的样式。不改 ProCrudTable 组件</td></tr>
+      <tr><td>低于关闭线筛选</td><td>用表格实例已有的方法：<code>tableRef.setSearchParams({ currency: [币种], channelCloseBalanceCompareType: -1 })</code>，再调 <code>searchFromFirstPage()</code>。注意币种搜索是多选；用代码赋值不会触发「改币种清空映射码/商户」的联动，正好符合「其他条件不变」</td></tr>
+    </table>
+
+    <div class="h1">五、原型说明</div>
+    <table class="t">
+      <tr><th style="width:130px">项</th><th>说明</th></tr>
+      <tr><td>不需开发</td><td>「NEW」标记、左下角「原型演示控制」面板、右侧「需求说明」入口只用于演示和标注</td></tr>
+      <tr><td>简化</td><td>原型里的币种、映射码等下拉是单选，实际页面是多选，规则以本说明为准</td></tr>
+      <tr><td>演示数据</td><td>数据都是模拟的。预设：KivoPayINR、UPay13USDTCU、MomoPayVND 查询会失败；TronPayUSDTCU 定时任务一直超时，手动刷新能成功（演示从「-」变成金额）；TetherPay2USDTCU 已禁用；BinancePayUSDTCU（123）余额是真实的 0</td></tr>
+      <tr><td>样式</td><td>颜色、间距、组件沿用系统现有风格，不以原型为准</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="top">
+  <div class="crumb">财务管理<span class="sep">/</span><span class="cur">支代付三方管理</span></div>
+  <div class="req-btn" onclick="openReq()">📋 需求说明</div>
+</div>
+
+<div class="page"><div class="panel">
+  <div id="hdr">
+  <!-- 搜索区 -->
+  <div class="sf" id="sf">
+    <div class="fi f-cur"><label>币种</label><select id="q-cur" onchange="onCur()"></select></div>
+    <div class="fi f-pc"><label>三方映射码</label><select id="q-pc" onchange="phCls(this)"></select></div>
+    <div class="fi f-mc"><label>三方商户昵称/商户号</label><select id="q-mc" onchange="phCls(this)"></select></div>
+    <div class="fi f-tn"><label>关联商户</label><select id="q-tn" onchange="phCls(this)"></select></div>
+    <div class="fi more f-thr"><label>关闭阈值范围</label><div class="rg" id="q-thr"><span data-v="0" class="on">全部</span><span data-v="-1">低于阈值</span><span data-v="1">高于阈值</span></div></div>
+    <div class="fi more f-st"><label>状态</label><select id="q-st" onchange="phCls(this)"><option value="">请选择状态</option><option value="1">启用</option><option value="0">禁用</option></select></div>
+    <div class="fi more f-rng"><label>三方余额区间</label><div class="rng"><input id="q-min" placeholder="最小"><span>~</span><input id="q-max" placeholder="最大"></div></div>
+    <div class="fi act f-act"><button class="btn pri" onclick="doSearch()">搜索</button><button class="btn" onclick="doReset()">重置</button><span class="fold-a" id="fold-a" onclick="toggleFold()">收起</span></div>
+  </div>
+
+  <!-- 余额汇总 -->
+  <div class="sum" id="cards"></div>
+  </div>
+
+  <!-- 工具栏 -->
+  <div class="tb">
+    <button class="btn pri" onclick="msgShow('info','新增三方商户（本次不改）')">新增三方商户</button>
+    <span class="mid-fold" id="mid-fold" onclick="toggleCards()">︿ 收起</span>
+    <div class="tb-r">
+      <div class="ar"><span class="newf" style="margin:0">NEW</span><span>自动刷新列表</span><span class="sw" id="sw" onclick="toggleAuto()"><i></i></span><span class="cd" id="cd"></span></div>
+      <button class="btn" onclick="msgShow('info','自定义列沿用现有')">⚙ 自定义列</button>
+    </div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th style="width:90px">币种</th>
+        <th style="width:190px">三方映射码</th>
+        <th style="width:190px">三方商户昵称</th>
+        <th style="width:180px">三方商户号</th>
+        <th class="sortable newcol" style="width:270px" onclick="sortBal()">三方余额 <span class="tz">(UTC+5:30)</span><span class="newf">NEW</span><span class="si" id="si">↕</span></th>
+        <th style="width:150px">自动关闭阈值 <span class="qm" data-tip="取该商户号下所有代付通道中的最大阈值&#10;例：通道1 阈值 1000、通道2 阈值 2000 → 自动关闭阈值 = 2000&#10;未配置任何通道：该商户号下没有代付通道&#10;不限制：其下通道的阈值均不设限">?</span></th>
+        <th style="width:220px">关联商户</th>
+        <th style="width:320px">网关信息</th>
+        <th style="width:200px">创建人/时间 <span class="tz">(UTC+5:30)</span></th>
+        <th style="width:220px">最后修改人/时间 <span class="tz">(UTC+5:30)</span></th>
+        <th style="width:90px">状态</th>
+        <th class="fx" style="width:90px">操作</th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <div class="pager"><span id="total"></span><span class="pg-n">‹</span><span class="pg-n on">1</span><span class="pg-n">›</span><span>20 / 页</span></div>
+</div></div>
+
+<!-- 编辑弹窗（本次不改，仅用于演示倒计时暂停） -->
+<div class="mask" id="edit-mask"><div class="modal">
+  <h3>编辑三方商户</h3>
+  <p>编辑弹窗本次不改。<br>弹窗打开期间，「自动刷新列表」倒计时暂停，关闭后继续。</p>
+  <div class="ft"><button class="btn pri" onclick="closeEdit()">关闭</button></div>
+</div></div>
+
+<!-- 原型演示控制（不需开发） -->
+<div class="demo min" id="demo">
+  <div class="demo-h" onclick="document.getElementById('demo').classList.toggle('min')">🧪 原型演示控制（不需开发）<span>点击展开 / 收起</span></div>
+  <div class="demo-b">
+    <div class="dr">模拟定时任务：每 <b id="d-js">60</b> 秒去三方查一轮，下一轮 <b id="d-jl">60</b> 秒 <button class="btn xs" onclick="runJob(true)">立即跑一轮</button></div>
+    <div class="dr">手动刷新结果：<select id="d-mode"><option value="preset">按数据预设</option><option value="ok">全部成功</option><option value="fail">全部失败</option></select></div>
+    <div class="dr">演示速度：<select id="d-speed" onchange="setSpeed(this.value)"><option value="60">正常（60 秒一轮）</option><option value="10">加速（10 秒一轮）</option></select></div>
+    <div class="dn">定时任务只更新后台数据。列表要等「自动刷新列表」倒计时到 0，或者点搜索，才看得到变化。<br>预设：KivoPayINR、UPay13USDTCU、MomoPayVND 查询失败；TronPayUSDTCU 手动刷新能从「-」查成功；TetherPay2USDTCU 已禁用，定时任务跳过，但能手动刷新；BinancePayUSDTCU（123）是真实 0。</div>
+  </div>
+</div>
+
+<div class="msgs" id="msgs"></div>
+<div class="tip" id="tip"></div>
+
+<script>
+/* ==================== 演示数据 ==================== */
+var M=60e3, H=3600e3, T0=Date.now();
+var JOB_SEC=60, LIST_SEC=60;
+/* ago：距现在多久查询成功（null = 从没成功过）；job：定时任务查询结果；man：手动刷新预设结果；fm：失败原因 */
+var SEED=[
+ {id:15,cur:'INR',pc:'FCPayINR',name:'测试商户昵称',no:'123456',bal:null,ago:null,thr:-1,tns:[],gw:'https://api.fcpay.vip',ip:'127.0.0.1',cr:'milozz02',ct:'2026-10-03 17:29:07',st:1,job:'ok'},
+ {id:14,cur:'INR',pc:'3TPayINR',name:'测试商户',no:'123456',bal:null,ago:null,thr:-1,tns:[],gw:'https://3tpaytue-api.dayuzhishui.com',ip:'127.0.0.1',cr:'milozz02',ct:'2026-10-03 17:15:53',st:1,job:'ok'},
+ {id:13,cur:'USDT',pc:'TronPayUSDTCU',name:'TronPayUSDTCU',no:'TronPayUSDTCU',bal:null,ago:null,thr:0,tns:['sit-inr(2001)','sit-inr2002(2002)'],gw:'https://api.kachayun.com',ip:'127.0.0.1',cr:'ben_jmeter_001',ct:'2026-09-29 19:05:36',st:1,job:'fail',man:'ok',nb:1250,fm:'三方接口超时（30 秒无响应）'},
+ {id:12,cur:'INR',pc:'KivoPayINR',name:'1212',no:'12',bal:18560,ago:3*H+12*M,thr:5000,tns:['sit-inr(2001)'],gw:'https://2d1bbd49-20c9.paylinker.io',ip:'127.1.1.0',cr:'milozg01',ct:'2026-09-25 11:10:34',st:1,job:'fail',man:'fail',fm:'三方返回：签名错误（code=1003）'},
+ {id:11,cur:'USDT',pc:'BinancePayUSDTCU',name:'123',no:'123',bal:0,ago:40e3,thr:0,tns:['vnd(2007)','sit-inr(2001)'],gw:'http://api.trx20pay.com',ip:'127.0.0.1',cr:'ben_jmeter_001',ct:'2026-09-24 18:01:17',st:1,job:'ok',keep0:1},
+ {id:10,cur:'USDT',pc:'BinancePayUSDTCU',name:'666666',no:'66666',bal:3,ago:35e3,thr:5,tns:['sit-inr(2001)'],gw:'http://api.trx20pay.com',ip:'127.0.0.1',cr:'ben_jmeter_001',ct:'2026-09-24 16:27:40',st:1,job:'ok',lowBand:1},
+ {id:9,cur:'INR',pc:'DMPayINR',name:'DMPayINR-1',no:'damancs',bal:404,ago:50e3,thr:0,tns:['sit-inr(2001)'],gw:'https://dmpayadmin.com',ip:'127.0.0.1',cr:'ben_jmeter_001',ct:'2026-09-17 19:25:03',st:1,job:'ok'},
+ {id:8,cur:'USDT',pc:'UPay13USDTCU',name:'upay13usdt',no:'upay13usdt1',bal:null,ago:null,thr:0,tns:['sit-inr(2001)'],gw:'https://fs4iv3nxj5.execute-api.ap-south-1.amazonaws.com',ip:'127.0.0.1',cr:'ben_jmeter_001',ct:'2026-09-11 21:10:35',st:1,job:'fail',man:'fail',fm:'三方接口超时（30 秒无响应）'},
+ {id:7,cur:'USDT',pc:'FireLinkPayUSDTCU',name:'firelinkpayusdt',no:'firelinkpayusdt',bal:2380.55,ago:25e3,thr:0,tns:['sit-inr(2001)'],gw:'https://firelink.open-api.mobi',ip:'127.0.0.1',cr:'ben_jmeter_001',ct:'2026-09-11 21:10:06',st:1,job:'ok'},
+ {id:6,cur:'USDT',pc:'TetherPay2USDTCU',name:'tether2',no:'tether2',bal:860,ago:47*M,thr:200,tns:['sit-inr(2001)','vnd(2007)'],gw:'https://api.jfwlt.cc',ip:'127.0.0.1,192.168.1.1',cr:'milozg01',ct:'2026-09-08 11:05:24',up:'milozg01',ut:'2026-10-05 09:12:40',st:0,job:'ok',man:'ok'},
+ {id:5,cur:'INR',pc:'999PayINR',name:'zz_qa_merchant_secret',no:'MC_final',bal:1286450.30,ago:20e3,thr:100000,tns:['sit-inr(2001)'],gw:'https://api.hxpay.info',ip:'127.0.0.1',cr:'len_high',ct:'2026-09-07 21:10:01',st:1,job:'ok'},
+ {id:4,cur:'INR',pc:'3TPayINR',name:'AT788512381',no:'AT788512381',bal:9860420.12,ago:55e3,thr:0,tns:['sit-inr(2001)'],gw:'https://3tpaytue-api.dayuzhishui.com',ip:'127.0.0.1',cr:'figo01',ct:'2026-09-04 14:29:49',st:1,job:'ok'},
+ {id:3,cur:'VND',pc:'VietPayVND',name:'vnpay-01',no:'VN0001',bal:437506,ago:30e3,thr:100000,tns:['vnd(2007)'],gw:'https://gw.vietpay.vn',ip:'127.0.0.1',cr:'figo01',ct:'2026-09-02 10:18:22',st:1,job:'ok'},
+ {id:2,cur:'VND',pc:'MomoPayVND',name:'momo-02',no:'MM8821',bal:85000,ago:65*M,thr:100000,tns:['vnd(2007)'],gw:'https://api.momopay.vn',ip:'127.0.0.1',cr:'figo01',ct:'2026-08-30 16:40:09',st:1,job:'fail',man:'fail',fm:'三方返回：IP 不在白名单（127.0.0.1）'},
+ {id:1,cur:'INR',pc:'ArbPayINR',name:'arb-main',no:'ARB10086',bal:3560000,ago:15e3,thr:500000,tns:['sit-inr(2001)','sit-inr2002(2002)'],gw:'https://api.arbpay.in',ip:'127.0.0.1',cr:'len_high',ct:'2026-08-28 09:02:51',st:1,job:'ok'}
+];
+var DB=SEED.map(function(r){ var x=Object.assign({},r); x.tns=r.tns.slice(); x.t=r.ago==null?0:T0-r.ago; delete x.ago; return x; });
+var VIEW=[];
+var Q={cur:'',pc:'',mc:'',tn:'',thr:0,st:'',min:'',max:''};
+var SORT=null, AUTO=false, LEFT=LIST_SEC, JLEFT=JOB_SEC, MODAL=false, LOADING={}, FLASH={}, JUST=0;
+var ICON_RF='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12a8.5 8.5 0 1 1-2.5-6"/><path d="M20.5 3.5V9H15"/></svg>';
+
+function $(id){ return document.getElementById(id); }
+function clone(a){ return a.map(function(r){ var x=Object.assign({},r); x.tns=r.tns.slice(); return x; }); }
+function fmt(n){ return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function r2(n){ return Math.round(n*100)/100; }
+function ftime(ms){ return new Date(ms+5.5*H).toISOString().slice(0,19).replace('T',' '); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function byId(a,id){ for(var i=0;i<a.length;i++){ if(a[i].id===id) return a[i]; } return null; }
+
+/* ==================== 列表加载（读库，不调三方） ==================== */
+function loadList(silent){
+  var old={}; VIEW.forEach(function(r){ old[r.id]=r.t+'|'+r.bal; });
+  VIEW=clone(DB);
+  if(silent){ VIEW.forEach(function(r){ if(old[r.id]!=null && old[r.id]!==r.t+'|'+r.bal) FLASH[r.id]=1; }); }
+  LEFT=LIST_SEC;
+  render();
+}
+
+function rows(){
+  var lo=Q.min===''?null:Number(Q.min), hi=Q.max===''?null:Number(Q.max);
+  var a=VIEW.filter(function(r){
+    if(Q.cur && r.cur!==Q.cur) return false;
+    if(Q.pc && r.pc!==Q.pc) return false;
+    if(Q.mc && String(r.id)!==Q.mc) return false;
+    if(Q.tn && r.tns.indexOf(Q.tn)<0) return false;
+    if(Q.st!=='' && String(r.st)!==Q.st) return false;
+    /* 余额为「-」的不参与阈值范围、余额区间筛选 */
+    if(Q.thr!==0){ if(!(r.thr>0 && r.bal!=null)) return false; if(Q.thr<0 && !(r.bal<r.thr)) return false; if(Q.thr>0 && !(r.bal>=r.thr)) return false; }
+    if(lo!=null || hi!=null){ if(r.bal==null) return false; if(lo!=null && r.bal<lo) return false; if(hi!=null && r.bal>hi) return false; }
+    return true;
+  });
+  if(SORT){ a.sort(function(x,y){ if(x.bal==null && y.bal==null) return y.id-x.id; if(x.bal==null) return 1; if(y.bal==null) return -1; return SORT==='asc'?x.bal-y.bal:y.bal-x.bal; }); }
+  else a.sort(function(x,y){ return y.id-x.id; });   /* 默认按创建时间倒序 */
+  return a;
+}
+
+function render(){
+  var list=rows(), g={};
+  list.forEach(function(r){ var c=g[r.cur]||(g[r.cur]={sum:0,n:0,low:0,unk:0}); c.n++; if(r.bal==null) c.unk++; else { c.sum+=r.bal; if(r.thr>0 && r.bal<r.thr) c.low++; } });
+  var ks=Object.keys(g).sort(), box=$('cards');
+  /* 余额汇总：「-」的商户不计入合计和低于关闭线；低于关闭线标签可点击筛选 */
+  box.innerHTML=ks.length?'<div class="sum-t">余额汇总</div>'+ks.map(function(k){ var c=g[k];
+    return '<div class="sum-i"><div class="r1"><b>'+k+'</b><span>账户 '+c.n+' 个</span></div><div class="amt">'+fmt(c.sum)+'</div>'
+      +(c.low?'<span class="low" data-tip="点击筛选 '+k+' 下低于关闭线的商户" onclick="filterLow(\''+k+'\')">低于关闭线 '+c.low+' 个<i>›</i></span>':'')+'</div>'; }).join(''):'';
+  box.style.display=ks.length?'':'none';
+  $('tb').innerHTML=list.length?list.map(rowHtml).join(''):'<tr><td colspan="12" class="empty">无数据</td></tr>';
+  $('total').textContent='共 '+list.length+' 条';
+  $('si').textContent=SORT==='asc'?'↑':SORT==='desc'?'↓':'↕'; $('si').className='si'+(SORT?' on':'');
+  FLASH={};
+  updAuto();
+}
+
+function who(p,t){ return '<div class="who"><div>'+esc(p)+'</div><div class="sub">'+t+'</div></div>'; }
+
+function rowHtml(r){
+  var low=r.bal!=null && r.thr>0 && r.bal<r.thr, ld=!!LOADING[r.id], noCh=r.thr===-1;
+  var tip=noCh?'无代付通道，无法查询余额':(ld?'查询中…':'刷新余额（实时查询三方）');
+  var btn='<span class="rf'+(noCh?' dis':'')+(ld?' ld':'')+'" data-tip="'+tip+'"'+(noCh||ld?'':' onclick="refreshRow('+r.id+')"')+'>'+ICON_RF+'</span>';
+  var v=r.bal==null?'<span class="v nil">-</span>':'<span class="v'+(low?' low':'')+'">'+fmt(r.bal)+'</span>'+(low?'<span class="warn-i" data-tip="低于关闭阈值">!</span>':'');
+  var t=r.t>0?'<span>'+ftime(r.t)+'</span><b>最后更新</b>':'--';
+  var thr=r.thr===-1?'<span class="bdg">未配置任何通道</span>':r.thr===0?'<span class="bdg">不限制</span>':fmt(r.thr);
+  var tns=r.tns.length?'<span class="lnk">'+r.tns.join(', ')+'</span>':'<span class="tg df">--</span>';
+  return '<tr>'
+    +'<td><span class="tg ok">'+r.cur+'</span></td>'
+    +'<td><span class="tg info">'+esc(r.pc)+'</span></td>'
+    +'<td>'+esc(r.name)+'</td><td>'+esc(r.no)+'</td>'
+    +'<td class="l'+(FLASH[r.id]?' flash':'')+'"><div class="bal"><div class="l1">'+v+btn+'</div><div class="l2">'+t+'</div></div></td>'
+    +'<td>'+thr+'</td><td>'+tns+'</td>'
+    +'<td class="l"><div class="gw"><span class="k">网关地址:</span><span class="tv" data-tip="'+esc(r.gw)+'">'+esc(r.gw)+'</span><span class="k">回调白名单IP:</span><span class="tv">'+esc(r.ip)+'</span></div></td>'
+    +'<td>'+who(r.cr,r.ct)+'</td><td>'+who(r.up||r.cr,r.ut||r.ct)+'</td>'
+    +'<td><span class="tg '+(r.st?'ok':'df')+'">'+(r.st?'启用':'禁用')+'</span></td>'
+    +'<td class="fx"><span class="lnk" onclick="openEdit()">编辑</span></td>'
+    +'</tr>';
+}
+
+/* ==================== 单行手动刷新（实时调三方） ==================== */
+function nextBal(d){
+  if(d.keep0) return 0;
+  if(d.bal==null) return d.nb!=null?d.nb:(d.cur==='VND'?250000:d.cur==='USDT'?500:50000);
+  if(d.lowBand) return r2(2.5+Math.random()*0.8);
+  return r2(d.bal*(1+(Math.random()-0.5)*0.01));
+}
+function refreshRow(id){
+  if(LOADING[id]) return;
+  var d=byId(DB,id); if(!d || d.thr===-1) return;
+  var mode=$('d-mode').value;
+  var ok=mode==='ok'?true:mode==='fail'?false:(d.man?d.man==='ok':d.job!=='fail');
+  var reason=d.fm||'三方返回：系统繁忙，请稍后再试';
+  LOADING[id]=1; render();
+  setTimeout(function(){
+    delete LOADING[id];
+    if(ok){
+      d.bal=nextBal(d); d.t=Date.now();
+      var v=byId(VIEW,id); if(v){ v.bal=d.bal; v.t=d.t; }
+      FLASH[id]=1; render();
+      if(d.thr>0 && d.bal<d.thr) msgShow('warning','查询成功，余额已更新为 '+fmt(d.bal)+'。低于自动关闭阈值 '+fmt(d.thr)+'，仅提醒，不会关闭通道');
+      else msgShow('success','查询成功，余额已更新为 '+fmt(d.bal));
+    }else{
+      render(); msgShow('error','查询失败：'+reason);
+    }
+  }, ok?900:(/超时/.test(reason)?2600:1100));
+}
+
+/* ==================== 模拟定时任务（只写后台数据） ==================== */
+function runJob(byBtn){
+  var ok=0, fail=0;
+  DB.forEach(function(d){
+    if(d.thr===-1 || d.st===0) return;          /* 无代付通道、禁用商户：定时任务跳过 */
+    if(d.job==='fail'){ fail++; return; }       /* 查询失败：不写库，保留上次成功的值 */
+    d.bal=nextBal(d); d.t=Date.now(); ok++;
+  });
+  JLEFT=JOB_SEC; updDemo();
+  if(byBtn) msgShow('info','定时任务已跑一轮：'+ok+' 个成功、'+fail+' 个失败。只更新了后台数据，列表刷新后才看得到');
+}
+
+/* ==================== 自动刷新列表 ==================== */
+function pauseReason(){
+  if(document.hidden) return '页面不在前台';
+  if(MODAL) return '弹窗打开中';
+  for(var k in LOADING) return '有余额正在查询';
+  return '';
+}
+function updAuto(){
+  $('sw').classList.toggle('on',AUTO);
+  var c=$('cd');
+  if(!AUTO){ c.innerHTML=''; return; }
+  if(JUST>0){ c.innerHTML='<span class="okt">✓ 列表已刷新</span>'; return; }
+  var p=pauseReason();
+  c.innerHTML=p?'<span class="ps">已暂停（'+p+'）</span>':'<b>'+LEFT+'</b> 秒后刷新';
+}
+function toggleAuto(){
+  AUTO=!AUTO; LEFT=LIST_SEC; JUST=0;
+  try{ localStorage.setItem('proto_tp_auto',AUTO?'1':'0'); }catch(e){}
+  updAuto();
+}
+function updDemo(){ $('d-js').textContent=JOB_SEC; $('d-jl').textContent=JLEFT; }
+function setSpeed(v){ JOB_SEC=LIST_SEC=Number(v); JLEFT=Math.min(JLEFT,JOB_SEC); LEFT=Math.min(LEFT,LIST_SEC); updDemo(); updAuto(); }
+
+setInterval(function(){
+  JLEFT--; if(JLEFT<=0) runJob(false);
+  if(JUST>0) JUST--;
+  if(AUTO && !pauseReason()){ LEFT--; if(LEFT<=0){ loadList(true); JUST=2; } }
+  updAuto(); updDemo();
+},1000);
+document.addEventListener('visibilitychange',updAuto);
+
+/* ==================== 搜索区 ==================== */
+function uniq(a){ return a.filter(function(v,i){ return a.indexOf(v)===i; }); }
+function phCls(s){ s.classList.toggle('ph',!s.value); }
+function fillSelect(id,ph,opts,val){ var s=$(id); s.innerHTML='<option value="">'+ph+'</option>'+opts.map(function(o){ return '<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>'; }).join(''); s.value=val||''; phCls(s); }
+function onCur(){
+  var cur=$('q-cur').value; phCls($('q-cur'));
+  var src=DB.filter(function(r){ return !cur || r.cur===cur; });
+  fillSelect('q-pc','请选择三方映射码',uniq(src.map(function(r){ return r.pc; })).map(function(p){ return [p,p]; }));
+  fillSelect('q-mc','请选择三方商户昵称/商户号',src.map(function(r){ return [String(r.id),r.name+' / '+r.no]; }));
+}
+function initForm(){
+  fillSelect('q-cur','请选择币种',[['INR','INR'],['USDT','USDT'],['VND','VND']]);
+  fillSelect('q-tn','请选择关联商户',[['sit-inr(2001)','sit-inr(2001)'],['sit-inr2002(2002)','sit-inr2002(2002)'],['vnd(2007)','vnd(2007)']]);
+  $('q-st').value=''; phCls($('q-st'));
+  $('q-min').value=''; $('q-max').value='';
+  setThr(0); onCur();
+}
+function setThr(v){ document.querySelectorAll('#q-thr span').forEach(function(e){ e.classList.toggle('on',Number(e.dataset.v)===v); }); }
+$('q-thr').addEventListener('click',function(e){ var v=e.target.dataset.v; if(v!=null){ setThr(Number(v)); doSearch(); } });  /* 与现有页面一致：切换后立即查询 */
+function doSearch(){
+  var mn=$('q-min').value.trim(), mx=$('q-max').value.trim();
+  if((mn!=='' && isNaN(Number(mn))) || (mx!=='' && isNaN(Number(mx)))){ msgShow('warning','三方余额区间请输入数字'); return; }
+  if(mn!=='' && mx!=='' && Number(mn)>Number(mx)){ msgShow('warning','最小值不能大于最大值'); return; }
+  var on=document.querySelector('#q-thr span.on');
+  Q={cur:$('q-cur').value,pc:$('q-pc').value,mc:$('q-mc').value,tn:$('q-tn').value,thr:Number(on.dataset.v),st:$('q-st').value,min:mn,max:mx};
+  loadList(false);
+}
+function doReset(){ initForm(); Q={cur:'',pc:'',mc:'',tn:'',thr:0,st:'',min:'',max:''}; SORT=null; loadList(false); }
+function sortBal(){ SORT=SORT===null?'desc':SORT==='desc'?'asc':null; loadList(false); }
+function toggleFold(){ var f=$('sf').classList.toggle('fold'); $('fold-a').textContent=f?'展开':'收起'; }
+function toggleCards(){ var c=$('hdr'), h=c.style.display==='none'; c.style.display=h?'':'none'; $('mid-fold').textContent=h?'︿ 收起':'﹀ 展开'; }
+/* 点「低于关闭线 N 个」：币种只留该币种、关闭阈值范围设为「低于阈值」，其他筛选条件不变，立即查询 */
+function filterLow(cur){
+  var pc=$('q-pc').value, mc=$('q-mc').value;
+  if($('q-cur').value!==cur){
+    $('q-cur').value=cur; onCur();
+    /* 原来选的映射码、商户如果属于该币种就保留 */
+    if(pc && DB.some(function(r){ return r.cur===cur && r.pc===pc; })) $('q-pc').value=pc;
+    if(mc && byId(DB,Number(mc)) && byId(DB,Number(mc)).cur===cur) $('q-mc').value=mc;
+    phCls($('q-pc')); phCls($('q-mc'));
+  }
+  setThr(-1); doSearch();
+}
+
+/* ==================== 编辑弹窗 / 需求说明 / 消息 / 提示 ==================== */
+function openEdit(){ MODAL=true; $('edit-mask').classList.add('show'); updAuto(); }
+function closeEdit(){ MODAL=false; $('edit-mask').classList.remove('show'); updAuto(); }
+function openReq(){ $('req-mask').classList.add('show'); $('req-drawer').classList.add('show'); }
+function closeReq(){ $('req-mask').classList.remove('show'); $('req-drawer').classList.remove('show'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeReq(); if(MODAL) closeEdit(); } });
+
+function msgShow(type,text){
+  var el=document.createElement('div'); el.className='msg '+type;
+  el.innerHTML='<span class="ic">'+({success:'✓',error:'✕',warning:'!',info:'i'}[type])+'</span><span>'+esc(text)+'</span>';
+  $('msgs').appendChild(el);
+  setTimeout(function(){ el.classList.add('out'); setTimeout(function(){ el.remove(); },300); }, type==='error'||type==='warning'?5000:3000);
+}
+
+var TIP=$('tip');
+document.addEventListener('mouseover',function(e){
+  var el=e.target.closest && e.target.closest('[data-tip]');
+  if(!el){ TIP.style.display='none'; return; }
+  TIP.textContent=el.getAttribute('data-tip'); TIP.style.display='block';
+  var b=el.getBoundingClientRect(), w=TIP.offsetWidth, h=TIP.offsetHeight;
+  TIP.style.left=Math.max(8,Math.min(window.innerWidth-w-8,b.left+b.width/2-w/2))+'px';
+  TIP.style.top=(b.top-h-8<4?b.bottom+8:b.top-h-8)+'px';
+});
+
+/* ==================== 初始化 ==================== */
+try{ AUTO=localStorage.getItem('proto_tp_auto')==='1'; }catch(e){ AUTO=false; }
+initForm(); updDemo(); loadList(false);
+</script>
+</body>
+</html>
