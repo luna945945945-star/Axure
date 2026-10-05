@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>系统日志操作人筛选</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.sub h1{font-size:15px;color:#1e78d7;font-weight:500}
+.crumb{font-size:11.5px;color:#8a9bb0}.crumb .c0{color:#333}.crumb .sep{margin:0 7px;color:#b5bdc8}
+.wrap{padding:14px 44px 60px 6px}
+.card{background:#fff;border-radius:4px;padding:18px 14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+
+/* ===== 查询区（照 LogList.cshtml） ===== */
+.searchbox{display:flex;flex-wrap:wrap;row-gap:12px;padding:0 0 4px}
+.fg{display:flex;align-items:center;width:16.66%;min-width:250px;padding-right:18px;position:relative}
+.fg label{flex:none;width:76px;text-align:right;padding-right:4px;font-size:13px;color:#333;white-space:nowrap}
+.fc{flex:1;max-width:178px;min-width:0;height:26px;border:1px solid #d9d9d9;border-radius:2px;padding:0 8px;font:inherit;font-size:11px;color:#444;background:#fff}
+.fc::placeholder{color:#888}
+.fc:focus{outline:none;border-color:#7460ee}
+select.fc{padding:0 4px}
+.lsel{position:relative;flex:1;max-width:178px}
+.lsel select{width:100%;max-width:none;appearance:none;-webkit-appearance:none;padding:0 24px 0 8px;font-size:12px;color:#333}
+.lsel::after{content:"";position:absolute;right:9px;top:11px;border:5px solid transparent;border-top-color:#c2c2c2;pointer-events:none}
+.gbtn{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{display:inline-flex;align-items:center;gap:5px;height:27px;padding:0 10px;border:0;border-radius:3px;background:#7460ee;color:#fff;font:inherit;font-size:12px;font-weight:600;letter-spacing:1px;cursor:pointer;box-shadow:0 2px 4px rgba(116,96,238,.45)}
+.btn:hover{background:#6352d6}
+
+/* NEW 角标 */
+.nw::after{content:"NEW";position:absolute;top:-9px;right:8px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);pointer-events:none;z-index:3;letter-spacing:.3px}
+.fg.nw .fc{border-color:#ffa39e}
+
+/* ===== 表格 ===== */
+.tbl{overflow-x:auto;margin-top:18px}
+table.dl{border-collapse:collapse;width:100%;min-width:1380px;font-size:12.5px}
+.dl th{background:#e9ebf1;color:#333;font-weight:600;height:36px;border:1px solid #dfe2e8;padding:0 10px;text-align:center;white-space:nowrap}
+.dl td{border:1px solid #e6e8ed;height:29px;padding:3px 10px;text-align:center;white-space:nowrap;color:#333}
+.dl tbody tr:hover>td{background:#f4f5f8}
+.dl .empty td{height:80px;color:#999}
+.lab{display:inline-block;padding:1px 7px;border-radius:3px;color:#fff;font-size:10px;line-height:15px}
+.lab.ok{background:#2bbf6a}.lab.err{background:#ef5350}
+.lk{color:#333;text-decoration:none;cursor:pointer}
+.lk:hover{color:#7460ee}
+
+/* 分页（GetPostPager） */
+.pager{display:flex;align-items:center;flex-wrap:wrap;gap:14px 0;padding:26px 0 0 30px;font-size:12.5px;color:#333}
+.pager .pl{display:flex;align-items:center;gap:6px;margin-right:200px}
+.pager .pl input{width:85px;height:26px;border:1px solid #d9d9d9;border-radius:2px;padding:0 6px;font:inherit}
+.pager .pl select{height:26px;border:1px solid #d9d9d9;border-radius:2px;font-size:11px;color:#666;padding:0 4px}
+.pager .pl button{height:26px;padding:0 10px;border:1px solid #c9c9c9;background:#fff;border-radius:2px;cursor:pointer;font:inherit;font-size:12px}
+.pager .pc{display:flex;align-items:center;gap:4px}
+.pager .pc a{display:inline-block;height:28px;line-height:26px;padding:0 9px;border:1px solid #c9c9c9;background:#f5f5f5;border-radius:2px;cursor:pointer;color:#444;user-select:none}
+.pager .pc a.cur{background:#7460ee;border-color:#7460ee;color:#fff;cursor:default}
+.pager .pc a.dis{color:#aaa;cursor:not-allowed}
+.pager .pc .tt{margin-left:8px}
+
+/* highslide 日志详细内容 */
+.hs{position:absolute;z-index:90;width:420px;background:#fff;border:1px solid #c9c9c9;box-shadow:0 4px 18px rgba(0,0,0,.25);border-radius:3px;display:none}
+.hs .hh{padding:7px 30px 7px 10px;font-weight:700;font-size:13px;border-bottom:1px solid #eee;background:#f7f7f7;position:relative}
+.hs .hx{position:absolute;right:8px;top:4px;cursor:pointer;color:#999;font-size:16px;font-weight:400}
+.hs .hb{padding:10px;font-size:12px;line-height:1.75;word-break:break-all;white-space:normal;text-align:left}
+
+/* jquery toast（toastsuc） */
+.toast{position:fixed;top:16px;right:20px;width:300px;background:#2bbf6a;color:#fff;border-radius:4px;padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:300;font-size:12.5px;display:none}
+.toast b{display:block;font-size:13.5px;margin-bottom:2px}
+
+/* 原型演示：导出文件内容 */
+.mmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:150;display:none}
+.demo{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:1100px;max-width:94vw;max-height:88vh;background:#fff;border:2px dashed #9b8cf0;border-radius:8px;z-index:151;display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+.demo .dh{padding:11px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;gap:10px;flex:none}
+.demo .dh b{font-size:14px}
+.demo .dh .pt{display:inline-block;font-size:11px;color:#6C4FE0;background:#f1edff;border:1px solid #d9d0fb;border-radius:3px;padding:0 6px;margin-right:8px;font-weight:600}
+.demo .dh .x{cursor:pointer;color:#999;font-size:20px;line-height:1}
+.demo .db{padding:12px 16px 16px;overflow:auto;min-height:0}
+.demo .cond{font-size:12px;color:#555;line-height:2;margin-bottom:8px}
+.demo .cond span{display:inline-block;background:#f5f6f8;border:1px solid #e6e8eb;border-radius:3px;padding:0 7px;margin:0 6px 4px 0;line-height:20px}
+.demo .cond span.hl{background:#fff1f0;border-color:#ffccc7;color:#cf1322;font-weight:600}
+.demo table{border-collapse:collapse;width:100%;font-size:12px}
+.demo th{background:#fafafa;border:1px solid #e6e6e6;padding:6px 8px;white-space:nowrap;font-weight:600}
+.demo td{border:1px solid #eee;padding:6px 8px;white-space:nowrap;vertical-align:top}
+.demo td.ct{white-space:normal;min-width:260px;word-break:break-all}
+
+/* ===== 抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (max-width:700px){.wrap{padding:12px 16px 50px}.fg{width:100%;min-width:0}.pager .pl{margin-right:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
+  <div style="display:flex;gap:16px;align-items:center"><span id="today"></span><span>当前币种：<b style="color:#c0392b">INR</b></span></div>
+</div>
+<div class="sub">
+  <h1>日志列表</h1>
+  <div class="crumb"><span class="c0">系统管理</span><span class="sep">›</span>日志<span class="sep">›</span>日志列表</div>
+</div>
+
+<div class="wrap">
+ <div class="card">
+  <div class="searchbox">
+   <div class="fg"><label for="StartDate">开始时间</label><input class="fc" id="StartDate" placeholder="开始时间" autocomplete="off"></div>
+   <div class="fg"><label for="EndDate">结束时间</label><input class="fc" id="EndDate" placeholder="结束时间" autocomplete="off"></div>
+   <div class="fg"><label for="LogTitles">操作类型</label><span class="lsel"><select class="fc" id="LogTitles"></select></span></div>
+   <div class="fg"><label for="KeyWords">关键字</label><input class="fc" id="KeyWords" placeholder="内容" autocomplete="off"></div>
+   <div class="fg nw"><label for="Operator">操作人</label><input class="fc" id="Operator" placeholder="操作人" autocomplete="off"></div>
+   <div class="fg"><label for="LogType">日志类型</label><span class="lsel"><select class="fc" id="LogType"><option value="1">登录日志</option><option value="2" selected>操作日志</option></select></span></div>
+   <div class="fg"><label for="UserState">状态</label><select class="fc" id="UserState" style="appearance:none;-webkit-appearance:none"><option value="">状态</option><option value="1">成功</option><option value="0">失败</option></select></div>
+  </div>
+  <div class="gbtn">
+   <button class="btn" id="btnSearch" type="button">🔍 查 询</button>
+   <button class="btn" id="btnReset" type="button">↻ 重 置</button>
+   <button class="btn" id="btnExport" type="button">⇩ 导 出</button>
+  </div>
+
+  <div class="tbl">
+   <table class="dl">
+    <thead><tr>
+     <th style="width:240px">日志标题</th>
+     <th style="width:140px">操作用户</th>
+     <th style="width:115px">用户IP</th>
+     <th style="width:140px">IP所在地</th>
+     <th style="width:85px">操作系统</th>
+     <th style="width:150px">浏览器</th>
+     <th style="width:165px">日志时间</th>
+     <th style="width:85px">日志状态</th>
+     <th>内容描述</th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+   </table>
+  </div>
+  <div class="pager" id="pager"></div>
+ </div>
+</div>
+
+<div class="hs" id="hs"><div class="hh">日志详细内容<span class="hx" id="hsx">×</span></div><div class="hb" id="hsb"></div></div>
+<div class="toast" id="toast"><b>导出数据</b>报表将在1-10秒钟导出成功请等待！</div>
+
+<div class="mmask" id="mmask"></div>
+<div class="demo" id="demo">
+ <div class="dh"><div><span class="pt">原型演示</span><b>导出文件内容</b> <span style="color:#999;font-size:12px" id="fname"></span></div><span class="x" id="demox">✕</span></div>
+ <div class="db">
+  <div class="cond" id="dcond"></div>
+  <table><thead><tr><th>日志标题</th><th>操作用户</th><th>用户IP</th><th>IP所在地</th><th>操作系统</th><th>浏览器</th><th>日志时间</th><th>日志状态</th><th>内容描述</th></tr></thead><tbody id="dtb"></tbody></table>
+ </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>系统日志 · 操作人筛选 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:220px">页面</th><th>改动点</th></tr>
+      <tr><td>系统管理 → 日志 → <b>日志列表</b></td><td>新增筛选「操作人」；导出带上操作人条件</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">新增「操作人」输入框，操作用户包含输入内容即命中</div>
+      <div class="kf">导出带上操作人条件，导出数据与页面查询结果一致</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>匹配规则</b><span class="kb">核心</span>：按「操作用户」列匹配，包含输入内容即命中，输入前后的空格忽略。操作用户带姓名后缀、带「中台_」前缀的，输入账号即可命中：
+      <table class="t">
+        <tr><th style="width:120px">输入</th><th>命中的操作用户（举例）</th></tr>
+        <tr><td>phillip</td><td>中台_org_phillip</td></tr>
+        <tr><td>admin</td><td>admin（管理员）、admin_sz、中台_admin</td></tr>
+        <tr><td>system</td><td>system</td></tr>
+      </table>
+    </div>
+
+    <div class="br key"><span class="bn">02</span><b>导出</b><span class="kb">核心</span>：导出带上当前填写的操作人，与其他筛选条件一起生效。</div>
+
+    <div class="br"><span class="bn">03</span><b>重置</b>：点「重置」清空操作人。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>匹配范围</td><td>只匹配「操作用户」列，内容描述里写到的操作人不参与匹配</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>页面查询、导出两处都要加操作人条件；导出是单独收集筛选条件的，别漏。</li>
+      <li>换了操作人再点「查询」要从第 1 页开始显示：页面已有“条件变了回到第 1 页”的处理，把操作人也加进去。</li>
+      <li>只按操作用户的文字匹配，不按账号 ID 查：中台账号记下的 ID 是中台自己的，会和后台账号 ID 重号；系统自动记录的 ID 是 0。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function esc(s){return s===null||s===undefined?'':String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function pad(n){return n<10?'0'+n:''+n;}
+var D=new Date(),Y=D.getFullYear(),M=D.getMonth()+1,DD=D.getDate();
+var DAY=Y+'-'+pad(M)+'-'+pad(DD);
+$('today').textContent=DAY;
+var DEF_START=DAY+' 00:00:00',DEF_END=DAY+' 23:59:59';
+
+/* ================= 演示数据（今天） =================
+   t 时间 / ty 日志类型 1登录 2操作 / ti 标题 / u 操作用户 / ip / area / os / ie / s 状态 / info 内容 / pn 页面名称 / pu 页面地址 / did 数据ID / dn 数据名称 / dv 数据内容 */
+var ADM={ip:'103.21.58.20',area:'India Maharashtra',os:'Windows',ie:'Edge 141.0.0.0'};
+var CW={ip:'103.21.58.14',area:'India Maharashtra',os:'Windows',ie:'Chrome 140.0.0.0'};
+var KF={ip:'49.36.112.7',area:'India Delhi',os:'macOS',ie:'Safari 18.5'};
+var RK={ip:'49.36.98.41',area:'India Delhi',os:'Windows',ie:'Chrome 141.0.0.0'};
+var ZT={ip:'8.211.42.128',area:'Germany Hesse',os:'macOS',ie:'Chrome 154.0.0.0'};
+var ZA={ip:'47.236.10.25',area:'Singapore',os:'Windows',ie:'Chrome 141.0.0.0'};
+var SZ={ip:'27.115.62.9',area:'China Shanghai',os:'Windows',ie:'Chrome 139.0.0.0'};
+var SYS={ip:'',area:'',os:'',ie:''};
+var RAW=[
+ ['16:26:30',2,'删除用户指定提现类型的收款账户','system',SYS,1,'删除用户指定提现类型的收款账户，操作人【system】用户ID【2247621】提现类型【UPI】','提现账号管理','',2247621,'UPI',''],
+ ['15:48:02',2,'会员状态修改','中台_admin',ZA,1,'修改会员【2251180】状态为【冻结】，原因【多账号套利】','会员管理','/api/v1/member/updateStatus',2251180,'会员状态','冻结'],
+ ['14:20:11',2,'人工充值审核','cw_rocky（Rocky）',CW,1,'审核人工充值订单【MR2026100514201100018】通过，金额【5000.00】','人工充值审核','/Admin_UERP/Recharge/ManualRechargeApprovalList',18,'MR2026100514201100018','5000.00'],
+ ['13:05:47',2,'修改会员备注','kf_amy（Amy）',KF,1,'修改会员【2253307】备注为【重复提现咨询，已回复】','会员详情','/Admin_UERP/UserInfo/UserDetail',2253307,'备注','重复提现咨询，已回复'],
+ ['12:31:09',2,'提现账号拉黑','risk_lily（Lily）',RK,1,'添加提现账号黑名单【vikas.n@okicici】，备注【多ID共用同一UPI】','提现账号黑名单','/Admin_UERP/System/UserWithdrawBlackList',101,'vikas.n@okicici','多ID共用同一UPI'],
+ ['11:33:12',2,'系统管理','system',SYS,1,'当前会员【2247621】已加入黑名单，不进行通道【2601】自动代付','自动代付','',2247621,'',''],
+ ['11:24:15',2,'系统管理','system',SYS,1,'订单【RC20261005112335622001002a】已超时，系统自动关闭','充值订单','',0,'RC20261005112335622001002a',''],
+ ['11:24:15',2,'系统管理','system',SYS,1,'当前会员【2247621】已加入黑名单，不进行通道【2601】自动代付','自动代付','',2247621,'',''],
+ ['11:04:50',2,'系统管理','system',SYS,1,'当前会员【2247621】已加入黑名单，不进行通道【2601】自动代付','自动代付','',2247621,'',''],
+ ['10:52:30',2,'系统参数修改','admin（管理员）',ADM,1,'修改系统参数【提现最低金额】由【100】改为【200】','参数配置','/Admin_UERP/System/SetParameterConfig',0,'提现最低金额','200'],
+ ['10:23:13',2,'新增CPF钱包信息','中台_org_phillip',ZT,1,'新增CPF钱包信息【会员ID值：2255373】【4138】成功！','用户PIX钱包','/api/v1/user/cpf/add',4138,'2255373',''],
+ ['10:22:35',2,'新增CPF钱包信息','中台_org_phillip',ZT,1,'新增CPF钱包信息【会员ID值：2255373】【4137】成功！','用户PIX钱包','/api/v1/user/cpf/add',4137,'2255373',''],
+ ['10:19:39',2,'新增CPF钱包信息','中台_org_phillip',ZT,1,'新增CPF钱包信息【会员ID值：2255374】【4136】成功！','用户PIX钱包','/api/v1/user/cpf/add',4136,'2255374',''],
+ ['09:40:02',2,'角色权限修改','admin_sz',SZ,1,'修改角色【客服主管】权限成功！','角色管理','/Admin_UERP/System/RoleOpt',12,'客服主管',''],
+ ['09:12:44',2,'删除用户指定提现类型的收款账户','kf_amy（Amy）',KF,1,'删除用户指定提现类型的收款账户，操作人【kf_amy】用户ID【2250012】提现类型【银行卡】','会员详情','/Admin_UERP/UserInfo/UserDetail',2250012,'银行卡',''],
+ ['08:58:10',2,'人工充值审核','cw_rocky（Rocky）',CW,0,'审核人工充值订单【MR2026100508571000011】失败，订单状态已变更','人工充值审核','/Admin_UERP/Recharge/ManualRechargeApprovalList',11,'MR2026100508571000011',''],
+ ['18:02:17',1,'后台注销','risk_lily（Lily）',RK,1,'注销成功！','网站信息管理系统 - 后台注销','/Admin_UERP/Account/Logout',0,'',''],
+ ['09:05:40',1,'用户登录','admin_sz',SZ,1,'登录成功！','用户用户登录','/Admin_UERP/Account/Login',0,'',''],
+ ['08:47:40',1,'用户登录','cw_rocky',CW,1,'登录成功！','用户用户登录','/Admin_UERP/Account/Login',0,'',''],
+ ['08:47:01',1,'用户登录','cw_rocky',CW,0,'用户[10023-cw_rocky]登录失败！错误信息：输入的密码错误，还有4次机会重试！','用户登录','/Admin_UERP/Account/Login',0,'',''],
+ ['08:45:33',1,'用户登录','kf_amy',KF,1,'登录成功！','用户用户登录','/Admin_UERP/Account/Login',0,'',''],
+ ['08:30:12',1,'用户登录','admin',ADM,1,'登录成功！','用户用户登录','/Admin_UERP/Account/Login',0,'',''],
+ ['08:12:55',1,'用户登录','risk_lily',RK,1,'登录成功！','用户用户登录','/Admin_UERP/Account/Login',0,'','']
+];
+var LOGS=RAW.map(function(r,i){
+  return {id:9000+RAW.length-i,t:DAY+' '+r[0],ty:r[1],ti:r[2],u:r[3],ip:r[4].ip,area:r[4].area,os:r[4].os,ie:r[4].ie,s:r[5],info:r[6],pn:r[7],pu:r[8],did:r[9],dn:r[10],dv:r[11]};
+});
+/* 按时间排列 LogID：时间越晚 ID 越大 */
+LOGS.sort(function(a,b){return a.t<b.t?-1:a.t>b.t?1:0;}).forEach(function(l,i){l.id=58800+i;});
+
+/* 操作类型下拉 = 日志里出现过的标题去重、升序 */
+var titles=[];LOGS.forEach(function(l){if(titles.indexOf(l.ti)<0)titles.push(l.ti);});
+titles.sort();
+$('LogTitles').innerHTML='<option value="">全部</option>'+titles.map(function(t){return '<option value="'+esc(t)+'">'+esc(t)+'</option>';}).join('');
+
+/* .NET 默认 ToString()：2026/10/5 16:26:30 */
+function netDate(s){var p=s.split(/[- :]/);return (+p[0])+'/'+(+p[1])+'/'+(+p[2])+' '+(+p[3])+':'+p[4]+':'+p[5];}
+function sub30(s){return s.length>30?s.substring(0,30)+'...':s;}
+
+/* ================= 查询 ================= */
+var FIELDS=['StartDate','EndDate','LogTitles','KeyWords','Operator','LogType','UserState'];
+function cond(){var c={};FIELDS.forEach(function(f){c[f]=$(f).value.trim();});return c;}
+function snap(){var c=cond();return FIELDS.map(function(f){return f+'='+c[f];}).join('&');}
+var applied=null,pageNo=1,pageSize=20,lastSnap='';
+
+function filter(c){
+  var kw=c.KeyWords,op=c.Operator.toLowerCase();
+  return LOGS.filter(function(l){
+    if(l.ty!==+c.LogType)return false;
+    if(c.UserState!==''&&l.s!==+c.UserState)return false;
+    if(c.LogTitles&&l.ti!==c.LogTitles)return false;
+    if(c.StartDate&&l.t<c.StartDate)return false;
+    if(c.EndDate&&l.t>c.EndDate)return false;
+    if(kw&&!(l.ti.indexOf(kw)>=0||l.u.indexOf(kw)>=0||l.pn.indexOf(kw)>=0||l.info.indexOf(kw)>=0))return false;
+    if(op&&l.u.toLowerCase().indexOf(op)<0)return false;
+    return true;
+  }).sort(function(a,b){return b.id-a.id;});
+}
+var cur=[];
+function render(){
+  var rows=filter(applied),total=rows.length,pages=Math.ceil(total/pageSize);
+  if(pages>0&&pageNo>pages)pageNo=1;
+  var list=rows.slice((pageNo-1)*pageSize,pageNo*pageSize);cur=list;
+  var tb=$('tb');
+  if(!list.length){tb.innerHTML='<tr class="empty"><td colspan="9"></td></tr>';}
+  else tb.innerHTML=list.map(function(l,i){
+    return '<tr>'+
+      '<td>'+esc(l.ti)+'</td>'+
+      '<td>'+esc(l.u)+'</td>'+
+      '<td>'+esc(l.ip)+'</td><td>'+esc(l.area)+'</td><td>'+esc(l.os)+'</td><td>'+esc(l.ie)+'</td>'+
+      '<td>'+netDate(l.t)+'</td>'+
+      '<td>'+(l.s===0?'<span class="lab err">失败</span>':'<span class="lab ok">成功</span>')+'</td>'+
+      '<td><a class="lk" data-i="'+i+'" title="点击查看日志详情">'+esc(sub30(l.info))+'</a></td>'+
+    '</tr>';
+  }).join('');
+  renderPager(total,Math.max(pages,1));
+}
+function renderPager(total,pages){
+  var h='<div class="pl">共'+pages+'页，前往<input id="goNo" autocomplete="off">页，'+
+    '<select id="ps"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option><option value="100">100条/页</option></select>'+
+    '<button type="button" id="goBtn">GO</button></div>'+
+    '<div class="pc"><a data-g="1" class="'+(pageNo<=1?'dis':'')+'">首页</a><a data-g="'+(pageNo-1)+'" class="'+(pageNo<=1?'dis':'')+'">上一页</a>';
+  for(var i=1;i<=pages;i++)h+='<a data-g="'+i+'" class="'+(i===pageNo?'cur':'')+'">'+i+'</a>';
+  h+='<a data-g="'+(pageNo+1)+'" class="'+(pageNo>=pages?'dis':'')+'">下一页</a><a data-g="'+pages+'" class="'+(pageNo>=pages?'dis':'')+'">尾页</a><span class="tt">共'+total+'条</span></div>';
+  var p=$('pager');p.innerHTML=h;
+  $('ps').value=String(pageSize);
+  $('ps').onchange=function(){pageSize=+this.value;pageNo=1;render();};
+  $('goBtn').onclick=function(){var n=parseInt($('goNo').value,10);if(n>=1&&n<=pages){pageNo=n;render();}};
+  p.querySelectorAll('a[data-g]').forEach(function(a){a.onclick=function(){if(a.classList.contains('dis')||a.classList.contains('cur'))return;pageNo=+a.getAttribute('data-g');render();};});
+}
+function search(){
+  var s=snap();
+  if(s!==lastSnap)pageNo=1;   /* 条件变了回到第 1 页（含操作人） */
+  lastSnap=s;applied=cond();render();
+}
+function reset(){
+  $('StartDate').value=DEF_START;$('EndDate').value=DEF_END;
+  $('LogTitles').value='';$('KeyWords').value='';$('Operator').value='';
+  $('LogType').value='2';$('UserState').value='';
+  pageNo=1;pageSize=20;lastSnap='';search();
+}
+$('btnSearch').onclick=search;
+$('btnReset').onclick=reset;
+FIELDS.forEach(function(f){var el=$(f);if(el.tagName==='INPUT')el.addEventListener('keydown',function(e){if(e.key==='Enter')search();});});
+
+/* ================= 日志详细内容（highslide） ================= */
+var hs=$('hs');
+document.addEventListener('click',function(e){
+  var a=e.target.closest&&e.target.closest('.lk');
+  if(a){
+    var l=cur[+a.getAttribute('data-i')];
+    $('hsb').innerHTML=esc(l.ti)+'<br/>'+esc(l.info)+'<br/><b>操作数据ID号：</b>'+l.did+'<br/><b>操作数据名称：</b>'+esc(l.dn)+'<br/><b>操作数据内容：</b>'+esc(l.dv)+'<br/><b>操作页面名称：</b>'+esc(l.pn)+'<br/><b>操作页面地址：</b>'+esc(l.pu);
+    hs.style.display='block';
+    var r=a.getBoundingClientRect(),w=hs.offsetWidth;
+    var left=Math.max(8,Math.min(r.left+window.scrollX,window.scrollX+document.documentElement.clientWidth-w-12));
+    hs.style.left=left+'px';hs.style.top=(r.bottom+window.scrollY+4)+'px';
+    return;
+  }
+  if(!e.target.closest('#hs'))hs.style.display='none';
+});
+$('hsx').onclick=function(){hs.style.display='none';};
+
+/* ================= 导出 ================= */
+var toastT=null;
+function closeDemo(){$('demo').style.display='none';$('mmask').style.display='none';}
+$('btnExport').onclick=function(){
+  var c=cond();   /* 导出单独收集当前筛选框的值（含操作人） */
+  var t=$('toast');t.style.display='block';clearTimeout(toastT);toastT=setTimeout(function(){t.style.display='none';},3000);
+  var rows=filter(c);
+  var d=new Date();
+  $('fname').textContent=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+pad(d.getHours()%12||12)+pad(d.getMinutes())+pad(d.getSeconds())+'LogsReport.csv · 共 '+rows.length+' 条';
+  var tx={'StartDate':'开始时间','EndDate':'结束时间','LogTitles':'操作类型','KeyWords':'关键字','Operator':'操作人','LogType':'日志类型','UserState':'状态'};
+  $('dcond').innerHTML='导出条件：'+FIELDS.map(function(f){
+    var v=c[f];
+    if(f==='LogType')v=v==='1'?'登录日志':'操作日志';
+    if(f==='UserState')v=v===''?'':(v==='1'?'成功':'失败');
+    if(v==='')v='不限';
+    return '<span'+(f==='Operator'?' class="hl"':'')+'>'+tx[f]+'：'+esc(v)+'</span>';
+  }).join('');
+  $('dtb').innerHTML=rows.length?rows.map(function(l){
+    return '<tr><td>'+esc(l.ti)+'</td><td>'+esc(l.u)+'</td><td>'+esc(l.ip)+'</td><td>'+esc(l.area)+'</td><td>'+esc(l.os)+'</td><td>'+esc(l.ie)+'</td><td>'+l.t+'</td><td>'+(l.s===1?'Success':'Fail')+'</td>'+
+      '<td class="ct">'+esc(l.ti+' '+l.info+' 操作数据ID号：'+l.did+' 操作数据名称：'+l.dn+' 操作数据内容：'+l.dv+' 操作页面名称：'+l.pn+' 操作页面地址：'+l.pu)+'</td></tr>';
+  }).join(''):'<tr><td colspan="9" style="text-align:center;color:#999;height:60px">无数据</td></tr>';
+  setTimeout(function(){$('demo').style.display='flex';$('mmask').style.display='block';},600);
+};
+$('demox').onclick=closeDemo;$('mmask').onclick=closeDemo;
+
+/* ================= 需求说明抽屉 ================= */
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if($('demo').style.display==='flex')closeDemo();else{closeDoc();hs.style.display='none';}}});
+
+reset();
+})();
+</script>
+</body>
+</html>
