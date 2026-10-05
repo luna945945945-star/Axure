@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小游戏分类搜索</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333;min-height:100vh}
+.stage{display:flex;justify-content:center;align-items:flex-start;gap:28px;padding:28px 60px 40px 28px;flex-wrap:wrap}
+
+/* 演示面板（页面外） */
+.demo{width:230px;background:#fff;border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:12.5px;color:#555}
+.demo h3{font-size:13px;color:#6C4FE0;margin-bottom:6px}
+.demo p{line-height:1.7;margin-bottom:10px;color:#888;font-size:12px}
+.demo .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.demo .chips button{font:inherit;font-size:12px;border:1px solid #d3caf5;background:#f7f5ff;color:#4b3aa8;border-radius:12px;padding:2px 10px;cursor:pointer}
+.demo .chips button:hover{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.demo .sub{font-size:11.5px;color:#aaa;margin-top:2px}
+
+/* 手机 */
+.phone{width:395px;height:832px;border-radius:36px;background:#111;padding:10px;box-shadow:0 10px 40px rgba(0,0,0,.25);flex:0 0 auto}
+.screen{width:375px;height:812px;border-radius:28px;overflow:hidden;background:#f2f3f5;position:relative;display:flex;flex-direction:column}
+
+/* 顶部导航（还原 All 页） */
+.nav{height:46px;background:#fff;display:flex;align-items:center;position:relative;flex:0 0 auto;z-index:5}
+.nav .back{width:44px;height:46px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.nav .back svg{width:22px;height:22px}
+.nav .title{position:absolute;left:50%;transform:translateX(-50%);font-size:18px;color:#1e2637;font-weight:500}
+.nav .right{margin-left:auto;display:flex;align-items:center;padding-right:12px;height:46px}
+.sicon{position:relative;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.sicon svg{width:21px;height:21px}
+.sbox{position:relative;flex:1;display:flex;align-items:center;height:35px;border:1px solid #e3e5ea;border-radius:17.5px;background:#fff;padding:0 12px;min-width:0;margin-right:12px}
+.sbox svg{width:17px;height:17px;flex:0 0 auto}
+.sbox input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:14px;color:#1e2637;margin-left:8px;background:transparent}
+.sbox input::placeholder{color:#a3a9b6}
+.cancel{font-size:14px;color:#768096;cursor:pointer;white-space:nowrap;padding-right:14px}
+.nav.searching .title{display:none}
+
+/* NEW 角标 */
+.new{position:absolute;top:-3px;right:26px;background:#f5222d;color:#fff;font-size:9px;font-weight:700;line-height:1;padding:3px 5px;border-radius:8px 8px 8px 2px;box-shadow:0 2px 6px rgba(245,34,45,.35);pointer-events:none;letter-spacing:.3px}
+.sbox .new{top:-9px;right:-6px}
+
+/* 分类页签（还原 All 页） */
+.tabs{display:flex;gap:5px;overflow-x:auto;padding:7px 12px;flex:0 0 auto;scrollbar-width:none;background:#f2f3f5}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 95px;height:50px;background:#fff;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#768096;font-size:12px;gap:2px;user-select:none}
+.tab img{width:25px;height:25px;object-fit:contain}
+.tab.on{background:#f5c21b;color:#fff}
+
+/* 内容 */
+.body{flex:1;overflow-y:auto;padding:0 12px 20px;scrollbar-width:thin}
+.stitle{font-size:15px;font-weight:600;color:#1e2637;margin:13px 0 12px;display:flex;align-items:center;line-height:18px}
+.stitle::before{content:"";width:4px;height:18px;background:#f5c21b;border-radius:2px;margin-right:8px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.g{position:relative;aspect-ratio:108/146;border-radius:10px;overflow:hidden;background:#dfe3ea;cursor:pointer}
+.g img{width:100%;height:100%;object-fit:cover;display:block}
+.g .ph{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;padding:10px 6px;text-align:center;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(160deg,#2e5bd8,#132a6e)}
+.g.noimg .ph{display:flex}
+.g .mt{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.g .mt i{width:30px;height:30px;border-radius:50%;border:2px solid #fcd01c;display:flex;align-items:center;justify-content:center;color:#fcd01c;font-style:normal;font-weight:700}
+.g .mt span{color:#fcd01c;font-size:13px;text-align:center;padding:0 4px;line-height:1.3}
+.empty{padding:80px 0;text-align:center;color:#a3a9b6;font-size:14px}
+.empty svg{width:96px;height:96px;display:block;margin:0 auto 10px}
+.omit{margin-top:40px;text-align:center;color:#a3a9b6;font-size:12.5px;line-height:1.8;padding:0 20px}
+
+/* 模拟进入游戏 */
+.gamev{position:absolute;inset:0;background:#0d1530;z-index:20;display:none;flex-direction:column}
+.gamev.on{display:flex}
+.gamev .gh{height:46px;display:flex;align-items:center;color:#fff;background:#18224a}
+.gamev .gh .back svg{stroke:#fff}
+.gamev .gh b{font-weight:500;font-size:15px}
+.gamev .gb{flex:1;display:flex;align-items:center;justify-content:center;color:#7d8bb8;font-size:13px;text-align:center;line-height:1.9;padding:20px}
+
+/* 需求说明抽屉（V1 原型统一样式） */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="demo">
+    <h3>原型操作提示</h3>
+    <p>在 Mini games 或 Fishing 分类点右上角放大镜即可搜索。下面的词点一下会自动切到对应分类并填入（本面板仅为演示，不属于页面）。</p>
+    <div class="chips" id="chips">
+      <button data-tab="flash" data-kw="mines">mines</button>
+      <button data-tab="flash" data-kw="minespro">minespro</button>
+      <button data-tab="flash" data-kw="keno80">keno80</button>
+      <button data-tab="flash" data-kw="CHICKEN">CHICKEN</button>
+      <button data-tab="flash" data-kw="pubg">pubg</button>
+      <button data-tab="flash" data-kw="abc">abc（无结果）</button>
+      <button data-tab="fish" data-kw="dragon">dragon（Fishing）</button>
+    </div>
+    <p class="sub">点任意游戏会模拟进入游戏，再点左上角返回，可看到搜索词和结果仍保留。</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen" id="screen">
+      <div class="nav" id="nav"></div>
+      <div class="tabs" id="tabs"></div>
+      <div class="body" id="body"></div>
+      <div class="gamev" id="gamev">
+        <div class="gh"><div class="back" id="gback"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div><b id="gname"></b></div>
+        <div class="gb">（模拟：已进入游戏）<br>点左上角返回 All 页</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>Mini games / Fishing 分类搜索 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身。搜索入口的位置、样子和交互，直接看原型页面。</div>
+    <table class="t">
+      <tr><th style="width:260px">页面</th><th>改动点</th></tr>
+      <tr><td>前台 → 首页分类「View All」进入的 <b>All 页</b>：Mini games、Fishing 两个分类</td><td>新增按游戏名搜索</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">只在当前分类已展示的游戏里查找，结果和原列表同一批游戏、同一顺序</div>
+      <div class="kf">按游戏英文名包含匹配，不区分大小写、忽略空格；输入即筛选</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>搜索范围</b><span class="kb">核心</span>：只在当前分类页已展示的游戏中查找，按原列表顺序显示；维护中的游戏照常出现在结果里，并显示维护状态。</div>
+
+    <div class="br key"><span class="bn">02</span><b>匹配规则</b><span class="kb">核心</span>：游戏英文名包含搜索词即命中，不区分大小写，搜索词和游戏名里的空格都忽略。例：minespro 命中 Mines Pro；keno80 同时命中 Keno80、Keno 80；mines 也会命中 Mine Slot。</div>
+
+    <div class="br"><span class="bn">03</span><b>筛选与恢复</b>：输入即筛选，结果从列表顶部开始显示；搜索词为空（含只输入空格）显示完整列表；点 Cancel 收起搜索并清空搜索词。</div>
+
+    <div class="br"><span class="bn">04</span><b>无结果</b>：显示通用空状态「No data」。</div>
+
+    <div class="br"><span class="bn">05</span><b>入口显示</b>：搜索入口只在 Mini games、Fishing 两个分类显示；切到其他分类时收起搜索并清空搜索词。</div>
+
+    <div class="br"><span class="bn">06</span><b>返回保留</b>：从搜索结果进入游戏，返回 All 页后保留搜索词和结果。</div>
+
+    <div class="br"><span class="bn">07</span><b>样式与文案</b>：搜索入口、搜索框、Cancel 的样式和多语言文案，沿用 Slots 游戏列表页的搜索。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:140px">项</th><th>说明</th></tr>
+      <tr><td>搜索依据</td><td>只按游戏英文名，不支持按厂商名、其他语言名称搜索</td></tr>
+      <tr><td>本次不做</td><td>首页分类预览区、其他分类、跨分类的全站搜索</td></tr>
+    </table>
+
+  </div>
+</div>
+
+<script>
+const IMG='https://bucket.22889.club/SitINR/gamelogo/';
+const CAT='https://bucket.22889.club/SitINR/gamecategory/';
+// 测试环境 2026-10-03 真实数据：[游戏名, 厂商, 图片, 是否维护]
+const DATA={
+flash:[["Aviator","TB_Chess","TB_Chess/800.png",0],["Cricket","TB_Chess","TB_Chess/810_20250406131104461.png",0],["Mines","TB_Chess","TB_Chess/100_20250406131158799.png",0],["Mines Pro","TB_Chess","TB_Chess/811_20250406132018269.png",0],["Limbo","TB_Chess","TB_Chess/110_20250406132034314.png",0],["Goal","TB_Chess","TB_Chess/105_20250406132046568.png",0],["WinGo","TB_Chess","TB_Chess/902_20250406132058646.png",0],["Coinflip","TB_Chess","TB_Chess/109_20250406132108368.png",0],["DrawPoker","TB_Chess","TB_Chess/118_20250406132705172.png",0],["Treasure","TB_Chess","TB_Chess/119_20250406132727816.png",0],["Bomb Wave","TB_Chess","TB_Chess/500_20250406132743888.png",0],["Treasure Wave","TB_Chess","TB_Chess/501_20250406132807422.png",0],["Mini Roulette","TB_Chess","TB_Chess/104_20250406132610286.png",0],["Keno80","TB_Chess","TB_Chess/900_20250406132223959.png",0],["Keno","TB_Chess","TB_Chess/106_20250406132545585.png",0],["Hotline","TB_Chess","TB_Chess/107_20250406132526370.png",0],["Space Dice","TB_Chess","TB_Chess/108_20250406132509304.png",0],["Cryptos","TB_Chess","TB_Chess/111_20250406132448705.png",0],["Triple","TB_Chess","TB_Chess/112_20250406132432266.png",0],["Pharaoh","TB_Chess","TB_Chess/113_20250406132405016.png",0],["HorseRacing","TB_Chess","TB_Chess/114_20250406132129737.png",0],["Pilot Chicken","SPRIBE","SPRIBE/pilot-chicken_20260730201927849.png",0],["Trader","SPRIBE","SPRIBE/trader_20260730202206737.png",0],["PUBG","TB_Chess","TB_Chess/909_20260306113115360.png",0],["PUBG 1MIN","TB_Chess","TB_Chess/910_20260306113123828.png",0],["PUBG 3MIN","TB_Chess","TB_Chess/911_20260306113133300.png",0],["PUBG 5MIN","TB_Chess","TB_Chess/912_20260306113145056.png",0],["Aviator","SPRIBE","SPRIBE/22001.png",0],["Dice","SPRIBE","SPRIBE/22002.png",0],["Goal","SPRIBE","SPRIBE/22003.png",0],["Plinko","SPRIBE","SPRIBE/22004.png",0],["Mines","SPRIBE","SPRIBE/22005.png",0],["Hi Lo","SPRIBE","SPRIBE/22006.png",0],["Keno","SPRIBE","SPRIBE/22007.png",0],["Mini Roulette","SPRIBE","SPRIBE/22008.png",0],["Go Rush","JILI","JILI/224.png",0],["Mines","JILI","JILI/229.png",0],["Tower","JILI","JILI/232.png",0],["HIlo","JILI","JILI/233.png",0],["Limbo","JILI","JILI/235.png",0],["Wheel","JILI","JILI/236.png",0],["Hotline","SPRIBE","SPRIBE/22009.png",0],["Cricket Burst","JDB","JDB/9022.png",0],["Balloon","SPRIBE","SPRIBE/balloon.png",0],["Keno 80","SPRIBE","SPRIBE/multikeno.png",1],["Bonus Bingo","JILI","JILI/143.png",0],["Bingo Empire","JILI","JILI/147.png",0],["Keno","JILI","JILI/241.png",0],["Plinko","JILI","JILI/242.png",0],["Mines Gold","JILI","JILI/254.png",0],["Crash Bonus","JILI","JILI/261.png",0],["Jogo Do Bicho","JILI","JILI/297.png",0],["Fish Prawn Crab","JILI","JILI/389.png",0],["Jhandi Munda","JILI","JILI/397.png",0],["Crash Goal","JILI","JILI/407.png",0],["Super Ace Scratch","JILI","JILI/439.png",0],["Crash Cricket","JILI","JILI/469.png",0],["Boxing Extravaganza","JILI","JILI/440.png",0],["Keno Bonus Number","JILI","JILI/272.png",0],["Thai HIlo","JILI","JILI/427.png",0],["Cricket Roulette","JILI","JILI/462.png",0],["Ronaldinho Da Sorte","SPRIBE","SPRIBE/pok_351_ronaldinhoDaSorte_20260730202216503.png",0],["Money Coming","TB_Chess","TB_Chess/127_20260717102855407.png",0],["Chicken Road 2 Bonus","TB_Chess","TB_Chess/129_20260717103156718.png",0],["Chicken Race","INOUT","INOUT/chicken-road-race.png",0],["Cricket Road","INOUT","INOUT/cricket-road.png",0],["Fish Boom","INOUT","INOUT/fish-boom.png",0],["Twist New Year","INOUT","INOUT/twist-new-year.png",0],["Chicken Ice","INOUT","INOUT/chicken-road-new-year.png",0],["Mine Slot","INOUT","INOUT/mine-slot.png",0],["Rocket Derby","JDB","JDB/120002.png",0],["Parachute","TB_Chess","TB_Chess/805.png",0]],
+fish:[["Bombing Fishing","JILI","JILI/20.png",0],["JackPot Fishing","JILI","JILI/32.png",0],["Mega Fishing","JILI","JILI/74.png",0],["Spirit Tide Legend","JDB","JDB/7009.png",0],["Fighter Fire","JDB","JDB/7008.png",0],["Paradise","CQ9","CQ9/AB3.png",0],["Oneshot Fishing","CQ9","CQ9/AT01.png",0],["LuckyFishing","CQ9","CQ9/AT05.png",0],["Hero Fishing","CQ9","CQ9/GO02.png",0],["Dragon Fishing","JDB","JDB/7001.png",0],["Dragon Fishing II","JDB","JDB/7002.png",0],["Cai Shen Fishing","JDB","JDB/7003.png",0],["Shade Dragons Fishing","JDB","JDB/7004.png",0],["Fishing YiLuFa","JDB","JDB/7005.png",0],["Dragon Master","JDB","JDB/7006.png",0],["Fishing Disco","JDB","JDB/7007.png",0],["Circus Jackpot","JILI","JILI/667.png",0],["Jackpot Fishing 2","JILI","JILI/736.png",0],["Cai Shen Fishing JACKPOT","JDB","JDB/7011.png",0]]
+};
+const MENU=[["Popular","popular","gamecategory_20260825112102vlkn.png"],["PVC","chess","gamecategory_20260425132013j5sj.png"],["Lottery","lottery","gamecategory_20260425132024i9s6.png"],["Casino","video","gamecategory_20260425132003tg4e.png"],["Sports","sport","gamecategory_20260425131954h99c.png"],["Mini games","flash","gamecategory_20260425131946gd2e.png"],["Fishing","fish","gamecategory_2026042513193612no.png"],["Slots","slot","gamecategory_20260917190900vwr7.png"]];
+const SEARCHABLE=['flash','fish'];
+
+const S={tab:'flash',searching:false,kw:''};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>String(s).toLowerCase().replace(/\s+/g,'');
+
+const ICON_BACK='<svg viewBox="0 0 24 24" fill="none" stroke="#1e2637" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+const ICON_SEARCH=c=>`<svg viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>`;
+const EMPTY=`<div class="empty"><svg viewBox="0 0 96 96" fill="none"><rect x="18" y="22" width="60" height="52" rx="6" fill="#e9ecf2"/><rect x="26" y="32" width="30" height="5" rx="2.5" fill="#d3d8e2"/><rect x="26" y="43" width="44" height="5" rx="2.5" fill="#d3d8e2"/><rect x="26" y="54" width="22" height="5" rx="2.5" fill="#d3d8e2"/><circle cx="66" cy="62" r="11" fill="#fff" stroke="#c4cad6" stroke-width="3"/><path d="M74 70l7 7" stroke="#c4cad6" stroke-width="3" stroke-linecap="round"/></svg>No data</div>`;
+
+const canSearch=()=>SEARCHABLE.includes(S.tab);
+const searchBox=()=>`<div class="sbox">${ICON_SEARCH('#a3a9b6')}<input id="kw" type="text" placeholder="Search game" autocomplete="off" value="${esc(S.kw)}"><span class="new">NEW</span></div><span class="cancel" id="kcancel">Cancel</span>`;
+const searchIcon=()=>`<div class="sicon" id="ksearch">${ICON_SEARCH('#1e2637')}<span class="new">NEW</span></div>`;
+
+function bindSearch(){
+  const ip=$('kw');
+  if(ip)ip.addEventListener('input',()=>{S.kw=ip.value;renderList();$('body').scrollTop=0;});
+  if($('kcancel'))$('kcancel').onclick=()=>{S.searching=false;S.kw='';render();};
+  if($('ksearch'))$('ksearch').onclick=()=>{S.searching=true;render();$('kw').focus();};
+}
+
+function renderNav(){
+  const nav=$('nav');
+  const can=canSearch();
+  nav.className='nav'+(can&&S.searching?' searching':'');
+  nav.innerHTML=`<div class="back">${ICON_BACK}</div>`+(can&&S.searching
+    ?searchBox()
+    :`<div class="title">All</div><div class="right">${can?searchIcon():''}</div>`);
+}
+
+function renderTabs(){
+  $('tabs').innerHTML=MENU.map(([t,k,img])=>`<div class="tab${k===S.tab?' on':''}" data-k="${k}"><img src="${CAT+img}" alt="" onerror="this.style.visibility='hidden'"><span>${esc(t)}</span></div>`).join('');
+  $('tabs').querySelectorAll('.tab').forEach(el=>el.onclick=()=>switchTab(el.dataset.k));
+  const on=$('tabs').querySelector('.tab.on');
+  if(on)on.scrollIntoView({block:'nearest',inline:'center'});
+}
+
+function switchTab(k){
+  if(k===S.tab)return;
+  S.tab=k;S.searching=false;S.kw='';
+  renderTabs();render();
+  $('body').scrollTop=0;
+}
+
+function tile(g){
+  const [name,vendor,img,mt]=g;
+  return `<div class="g" data-name="${esc(name)}" title="${esc(name)} · ${esc(vendor)}">
+    <img src="${IMG+img}" alt="" loading="lazy" onerror="this.parentNode.classList.add('noimg')">
+    <div class="ph">${esc(name)}</div>
+    ${mt?'<div class="mt"><i>!</i><span>Game maintenance</span></div>':''}
+  </div>`;
+}
+
+function renderBody(){
+  const body=$('body');
+  const title=`<div class="stitle">${esc(MENU.find(m=>m[1]===S.tab)[0])}</div>`;
+  if(!DATA[S.tab]){
+    body.innerHTML=title+`<div class="omit">该分类本次不改动，原型省略内容。<br>搜索入口只在 Mini games、Fishing 出现。</div>`;
+    return;
+  }
+  body.innerHTML=title+'<div id="list"></div>';
+  renderList();
+}
+
+function renderList(){
+  const list=$('list');if(!list)return;
+  const q=norm(S.kw);
+  const games=q?DATA[S.tab].filter(g=>norm(g[0]).includes(q)):DATA[S.tab];
+  list.innerHTML=games.length?`<div class="grid">${games.map(tile).join('')}</div>`:EMPTY;
+  list.querySelectorAll('.g').forEach(el=>el.onclick=()=>{ $('gname').textContent=el.dataset.name; $('gamev').classList.add('on'); });
+}
+
+function render(){renderNav();renderBody();bindSearch();}
+
+$('gback').onclick=()=>$('gamev').classList.remove('on');
+
+$('chips').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  $('gamev').classList.remove('on');
+  if(S.tab!==b.dataset.tab)switchTab(b.dataset.tab);
+  S.searching=true;S.kw=b.dataset.kw;render();$('body').scrollTop=0;
+});
+
+// 抽屉
+const openDoc=()=>{$('drawer').classList.add('on');$('dmask').classList.add('on');};
+const closeDoc=()=>{$('drawer').classList.remove('on');$('dmask').classList.remove('on');};
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDoc();});
+
+renderTabs();render();
+</script>
+</body>
+</html>
