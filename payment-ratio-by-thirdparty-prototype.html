@@ -27,6 +27,8 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-s
 .v3-btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
 .v3-btn.pri:hover{opacity:.88;color:#fff}
 .v3-btn.sm{height:26px;padding:0 9px;font-size:12px}
+.v3-btn.sm.on{color:var(--pri);border-color:var(--pri);background:#f0f5ff}
+#scs{display:inline-flex;gap:8px}
 .f-right{margin-left:auto;display:flex;gap:8px}
 .v3-tools{display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
 .v3-tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
@@ -76,7 +78,7 @@ th.newcol{background:#fff1f0}
 .card .d.up{color:#0f9d58}
 .card .d.dn{color:#cb2634}
 .card .d.eq{color:var(--gray)}
-.cmp-note{font-size:11.5px;color:var(--gray);margin:-4px 0 10px}
+.cmp-note{font-size:11.5px;color:var(--gray);margin:-4px 0 10px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .qm{position:relative;display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;border:1px solid #c9cdd4;color:#9aa1a9;font-size:9px;cursor:help}
 .qm .tip{display:none;position:absolute;top:calc(100% + 8px);left:-10px;z-index:200;background:#1f2733;color:#fff;font-weight:400;font-size:12px;line-height:1.7;padding:10px 12px;border-radius:8px;width:max-content;max-width:300px;box-shadow:0 8px 24px rgba(0,0,0,.22);white-space:normal}
 .qm:hover .tip{display:block}
@@ -142,7 +144,7 @@ th.newcol{background:#fff1f0}
     <div class="h1">一、改造页面</div>
     <table class="t">
       <tr><th style="width:190px">页面</th><th>改动点</th></tr>
-      <tr><td>总控端 → 报表管理 → 数据统计 → 代付/代收占比</td><td>新增「按三方汇总」查看方式，和现有「通道明细」切换查看；代收占比、代付占比两个页签都要做。「通道明细」就是现有列表，数据和计算都不改，只调整卡片位置（见第 13 条）</td></tr>
+      <tr><td>总控端 → 报表管理 → 数据统计 → 代付/代收占比</td><td>新增「按三方汇总」查看方式，和现有「通道明细」切换查看；代收占比、代付占比两个页签都要做。「通道明细」就是现有列表，数据和计算都不改，只调整卡片位置（见第 13 条）。<br><b>只改总控端</b>：本页面集团账号、商户端也在用，这两端保持现状（不加切换，卡片位置也不动）</td></tr>
     </table>
 
     <div class="h1">二、名词术语</div>
@@ -158,7 +160,7 @@ th.newcol{background:#fff1f0}
       <tr><td><b>手续费</b></td><td>和现有页面算法一样：成功金额 × 费率 + 成功笔数 × 每笔固定手续费，每天按当天的费率算。是系统按配置算出来的，不是三方实际扣的钱</td></tr>
       <tr><td><b>已配置费率</b></td><td>费率、每笔固定手续费有一个不为 0 就算配置了，判断方法和现有页面一样；每天单独判断</td></tr>
       <tr><td><b>综合费率</b></td><td>该三方的手续费 ÷ 该三方配置了费率的那部分成功金额。因为算上了每笔固定手续费，可能比通道上配的费率高</td></tr>
-      <tr><td><b>上一周期</b></td><td>和所选日期一样长、紧挨在前面的一段时间，其他筛选条件不变。例：查 9-25 ~ 9-29（5 天），上一周期是 9-20 ~ 9-24</td></tr>
+      <tr><td><b>对比期（环比）</b></td><td><b>是环比，不是同比</b>。由查询时点的日期快捷按钮决定和哪段时间比（见第 11 条），其他筛选条件不变。“同期”指截到同一天的同一时刻：例如今天 10:30 点「今天」查询，对比期是昨天 0 点 ~ 10:30</td></tr>
       <tr><td><b>数据起始日</b></td><td>本页的按天统计数据从「代付/代收占比」页上线生产那天开始累计，之前的日期没有数据，这次也不补。数据起始日 = 统计数据里最早的那一天（不分币种、商户），系统自动取，不加配置项</td></tr>
     </table>
 
@@ -166,14 +168,14 @@ th.newcol{background:#fff1f0}
     <div class="br"><span class="bn">01</span><b>切换查看方式</b>：操作按钮那一行加「按三方汇总 / 通道明细」切换按钮。每次打开页面默认是「按三方汇总」，不记上次选的。切换时筛选条件不变，排序和页码回到默认。切换代收 / 代付页签时，查看方式不变。</div>
     <div class="br"><span class="bn">02</span><b>筛选条件怎么影响「按三方汇总」</b>：<br>· 国家/币种、日期、集团、商户：决定统计哪些数据，卡片、列表、占比都跟着变。<br>· 三方、通道名称：只用来在列表里挑出要看的行。卡片不变，占比的分母也不变（仍是全部三方）。<br>例：9-29 全部三方代收成功 1,000 万，其中 ArbPay 700 万（它的通道 A 400 万）。<br>· 不选三方：列表显示所有三方，ArbPay 占比 70%，卡片成功金额 1,000 万；<br>· 三方选 ArbPay：列表只剩 ArbPay 一行，占比还是 70%，卡片还是 1,000 万；<br>· 再选通道 A：ArbPay 这一行只算通道 A，成功金额 400 万、占比 40%，商户数、通道数也只算通道 A；卡片还是 1,000 万。</div>
     <div class="br"><span class="bn">03</span><b>汇总卡片</b>：放在筛选区和操作按钮下面、列表上面。代收 8 项：三方数、商户数、创建金额、创建笔数、成功金额、成功笔数、成功率、手续费；代付 5 项：三方数、商户数、成功金额、成功笔数、手续费。三方数、手续费右边有问号提示，文字照原型。</div>
-    <div class="br"><span class="bn">04</span><b>卡片对比</b>：三方数、商户数不对比。其他每项下面显示上一周期的数值和增减（差多少、变化百分之几；成功率显示差几个百分点）。上一周期是 0 时，只显示差多少，不显示百分比。增加显示绿色、减少显示红色，只表示涨跌，不代表好坏。卡片下面用一行灰字写出上一周期是哪几天。</div>
+    <div class="br"><span class="bn">04</span><b>卡片对比</b>：能对比时（见第 11 条），每张卡片下面显示对比期的名称和数值（如「昨日同期 12,000.00」），再显示增减（差多少、变化百分之几；成功率显示差几个百分点）。增减为 0 显示「持平」；对比期为 0 时只显示差多少，不显示百分比。增加显示绿色、减少显示红色，只表示涨跌，不代表好坏。卡片下面用一行灰字写出对比日期或不对比的原因，灰字最后带问号提示，说明对比口径，文字照原型。</div>
     <div class="br"><span class="bn">05</span><b>列表列</b>：统计日期、三方、商户数、通道数、成功金额、成功笔数、成功率（仅代收）、金额占比、笔数占比、综合费率、手续费、手续费占比。一个三方一行。「统计日期」显示所选的日期范围（如 2026-09-25 ~ 2026-09-29），<b>不按天拆成多行；中途改过费率也不拆行</b>（通道明细会拆，这里不拆）。数字格式和现有页面一样。</div>
-    <div class="br"><span class="bn">06</span><b>三方数、商户数、通道数</b>（卡片和列表都是）：只数有订单的。代收：有下单就算，全部失败的也算；代付：有成功出款才算。</div>
+    <div class="br"><span class="bn">06</span><b>三方数、商户数、通道数</b>（卡片和列表都是）：只数有订单的。代收：有下单就算，全部失败的也算；代付：有成功出款才算。对比期的三方数、商户数也按这个口径数。</div>
     <div class="br"><span class="bn">07</span><b>手续费三列</b>（综合费率、手续费、手续费占比）：手续费只加配置了费率的部分。一个三方完全没配费率 → 三列都显示「—」；配了费率但那部分成功金额是 0 → 综合费率显示「—」。全部失败的三方看第 10 条。</div>
     <div class="br"><span class="bn">08</span><b>排序</b>：默认按成功金额从高到低。可以点表头排序的列：成功金额、成功笔数、成功率（仅代收）、手续费。排序是对全部数据排，不是只排当前这一页；显示「—」的当 0 排；数值一样时按三方名称 A→Z 排。</div>
     <div class="br"><span class="bn">09</span><b>查看通道明细</b>：点三方名称，切到「通道明细」，三方筛选自动选上这个三方，通道名称筛选清空，其他筛选不变。全部失败的三方名称点不了（见第 10 条）。</div>
     <div class="br"><span class="bn">10</span><b>全部失败的三方也要显示（仅代收）</b>：有下单、但一笔都没成功的三方，也要显示一行：成功金额、成功笔数、金额占比、笔数占比都是 0；成功率 0.00% 标红；手续费 0.00、手续费占比 0.00%；综合费率「—」；名称后面加「无成功订单」标签；三方数要算上它。只有成功率为 0 的才标红。通道明细只统计成功的订单，这类三方在那里没有数据，所以名称点不了。</div>
-    <div class="br"><span class="bn">11</span><b>上一周期没有数据</b>：上一周期里只要有一天早于数据起始日，所有卡片的对比都显示「上一周期 —」「无可对比数据」，不要显示 0 或 -100%；卡片下面的灰字也写上“早于数据起始日，不做对比”。</div>
+    <div class="br"><span class="bn">11</span><b>什么时候对比、和谁比</b>：只有用日期快捷按钮查询时才对比，按最后一次点的快捷按钮决定对比期：<br>· 今天 → 昨日同期：昨天 0 点到昨天的同一时刻（如 10:30 查询，比昨天 0 点 ~ 10:30）<br>· 昨天 → 前日：前天整天<br>· 本周 → 上周同期：上周一 0 点到上周同一天的同一时刻（一周从周一开始，和现有日期控件一致）<br>· 上周 → 上上周：上上周一到周日整周<br>· 本月 → 上月同期：上月 1 日 0 点到上月同一天的同一时刻；上月没有这一天（如 3-31 查询，2 月只有 28 天）就比到上月最后一天整天<br>· 上月 → 上上月：上上月整月，天数不同也不折算<br>不对比的情况：手动选的日期（包括点了快捷按钮后又手动改日期）；对比期有一天早于数据起始日。这时卡片只显示当前值，灰字写明原因，不要显示 0、-100% 或「—」占位。<br>日期范围相同的按钮按点的那个算（如周一时「今天」和「本周」都是当天，点「今天」比昨日同期，点「本周」比上周同期）。页面默认的“今天”算作点了「今天」，点「重置」后也回到「今天」。“今天”“同一时刻”按页面日期控件的时区，和现有一致。</div>
     <div class="br"><span class="bn">12</span><b>导出</b>：导出当前所在的查看方式。在「按三方汇总」下导出：列和行跟列表一样（包括全部失败的三方），不导出卡片。用现有的导出权限。</div>
     <div class="br"><span class="bn">13</span><b>通道明细</b>：列、数据、占比算法、卡片（总额 / 三方数 / TOP3）都不变，只把卡片挪到筛选区和操作按钮下面。注意：通道明细的占比还是按现有逻辑，选了三方或通道后分母会跟着变，所以选了这两个筛选后，两种查看方式的占比可能不一样，这是正常的。</div>
     <div class="br"><span class="bn">14</span><b>其他照旧</b>：日期快捷按钮、「自定义列」、分页都用现有的，对当前查看方式的列表生效。</div>
@@ -183,7 +185,8 @@ th.newcol{background:#fff1f0}
       <tr><th style="width:110px">项</th><th>说明</th></tr>
       <tr><td>不需开发</td><td>原型里的「NEW」标记、右侧「需求说明」入口只用于标注</td></tr>
       <tr><td>演示数据</td><td>原型数据都是模拟的，数值不作为验收依据；验收看规则是否符合本说明</td></tr>
-      <tr><td>数据起始日</td><td>原型按 2026-09-20 演示（把日期改成 2026-09-20 后点搜索可看到无对比效果），实际按“数据起始日”的定义取，不要写死</td></tr>
+      <tr><td>数据起始日</td><td>原型按 2026-07-15 演示：点「上月」时对比期是 7 月整月，早于起始日，可看到不对比效果。实际按“数据起始日”的定义取，不要写死</td></tr>
+      <tr><td>现在</td><td>原型把“现在”当作 2026-09-30（周三）10:30 演示，快捷按钮按这个时间算范围。手动改日期后点搜索，可看到“手动选择的日期不做对比”。实际按当前时间</td></tr>
       <tr><td>样式</td><td>颜色、间距、组件样式沿用系统现有风格，不以原型为准</td></tr>
     </table>
   </div>
@@ -207,7 +210,7 @@ th.newcol{background:#fff1f0}
       <div class="v3-fi"><span>通道名称</span>
         <div class="ms"><div class="ms-box" id="ms2-box" onclick="toggleMs2(event)">请选择通道名称（可多选）</div><div class="ms-list" id="ms2-list"></div></div>
       </div>
-      <div class="v3-fi"><span>日期</span><input class="v3-inp" id="f-sd" value="2026-09-29" style="min-width:110px"><span>→</span><input class="v3-inp" id="f-ed" value="2026-09-29" style="min-width:110px"></div>
+      <div class="v3-fi"><span>日期</span><input class="v3-inp" id="f-sd" value="2026-09-30" style="min-width:110px"><span>→</span><input class="v3-inp" id="f-ed" value="2026-09-30" style="min-width:110px"></div>
       <div class="f-right"><div class="v3-btn pri" onclick="search()">搜索</div><div class="v3-btn" onclick="resetAll()">重置</div></div>
     </div>
 
@@ -216,7 +219,7 @@ th.newcol{background:#fff1f0}
       <span style="font-size:12.5px;color:var(--sub);margin-left:10px">查看方式<span class="newf">NEW</span></span>
       <span class="seg" id="seg"><span data-m="sum" class="on">按三方汇总</span><span data-m="detail">通道明细</span></span>
       <span class="f-right">
-        <span class="v3-btn sm">今天</span><span class="v3-btn sm">昨天</span><span class="v3-btn sm">本周</span><span class="v3-btn sm">上周</span><span class="v3-btn sm">本月</span><span class="v3-btn sm">上月</span><span class="v3-btn sm">自定义列</span>
+        <span id="scs"><span class="v3-btn sm" data-sc="today">今天</span><span class="v3-btn sm" data-sc="yesterday">昨天</span><span class="v3-btn sm" data-sc="thisWeek">本周</span><span class="v3-btn sm" data-sc="lastWeek">上周</span><span class="v3-btn sm" data-sc="thisMonth">本月</span><span class="v3-btn sm" data-sc="lastMonth">上月</span></span><span class="v3-btn sm">自定义列</span>
       </span>
     </div>
     <div class="cards" id="cards"></div>
@@ -264,17 +267,20 @@ var D={collect:[
  {tn:'(1037) Bounty',pc:'WowPayINR',ch:'400233 → WOW-OUT',cnt:410,amt:512750,rate:1.2},
  {tn:'(1062) DiuWin',pc:'OkPayINR',ch:'400241 → OK-OUT',cnt:233,amt:301800,rate:0.9}
 ]};
-var S={type:'collect',mode:'sum',cur:'INR',tn:'',pcs:[],chs:[],sort:'amt',dir:-1,sd:'2026-09-29',ed:'2026-09-29'}, pending=[], pendingCh=[];
+var S={type:'collect',mode:'sum',cur:'INR',tn:'',pcs:[],chs:[],sort:'amt',dir:-1,sd:'2026-09-30',ed:'2026-09-30',sc:'today'}, pending=[], pendingCh=[];
 /* 快照数据起始日：本页数据从上线生产那天开始累计，之前的日期不回填（原型按 2026-09-20 演示，实际以上线日为准） */
-var DATA_START='2026-09-20';
+var DATA_START='2026-07-15';
+/* 演示用“现在”（商户本地时间）：2026-09-30 周三 10:30，快捷按钮按它算范围 */
+var DEMO_TODAY='2026-09-30', NOW_HM='10:30';
 
-/* 演示用：给每条通道补上成功率（推出创建笔数/金额）和上一周期系数 */
+/* 演示用：给每条通道补上成功率（推出创建笔数/金额）和对比期系数 */
 var SR={ArbPayINR:.90,RAPayINR:.52,WowPayINR:.34,OkPayINR:.47,SunPayINR:.42,FastPayINR:.38,LuckyPayINR:.31,FastUpiINR:.93};
 var YK={ArbPayINR:.96,RAPayINR:1.08,WowPayINR:1.15,OkPayINR:.92,SunPayINR:1.02,FastPayINR:.85,LuckyPayINR:1.20,FastUpiINR:1.04};
 ['collect','pay'].forEach(function(t){ D[t].forEach(function(r,i){
   if(r.fail){ r.sub=r.fail.sub; r.subAmt=r.fail.subAmt; r.p=r.fail.p; return; }
   var sr=(SR[r.pc]||.5)+((i%3)-1)*.02; r.sub=Math.round(r.cnt/sr); r.subAmt=Math.round(r.amt/sr*100)/100;
   var k=(YK[r.pc]||1)+((i%4)-1.5)*.02; r.p={cnt:Math.round(r.cnt*k),amt:r.amt*k,sub:Math.round(r.sub*k*1.01),subAmt:r.subAmt*k*1.01};
+  if(r.pc==='LuckyPayINR') r.p={cnt:0,amt:0,sub:0,subAmt:0};  /* 演示：对比期没有订单的三方 */
 }); });
 
 function fmt(n){ return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -282,10 +288,34 @@ function fint(n){ return Math.round(n).toLocaleString('en-US'); }
 function pct(x){ return (x*100).toFixed(2)+'%'; }
 function fee(r){ return r.rate==null?0:r.amt*r.rate/100; }
 function pfee(r){ return r.rate==null?0:r.p.amt*r.rate/100; }
-/* 日期工具：上一周期 = 与所选日期等长、紧挨着的前一段 */
+/* 日期工具 */
 function d2s(d){ return d.toISOString().slice(0,10); }
 function s2d(s){ return new Date(s+'T00:00:00Z'); }
-function prevRange(){ var sd=s2d(S.sd), ed=s2d(S.ed), n=Math.round((ed-sd)/864e5)+1, pe=new Date(sd-864e5), ps=new Date(pe-(n-1)*864e5); return {ps:d2s(ps),pe:d2s(pe),none:d2s(ps)<DATA_START}; }
+/* 环比：只有用快捷按钮查询时才对比，对比期由按钮决定（“同期”= 截到同一天的同一时刻） */
+var SC={today:'昨日同期',yesterday:'前日',thisWeek:'上周同期',lastWeek:'上上周',thisMonth:'上月同期',lastMonth:'上上月'};
+function addD(x,n){ return d2s(new Date(s2d(x).getTime()+n*864e5)); }
+function dim(y,m){ return new Date(Date.UTC(y,m,0)).getUTCDate(); }
+function ymd(y,m,d){ return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+function shiftM(x,k){ var t=(+x.slice(0,4))*12+(+x.slice(5,7)-1)+k; return [Math.floor(t/12),t%12+1]; }
+function monday(x){ return addD(x,-((s2d(x).getUTCDay()+6)%7)); }  /* 一周从周一开始，和现有日期控件一致 */
+function scRange(k){ var T=DEMO_TODAY, p;
+  if(k==='today') return [T,T];
+  if(k==='yesterday') return [addD(T,-1),addD(T,-1)];
+  if(k==='thisWeek') return [monday(T),T];
+  if(k==='lastWeek') return [addD(monday(T),-7),addD(monday(T),-1)];
+  if(k==='thisMonth') return [T.slice(0,8)+'01',T];
+  p=shiftM(T,-1); return [ymd(p[0],p[1],1),ymd(p[0],p[1],dim(p[0],p[1]))]; }
+function cmpRange(k){ var T=DEMO_TODAY, p, d, md;
+  if(k==='today') return {s:addD(T,-1),e:addD(T,-1),t:NOW_HM};
+  if(k==='yesterday') return {s:addD(T,-2),e:addD(T,-2)};
+  if(k==='thisWeek') return {s:addD(monday(T),-7),e:addD(T,-7),t:NOW_HM};
+  if(k==='lastWeek') return {s:addD(monday(T),-14),e:addD(monday(T),-8)};
+  if(k==='thisMonth'){ p=shiftM(T,-1); d=+T.slice(8,10); md=dim(p[0],p[1]); return d<=md ? {s:ymd(p[0],p[1],1),e:ymd(p[0],p[1],d),t:NOW_HM} : {s:ymd(p[0],p[1],1),e:ymd(p[0],p[1],md)}; }
+  p=shiftM(T,-2); return {s:ymd(p[0],p[1],1),e:ymd(p[0],p[1],dim(p[0],p[1]))}; }
+function cmpState(){ if(!S.sc) return {ok:false,why:'custom'};
+  var c=cmpRange(S.sc), txt=c.t ? c.s+' 00:00 ~ '+c.e+' '+c.t : (c.s===c.e ? c.s : c.s+' ~ '+c.e);
+  if(c.s<DATA_START) return {ok:false,why:'nodata',txt:txt}; return {ok:true,txt:txt,label:SC[S.sc]}; }
+var CMP_LBL='';
 function bar(x,cls){ return '<span class="bar '+(cls||'')+'"><span class="track"><i style="width:'+Math.max(2,x*100)+'%"></i></span><b>'+pct(x)+'</b></span>'; }
 function sum(a,f){ return a.reduce(function(s,x){return s+f(x)},0); }
 function uniq(a){ return a.filter(function(v,i){return a.indexOf(v)===i}); }
@@ -296,16 +326,15 @@ function scopeRows(){ return S.cur!=='INR' ? [] : D[S.type].filter(function(r){ 
 /* 三方、通道名称筛选：只决定列表显示哪些行，不影响卡片和占比分母 */
 function objHit(r){ return (!S.pcs.length||S.pcs.indexOf(r.pc)>=0) && (!S.chs.length||S.chs.indexOf(r.ch)>=0); }
 
-/* 卡片：cmp 传入上一周期的值时显示对比 */
+/* 卡片：cmp=true 且传入对比期的值时显示对比 */
 function cardHtml(k,v,opt){
   opt=opt||{}; var h='<div class="card"><div class="k">'+k+(opt.tip?' <span class="qm">?<span class="tip">'+opt.tip+'</span></span>':'')+'</div><div class="v'+(opt.green?' g':'')+'">'+v+'</div>';
-  if(opt.noPrev){
-    h+='<div class="p">上一周期 —</div><div class="d eq">无可对比数据</div>';
-  }else if(opt.prev!=null){
-    var d=opt.cur-opt.prev, cls=Math.abs(d)<1e-9?'eq':(d>0?'up':'dn'), sign=d>0?'+':'';
-    h+='<div class="p">上一周期 '+opt.f(opt.prev)+'</div>';
-    h+= opt.pp ? '<div class="d '+cls+'">'+sign+(d*100).toFixed(2)+' 个百分点</div>'
-               : '<div class="d '+cls+'">'+sign+opt.f(d)+(opt.prev?'（'+sign+(d/opt.prev*100).toFixed(2)+'%）':'')+'</div>';
+  if(opt.cmp&&opt.prev!=null){
+    var d=opt.cur-opt.prev, flat=Math.abs(d)<1e-9, cls=flat?'eq':(d>0?'up':'dn'), sign=d>0?'+':'';
+    h+='<div class="p">'+CMP_LBL+' '+opt.f(opt.prev)+'</div>';
+    h+= flat ? '<div class="d eq">持平</div>'
+        : opt.pp ? '<div class="d '+cls+'">'+sign+(d*100).toFixed(2)+' 个百分点</div>'
+        : '<div class="d '+cls+'">'+sign+opt.f(d)+(opt.prev?'（'+sign+(d/opt.prev*100).toFixed(2)+'%）':'')+'</div>';
   }
   return h+'</div>';
 }
@@ -313,6 +342,7 @@ function cardHtml(k,v,opt){
 function render(){
   document.querySelectorAll('#subtabs span').forEach(function(e){e.classList.toggle('on',e.dataset.t===S.type)});
   document.querySelectorAll('#seg span').forEach(function(e){e.classList.toggle('on',e.dataset.m===S.mode)});
+  document.querySelectorAll('#scs span').forEach(function(e){e.classList.toggle('on',e.dataset.sc===S.sc)});
   var TY=S.type==='collect'?'代收':'代付', hasSr=S.type==='collect';  /* 代付没有成功率口径，与通道报表一致 */
   if(!hasSr&&S.sort==='sr'){S.sort='amt';S.dir=-1;}
   var scope=scopeRows(), h='', n=0, cards='', si=function(k){return '<span class="sort-ico '+(S.sort===k?'active':'')+'">'+(S.sort===k&&S.dir>0?'▲':'▼')+'</span>'};
@@ -330,10 +360,10 @@ function render(){
     n=rows.length;
     var top=rows.map(function(r){return r.amt}).sort(function(a,b){return b-a}).slice(0,3);
     cards=cardHtml('总额',fmt(tot))+cardHtml('三方数',uniq(rows.map(function(r){return r.pc})).length)+cardHtml('TOP3',pct(tot?sum(top,function(x){return x})/tot:0),{green:1,tip:'金额占比前三百分比总和'});
-    document.getElementById('cmp-note').textContent='';
+    document.getElementById('cmp-note').innerHTML='';
   }else{
     /* ===== 按三方汇总：分母为查询范围内全部三方合计，不受三方筛选影响 ===== */
-    var PR=prevRange(), np=PR.none;
+    var CS=cmpState(), ok=CS.ok; CMP_LBL=CS.label||'';
     var A={amt:sum(scope,function(r){return r.amt}),cnt:sum(scope,function(r){return r.cnt}),sub:sum(scope,function(r){return r.sub}),subAmt:sum(scope,function(r){return r.subAmt}),fee:sum(scope,fee)};
     var P={amt:sum(scope,function(r){return r.p.amt}),cnt:sum(scope,function(r){return r.p.cnt}),sub:sum(scope,function(r){return r.p.sub}),subAmt:sum(scope,function(r){return r.p.subAmt}),fee:sum(scope,pfee)};
     var agg=function(rows){ var g={};
@@ -351,13 +381,16 @@ function render(){
     });
     n=list.length;
     var tn=uniq(scope.map(function(r){return r.tn})).length;
-    cards=cardHtml('三方数',all.length,{tip:hasSr?'有下单的三方个数，含全部失败的三方':'有成功出款的三方个数'})+cardHtml('商户数',tn)
-      +(hasSr?cardHtml(TY+'创建金额',fmt(A.subAmt),{cur:A.subAmt,prev:P.subAmt,f:fmt,noPrev:np})+cardHtml(TY+'创建笔数',fint(A.sub),{cur:A.sub,prev:P.sub,f:fint,noPrev:np}):'')
-      +cardHtml(TY+'成功金额',fmt(A.amt),{cur:A.amt,prev:P.amt,f:fmt,noPrev:np})
-      +cardHtml(TY+'成功笔数',fint(A.cnt),{cur:A.cnt,prev:P.cnt,f:fint,noPrev:np})
-      +(hasSr?cardHtml(TY+'成功率',pct(A.sub?A.cnt/A.sub:0),{green:1,cur:A.sub?A.cnt/A.sub:0,prev:P.sub?P.cnt/P.sub:0,f:pct,pp:1,noPrev:np}):'')
-      +cardHtml('手续费',fmt(A.fee),{noPrev:np,cur:A.fee,prev:P.fee,f:fmt,tip:'只合计已配置费率部分的手续费；按配置计算，不是三方实际结算金额'});
-    document.getElementById('cmp-note').textContent= n||scope.length ? '卡片为全部三方的合计，不受「三方」「通道名称」筛选影响。上一周期：'+PR.ps+' ~ '+PR.pe+'（与所选日期等长的前一段时间）'+(np?'；早于数据起始日 '+DATA_START+'，不做对比':'') : '';
+    var had=function(r){ return r.p.cnt>0||(hasSr&&r.p.sub>0); };  /* 对比期有订单（口径同第 06 条） */
+    var pPc=uniq(scope.filter(had).map(function(r){return r.pc})).length, pTn=uniq(scope.filter(had).map(function(r){return r.tn})).length;
+    cards=cardHtml('三方数',all.length,{tip:hasSr?'有下单的三方个数，含全部失败的三方':'有成功出款的三方个数',cur:all.length,prev:pPc,f:fint,cmp:ok})+cardHtml('商户数',tn,{cur:tn,prev:pTn,f:fint,cmp:ok})
+      +(hasSr?cardHtml(TY+'创建金额',fmt(A.subAmt),{cur:A.subAmt,prev:P.subAmt,f:fmt,cmp:ok})+cardHtml(TY+'创建笔数',fint(A.sub),{cur:A.sub,prev:P.sub,f:fint,cmp:ok}):'')
+      +cardHtml(TY+'成功金额',fmt(A.amt),{cur:A.amt,prev:P.amt,f:fmt,cmp:ok})
+      +cardHtml(TY+'成功笔数',fint(A.cnt),{cur:A.cnt,prev:P.cnt,f:fint,cmp:ok})
+      +(hasSr?cardHtml(TY+'成功率',pct(A.sub?A.cnt/A.sub:0),{green:1,cur:A.sub?A.cnt/A.sub:0,prev:P.sub?P.cnt/P.sub:0,f:pct,pp:1,cmp:ok}):'')
+      +cardHtml('手续费',fmt(A.fee),{cmp:ok,cur:A.fee,prev:P.fee,f:fmt,tip:'只合计已配置费率部分的手续费；按配置计算，不是三方实际结算金额'});
+    var cmpTxt = ok ? '对比期：'+CS.txt+'（'+CS.label+'）' : CS.why==='custom' ? '手动选择的日期不做对比，用「今天 / 昨天 / 本周 / 上周 / 本月 / 上月」快捷按钮查询时才对比' : '对比期（'+CS.txt+'）早于数据起始日，没有数据，不对比';
+    document.getElementById('cmp-note').innerHTML= n||scope.length ? '卡片为全部三方的合计，不受「三方」「通道名称」筛选影响。'+cmpTxt+' <span class="qm">?<span class="tip">对比口径（环比）：只在用快捷按钮查询时对比。<br>今天 → 昨日同期；昨天 → 前日；本周 → 上周同期；上周 → 上上周；本月 → 上月同期；上月 → 上上月。<br>“同期”指截到同一天的同一时刻。手动选的日期不对比；对比期早于数据起始日也不对比。</span></span>' : '';
   }
   document.getElementById('cards').innerHTML=cards;
   document.getElementById('tbody').innerHTML=h;
@@ -385,13 +418,15 @@ function pickPc(c){ if(c.checked){ if(pending.indexOf(c.value)<0)pending.push(c.
 function search(){ var sd=document.getElementById('f-sd').value.trim(), ed=document.getElementById('f-ed').value.trim(), ok=/^\d{4}-\d{2}-\d{2}$/;
   if(!ok.test(sd)||!ok.test(ed)||isNaN(s2d(sd))||isNaN(s2d(ed))){ toast('日期格式为 YYYY-MM-DD'); return; }
   if(sd>ed){ toast('结束日期不能早于开始日期'); return; }
+  if(S.sc){ var r=scRange(S.sc); if(r[0]!==sd||r[1]!==ed) S.sc=null; }  /* 点了快捷按钮后又手动改日期 = 手动选择 */
   S.sd=sd; S.ed=ed; S.cur=document.getElementById('f-cur').value; S.tn=document.getElementById('f-tn').value; S.pcs=pending.slice(); S.chs=pendingCh.slice(); document.getElementById('ms-list').classList.remove('show'); document.getElementById('ms2-list').classList.remove('show'); render(); toast('搜索已刷新'); }
-function resetAll(){ pending=[]; pendingCh=[]; S.tn=''; S.pcs=[]; S.chs=[]; S.cur='INR'; document.getElementById('f-cur').value='INR'; S.sd=S.ed='2026-09-29'; document.getElementById('f-sd').value=document.getElementById('f-ed').value='2026-09-29'; fillOptions(); render(); toast('已重置筛选条件'); }
+function resetAll(){ pending=[]; pendingCh=[]; S.tn=''; S.pcs=[]; S.chs=[]; S.cur='INR'; document.getElementById('f-cur').value='INR'; S.sd=S.ed=DEMO_TODAY; S.sc='today'; document.getElementById('f-sd').value=document.getElementById('f-ed').value=DEMO_TODAY; fillOptions(); render(); toast('已重置筛选条件'); }
 function sortBy(k){ if(S.sort===k) S.dir=-S.dir; else{ S.sort=k; S.dir=-1; } render(); }
 function drill(pc){ pending=[pc]; S.pcs=[pc]; pendingCh=[]; S.chs=[]; S.mode='detail'; S.sort='amt'; S.dir=-1; fillOptions(); render(); toast('已切到通道明细，并筛选三方：'+pc+'（通道名称筛选已清空）'); }
 function doExport(){ toast(S.mode==='sum'?'导出任务已提交：按三方汇总表':'导出任务已提交：通道明细表'); }
 
 document.getElementById('subtabs').addEventListener('click',function(e){ var t=e.target.dataset.t; if(t){ S.type=t; pending=[]; S.pcs=[]; pendingCh=[]; S.chs=[]; S.tn=''; fillOptions(); render(); } });
+document.getElementById('scs').addEventListener('click',function(e){ var k=e.target.dataset.sc; if(k){ var r=scRange(k); document.getElementById('f-sd').value=r[0]; document.getElementById('f-ed').value=r[1]; S.sc=k; search(); } });
 document.getElementById('seg').addEventListener('click',function(e){ var m=e.target.dataset.m; if(m){ S.mode=m; S.sort='amt'; S.dir=-1; render(); } });
 document.addEventListener('click',function(e){ if(!e.target.closest('.ms')){ document.getElementById('ms-list').classList.remove('show'); document.getElementById('ms2-list').classList.remove('show'); } });
 
