@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>三方游戏记录 · 代理查询 / 历史数据 · 交互原型</title>
+<style>
+/* 取值对齐 ar_platform_admin（origin/uat）默认主题：主题色 #0960bd、Naive UI small 控件 */
+:root{
+  --pri:#0960bd;--pri-h:#357dc9;--pri-soft:rgba(9,96,189,.08);
+  --line:#efeff5;--line2:#e0e0e6;--bg:#f5f7f9;
+  --t1:#1f2225;--t2:#333639;--t3:#767c82;--t4:#a2a7ad;
+  --ok:#18a058;--err:#d03050;--warn:#f0a020;--info:#2080f0;--link:#1677ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);background:var(--bg)}
+button{font:inherit}
+.newf{display:inline-block;background:#f5222d;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:0 4px;line-height:14px;letter-spacing:.2px;vertical-align:1px;margin-left:4px;font-style:normal}
+
+/* ============ 顶部路径 ============ */
+.top{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 0}
+.crumb{font-size:12px;color:var(--t3)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--t2);font-weight:600}
+.req-btn{height:30px;padding:0 14px;border-radius:15px;background:#fff;border:1px solid #9bbbe4;color:var(--pri);font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(9,96,189,.12)}
+.req-btn:hover{background:#f0f6fd}
+
+.page{padding:10px 16px 90px}
+.panel{background:#fff;border-radius:3px;padding:0 12px 10px}
+
+/* ============ 顶部页签（彩票 / 视讯 / …） ============ */
+.gtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:10px;overflow-x:auto;scrollbar-width:none}
+.gtabs span{padding:9px 12px 7px;cursor:pointer;color:var(--t2);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.gtabs span:hover{color:var(--pri)}
+.gtabs span.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:600}
+
+.body{display:flex;gap:10px;align-items:flex-start}
+.lnav{flex:0 0 94px;display:flex;flex-direction:column;gap:6px}
+.lnav div{border:1px solid var(--line2);border-radius:4px;padding:12px 4px;text-align:center;cursor:pointer;background:#fff}
+.lnav div b{display:block;font-size:12.5px}
+.lnav div span{display:block;font-size:11px;color:var(--t3);margin-top:2px}
+.lnav div:hover{border-color:var(--pri)}
+.lnav div.on{border:2px solid var(--pri);padding:11px 3px}
+.lnav div.on b{color:var(--pri)}
+.main{flex:1;min-width:0}
+
+/* ============ 查询方式切换（新增） ============ */
+.mode-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;padding:8px 10px;background:#f7f9fc;border:1px solid #e8edf3;border-radius:4px}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden;background:#fff;flex:0 0 auto}
+.seg span{padding:0 14px;height:28px;line-height:28px;border-right:1px solid var(--line2);cursor:pointer;color:var(--t2);user-select:none;white-space:nowrap}
+.seg span:last-child{border-right:none}
+.seg span:hover{color:var(--pri)}
+.seg span.on{color:#fff;background:var(--pri)}
+.seg span.on .newf{background:#fff;color:#f5222d}
+.seg span.dis{color:#c2c6cc;cursor:not-allowed;background:#fafafa}
+.seg span.dis .newf{opacity:.5}
+.mtip{font-size:12.5px;color:#8a5a00;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mtip .ii{display:inline-flex;width:15px;height:15px;border-radius:50%;background:#f0a020;color:#fff;font-size:10px;font-weight:700;align-items:center;justify-content:center;flex:0 0 auto}
+.mtip a{color:var(--link);cursor:pointer;text-decoration:none}
+.mtip a:hover{text-decoration:underline}
+.mtip b{color:#ad4e00}
+
+/* ============ 搜索区 ============ */
+.sf{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px 18px;margin-bottom:12px}
+.fi{display:flex;align-items:center;min-width:0}
+.fi>label{flex:0 0 74px;text-align:right;padding-right:8px;color:var(--t2);white-space:nowrap}
+.fi>label .rq{color:var(--err);margin-left:2px}
+.fi.span2{grid-column:span 2}
+.fi.newfi>label{color:#c41d7f;font-weight:600}
+.fi.newfi input{border-color:#f5a3c7;background:#fff8fb}
+.fi select,.fi input{height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 8px;font-size:13px;background:#fff;color:var(--t1);outline:none;min-width:0;width:100%}
+.fi select.ph{color:var(--t4)}
+.fi select:focus,.fi input:focus{border-color:var(--pri)}
+.fi input.bad{border-color:var(--err)!important;box-shadow:0 0 0 2px rgba(208,48,80,.12)}
+.rng{flex:1;display:flex;align-items:center;gap:4px;min-width:0}
+.rng input{flex:1}
+.rng span{color:var(--t4)}
+.tm{flex:1;display:flex;align-items:center;min-width:0;border:1px solid var(--line2);border-radius:3px;height:28px;background:#fff}
+.tm select{flex:0 0 92px;width:92px;border:none;border-right:1px solid var(--line2);border-radius:0;height:26px}
+.tm-v{flex:1;display:flex;align-items:center;justify-content:space-around;gap:6px;min-width:0;height:26px;padding:0 8px;cursor:pointer;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden}
+.tm-v .ar{color:var(--t4)}
+.tm-v .phv{color:var(--t4)}
+.tm-v .cal{color:var(--t4);font-size:12px}
+.tm.open{border-color:var(--pri)}
+/* 时间控件弹窗（简化版：日历省略，只演示快捷项） */
+.tp{position:fixed;z-index:900;width:596px;max-width:calc(100vw - 24px);background:#fff;border-radius:4px;box-shadow:0 3px 6px -4px rgba(0,0,0,.12),0 6px 16px 0 rgba(0,0,0,.08),0 9px 28px 8px rgba(0,0,0,.05);padding:10px 0 10px;display:none}
+.tp.show{display:block}
+.tp-tz{text-align:right;font-size:11px;color:var(--pri);padding:0 14px 4px}
+.tp-in{display:flex;gap:8px;align-items:center;padding:0 14px}
+.tp-in input{flex:1;min-width:0;height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 8px;font-size:13px;font-variant-numeric:tabular-nums;outline:none}
+.tp-in input:focus{border-color:var(--pri)}
+.tp-in span{color:var(--t4)}
+.tp-cal{margin:10px 14px;height:150px;border:1px dashed #d9dde3;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--t4);font-size:12px;background:#fafbfc}
+.tp-ft{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:8px 14px 0;flex-wrap:wrap}
+.tp-sc{display:flex;gap:6px;flex-wrap:wrap;min-width:0;flex:1}
+.tp-sc span{height:22px;line-height:22px;padding:0 7px;border-radius:3px;background:#f2f3f5;color:var(--t2);font-size:12px;cursor:pointer;white-space:nowrap;user-select:none}
+.tp-sc span:hover{background:#e7e9ec}
+.tp-sc span.on{background:rgba(9,96,189,.14);color:var(--pri)}
+.tp-sc span.nw{box-shadow:inset 0 0 0 1px #f5a3ab}
+.tp-btn{display:flex;align-items:center;gap:8px;margin-left:auto}
+.tp-err{font-size:12px;color:var(--err);max-width:200px}
+.act{justify-content:flex-end;gap:8px;grid-column-end:-1}
+.sf.fold .more{display:none}
+.btn{height:28px;padding:0 14px;border-radius:3px;border:1px solid var(--line2);background:#fff;color:var(--t2);cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn:hover{color:var(--pri);border-color:var(--pri)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.pri:hover{background:var(--pri-h);border-color:var(--pri-h);color:#fff}
+.btn.xs{height:22px;padding:0 8px;font-size:12px}
+.fold-a{color:var(--pri);cursor:pointer;font-size:12.5px;white-space:nowrap}
+
+/* ============ 工具栏 ============ */
+.tb{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px}
+.mid-fold{font-size:12px;color:#fff;background:var(--pri);border-radius:3px;padding:1px 8px;cursor:pointer}
+
+/* ============ 表格 ============ */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:3px}
+table{border-collapse:separate;border-spacing:0;width:100%}
+th{background:#fafafc;font-weight:600;color:var(--t2);padding:9px 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle;background:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
+tr:hover td{background:#f8f9fb}
+tr.sum td{font-weight:700;background:#fafafc}
+th.newcol{background:#fff1f0}
+td.newcol{background:#fffafa}
+th .tz{font-weight:400;color:var(--t3);font-size:12px}
+.tg{display:inline-block;padding:0 7px;line-height:20px;border-radius:3px;border:1px solid;font-size:12px;white-space:nowrap}
+.tg.ok{color:var(--ok);border-color:rgba(24,160,88,.3);background:rgba(24,160,88,.08)}
+.tg.info{color:var(--info);border-color:rgba(32,128,240,.3);background:rgba(32,128,240,.08)}
+.tg.df{color:var(--t2);border-color:var(--line2);background:#fafafc}
+.tg.wn{color:#d46b08;border-color:rgba(240,160,32,.35);background:rgba(240,160,32,.08)}
+.tn{display:inline-block;padding:0 8px;line-height:22px;border-radius:11px;background:#e8f1fb;color:#0b58a8;border:1px solid #b9d3f0;font-size:12px}
+.cur{display:inline-block;padding:0 6px;line-height:20px;border-radius:3px;background:rgba(24,160,88,.08);color:var(--ok);border:1px solid rgba(24,160,88,.3);font-size:11.5px}
+.lnk{color:var(--link);cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.pos{color:var(--ok);font-weight:600}
+.neg{color:var(--err);font-weight:600}
+.ball{display:inline-flex;width:22px;height:22px;border-radius:50%;color:#fff;font-weight:700;font-size:12px;align-items:center;justify-content:center;box-shadow:inset 0 -2px 0 rgba(0,0,0,.15)}
+.ball.r{background:#f5455c}.ball.g{background:#18b660}.ball.rv{background:linear-gradient(135deg,#f5455c 50%,#a855f7 50%)}.ball.gv{background:linear-gradient(135deg,#18b660 50%,#a855f7 50%)}
+.dice{display:inline-flex;gap:3px}
+.dice i{font-style:normal;display:inline-flex;width:18px;height:18px;border-radius:4px;border:1px solid #c9cdd4;font-size:11px;align-items:center;justify-content:center;background:#fff}
+.mono{font-family:Menlo,Consolas,monospace;font-size:12px;letter-spacing:.3px}
+.muted{color:var(--t4)}
+.empty{padding:70px 0!important;color:var(--t4);white-space:normal}
+.empty b{display:block;font-size:13.5px;color:var(--t3);margin-bottom:4px;font-weight:600}
+
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:12px 4px 2px;font-size:12.5px;color:var(--t2)}
+.pg-n{min-width:24px;height:24px;border:1px solid var(--line2);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:var(--t3);cursor:pointer;padding:0 4px;user-select:none}
+.pg-n.on{border-color:var(--pri);color:var(--pri)}
+.pg-n.dis{color:#d0d3d8;cursor:not-allowed}
+
+/* ============ 消息 ============ */
+.msgs{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.msg{background:#fff;box-shadow:0 3px 6px -4px rgba(0,0,0,.12),0 6px 16px 0 rgba(0,0,0,.08),0 9px 28px 8px rgba(0,0,0,.05);border-radius:3px;padding:9px 14px;display:flex;gap:8px;align-items:flex-start;max-width:640px;transition:opacity .3s,transform .3s}
+.msg.out{opacity:0;transform:translateY(-6px)}
+.msg .ic{width:16px;height:16px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:2px}
+.msg.success .ic{background:var(--ok)}
+.msg.error .ic{background:var(--err)}
+.msg.warning .ic{background:var(--warn)}
+.msg.info .ic{background:var(--info)}
+.tip{position:fixed;z-index:1100;background:#1f2733;color:#fff;font-size:12px;line-height:1.7;padding:6px 10px;border-radius:4px;max-width:360px;white-space:pre-line;pointer-events:none;display:none;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+
+/* ============ 原型演示控制（不需开发） ============ */
+.demo{position:fixed;left:16px;bottom:16px;z-index:650;width:390px;max-width:calc(100vw - 32px);background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.12);font-size:12px}
+.demo-h{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-weight:600;cursor:pointer;color:#874d00}
+.demo-h span{font-weight:400;color:#ad6800}
+.demo-b{padding:0 12px 10px;display:flex;flex-direction:column;gap:7px}
+.demo.min .demo-b{display:none}
+.dr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:#594214}
+.dn{color:#8c6d1f;line-height:1.75;border-top:1px dashed #ffe58f;padding-top:6px}
+.dn code{font-family:Menlo,Consolas,monospace;background:#fff3c4;padding:0 3px;border-radius:2px}
+.tree{font-family:Menlo,Consolas,monospace;font-size:11.5px;line-height:1.6;color:#594214;background:#fff8d6;border-radius:4px;padding:6px 8px;white-space:pre}
+
+/* ============ 右侧需求说明抽屉 ============ */
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:12px;padding:12px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:2px;box-shadow:-2px 0 8px rgba(9,96,189,.2)}
+.req-handle:hover{background:var(--pri-h)}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:800;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-880px;width:860px;max-width:94vw;height:100%;background:#fff;z-index:801;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 18px;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:var(--t3);font-size:18px}
+.req-body{flex:1;overflow-y:auto;padding:16px 18px 40px;font-size:12.5px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body .h1:first-child{margin-top:0}
+.req-body table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 6px}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 8px;text-align:left;font-weight:600;color:#1c4c8c;white-space:normal}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 8px;vertical-align:top;line-height:1.7;text-align:left;background:#fff;white-space:normal}
+.req-body table.t tr:hover td{background:#fff}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 11px;margin:6px 0;line-height:1.75;border-radius:0 4px 4px 0}
+.req-body .br b{color:#1c4c8c}
+.req-body .br ul{margin:4px 0 0 18px}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+.req-body code{font-family:Menlo,Consolas,monospace;font-size:11.5px;background:#f2f3f5;padding:0 4px;border-radius:3px}
+.req-body .y{color:var(--ok);font-weight:700}
+.req-body .n{color:var(--t4)}
+
+@media (max-width:1535px){.sf{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:1200px){.sf{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:900px){.sf{grid-template-columns:repeat(2,minmax(0,1fr))}.lnav{flex-basis:80px}}
+@media (max-width:640px){.sf{grid-template-columns:1fr}.fi.span2{grid-column:auto}.body{flex-direction:column;align-items:stretch}.main{width:100%}.tm{flex-wrap:wrap;height:auto}.tm select{flex-basis:100%;width:100%;border-right:none;border-bottom:1px solid var(--line2)}.tm input{flex:1;min-width:0}.lnav{flex-direction:row;flex-wrap:wrap;flex-basis:auto}.lnav div{flex:1 0 80px}.tb{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+
+<!-- 右侧需求说明 -->
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="req-mask" onclick="closeReq()"></div>
+<div class="req-drawer" id="req-drawer">
+  <div class="req-head"><span class="t">需求说明 · 彩票 / 视讯投注订单新增「代理查询」「历史数据」</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body">
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:210px">页面</th><th>改动点</th></tr>
+      <tr><td>游戏 → 三方游戏记录 → 彩票投注订单</td><td>搜索区上方加「快速查询 / 代理查询 / 历史数据」切换。现有查询就是「快速查询」，不改</td></tr>
+      <tr><td>游戏 → 三方游戏记录 → 视讯投注订单</td><td>搜索区上方加「快速查询 / 代理查询」切换</td></tr>
+      <tr><td>体育 / 电子 / 棋牌投注订单</td><td>本期不改</td></tr>
+    </table>
+    <table class="t">
+      <tr><th>彩种 / 类型</th><th style="width:80px">代理查询</th><th style="width:80px">历史数据</th><th style="width:150px">导出</th><th>说明</th></tr>
+      <tr><td>Win Go、K3、5D、TRX Win Go</td><td class="y">有</td><td class="y">有</td><td>代理查询、历史数据都能导出</td><td>和 V1 一样</td></tr>
+      <tr><td>XOSO、新彩种（MOTO Video）</td><td class="y">有</td><td class="n">不显示</td><td>代理查询能导出<i class="newf">NEW</i></td><td>V1 代理查询没有导出，这里加上。XOSO 导出上限沿用快速查询（1 万行）</td></tr>
+      <tr><td>视讯</td><td class="y">有</td><td class="n">不显示</td><td>代理查询不导出</td><td>和 V1 一样</td></tr>
+    </table>
+
+    <div class="h1">二、名词</div>
+    <table class="t">
+      <tr><th style="width:110px">名词</th><th>说明</th></tr>
+      <tr><td><b>快速查询</b></td><td>现有的查询，查实时订单表，只能查到最近 N 天（各站保留天数不同）</td></tr>
+      <tr><td><b>代理查询</b></td><td>输入代理的会员ID，查他名下<b>所有层级</b>下级的订单（直属下级、下级的下级……）。只算<b>正式会员</b>，<b>不含代理本人</b></td></tr>
+      <tr><td><b>代理ID</b></td><td>代理自己的会员ID，不是邀请码</td></tr>
+      <tr><td><b>历史数据</b></td><td>查 V1 每天归档的备份订单，能查多早看本站历史数据保留多久（各站不同）；必须填会员ID</td></tr>
+    </table>
+
+    <div class="h1">三、功能描述与业务规则</div>
+    <div class="br"><span class="bn">01</span><b>位置</b>：彩票放在左侧彩种列表右边、搜索区上方；视讯放在搜索区上方。</div>
+    <div class="br"><span class="bn">02</span><b>代理查询</b>
+      <ul>
+        <li>搜索条件（和 V1 一样）：
+          <br>· Win Go、K3、5D、TRX：商户、<b>代理ID</b>、会员ID、期号、玩法类型、投注单号、订单状态、数据排序、时间
+          <br>· XOSO：快速查询的全部条件 + <b>代理ID</b>
+          <br>· 新彩种：商户、<b>代理ID</b>、会员ID、期号、投注单号、游戏名称、订单状态、数据排序、时间
+          <br>· 视讯：商户、<b>代理ID</b>、会员ID、游戏局号、订单状态、数据排序、时间</li>
+        <li>代理ID 必填，只能输数字；搜索区上方提示「代理ID 必填」；会员ID 只在这个代理的下级里筛；</li>
+        <li>范围：所有层级的下级，只算正式会员，不含代理本人。XOSO 也按下级查（V1 XOSO 查成了代理的上级链路，不照搬）；</li>
+        <li>时间只按<b>下注时间</b>，默认今天，单次最多 31 天（沿用现有时间控件）；和快速查询一样只能查最近 N 天；</li>
+        <li>数据排序（和 V1 一样）：Win Go、K3、5D、TRX 为 默认、投注金额升序、投注金额降序；新彩种再加 期号升序、期号降序；视讯再加 局号升序、局号降序；XOSO 沿用快速查询的排序。按所选的正确排序（V1 这里选升序实际是降序，不照搬）；</li>
+        <li>进入页签不自动查询；没填代理ID就点搜索或导出，提示「请输入代理ID」；</li>
+        <li>列和快速查询一样。</li>
+      </ul>
+    </div>
+    <div class="br"><span class="bn">03</span><b>历史数据</b>（只有 Win Go、K3、5D、TRX Win Go）
+      <ul>
+        <li>搜索条件（和 V1 一样）：商户、<b>会员ID</b>、玩法类型、投注单号、订单状态、时间；5D 多一个期号；</li>
+        <li>会员ID 必填；搜索区上方提示「会员ID 必填」；进入页签不自动查询；没填会员ID就点搜索或导出，提示「请输入会员ID」；</li>
+        <li>时间只按<b>下注时间</b>，默认昨天，<b>不限时间跨度</b>；能查多早按本站历史数据的保留时间（各站不同，不写死天数）；</li>
+        <li>快捷项放在时间控件的弹窗里，和快速查询一致：昨天、本周、上周、本月、上月、近7天、近30天、<b>所有</b>（当天的订单还没归档，所以不放「今天」）。选「所有」= 不加时间条件，查这个会员能查到的全部历史订单（和 V1 一样）；</li>
+        <li>固定按下注时间倒序，没有数据排序（和 V1 一样）；</li>
+        <li>列：快速查询的列去掉「开奖结果」，Win Go 再去掉「能量奖励」（备份表没有这些数据）。</li>
+      </ul>
+    </div>
+    <div class="br"><span class="bn">04</span><b>权限</b>：不加新权限，三种查询方式共用现有的查询、导出权限（<code>Game:ThirdGame:GetPageList</code>、<code>Game:ThirdGame:GetPageList:export</code>），和 V1、资金账变一样。</div>
+    <div class="br"><span class="bn">05</span><b>嵌入场景不变</b>：会员详情、出款工作台订单详情里嵌入的投注记录不显示切换，仍然只有快速查询。</div>
+
+    <div class="h1">四、原型说明</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>不需开发</td><td>「NEW」标记、左下角「原型演示控制」面板、右侧「需求说明」入口只用于演示和标注</td></tr>
+      <tr><td>演示数据</td><td>数据都是模拟的，示例ID见左下角面板。(2007)vnd 用来演示不同时区（UTC+7）和币种（VND 无小数）</td></tr>
+      <tr><td>列和条件</td><td>各彩种的列、下拉选项沿用现有，原型做了简化，只看查询方式这部分的改动</td></tr>
+      <tr><td>样式</td><td>颜色、间距、组件沿用系统现有风格，不以原型为准</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="top">
+  <div class="crumb">游戏<span class="sep">/</span><span class="cur">三方游戏记录</span></div>
+  <div class="req-btn" onclick="openReq()">📋 需求说明</div>
+</div>
+
+<div class="page"><div class="panel">
+  <div class="gtabs" id="gtabs"></div>
+  <div class="body">
+    <div class="lnav" id="lnav"></div>
+    <div class="main">
+      <div class="mode-bar"><div class="seg" id="seg"></div><div class="mtip" id="mtip"></div></div>
+      <div class="sf" id="sf"></div>
+      <div class="tb">
+        <button class="btn pri" id="btn-exp" onclick="doExport()">⇩ 导出</button>
+        <span class="mid-fold" id="mid-fold" onclick="toggleFold()">︿ 收起</span>
+        <button class="btn" onclick="msgShow('info','自定义列沿用现有')">⚙ 自定义列</button>
+      </div>
+      <div class="tw"><table id="tbl"><thead id="thd"></thead><tbody id="tbd"></tbody></table></div>
+      <div class="pager" id="pager"></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- 原型演示控制（不需开发） -->
+<div class="demo min" id="demo">
+  <div class="demo-h" onclick="document.getElementById('demo').classList.toggle('min')">🧪 原型演示控制（不需开发）<span>点击展开 / 收起</span></div>
+  <div class="demo-b">
+    <div class="dr">一键演示：
+      <button class="btn xs" onclick="demoAgent('2250001')">代理查询 2250001</button>
+    </div>
+    <div class="dr">
+      <button class="btn xs" onclick="demoHist()">历史数据：会员 2252818 · 上个月</button>
+      <button class="btn xs" onclick="demoVnd()">切到 (2007)vnd</button>
+    </div>
+    <div class="dn">(2001)sit-inr 的代理线（全部层级，只算正式会员，不含本人）：</div>
+    <div class="tree">2240000（上级代理）
+├─ 2250001（代理，自己也有投注）
+│  ├─ 2252818
+│  │  ├─ 2253107
+│  │  │  └─ 2254420
+│  │  └─ 2258888（测试账号）
+│  └─ 2247668
+└─ 2251000（代理，没有下级）
+2255901、2256012：不在这条线上</div>
+    <div class="dn">· 快速查询能看到 2250001 本人和测试账号 2258888 的订单；代理查询 2250001 这两个都不算，只看到 4 个正式下级的。<br>· 填 2240000 会把 2250001 本人和他整条线都查出来（全部层级）。<br>· (2007)vnd：代理 <code>5100001</code>，下级 5100236 → 5100318；时区 UTC+7，币种 VND 无小数。</div>
+  </div>
+</div>
+
+<div class="tp" id="tp">
+  <div class="tp-tz" id="tp-tz"></div>
+  <div class="tp-in"><input id="tp-s"><span>→</span><input id="tp-e"></div>
+  <div class="tp-cal">日历面板沿用现有时间控件（原型省略）</div>
+  <div class="tp-ft"><div class="tp-sc" id="tp-sc"></div><div class="tp-btn"><span class="tp-err" id="tp-err"></span><button class="btn xs" onclick="tpReset()">重置</button><button class="btn xs pri" onclick="tpOk()">确定</button></div></div>
+</div>
+<div class="msgs" id="msgs"></div>
+<div class="tip" id="tip"></div>
+
+<script>
+/* ==================== 基础工具 ==================== */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function pad(n,l){ n=String(n); while(n.length<(l||2)) n='0'+n; return n; }
+function rng(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; var t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function hash(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function pick(a,r){ return a[Math.floor(r()*a.length)]; }
+function digits(r,n){ var s=''; for(var i=0;i<n;i++) s+=Math.floor(r()*10); return s; }
+function r2(x){ return Math.round(x*100)/100; }
+var DAY=86400000;
+/* 时间统一用「商户本地时间」的毫秒数（按 UTC 计算，避免受浏览器时区影响） */
+function fmtT(ms){ var d=new Date(ms); return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate())+' '+pad(d.getUTCHours())+':'+pad(d.getUTCMinutes())+':'+pad(d.getUTCSeconds()); }
+function fmtD(ms){ return fmtT(ms).slice(0,10); }
+function parseT(s){ var m=/^\s*(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\s*$/.exec(s||''); return m?Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6]):NaN; }
+function compact(ms){ return fmtT(ms).replace(/\D/g,''); }
+
+/* ==================== 商户 ==================== */
+var TEN={
+  2001:{label:'(2001)sit-inr',cur:'INR',tz:'UTC+5:30',off:330,dec:2,keep:{lottery:28,live:35},
+    rel:{2240000:0,2250001:2240000,2252818:2250001,2247668:2250001,2253107:2252818,2254420:2253107,2258888:2252818,2251000:2240000,2255901:0,2256012:0},
+    test:{2258888:1},
+    members:[2250001,2252818,2247668,2253107,2254420,2258888,2255901,2256012]},
+  2002:{label:'(2002)sit-inr2002',cur:'INR',tz:'UTC+5:30',off:330,dec:2,keep:{lottery:28,live:35},rel:{3300001:0,3300101:3300001},members:[]},
+  2007:{label:'(2007)vnd',cur:'VND',tz:'UTC+7',off:420,dec:0,keep:{lottery:14,live:21},
+    rel:{5100001:0,5100236:5100001,5100318:5100236,5100577:0},members:[5100001,5100236,5100318,5100577]}
+};
+function nowMs(t){ return Date.now()+TEN[t].off*60000; }
+function today0(t){ var n=nowMs(t); return n-n%DAY; }
+function team(T,aid){ var out=[], q=[aid]; while(q.length){ var p=q.shift(); for(var k in T.rel){ if(T.rel[k]===p){ out.push(+k); q.push(+k); } } } return out; }
+
+/* ==================== 游戏定义 ==================== */
+var NUMS=['0','1','2','3','4','5','6','7','8','9'];
+var GAMES={
+  wingo:{name:'Win Go',sub:'Win Go彩种',pre:'WG',hist:true,energy:true,res:'ball',play:['30 s','1 Min','3 Min','5 Min'],bet:[['大小',['big','small']],['颜色',['red','green','violet']],['数字',NUMS]]},
+  k3:{name:'K3',sub:'K3彩种',pre:'K3',hist:true,res:'dice',play:['1 Min','3 Min','5 Min','10 Min'],bet:[['和值',['4','7','10','11','14','17']],['大小',['big','small']],['单双',['odd','even']]]},
+  d5:{name:'5D',sub:'5D彩种',pre:'5D',hist:true,res:'d5',play:['1 Min','3 Min','5 Min','10 Min'],bet:[['A位',NUMS],['和值',['big','small','odd','even']]]},
+  trx:{name:'TRX Win Go',sub:'TRX Wingo彩种',pre:'TW',hist:true,res:'ball',play:['1 Min','3 Min','5 Min','10 Min'],bet:[['大小',['big','small']],['颜色',['red','green','violet']],['数字',NUMS]]},
+  xoso:{name:'XOSO',sub:'XOSO 越南彩',pre:'XS',hist:false,res:'xs',play:['北部75秒','南部75秒','中部75秒'],bet:[['Lô 2 số',['27','38','91','05']],['Đề',['62','14']]]},
+  moto:{name:'新彩种',sub:'MOTO Video',pre:'MT',hist:false,res:'moto',play:['MOTO Racing'],bet:[['冠军',NUMS.slice(1)],['大小',['big','small']]]}
+};
+var LOT_KEYS=['wingo','k3','d5','trx','xoso','moto'];
+var VENDORS={'WM_Video':['骰宝','百家乐'],'SEXY视讯':['Extra骰宝','百家乐'],'EVO视讯':['XXXtreme Lightning Roulette','Crazy Time']};
+var DUR={'30 s':30,'1 Min':60,'3 Min':180,'5 Min':300,'10 Min':600,'北部75秒':75,'南部75秒':75,'中部75秒':75,'MOTO Racing':120};
+var ODDS={'大小':2,'单双':2,'颜色':2,'数字':9,'A位':9,'和值':8,'Lô 2 số':3.5,'Đề':9,'冠军':9};
+var ST_LOT={pending:['待开奖','info'],won:['已压中','ok'],lost:['未压中','df'],cancel:['已撤单','wn']};
+var ST_LIVE={pending:['未结算','info'],done:['已结算','ok'],cancel:['已撤单','wn']};
+
+/* ==================== 模拟数据：实时表（最近 N 天）+ 归档表（到昨天为止） ==================== */
+var DB={};
+function getData(t,gk){
+  DB[t]=DB[t]||{};
+  if(!DB[t][gk]) DB[t][gk]= gk==='live'? genLive(+t) : genLot(+t,gk);
+  return DB[t][gk];
+}
+function spreadTimes(t,r,i,nLive,keep){
+  var now=nowMs(t), d0=today0(t);
+  if(i<nLive){
+    var back=i<2?0:Math.floor(r()*keep);
+    var maxSec=back===0?Math.max(1,Math.floor((now-d0)/1000)):86399;
+    return {ms:d0-back*DAY+Math.floor(r()*maxSec)*1000, live:true};
+  }
+  return {ms:d0-(keep+Math.floor(r()*110))*DAY+Math.floor(r()*86400)*1000, live:false};
+}
+function genLot(t,gk){
+  var T=TEN[t], G=GAMES[gk], r=rng(hash(t+gk)), d0=today0(t), now=nowMs(t), live=[], arch=[], scale=T.cur==='VND'?1000:1;
+  T.members.forEach(function(uid){
+    var nLive=6+Math.floor(r()*6), nOld=14+Math.floor(r()*10);
+    for(var i=0;i<nLive+nOld;i++){
+      var x=spreadTimes(t,r,i,nLive,T.keep.lottery), ms=x.ms;
+      var play=pick(G.play,r), bt=pick(G.bet,r), content=pick(bt[1],r);
+      var mult=pick([1,1,1,2,5,10,20],r), amount=pick([1,10,10,100],r)*scale*mult;
+      var dur=DUR[play]||60, sMs=ms+dur*1000, st;
+      if(sMs>now) st='pending'; else { var y=r(); st=y<0.05?'cancel':(y<0.45?'won':'lost'); }
+      var real=r2(amount*0.98), fee=r2(amount-real), win=0;
+      if(st==='won') win=r2(real*(ODDS[bt[0]]||2));
+      if(st==='cancel'){ real=0; fee=0; }
+      var energy=(G.energy&&st==='won'&&r()<0.3)?r2(amount*0.05):0;
+      var row={t:t,uid:uid,parent:T.rel[uid]||0,orderNo:G.pre+compact(ms)+digits(r,16),issue:fmtD(ms).replace(/-/g,'')+'1000'+pad(Math.floor((ms%DAY)/(dur*1000)),5),
+        play:play,mult:mult,betType:bt[0],content:content,result:(st==='pending'||st==='cancel')?null:mkRes(G.res,r),
+        amount:amount,real:real,win:win,energy:energy,fee:fee,profit:st==='cancel'?0:r2(win-amount),state:st,betMs:ms,settleMs:st==='pending'?null:sMs};
+      if(x.live) live.push(row);
+      if(!x.live||ms<d0) arch.push(row);
+    }
+  });
+  return {live:live,arch:arch};
+}
+function mkRes(type,r){
+  if(type==='ball') return {n:Math.floor(r()*10)};
+  if(type==='dice') return {d:[1+Math.floor(r()*6),1+Math.floor(r()*6),1+Math.floor(r()*6)]};
+  if(type==='d5') return {d:[0,0,0,0,0].map(function(){ return Math.floor(r()*10); })};
+  if(type==='xs') return {s:pad(Math.floor(r()*100))};
+  return {s:[1,2,3].map(function(){ return 1+Math.floor(r()*10); }).join(',')};
+}
+function genLive(t){
+  var T=TEN[t], r=rng(hash(t+'live')), d0=today0(t), now=nowMs(t), live=[], scale=T.cur==='VND'?1000:1, vk=Object.keys(VENDORS);
+  T.members.forEach(function(uid){
+    var nLive=6+Math.floor(r()*6);
+    for(var i=0;i<nLive;i++){
+      var x=spreadTimes(t,r,i,nLive,T.keep.live), ms=x.ms, v=pick(vk,r), g=pick(VENDORS[v],r);
+      var amount=pick([50,100,100,200,500,1000],r)*scale, sMs=ms+(20+Math.floor(r()*30))*1000, st;
+      if(sMs>now) st='pending'; else st=r()<0.04?'cancel':'done';
+      var win=(st==='done'&&r()<0.45)?amount*2:0, key=pick(['Big','Small','Player','Banker','Red'],r);
+      live.push({t:t,uid:uid,parent:T.rel[uid]||0,orderNo:pick(['13396','13213','13313'],r)+'_'+digits(r,9),round:'1'+digits(r,8),vendor:v,game:g,
+        amount:amount,real:st==='cancel'?0:amount,win:win,profit:st==='done'?win-amount:0,state:st,detail:key+':'+amount,betMs:ms,settleMs:st==='pending'?null:sMs});
+    }
+  });
+  return {live:live,arch:[]};
+}
+
+/* ==================== 页面状态 ==================== */
+var TOP='lottery', GK='wingo', MODE='quick', FOLD=false;
+var MODE_TXT={quick:'快速查询',agent:'代理查询',history:'历史数据'};
+var ST={};               // 每个（彩种 + 查询方式）各自保留条件和结果
+function skey(){ return (TOP==='lottery'?'L:'+GK:'V')+':'+MODE; }
+function defForm(mode){
+  var t=2001, d0=today0(t), base=mode==='history'?d0-DAY:d0;
+  return {tenant:t,agentId:'',userId:'',issue:'',orderNo:'',state:'',play:'',betType:'',content:'',amtMin:'',amtMax:'',pfMin:'',pfMax:'',sort:'',
+          vendor:'',subGame:'',round:'',timeType:'bet',start:fmtT(base),end:fmtT(base+DAY-1000)};
+}
+function cur(){ var k=skey(); if(!ST[k]) ST[k]={form:defForm(MODE),res:null,page:1}; return ST[k]; }
+
+/* ==================== 搜索项 ==================== */
+/* 代理查询、历史数据的搜索项和 V1 一致；快速查询沿用现有 */
+var LOT_QUICK=['tenant','userId','issue','orderNo','state','play','betType','content','amt','pf','sort','time'];
+function fieldList(){
+  if(TOP==='live') return MODE==='agent'?['tenant','agentId','userId','round','state','sortLive','time']:['tenant','userId','vendor','subGame','orderNo','round','state','amt','pf','time'];
+  if(MODE==='quick') return LOT_QUICK;
+  if(MODE==='agent'){
+    if(GK==='xoso') return ['tenant','agentId'].concat(LOT_QUICK.slice(1));
+    if(GK==='moto') return ['tenant','agentId','userId','issue','orderNo','gameName','state','sortMoto','time'];
+    return ['tenant','agentId','userId','issue','play','orderNo','state','sortAgent','time'];
+  }
+  return GK==='d5'?['tenant','userId','issue','play','orderNo','state','time']:['tenant','userId','play','orderNo','state','time'];
+}
+var SORTS=[['','请选择'],['amtAsc','投注金额升序'],['amtDesc','投注金额降序'],['pfAsc','盈亏金额升序'],['pfDesc','盈亏金额降序']];
+function selHtml(k,ph,opts,v){
+  return '<select data-k="'+k+'" class="'+(v?'':'ph')+'" onchange="setF(this)"><option value="">'+esc(ph)+'</option>'+opts.map(function(o){
+    var val=Array.isArray(o)?o[0]:o, lab=Array.isArray(o)?o[1]:o; return '<option value="'+esc(val)+'"'+(String(v)===String(val)?' selected':'')+'>'+esc(lab)+'</option>'; }).join('')+'</select>';
+}
+function inp(k,ph,v,num){ return '<input data-k="'+k+'" value="'+esc(v)+'" placeholder="'+esc(ph)+'" oninput="setF(this'+(num?',1':'')+')">'; }
+function fieldHtml(name,f,i){
+  var G=GAMES[GK], more=i>=4?' more':'', lab=function(t,rq){ return '<label>'+t+(rq?'<span class="rq">*</span>':'')+'</label>'; };
+  switch(name){
+    case 'tenant': return '<div class="fi'+more+'">'+lab('商户',1)+'<select data-k="tenant" onchange="setTenant(this)">'+Object.keys(TEN).map(function(k){ return '<option value="'+k+'"'+(+k===+f.tenant?' selected':'')+'>'+TEN[k].label+'</option>'; }).join('')+'</select></div>';
+    case 'agentId': return '<div class="fi newfi'+more+'"><label>代理ID<span class="rq">*</span></label>'+inp('agentId','请输入代理ID',f.agentId,1)+'</div>';
+    case 'userId': var rq=MODE==='history'; return '<div class="fi'+(rq?' newfi':'')+more+'">'+lab('会员ID',rq)+inp('userId',rq?'请输入会员ID（必填）':(MODE==='agent'?'在下级中筛选会员':'请输入会员ID'),f.userId,1)+'</div>';
+    case 'issue': return '<div class="fi'+more+'">'+lab('期号')+inp('issue','请输入期号',f.issue)+'</div>';
+    case 'orderNo': return '<div class="fi'+more+'">'+lab('投注单号')+inp('orderNo','请输入投注单号',f.orderNo)+'</div>';
+    case 'state': var SS=TOP==='lottery'?ST_LOT:ST_LIVE; return '<div class="fi'+more+'">'+lab('订单状态')+selHtml('state','请选择订单状态',Object.keys(SS).map(function(k){ return [k,SS[k][0]]; }),f.state)+'</div>';
+    case 'play': return '<div class="fi'+more+'">'+lab('玩法类型')+selHtml('play','请选择玩法类型',G.play,f.play)+'</div>';
+    case 'betType': return '<div class="fi'+more+'">'+lab('投注类型')+selHtml('betType','请选择投注类型',G.bet.map(function(b){ return b[0]; }),f.betType)+'</div>';
+    case 'content': return '<div class="fi'+more+'">'+lab('投注内容')+inp('content','请输入投注内容',f.content)+'</div>';
+    case 'amt': return '<div class="fi'+more+'">'+lab('投注金额')+'<div class="rng">'+inp('amtMin','最小值',f.amtMin)+'<span>~</span>'+inp('amtMax','最大值',f.amtMax)+'</div></div>';
+    case 'pf': return '<div class="fi'+more+'">'+lab('盈亏金额')+'<div class="rng">'+inp('pfMin','最小值',f.pfMin)+'<span>~</span>'+inp('pfMax','最大值',f.pfMax)+'</div></div>';
+    case 'sort': return '<div class="fi'+more+'">'+lab('数据排序')+selHtml('sort','请选择',SORTS.slice(1),f.sort)+'</div>';
+    case 'sortAgent': return '<div class="fi'+more+'">'+lab('数据排序')+selHtml('sort','默认',[['amtAsc','投注金额升序'],['amtDesc','投注金额降序']],f.sort)+'</div>';
+    case 'sortMoto': return '<div class="fi'+more+'">'+lab('数据排序')+selHtml('sort','默认',[['amtAsc','投注金额升序'],['amtDesc','投注金额降序'],['isAsc','期号升序'],['isDesc','期号降序']],f.sort)+'</div>';
+    case 'sortLive': return '<div class="fi'+more+'">'+lab('数据排序')+selHtml('sort','默认',[['amtAsc','投注金额升序'],['amtDesc','投注金额降序'],['rdAsc','局号升序'],['rdDesc','局号降序']],f.sort)+'</div>';
+    case 'gameName': return '<div class="fi'+more+'">'+lab('游戏名称')+selHtml('play','请选择游戏名称',G.play,f.play)+'</div>';
+    case 'vendor': return '<div class="fi'+more+'">'+lab('游戏厂商')+selHtml('vendor','请选择游戏厂商',Object.keys(VENDORS),f.vendor)+'</div>';
+    case 'subGame': var sg=f.vendor?VENDORS[f.vendor]:[].concat.apply([],Object.keys(VENDORS).map(function(k){ return VENDORS[k]; })).filter(function(x,i,a){ return a.indexOf(x)===i; });
+      return '<div class="fi'+more+'">'+lab('子游戏')+selHtml('subGame','请选择子游戏',sg,f.subGame)+'</div>';
+    case 'round': return '<div class="fi'+more+'">'+lab('游戏局号')+inp('round','请输入游戏局号',f.round)+'</div>';
+    case 'time': return '<div class="fi span2'+more+'">'+lab('时间')+'<div class="tm"><select data-k="timeType" onchange="setF(this)"><option value="bet"'+(f.timeType==='bet'?' selected':'')+'>下注时间</option>'+(MODE==='quick'?'<option value="settle"'+(f.timeType==='settle'?' selected':'')+'>结算时间</option>':'')+'</select>'+
+      '<div class="tm-v" id="tm-v" onclick="openTp(event)"><span class="'+(f.start?'':'phv')+'">'+esc(f.start||'不限')+'</span><span class="ar">→</span><span class="'+(f.end?'':'phv')+'">'+esc(f.end||'不限')+'</span><span class="cal">📅</span></div></div></div>';
+  }
+  return '';
+}
+/* 时间控件弹窗里的快捷项（按商户时区算）：快速 / 代理沿用现有 8 个；历史数据去掉「今天」、末尾加「所有」（= 不加时间条件） */
+var QD_LABEL={today:'今天',yday:'昨天',week:'本周',lweek:'上周',month:'本月',lmonth:'上月',d7:'近7天',d30:'近30天',all:'所有'};
+function qdList(){ return MODE==='history'?['yday','week','lweek','month','lmonth','d7','d30','all']:['today','yday','week','lweek','month','lmonth','d7','d30']; }
+function qdRange(k,t){
+  var d0=today0(t), dow=(new Date(d0).getUTCDay()+6)%7, d=new Date(d0), y=d.getUTCFullYear(), m=d.getUTCMonth(), E=d0+DAY-1000;
+  var r={today:[d0,E],d7:[d0-6*DAY,E],d30:[d0-29*DAY,E],yday:[d0-DAY,d0-1000],week:[d0-dow*DAY,E],lweek:[d0-(dow+7)*DAY,d0-dow*DAY-1000],month:[Date.UTC(y,m,1),E],lmonth:[Date.UTC(y,m-1,1),Date.UTC(y,m,1)-1000]}[k];
+  return r?[fmtT(r[0]),fmtT(r[1])]:['',''];
+}
+function setQd(k){ var S=cur(), r=qdRange(k,S.form.tenant); S.form.start=r[0]; S.form.end=r[1]; closeTp(); renderForm(); }
+function openTp(e){
+  e.stopPropagation();
+  var S=cur(), f=S.form, tp=$('tp'), b=$('tm-v').getBoundingClientRect();
+  $('tp-tz').textContent=TEN[f.tenant].tz;
+  $('tp-s').value=f.start; $('tp-e').value=f.end;
+  $('tp-s').placeholder=$('tp-e').placeholder=MODE==='history'?'不限':'yyyy-MM-dd HH:mm:ss';
+  $('tp-err').textContent='';
+  $('tp-sc').innerHTML=qdList().map(function(k){
+    var r=qdRange(k,f.tenant), on=f.start===r[0]&&f.end===r[1];
+    return '<span class="'+(on?'on':'')+(k==='all'?' nw':'')+'" onclick="setQd(\''+k+'\')">'+QD_LABEL[k]+(k==='all'?'<i class="newf">NEW</i>':'')+'</span>';
+  }).join('');
+  tp.classList.add('show');
+  var w=tp.offsetWidth, left=Math.max(12,Math.min(window.innerWidth-w-12,b.left));
+  tp.style.left=left+'px'; tp.style.top=(b.bottom+6)+'px';
+  document.querySelector('.tm').classList.add('open');
+}
+function closeTp(){ $('tp').classList.remove('show'); var t=document.querySelector('.tm'); if(t) t.classList.remove('open'); }
+function tpOk(){
+  var S=cur(), st=$('tp-s').value.trim(), en=$('tp-e').value.trim(), hist=MODE==='history';
+  var s=st?parseT(st):-Infinity, e=en?parseT(en):Infinity, err='';
+  if(!hist&&(!st||!en)) err='请选择开始和结束时间';
+  else if(isNaN(s)||isNaN(e)) err='时间格式应为 yyyy-MM-dd HH:mm:ss';
+  else if(e<s) err='结束时间不能早于开始时间';
+  else if(!hist&&e-s>=31*DAY) err='最多 31 天';
+  if(err){ $('tp-err').textContent=err; return; }
+  S.form.start=st; S.form.end=en; closeTp(); renderForm();
+}
+function tpReset(){ var S=cur(), d=defForm(MODE); S.form.start=d.start; S.form.end=d.end; closeTp(); renderForm(); }
+document.addEventListener('click',function(e){ if($('tp').classList.contains('show')&&!e.target.closest('#tp')&&!e.target.closest('#tm-v')) closeTp(); });
+window.addEventListener('scroll',function(e){ if(!e.target.closest||!e.target.closest('#tp')) closeTp(); },true);
+function renderForm(){
+  var S=cur(), list=fieldList();
+  $('sf').innerHTML=list.map(function(n,i){ return fieldHtml(n,S.form,i); }).join('')+
+    '<div class="fi act"><button class="btn pri" onclick="doSearch()">🔍 搜索</button><button class="btn" onclick="doReset()">↻ 重置</button><span class="fold-a" onclick="toggleFold()">'+(FOLD?'﹀ 展开':'︿ 收起')+'</span></div>';
+  $('sf').classList.toggle('fold',FOLD);
+}
+function setF(el,num){
+  var S=cur(), k=el.getAttribute('data-k');
+  if(num){ var v=el.value.replace(/\D/g,''); if(v!==el.value) el.value=v; }
+  S.form[k]=el.value; el.classList.remove('bad');
+  if(el.tagName==='SELECT') el.classList.toggle('ph',!el.value);
+  if(k==='vendor'){ S.form.subGame=''; renderForm(); }
+}
+function setTenant(el){
+  var S=cur(); S.form.tenant=+el.value;
+  renderForm(); renderModeBar();
+}
+
+/* ==================== 查询方式切换 + 提示 ==================== */
+function modesOf(){ return histOk()?['quick','agent','history']:['quick','agent']; }
+function histOk(){ return TOP==='lottery'&&GAMES[GK].hist; }
+function renderModeBar(){
+  var html=modesOf().map(function(m){
+    return '<span class="'+(m===MODE?'on':'')+'" onclick="setMode(\''+m+'\')">'+MODE_TXT[m]+(m!=='quick'?'<i class="newf">NEW</i>':'')+'</span>';
+  }).join('');
+  $('seg').innerHTML=html;
+  var tip=MODE==='agent'?'代理ID 必填':MODE==='history'?'会员ID 必填':'';
+  $('mtip').style.display=tip?'':'none';
+  $('mtip').innerHTML='<span class="ii">i</span><span>'+tip+'</span>';
+  $('btn-exp').style.display=(MODE==='agent'&&TOP==='live')?'none':'';   // 和 V1 一样：视讯代理查询不导出；XOSO、新彩种代理查询加上导出
+  $('btn-exp').innerHTML='⇩ 导出'+(MODE==='agent'&&TOP==='lottery'&&(GK==='xoso'||GK==='moto')?'<i class="newf">NEW</i>':'');   // V1 没有的导出，标 NEW 避免遗漏
+}
+function setMode(m){
+  if(m==='history'&&!histOk()) return;
+  MODE=m; renderAll();
+}
+
+/* ==================== 顶部页签 + 左侧彩种 ==================== */
+var TOPS=[['lottery','彩票投注订单'],['live','视讯投注订单'],['sport','体育投注订单'],['elec','电子投注订单'],['chess','棋牌投注订单']];
+function renderTabs(){
+  $('gtabs').innerHTML=TOPS.map(function(x){ return '<span class="'+(x[0]===TOP?'on':'')+'" onclick="setTop(\''+x[0]+'\')">'+x[1]+'</span>'; }).join('');
+  $('lnav').style.display=TOP==='lottery'?'':'none';
+  $('lnav').innerHTML=LOT_KEYS.map(function(k){ var G=GAMES[k]; return '<div class="'+(k===GK?'on':'')+'" onclick="setGame(\''+k+'\')"><b>'+G.name+'</b><span>'+G.sub+'</span></div>'; }).join('');
+}
+function setTop(k){
+  if(k!=='lottery'&&k!=='live'){ msgShow('info','体育 / 电子 / 棋牌投注订单本期不改'); return; }
+  TOP=k; if(modesOf().indexOf(MODE)<0) MODE='quick'; renderAll();
+}
+function setGame(k){
+  GK=k;
+  if(MODE==='history'&&!GAMES[k].hist) MODE='quick';
+  renderAll();
+}
+
+/* ==================== 搜索 ==================== */
+function bad(k){ var el=document.querySelector('#sf [data-k="'+k+'"]'); if(el){ el.classList.add('bad'); el.focus(); } }
+function validate(S){
+  var f=S.form;
+  if(MODE==='agent'&&!f.agentId){ bad('agentId'); msgShow('error','请输入代理ID'); return false; }
+  if(MODE==='history'&&!f.userId){ bad('userId'); msgShow('error','请输入会员ID'); return false; }
+  var hist=MODE==='history';
+  if(!hist&&(!f.start||!f.end)){ msgShow('error','请选择时间'); return false; }
+  var s=f.start?parseT(f.start):-Infinity, e=f.end?parseT(f.end):Infinity;
+  if(isNaN(s)||isNaN(e)){ msgShow('error','时间格式应为 yyyy-MM-dd HH:mm:ss'); return false; }
+  if(e<s){ msgShow('error','结束时间不能早于开始时间'); return false; }
+  if(!hist&&e-s>=31*DAY){ msgShow('error','时间范围最多 31 天'); return false; }   // 历史数据不限跨度
+  if(s>nowMs(f.tenant)){ msgShow('error','不能选择未来时间'); return false; }
+  return true;
+}
+function query(S){
+  var f=S.form, T=TEN[f.tenant], data=getData(f.tenant,TOP==='lottery'?GK:'live');
+  var src=MODE==='history'?data.arch:data.live, scope=null;
+  if(MODE==='agent'){
+    var aid=+f.agentId;
+    scope=(aid in T.rel)?team(T,aid).filter(function(id){ return !(T.test&&T.test[id]); }):[];   // 全部层级下级，只算正式会员，不含本人
+  }
+  var s=f.start?parseT(f.start):-Infinity, e=f.end?parseT(f.end):Infinity, tk=f.timeType==='settle'?'settleMs':'betMs';
+  var num=function(v){ return v===''||v==null?null:Number(v); };
+  var amin=num(f.amtMin), amax=num(f.amtMax), pmin=num(f.pfMin), pmax=num(f.pfMax);
+  var rows=src.filter(function(x){
+    if(scope&&scope.indexOf(x.uid)<0) return false;
+    if(f.userId&&x.uid!==+f.userId) return false;
+    if(f.orderNo&&x.orderNo!==f.orderNo.trim()) return false;
+    if(f.state&&x.state!==f.state) return false;
+    if(TOP==='lottery'){
+      if(f.issue&&x.issue!==f.issue.trim()) return false;
+      if(f.play&&x.play!==f.play) return false;
+      if(f.betType&&x.betType!==f.betType) return false;
+      if(f.content&&x.content.toLowerCase()!==f.content.trim().toLowerCase()) return false;
+    }else{
+      if(f.vendor&&x.vendor!==f.vendor) return false;
+      if(f.subGame&&x.game!==f.subGame) return false;
+      if(f.round&&x.round!==f.round.trim()) return false;
+    }
+    if(amin!=null&&x.amount<amin) return false;
+    if(amax!=null&&x.amount>amax) return false;
+    if(pmin!=null&&x.profit<pmin) return false;
+    if(pmax!=null&&x.profit>pmax) return false;
+    var tv=x[tk]; if(tv==null||tv<s||tv>e) return false;
+    return true;
+  });
+  var srt={amtAsc:function(a,b){ return a.amount-b.amount; },amtDesc:function(a,b){ return b.amount-a.amount; },pfAsc:function(a,b){ return a.profit-b.profit; },pfDesc:function(a,b){ return b.profit-a.profit; },isAsc:function(a,b){ return a.issue<b.issue?-1:a.issue>b.issue?1:0; },isDesc:function(a,b){ return a.issue<b.issue?1:a.issue>b.issue?-1:0; },rdAsc:function(a,b){ return a.round<b.round?-1:a.round>b.round?1:0; },rdDesc:function(a,b){ return a.round<b.round?1:a.round>b.round?-1:0; }}[MODE==='history'?'':f.sort];
+  rows.sort(function(a,b){ return (srt?srt(a,b):0)||(b.betMs-a.betMs); });
+  return {rows:rows,empty:['暂无数据','']};
+}
+function doSearch(){
+  var S=cur(); if(!validate(S)) return;
+  var res=query(S); res.tenant=S.form.tenant; res.mode=MODE;
+  if(res.warn) msgShow('warning',res.warn);
+  S.res=res; S.page=1; renderTable();
+}
+function doReset(){ var S=cur(); var t=S.form.tenant; S.form=defForm(MODE); S.form.tenant=t; S.res=null; renderForm(); renderModeBar(); if(MODE==='quick') doSearch(); else renderTable(); }
+function doExport(){
+  var S=cur(), f=S.form;
+  if(MODE==='agent'&&!f.agentId){ bad('agentId'); msgShow('error','请输入代理ID'); return; }
+  if(MODE==='history'&&!f.userId){ bad('userId'); msgShow('error','请输入会员ID'); return; }
+  if(!S.res||!S.res.rows.length){ msgShow('warning','当前没有可导出的数据'); return; }
+  msgShow('success','已导出 '+S.res.rows.length+' 条（演示）：按当前条件和当前显示的列，'+MODE_TXT[MODE]);
+}
+function toggleFold(){ FOLD=!FOLD; renderForm(); $('mid-fold').textContent=FOLD?'﹀ 展开':'︿ 收起'; }
+
+/* ==================== 表格 ==================== */
+function columns(){
+  var tz=TEN[(cur().res||{}).tenant||cur().form.tenant].tz, hi=MODE==='history';
+  var c=[['tenant','商户'],['uid','会员ID']];
+  if(TOP==='lottery'){
+    c=c.concat([['orderNo','投注单号'],['issue','期号'],['play','玩法类型'],['mult','投注倍数'],['betType','投注类型'],['content','投注内容']]);
+    if(!hi) c.push(['result','开奖结果']);
+    c=c.concat([['cur','币种'],['amount','投注金额','sum'],['real','有效投注','sum'],['win','派奖金额','sum']]);
+    if(GAMES[GK].energy&&!hi) c.push(['energy','能量奖励','sum']);
+    c=c.concat([['fee','手续费','sum'],['profit','盈亏金额','sum'],['state','订单状态']]);
+  }else{
+    c=c.concat([['orderNo','投注单号'],['round','游戏局号'],['vendor','游戏厂商'],['game','游戏名称'],['cur','币种'],['amount','投注金额','sum'],['real','有效投注','sum'],['win','派奖金额','sum'],['profit','盈亏金额','sum'],['state','订单状态'],['detail','下注详情']]);
+  }
+  c.push(['betMs','下注时间 <span class="tz">('+tz+')</span>'],['settleMs','结算时间 <span class="tz">('+tz+')</span>']);
+  return c;
+}
+function money(v,t,sign){ var d=TEN[t].dec, s=Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); return sign&&v>0?'+'+s:s; }
+function cell(k,x){
+  var T=TEN[x.t];
+  switch(k){
+    case 'tenant': return '<span class="tn">'+T.label+'</span>';
+    case 'uid': return '<span class="lnk" onclick="msgShow(\'info\',\'会员详情（沿用现有）\')">'+x.uid+'</span>';
+    case 'parent': return x.parent?x.parent:'<span class="muted">-</span>';
+    case 'orderNo': return '<span class="mono">'+esc(x.orderNo)+'</span>';
+    case 'result': return resHtml(x);
+    case 'cur': return '<span class="cur">'+T.cur+'</span>';
+    case 'amount': case 'real': case 'win': case 'energy': case 'fee': return money(x[k],x.t);
+    case 'profit': return '<span class="'+(x.profit>0?'pos':x.profit<0?'neg':'')+'">'+money(x.profit,x.t,1)+'</span>';
+    case 'state': var m=(TOP==='lottery'?ST_LOT:ST_LIVE)[x.state]; return '<span class="tg '+m[1]+'">'+m[0]+'</span>';
+    case 'betMs': return fmtT(x.betMs);
+    case 'settleMs': return x.settleMs?fmtT(x.settleMs):'<span class="muted">--</span>';
+    default: return esc(x[k]);
+  }
+}
+function resHtml(x){
+  var r=x.result; if(!r) return '<span class="muted">--</span>';
+  var G=GAMES[GK];
+  if(G.res==='ball'){ var n=r.n, c=n===0?'rv':n===5?'gv':(n%2===0?'r':'g'); return '<span class="ball '+c+'">'+n+'</span>'; }
+  if(r.d) return '<span class="dice">'+r.d.map(function(v){ return '<i>'+v+'</i>'; }).join('')+'</span>';
+  return esc(r.s);
+}
+function renderTable(){
+  var S=cur(), cols=columns(), res=S.res;
+  $('thd').innerHTML='<tr>'+cols.map(function(c){ return '<th'+(c[2]==='new'?' class="newcol"':'')+'>'+c[1]+(c[2]==='new'?'<i class="newf">NEW</i>':'')+'</th>'; }).join('')+'</tr>';
+  $('tbl').style.minWidth=(cols.length*118)+'px';
+  var body='';
+  if(!res){
+    var t=['暂无数据',''];
+    body='<tr><td class="empty" colspan="'+cols.length+'"><b>'+t[0]+'</b>'+esc(t[1])+'</td></tr>';
+    $('tbd').innerHTML=body; $('pager').innerHTML=''; return;
+  }
+  var rows=res.rows, ps=20, pages=Math.max(1,Math.ceil(rows.length/ps)); if(S.page>pages) S.page=pages;
+  var pr=rows.slice((S.page-1)*ps,S.page*ps);
+  if(!pr.length){
+    body='<tr><td class="empty" colspan="'+cols.length+'"><b>'+esc(res.empty[0])+'</b>'+esc(res.empty[1]||'')+'</td></tr>';
+  }else{
+    body=pr.map(function(x){ return '<tr>'+cols.map(function(c){ return '<td'+(c[2]==='new'?' class="newcol"':'')+'>'+cell(c[0],x)+'</td>'; }).join('')+'</tr>'; }).join('');
+    var sumRow=function(label,list){
+      return '<tr class="sum">'+cols.map(function(c,i){
+        if(i===0) return '<td>'+label+'</td>';
+        if(c[2]!=='sum') return '<td></td>';
+        var v=r2(list.reduce(function(a,x){ return a+(x[c[0]]||0); },0));
+        return '<td>'+(c[0]==='profit'?'<span class="'+(v>0?'pos':v<0?'neg':'')+'">'+money(v,res.tenant,1)+'</span>':money(v,res.tenant))+'</td>';
+      }).join('')+'</tr>';
+    };
+    body+=sumRow('页面总计',pr)+sumRow('总计',rows);
+  }
+  $('tbd').innerHTML=body;
+  var pg='<span>共 '+rows.length+' 条</span><span class="pg-n'+(S.page<=1?' dis':'')+'" onclick="goPage('+(S.page-1)+')">‹</span>';
+  for(var i=1;i<=pages;i++){ if(pages>7&&i>2&&i<pages-1&&Math.abs(i-S.page)>1){ if(i===3||i===pages-2) pg+='<span class="muted">…</span>'; continue; } pg+='<span class="pg-n'+(i===S.page?' on':'')+'" onclick="goPage('+i+')">'+i+'</span>'; }
+  pg+='<span class="pg-n'+(S.page>=pages?' dis':'')+'" onclick="goPage('+(S.page+1)+')">›</span><span>20 / 页</span>';
+  $('pager').innerHTML=pg;
+}
+function goPage(p){ var S=cur(); if(!S.res) return; var pages=Math.max(1,Math.ceil(S.res.rows.length/20)); if(p<1||p>pages) return; S.page=p; renderTable(); }
+
+function renderAll(){
+  renderTabs(); renderModeBar(); renderForm();
+  var S=cur();
+  if(MODE==='quick'&&!S.res){ var r=query(S); r.tenant=S.form.tenant; S.res=r; }   // 快速查询沿用现有：进入即查今天
+  renderTable();
+}
+
+/* ==================== 演示快捷 ==================== */
+function demoAgent(id){
+  if(TOP!=='lottery'&&TOP!=='live') TOP='lottery';
+  MODE='agent'; var S=cur(); S.form.tenant=2001; S.form.agentId=id; S.form.userId='';
+  var d0=today0(2001); S.form.start=fmtT(d0-6*DAY); S.form.end=fmtT(d0+DAY-1000);
+  renderAll(); doSearch();
+}
+function demoHist(){
+  TOP='lottery'; if(!GAMES[GK].hist) GK='wingo'; MODE='history';
+  var S=cur(); S.form.tenant=2001; S.form.userId='2252818';
+  var n=new Date(today0(2001)), y=n.getUTCFullYear(), m=n.getUTCMonth();
+  var s=Date.UTC(y,m-1,1), e=Date.UTC(y,m,1)-1000; S.form.start=fmtT(s); S.form.end=fmtT(e);
+  renderAll(); doSearch();
+}
+function demoVnd(){
+  var S=cur(); S.form.tenant=2007; S.form.agentId=''; S.form.userId=''; S.form.orderNo='';
+  var d0=today0(2007); S.form.start=fmtT(MODE==='history'?d0-DAY:d0); S.form.end=fmtT((MODE==='history'?d0-DAY:d0)+DAY-1000);
+  renderForm(); renderModeBar();
+  if(MODE==='quick') doSearch(); else { S.res=null; renderTable(); msgShow('info','已切到 (2007)vnd，'+(MODE==='agent'?'可填代理ID 5100001':'可填会员ID 5100236')+' 后搜索'); }
+}
+
+/* ==================== 通用：消息 / 提示 / 抽屉 ==================== */
+function openReq(){ $('req-mask').classList.add('show'); $('req-drawer').classList.add('show'); }
+function closeReq(){ $('req-mask').classList.remove('show'); $('req-drawer').classList.remove('show'); }
+function msgShow(type,text){
+  var el=document.createElement('div'); el.className='msg '+type;
+  el.innerHTML='<span class="ic">'+({success:'✓',error:'✕',warning:'!',info:'i'}[type])+'</span><span>'+esc(text)+'</span>';
+  $('msgs').appendChild(el);
+  setTimeout(function(){ el.classList.add('out'); setTimeout(function(){ el.remove(); },300); }, type==='error'||type==='warning'?5000:3000);
+}
+var TIP=$('tip');
+document.addEventListener('mouseover',function(e){
+  var el=e.target.closest&&e.target.closest('[data-tip]');
+  if(!el){ TIP.style.display='none'; return; }
+  TIP.textContent=el.getAttribute('data-tip'); TIP.style.display='block';
+  var b=el.getBoundingClientRect(), w=TIP.offsetWidth, h=TIP.offsetHeight;
+  TIP.style.left=Math.max(8,Math.min(window.innerWidth-w-8,b.left+b.width/2-w/2))+'px';
+  TIP.style.top=(b.top-h-8<4?b.bottom+8:b.top-h-8)+'px';
+});
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeReq(); if(e.key==='Enter'&&e.target.closest&&e.target.closest('#sf')) doSearch(); });
+
+renderAll();
+</script>
+</body>
+</html>
