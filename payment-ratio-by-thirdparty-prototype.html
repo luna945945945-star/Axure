@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>代付/代收占比 · 按三方汇总 · 交互原型</title>
+<style>
+:root{--ink:#1d2129;--bg:#f5f7fa;--line:#e5e6eb;--sub:#4e5969;--pri:#165dff;--gray:#86909c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;font-size:13px;color:var(--ink);background:var(--bg);line-height:1.5}
+
+.page-block{padding:12px 18px 18px}
+
+/* ============ 页面路径面包屑 ============ */
+.crumb{display:flex;justify-content:flex-end;margin-bottom:8px;font-size:12px;color:var(--gray)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--sub);font-weight:600}
+
+/* ============ V3 中台外壳 ============ */
+.v3-panel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px}
+.v3-filter{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-bottom:10px}
+.v3-fi{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--sub);white-space:nowrap}
+.v3-fi .rq{color:#f5222d}
+.v3-inp,.v3-sel{height:32px;border:1px solid #dcdfe6;border-radius:4px;padding:0 9px;font-size:12.5px;min-width:170px;background:#fff;color:var(--ink)}
+.v3-btn{height:32px;padding:0 14px;border-radius:4px;font-size:12.5px;display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:1px solid #dcdfe6;background:#fff;color:var(--sub)}
+.v3-btn:hover{color:var(--pri);border-color:var(--pri)}
+.v3-btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.v3-btn.pri:hover{opacity:.88;color:#fff}
+.v3-btn.sm{height:26px;padding:0 9px;font-size:12px}
+.f-right{margin-left:auto;display:flex;gap:8px}
+.v3-tools{display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+.v3-tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px}
+.v3-tbl{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}
+.v3-tbl th{background:#f7f8fa;color:var(--sub);font-weight:600;text-align:center;padding:9px 8px;border-bottom:1px solid var(--line);border-right:1px solid #f0f1f3}
+.v3-tbl td{padding:9px 8px;border-bottom:1px solid #f2f3f5;border-right:1px solid #f7f8fa;color:var(--ink);text-align:center;vertical-align:middle}
+.v3-tbl tr:last-child td{border-bottom:none}
+.v3-tbl tr:hover td{background:#fafbfc}
+.v3-tbl td.l,.v3-tbl th.l{text-align:left}
+.v3-tbl td.num{font-variant-numeric:tabular-nums}
+.lnk{color:var(--pri);cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 4px 2px;font-size:12px;color:var(--sub)}
+.pg-n{min-width:26px;height:26px;border:1px solid #dcdfe6;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;background:#fff}
+.pg-n.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.pill{display:inline-block;font-size:11px;padding:1.5px 8px;border-radius:10px;white-space:nowrap}
+.pill.tn{background:#eaf3ff;color:#2d6cdf}
+.dash{color:#c9cdd4}
+.amt{font-weight:700;color:#0f7a48}
+.newf{background:#f5222d;color:#fff;font-size:8px;font-weight:700;border-radius:3px;padding:0 3px;margin-left:3px;letter-spacing:.2px;vertical-align:1px;white-space:nowrap}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--pri)}
+.sort-ico{color:#c9cdd4;font-size:10px;margin-left:3px}
+.sort-ico.active{color:var(--pri)}
+th.newcol{background:#fff1f0}
+
+/* 页签 */
+.tabs{display:flex;gap:22px;border-bottom:1px solid var(--line);margin-bottom:10px;font-size:12.5px;color:var(--sub)}
+.tabs span{padding:6px 2px 9px}
+.tabs span.on{color:var(--pri);border-bottom:2px solid var(--pri);font-weight:600}
+.subtabs{display:flex;gap:26px;border-bottom:1px solid var(--line);margin-bottom:12px;font-size:13px;color:var(--sub)}
+.subtabs span{padding:4px 2px 8px;cursor:pointer}
+.subtabs span.on{color:var(--pri);border-bottom:2px solid var(--pri);font-weight:600}
+
+/* 汇总卡片 */
+.cards{display:flex;flex-wrap:wrap;gap:12px 0;border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin-bottom:12px}
+.card{padding:0 20px;border-right:1px solid var(--line);min-width:118px}
+.card:first-child{padding-left:0}
+.card:last-child{border-right:none}
+.card .k{font-size:11.5px;color:var(--gray);display:flex;align-items:center;gap:4px}
+.card .v{font-size:20px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.card .v.g{color:#0f9d58}
+.card .p{font-size:11px;color:var(--gray);margin-top:3px;font-variant-numeric:tabular-nums}
+.card .d{font-size:11px;margin-top:1px;font-variant-numeric:tabular-nums}
+.card .d.up{color:#0f9d58}
+.card .d.dn{color:#cb2634}
+.card .d.eq{color:var(--gray)}
+.cmp-note{font-size:11.5px;color:var(--gray);margin:-4px 0 10px}
+.qm{position:relative;display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;border:1px solid #c9cdd4;color:#9aa1a9;font-size:9px;cursor:help}
+.qm .tip{display:none;position:absolute;top:calc(100% + 8px);left:-10px;z-index:200;background:#1f2733;color:#fff;font-weight:400;font-size:12px;line-height:1.7;padding:10px 12px;border-radius:8px;width:max-content;max-width:300px;box-shadow:0 8px 24px rgba(0,0,0,.22);white-space:normal}
+.qm:hover .tip{display:block}
+
+/* 查看方式切换（新增） */
+.seg{display:inline-flex;border:1px solid var(--pri);border-radius:4px;overflow:hidden;height:28px}
+.seg span{padding:0 14px;display:inline-flex;align-items:center;font-size:12.5px;color:var(--pri);background:#fff;cursor:pointer}
+.seg span.on{background:var(--pri);color:#fff}
+.mode-tip{background:#f0f7ff;border:1px solid #cfe0ff;color:#1c4c8c;border-radius:5px;padding:7px 11px;font-size:12px;margin-bottom:10px;display:none}
+.mode-tip.show{display:block}
+
+/* 占比条 */
+.bar{display:inline-flex;align-items:center;gap:8px;min-width:130px}
+.bar i{display:block;height:6px;border-radius:3px;background:#0f9d58;min-width:2px}
+.bar .track{width:70px;height:6px;border-radius:3px;background:#eef1f4;overflow:hidden}
+.bar.fee i{background:#ff9a2e}
+.bar b{font-weight:600;font-variant-numeric:tabular-nums}
+
+/* 三方多选 */
+.ms{position:relative}
+.ms-box{min-height:32px;min-width:230px;max-width:330px;border:1px solid #dcdfe6;border-radius:4px;padding:3px 26px 3px 8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:12.5px;cursor:pointer;background:#fff;color:var(--gray)}
+.ms-box::after{content:"";position:absolute;right:9px;top:13px;border:5px solid transparent;border-top-color:#9aa1a9}
+.ms-chip{background:#f2f3f5;color:var(--ink);border-radius:3px;padding:1px 6px;font-size:12px}
+.ms-list{position:absolute;left:0;top:36px;width:240px;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:50;display:none;padding:4px;max-height:260px;overflow-y:auto}
+.ms-list.show{display:block}
+.ms-opt{padding:6px 9px;border-radius:4px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--ink)}
+.ms-opt:hover{background:#f2f6ff}
+
+.empty{padding:70px 0;text-align:center;color:#c2c7d0;font-size:12.5px}
+
+/* ============ 右侧需求说明抽屉 ============ */
+.req-btn{position:fixed;top:27px;right:32px;z-index:500;height:32px;padding:0 14px;border-radius:16px;background:#fff;border:1px solid #adc6ff;color:var(--pri);font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(22,93,255,.12)}
+.req-btn:hover{background:#f0f7ff}
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:12px;padding:12px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:2px;box-shadow:-2px 0 8px rgba(22,93,255,.2)}
+.req-handle:hover{background:#0e42d2}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:600;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-840px;width:820px;max-width:92vw;height:100%;background:#fff;z-index:601;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:var(--gray);font-size:18px}
+.req-body{flex:1;overflow-y:auto;padding:16px 18px 40px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body .h1:first-child{margin-top:0}
+.req-body table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 6px}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 8px;text-align:left;font-weight:600;color:#1c4c8c}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 8px;vertical-align:top;line-height:1.7}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 11px;margin:6px 0;font-size:12px;line-height:1.75;border-radius:0 4px 4px 0}
+.req-body .br b{color:#1c4c8c}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+
+.toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#1f2733;color:#fff;padding:9px 18px;border-radius:6px;font-size:12.5px;z-index:900;display:none;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:80vw}
+</style>
+</head>
+<body>
+
+<!-- 右侧需求说明入口 -->
+<div class="req-btn" onclick="openReq()">📋 需求说明</div>
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="req-mask" onclick="closeReq()"></div>
+<div class="req-drawer" id="req-drawer">
+  <div class="req-head"><span class="t">需求说明</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body">
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:190px">页面</th><th>改动点</th></tr>
+      <tr><td>总控端 → 报表管理 → 数据统计 → 代付/代收占比</td><td>列表新增查看方式切换：「按三方汇总」（新增，每个三方一行，默认）/「通道明细」（现有列表，不变）。代收占比、代付占比两个页签都支持</td></tr>
+    </table>
+
+    <div class="h1">二、名词术语</div>
+    <table class="t">
+      <tr><th style="width:110px">术语</th><th>说明</th></tr>
+      <tr><td><b>按三方汇总</b></td><td>把同一个三方在所有商户、所有通道下的数据合成一行</td></tr>
+      <tr><td><b>查询范围</b></td><td>国家/币种、日期、集团、商户这四个筛选条件圈定的数据</td></tr>
+      <tr><td><b>创建金额 / 创建笔数</b></td><td>查询范围内发起的代收订单金额和笔数，不论最后是否成功。<b>仅代收有</b></td></tr>
+      <tr><td><b>成功率</b></td><td>代收成功笔数 ÷ 代收创建笔数。<b>仅代收有</b>，代付不统计成功率，与通道报表一致</td></tr>
+      <tr><td><b>金额占比 / 笔数占比</b></td><td>该三方的成功金额（笔数）÷ 查询范围内全部三方的成功金额（笔数）</td></tr>
+      <tr><td><b>综合费率</b></td><td>该三方的手续费 ÷ 该三方的成功金额。一个三方下各通道费率可能不同，这里给出合并后的实际费率</td></tr>
+      <tr><td><b>上一周期</b></td><td>与所选日期等长的前一段时间。例如查 9 月 29 日一天，上一周期是 9 月 28 日</td></tr>
+    </table>
+
+    <div class="h1">三、功能描述与业务规则</div>
+    <div class="br"><span class="bn">01</span>列表上方新增「按三方汇总 / 通道明细」切换，默认停在「按三方汇总」。切换时保留当前筛选条件，直接按新的查看方式刷新。</div>
+    <div class="br"><span class="bn">02</span>「按三方汇总」的汇总卡片放在筛选区和操作按钮下方、列表上方。<b>代收占比</b>共 8 项：三方数、商户数、创建金额、创建笔数、成功金额、成功笔数、成功率、手续费；<b>代付占比</b>共 5 项：三方数、商户数、成功金额、成功笔数、手续费（代付不统计创建数据和成功率）。除三方数、商户数外，每项下方显示<b>上一周期的数值和增减</b>（差值和百分比，成功率显示增减多少个百分点）。</div>
+    <div class="br"><span class="bn">03</span>「按三方汇总」列表每个三方一行，列为：统计日期、三方、商户数、通道数、成功金额、成功笔数、成功率、金额占比、笔数占比、综合费率、手续费、手续费占比。其中<b>成功率一列只在代收占比显示</b>，代付占比没有这一列。</div>
+    <div class="br"><span class="bn">04</span>汇总卡片和各项占比的范围是<b>查询范围内全部三方</b>，不受「三方」筛选影响。筛了某一个三方时，列表只显示这一行，占比仍是它占全部三方的比例。</div>
+    <div class="br"><span class="bn">05</span>选了集团或商户时，按所选集团、商户范围内的全部三方计算；不选则是全部商户。</div>
+    <div class="br"><span class="bn">06</span>商户数、通道数为该三方在查询范围内有成交的商户个数、通道个数。</div>
+    <div class="br"><span class="bn">07</span>手续费为该三方各通道手续费之和，只统计已配置费率的通道。该三方下所有通道都没配置费率时，综合费率、手续费、手续费占比显示「—」。</div>
+    <div class="br"><span class="bn">08</span>默认按成功金额从高到低排序；成功金额、成功笔数、成功率（仅代收）、手续费可点击切换升降序。</div>
+    <div class="br"><span class="bn">09</span>点击某一行的三方名称，切到「通道明细」并自动筛选该三方，查看它的各通道数据。</div>
+    <div class="br"><span class="bn">10</span>导出跟随当前查看方式：在「按三方汇总」下导出的是汇总表。</div>
+    <div class="br"><span class="bn">11</span>「通道明细」的列、占比口径、卡片内容都和现在一样；卡片位置同样调整到筛选区和操作按钮下方，两种查看方式保持一致。</div>
+
+    <div class="h1">四、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>三方类型</td><td>本期不显示三方类型（如跑分、钱包、公户），中台目前没有这项分类</td></tr>
+      <tr><td>工单数据</td><td>本期不显示存款未到账工单的提交、成功、未到账数据，这些数据在工单系统里</td></tr>
+      <tr><td>汇总层级</td><td>本期只做按三方汇总，不做「三方 + 通道」的汇总</td></tr>
+      <tr><td>权限与菜单</td><td>不新增菜单和权限码，沿用本页现有权限</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ==================== 代付/代收占比 ==================== -->
+<div class="page-block">
+  <div class="v3-panel">
+    <div class="tabs"><span>数据概况</span><span>商户报表</span><span>通道报表</span><span>三方商户号报表</span><span class="on">代付/代收占比</span></div>
+    <div class="subtabs" id="subtabs"><span data-t="collect" class="on">代收占比</span><span data-t="pay">代付占比</span></div>
+
+    <div class="v3-filter">
+      <div class="v3-fi"><span>国家/币种<span class="rq">*</span></span><select class="v3-sel" id="f-cur"><option value="INR">印度（INR）</option><option value="BDT">孟加拉国（BDT）</option></select></div>
+      <div class="v3-fi"><span>集团</span><select class="v3-sel"><option>全部</option><option>TZ集团</option></select></div>
+      <div class="v3-fi"><span>商户</span><select class="v3-sel" id="f-tn"><option value="">请选择商户</option></select></div>
+      <div class="v3-fi"><span>三方</span>
+        <div class="ms"><div class="ms-box" id="ms-box" onclick="toggleMs(event)">请选择三方（可多选）</div><div class="ms-list" id="ms-list"></div></div>
+      </div>
+      <div class="v3-fi"><span>日期</span><input class="v3-inp" value="2026-09-29" style="min-width:110px"><span>→</span><input class="v3-inp" value="2026-09-29" style="min-width:110px"></div>
+      <div class="f-right"><div class="v3-btn pri" onclick="search()">搜索</div><div class="v3-btn" onclick="resetAll()">重置</div></div>
+    </div>
+
+    <div class="v3-tools">
+      <div class="v3-btn pri" onclick="doExport()">导出</div>
+      <span style="font-size:12.5px;color:var(--sub);margin-left:10px">查看方式<span class="newf">NEW</span></span>
+      <span class="seg" id="seg"><span data-m="sum" class="on">按三方汇总</span><span data-m="detail">通道明细</span></span>
+      <span class="f-right">
+        <span class="v3-btn sm">今天</span><span class="v3-btn sm">昨天</span><span class="v3-btn sm">本周</span><span class="v3-btn sm">上周</span><span class="v3-btn sm">本月</span><span class="v3-btn sm">上月</span><span class="v3-btn sm">自定义列</span>
+      </span>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div class="cmp-note" id="cmp-note"></div>
+    <div class="mode-tip" id="mode-tip">按三方汇总：每个三方一行。各项占比 = 该三方 ÷ 当前查询范围内<b>全部三方</b>的合计，不受「三方」筛选影响。点击三方名称可查看它的通道明细。</div>
+
+    <div class="v3-tablewrap">
+      <table class="v3-tbl"><thead id="thead"></thead><tbody id="tbody"></tbody></table>
+      <div class="empty" id="empty" style="display:none">无数据</div>
+    </div>
+    <div class="pager"><span id="total"></span><span class="pg-n on">1</span><span>10 / 页</span></div>
+  </div>
+</div>
+
+<script>
+/* ==================== 演示数据（一行 = 一个商户通道） ==================== */
+var D={collect:[
+ {tn:'(1103) dmfirst',pc:'ArbPayINR',ch:'303667 → UPI-QR',cnt:5388,amt:2390480,rate:null},
+ {tn:'(1103) dmfirst',pc:'ArbPayINR',ch:'303668 → UPI-QR-26010',cnt:4848,amt:2256000,rate:null},
+ {tn:'(1070) dogeclub',pc:'ArbPayINR',ch:'300084 → ArbPayINR',cnt:258,amt:883243,rate:null},
+ {tn:'(1065) DivWin',pc:'ArbPayINR',ch:'303704 → UPI-QR',cnt:1208,amt:721100,rate:null},
+ {tn:'(1103) dmfirst',pc:'ArbPayINR',ch:'303666 → ArbPay',cnt:275,amt:625279,rate:null},
+ {tn:'(1037) Bounty',pc:'ArbPayINR',ch:'300234 → ArbPay',cnt:269,amt:586018,rate:null},
+ {tn:'(1065) DivWin',pc:'ArbPayINR',ch:'303703 → ARPay',cnt:91,amt:416965,rate:null},
+ {tn:'(1062) DiuWin',pc:'ArbPayINR',ch:'300240 → UPI-QR',cnt:494,amt:388000,rate:null},
+ {tn:'(1070) dogeclub',pc:'ArbPayINR',ch:'300290 → UPI-QR-26010',cnt:349,amt:369900,rate:null},
+ {tn:'(1062) DiuWin',pc:'ArbPayINR',ch:'300293 → UPI-QR-26010',cnt:506,amt:343800,rate:null},
+ {tn:'(1103) dmfirst',pc:'RAPayINR',ch:'303719 → RAPAY-UPI',cnt:1006,amt:356156,rate:1.8},
+ {tn:'(1065) DivWin',pc:'RAPayINR',ch:'303722 → RAPAY-UPI',cnt:612,amt:298400,rate:1.8},
+ {tn:'(1070) dogeclub',pc:'WowPayINR',ch:'300311 → WOW-UPI',cnt:1420,amt:612300,rate:2.0},
+ {tn:'(1103) dmfirst',pc:'WowPayINR',ch:'303731 → WOW-UPI',cnt:980,amt:455800,rate:2.0},
+ {tn:'(1037) Bounty',pc:'OkPayINR',ch:'300255 → OK-QR',cnt:730,amt:402650,rate:1.5},
+ {tn:'(1062) DiuWin',pc:'OkPayINR',ch:'300299 → OK-QR',cnt:455,amt:288120,rate:1.5},
+ {tn:'(1065) DivWin',pc:'SunPayINR',ch:'303740 → SUN-UPI',cnt:388,amt:265400,rate:1.6},
+ {tn:'(1103) dmfirst',pc:'SunPayINR',ch:'303741 → SUN-UPI',cnt:302,amt:197300,rate:1.6},
+ {tn:'(1070) dogeclub',pc:'FastPayINR',ch:'300320 → FAST-QR',cnt:266,amt:171200,rate:2.2},
+ {tn:'(1037) Bounty',pc:'LuckyPayINR',ch:'300260 → LUCKY-UPI',cnt:190,amt:120094.38,rate:2.5}
+],pay:[
+ {tn:'(1103) dmfirst',pc:'ArbPayINR',ch:'403601 → ARB-OUT',cnt:1210,amt:1865400,rate:null},
+ {tn:'(1065) DivWin',pc:'ArbPayINR',ch:'403612 → ARB-OUT',cnt:640,amt:902300,rate:null},
+ {tn:'(1070) dogeclub',pc:'FastUpiINR',ch:'400210 → FASTUPI-OUT',cnt:880,amt:1120500,rate:1.0},
+ {tn:'(1103) dmfirst',pc:'FastUpiINR',ch:'403620 → FASTUPI-OUT',cnt:520,amt:688000,rate:1.0},
+ {tn:'(1037) Bounty',pc:'WowPayINR',ch:'400233 → WOW-OUT',cnt:410,amt:512750,rate:1.2},
+ {tn:'(1062) DiuWin',pc:'OkPayINR',ch:'400241 → OK-OUT',cnt:233,amt:301800,rate:0.9}
+]};
+var S={type:'collect',mode:'sum',cur:'INR',tn:'',pcs:[],sort:'amt',dir:-1}, pending=[];
+
+/* 演示用：给每条通道补上成功率（推出创建笔数/金额）和上一周期系数 */
+var SR={ArbPayINR:.90,RAPayINR:.52,WowPayINR:.34,OkPayINR:.47,SunPayINR:.42,FastPayINR:.38,LuckyPayINR:.31,FastUpiINR:.93};
+var YK={ArbPayINR:.96,RAPayINR:1.08,WowPayINR:1.15,OkPayINR:.92,SunPayINR:1.02,FastPayINR:.85,LuckyPayINR:1.20,FastUpiINR:1.04};
+['collect','pay'].forEach(function(t){ D[t].forEach(function(r,i){
+  var sr=(SR[r.pc]||.5)+((i%3)-1)*.02; r.sub=Math.round(r.cnt/sr); r.subAmt=Math.round(r.amt/sr*100)/100;
+  var k=(YK[r.pc]||1)+((i%4)-1.5)*.02; r.p={cnt:Math.round(r.cnt*k),amt:r.amt*k,sub:Math.round(r.sub*k*1.01),subAmt:r.subAmt*k*1.01};
+}); });
+
+function fmt(n){ return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fint(n){ return Math.round(n).toLocaleString('en-US'); }
+function pct(x){ return (x*100).toFixed(2)+'%'; }
+function fee(r){ return r.rate==null?0:r.amt*r.rate/100; }
+function pfee(r){ return r.rate==null?0:r.p.amt*r.rate/100; }
+function bar(x,cls){ return '<span class="bar '+(cls||'')+'"><span class="track"><i style="width:'+Math.max(2,x*100)+'%"></i></span><b>'+pct(x)+'</b></span>'; }
+function sum(a,f){ return a.reduce(function(s,x){return s+f(x)},0); }
+function uniq(a){ return a.filter(function(v,i){return a.indexOf(v)===i}); }
+
+/* 查询范围：币种 + 商户（集团、日期在原型里不参与计算） */
+function scopeRows(){ return S.cur!=='INR' ? [] : D[S.type].filter(function(r){ return !S.tn||r.tn===S.tn; }); }
+
+/* 卡片：cmp 传入上一周期的值时显示对比 */
+function cardHtml(k,v,opt){
+  opt=opt||{}; var h='<div class="card"><div class="k">'+k+(opt.tip?' <span class="qm">?<span class="tip">'+opt.tip+'</span></span>':'')+'</div><div class="v'+(opt.green?' g':'')+'">'+v+'</div>';
+  if(opt.prev!=null){
+    var d=opt.cur-opt.prev, cls=Math.abs(d)<1e-9?'eq':(d>0?'up':'dn'), sign=d>0?'+':'';
+    h+='<div class="p">上一周期 '+opt.f(opt.prev)+'</div>';
+    h+= opt.pp ? '<div class="d '+cls+'">'+sign+(d*100).toFixed(2)+' 个百分点</div>'
+               : '<div class="d '+cls+'">'+sign+opt.f(d)+(opt.prev?'（'+sign+(d/opt.prev*100).toFixed(2)+'%）':'')+'</div>';
+  }
+  return h+'</div>';
+}
+
+function render(){
+  document.querySelectorAll('#subtabs span').forEach(function(e){e.classList.toggle('on',e.dataset.t===S.type)});
+  document.querySelectorAll('#seg span').forEach(function(e){e.classList.toggle('on',e.dataset.m===S.mode)});
+  document.getElementById('mode-tip').classList.toggle('show',S.mode==='sum');
+  var TY=S.type==='collect'?'代收':'代付', hasSr=S.type==='collect';  /* 代付没有成功率口径，与通道报表一致 */
+  if(!hasSr&&S.sort==='sr'){S.sort='amt';S.dir=-1;}
+  var scope=scopeRows(), h='', n=0, cards='', si=function(k){return '<span class="sort-ico '+(S.sort===k?'active':'')+'">'+(S.sort===k&&S.dir>0?'▲':'▼')+'</span>'};
+  if(S.mode==='detail'){
+    /* ===== 通道明细：与现有一致，占比在筛选结果内计算 ===== */
+    var rows=scope.filter(function(r){return !S.pcs.length||S.pcs.indexOf(r.pc)>=0});
+    var tot=sum(rows,function(r){return r.amt}), ftot=sum(rows,fee);
+    rows=rows.map(function(r){return Object.assign({},r,{ar:tot?r.amt/tot:0,f:fee(r),fr:ftot?fee(r)/ftot:0})});
+    rows.sort(function(a,b){return S.sort==='fee'?(a.fr-b.fr)*S.dir:(a.amt-b.amt)*S.dir});
+    document.getElementById('thead').innerHTML='<tr><th>统计日期</th><th>集团</th><th>商户</th><th>三方</th><th class="l">通道名称</th><th>成功笔数</th><th>总额('+S.cur+')</th><th class="sortable" onclick="sortBy(\'amt\')">金额占比'+si('amt')+'</th><th>费率</th><th>手续费</th><th class="sortable" onclick="sortBy(\'fee\')">手续费占比'+si('fee')+'</th></tr>';
+    rows.forEach(function(r){
+      h+='<tr><td>2026-09-29 ~ 2026-09-29</td><td>TZ集团</td><td><span class="pill tn">'+r.tn+'</span></td><td>'+r.pc+'</td><td class="l">'+r.ch+'</td><td class="num">'+r.cnt.toLocaleString()+'</td><td class="num amt">'+fmt(r.amt)+'</td><td>'+bar(r.ar)+'</td>'
+        +(r.rate==null?'<td class="dash">—</td><td class="dash">—</td><td class="dash">—</td>':'<td>'+r.rate.toFixed(2)+'%</td><td class="num">'+fmt(r.f)+'</td><td>'+bar(r.fr,'fee')+'</td>')+'</tr>';
+    });
+    n=rows.length;
+    var top=rows.map(function(r){return r.amt}).sort(function(a,b){return b-a}).slice(0,3);
+    cards=cardHtml('总额',fmt(tot))+cardHtml('三方数',uniq(rows.map(function(r){return r.pc})).length)+cardHtml('TOP3',pct(tot?sum(top,function(x){return x})/tot:0),{green:1,tip:'金额占比前三百分比总和'});
+    document.getElementById('cmp-note').textContent='';
+  }else{
+    /* ===== 按三方汇总：分母为查询范围内全部三方合计，不受三方筛选影响 ===== */
+    var A={amt:sum(scope,function(r){return r.amt}),cnt:sum(scope,function(r){return r.cnt}),sub:sum(scope,function(r){return r.sub}),subAmt:sum(scope,function(r){return r.subAmt}),fee:sum(scope,fee)};
+    var P={amt:sum(scope,function(r){return r.p.amt}),cnt:sum(scope,function(r){return r.p.cnt}),sub:sum(scope,function(r){return r.p.sub}),subAmt:sum(scope,function(r){return r.p.subAmt}),fee:sum(scope,pfee)};
+    var g={};
+    scope.forEach(function(r){ var x=g[r.pc]||(g[r.pc]={pc:r.pc,tns:[],chs:0,cnt:0,amt:0,sub:0,f:0,has:false}); if(x.tns.indexOf(r.tn)<0)x.tns.push(r.tn); x.chs++; x.cnt+=r.cnt; x.amt+=r.amt; x.sub+=r.sub; x.f+=fee(r); if(r.rate!=null)x.has=true; });
+    var all=Object.keys(g).map(function(k){var x=g[k]; x.ar=A.amt?x.amt/A.amt:0; x.cr=A.cnt?x.cnt/A.cnt:0; x.fr=A.fee?x.f/A.fee:0; x.sr=x.sub?x.cnt/x.sub:0; x.er=x.amt?x.f/x.amt:0; return x;});
+    var list=all.filter(function(x){return !S.pcs.length||S.pcs.indexOf(x.pc)>=0});
+    var key={amt:'amt',cnt:'cnt',sr:'sr',fee:'f'}[S.sort]||'amt';
+    list.sort(function(a,b){return (a[key]-b[key])*S.dir});
+    var th=function(k,t,nw){return '<th class="sortable'+(nw?' newcol':'')+'" onclick="sortBy(\''+k+'\')">'+t+si(k)+'</th>'};
+    document.getElementById('thead').innerHTML='<tr><th>统计日期</th><th>三方</th><th>商户数</th><th>通道数</th>'+th('amt',TY+'成功金额('+S.cur+')')+th('cnt',TY+'成功笔数')+(hasSr?th('sr','成功率'):'')+'<th>金额占比</th><th>笔数占比</th><th>综合费率</th>'+th('fee','手续费')+'<th>手续费占比</th></tr>';
+    list.forEach(function(x){
+      h+='<tr><td>2026-09-29 ~ 2026-09-29</td><td><span class="lnk" onclick="drill(\''+x.pc+'\')">'+x.pc+'</span></td><td class="num">'+x.tns.length+'</td><td class="num">'+x.chs+'</td><td class="num amt">'+fmt(x.amt)+'</td><td class="num">'+fint(x.cnt)+'</td>'+(hasSr?'<td class="num">'+pct(x.sr)+'</td>':'')+'<td>'+bar(x.ar)+'</td><td class="num">'+pct(x.cr)+'</td>'
+        +(x.has?'<td class="num">'+pct(x.er)+'</td><td class="num">'+fmt(x.f)+'</td><td>'+bar(x.fr,'fee')+'</td>':'<td class="dash">—</td><td class="dash">—</td><td class="dash">—</td>')+'</tr>';
+    });
+    n=list.length;
+    var tn=uniq(scope.map(function(r){return r.tn})).length;
+    cards=cardHtml('三方数',all.length)+cardHtml('商户数',tn)
+      +(hasSr?cardHtml(TY+'创建金额',fmt(A.subAmt),{cur:A.subAmt,prev:P.subAmt,f:fmt})+cardHtml(TY+'创建笔数',fint(A.sub),{cur:A.sub,prev:P.sub,f:fint}):'')
+      +cardHtml(TY+'成功金额',fmt(A.amt),{cur:A.amt,prev:P.amt,f:fmt})
+      +cardHtml(TY+'成功笔数',fint(A.cnt),{cur:A.cnt,prev:P.cnt,f:fint})
+      +(hasSr?cardHtml(TY+'成功率',pct(A.sub?A.cnt/A.sub:0),{green:1,cur:A.sub?A.cnt/A.sub:0,prev:P.sub?P.cnt/P.sub:0,f:pct,pp:1}):'')
+      +cardHtml('手续费',fmt(A.fee),{cur:A.fee,prev:P.fee,f:fmt,tip:'已配置费率的通道的手续费之和；未配置费率的通道不计入'});
+    document.getElementById('cmp-note').textContent= n||scope.length ? '卡片为查询范围内全部三方的合计，不受「三方」筛选影响。上一周期：2026-09-28 ~ 2026-09-28（与所选日期等长的前一段时间）' : '';
+  }
+  document.getElementById('cards').innerHTML=cards;
+  document.getElementById('tbody').innerHTML=h;
+  document.getElementById('empty').style.display=n?'none':'block';
+  document.getElementById('total').textContent='共 '+n+' 条';
+}
+
+/* ==================== 筛选 ==================== */
+function fillOptions(){
+  var rows=D[S.type];
+  document.getElementById('f-tn').innerHTML='<option value="">请选择商户</option>'+uniq(rows.map(function(r){return r.tn})).map(function(t){return '<option>'+t+'</option>'}).join('');
+  document.getElementById('f-tn').value=S.tn;
+  document.getElementById('ms-list').innerHTML=uniq(rows.map(function(r){return r.pc})).map(function(p){return '<label class="ms-opt"><input type="checkbox" value="'+p+'" '+(pending.indexOf(p)>=0?'checked':'')+' onchange="pickPc(this)">'+p+'</label>'}).join('');
+  drawMs();
+}
+function drawMs(){ var b=document.getElementById('ms-box'); b.innerHTML=pending.length?pending.map(function(p){return '<span class="ms-chip">'+p+'</span>'}).join(''):'请选择三方（可多选）'; }
+function toggleMs(e){ e.stopPropagation(); document.getElementById('ms-list').classList.toggle('show'); }
+function pickPc(c){ if(c.checked){ if(pending.indexOf(c.value)<0)pending.push(c.value); } else pending=pending.filter(function(p){return p!==c.value}); drawMs(); }
+function search(){ S.cur=document.getElementById('f-cur').value; S.tn=document.getElementById('f-tn').value; S.pcs=pending.slice(); document.getElementById('ms-list').classList.remove('show'); render(); toast('搜索已刷新'); }
+function resetAll(){ pending=[]; S.tn=''; S.pcs=[]; S.cur='INR'; document.getElementById('f-cur').value='INR'; fillOptions(); render(); toast('已重置筛选条件'); }
+function sortBy(k){ if(S.sort===k) S.dir=-S.dir; else{ S.sort=k; S.dir=-1; } render(); }
+function drill(pc){ pending=[pc]; S.pcs=[pc]; S.mode='detail'; fillOptions(); render(); toast('已切到通道明细，并筛选三方：'+pc); }
+function doExport(){ toast(S.mode==='sum'?'导出任务已提交：按三方汇总表':'导出任务已提交：通道明细表'); }
+
+document.getElementById('subtabs').addEventListener('click',function(e){ var t=e.target.dataset.t; if(t){ S.type=t; pending=[]; S.pcs=[]; S.tn=''; fillOptions(); render(); } });
+document.getElementById('seg').addEventListener('click',function(e){ var m=e.target.dataset.m; if(m){ S.mode=m; S.sort='amt'; S.dir=-1; render(); } });
+document.addEventListener('click',function(e){ if(!e.target.closest('.ms')) document.getElementById('ms-list').classList.remove('show'); });
+
+/* ==================== 通用 ==================== */
+function openReq(){ document.getElementById('req-mask').classList.add('show'); document.getElementById('req-drawer').classList.add('show'); }
+function closeReq(){ document.getElementById('req-mask').classList.remove('show'); document.getElementById('req-drawer').classList.remove('show'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeReq(); });
+var tmr;
+function toast(m){ var t=document.getElementById('toast'); t.innerHTML=m; t.style.display='block'; clearTimeout(tmr); tmr=setTimeout(function(){t.style.display='none'},2600); }
+fillOptions(); render();
+</script>
+</body>
+</html>
