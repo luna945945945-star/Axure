@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>钱包手机号快捷填充</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333;min-height:100vh}
+.stage{display:flex;justify-content:center;align-items:flex-start;gap:28px;padding:28px 60px 40px 28px;flex-wrap:wrap}
+
+/* 演示面板（页面外） */
+.demo{width:250px;background:#fff;border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:12.5px;color:#555}
+.demo h3{font-size:13px;color:#6C4FE0;margin-bottom:6px}
+.demo p{line-height:1.7;margin-bottom:10px;color:#888;font-size:12px}
+.demo .scenes{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.demo .scenes button{font:inherit;font-size:12px;text-align:left;border:1px solid #d3caf5;background:#f7f5ff;color:#4b3aa8;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1.5}
+.demo .scenes button:hover{border-color:#6C4FE0}
+.demo .scenes button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.demo .who{background:#fafbfc;border:1px solid #eef0f3;border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.8;color:#555}
+.demo .who b{color:#333;font-weight:600}
+.demo .who .k{color:#999;display:inline-block;width:64px}
+.demo .sub{font-size:11.5px;color:#aaa;margin-top:10px;line-height:1.7}
+
+/* 手机 */
+.phone{width:395px;height:832px;border-radius:36px;background:#111;padding:10px;box-shadow:0 10px 40px rgba(0,0,0,.25);flex:0 0 auto}
+.screen{width:375px;height:812px;border-radius:28px;overflow:hidden;background:#F7F8FF;position:relative;display:flex;flex-direction:column;color:#1E2637}
+
+/* NavBar（还原前台 NavBar） */
+.navbar{height:46px;background:#fff;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto;z-index:5}
+.navbar .lft{position:absolute;left:12px;top:0;height:100%;display:flex;align-items:center;cursor:pointer}
+.navbar .lft svg{width:18px;height:18px}
+.navbar .ttl{font-size:18px;line-height:18px;color:#1E2637}
+.page{flex:1;overflow-y:auto;position:relative;scrollbar-width:none}
+.page::-webkit-scrollbar{display:none}
+
+/* 添加账户页（还原 AddType4） */
+.add{padding:0 10px 60px}
+.add-header{height:30px;line-height:30px;font-weight:700;font-size:18px;color:#1E2637;padding-left:41px;background:url(data:image/png;base64,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) no-repeat left center/30px;margin-top:4px}
+.add-title{height:20px;line-height:20px;margin:25px 0 12px;font-weight:500;font-size:16px;color:#1E2637}
+.selectB{font-size:14px;color:#fff;background:linear-gradient(90deg,#f95959 0%,#ff9a8e 100%);height:40px;line-height:40px;border-radius:5px;padding:0 10px}
+.fld{height:35px;padding:0 10px;background:#fff;border-radius:2px;display:flex;align-items:center}
+.fld input{width:100%;border:0;outline:0;font:inherit;font-size:14px;color:#768096;background:transparent}
+.fld input::placeholder{color:#B6BCC8}
+.fld input[readonly]{cursor:default}
+.first-bind-tip{margin:8px 0 0;color:#f95959;font-size:11px;line-height:1.4}
+.sumbitBtn{position:absolute;left:0;right:0;bottom:0;height:35px;line-height:35px;color:#fff;font-weight:700;font-size:15px;text-align:center;background:linear-gradient(90deg,#f95959 0%,#ff9a8e 100%);cursor:pointer;z-index:4}
+.sumbitBtn.disable{background:linear-gradient(90deg,#CCCEDC 15.38%,#CDCFDD 98.73%);color:#1E2637;pointer-events:none}
+
+/* 新增：手机号快捷填充 */
+.qf{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:9px;font-size:12px;color:#768096}
+.qf .chip{display:inline-flex;align-items:center;height:24px;padding:0 11px;border:1px solid #f95959;border-radius:12px;color:#f95959;background:rgba(249,89,89,.06);font-size:12.5px;letter-spacing:.3px;cursor:pointer;user-select:none}
+.qf .chip:active{background:rgba(249,89,89,.16)}
+.new{position:absolute;background:#f5222d;color:#fff;font-size:9px;font-weight:700;line-height:1;padding:3px 5px;border-radius:8px 8px 8px 2px;box-shadow:0 2px 6px rgba(245,34,45,.35);pointer-events:none;letter-spacing:.3px}
+.qf .new{top:-8px;left:228px}
+
+/* 账户列表页（还原 Type4） */
+.list{padding:0 12px 50px;min-height:100%}
+.list-wrap{padding-top:4px}
+.item{border-radius:5px;background:#fff;padding:10px 7px 22px}
+.item+.item{margin-top:10px}
+.item .hd{height:34px;position:relative;padding-left:43px;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAqCAYAAADFw8lbAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAacSURBVHgB7Vg9bBxFFH5vZvfOTgg5VwiaXKBJIkGcjgqf6SgQLgEJYiEkBBKcXSCEosiXBCkoRfwToAJsJCQiQZEU0GJ3aZBcIbo4NUUcxeT8szuP997M7u2e7bOJyVGQdzrNzu6bmW/e37w3AI/pf0oIj5DGWlSrVJMmEjQjAkRHre/PV2ZPXnvQHEps7Zl1Az99Gl/Yz1wRPCIau7LZNC6ZIkdDhlgeJFIxU/xp1iBMVBzUY6es/w3QV65sjcREM+TgtIBjORI4QYr8oyHhEYBV+af7n/dfA9q43K5XIzvP6m0wPjKiam4Z5iojvMcwjyJ5oBZp0iauFju77/kPDLTBdmiOsJoJplDVS6JiUF0LkZu7fq7aeuvi5jig+VZe/fbh4RvZ+BNftUeeu2/nf/6k8myvdQwcgF66ut6kIxu3GVMLPa4lspU62yYviqPqqWiOvt5q19Fakai+Gp5bmxi7zMCZ/vhgcClupy/vtdZDSfTF6XbDAM7zusdkZVWxCtPBLx/jHeEZu9wGpAhZ0k0bRRPgnFqp0EBqm4cTXOHHBenfaA2u7LXmPwJ6Zm7tdOTsDEuwwbhIJKSSJO0FlZdINnCTv9T4sZGbA8DokTSBk188mH56w4499QAmfzhfvQEHBVqfvlur2SrbIE74N7x0UCOiAPaiEkd69fON25a7Mald8VeWJiXHecRIFrRvTQ6u3OL2hdm/hgYTrA8S1PbCsCfQU1+2p2zqGCDW/EJIQd2oIJ14tzoQKTKOjyJleUNE3CYL3K3xu3eYu1mcu+rimUGXLjzpBpb3wrHryXTi2v0GIocbwGMRx0EJ2pZXtGJ5jIJh+ZbjYXgPkRMpcivSJOHjcfyk4wEWrcPhb6aiIXgI2gb01PTaMMV22tuUZ7C6sC4OEvnkWcGRypGB+Va/ubAhr3rlsSxZ2YjljfwZwWimRrQR2TTB2NHqj+cqy/sGemL6bh0r1V9ZX/Vegwx0gJtsE9kGAEv9nCfvq9T1QMierTqluc08F6+fixZ2W7ODOqoMC8jMNwl23pkP7D7YYOGdQewMooyPOmOycQLMR4TwLPGCjhui+TcvbU3BXkDZ+GsZmGJborAYM4fnMlj/zPLpzEIlHgUoHCxRabMAR35DbD6tty+lze5lo27UrgCQhy4Yly45KEtUedMcN6S6gOWxCYclC5lYRWwsKZZ0YOLWpZ05Up445hMLUjrDkM92xECaZe0KtAgy0OLvHz3xHfSB3vhsU9Y+K6bCdj30bmur8XUrXsy+l1Tffa6wNB9pYl0kDm2Lerp5ZZAzVIce2ErkoL+kNozh1OtavKfqD5RaPQShOFTmrIiloNNbosYS9JFEmtru8K2njfaVRJ0i0SDJ7tzfdPNm1FdRMllj8kxM6wNyJcHuKFGtyaDPJIk1eTsF2kOiGfUdJHggeeooz87s7kz9DkdlMlk+gP44Lqu+Z+LMR1/j+bk1lPzGB3+rO4v4XDSJt6UIfWTw2VGKVo5II/yaj1AsibWRnNShDZKQSkr5EydZExlUcCMiKUUngLEs0Z5A2V7GOWkc1x1y7mgkEfb1kWbCvgRxhfTNOwTzgQlOoee9pPqCGzVPxSyhkY+IPlHhaVBzAs3CYJs37xqRvPgLqZxPxwLMoJ7AkYVmzGspLKR2Ia3zqZ3KKy8IoZBN5eui1C+9vb5EOhkVUjftYydd0ywnz3d0ARdyT+dzTDldEKGc5hWKQp+zynHpMM9XQ2W7b9WHy4MJjOgmrbOC4wGqbq2rljS1WyfN3AZUa558uuf3WJxYvrtN4S30wfeFtyp9smNsX1cxHFDYlRCVgPK9IN8TWcokZ9DVl98/tAJ9oPdayWmTaUxVrxcUOwNtJ+nioTi6h1Jne/uaGJ5r1zhJXtIAzFmvxQqJd4u3Sysbi7ktRYbUS9YXe74VVRq2OxllXMfb+VlGjDDLeLFyiNaiUrG3vQrlOl4uXPMiLdiOrz6LhRqSrzL9rZ113svzCJAVdpAVc4QyJzrIK9lQ3HXmdLxdULO+MHcxbhVxbXOmyub6LC+8HJynsBvxX+1750AoFm0aUPLiDXNHyngwjyLojRzzn3csP05YzXI3yB2BLk8OrUbJxihLdVYWDEdboVoE7Hinzl+8OdGN5JvJPJl5fLFHAVDweKCCp+tFy0xkcBR2oJ7H+vB0u24NvsZlAt8d0VFVtTMePOXnM5cR/mICXbh0gGAy4A+B3E6p811OKbms4P4qUXrnEMYLMy1chcfUJ/obsnjT1tEH7NkAAAAASUVORK5CYII=) no-repeat 4px center/30px;padding-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.item .hd::after{content:"";position:absolute;right:0;bottom:0;width:calc(100% - 24px);border-bottom:.5px solid #E1E1E1}
+.item .hd b{font-weight:700;font-size:16px;color:#1E2637}
+.item .sel{width:30px;height:30px;border:.5px solid #768096;border-radius:50%;cursor:pointer}
+.item .sel.on{border:0}
+.item .sel svg{width:30px;height:30px;display:block}
+.item .bd{padding:17px 4px 20px;font-size:13px;color:#768096}
+.item .bd div:first-child{height:16px;line-height:16px}
+.item .bd div+div{margin-top:15px;height:18px;line-height:18px}
+.noData{background:#fff url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALAAAACwCAMAAACYaRRsAAAAM1BMVEUAAAC3u8+4vNC5vNC5vdG4vNC3us+3t8+4vNC2vM+5vNG4vM+vv8+vr8+5vNC4vNC4vNB5o5b1AAAAEHRSTlMAQN/vj59gIM+QX5AQEK+/+pPJwgAAAbpJREFUeNrt3MuSokAQRuGsKkS8/+//tMPEbCYygDCbjs7CPt8a5QjKAos0AAAAAMAHKsPUtGywRdeV7evVFg1aMZ3OFvV4akOxJVUrmi0p2hBNPlfFg5tW1Hiw6vkbey+2aFx5VRtt0W27+B4IPmk2lYelePz75M/AAdbsZIlOmpXQ5tVSvdw3b9skabRURdJk79Lsbqnukloo2BL4BoL/QzDBDsEEOwQT7BBMsEMwwQ7BBDsEf3bwTbpYonhDKZauhwb84hM6SIMdSQ8XRoK7QrBDMMEOwQQ7BBPsEEzwtmur18TgeEOVWkawb9i/u17fgWCCCSa4q90RvGzQDsPPBxftUgh+41+THS786AgmmGCC+9ndLwxuUk0MjjeMtY0JwbGGQ9+qIrh/BDsEE+wQTLBDMMEOwQR/0aHWeH/2clwc4ISWcqz11X8bDnVR+uwnZQgmmGCCCSaYYIdggh2CCXYIJtghONTQ+hgjqdCgzmKpxtCgzpukl6WqoemxpY9hs2d721OzOmaN8y2v6BG7Vzk/MEN774jnhBnavjdUfMqdof18mFk0eUqaod2mSwc31AEAAAAA3+4PU1FviV2McX8AAAAASUVORK5CYII=) no-repeat center 0/44px;background-origin:content-box;padding:50px 0 10px;color:#B6BCC8;text-align:center;border-radius:5px;margin-top:4px;cursor:pointer}
+.addbtn{position:absolute;bottom:0;left:0;right:0;height:35px;line-height:35px;font-weight:700;font-size:15px;background:#f95959;color:#fff;text-align:center;cursor:pointer;z-index:4}
+
+/* 提示 */
+.toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:260px;background:rgba(0,0,0,.72);color:#fff;font-size:14px;line-height:20px;padding:10px 14px;border-radius:8px;text-align:center;z-index:30;display:none;word-break:break-word}
+.toast.on{display:block}
+
+/* 需求说明抽屉（V1 原型统一样式） */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:20px}
+.prd ol.dev li{margin:4px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="demo">
+    <h3>原型操作提示</h3>
+    <p>选一个场景，手机里直接是添加账户页。点账号框下面的号码按钮即可填入；保存后进入账户列表（本面板仅为演示，不属于页面）。</p>
+    <div class="scenes" id="scenes"></div>
+    <div class="who" id="who"></div>
+    <p class="sub">姓名带出并锁定、首次绑定的锁定提示、账号只能输数字且首位必须是 0，都是现有功能，照搬未改。</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen" id="screen">
+      <div class="navbar"><div class="lft" id="navBack"><svg viewBox="0 0 24 24" fill="none" stroke="#1E2637" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg></div><div class="ttl" id="navTitle"></div></div>
+      <div class="page" id="page"></div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>Easypaisa / JazzCash 添加账户 · 手机号快捷填充 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型页面。</div>
+    <table class="t">
+      <tr><th style="width:300px">页面</th><th>改动点</th></tr>
+      <tr><td>前台 → 提现 → <b>添加 Easypaisa 账户页</b>、<b>添加 JazzCash 账户页</b></td><td>账号输入框下新增「手机号快捷填充」按钮</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">会员手机号去掉国家码 92、首位补 0，就是 Easypaisa / JazzCash 账号，点一下即可填入</div>
+      <div class="kf">只是把号码填进账号框，会员可以修改；不点按钮照常手动输入</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>号码来源</b><span class="kb">核心</span>：取会员的手机号。手机号注册的会员取注册手机号；邮箱注册的会员取已绑定的手机号。</div>
+
+    <div class="br key"><span class="bn">02</span><b>换算规则</b><span class="kb">核心</span>：去掉开头的国家码 92；剩下的号码首位不是 0 的，前面补一个 0。例：92 3234567890 → 03234567890；92 03234567890 → 03234567890。</div>
+
+    <div class="br"><span class="bn">03</span><b>按钮显示</b>：显示换算后号码的前 3 位 + **** + 后 3 位，例 032****890。</div>
+
+    <div class="br"><span class="bn">04</span><b>点击填入</b>：把换算后的完整号码填入账号框，覆盖框里已输入的内容。</div>
+
+    <div class="br"><span class="bn">05</span><b>不显示按钮</b>：会员没有手机号，或手机号不是 92 开头。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:140px">项</th><th>说明</th></tr>
+      <tr><td>适用范围</td><td>只加在 Easypaisa、JazzCash 的添加账户页；E-Wallet、银行卡等其他提现方式的添加页不加</td></tr>
+      <tr><td>本次不做</td><td>不判断该号码是否已开通对应钱包</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>添加 Easypaisa、JazzCash 账户和添加 E-Wallet 账户是同一个页面，快捷填充只在 Easypaisa、JazzCash 下出现。</li>
+      <li>会员手机号和绑定 New UPI 时自动带出的手机号是同一个来源，直接复用。</li>
+      <li>新文案「Use my phone number:」按站点已开放的语言补翻译。</li>
+    </ol>
+
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// 前台真实文案（测试站 en 语言包）
+const T={paymentMethod:'Payment method',bankname:'Bank name',name:'Full name',phEnter:'Please enter',account:'Account',
+  firstBindNameLockTip:'This is your first payout account. The name will be locked once saved, and all future withdrawal methods must use the same name.',
+  charAtone:'The first digit must be 0',formatErr:'wrong format',save:'Save',addedSuccessfully:'Added successfully',upiAddPaymentMethod:'Add payment method',
+  quickFill:'Use my phone number:'};
+
+const TYPES={23:{name:'Easypaisa',bank:'EASYPAISA'},24:{name:'JazzCash',bank:'JAZZCASH'}};
+
+// 演示场景
+const SCENES=[
+  {k:'a',label:'① 首次绑定 Easypaisa',type:23,reg:'手机号注册',acct:'923234567890',phone:'923234567890',lastName:''},
+  {k:'b',label:'② 已绑 Easypaisa，再绑 JazzCash',type:24,reg:'手机号注册',acct:'923234567890',phone:'923234567890',lastName:'ALI KHAN'},
+  {k:'c',label:'③ 注册号 92 后面带 0',type:23,reg:'手机号注册',acct:'9203234567890',phone:'9203234567890',lastName:''},
+  {k:'d',label:'④ 邮箱注册、已绑手机号',type:23,reg:'邮箱注册',acct:'ali.khan@gmail.com',phone:'923001234567',lastName:''},
+  {k:'e',label:'⑤ 邮箱注册、未绑手机号',type:23,reg:'邮箱注册',acct:'ali.khan@gmail.com',phone:'',lastName:''}
+];
+
+const S={scene:SCENES[0],page:'add',name:'',acc:'',list:[],sel:0};
+
+// 换算：去掉 92，首位不是 0 补 0
+function toWallet(p){
+  p=String(p||'').replace(/\D/g,'');
+  if(!p.startsWith('92'))return '';
+  let r=p.slice(2);
+  if(r.charAt(0)!=='0')r='0'+r;
+  return r;
+}
+const mask=r=>r.slice(0,3)+'****'+r.slice(-3);
+
+const ICON_SEL='<svg viewBox="0 0 60 60" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M60 30C60 46.5686 46.5686 60 30 60C13.4314 60 0 46.5686 0 30C0 13.4314 13.4314 0 30 0C46.5686 0 60 13.4314 60 30ZM14.4 34.2149L19.3014 29.0266C20.9353 30.363 24.2029 33.2714 27.4705 37.2807C27.5276 37.3507 27.7006 36.9707 28.0345 36.2374C29.4965 33.0269 34.0423 23.0442 45.4425 14.4053C45.5467 14.3263 45.5229 15.1444 45.4865 16.397C45.4534 17.5342 45.41 19.0295 45.4425 20.5367C45.5024 23.3195 45.9093 26.1966 45.9093 26.1966C45.9093 26.1966 39.374 27.8474 28.1707 46.0063C28.1442 46.0494 27.8296 45.6959 27.2806 45.0789C25.2645 42.8134 20.0868 36.9951 14.4 34.2149Z" fill="#f95959"/></svg>';
+
+function setScene(sc){
+  S.scene=sc;S.page='add';S.acc='';S.list=[];S.sel=0;
+  S.name=sc.lastName||'';
+  renderScenes();render();
+}
+
+function renderScenes(){
+  $('scenes').innerHTML=SCENES.map(s=>`<button class="${s===S.scene?'on':''}" data-k="${s.k}">${esc(s.label)}</button>`).join('');
+  $('scenes').querySelectorAll('button').forEach(b=>b.onclick=()=>setScene(SCENES.find(s=>s.k===b.dataset.k)));
+  const sc=S.scene,w=toWallet(sc.phone);
+  $('who').innerHTML=
+    `<div><span class="k">注册方式</span><b>${esc(sc.reg)}</b></div>`+
+    `<div><span class="k">登录账号</span><b>${esc(sc.acct)}</b></div>`+
+    `<div><span class="k">会员手机号</span><b>${sc.phone?esc(sc.phone):'（无）'}</b></div>`+
+    `<div><span class="k">换算后</span><b>${w?esc(w):'不显示快捷填充'}</b></div>`+
+    `<div><span class="k">已锁定姓名</span><b>${sc.lastName?esc(sc.lastName):'（无，首次绑定）'}</b></div>`;
+}
+
+function render(){
+  const ty=TYPES[S.scene.type];
+  $('navTitle').textContent=S.page==='add'?ty.name+' '+T.paymentMethod:ty.name+T.paymentMethod;
+  S.page==='add'?renderAdd(ty):renderList(ty);
+}
+
+function renderAdd(ty){
+  const locked=!!S.scene.lastName;
+  const w=toWallet(S.scene.phone);
+  $('page').innerHTML=`
+  <div class="add">
+    <div class="add-header">${esc(ty.name)}</div>
+    <div class="add-title">${T.bankname}</div>
+    <div class="selectB">${esc(ty.bank)}</div>
+    <div class="add-title">${T.name}</div>
+    <div class="fld"><input id="iName" maxlength="50" placeholder="${T.phEnter+T.name}" value="${esc(S.name)}" ${locked?'readonly':''}></div>
+    ${locked?'':`<p class="first-bind-tip">✓ ${T.firstBindNameLockTip}</p>`}
+    <div class="add-title">${T.account}</div>
+    <div class="fld"><input id="iAcc" maxlength="15" inputmode="numeric" placeholder="${T.phEnter+T.account}" value="${esc(S.acc)}"></div>
+    ${w?`<div class="qf"><span>${T.quickFill}</span><span class="chip" id="qfChip">${mask(w)}</span><span class="new">NEW</span></div>`:''}
+  </div>
+  <div class="sumbitBtn" id="btnSave">${T.save}</div>`;
+  const iName=$('iName'),iAcc=$('iAcc');
+  iName.oninput=()=>{ // 现有：去掉数字和特殊字符、合并连续空格
+    iName.value=iName.value.replace(/[0-9`~!@#$%^&*()_\-+=<>?:"{}|,.\/;'\\[\]·！￥…（）—《》？：“”【】、；‘’，。]/g,'').replace(/ {2,}/g,' ');
+    S.name=iName.value;syncBtn();
+  };
+  iAcc.oninput=()=>{iAcc.value=iAcc.value.replace(/[^0-9]/g,'');S.acc=iAcc.value;syncBtn();}; // 现有：只能输数字
+  if(w)$('qfChip').onclick=()=>{S.acc=w;iAcc.value=w;syncBtn();};
+  $('btnSave').onclick=save;
+  syncBtn();
+}
+
+function syncBtn(){const b=$('btnSave');if(b)b.classList.toggle('disable',!(S.acc&&S.name.trim()));}
+
+function save(){
+  const acc=S.acc.trim();
+  if(acc.length>0){ // 现有账号校验
+    if(!/^[0-9]{8,15}$/.test(acc)){toast(T.account+T.formatErr);return;}
+    if(acc.charAt(0)!=='0'){toast(T.charAtone);return;}
+  }
+  toast(T.addedSuccessfully);
+  S.list=[{wallet:TYPES[S.scene.type].bank,name:S.name.trim(),no:mask(acc)}];
+  S.sel=0;S.page='list';render();
+}
+
+function renderList(){
+  const items=S.list.map((it,i)=>`
+    <div class="item">
+      <div class="hd"><b>${esc(it.wallet)}</b><div class="sel ${S.sel===i+1?'on':''}" data-i="${i+1}">${S.sel===i+1?ICON_SEL:''}</div></div>
+      <div class="bd"><div>${esc(it.name)}</div><div>${esc(it.no)}</div></div>
+    </div>`).join('');
+  $('page').innerHTML=`<div class="list"><div class="list-wrap">${items||`<div class="noData" id="noData">${T.upiAddPaymentMethod}</div>`}</div></div>
+  <div class="addbtn" id="btnAdd">${T.upiAddPaymentMethod}</div>`;
+  $('page').querySelectorAll('.sel').forEach(el=>el.onclick=()=>{S.sel=+el.dataset.i;renderList();});
+  const goAdd=()=>{S.page='add';render();};
+  $('btnAdd').onclick=goAdd;if($('noData'))$('noData').onclick=goAdd;
+}
+
+$('navBack').onclick=()=>{
+  if(S.page==='add'){S.page='list';render();}
+  else{toast('（模拟：返回提现页）');}
+};
+
+let tt;
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1800);}
+
+// 需求说明抽屉
+const openDoc=()=>{$('drawer').classList.add('on');$('dmask').classList.add('on');};
+const closeDoc=()=>{$('drawer').classList.remove('on');$('dmask').classList.remove('on');};
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDoc();});
+
+setScene(SCENES[0]);
+</script>
+</body>
+</html>
