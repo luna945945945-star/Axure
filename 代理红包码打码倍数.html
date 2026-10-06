@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>代理红包码打码倍数</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",Arial,sans-serif;background:#f0f2f5;color:rgba(0,0,0,.88)}
+button,input,select,textarea{font:inherit;color:inherit}
+
+/* ===== 框架 ===== */
+.side{position:fixed;left:0;top:0;bottom:0;width:228px;background:#001529;color:rgba(255,255,255,.65);overflow-y:auto;z-index:20;padding-top:8px}
+.side .it{display:flex;align-items:center;justify-content:space-between;height:42px;margin:0 4px;padding:0 18px;border-radius:6px;cursor:default;font-size:13px}
+.side .it .l{display:flex;align-items:center;gap:10px}
+.side .it .ic{width:14px;text-align:center;font-size:12px;opacity:.85}
+.side .it .ar{font-size:9px;opacity:.7}
+.side .it.open{color:#fff}
+.side .subm{background:#000c17;padding:2px 0}
+.side .subm .it{padding-left:40px}
+.side .subm .it.on{background:#1677ff;color:#fff}
+.head{position:fixed;left:228px;right:0;top:0;height:10px;background:#001529;z-index:15}
+.main{margin-left:228px;padding:24px 44px 60px 14px}
+.card{background:#fff;border-radius:8px;padding:28px 12px 18px 28px}
+
+/* ===== 查询区 ===== */
+.qrow{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center}
+.qf{display:flex;align-items:center;gap:6px}
+.qf label{white-space:nowrap}
+.ipt{height:30px;border:1px solid #d9d9d9;border-radius:6px;padding:0 11px;background:#fff;outline:none;transition:border-color .2s}
+.ipt::placeholder{color:#bfbfbf}
+.ipt:focus{border-color:#4096ff;box-shadow:0 0 0 2px rgba(5,145,255,.1)}
+.sel{position:relative;display:inline-block}
+.sel select{appearance:none;-webkit-appearance:none;width:100%;padding-right:28px;cursor:pointer}
+.sel::after{content:"";position:absolute;right:12px;top:10px;width:6px;height:6px;border-right:1.5px solid #bfbfbf;border-bottom:1.5px solid #bfbfbf;transform:rotate(45deg);pointer-events:none}
+.btns{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+.btn{height:32px;padding:0 15px;border-radius:6px;border:1px solid #d9d9d9;background:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{color:#4096ff;border-color:#4096ff}
+.btn.pri{background:#1677ff;border-color:#1677ff;color:#fff;box-shadow:0 2px 0 rgba(5,145,255,.1)}
+.btn.pri:hover{background:#4096ff;border-color:#4096ff;color:#fff}
+.btn.sm{height:28px;padding:0 13px;font-size:12.5px}
+
+/* ===== 统计卡 ===== */
+.stat{margin:22px 16px 0 0;border:1px solid #fde3cf;border-radius:8px;background:linear-gradient(90deg,#fff6ee,#fffaf5 60%,#fff);display:flex;align-items:center;gap:30px;padding:14px 22px}
+.stat .em{font-size:18px}
+.stat .si .t{font-size:11px;color:#8c8c8c;margin-bottom:2px}
+.stat .si .v{color:#fa541c;font-size:19px;font-weight:600;line-height:1.2}
+.stat .si .v small{font-size:11px;font-weight:400;margin-left:4px}
+.stat .si .v .pf{font-size:12px;margin-right:4px;font-weight:600}
+
+/* ===== 表格 ===== */
+.tbl{overflow-x:auto;margin-top:18px}
+table.dt{border-collapse:separate;border-spacing:0;width:100%;min-width:1760px}
+.dt th{background:#fafafa;font-weight:600;text-align:left;padding:0 14px;height:52px;border-bottom:1px solid #f0f0f0;white-space:nowrap;position:relative}
+.dt th:not(:last-child)::before{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);width:1px;height:22px;background:#f0f0f0}
+.dt td{padding:0 14px;height:61px;border-bottom:1px solid #f0f0f0;white-space:nowrap}
+.dt tbody tr:hover td{background:#fafafa}
+.dt .empty td{height:120px;text-align:center;color:#bfbfbf}
+.tag{display:inline-block;font-size:11.5px;line-height:19px;padding:0 6px;border-radius:4px;border:1px solid #d9d9d9;background:#fafafa;color:rgba(0,0,0,.88)}
+.tag.ok{color:#52c41a;background:#f6ffed;border-color:#b7eb8f}
+.ops{display:flex;gap:8px}
+.th-new{position:relative;display:inline-block}
+.nw{position:absolute;top:-10px;right:-30px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);letter-spacing:.3px;pointer-events:none;z-index:5}
+.dt th.has-new{padding-right:40px}
+.newrow td{animation:hl 2.4s ease-out}
+@keyframes hl{0%{background:#e6f4ff}100%{background:transparent}}
+
+/* 分页 */
+.pg{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:18px;padding-right:16px}
+.pg .tt{margin-right:10px}
+.pg a{min-width:30px;height:30px;line-height:28px;text-align:center;border-radius:6px;border:1px solid transparent;cursor:pointer;user-select:none}
+.pg a.cur{border-color:#1677ff;color:#1677ff}
+.pg a.dis{color:rgba(0,0,0,.25);cursor:not-allowed}
+.pg .sel select{height:30px}
+
+/* ===== 弹窗 ===== */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none}
+.modal{position:fixed;left:50%;top:40px;transform:translateX(-50%);width:566px;max-width:calc(100vw - 32px);max-height:calc(100vh - 60px);background:#fff;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.08),0 3px 6px -4px rgba(0,0,0,.12),0 9px 28px 8px rgba(0,0,0,.05);z-index:101;display:none;flex-direction:column}
+.modal .mh{padding:20px 24px 8px;font-size:15px;font-weight:600;display:flex;justify-content:space-between;align-items:center;flex:none}
+.modal .mx{cursor:pointer;color:rgba(0,0,0,.45);font-size:18px;line-height:1;font-weight:400}
+.modal .mb{padding:4px 24px 4px;overflow-y:auto;min-height:0}
+.modal .mf{padding:14px 24px 20px;display:flex;justify-content:flex-end;gap:8px;flex:none}
+.fi{margin-bottom:13px}
+.fi>.lb{display:inline-block;position:relative;margin-bottom:6px}
+.fi>.lb .req{color:#ff4d4f;margin-right:4px;font-family:SimSun,sans-serif}
+.fi .ipt,.fi .sel{width:100%}
+.fi .sel select{height:30px}
+.fi textarea.ipt{height:52px;padding:5px 11px;resize:vertical;display:block}
+.fi .cnt{text-align:right;color:rgba(0,0,0,.45);font-size:12px;margin-top:-1px}
+.tip{color:#ff4d4f;font-size:12.5px;margin-top:8px}
+.err{color:#ff4d4f;font-size:12.5px;margin-top:4px;display:none}
+.fi.bad .ipt{border-color:#ff4d4f}
+.fi.bad .err{display:block}
+.seg{display:inline-flex}
+.seg span{height:30px;line-height:28px;padding:0 15px;border:1px solid #d9d9d9;cursor:pointer;background:#fff}
+.seg span:first-child{border-radius:6px 0 0 6px}
+.seg span:last-child{border-radius:0 6px 6px 0;border-left:0}
+.seg span.on{background:#1677ff;border-color:#1677ff;color:#fff}
+.hold{border:1px dashed #b9a9f5;background:#faf8ff;color:#6C4FE0;border-radius:6px;padding:8px 11px;font-size:12px;margin-top:8px}
+.per{margin:2px 0 4px}
+
+/* 提示 */
+.msg{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#fff;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.08),0 3px 6px -4px rgba(0,0,0,.12);padding:9px 14px;z-index:300;display:none;align-items:center;gap:8px}
+.msg i{font-style:normal;width:16px;height:16px;border-radius:50%;color:#fff;font-size:11px;line-height:16px;text-align:center;font-weight:700}
+.msg.ok i{background:#52c41a}.msg.warn i{background:#faad14}
+
+/* ===== 原型演示：会员领取 ===== */
+.demo{margin-top:22px;border:2px dashed #b9a9f5;border-radius:8px;background:#fff;padding:16px 20px 18px}
+.demo .dt0{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin-bottom:12px}
+.demo .pt{font-size:11px;color:#6C4FE0;background:#f1edff;border:1px solid #d9d0fb;border-radius:3px;padding:0 6px;font-weight:600}
+.demo .dr{display:flex;flex-wrap:wrap;gap:12px 26px;align-items:center}
+.demo .dr .qf input.ipt{width:110px}
+.demo .dr .qf .sel{width:430px}
+.demo .dr .qf .sel select{height:30px}
+.demo .res{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.demo .bx{border:1px solid #ebe6fd;background:#faf8ff;border-radius:6px;padding:8px 14px;min-width:150px}
+.demo .bx .t{font-size:11.5px;color:#8c8c8c}
+.demo .bx .v{font-size:18px;font-weight:600;color:#2d2366}
+.demo .bx.k{background:#6C4FE0;border-color:#6C4FE0}
+.demo .bx.k .t{color:#e3dcfb}.demo .bx.k .v{color:#fff}
+.demo .op{display:flex;align-items:center;color:#8c8c8c;font-size:16px;padding:0 2px}
+.demo .why{margin-top:10px;font-size:12.5px;color:#595959}
+
+/* ===== 需求说明抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd .br table.t td{text-align:center}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (max-width:900px){.side,.head{display:none}.main{margin-left:0;padding:16px 16px 50px}.card{padding:18px 14px}.demo .dr .qf .sel{width:100%}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== 侧边菜单（照截图） ===== -->
+<nav class="side">
+  <div class="it"><span class="l"><span class="ic">⌂</span>首页</span></div>
+  <div class="it"><span class="l"><span class="ic">⛬</span>我的推广</span></div>
+  <div class="it"><span class="l"><span class="ic">◯</span>用户</span><span class="ar">▼</span></div>
+  <div class="it"><span class="l"><span class="ic">◎</span>游戏</span><span class="ar">▼</span></div>
+  <div class="it open"><span class="l"><span class="ic">▤</span>活动管理</span><span class="ar">▲</span></div>
+  <div class="subm">
+    <div class="it on"><span class="l">红包派送</span></div>
+    <div class="it"><span class="l">红包领取记录</span></div>
+    <div class="it"><span class="l">赠金记录</span></div>
+    <div class="it"><span class="l">代理红包账变</span></div>
+  </div>
+  <div class="it"><span class="l"><span class="ic">⟋</span>统计</span><span class="ar">▼</span></div>
+  <div class="it"><span class="l"><span class="ic">⚙</span>设置</span><span class="ar">▼</span></div>
+</nav>
+<div class="head"></div>
+
+<main class="main">
+ <div class="card">
+  <div class="qrow">
+   <div class="qf"><label for="qCode">红包编码:</label><input class="ipt" id="qCode" placeholder="红包编码" style="width:340px" autocomplete="off"></div>
+   <div class="qf"><label for="qReward">奖励类型:</label><span class="sel" style="width:340px"><select class="ipt" id="qReward"><option value="">全部</option><option value="1">现金</option><option value="2">充值优惠券</option></select></span></div>
+   <div class="qf"><label for="qCoupon">优惠券码:</label><input class="ipt" id="qCoupon" placeholder="优惠券码" style="width:340px" autocomplete="off"></div>
+  </div>
+  <div class="btns">
+   <button class="btn pri" id="bSearch" type="button">⌕ 查 询</button>
+   <button class="btn pri" id="bReset" type="button">↻ 重置</button>
+   <button class="btn pri" id="bAdd" type="button">＋ 新增</button>
+   <button class="btn pri" id="bBal" type="button">赠金余额 <span id="bal">580.00</span></button>
+  </div>
+
+  <div class="stat">
+   <span class="em">🎯</span>
+   <div class="si"><div class="t">全部券红包</div><div class="v"><span class="pf">发放</span>0</div></div>
+   <div class="si"><div class="t">已领取</div><div class="v">0<small>0%</small></div></div>
+   <div class="si"><div class="t">已使用(核销率)</div><div class="v">0<small>0%</small></div></div>
+   <div class="si"><div class="t">带来充值</div><div class="v">0</div></div>
+   <div class="si"><div class="t">彩金成本</div><div class="v">0</div></div>
+  </div>
+
+  <div class="tbl">
+   <table class="dt">
+    <thead><tr>
+     <th>ID</th><th>红包编码</th><th>激活码类型</th><th>奖励类型</th><th>金额类型</th><th>随机区间</th><th>总金额/券规格</th><th>数量</th><th>状态</th><th>剩余数量</th><th>接受范围</th><th>接收条件</th>
+     <th class="has-new"><span class="th-new">打码倍数<span class="nw">NEW</span></span></th>
+     <th>备注</th><th>创建时间</th><th>操作</th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+   </table>
+  </div>
+  <div class="pg" id="pg"></div>
+ </div>
+
+ <!-- ===== 原型演示 ===== -->
+ <section class="demo" aria-label="会员领取演示">
+  <div class="dt0"><span class="pt">原型演示</span>会员领取现金红包时加多少打码量</div>
+  <div class="dr">
+   <div class="qf"><label for="dPlat">老后台「红包打码量倍数」</label><input class="ipt" id="dPlat" type="number" min="0" step="0.5" value="1"></div>
+   <div class="qf"><label for="dCode">领取的红包码</label><span class="sel"><select class="ipt" id="dCode"></select></span></div>
+   <div class="qf"><label for="dAmt">领到金额</label><input class="ipt" id="dAmt" type="number" min="0" step="0.01"></div>
+  </div>
+  <div class="res" id="dRes"></div>
+  <div class="why" id="dWhy"></div>
+ </section>
+</main>
+
+<!-- ===== 创建红包弹窗 ===== -->
+<div class="mask" id="mask"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+ <div class="mh"><span id="mTitle">创建红包</span><span class="mx" id="mClose">✕</span></div>
+ <div class="mb">
+  <div class="fi"><span class="lb">激活码类型</span>
+   <span class="sel"><select class="ipt" id="fAct"><option value="0">固定激活码</option><option value="1">随机激活码</option></select></span></div>
+  <div class="fi"><span class="lb">奖励类型</span><br>
+   <span class="seg" id="fReward"><span data-v="1" class="on">现金</span><span data-v="2">充值优惠券</span></span>
+   <div class="hold" id="couponHold" style="display:none">原型未展开：充值优惠券的表单项照现有页面，原样保留；不加「打码倍数」</div>
+  </div>
+  <div id="cashPart">
+   <div class="fi"><span class="lb">金额类型</span>
+    <span class="sel"><select class="ipt" id="fAmtType"><option value="0">固定金额</option><option value="1">随机金额</option><option value="2">区间随机金额</option></select></span>
+    <div class="hold" id="rangeHold" style="display:none">原型未展开：区间随机金额的现有子项，原样保留</div></div>
+   <div class="fi" id="fiTotal"><span class="lb">总金额</span><input class="ipt" id="fTotal" value="0" autocomplete="off"><div class="err">请输入大于0的总金额</div></div>
+   <div class="fi" id="fiQty"><span class="lb"><span class="req">*</span>数量</span><input class="ipt" id="fQty" autocomplete="off"><div class="err" id="eQty">请输入数量</div>
+    <div class="tip">(提示：红包数量不能超过5万个)</div></div>
+   <div class="fi"><span class="lb">接受范围</span>
+    <span class="sel"><select class="ipt" id="fScope"><option value="5">无规则</option><option value="0">直属下级</option><option value="1">佣金下级</option><option value="2">全部下级</option><option value="3">指定直属代理</option><option value="4">指定会员ID</option></select></span>
+    <div class="hold" id="scopeHold" style="display:none"></div></div>
+   <div class="fi"><span class="lb">接收条件</span>
+    <span class="sel"><select class="ipt" id="fCond"><option value="0">无规则</option><option value="1">存款条件</option><option value="2">投注条件</option><option value="3">亏损条件</option></select></span>
+    <div class="hold" id="condHold" style="display:none"></div></div>
+   <div class="fi" id="fiMult"><span class="lb">打码倍数<span class="nw">NEW</span></span>
+    <input class="ipt" id="fMult" placeholder="选填，请输入大于0的整数" autocomplete="off" inputmode="numeric">
+    <div class="err">打码倍数须为大于0的正整数</div>
+    <div class="tip" id="multTip"></div></div>
+   <div class="fi" id="fiRemark"><span class="lb">备注</span>
+    <textarea class="ipt" id="fRemark" maxlength="150" placeholder="红包数量大于1时，请填写备注"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div class="tip" style="margin-top:4px">(提示：红包数量大于1时，请填写备注)</div><div class="cnt"><span id="rCnt">0</span> / 150</div></div>
+    <div class="err">红包数量大于1时，请填写备注</div></div>
+   <div class="per">每个红包的金额为: <span id="perAmt">0</span></div>
+  </div>
+ </div>
+ <div class="mf"><button class="btn" id="mCancel" type="button">取 消</button><button class="btn pri" id="mOk" type="button">确 定</button></div>
+</div>
+
+<div class="msg" id="msg"><i id="msgI">✓</i><span id="msgT"></span></div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer" role="dialog" aria-label="需求说明">
+  <div class="dhead"><b>代理红包码 · 单独配置打码倍数 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:250px">页面</th><th>改动点</th></tr>
+      <tr><td>代理后台 → 活动管理 → <b>红包派送</b></td><td>「创建红包」弹窗新增「打码倍数」；列表新增「打码倍数」列</td></tr>
+      <tr><td>会员兑换现金红包</td><td>增加的打码量按本次规则计算，页面无改动</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">现金红包可单独填写打码倍数：选填，只能填大于 0 的正整数</div>
+      <div class="kf">会员兑换时，生效倍数 = 红包码的打码倍数与平台红包打码量倍数中较大的一个；红包码未填写时按平台倍数</div>
+      <div class="kf">增加的打码量 = 领到的红包金额 × 生效倍数</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>生效倍数</b><span class="kb">核心</span>：平台红包打码量倍数指老后台「打码量配置 → 红包打码量倍数」在会员兑换那一刻的值。本次上线前创建的红包码视为未填写。
+      <table class="t">
+        <tr><th>红包码打码倍数</th><th>平台红包打码量倍数</th><th>生效倍数</th><th>领到 100 时增加的打码量</th></tr>
+        <tr><td>未填写</td><td>1</td><td>1</td><td>100</td></tr>
+        <tr><td>2</td><td>1</td><td>2</td><td>200</td></tr>
+        <tr><td>10</td><td>1</td><td>10</td><td>1000</td></tr>
+        <tr><td>2</td><td>3</td><td>3</td><td>300</td></tr>
+        <tr><td>3</td><td>3</td><td>3</td><td>300</td></tr>
+      </table>
+    </div>
+
+    <div class="br key"><span class="bn">02</span><b>填写规则</b><span class="kb">核心</span>：选填；填写时只能是大于 0 的正整数，不设上限；填 0、负数、小数不能提交。</div>
+
+    <div class="br"><span class="bn">03</span><b>平台倍数提示</b>：弹窗提示里的平台倍数显示老后台当前的「红包打码量倍数」。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>适用范围</td><td>只对现金红包；奖励类型为「充值优惠券」时不显示打码倍数，券的打码按券自身配置</td></tr>
+      <tr><td>已领取</td><td>已领取的红包不因之后调整平台倍数而重新计算</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>固定激活码、随机激活码两种创建方式都要保存打码倍数；随机激活码一次会生成多张码，每张都要带上。</li>
+      <li>取较大值放在会员兑换那一步做，用兑换当时的平台倍数；创建时只保存代理填写的值，不要把平台倍数算进去一起存。</li>
+      <li>上线前已创建的红包码没有打码倍数，兑换时按平台倍数，不用处理历史数据。</li>
+      <li>上线顺序：先上会员兑换的计算，再开放代理后台的输入项；反过来的话，中间建出的高倍数红包码会按平台倍数少加打码量。</li>
+      <li>弹窗提示里的平台倍数每次打开弹窗都读老后台当前配置，不写死。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function esc(s){return s===null||s===undefined?'':String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function pad(n){return n<10?'0'+n:''+n;}
+function fmt(n){var v=Math.round(n*100)/100;return String(v);}
+function money(n){return (Math.round(n*100)/100).toFixed(2);}
+
+var ACT=['固定激活码','随机激活码'];
+var AMT=['固定金额','随机金额','区间随机金额'];
+var SCOPE={5:'无规则',0:'直属下级',1:'佣金下级',2:'全部下级',3:'指定直属代理',4:'指定会员ID'};
+var COND=['无规则','存款条件','投注条件','亏损条件'];
+
+/* ===== 列表数据：100303~100312 照截图；100313/100314 为上线后新建的演示码；更早 4 条为第 2 页示例 ===== */
+/* [id, 编码, 激活码类型, 金额类型, 总金额, 数量, 剩余, 接受范围, 接收条件文案, 打码倍数(null=未填), 备注, 创建时间] */
+var RAW=[
+ [100314,'5E1A9C07B2D44F6E8A31C0D9F27B6E14',0,0,500,50,47,'无规则','无规则',10,'免费码','2026-10-05 10:20:15'],
+ [100313,'A07C3E9152B84D16B9E0F4C1D83A7B25',0,0,1000,20,18,'无规则','7日内存款≥500',2,'充值码','2026-10-05 10:18:02'],
+ [100312,'83B3841C808F340028BB9DA24D2D76D5',1,1,2.29,1,0,'无规则','无规则',null,'2','2026-02-11 12:00:07'],
+ [100311,'6B8B6A1E13A01130D364C6EBA0B9075F',1,1,0.99,1,1,'无规则','无规则',null,'2','2026-02-11 12:00:07'],
+ [100310,'324CC4C256FE8C1EF3D041E26FB465A7',1,1,3.35,1,1,'无规则','无规则',null,'2','2026-02-11 12:00:07'],
+ [100309,'0EF6F3A58FE95B1410DE7BC99383F726',1,1,0.45,1,1,'无规则','无规则',null,'2','2026-02-11 12:00:07'],
+ [100308,'BE00E1D1DAF15DB4E925767939647ACC',1,1,2.92,1,1,'无规则','无规则',null,'2','2026-02-11 12:00:07'],
+ [100307,'87A348404A913B3D97CA154832C9AB90',0,0,50,10,9,'无规则','无规则',null,'1','2026-02-11 11:59:26'],
+ [100306,'3F5DBA107DC7EBCA0009F538BE3D0EE5',1,0,100,1,0,'无规则','无规则',null,'1','2026-01-23 12:05:48'],
+ [100305,'FAD967D2ECE2708BECDDB885EE5D1552',1,0,100,1,0,'无规则','无规则',null,'1','2026-01-23 12:05:48'],
+ [100304,'C9FB60969597342A03FD6FAF6424927F',0,0,200,2,0,'无规则','无规则',null,'2','2026-01-22 18:09:29'],
+ [100303,'F4799DBCF5CD2F3771AD8CE7B0CAEAF4',0,0,20,20,19,'无规则','无规则',null,'1','2026-01-22 17:46:58'],
+ [100302,'1D2B7E60C4A9F3850E6B1C7D92F4A0E3',0,0,30,3,0,'无规则','无规则',null,'1','2026-01-20 15:32:10'],
+ [100301,'7C0F5A2E9B13D468A2F07E5C1B9D3A64',1,0,10,1,0,'无规则','无规则',null,'1','2026-01-20 15:30:41'],
+ [100300,'E93B04D7A1C25F86B3D90A4E7C1F2B58',0,0,100,5,0,'无规则','无规则',null,'1','2026-01-18 11:04:22'],
+ [100299,'4A6D1F8E0C372B95D7E4A1C06F3B8D29',0,0,60,6,0,'无规则','无规则',null,'1','2026-01-18 10:58:39']
+];
+var ROWS=RAW.map(function(r){return {id:r[0],code:r[1],act:r[2],reward:1,amtType:r[3],total:r[4],qty:r[5],left:r[6],scope:r[7],cond:r[8],mult:r[9],remark:r[10],time:r[11],isNew:false};});
+
+var balance=580,page=1,pageSize=10,applied={code:'',reward:'',coupon:''};
+
+/* ===== 列表 ===== */
+function filtered(){
+  return ROWS.filter(function(r){
+    if(applied.code&&r.code.indexOf(applied.code.toUpperCase())<0)return false;
+    if(applied.reward&&String(r.reward)!==applied.reward)return false;
+    if(applied.coupon)return false;   /* 演示数据都是现金红包，没有优惠券码 */
+    return true;
+  });
+}
+function render(){
+  var list=filtered(),total=list.length,pages=Math.max(1,Math.ceil(total/pageSize));
+  if(page>pages)page=pages;
+  var cur=list.slice((page-1)*pageSize,page*pageSize);
+  $('tb').innerHTML=cur.length?cur.map(function(r){
+    var grabbed=r.left<=0;
+    var ops='<button class="btn sm" data-op="link">红包链接</button>'+(grabbed?'':'<button class="btn sm" data-op="cancel">取消红包码</button>')+'<button class="btn sm" data-op="rec">获取记录</button>';
+    return '<tr'+(r.isNew?' class="newrow"':'')+'>'+
+      '<td>'+r.id+'</td><td>'+esc(r.code)+'</td><td>'+ACT[r.act]+'</td>'+
+      '<td><span class="tag">现金</span></td><td>'+AMT[r.amtType]+'</td><td>--</td>'+
+      '<td>'+fmt(r.total)+'</td><td>'+r.qty+'</td>'+
+      '<td>'+(grabbed?'<span class="tag">已抢完</span>':'<span class="tag ok">生效中</span>')+'</td>'+
+      '<td>'+r.left+'</td><td>'+esc(r.scope)+'</td><td>'+esc(r.cond)+'</td>'+
+      '<td>'+(r.mult===null?'--':r.mult)+'</td>'+
+      '<td>'+esc(r.remark)+'</td><td>'+r.time+'</td>'+
+      '<td><div class="ops">'+ops+'</div></td></tr>';
+  }).join(''):'<tr class="empty"><td colspan="16">暂无数据</td></tr>';
+  var h='<span class="tt">总共 '+total+' 条</span><a data-g="'+(page-1)+'" class="'+(page<=1?'dis':'')+'">‹</a>';
+  for(var i=1;i<=pages;i++)h+='<a data-g="'+i+'" class="'+(i===page?'cur':'')+'">'+i+'</a>';
+  h+='<a data-g="'+(page+1)+'" class="'+(page>=pages?'dis':'')+'">›</a>'+
+     '<span class="sel" style="width:100px"><select class="ipt" id="ps"><option value="10">10 条/页</option><option value="20">20 条/页</option><option value="50">50 条/页</option></select></span>';
+  var pg=$('pg');pg.innerHTML=h;
+  $('ps').value=String(pageSize);
+  $('ps').onchange=function(){pageSize=+this.value;page=1;render();};
+  pg.querySelectorAll('a[data-g]').forEach(function(a){a.onclick=function(){if(a.classList.contains('dis')||a.classList.contains('cur'))return;page=+a.getAttribute('data-g');render();};});
+  ROWS.forEach(function(r){r.isNew=false;});
+}
+$('tb').addEventListener('click',function(e){var b=e.target.closest('button[data-op]');if(b)toast('现有功能，原型不演示','warn');});
+$('bSearch').onclick=function(){applied={code:$('qCode').value.trim(),reward:$('qReward').value,coupon:$('qCoupon').value.trim()};page=1;render();};
+$('bReset').onclick=function(){$('qCode').value='';$('qReward').value='';$('qCoupon').value='';applied={code:'',reward:'',coupon:''};page=1;render();};
+$('bBal').onclick=function(){toast('现有功能，原型不演示','warn');};
+
+/* ===== 提示 ===== */
+var msgT=null;
+function toast(t,type){var m=$('msg');m.className='msg '+(type||'ok');$('msgI').textContent=type==='warn'?'!':'✓';$('msgT').textContent=t;m.style.display='flex';clearTimeout(msgT);msgT=setTimeout(function(){m.style.display='none';},2200);}
+
+/* ===== 平台倍数（演示区可改，弹窗提示同步） ===== */
+function plat(){var v=parseFloat($('dPlat').value);return isNaN(v)||v<0?0:v;}
+function multTip(){var p=fmt(plat());$('multTip').textContent='(提示：平台红包打码倍数为 '+p+' 倍，不填或低于 '+p+' 倍时按 '+p+' 倍计算)';}
+
+/* ===== 创建红包弹窗 ===== */
+var reward=1;
+function openModal(){
+  $('fAct').value='0';setReward(1);$('fAmtType').value='0';$('fTotal').value='0';$('fQty').value='';
+  $('fScope').value='5';$('fCond').value='0';$('fMult').value='';$('fRemark').value='';$('rCnt').textContent='0';
+  ['fiTotal','fiQty','fiMult','fiRemark'].forEach(function(id){$(id).classList.remove('bad');});
+  syncHolds();perAmt();multTip();
+  $('mask').style.display='block';$('modal').style.display='flex';
+  $('modal').querySelector('.mb').scrollTop=0;
+}
+function closeModal(){$('mask').style.display='none';$('modal').style.display='none';}
+function setReward(v){
+  reward=v;
+  $('fReward').querySelectorAll('span').forEach(function(s){s.classList.toggle('on',+s.getAttribute('data-v')===v);});
+  $('cashPart').style.display=v===1?'':'none';
+  $('couponHold').style.display=v===2?'block':'none';
+}
+$('fReward').addEventListener('click',function(e){var s=e.target.closest('span[data-v]');if(s)setReward(+s.getAttribute('data-v'));});
+function syncHolds(){
+  $('rangeHold').style.display=$('fAmtType').value==='2'?'block':'none';
+  var sc=$('fScope').value;
+  $('scopeHold').style.display=(sc==='3'||sc==='4')?'block':'none';
+  $('scopeHold').textContent='原型未展开：「'+SCOPE[sc]+'」的现有子项，原样保留';
+  var c=+$('fCond').value;
+  $('condHold').style.display=c>0?'block':'none';
+  $('condHold').textContent='原型未展开：「'+COND[c]+'」的现有子项（天数、次数/金额），原样保留';
+}
+['fAmtType','fScope','fCond'].forEach(function(id){$(id).addEventListener('change',syncHolds);});
+function perAmt(){var t=parseFloat($('fTotal').value),q=parseInt($('fQty').value,10);$('perAmt').textContent=(t>0&&q>0)?fmt(t/q):'0';}
+$('fTotal').addEventListener('input',perAmt);$('fQty').addEventListener('input',perAmt);
+$('fRemark').addEventListener('input',function(){$('rCnt').textContent=this.value.length;});
+$('fMult').addEventListener('input',function(){$('fiMult').classList.remove('bad');});
+$('bAdd').onclick=openModal;$('mClose').onclick=closeModal;$('mCancel').onclick=closeModal;$('mask').onclick=closeModal;
+
+function md5ish(){var h='0123456789ABCDEF',s='';for(var i=0;i<32;i++)s+=h[Math.floor(Math.random()*16)];return s;}
+function nowStr(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
+function splitRandom(total,n){
+  var cents=Math.round(total*100),res=[],left=cents;
+  for(var i=0;i<n-1;i++){var rest=n-i-1,max=Math.max(1,Math.floor((left-rest)/rest*2));var v=Math.max(1,Math.min(left-rest,Math.floor(Math.random()*max)+1));res.push(v);left-=v;}
+  res.push(left);return res.map(function(c){return c/100;});
+}
+
+$('mOk').onclick=function(){
+  if(reward===2){toast('充值优惠券流程照现有页面，原型不演示','warn');return;}
+  var ok=true;
+  var total=parseFloat($('fTotal').value),qty=$('fQty').value.trim(),mult=$('fMult').value.trim(),remark=$('fRemark').value.trim();
+  var q=parseInt(qty,10);
+  $('fiTotal').classList.toggle('bad',!(total>0));if(!(total>0))ok=false;
+  if(!/^\d+$/.test(qty)||q<1||q>50000){$('eQty').textContent=qty===''?'请输入数量':'红包数量须为1~50000的整数';$('fiQty').classList.add('bad');ok=false;}else $('fiQty').classList.remove('bad');
+  var multBad=mult!==''&&!/^[1-9]\d*$/.test(mult);
+  $('fiMult').classList.toggle('bad',multBad);if(multBad)ok=false;
+  var rmBad=q>1&&remark==='';
+  $('fiRemark').classList.toggle('bad',rmBad);if(rmBad)ok=false;
+  if(!ok)return;
+  if(total>balance){toast('赠金余额不足','warn');return;}
+  var act=+$('fAct').value,amtType=+$('fAmtType').value,condIdx=+$('fCond').value;
+  var base={reward:1,act:act,amtType:amtType,scope:SCOPE[$('fScope').value],cond:COND[condIdx],
+            mult:mult===''?null:parseInt(mult,10),remark:remark,time:nowStr(),isNew:true};
+  var nextId=ROWS.reduce(function(m,r){return Math.max(m,r.id);},0)+1,adds=[];
+  if(act===0){
+    adds.push(Object.assign({id:nextId,code:md5ish(),total:total,qty:q,left:q},base));
+  }else{
+    var parts=amtType===0?Array(q).fill(total/q):splitRandom(total,q);
+    for(var i=0;i<q;i++)adds.push(Object.assign({id:nextId+i,code:md5ish(),total:parts[i],qty:1,left:1},base));
+    adds.reverse();
+  }
+  ROWS=adds.concat(ROWS);
+  balance-=total;$('bal').textContent=money(balance);
+  closeModal();applied={code:'',reward:'',coupon:''};$('qCode').value='';$('qReward').value='';$('qCoupon').value='';page=1;render();
+  fillDemoCodes(adds[0].id);
+  toast(act===1&&q>1?'创建成功，共生成 '+q+' 张红包码，每张都带上打码倍数':'创建成功');
+};
+
+/* ===== 原型演示：会员领取 ===== */
+function fillDemoCodes(selId){
+  var opts=ROWS.filter(function(r){return r.reward===1;}).slice(0,60);
+  $('dCode').innerHTML=opts.map(function(r){
+    return '<option value="'+r.id+'">'+r.id+' · '+esc(r.cond)+' · 打码倍数 '+(r.mult===null?'未填写':r.mult)+(r.remark?' · 备注：'+esc(r.remark):'')+'</option>';
+  }).join('');
+  if(selId)$('dCode').value=String(selId);
+  var r=curDemo();$('dAmt').value=r?fmt(r.total/r.qty):'';
+  calc();
+}
+function curDemo(){var id=+$('dCode').value;for(var i=0;i<ROWS.length;i++)if(ROWS[i].id===id)return ROWS[i];return null;}
+function calc(){
+  var r=curDemo(),p=plat(),amt=parseFloat($('dAmt').value)||0;
+  multTip();
+  if(!r){$('dRes').innerHTML='';$('dWhy').textContent='';return;}
+  var eff=r.mult===null?p:Math.max(r.mult,p);
+  var add=Math.round(amt*eff*100)/100;
+  $('dRes').innerHTML=
+    '<div class="bx"><div class="t">红包码打码倍数</div><div class="v">'+(r.mult===null?'未填写':r.mult)+'</div></div>'+
+    '<div class="bx"><div class="t">平台红包打码量倍数</div><div class="v">'+fmt(p)+'</div></div>'+
+    '<div class="op">→</div>'+
+    '<div class="bx k"><div class="t">生效倍数</div><div class="v">'+fmt(eff)+'</div></div>'+
+    '<div class="bx k"><div class="t">增加打码量 = '+fmt(amt)+' × '+fmt(eff)+'</div><div class="v">'+fmt(add)+'</div></div>';
+  var why;
+  if(r.mult===null)why='红包码未填写，按平台倍数 '+fmt(p)+' 倍。';
+  else if(r.mult>p)why='红包码倍数 '+r.mult+' 大于平台倍数 '+fmt(p)+'，按红包码倍数。';
+  else if(r.mult<p)why='红包码倍数 '+r.mult+' 小于平台倍数 '+fmt(p)+'，按平台倍数。';
+  else why='两者相等，按 '+fmt(p)+' 倍。';
+  $('dWhy').textContent=why+'（平台倍数取会员兑换那一刻老后台的值，可改上面的数字试试）';
+}
+$('dPlat').addEventListener('input',calc);
+$('dCode').addEventListener('change',function(){var r=curDemo();$('dAmt').value=r?fmt(r.total/r.qty):'';calc();});
+$('dAmt').addEventListener('input',calc);
+
+/* ===== 需求说明抽屉 ===== */
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if($('modal').style.display==='flex')closeModal();else closeDoc();}});
+
+render();fillDemoCodes(100314);
+})();
+</script>
+</body>
+</html>
