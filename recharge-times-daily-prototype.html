@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>首充二充三充报表当日口径</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.sub h1{font-size:15px;color:#1e78d7;font-weight:500}
+.crumb{font-size:11.5px;color:#8a9bb0}.crumb .c0{color:#333}.crumb .sep{margin:0 7px;color:#b5bdc8}
+.wrap{padding:14px 44px 60px 6px}
+.card{background:#fff;border-radius:4px;padding:18px 14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+
+/* ===== 查询区（照 D_/C_Report_Recharge_Times.cshtml） ===== */
+.searchbox{display:flex;flex-wrap:wrap;row-gap:12px;padding:0 0 4px}
+.fg{display:flex;align-items:center;width:16.66%;min-width:250px;padding-right:18px;position:relative}
+.fg label{flex:none;width:76px;text-align:right;padding-right:8px;font-size:13px;color:#333;white-space:nowrap}
+.fc{flex:1;max-width:178px;min-width:0;height:26px;border:1px solid #d9d9d9;border-radius:2px;padding:0 8px;font:inherit;font-size:11px;color:#444;background:#fff}
+.fc::placeholder{color:#888}
+.fc:focus{outline:none;border-color:#7460ee}
+.lsel{position:relative;flex:1;max-width:178px}
+.lsel select{width:100%;max-width:none;appearance:none;-webkit-appearance:none;padding:0 24px 0 8px;font-size:12px;color:#333}
+.lsel::after{content:"";position:absolute;right:9px;top:11px;border:5px solid transparent;border-top-color:#c2c2c2;pointer-events:none}
+.bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px}
+.gbtn{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:5px;height:27px;padding:0 10px;border:0;border-radius:3px;background:#7460ee;color:#fff;font:inherit;font-size:12px;font-weight:600;letter-spacing:1px;cursor:pointer;box-shadow:0 2px 4px rgba(116,96,238,.45)}
+.btn:hover{background:#6352d6}
+.navr{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tabb{height:30px;padding:0 12px;border:1px solid #808080;background:#fff;color:#333;font:inherit;font-size:12.5px;cursor:pointer;border-radius:2px}
+.tabb.on{background:#7460ee;border-color:#7460ee;color:#fff;box-shadow:0 2px 5px rgba(116,96,238,.45)}
+.navr .gap{width:28px}
+
+/* NEW 角标 */
+.nw::after{content:"NEW";position:absolute;top:-9px;right:8px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);pointer-events:none;z-index:3;letter-spacing:.3px}
+.fg.nw .fc{border-color:#ffa39e}
+
+/* 红色说明（新增） */
+.tip{position:relative;display:inline-block;margin-top:16px;padding-right:44px;color:red;font-size:12px;line-height:1.7}
+.tip.nw::after{right:0;top:-8px}
+
+/* ===== 表格（真实页面左对齐） ===== */
+.tbl{overflow-x:auto;margin-top:8px}
+table.dl{border-collapse:collapse;width:100%;min-width:1380px;font-size:12.5px}
+.dl th{background:#e9ebf1;color:#333;font-weight:600;height:36px;border:1px solid #dfe2e8;padding:0 8px;text-align:left;white-space:nowrap}
+.dl td{border:1px solid #e6e8ed;height:26px;padding:2px 8px;text-align:left;white-space:nowrap;color:#333}
+.dl tbody tr:nth-child(odd)>td{background:#f8f9fb}
+.dl tbody tr:hover>td{background:#f1f2f6}
+.dl tr.sum>td{background:#EBEFF5;color:red}
+.uid{color:#7752fd;cursor:pointer}
+
+/* 分页（GetPostPager） */
+.pager{display:flex;align-items:center;flex-wrap:wrap;gap:14px 0;padding:26px 0 0 30px;font-size:12.5px;color:#333}
+.pager .pl{display:flex;align-items:center;gap:6px;margin-right:200px}
+.pager .pl input{width:85px;height:26px;border:1px solid #d9d9d9;border-radius:2px;padding:0 6px;font:inherit}
+.pager .pl select{height:26px;border:1px solid #d9d9d9;border-radius:2px;font-size:11px;color:#666;padding:0 4px}
+.pager .pl button{height:26px;padding:0 10px;border:1px solid #c9c9c9;background:#fff;border-radius:2px;cursor:pointer;font:inherit;font-size:12px}
+.pager .pc{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pager .pc a{display:inline-block;height:28px;line-height:26px;padding:0 9px;border:1px solid #c9c9c9;background:#f5f5f5;border-radius:2px;cursor:pointer;color:#444;user-select:none}
+.pager .pc a.cur{background:#7460ee;border-color:#7460ee;color:#fff;cursor:default}
+.pager .pc a.dis{color:#aaa;cursor:not-allowed}
+.pager .pc .tt{margin-left:8px}
+
+/* jquery toast */
+.toast{position:fixed;top:16px;right:20px;width:300px;color:#fff;border-radius:4px;padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:300;font-size:12.5px;display:none}
+.toast.suc{background:#2bbf6a}.toast.warn{background:#f0a020}
+.toast b{display:block;font-size:13.5px;margin-bottom:2px}
+
+/* ===== 原型演示区 ===== */
+.demo{margin-top:18px;background:#fff;border:2px dashed #9b8cf0;border-radius:8px;padding:14px 16px 16px}
+.demo .dh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.demo .dh b{font-size:14px}
+.demo .pt{display:inline-block;font-size:11px;color:#6C4FE0;background:#f1edff;border:1px solid #d9d0fb;border-radius:3px;padding:0 6px;font-weight:600}
+.demo .ds{font-size:12px;color:#888;margin-bottom:10px}
+.demo .tw{overflow-x:auto}
+.demo table{border-collapse:collapse;width:100%;min-width:820px;font-size:12.5px}
+.demo th{background:#fafafa;border:1px solid #e6e6e6;padding:7px 10px;white-space:nowrap;font-weight:600;text-align:left}
+.demo td{border:1px solid #eee;padding:6px 10px;white-space:nowrap;vertical-align:middle}
+.demo td.sc{white-space:normal;min-width:200px;color:#555}
+.tg{display:inline-block;padding:0 7px;border-radius:3px;font-size:11.5px;line-height:19px}
+.tg.l{background:#f1edff;color:#5b3fd0;border:1px solid #d9d0fb}
+.tg.d{background:#e6fffb;color:#08979c;border:1px solid #87e8de}
+.tg.n{color:#bbb;padding:0}
+
+/* ===== 抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd .quote{margin:8px 0 2px;padding:8px 12px;background:#fff;border:1px dashed #ffa39e;border-radius:4px;color:red;font-size:12px;line-height:1.7}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (max-width:700px){.wrap{padding:12px 16px 50px}.fg{width:100%;min-width:0}.fc,.lsel{max-width:none}.pager{padding-left:0}.pager .pl{margin-right:0}.tip{padding-right:0}.tip.nw::after{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>yaarwin</b></div>
+  <div style="display:flex;gap:16px;align-items:center"><span id="today"></span><span>当前币种：<b style="color:#c0392b">INR</b></span></div>
+</div>
+<div class="sub">
+  <h1>首充二充三充报表</h1>
+  <div class="crumb"><span class="c0">报表管理</span><span class="sep">›</span>首充二充三充报表<span class="sep">›</span>首充二充三充报表</div>
+</div>
+
+<div class="wrap">
+ <div class="card">
+  <div class="searchbox" id="searchbox"></div>
+  <div class="bar">
+   <div class="gbtn">
+    <button class="btn" id="btnSearch" type="button">🔍 查 询</button>
+    <button class="btn" id="btnReset" type="button">↻ 重 置</button>
+    <button class="btn" id="btnExport" type="button">⇩ 导 出</button>
+   </div>
+   <div class="navr">
+    <button class="tabb" type="button" id="prevDay">上一日</button>
+    <button class="tabb" type="button" id="nextDay">下一日</button>
+    <span class="gap"></span>
+    <button class="tabb" type="button" id="tabD">日</button>
+    <button class="tabb" type="button" id="tabC">日区间</button>
+   </div>
+  </div>
+
+  <div class="tip nw" id="tip">说明：首充/二充/三充为会员历史第1/2/3笔充值，每人只计一次；当日1充/2充/3充为会员当天第1/2/3笔充值，仅支持按日查询。均按充值完成时间统计，同一笔充值可能同时计入两类，请勿相加。</div>
+
+  <div class="tbl">
+   <table class="dl">
+    <thead><tr>
+     <th style="width:150px">日期</th>
+     <th style="width:120px">会员ID</th>
+     <th style="width:110px">上级ID</th>
+     <th style="width:120px">上上级ID</th>
+     <th style="width:140px">上上上级ID</th>
+     <th style="width:160px">会员账号</th>
+     <th>订单号</th>
+     <th style="width:150px">充值金额</th>
+     <th style="width:250px">完成时间</th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+   </table>
+  </div>
+  <div class="pager" id="pager"></div>
+ </div>
+
+ <div class="demo">
+  <div class="dh"><span class="pt">原型演示</span><b>同一批订单在两套口径下的归属</b></div>
+  <div class="ds">非页面内容，仅帮助理解口径；以下订单都在上方列表的演示数据里，点会员ID可在上方列表按该会员查询。<br>代理ID 演示：100016（下面还有代理 2240011、2243387，会员 2255601、2254972 都算它的下级）、2243387、100233、2231456。</div>
+  <div class="tw">
+   <table>
+    <thead><tr><th>会员ID</th><th>情况</th><th>完成时间</th><th>充值金额</th><th>首充/二充/三充</th><th>当日1充/2充/3充</th></tr></thead>
+    <tbody id="demoTb"></tbody>
+   </table>
+  </div>
+ </div>
+</div>
+
+<div class="toast" id="toast"><b id="toastT"></b><span id="toastM"></span></div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>首充二充三充报表 · 新增当日1充/2充/3充 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:250px">页面</th><th>改动点</th></tr>
+      <tr><td>报表管理 → 首充二充三充报表 → <b>日</b></td><td>新增筛选「代理ID」；充值类型新增「当日1充」「当日2充」「当日3充」；列表上方新增一行红色说明</td></tr>
+      <tr><td>报表管理 → 首充二充三充报表 → <b>日区间</b></td><td>列表上方新增同一行红色说明</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">当日1充/2充/3充 = 会员当天第 1/2/3 笔成功充值，老会员也算，每人每天每项最多 1 条</div>
+      <div class="kf">当日1充/2充/3充只能按单日查询，不能跨天</div>
+      <div class="kf">「日」页新增代理ID：填了只看该代理全部下级的数据，6 种充值类型都生效</div>
+      <div class="kf">列表上方加红色说明，区分「历史第几笔」和「当天第几笔」两套口径</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>统计口径</b><span class="kb">核心</span>：取会员在所选日期内成功的充值，按完成时间从早到晚排，第 1、2、3 笔分别计入当日1充、当日2充、当日3充；第 4 笔起不计入。
+      <table class="t">
+        <tr><th style="width:230px">会员当天的充值</th><th>计入</th></tr>
+        <tr><td>09:12、11:40、15:05、21:33 共 4 笔</td><td>09:12 → 当日1充；11:40 → 当日2充；15:05 → 当日3充；21:33 不计入</td></tr>
+        <tr><td>只有 10:05 一笔</td><td>10:05 → 当日1充</td></tr>
+      </table>
+    </div>
+
+    <div class="br"><span class="bn">02</span><b>算哪些充值</b>：人工充值（含 USDT 充值）、三方充值、官方充值，到账成功的都算；彩金充值不算；失败、取消、处理中的订单不算。口径与首充/二充/三充一致。</div>
+
+    <div class="br key"><span class="bn">03</span><b>按天切分</b><span class="kb">核心</span>：按充值完成时间所在日期归到那一天，前一天的充值不参与当天排序。例：昨天 23:58 一笔、今天 00:03 一笔，今天这笔是当日1充。</div>
+
+    <div class="br key"><span class="bn">04</span><b>只能按日查询</b><span class="kb">核心</span>：当日1充/2充/3充只在「日」页可选。切到「日区间」时充值类型下拉不显示这三项，原来选的是这三项之一的，自动变回首充。</div>
+
+    <div class="br key"><span class="bn">05</span><b>代理ID</b><span class="kb">核心</span>：「日」页新增「代理ID」，选填。填了只显示该代理全部下级的充值：直属下级和更下面各级都算，代理本人不算；按会员当前所属的上级算。首充/二充/三充、当日1充/2充/3充都按这个范围过滤，与其他筛选条件同时生效。
+      <table class="t">
+        <tr><th style="width:230px">关系：代理 A → 下级 B → B 的下级 C</th><th>能查到</th></tr>
+        <tr><td>代理ID 填 A</td><td>B、C</td></tr>
+        <tr><td>代理ID 填 B</td><td>C</td></tr>
+      </table>
+    </div>
+
+    <div class="br"><span class="bn">06</span><b>两套口径可重叠</b>：同一笔充值可以同时出现在两套口径里。例：新会员今天首充后又充一笔，第 1 笔既是首充也是当日1充，第 2 笔既是二充也是当日2充。</div>
+
+    <div class="br"><span class="bn">07</span><b>列表、筛选与导出</b>：选当日1充/2充/3充时，列表的列、页面总计、总计与选首充时相同；代理ID、会员ID、订单号、渠道筛选，上一日/下一日，导出都要生效，导出内容与当前查询结果一致。点「重置」清空代理ID；切到「日区间」不带代理ID。</div>
+
+    <div class="br key"><span class="bn">08</span><b>红色说明</b><span class="kb">核心</span>：「日」「日区间」两个页面在列表上方常驻一行红色小字，不随充值类型变化，文案：
+      <div class="quote">说明：首充/二充/三充为会员历史第1/2/3笔充值，每人只计一次；当日1充/2充/3充为会员当天第1/2/3笔充值，仅支持按日查询。均按充值完成时间统计，同一笔充值可能同时计入两类，请勿相加。</div>
+    </div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:120px">项</th><th>说明</th></tr>
+      <tr><td>查询范围</td><td>当日1充/2充/3充每次只查 1 天</td></tr>
+      <tr><td>计入笔数</td><td>每个会员每天最多计 3 笔（当天第 1~3 笔）</td></tr>
+      <tr><td>代理ID</td><td>只在「日」页提供；查全部下级，不区分直属</td></tr>
+      <tr><td>上下级关系</td><td>按会员当前所属的上级；会员转线后，查以前的日期也按新上级归属</td></tr>
+      <tr><td>适用页面</td><td>只加在总后台「首充二充三充报表」；代理版首充二充三充报表、代理后台不加</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>充值类型下拉是十几个页面共用的同一份选项（充值记录、USDT 充值、代理版首充二充三充报表等都在用）。新增的三项只加在本报表的「日」页，不能加进公共选项，否则其他页面也会冒出来。</li>
+      <li>当日1充/2充/3充不能用现成的首充/二充/三充统计数据，要按所选日期直接从充值订单里算，按完成时间排序后取当天第 1/2/3 笔。彩金充值不会生成充值订单，按充值订单取就自然不含彩金，不用另外排除。</li>
+      <li>从「日」页切到「日区间」会把当前充值类型带过去；带过去的是这三项之一时（手动改链接也一样），「日区间」页一律按首充查询、下拉显示首充。</li>
+      <li>代理ID 查下级的范围，和现有「代理版首充二充三充报表」（统计明细页填了代理ID、点首充/二充/三充「详情」进去的那个页面）完全一致：全部下级、不含代理本人、按当前关系。首充/二充/三充 + 代理ID 直接复用它的查法；当日1充/2充/3充 + 代理ID 在新查法里加同样的下级范围。</li>
+      <li>导出是单独收集筛选条件的，新增的三项和代理ID 都要带过去，别只改了页面查询。</li>
+      <li>当日1充基本等于当天所有充值过的会员，大站一天可能上万行，查询和导出的速度要测一下。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function esc(s){return s===null||s===undefined?'':String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function pad(n){return n<10?'0'+n:''+n;}
+function fmtD(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function addDay(ds,n){var p=ds.split('-');return fmtD(new Date(+p[0],+p[1]-1,+p[2]+n));}
+var TODAY=fmtD(new Date());
+var YDAY=addDay(TODAY,-1);
+$('today').textContent=TODAY;
+
+/* ================= 演示数据（固定种子，每次打开一致） ================= */
+var seed=20261006;
+function rnd(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
+function ri(a,b){return a+Math.floor(rnd()*(b-a+1));}
+function pick(a){return a[Math.floor(rnd()*a.length)];}
+function wpick(items){var s=0,k;for(k=0;k<items.length;k++)s+=items[k][1];var r=rnd()*s;for(k=0;k<items.length;k++){r-=items[k][1];if(r<0)return items[k][0];}return items[items.length-1][0];}
+
+var CHANNELS=['yaarwin','yw_fb01','yw_gg01','yw_tg01'];
+var AMT=[[100,22],[200,20],[300,12],[500,18],[1000,14],[2000,7],[5000,5],[10000,2]];
+/* 代理树：代理ID → 它的上级链（由近到远）。100016 下有 2240011、2243387；100233 下有 2246120、2231456 */
+var AGENTS={100016:[],100233:[],2240011:[100016],2243387:[100016],2246120:[100233],2231456:[100233],2249905:[]};
+var AGENT_IDS=Object.keys(AGENTS).map(Number);
+function chain(p){return [p].concat(AGENTS[p]);}
+var members={},orders=[],used={};
+AGENT_IDS.forEach(function(a){used[a]=1;});
+
+function mkMember(id,rel){
+  used[id]=1;
+  var m={id:id,acc:String(pick([6,7,8,9]))+String(ri(100000000,999999999)),ch:wpick([['yaarwin',5],['yw_fb01',2],['yw_gg01',2],['yw_tg01',1]]),rel:[]};
+  if(rel)m.rel=rel;
+  else if(rnd()<.7)m.rel=chain(pick(AGENT_IDS));
+  members[id]=m;return m;
+}
+function rtime(){return pad(ri(0,23))+':'+pad(ri(0,59))+':'+pad(ri(0,59));}
+function addOrder(m,date,time,amt){
+  var t=date+' '+time;
+  orders.push({m:m,date:date,t:t,no:'RC'+t.replace(/[- :]/g,'')+String(ri(10000000,99999999)),amt:amt||wpick(AMT)});
+}
+
+/* 演示区重点会员 */
+var A=mkMember(2255601,chain(100016));
+[['09:12:08',500],['11:40:51',300],['15:05:33',1000],['21:33:19',200]].forEach(function(x){addOrder(A,TODAY,x[0],x[1]);});
+var B=mkMember(2238815,chain(2231456));
+[-62,-47,-31,-15].forEach(function(d){addOrder(B,addDay(TODAY,d),rtime());});
+addOrder(B,TODAY,'10:05:42',2000);addOrder(B,TODAY,'19:48:27',1000);
+var C=mkMember(2254972,chain(2243387));
+addOrder(C,YDAY,'20:15:09',300);addOrder(C,TODAY,'12:30:44',500);
+var Dm=mkMember(2254410,[]);
+addOrder(Dm,YDAY,'23:58:40',200);addOrder(Dm,TODAY,'00:03:12',200);
+var FEATURED=[
+  {m:A,sc:'今天注册，今天充了 4 笔'},
+  {m:B,sc:'老会员，以前已充 4 笔，今天充了 2 笔'},
+  {m:C,sc:'昨天首充，今天充了 1 笔'},
+  {m:Dm,sc:'昨天 23:58 首充，今天 00:03 再充 1 笔'}
+];
+
+/* 其余会员 */
+function activeDay(m,date){
+  var n=wpick([[1,60],[2,24],[3,11],[4,5]]),ts=[];
+  for(var i=0;i<n;i++)ts.push(rtime());
+  ts.sort().forEach(function(t){addOrder(m,date,t);});
+}
+for(var i=0;i<300;i++){
+  var id;do{id=ri(2224000,2256999);}while(used[id]);
+  var m=mkMember(id),d;
+  if(rnd()<.55){ /* 老会员 */
+    var nOld=wpick([[1,15],[2,15],[3,20],[4,25],[6,25]]),days={};
+    while(Object.keys(days).length<nOld)days[ri(-95,-9)]=1;
+    Object.keys(days).forEach(function(x){addOrder(m,addDay(TODAY,+x),rtime());});
+    for(d=-7;d<=0;d++)if(rnd()<.33)activeDay(m,addDay(TODAY,d));
+  }else{ /* 近 8 天注册的新会员 */
+    var reg=ri(-7,0);
+    for(d=reg;d<=0;d++)if(d===reg?rnd()<.85:rnd()<.3)activeDay(m,addDay(TODAY,d));
+  }
+}
+
+/* 两套口径：历史第 1/2/3 笔（life），当天第 1/2/3 笔（day） */
+orders.sort(function(a,b){return a.t<b.t?-1:a.t>b.t?1:0;});
+var cntLife={},cntDay={};
+orders.forEach(function(o){
+  var k=o.m.id,kd=k+'|'+o.date;
+  cntLife[k]=(cntLife[k]||0)+1;cntDay[kd]=(cntDay[kd]||0)+1;
+  if(cntLife[k]<=3)o.life=cntLife[k];
+  o.dayIdx=cntDay[kd];
+  if(cntDay[kd]<=3)o.day=cntDay[kd];
+});
+
+/* ================= 页面状态 ================= */
+var TYPES_LIFE=[['1','首充'],['2','二充'],['3','三充']];
+var TYPES_DAY=[['d1','当日1充'],['d2','当日2充'],['d3','当日3充']];
+var view='D',pageNo=1,pageSize=20,applied=null;
+
+function buildSearch(keep){
+  keep=keep||{};
+  var isD=view==='D';
+  var opts=(isD?TYPES_LIFE.concat(TYPES_DAY):TYPES_LIFE).map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>';}).join('');
+  var ch='<option value="">全部</option>'+CHANNELS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+  var h=(isD?'<div class="fg nw"><label for="RelativeID">代理ID</label><input class="fc" id="RelativeID" type="number" placeholder="代理ID"></div>':'')+
+   '<div class="fg"><label for="UserID">会员ID</label><input class="fc" id="UserID" type="number" placeholder="会员ID "></div>'+
+   '<div class="fg"><label for="RechargeNumber">订单号</label><input class="fc" id="RechargeNumber" placeholder="订单号" autocomplete="off"></div>'+
+   '<div class="fg'+(isD?' nw':'')+'"><label for="Times">充值类型</label><span class="lsel"><select class="fc" id="Times">'+opts+'</select></span></div>'+
+   '<div class="fg"><label for="ChannelCode">渠道</label><span class="lsel"><select class="fc" id="ChannelCode">'+ch+'</select></span></div>'+
+   (isD?'<div class="fg"><label for="Date">日期</label><input class="fc" id="Date" type="date" max="'+TODAY+'"></div>'
+       :'<div class="fg"><label for="StartTime">开始时间</label><input class="fc" id="StartTime" type="date"></div>'+
+        '<div class="fg"><label for="EndTime">结束时间</label><input class="fc" id="EndTime" type="date"></div>');
+  $('searchbox').innerHTML=h;
+  $('UserID').value=keep.UserID||'';
+  $('RechargeNumber').value=keep.RechargeNumber||'';
+  var t=keep.Times||'1';
+  if(!isD&&t.charAt(0)==='d')t='1';      /* 切到日区间：下拉不含当日类型，原选当日类型的变回首充 */
+  $('Times').value=t;
+  $('ChannelCode').value=keep.ChannelCode||'';
+  if(isD){$('Date').value=keep.Date||TODAY;$('RelativeID').value=keep.RelativeID||'';}
+  else{$('StartTime').value=TODAY;$('EndTime').value=TODAY;}
+  $('tabD').classList.toggle('on',isD);$('tabC').classList.toggle('on',!isD);
+  ['RelativeID','UserID','RechargeNumber'].forEach(function(f){if($(f))$(f).addEventListener('keydown',function(e){if(e.key==='Enter')search();});});
+}
+function cond(){
+  var c={UserID:$('UserID').value.replace(/\s+/g,''),RechargeNumber:$('RechargeNumber').value.replace(/\s+/g,''),Times:$('Times').value,ChannelCode:$('ChannelCode').value};
+  if(view==='D'){c.Date=$('Date').value||TODAY;c.RelativeID=$('RelativeID').value.replace(/\s+/g,'');}
+  else{c.StartTime=$('StartTime').value||TODAY;c.EndTime=$('EndTime').value||TODAY;}
+  return c;
+}
+function filter(c){
+  var daily=c.Times.charAt(0)==='d',n=+c.Times.replace('d','');
+  return orders.filter(function(o){
+    if(daily){if(o.day!==n||o.date!==c.Date)return false;}
+    else{
+      if(o.life!==n)return false;
+      if(view==='D'){if(o.date!==c.Date)return false;}
+      else if(o.date<c.StartTime||o.date>c.EndTime)return false;
+    }
+    if(c.RelativeID&&o.m.rel.indexOf(+c.RelativeID)<0)return false;   /* 代理的全部下级，不含代理本人 */
+    if(c.UserID&&String(o.m.id)!==c.UserID)return false;
+    if(c.RechargeNumber&&o.no!==c.RechargeNumber)return false;
+    if(c.ChannelCode&&o.m.ch!==c.ChannelCode)return false;
+    return true;
+  }).sort(function(a,b){return a.date!==b.date?(a.date<b.date?1:-1):(a.t<b.t?1:a.t>b.t?-1:0);});
+}
+function render(){
+  var rows=filter(applied),total=rows.length,pages=Math.max(1,Math.ceil(total/pageSize));
+  if(pageNo>pages)pageNo=1;
+  var list=rows.slice((pageNo-1)*pageSize,pageNo*pageSize);
+  var tb=$('tb');
+  if(!list.length){tb.innerHTML='';}
+  else{
+    var pageSum=0,allSum=0;
+    list.forEach(function(o){pageSum+=o.amt;});rows.forEach(function(o){allSum+=o.amt;});
+    tb.innerHTML=list.map(function(o){
+      var r=o.m.rel;
+      return '<tr><td>'+o.date+'</td><td><span class="uid" title="用户详情">'+o.m.id+'</span></td>'+
+        '<td>'+(r[0]||'')+'</td><td>'+(r[1]||'')+'</td><td>'+(r[2]||'')+'</td>'+
+        '<td>'+o.m.acc+'</td><td>'+o.no+'</td><td>'+o.amt.toFixed(2)+'</td><td>'+o.t+'</td></tr>';
+    }).join('')+
+    '<tr class="sum"><td>页面总计</td><td></td><td></td><td></td><td></td><td></td><td></td><td>'+pageSum.toFixed(2)+'</td><td></td></tr>'+
+    '<tr class="sum"><td>总计</td><td></td><td></td><td></td><td></td><td></td><td></td><td>'+Math.round(allSum)+'</td><td></td></tr>';
+  }
+  renderPager(total,pages);
+}
+function renderPager(total,pages){
+  var h='<div class="pl">共'+pages+'页，前往<input id="goNo" autocomplete="off">页，'+
+    '<select id="ps"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option><option value="100">100条/页</option></select>'+
+    '<button type="button" id="goBtn">GO</button></div>'+
+    '<div class="pc"><a data-g="1" class="'+(pageNo<=1?'dis':'')+'">首页</a><a data-g="'+(pageNo-1)+'" class="'+(pageNo<=1?'dis':'')+'">上一页</a>';
+  var st=Math.max(1,Math.min(pageNo-4,pages-9)),ed=Math.min(pages,st+9);
+  for(var i=st;i<=ed;i++)h+='<a data-g="'+i+'" class="'+(i===pageNo?'cur':'')+'">'+i+'</a>';
+  h+='<a data-g="'+(pageNo+1)+'" class="'+(pageNo>=pages?'dis':'')+'">下一页</a><a data-g="'+pages+'" class="'+(pageNo>=pages?'dis':'')+'">尾页</a><span class="tt">共'+total+'条</span></div>';
+  var p=$('pager');p.innerHTML=h;
+  $('ps').value=String(pageSize);
+  $('ps').onchange=function(){pageSize=+this.value;pageNo=1;render();};
+  $('goBtn').onclick=function(){var n=parseInt($('goNo').value,10);if(n>=1&&n<=pages){pageNo=n;render();}};
+  p.querySelectorAll('a[data-g]').forEach(function(a){a.onclick=function(){if(a.classList.contains('dis')||a.classList.contains('cur'))return;pageNo=+a.getAttribute('data-g');render();};});
+}
+function search(){applied=cond();pageNo=1;render();}
+
+/* ================= toast ================= */
+var toastTm=null;
+function toast(kind,title,msg){
+  var t=$('toast');t.className='toast '+kind;$('toastT').textContent=title;$('toastM').textContent=msg;
+  t.style.display='block';clearTimeout(toastTm);toastTm=setTimeout(function(){t.style.display='none';},3000);
+}
+
+/* ================= 按钮 ================= */
+$('btnSearch').onclick=search;
+$('btnReset').onclick=function(){buildSearch({});pageSize=20;search();};
+$('btnExport').onclick=function(){toast('suc','导出数据','报表将在1-10秒钟导出成功请等待！');};
+function shift(n){
+  if(view!=='D'){search();return;}
+  var d=addDay($('Date').value||TODAY,n);
+  if(d>TODAY){toast('warn','消息提示','当前已是最新数据！');return;}
+  $('Date').value=d;search();
+}
+$('prevDay').onclick=function(){shift(-1);};
+$('nextDay').onclick=function(){shift(1);};
+function keepVals(){return {RelativeID:$('RelativeID')?$('RelativeID').value.replace(/\s+/g,''):'',UserID:$('UserID').value.replace(/\s+/g,''),RechargeNumber:$('RechargeNumber').value.replace(/\s+/g,''),Times:$('Times').value,ChannelCode:$('ChannelCode').value};}
+$('tabD').onclick=function(){var k=keepVals();view='D';buildSearch(k);search();};
+$('tabC').onclick=function(){var k=keepVals();view='C';buildSearch(k);search();};
+
+/* ================= 原型演示区 ================= */
+function lifeTag(o){return o.life?'<span class="tg l">'+['','首充','二充','三充'][o.life]+'</span>':'<span class="tg n">不计入（已过三充）</span>';}
+function dayTag(o){return o.day?'<span class="tg d">当日'+o.day+'充</span>':'<span class="tg n">不计入（当天第 '+o.dayIdx+' 笔）</span>';}
+var dh='';
+FEATURED.forEach(function(f){
+  var os=orders.filter(function(o){return o.m===f.m&&(o.date===TODAY||o.date===YDAY);});
+  os.forEach(function(o,i){
+    dh+='<tr>'+(i===0?'<td rowspan="'+os.length+'"><span class="uid" data-u="'+f.m.id+'">'+f.m.id+'</span></td><td class="sc" rowspan="'+os.length+'">'+f.sc+'</td>':'')+
+      '<td>'+o.t+'</td><td>'+o.amt.toFixed(2)+'</td><td>'+lifeTag(o)+'</td><td>'+dayTag(o)+'</td></tr>';
+  });
+});
+$('demoTb').innerHTML=dh;
+$('demoTb').addEventListener('click',function(e){
+  var u=e.target.closest('[data-u]');if(!u)return;
+  if(view!=='D'){view='D';buildSearch({});}
+  $('RelativeID').value='';$('UserID').value=u.getAttribute('data-u');$('Date').value=TODAY;
+  search();window.scrollTo({top:0,behavior:'smooth'});
+});
+
+/* ================= 需求说明抽屉 ================= */
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDoc();});
+
+buildSearch({});search();
+})();
+</script>
+</body>
+</html>
