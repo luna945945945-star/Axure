@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>公告消息搜索排序</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.wrap{padding:14px 44px 60px 6px}
+.card{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.05);padding-bottom:22px}
+
+/* ===== 页签（照 SiteMessages.cshtml .nav / .nav-item1） ===== */
+.tabs{display:flex;padding:0 0 0 0}
+.nav{display:inline-flex;border:1px solid #ccc;border-bottom-width:0;border-radius:5px 5px 0 0;overflow:hidden;margin-bottom:24px}
+.nav a{display:inline-block;width:100px;text-align:center;padding:8px 0;cursor:pointer;color:#333;text-decoration:none;font-size:13px}
+.nav a.on{background:#7752fd;color:#fff}
+.cbody{padding:0 14px}
+
+/* ===== 查询区 ===== */
+.searchbox{display:flex;flex-wrap:wrap;row-gap:12px;padding:0 0 4px}
+.fg{display:flex;align-items:center;min-width:260px;padding-right:24px;position:relative}
+.fg label{flex:none;min-width:80px;text-align:right;padding-right:4px;font-size:13px;color:#333;white-space:nowrap}
+.fc{width:176px;height:26px;border:1px solid #d9d9d9;border-radius:2px;padding:0 8px;font:inherit;font-size:11px;color:#444;background:#fff}
+.fc::placeholder{color:#888}
+.fc:focus{outline:none;border-color:#7460ee}
+.lsel{position:relative;display:inline-block}
+.lsel select{appearance:none;-webkit-appearance:none;padding:0 24px 0 8px;font-size:12px;color:#333;width:176px}
+.lsel::after{content:"";position:absolute;right:9px;top:11px;border:5px solid transparent;border-top-color:#c2c2c2;pointer-events:none}
+.gbtn{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn{display:inline-flex;align-items:center;gap:5px;height:27px;padding:0 10px;border:0;border-radius:3px;background:#7460ee;color:#fff;font:inherit;font-size:12px;font-weight:600;letter-spacing:1px;cursor:pointer;box-shadow:0 2px 4px rgba(116,96,238,.45)}
+.btn:hover{background:#6352d6}
+
+/* NEW / 改 角标 */
+.nw::after{content:"NEW";position:absolute;top:-10px;right:14px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);pointer-events:none;z-index:3;letter-spacing:.3px}
+.nw.chg::after{content:"改";font-family:"PingFang SC","Microsoft YaHei",sans-serif;padding:0 5px}
+.fg.nw .fc{border-color:#ffa39e}
+.thn{display:inline-block;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;margin-left:4px;vertical-align:2px;box-shadow:0 1px 3px rgba(255,77,79,.45)}
+
+/* ===== 表格 ===== */
+.tbl{overflow-x:auto;margin-top:22px}
+table.dl{border-collapse:collapse;width:100%;min-width:1180px;font-size:12.5px}
+.dl th{background:#e9ebf1;color:#333;font-weight:600;height:36px;border:1px solid #dfe2e8;padding:0 6px;text-align:left;white-space:nowrap}
+.dl td{border:1px solid #e6e8ed;height:39px;padding:3px 6px;text-align:left;white-space:nowrap;color:#333}
+.dl tbody tr:nth-child(odd)>td{background:#f8f8fa}
+.dl tbody tr:hover>td{background:#f1f2f6}
+.dl td.newcol{background:#fff8f7!important}
+.dl .empty td{height:80px;color:#999;text-align:center}
+.lk{color:#333;text-decoration:none;cursor:pointer}
+.lk:hover{color:#7460ee}
+.ob{display:inline-block;height:26px;line-height:24px;padding:0 9px;margin-right:10px;border:1px solid #8fd19e;border-radius:2px;background:#fff;color:#4cae4c;font-size:11px;cursor:pointer}
+.ob:hover{background:#f3fbf4}
+.hitrow>td{box-shadow:inset 0 0 0 9999px rgba(255,236,61,.06)}
+
+/* 分页（GetPostPager） */
+.pager{display:flex;align-items:center;flex-wrap:wrap;gap:14px 0;padding:26px 0 0 30px;font-size:12.5px;color:#333}
+.pager .pl{display:flex;align-items:center;gap:6px;margin-right:200px}
+.pager .pl input{width:85px;height:26px;border:1px solid #d9d9d9;border-radius:2px;padding:0 6px;font:inherit}
+.pager .pl select{height:26px;border:1px solid #d9d9d9;border-radius:2px;font-size:11px;color:#666;padding:0 4px}
+.pager .pl button{height:26px;padding:0 10px;border:1px solid #c9c9c9;background:#fff;border-radius:2px;cursor:pointer;font:inherit;font-size:12px}
+.pager .pc{display:flex;align-items:center;gap:4px}
+.pager .pc a{display:inline-block;height:28px;line-height:26px;padding:0 9px;border:1px solid #c9c9c9;background:#f5f5f5;border-radius:2px;cursor:pointer;color:#444;user-select:none}
+.pager .pc a.cur{background:#7460ee;border-color:#7460ee;color:#fff;cursor:default}
+.pager .pc a.dis{color:#aaa;cursor:not-allowed}
+.pager .pc .tt{margin-left:8px}
+
+/* highslide 消息内容 */
+.hs{position:absolute;z-index:90;width:440px;background:#fff;border:1px solid #c9c9c9;box-shadow:0 4px 18px rgba(0,0,0,.25);border-radius:3px;display:none}
+.hs .hh{padding:7px 30px 7px 10px;font-weight:700;font-size:13px;border-bottom:1px solid #eee;background:#f7f7f7;position:relative}
+.hs .hx{position:absolute;right:8px;top:4px;cursor:pointer;color:#999;font-size:16px;font-weight:400}
+.hs .hb{padding:10px;font-size:12.5px;line-height:1.75;word-break:break-word;white-space:normal;text-align:left;max-height:360px;overflow:auto}
+.hs .hb img{max-width:100%;display:block}
+
+.toast{position:fixed;top:16px;right:20px;width:300px;background:#7c8798;color:#fff;border-radius:4px;padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:300;font-size:12.5px;display:none}
+
+/* ===== 原型演示区 ===== */
+.demo{margin-top:16px;background:#fff;border:2px dashed #b7abf5;border-radius:8px;padding:14px 16px 16px}
+.pt{display:inline-block;font-size:11px;color:#6C4FE0;background:#f1edff;border:1px solid #d9d0fb;border-radius:3px;padding:0 6px;margin-right:8px;font-weight:600;vertical-align:1px}
+.demo h3{font-size:13.5px;margin-bottom:10px}
+.demo .row{font-size:12.5px;line-height:1.9;margin:4px 0;color:#444}
+.demo .row>b{display:inline-block;min-width:96px;color:#333}
+.chip{display:inline-block;padding:0 10px;margin:3px 6px 3px 0;border:1px solid #c9bff6;border-radius:12px;background:#fff;color:#4b3aa8;font-size:12px;line-height:22px;cursor:pointer}
+.chip:hover{background:#f1edff}
+.chip i{font-style:normal;color:#999;font-size:11px;margin-left:4px}
+.demo table{border-collapse:collapse;width:100%;font-size:12px;margin-top:6px}
+.demo th{background:#fafafa;border:1px solid #e6e6e6;padding:5px 8px;text-align:left;font-weight:600;white-space:nowrap}
+.demo td{border:1px solid #eee;padding:5px 8px;vertical-align:top}
+.tag{display:inline-block;font-size:11px;line-height:17px;padding:0 6px;border-radius:3px;margin:1px 4px 1px 0;background:#e8f7ec;color:#237a3b;border:1px solid #bfe6c9}
+.tag.off{background:#fff1f0;color:#cf1322;border-color:#ffccc7}
+.muted{color:#999}
+.fo{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:4px}
+.fo span.it{display:inline-block;border:1px solid #e3dcfb;background:#faf9ff;border-radius:4px;padding:2px 8px;font-size:12px}
+.fo .ar{color:#b5abe8}
+mark{background:#ffe58f;color:inherit;padding:0 1px;border-radius:2px}
+
+
+/* ===== 抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (max-width:700px){.wrap{padding:12px 16px 50px}.fg{min-width:0;width:100%}.pager .pl{margin-right:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
+  <div style="display:flex;gap:16px;align-items:center"><span id="today"></span><span>当前币种：<b style="color:#c0392b">INR</b></span></div>
+</div>
+
+<div class="wrap">
+ <div class="card">
+  <div class="tabs"><div class="nav" id="nav"><a data-ty="2" class="on">弹窗消息</a><a data-ty="1">滚动消息</a></div></div>
+  <div class="cbody">
+   <div class="searchbox">
+    <div class="fg nw chg"><label for="Keyword">标题/内容：</label><input class="fc" id="Keyword" placeholder="标题/内容" autocomplete="off"></div>
+    <div class="fg nw"><label for="State">状态：</label><span class="lsel"><select class="fc" id="State"><option value="">全部</option><option value="0">启用</option><option value="1">禁用</option></select></span></div>
+   </div>
+   <div class="gbtn">
+    <button class="btn" id="btnSearch" type="button">🔍 查 询</button>
+    <button class="btn" id="btnReset" type="button">↻ 重 置</button>
+    <button class="btn" id="btnAdd" type="button">＋ 新 增</button>
+   </div>
+
+   <div class="tbl">
+    <table class="dl">
+     <thead id="th"></thead>
+     <tbody id="tb"></tbody>
+    </table>
+   </div>
+   <div class="pager" id="pager"></div>
+  </div>
+ </div>
+
+ <!-- 原型演示区：不属于产品页面 -->
+ <div class="demo">
+  <h3><span class="pt">原型演示</span>帮助核对规则用，不是页面内容</h3>
+  <div class="row"><b>试一试</b><span id="chips"></span></div>
+  <div class="row" id="hitBox"></div>
+  <div class="row"><b>前台展示顺序</b><span class="muted">（前台只展示启用的；后台列表启用部分的顺序与此一致）</span><div class="fo" id="front"></div></div>
+ </div>
+</div>
+
+<div class="hs" id="hs"><div class="hh">消息内容<span class="hx" id="hsx">×</span></div><div class="hb" id="hsb"></div></div>
+<div class="toast" id="toast"></div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>公告消息 · 搜索与排序 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW / 改 角标的是新增或改动。</div>
+    <table class="t">
+      <tr><th style="width:250px">页面</th><th>改动点</th></tr>
+      <tr><td>消息管理 → 公告消息 → <b>弹窗消息</b></td><td>「标题」搜索改为「标题/内容」；新增「状态」筛选；列表排序调整</td></tr>
+      <tr><td>消息管理 → 公告消息 → <b>滚动消息</b></td><td>同上；列表新增「状态」列</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">「标题/内容」一个框：英语版本的标题或内容包含关键字即命中</div>
+      <div class="kf">新增「状态」筛选：全部 / 启用 / 禁用</div>
+      <div class="kf">启用的排前面，顺序与前台展示一致；禁用的排后面，按时间从新到旧</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>搜索匹配</b><span class="kb">核心</span>：只匹配英语版本，即列表上显示的标题和消息内容，任一包含输入内容即命中；其他语种的标题和内容不参与。不区分大小写，输入前后的空格忽略；输入内容整体匹配，中间的空格不拆成多个词。
+      <table class="t">
+        <tr><th style="width:150px">输入（原型数据）</th><th>结果</th></tr>
+        <tr><td>bonus</td><td>命中 ID 85、81、40、32</td></tr>
+        <tr><td>AVIATOR</td><td>命中 ID 87（大小写不同也算）</td></tr>
+        <tr><td>बोनस</td><td>无结果：只出现在印地语版本里</td></tr>
+      </table>
+    </div>
+
+    <div class="br key"><span class="bn">02</span><b>按看得到的文字匹配</b><span class="kb">核心</span>：消息内容去掉格式标签后再匹配，图片不参与；空格、符号等转义字符按显示出来的字符匹配。
+      <table class="t">
+        <tr><th style="width:150px">输入（原型数据）</th><th>结果</th></tr>
+        <tr><td>span</td><td>不命中：只是格式标签里的字，页面上看不到</td></tr>
+        <tr><td>100x</td><td>命中 ID 87：红字加粗显示的 100x</td></tr>
+        <tr><td>02:00 to 04:00</td><td>命中 ID 86</td></tr>
+      </table>
+    </div>
+
+    <div class="br"><span class="bn">03</span><b>状态筛选</b>：全部 / 启用 / 禁用，默认「全部」。滚动消息列表新增「状态」列，显示启用 / 禁用。</div>
+
+    <div class="br key"><span class="bn">04</span><b>列表排序</b><span class="kb">核心</span>：
+      <table class="t">
+        <tr><th style="width:110px">分组</th><th>排序规则</th></tr>
+        <tr><td>启用</td><td>排在最前面；排序值大的在前，排序值相同时，时间新的在前（与前台展示顺序一致）</td></tr>
+        <tr><td>禁用</td><td>排在所有启用之后；按时间从新到旧，不看排序值</td></tr>
+      </table>
+    </div>
+
+    <div class="br"><span class="bn">05</span><b>重置</b>：清空「标题/内容」，状态回到「全部」。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>匹配范围</td><td>只匹配英语版本的标题和消息内容；其他语种、ID、排序值、时间不参与</td></tr>
+      <tr><td>排序时间</td><td>即列表「时间」列</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>弹窗消息、滚动消息两个页面都要改，搜索、状态筛选、排序规则两边一致。</li>
+      <li>匹配的就是列表上显示的那一版标题和内容（英语），其他语种的译文不用查。</li>
+      <li>消息内容先去掉格式标签、把转义字符还原成显示的字符，再匹配；不能拿带标签的原文直接匹配，否则搜 span、div、color 之类的词会把大量弹窗搜出来。</li>
+      <li>排序用的时间就是列表「时间」列那个时间（修改保存后会刷新）；时间也相同时再按 ID 从大到小，保证翻页不重复、不漏条。</li>
+      <li>前台展示不改。上线后抽查：后台列表启用部分的顺序 = 前台实际展示顺序，弹窗、滚动各查一次。</li>
+      <li>换条件点「查询」从第 1 页开始显示；翻页、切换每页条数时带着当前条件。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function esc(s){return s===null||s===undefined?'':String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function pad(n){return n<10?'0'+n:''+n;}
+var D=new Date();$('today').textContent=D.getFullYear()+'-'+pad(D.getMonth()+1)+'-'+pad(D.getDate());
+
+/* ================= 其他语种（只用于演示“不参与搜索”） ================= */
+var LANG={1:'印尼',8:'孟加拉',9:'印地语'};
+
+/* 活动图片占位（只有图片、没有文字的弹窗） */
+function img(txt,c){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="400" height="180"><rect width="400" height="180" rx="10" fill="'+c+'"/><text x="200" y="98" font-size="22" font-family="Arial" fill="#fff" text-anchor="middle">'+txt+'</text></svg>';
+  return '<p><img src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)+'"></p>';
+}
+
+/* ================= 演示数据 =================
+   ty 2弹窗 1滚动 / t 标题 / m 内容（英语，弹窗为富文本）/ st 0启用 1禁用 / so 排序 / tm 时间 / ml 其他语种译文 {语种:{t,m}}，不参与搜索 */
+var MSG=[
+ /* —— 弹窗：85/86/87 为演示新增，其余照截图 —— */
+ {id:86,ty:2,t:'Withdrawal Maintenance Notice',m:'<p>UPI withdrawals will be under maintenance on 10/08 from 02:00&nbsp;to&nbsp;04:00 (IST). Deposits are not affected.</p>',st:0,so:99,tm:'2026-09-28 10:20:00',
+  ml:{9:{t:'निकासी रखरखाव सूचना',m:'<p>UPI निकासी 10/08 को 02:00 से 04:00 (IST) तक रखरखाव में रहेगी। जमा पर कोई असर नहीं होगा।</p>'},
+      8:{t:'উত্তোলন রক্ষণাবেক্ষণ বিজ্ঞপ্তি',m:'<p>10/08 তারিখে 02:00 থেকে 04:00 (IST) পর্যন্ত UPI উত্তোলন রক্ষণাবেক্ষণে থাকবে। ডিপোজিটে কোনো প্রভাব নেই।</p>'}}},
+ {id:85,ty:2,t:'Diwali Deposit Bonus',m:'<p><b>Diwali Special!</b> Deposit ₹500 or more and get a <font color="#ff0000">10% extra bonus</font>.</p>',st:0,so:10,tm:'2026-10-02 16:45:12',
+  ml:{9:{t:'दिवाली डिपॉज़िट बोनस',m:'<p><b>दिवाली स्पेशल!</b> ₹500 या उससे अधिक जमा करें और 10% अतिरिक्त बोनस पाएं।</p>'},
+      8:{t:'দীপাবলি ডিপোজিট বোনাস',m:'<p><b>দীপাবলি স্পেশাল!</b> ₹500 বা তার বেশি জমা করুন এবং 10% অতিরিক্ত বোনাস পান।</p>'}}},
+ {id:87,ty:2,t:'New Game: Aviator',m:'<p>Aviator is now live! Play now and win up to <span style="color:#e53935;font-weight:bold">100x</span>.</p>'+img('Aviator','#c62828'),st:0,so:10,tm:'2026-09-20 09:30:00',
+  ml:{9:{t:'नया गेम: Aviator',m:'<p>Aviator अब लाइव है! अभी खेलें और 100x तक जीतें।</p>'},
+      1:{t:'Game Baru: Aviator',m:'<p>Aviator sudah tersedia! Main sekarang dan menangkan hadiah hingga 100x.</p>'}}},
+ {id:81,ty:2,t:'Flowers in Bloom, Beautiful Moments Ahead',m:'<p>With the gentle breeze of spring, flowers are blooming everywhere. Log in every day to claim your bloom bonus!</p>',st:0,so:0,tm:'2026-09-01 13:15:55',
+  ml:{9:{t:'फूल खिले, आगे सुंदर पल',m:'<p>वसंत की हल्की हवा के साथ हर जगह फूल खिल रहे हैं। हर दिन लॉग इन करें और अपना बोनस पाएं!</p>'},
+      8:{t:'ফুল ফুটেছে, সামনে সুন্দর মুহূর্ত',m:'<p>বসন্তের মৃদু হাওয়ায় সব জায়গায় ফুল ফুটেছে। প্রতিদিন লগইন করে আপনার বোনাস নিন!</p>'}}},
+ {id:54,ty:2,t:'11111',m:'<p>撒旦士大夫石帆胜丰</p>',st:1,so:0,tm:'2026-06-10 15:16:01'},
+ {id:55,ty:2,t:'11111',m:'<p>饿的的吩咐的事都是</p>',st:1,so:0,tm:'2026-06-10 15:15:15'},
+ {id:57,ty:2,t:'瑞特瑞特瑞特让他',m:'<p>词词温热我热温热</p>',st:1,so:0,tm:'2026-06-10 15:15:09'},
+ {id:58,ty:2,t:'人忒特瑞特瑞特人',m:'<p>大师傅士大夫士大夫士大夫撒旦</p>',st:1,so:0,tm:'2026-06-10 15:15:03'},
+ {id:40,ty:2,t:'VIP Recharge Bonus1',m:'<p>跳转游戏内页2313123&nbsp; <a href="javascript:void(0)">点击进入</a></p>',st:1,so:0,tm:'2026-06-10 15:14:29',
+  ml:{9:{t:'VIP रिचार्ज बोनस',m:'<p>गेम पेज पर जाएं 2313123</p>'}}},
+ {id:45,ty:2,t:'test',m:'<p>&amp;#128081; WELCOME TO VIP CLUB</p>',st:1,so:0,tm:'2025-11-19 15:52:38'},
+ {id:35,ty:2,t:'第五个弹窗',m:img('活动图片 5','#7752fd'),st:1,so:0,tm:'2025-11-15 14:39:11'},
+ {id:28,ty:2,t:'"BOUNTY GAME" deposit and withdrawal notification',m:img('BOUNTY GAME','#e67e22'),st:1,so:0,tm:'2025-11-08 09:30:58'},
+ {id:36,ty:2,t:'abc',m:img('abc','#16a085'),st:1,so:0,tm:'2025-09-03 15:21:15'},
+ {id:21,ty:2,t:'第四个弹窗',m:img('活动图片 4','#2980b9'),st:1,so:6666,tm:'2025-08-10 20:00:41'},
+ {id:14,ty:2,t:'AR',m:'<p>感谢您花时间了解我们的团队与产品，我们将持续为您提供更好的服务。</p>',st:1,so:9999,tm:'2025-08-02 18:05:54'},
+ {id:34,ty:2,t:'测试',m:img('测试','#8e44ad'),st:1,so:0,tm:'2025-08-02 18:05:47'},
+ {id:31,ty:2,t:'测试加大字体',m:'<p><b><font size="5">测试加粗加大字体是卡萨好看的卡萨丁</font></b></p>',st:1,so:0,tm:'2025-07-18 09:53:05'},
+ {id:33,ty:2,t:'测试长度看一下行不行',m:'<p>只是来这里测试一下看一下为试下长度够不够长度够不够</p>',st:1,so:0,tm:'2025-07-18 09:52:58'},
+ {id:32,ty:2,t:'WELCOME TEXT',m:'<p>✅ WELCOME TO 6C CLUB! Claim your first deposit bonus now.</p>',st:1,so:0,tm:'2025-05-07 10:47:31'},
+ {id:29,ty:2,t:'1',m:'<p>go</p>',st:1,so:1,tm:'2025-04-12 16:17:11'},
+
+ /* —— 滚动：82/83/84 照截图，76/79 为演示新增的禁用 —— */
+ {id:84,ty:1,t:'QA Announcement EN 2026-09-01',m:'QA English announcement for scroll message test.',st:0,so:100,tm:'2026-09-02 11:39:14',
+  ml:{9:{t:'QA घोषणा HI 2026-09-01',m:'स्क्रॉल संदेश परीक्षण के लिए QA हिंदी घोषणा।'}}},
+ {id:82,ty:1,t:'Flowers in Bloom, Beautiful Moments Ahead',m:'With the gentle breeze of spring, flowers are blooming everywhere.',st:0,so:99,tm:'2026-09-19 11:43:37',
+  ml:{9:{t:'फूल खिले, आगे सुंदर पल',m:'वसंत की हल्की हवा के साथ हर जगह फूल खिल रहे हैं।'},
+      8:{t:'ফুল ফুটেছে, সামনে সুন্দর মুহূর্ত',m:'বসন্তের মৃদু হাওয়ায় সব জায়গায় ফুল ফুটেছে।'}}},
+ {id:83,ty:1,t:'diertiao',m:'diertiaodiertiaodiertiao',st:0,so:98,tm:'2026-09-19 11:16:29'},
+ {id:79,ty:1,t:'Server Maintenance 08/20',m:'System maintenance on 08/20 from 02:00 to 03:00 (IST). Please plan your withdrawals.',st:1,so:0,tm:'2026-08-19 18:00:00',
+  ml:{8:{t:'সার্ভার রক্ষণাবেক্ষণ 08/20',m:'08/20 তারিখে 02:00 থেকে 03:00 (IST) পর্যন্ত সিস্টেম রক্ষণাবেক্ষণ চলবে।'}}},
+ {id:76,ty:1,t:'IPL Final Cashback',m:'IPL Final special: 5% cashback on all cricket bets, today only!',st:1,so:100,tm:'2026-05-30 20:10:00',
+  ml:{9:{t:'IPL फाइनल कैशबैक',m:'IPL फाइनल स्पेशल: आज सभी क्रिकेट बेट पर 5% कैशबैक!'},
+      1:{t:'Cashback Final IPL',m:'Spesial final IPL: cashback 5% untuk semua taruhan kriket, hadiah hari ini saja!'}}}
+];
+
+var CHIPS={
+  2:[['bonus','英语'],['AVIATOR','大小写'],['span','格式标签'],['100x','红字加粗'],['02:00 to 04:00','转义空格'],['बोनस','印地语·不搜']],
+  1:[['cashback','英语'],['maintenance','英语'],['कैशबैक','印地语·不搜'],['রক্ষণাবেক্ষণ','孟加拉·不搜']]
+};
+
+/* ================= 文字处理 ================= */
+var parser=new DOMParser();
+/* 看得到的文字：去格式标签、转义字符还原（不加载图片） */
+function plain(html){
+  var t=parser.parseFromString('<body>'+(html||'')+'</body>','text/html').body.textContent||'';
+  return t.replace(/ /g,' ');
+}
+/* 列表“消息内容”列：去标签后取前 15 个字 + "..." */
+function sub15(html){var s=plain(html).replace(/[\r\n]\s+/g,'').trim();return s.length>15?s.substring(0,15)+'...':s;}
+/* .NET 默认 ToString()：2026/9/1 13:15:55 */
+function netDate(s){var p=s.split(/[- :]/);return (+p[0])+'/'+(+p[1])+'/'+(+p[2])+' '+(+p[3])+':'+p[4]+':'+p[5];}
+
+/* 只搜英语版本 = 列表上显示的标题和内容；返回命中位置，空串 = 不命中 */
+function hitEn(x,kw){
+  var k=kw.toLowerCase();
+  var ht=x.t.toLowerCase().indexOf(k)>=0,hm=plain(x.m).toLowerCase().indexOf(k)>=0;
+  return (ht||hm)?((ht&&hm)?'标题+内容':(ht?'标题':'内容')):'';
+}
+/* 演示用：关键字只出现在其他语种译文里 */
+function otherLangs(x,kw){
+  var k=kw.toLowerCase(),out=[];
+  if(x.ml)Object.keys(x.ml).forEach(function(l){var v=x.ml[l];if(v.t.toLowerCase().indexOf(k)>=0||plain(v.m).toLowerCase().indexOf(k)>=0)out.push(LANG[l]);});
+  return out;
+}
+
+/* ================= 排序：启用在前（排序值↓ 时间↓），禁用在后（时间↓） ================= */
+function cmp(a,b){
+  if(a.st!==b.st)return a.st-b.st;
+  if(a.st===0&&a.so!==b.so)return b.so-a.so;
+  if(a.tm!==b.tm)return a.tm<b.tm?1:-1;
+  return b.id-a.id;
+}
+
+/* ================= 查询 ================= */
+var ty=2,applied={kw:'',st:''},pageNo=1,pageSize=20,lastSnap='',cur=[],hitMap={};
+function cond(){return {kw:$('Keyword').value.trim(),st:$('State').value};}
+function filter(c){
+  hitMap={};
+  return MSG.filter(function(x){
+    if(x.ty!==ty)return false;
+    if(c.st!==''&&x.st!==+c.st)return false;
+    if(c.kw){var h=hitEn(x,c.kw);if(!h)return false;hitMap[x.id]=h;}
+    return true;
+  }).sort(cmp);
+}
+function renderHead(){
+  $('th').innerHTML='<tr><th style="width:56px">ID</th><th>标题</th><th style="width:'+(ty===2?'30%':'22%')+'">消息内容</th>'+
+    '<th style="width:70px">状态'+(ty===1?'<span class="thn">NEW</span>':'')+'</th>'+
+    '<th style="width:76px">排序</th><th style="width:180px">时间</th><th style="width:190px">操作</th></tr>';
+}
+function render(){
+  var rows=filter(applied),total=rows.length,pages=Math.ceil(total/pageSize);
+  if(pages>0&&pageNo>pages)pageNo=1;
+  var list=rows.slice((pageNo-1)*pageSize,pageNo*pageSize);cur=list;
+  var tb=$('tb');
+  if(!list.length){tb.innerHTML='<tr class="empty"><td colspan="7"></td></tr>';}
+  else tb.innerHTML=list.map(function(x,i){
+    return '<tr'+(applied.kw?' class="hitrow"':'')+'>'+
+      '<td>'+x.id+'</td>'+
+      '<td>'+esc(x.t)+'</td>'+
+      '<td><a class="lk" data-i="'+i+'" title="点击查看消息内容详情">'+esc(sub15(x.m))+'</a></td>'+
+      '<td'+(ty===1?' class="newcol"':'')+'>'+(x.st===1?'禁用':'启用')+'</td>'+
+      '<td>'+x.so+'</td>'+
+      '<td>'+netDate(x.tm)+'</td>'+
+      '<td><span class="ob" data-e="'+i+'">修改</span><span class="ob" data-d="1">删除</span></td>'+
+    '</tr>';
+  }).join('');
+  renderPager(total,Math.max(pages,1));
+  renderDemo(rows);
+}
+function renderPager(total,pages){
+  var h='<div class="pl">共'+pages+'页，前往<input id="goNo" autocomplete="off">页，'+
+    '<select id="ps"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option><option value="100">100条/页</option></select>'+
+    '<button type="button" id="goBtn">GO</button></div>'+
+    '<div class="pc"><a data-g="1" class="'+(pageNo<=1?'dis':'')+'">首页</a><a data-g="'+(pageNo-1)+'" class="'+(pageNo<=1?'dis':'')+'">上一页</a>';
+  for(var i=1;i<=pages;i++)h+='<a data-g="'+i+'" class="'+(i===pageNo?'cur':'')+'">'+i+'</a>';
+  h+='<a data-g="'+(pageNo+1)+'" class="'+(pageNo>=pages?'dis':'')+'">下一页</a><a data-g="'+pages+'" class="'+(pageNo>=pages?'dis':'')+'">尾页</a><span class="tt">共'+total+'条</span></div>';
+  var p=$('pager');p.innerHTML=h;
+  $('ps').value=String(pageSize);
+  $('ps').onchange=function(){pageSize=+this.value;pageNo=1;render();};
+  $('goBtn').onclick=function(){var n=parseInt($('goNo').value,10);if(n>=1&&n<=pages){pageNo=n;render();}};
+  p.querySelectorAll('a[data-g]').forEach(function(a){a.onclick=function(){if(a.classList.contains('dis')||a.classList.contains('cur'))return;pageNo=+a.getAttribute('data-g');render();};});
+}
+function search(){
+  var c=cond(),s=ty+'|'+c.kw+'|'+c.st;
+  if(s!==lastSnap)pageNo=1;   /* 条件变了回到第 1 页 */
+  lastSnap=s;applied=c;render();
+}
+function reset(){$('Keyword').value='';$('State').value='';pageNo=1;pageSize=20;lastSnap='';search();}
+$('btnSearch').onclick=search;
+$('btnReset').onclick=reset;
+$('Keyword').addEventListener('keydown',function(e){if(e.key==='Enter')search();});
+
+/* 页签 */
+$('nav').querySelectorAll('a').forEach(function(a){a.onclick=function(){
+  if(a.classList.contains('on'))return;
+  $('nav').querySelectorAll('a').forEach(function(b){b.classList.remove('on');});a.classList.add('on');
+  ty=+a.getAttribute('data-ty');renderHead();renderChips();reset();
+};});
+
+/* ================= 原型演示区 ================= */
+function renderChips(){
+  $('chips').innerHTML=CHIPS[ty].map(function(c){return '<span class="chip" data-k="'+esc(c[0])+'">'+esc(c[0])+'<i>'+c[1]+'</i></span>';}).join('');
+  $('chips').querySelectorAll('.chip').forEach(function(ch){ch.onclick=function(){$('Keyword').value=ch.getAttribute('data-k');$('State').value='';search();};});
+}
+function renderDemo(rows){
+  var kw=applied.kw,h='';
+  if(kw){
+    h='<b>命中说明</b><span class="muted">关键字「'+esc(kw)+'」'+(applied.st!==''?'，状态：'+(applied.st==='0'?'启用':'禁用'):'')+'</span>';
+    if(rows.length){
+      h+='<table><tr><th style="width:60px">ID</th><th>标题</th><th style="width:200px">命中位置</th></tr>'+rows.map(function(x){
+        return '<tr><td>'+x.id+'</td><td>'+esc(x.t)+'</td><td><span class="tag">'+hitMap[x.id]+'</span></td></tr>';
+      }).join('')+'</table>';
+    }
+    var base=MSG.filter(function(x){return x.ty===ty&&!hitMap[x.id]&&(applied.st===''||x.st===+applied.st);});
+    /* 只在其他语种里出现的 → 不算 */
+    var miss=base.filter(function(x){return otherLangs(x,kw).length;});
+    if(miss.length)h+='<div style="margin-top:6px">'+miss.map(function(x){return '<span class="tag off">ID '+x.id+' 只在'+otherLangs(x,kw).join('、')+'版本里包含，只搜英语，不算命中</span>';}).join('')+'</div>';
+    /* 只在格式标签里出现的 → 不算 */
+    var k=kw.toLowerCase();
+    var tagOnly=base.filter(function(x){return x.m.toLowerCase().indexOf(k)>=0;});
+    if(tagOnly.length)h+='<div style="margin-top:6px">'+tagOnly.map(function(x){return '<span class="tag off">ID '+x.id+' 只在格式标签里出现，页面上看不到，不算命中</span>';}).join('')+'</div>';
+    if(!rows.length&&!miss.length&&!tagOnly.length)h+='<div class="muted">没有任何记录包含该关键字</div>';
+  }else{
+    h='<b>命中说明</b><span class="muted">输入关键字或点上面的「试一试」，查看每条是标题还是内容命中</span>';
+  }
+  $('hitBox').innerHTML=h;
+  var fr=MSG.filter(function(x){return x.ty===ty&&x.st===0;}).sort(cmp);
+  $('front').innerHTML=fr.map(function(x,i){return (i?'<span class="ar">→</span>':'')+'<span class="it">ID '+x.id+' · 排序 '+x.so+' · '+esc(x.t)+'</span>';}).join('');
+}
+
+/* ================= 消息内容（highslide） ================= */
+var hs=$('hs');
+document.addEventListener('click',function(e){
+  var a=e.target.closest&&e.target.closest('.lk');
+  if(a){
+    var x=cur[+a.getAttribute('data-i')];
+    $('hsb').innerHTML=x.m;
+    hs.style.display='block';
+    var r=a.getBoundingClientRect(),w=hs.offsetWidth;
+    var left=Math.max(8,Math.min(r.left+window.scrollX,window.scrollX+document.documentElement.clientWidth-w-12));
+    hs.style.left=left+'px';hs.style.top=(r.bottom+window.scrollY+4)+'px';
+    return;
+  }
+  if(!e.target.closest('#hs'))hs.style.display='none';
+  if(e.target.closest&&(e.target.closest('[data-e]')||e.target.closest('[data-d]')||e.target.closest('#btnAdd')))toast('原型不演示新增/修改/删除');
+});
+$('hsx').onclick=function(){hs.style.display='none';};
+
+var toastT=null;
+function toast(s){var t=$('toast');t.textContent=s;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(function(){t.style.display='none';},1800);}
+
+/* ================= 需求说明抽屉 ================= */
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeDoc();hs.style.display='none';}});
+
+renderHead();renderChips();reset();
+})();
+</script>
+</body>
+</html>
