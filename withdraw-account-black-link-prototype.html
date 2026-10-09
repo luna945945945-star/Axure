@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>相同提现账号 · 连带会员</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sub h1{font-size:15px;color:#2b6cb0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:14px 44px 60px 22px}
+.main{background:#fff;border-radius:4px;padding:15px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.acc{font-family:Consolas,Monaco,Menlo,monospace}
+.accm{cursor:pointer}
+.grey{color:#98a2b0}
+
+/* NEW 角标 */
+.nw{position:relative;display:inline-block}
+.nw::after{content:"NEW";position:absolute;top:-12px;right:-18px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);pointer-events:none;z-index:3}
+
+/* 页签（照 SameWithdrawAccountView .swa-tabs） */
+.swtabs{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;background:#f1f3f7;border:1px solid #e6e8eb;border-radius:8px;margin-bottom:10px}
+.swtabs li{list-style:none;min-width:120px;line-height:30px;padding:0 18px;font-size:14px;color:#5a6472;border-radius:6px;cursor:pointer;text-align:center}
+.swtabs li:hover{color:#2b6cb0;background:rgba(43,108,176,.08)}
+.swtabs li.on{color:#fff;background:#2b6cb0;font-weight:500}
+
+/* 查询区 */
+.sf{background:#fff;border-radius:8px;padding:10px 10px 5px}
+.fi{display:inline-flex;align-items:center;margin:0 20px 12px 0;vertical-align:top}
+.fl{width:60px;margin-right:10px;line-height:20px;text-align:justify;text-align-last:justify;color:#333;font-size:14px;flex:none}
+.fl.keep{text-align:right;text-align-last:right}
+.fl.l2{text-align:right;text-align-last:right;letter-spacing:4px}
+.fin{width:170px;height:36px;border:1px solid #dcdfe6;border-radius:4px;padding:0 10px;font:inherit;font-size:14px;color:#333;background:#fff}
+.fin:focus{outline:none;border-color:#2b6cb0}
+.fin.date{width:150px}
+.dsep{padding:0 8px;color:#999;line-height:36px}
+.bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+.lb{height:36px;padding:0 16px;font:inherit;font-size:14px;border-radius:6px;border:1px solid;cursor:pointer;color:#fff;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.b-search{background:#2b6cb0;border-color:#2b6cb0}
+.b-reset{background:#eef0f3;border-color:#eef0f3;color:#5a6472}
+.b-green{background:#2ecc71;border-color:#2ecc71}
+.info{padding:10px 14px;margin-bottom:12px;border:1px solid #e6e8eb;border-radius:8px;background:#f7f9fb;font-size:12.5px;color:#5a6472;line-height:1.8}
+
+/* layui 表格 */
+.tw{border:1px solid #e6e6e6;overflow-x:auto;margin-top:10px;min-height:160px;background:#fff}
+table.lt{border-collapse:collapse;width:100%;font-size:14px;color:#666}
+.lt th{background:#fafafa;font-weight:400;color:#666;height:39px;border-bottom:1px solid #e6e6e6;border-right:1px solid #e6e6e6;padding:0 12px;text-align:center;white-space:nowrap}
+.lt td{border-bottom:1px solid #e6e6e6;border-right:1px solid #e6e6e6;padding:5px 12px;text-align:center;height:39px;white-space:nowrap}
+.lt th:last-child,.lt td:last-child{border-right:0}
+.lt tbody tr:hover>td{background:#f2f5f9}
+.lt .stk{position:sticky;right:0;background:#fff;box-shadow:-2px 0 4px rgba(0,0,0,.04)}
+.lt th.stk{background:#fafafa}
+.lt tbody tr:hover>td.stk{background:#f2f5f9}
+.lt .empty td{color:#999;height:120px}
+.cell2{display:block;line-height:14px;font-size:12px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;line-height:18px;border:1px solid transparent}
+.t-blocked{color:#c0392b;background:#fdedeb;border-color:#f5c6c0}
+.t-normal{color:#237a4b;background:#e7f7ee;border-color:#b7e4cb}
+.t-bind{color:#237a4b;background:#e7f7ee;border-color:#b7e4cb}
+.t-unbind{color:#c0392b;background:#fdedeb;border-color:#f5c6c0}
+.t-edit{color:#b9770e;background:#fdf3e2;border-color:#f6dfb4}
+.t-on{color:#c0392b;background:#fdedeb;border-color:#f5c6c0}
+.t-off{color:#8a94a3;background:#f0f2f5;border-color:#e0e4e9}
+.t-hand{color:#b9770e;background:#fdf3e2;border-color:#f6dfb4}
+.t-after{color:#c0392b;font-weight:600}
+.m-ban{color:#c0392b;font-weight:600}.m-ok{color:#237a4b}
+.warn-tag{color:#cf1322;background:#fff1f0;border-color:#ffa39e;margin-left:6px}
+.op{height:24px;padding:0 8px;line-height:22px;font:inherit;font-size:11.5px;background:#fff;border:1px solid #2b6cb0;color:#2b6cb0;border-radius:4px;cursor:pointer;margin:0 2px}
+.op:hover{background:#eef4fb}
+.op.del{border-color:#e74c3c;color:#e74c3c}.op.del:hover{background:#fdedeb}
+.cnt-hit{cursor:pointer;display:block}
+.cnt{color:#1677ff;font-weight:bold;text-decoration:underline}
+.cnt-arrow{color:#98a2b0;font-size:11px;margin-left:4px}
+.q{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#c0c4cc;color:#fff;font-size:9px;font-style:normal;cursor:help;margin-left:4px;vertical-align:middle}
+.q:hover{background:#2b6cb0}
+/* 绑定明细展开区 */
+tr.drow>td{background:#f7fafd!important;padding:0!important;white-space:normal;text-align:left}
+.dpanel{padding:10px 14px 12px}
+.dhd{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;color:#5a6472}
+.dhd b{color:#2b6cb0;font-size:14px}
+.dhd .acc{color:#1a2733}
+.dtbl{background:#fff;border:1px solid #e4e8ee;border-radius:6px;overflow:hidden}
+.dtbl table{width:100%;border-collapse:collapse;font-size:13px;color:#666}
+.dtbl th{background:#fafafa;font-weight:400;height:34px;border-bottom:1px solid #eef1f5;border-right:1px solid #eef1f5;padding:0 10px;text-align:center}
+.dtbl td{height:34px;border-bottom:1px solid #f2f4f7;border-right:1px solid #f2f4f7;padding:0 10px;text-align:center;white-space:nowrap}
+.dtbl .dpg{padding:5px 12px;text-align:center;font-size:12px;background:#fafbfc;color:#98a2b0}
+
+/* layui 分页 */
+.lp{display:flex;align-items:center;padding:10px 0 0;font-size:12px;color:#333;flex-wrap:wrap}
+.lp a,.lp span.pg{display:inline-block;min-width:30px;height:28px;line-height:26px;border:1px solid #e2e2e2;text-align:center;padding:0 10px;background:#fff;color:#333;cursor:pointer;margin-right:-1px}
+.lp span.cur{background:#1e9fff;border-color:#1e9fff;color:#fff;cursor:default}
+.lp a.dis{color:#d2d2d2;cursor:not-allowed}
+.lp .lpx{margin-left:10px}
+.lp select{height:28px;border:1px solid #e2e2e2;margin-left:10px;font-size:12px}
+
+/* layer 弹窗（swa-layer） */
+.lmask{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150}
+.layer{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:2px;box-shadow:1px 1px 50px rgba(0,0,0,.3);z-index:151;display:flex;flex-direction:column;max-width:96vw;max-height:94vh}
+.layer .lh{height:52px;line-height:52px;padding:0 50px 0 24px;border-bottom:1px solid #eef0f3;color:#2b6cb0;font-size:16px;font-weight:600;flex:none;position:relative}
+.layer .lx{position:absolute;right:18px;top:0;color:#999;cursor:pointer;font-size:18px;font-weight:400}
+.layer .lbd{flex:1;overflow-y:auto;min-height:0}
+.layer .lf{flex:none;text-align:center;padding:16px 24px 24px;border-top:1px solid #f5f6f8}
+.layer .lf a{display:inline-block;height:34px;line-height:32px;padding:0 26px;margin:0 6px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid}
+.lf .b0{background:#2b6cb0;border-color:#2b6cb0;color:#fff}
+.lf .b1{background:#8792a2;border-color:#8792a2;color:#fff}
+.cf{padding:20px 22px 20px 62px;position:relative;line-height:1.8;font-size:14px;color:#333}
+.cf .ico{position:absolute;left:22px;top:22px;width:28px;height:28px;border-radius:50%;background:#ffb800;color:#fff;font-weight:700;text-align:center;line-height:28px;font-size:17px}
+.lform{padding:20px 24px 0 0}
+.lfi{display:flex;margin-bottom:15px}
+.lfl{width:110px;padding:9px 15px 9px 0;text-align:right;color:#333;flex:none;line-height:20px}
+.lfb{margin-left:30px;flex:1;min-width:0}
+.lfb input,.lfb textarea{width:100%;height:38px;border:1px solid #e6e6e6;border-radius:2px;padding:0 10px;font:inherit;font-size:14px;color:#333}
+.lfb textarea{height:100px;padding:6px 10px;resize:vertical;line-height:20px}
+.lfb input[readonly]{background:#fafafa}
+.hint{font-size:12.5px;color:#b9770e;line-height:1.7}
+
+/* layer.msg / tips */
+.lmsg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.72);color:#fff;padding:12px 22px 12px 50px;border-radius:2px;z-index:400;font-size:14px;max-width:80vw;line-height:1.7;display:none}
+.lmsg .mi{position:absolute;left:15px;top:14px;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-size:14px;font-weight:700}
+.lmsg .mi.ok{background:#5fb878}.lmsg .mi.info{background:#ffb800}
+.lmsg .sim{display:block;font-size:12px;color:#ffd591;margin-top:2px}
+#tip{position:fixed;z-index:300;max-width:340px;background:#2b6cb0;color:#fff;padding:8px 11px;border-radius:2px;font-size:12px;line-height:1.65;white-space:normal;box-shadow:0 2px 8px rgba(0,0,0,.2);display:none;pointer-events:none}
+
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
+  <div style="display:flex;gap:16px;align-items:center"><span id="today"></span><span>当前币种：<b style="color:#c0392b">INR</b></span></div>
+</div>
+<div class="sub">
+  <h1>相同提现账号</h1>
+  <div class="crumb">风控管理 &nbsp;›&nbsp; 相同提现账号 &nbsp;›&nbsp; <b>相同提现账号</b></div>
+</div>
+
+<div class="wrap">
+ <div class="main">
+  <ul class="swtabs" id="tabs"></ul>
+
+  <!-- 原 5 个页签的查询区（不改） -->
+  <div class="sf" id="sfAcc">
+   <div>
+    <div class="fi"><span class="fl">提现账号</span><input class="fin" id="sAcc" placeholder="支持模糊查询" autocomplete="off"></div>
+    <div class="fi"><span class="fl keep">会员ID</span><input class="fin" id="sUid" placeholder="精确匹配" autocomplete="off"></div>
+    <div class="fi" id="sTypeBox"><span class="fl">提现类型</span><select class="fin" id="sType"><option value="">不限</option></select></div>
+    <div class="fi"><span class="fl">绑定次数</span><select class="fin" id="sMin"><option value="1">≥ 1（全部）</option><option value="2" selected>≥ 2</option><option value="3">≥ 3</option><option value="5">≥ 5</option></select></div>
+    <div class="fi"><span class="fl">拉黑状态</span><select class="fin" id="sBlk"><option value="">全部</option><option value="1">已拉黑</option><option value="0">未拉黑</option></select></div>
+   </div>
+   <div class="bar">
+    <button class="lb b-search" id="sQ">🔍 查询</button>
+    <button class="lb b-reset" id="sR">↻ 重置</button>
+    <button class="lb b-green" id="sE">⇪ 导出</button>
+   </div>
+  </div>
+
+  <!-- 新增「连带会员」页签 -->
+  <div id="sfLink" style="display:none">
+   <div class="info">账号被拉黑后，绑定过它的会员也会被限制提现（提示与提现账号黑名单相同），登录、充值、投注等不受影响。账号解除拉黑，连带的限制随之解除；误伤的会员可点「解除限制」。</div>
+   <div class="sf">
+    <div>
+     <div class="fi"><span class="fl keep">会员ID</span><input class="fin" id="lUid" placeholder="精确匹配" autocomplete="off" inputmode="numeric"></div>
+     <div class="fi"><span class="fl">提现账号</span><input class="fin" id="lAcc" placeholder="支持模糊查询" autocomplete="off"></div>
+     <div class="fi"><span class="fl l2">状态</span><select class="fin" id="lSt"><option value="">全部</option><option value="on">生效中</option><option value="acc">账号已解除</option><option value="hand">已手动解除</option></select></div>
+     <div class="fi"><span class="fl">连带时间</span><input class="fin date" id="lBegin" placeholder="开始时间" autocomplete="off"><span class="dsep">~</span><input class="fin date" id="lEnd" placeholder="结束时间" autocomplete="off"></div>
+    </div>
+    <div class="bar">
+     <button class="lb b-search" id="lQ">🔍 查询</button>
+     <button class="lb b-reset" id="lR">↻ 重置</button>
+     <button class="lb b-green" id="lE">⇪ 导出</button>
+    </div>
+   </div>
+  </div>
+
+  <div class="tw" id="twAcc">
+   <table class="lt" style="min-width:1240px">
+    <thead><tr>
+     <th style="min-width:240px">提现账号</th>
+     <th style="width:150px">提现类型</th>
+     <th style="width:150px">累计绑定次数 ↓</th>
+     <th style="width:180px">最近绑定时间</th>
+     <th style="min-width:200px">当前绑定会员</th>
+     <th style="width:200px">黑名单状态</th>
+     <th style="width:100px">操作</th>
+    </tr></thead>
+    <tbody id="tbAcc"></tbody>
+   </table>
+  </div>
+
+  <div class="tw" id="twLink" style="display:none">
+   <table class="lt" style="min-width:1300px">
+    <thead><tr>
+     <th style="width:100px">会员ID</th>
+     <th style="width:120px">会员账号</th>
+     <th style="min-width:160px">提现账号</th>
+     <th style="width:110px">连带方式<i class="q" data-tip="拉黑前绑过：账号被拉黑时，该会员正绑着或以前绑过它。<br>拉黑后绑定：账号拉黑期间，该会员新绑上或改成了它。">?</i></th>
+     <th style="width:165px">连带时间</th>
+     <th style="width:120px">状态<i class="q" data-tip="生效中：这条连带正在限制该会员提现。<br>账号已解除：连带的账号已解除拉黑。<br>已手动解除：运营对该会员点了「解除限制」。">?</i></th>
+     <th style="width:170px">解除人 / 时间</th>
+     <th style="width:110px">会员当前<i class="q" data-tip="会员只要还有一条「生效中」的记录，就是禁止提现。">?</i></th>
+     <th class="stk" style="width:170px">操作</th>
+    </tr></thead>
+    <tbody id="tbLink"></tbody>
+   </table>
+  </div>
+  <div class="lp" id="pg"></div>
+ </div>
+</div>
+
+<div class="lmsg" id="lmsg"><span class="mi" id="lmsgI"></span><span id="lmsgT"></span></div>
+<div id="tip"></div>
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>相同提现账号 · 连带会员 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身。页面的样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:200px">页面</th><th>改动点</th></tr>
+      <tr><td>风控管理 → <b>相同提现账号</b></td><td>新增第 6 个页签「连带会员」：查看每条会员连带记录，对单个会员解除限制，可导出。查看、导出、查看提现账号沿用本页权限，新增权限「解除限制」。拉黑、解除确认框各加一句提示</td></tr>
+      <tr><td>风控管理 → <b>提现账号黑名单</b></td><td>添加、批量导入、解除、批量解除的弹窗各加一句提示，文案与相同提现账号页相同（批量导入写「绑定过导入账号的会员」）</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">提现账号被拉黑后，绑定过它的会员也被限制提现，换任何卡都提不了</div>
+      <div class="kf">账号拉黑期间谁再绑上它，谁也被限制</div>
+      <div class="kf">账号解除拉黑，连带的限制随之解除；误伤的会员由运营单独解除限制</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>限制提现</b><span class="kb">核心</span>：会员只要有一条「生效中」的连带记录，就不能提现，不论用哪个账号；拦截时机和提示与现有提现账号黑名单相同（「您的账号当前无法提现若有疑问请联系客服处理」）。只限制提现，登录、充值、投注、活动、会员分组都不受影响。代理与普通会员相同。</div>
+
+    <div class="br key"><span class="bn">02</span><b>拉黑时连带</b><span class="kb">核心</span>：账号被拉黑（提现账号黑名单的添加、批量导入，本页的拉黑）后，绑定过该账号的会员各生成一条连带记录：现在绑着它的，以及本页绑定明细里绑定过它、或把账号修改成它的会员（含已解绑的）。手机号型账号带不带国家码、前导 0 视为同一个账号，与现有提现账号黑名单一致。拉黑后 1 分钟内生效。</div>
+
+    <div class="br key"><span class="bn">03</span><b>拉黑后绑定</b><span class="kb">核心</span>：账号拉黑期间，会员成功绑定该账号（新增，或把账号修改成它；会员端、后台、客服工单都算），生成一条连带记录，1 分钟内生效。该会员在这个账号的这次拉黑下已有生效中的记录时，不重复生成。</div>
+
+    <div class="br key"><span class="bn">04</span><b>记录状态</b><span class="kb">核心</span>：
+      <table class="t">
+        <tr><th style="width:120px">状态</th><th>什么时候变成这个状态</th></tr>
+        <tr><td>生效中</td><td>记录生成时</td></tr>
+        <tr><td>账号已解除</td><td>连带的账号解除拉黑时，立即变更</td></tr>
+        <tr><td>已手动解除</td><td>运营对该会员点「解除限制」时，他所有生效中的记录一起变更</td></tr>
+      </table>
+      记录离开「生效中」后不会再变回生效中；之后再有连带（他绑过的账号被拉黑，包括同一个账号解除后再次拉黑；或他又绑定拉黑中的账号），生成新的记录。
+    </div>
+
+    <div class="br"><span class="bn">05</span><b>解除限制</b>：状态为「生效中」的记录显示「解除限制」，按会员解除：二次确认框列出该会员当前被哪些账号连带，确认后他所有生效中的记录一起变为「已手动解除」，记下操作人和时间，写操作日志。解除后用拉黑账号本身提现，仍按现有提现账号黑名单拦截。</div>
+
+    <div class="br"><span class="bn">06</span><b>连带会员列表</b>：一条记录 = 一个会员被一个账号的一次拉黑连带，默认按连带时间倒序。
+      <table class="t">
+        <tr><th style="width:110px">列</th><th>取值</th></tr>
+        <tr><td>提现账号</td><td>显示和查询规则与本页其他页签相同</td></tr>
+        <tr><td>连带方式</td><td>拉黑前绑过（02）、拉黑后绑定（03）</td></tr>
+        <tr><td>连带时间</td><td>记录生成的时间</td></tr>
+        <tr><td>状态</td><td>见 04</td></tr>
+        <tr><td>解除人 / 时间</td><td>账号已解除：黑名单的解除人和解除时间；已手动解除：点「解除限制」的人和时间；生效中：「--」</td></tr>
+        <tr><td>会员当前</td><td>有任一生效中的记录为「禁止提现」，否则为「可提现」</td></tr>
+        <tr><td>操作</td><td>绑定历史：切到该账号所在页签，按该账号查询并展开绑定明细；解除限制：只在生效中的记录上显示，见 05</td></tr>
+      </table>
+    </div>
+
+    <div class="br"><span class="bn">07</span><b>筛选与导出</b>：会员ID 精确匹配；状态可选全部、生效中、账号已解除、已手动解除；连带时间按开始、结束时间筛选。导出按当前筛选导出连带记录，列与列表一致（不含操作），行数上限沿用本页现有导出上限。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>上线范围</td><td>上线前已在黑名单的账号，上线时不回头处理已经绑过它的会员；上线后有会员再绑定它，按 03 处理</td></tr>
+      <tr><td>关联范围</td><td>以本页绑定明细为准，明细开始记录之前已解绑的会员不连带</td></tr>
+      <tr><td>在途订单</td><td>记录生效前已提交的提现订单不受影响</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>新增一张连带记录表和一个每分钟运行的任务，任务只处理两类新发生的事：新拉黑的账号（生成 02 的记录）、新的绑定或修改记录（生成 03 的记录）。只处理上次运行之后新发生的，不要全量重算。「同一次拉黑」指提现账号黑名单里的同一条拉黑记录。</li>
+      <li>「生效中 / 账号已解除」按黑名单当前状态实时判断即可，账号解除不需要任务处理，解除后立即生效。</li>
+      <li>提现校验加在现有提现账号黑名单校验的同一处，用同一句提示：会员有任一生效中的记录即拒绝。每次提现都会查，查询要快。</li>
+      <li>「绑定过」要算全：现在绑着的从会员现有提现账号里取；绑定明细里「修改」成该账号的也算（UPI、FastUPI 验证码验证通过后改写 UPI ID 会记成修改）。</li>
+      <li>批量导入一次可能连带很多会员，任务要分批处理；单条处理失败不影响其他，失败的要能补处理。</li>
+      <li>原 5 个页签除拉黑、解除确认框各加一句提示外都不改；「连带会员」页签的查询条件与它们分开。</li>
+      <li>后台、前台提现校验、任务同一次上线。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function esc(s){return s===null||s===undefined?'':String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function mask(a){a=a||'';return a.length>8?a.substring(0,4)+'****'+a.substring(a.length-4):a;}
+function norm(v){return (v||'').replace(/\s/g,'').replace(/-/g,'').toLowerCase();}
+function pad(n){return n<10?'0'+n:''+n;}
+function nowStr(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
+$('today').textContent=nowStr().slice(0,10);
+var OPERATOR='risk_lily';
+
+/* ================= 演示数据 ================= */
+var WT={1:'银行卡',4:'E-Wallet',6:'WavePay',8:'KBZPay',22:'RSN Wallet',23:'Easypaisa',24:'JazzCash',3:'USDT',11:'TRX',21:'ARPay',2:'UPI',20:'NewUPI',27:'FastUPI',5:'PIX'};
+var TABS=[{tab:1,name:'相同银行卡',types:[1]},{tab:2,name:'相同电子钱包',types:[4,6,8,22,23,24]},{tab:3,name:'相同加密货币',types:[3,11,21]},{tab:4,name:'相同UPI',types:[2,20,27]},{tab:5,name:'相同PIX',types:[5]},{tab:6,name:'连带会员',link:true}];
+var M={};
+[[2235024,'6695270099','ertert'],[100016,'6695270001','lels'],[10950,'arjun_p','Arjun Patel'],[10086,'rahul_k88','Rahul Kumar'],[10820,'karan_m','Karan Mehta'],
+ [10412,'amit2024','Amit Kumar'],[10231,'vikas_n01','Vikas Nair'],[10555,'priya_s','Priya Sharma'],[10718,'neha_r','Neha Rao'],[10901,'deepak99','Deepak Singh'],[11002,'rohan_x','Rohan Das']]
+ .forEach(function(x){M[x[0]]={uname:x[1],name:x[2]};});
+function E(t,act,uid,src,op){return{t:t,act:act,uid:uid,src:src,op:op};}
+/* 账号与绑定明细；bid = 当前这次拉黑的黑名单记录 */
+var ACC=[
+ {acc:'50100234567812',wt:1,bid:4,ev:[E('2024-11-03 10:20:15','绑定',10555,'系统触发','存量补录'),E('2026-08-02 13:50:12','解绑',10555,'后台','admin_kim'),E('2026-08-05 09:47:38','绑定',10820,'会员端','--'),E('2026-08-20 19:02:44','绑定',10718,'会员端','--'),E('2026-08-29 11:15:09','解绑',10718,'会员端','--')]},
+ {acc:'32109876543210',wt:1,bid:0,ev:[E('2026-07-15 10:02:17','绑定',10901,'会员端','--'),E('2026-07-20 16:45:09','解绑',10901,'客服工单','WO20260720031'),E('2026-07-21 08:30:56','绑定',11002,'会员端','--')]},
+ {acc:'vikas.n@okicici',wt:2,bid:1,ev:[E('2026-07-03 11:20:05','绑定',10086,'会员端','--'),E('2026-08-10 22:05:44','解绑',10086,'会员端','--'),E('2026-08-11 10:18:29','绑定',10231,'会员端','--'),E('2026-09-19 15:40:07','解绑',10231,'会员端','--'),E('2026-09-20 11:06:33','绑定',10412,'会员端','--')]},
+ {acc:'kumar.r@oksbi',wt:2,bid:2,ev:[E('2025-02-14 09:30:00','绑定',10086,'系统触发','存量补录'),E('2026-07-01 12:00:00','解绑',10086,'会员端','--'),E('2026-07-10 20:15:31','绑定',10950,'会员端','--')]},
+ {acc:'9988776655@ybl',wt:20,bid:3,ev:[E('2026-09-25 21:16:20','绑定',10820,'会员端','--')]},
+ {acc:'9876543210@paytm',wt:2,bid:5,ev:[E('2024-12-10 15:00:00','绑定',10901,'系统触发','存量补录')]},
+ {acc:'11260888888',wt:5,bid:6,ev:[E('2024-12-24 08:56:11','绑定',100016,'系统触发','存量补录'),E('2026-09-18 20:25:11','解绑',100016,'后台','org_figo'),E('2026-09-18 20:25:25','绑定',2235024,'后台','org_figo')]}
+];
+/* 黑名单记录：state 1=生效中 0=已解除 */
+var BL={1:{state:1},2:{state:1},3:{state:1},4:{state:0,rman:'risk_tom',rtime:'2026-10-02 16:40:12'},5:{state:0,rman:'risk_tom',rtime:'2026-09-01 11:05:42'},6:{state:1}};
+var blSeq=7;
+function R(uid,acc,bid,way,t,hman,htime){return{uid:uid,acc:acc,bid:bid,way:way,t:t,hman:hman||'',htime:htime||''};}
+var REC=[
+ R(2235024,'11260888888',6,'before','2026-10-07 14:02:36'),
+ R(100016,'11260888888',6,'before','2026-10-07 14:02:36'),
+ R(10950,'kumar.r@oksbi',2,'before','2026-09-28 18:03:01','risk_lily','2026-10-03 11:20:05'),
+ R(10086,'kumar.r@oksbi',2,'before','2026-09-28 18:03:01'),
+ R(10820,'9988776655@ybl',3,'after','2026-09-25 21:16:44'),
+ R(10412,'vikas.n@okicici',1,'after','2026-09-20 11:07:02'),
+ R(10086,'vikas.n@okicici',1,'before','2026-09-18 10:13:05'),
+ R(10231,'vikas.n@okicici',1,'before','2026-09-18 10:13:05'),
+ R(10718,'50100234567812',4,'before','2026-09-12 14:32:04','risk_lily','2026-09-20 10:00:00'),
+ R(10555,'50100234567812',4,'before','2026-09-12 14:32:04'),
+ R(10820,'50100234567812',4,'before','2026-09-12 14:32:04'),
+ R(10901,'9876543210@paytm',5,'before','2026-08-20 16:21:02')
+];
+/* 04 记录状态：已手动解除 > 账号已解除 > 生效中 */
+function st(r){return r.hman?'hand':(BL[r.bid].state===0?'acc':'on');}
+function restricted(uid){return REC.some(function(r){return r.uid===uid&&st(r)==='on';});}
+
+/* ================= 原 5 个页签（不改） ================= */
+function accObj(acc){for(var i=0;i<ACC.length;i++){if(ACC[i].acc===acc)return ACC[i];}return null;}
+function isBlack(a){return a.bid&&BL[a.bid].state===1;}
+function tabOf(wt){for(var i=0;i<5;i++){if(TABS[i].types.indexOf(wt)>=0)return TABS[i].tab;}return 0;}
+function holders(a){var h={};a.ev.slice().sort(function(x,y){return x.t<y.t?-1:1;}).forEach(function(e){if(e.act==='解绑')delete h[e.uid];else h[e.uid]=1;});return Object.keys(h).map(Number);}
+function binders(a){var u={};a.ev.forEach(function(e){if(e.act!=='解绑')u[e.uid]=1;});holders(a).forEach(function(x){u[x]=1;});return Object.keys(u).map(Number);}
+function rowOf(a){var b=a.ev.filter(function(e){return e.act==='绑定';});return{a:a,binds:b.length,last:b.map(function(e){return e.t;}).sort().pop()||'',holders:holders(a)};}
+var tab=1,open={};
+function accFilter(){
+  var t=TABS[tab-1],kw=norm($('sAcc').value),uid=parseInt($('sUid').value,10),wt=$('sType').value,min=+$('sMin').value,blk=$('sBlk').value;
+  return ACC.filter(function(a){
+    if(t.types.indexOf(a.wt)<0)return false;
+    if(kw&&a.acc.indexOf(kw)<0)return false;
+    if(uid&&!a.ev.some(function(e){return e.uid===uid;}))return false;
+    if(wt&&a.wt!==+wt)return false;
+    if(blk==='1'&&!isBlack(a))return false;
+    if(blk==='0'&&isBlack(a))return false;
+    return true;
+  }).map(rowOf).filter(function(r){return r.binds>=min;}).sort(function(x,y){return y.binds-x.binds||(x.last<y.last?1:-1);});
+}
+function renderAcc(){
+  var rows=accFilter(),uidHl=parseInt($('sUid').value,10)||0;
+  $('tbAcc').innerHTML=rows.length?rows.map(function(r){
+    var a=r.a,bk=isBlack(a),cur=r.holders.length?String(r.holders[r.holders.length-1]):'<span class="grey">无</span>';
+    if(r.holders.length>1)cur+='<span class="tag warn-tag">⚠ 跨通道并存 '+r.holders.length+' 人</span>';
+    var h='<tr><td><span class="acc accm" title="点击展开完整账号" data-full="'+esc(a.acc)+'">'+esc(mask(a.acc))+'</span></td><td>'+esc(WT[a.wt])+'</td>'+
+      '<td><a class="cnt-hit" data-det="'+esc(a.acc)+'"><span class="cnt">'+r.binds+'</span><span class="cnt-arrow">'+(open[a.acc]?'▲':'▼')+'</span></a></td>'+
+      '<td>'+(r.last||'--')+'</td><td>'+cur+'</td>'+
+      '<td>'+(bk?'<span class="tag t-blocked">已拉黑</span>':'<span class="tag t-normal">未拉黑</span>')+'</td>'+
+      '<td>'+(bk?'<button class="op" data-rel="'+esc(a.acc)+'">解除</button>':'<button class="op del" data-blk="'+esc(a.acc)+'">拉黑</button>')+'</td></tr>';
+    if(open[a.acc])h+=detailRow(a,uidHl);
+    return h;
+  }).join(''):'<tr class="empty"><td colspan="7">无数据</td></tr>';
+  pager(rows.length);
+}
+function detailRow(a,uidHl){
+  var ev=a.ev.slice().sort(function(x,y){return x.t<y.t?1:-1;}),users={};ev.forEach(function(e){users[e.uid]=1;});
+  return '<tr class="drow"><td colspan="7"><div class="dpanel"><div class="dhd"><div>绑定明细 · <span class="acc">'+esc(a.acc)+'</span>　历史绑定过 <b>'+Object.keys(users).length+'</b> 个会员　累计绑定 <b>'+ev.filter(function(e){return e.act==='绑定';}).length+'</b> 次　<span class="grey">（绑定 / 解绑 / 后台修改，按时间倒序）</span></div><span class="grey" style="cursor:pointer" title="刷新明细">↻</span></div>'+
+    '<div class="dtbl"><table><thead><tr><th style="width:185px">时间</th><th style="width:90px">动作</th><th style="width:100px">会员ID</th><th style="width:160px">会员账号</th><th>收款人姓名</th><th style="width:100px">操作来源</th><th>操作人 / 工单号</th></tr></thead><tbody>'+
+    ev.map(function(e){var cls=e.act==='绑定'?'t-bind':e.act==='解绑'?'t-unbind':'t-edit';var m=M[e.uid];return '<tr'+(uidHl&&e.uid===uidHl?' style="background:#fff8e6"':'')+'><td>'+e.t+'</td><td><span class="tag '+cls+'">'+e.act+'</span></td><td>'+e.uid+'</td><td>'+esc(m.uname)+'</td><td>'+esc(m.name)+'</td><td>'+e.src+'</td><td>'+esc(e.op)+'</td></tr>';}).join('')+
+    '</tbody></table><div class="dpg">共 '+ev.length+' 条　‹ 1 ›</div></div></div></td></tr>';
+}
+$('tbAcc').addEventListener('click',function(e){
+  var d=e.target.closest('[data-det]');if(d){var k=d.getAttribute('data-det');open[k]=!open[k];renderAcc();return;}
+  var t=e.target;
+  if(t.dataset.blk){blockDialog(t.dataset.blk);return;}
+  if(t.dataset.rel){releaseConfirm(t.dataset.rel);return;}
+});
+$('sQ').onclick=function(){renderAcc();};
+$('sR').onclick=function(){$('sAcc').value='';$('sUid').value='';$('sType').value='';$('sMin').value='2';$('sBlk').value='';renderAcc();};
+$('sE').onclick=function(){msg('原型：导出当前页签 '+accFilter().length+' 个账号（现有导出，不改）','info');};
+
+/* 拉黑 / 解除：弹窗照现有页面，只加一句提示；确认后模拟任务结果 */
+function blockDialog(acc){
+  openLayer('添加提现账号黑名单',780,400,
+    '<div class="lform"><div class="lfi"><label class="lfl">提现账号</label><div class="lfb"><input class="acc" value="'+esc(acc)+'" readonly></div></div>'+
+    '<div class="lfi"><label class="lfl">备注</label><div class="lfb"><textarea placeholder="选填，最多200字" maxlength="200"></textarea></div></div>'+
+    '<div class="lfi"><label class="lfl"></label><div class="lfb"><span class="nw hint">确认后，绑定过该账号的会员会在 1 分钟内被限制提现。</span></div></div></div>',
+    '确认拉黑',function(){var a=accObj(acc),id=blSeq++,t=nowStr();BL[id]={state:1};a.bid=id;
+      var us=binders(a);us.forEach(function(u){REC.push(R(u,acc,id,'before',t));});
+      renderAll();msg('操作成功',null,'原型：模拟 1 分钟内的任务结果——'+us.length+' 个会员生成连带记录、被限制提现，见「连带会员」页签');});
+}
+function releaseConfirm(acc){
+  openLayer('解除账号拉黑',480,0,'<div class="cf"><span class="ico">?</span>提现账号：<b class="acc">'+esc(acc)+'</b><br>解除后该账号<b>可正常提现</b>，绑定该账号的会员恢复出款。<br><span class="nw hint">解除后，被该账号连带限制的会员同时恢复提现（还被其他拉黑账号连带的除外）。</span></div>',
+    '确认解除',function(){var a=accObj(acc);var mine=REC.filter(function(r){return r.bid===a.bid&&st(r)==='on';});
+      BL[a.bid]={state:0,rman:OPERATOR,rtime:nowStr()};
+      var ok=0,still=0;mine.forEach(function(r){restricted(r.uid)?still++:ok++;});
+      renderAll();msg('操作成功',null,mine.length?'连带记录立即变为「账号已解除」：'+ok+' 个会员恢复提现，'+still+' 个会员还被其他拉黑账号连带':'');});
+}
+
+/* ================= 连带会员页签（新增） ================= */
+var WAY={before:'拉黑前绑过',after:'<span class="t-after">拉黑后绑定</span>'};
+var STL={on:'<span class="tag t-on">生效中</span>',acc:'<span class="tag t-off">账号已解除</span>',hand:'<span class="tag t-hand">已手动解除</span>'};
+function relCell(r){
+  var s=st(r);
+  if(s==='hand')return '<span class="cell2">'+esc(r.hman)+'<br>'+r.htime+'</span>';
+  if(s==='acc')return '<span class="cell2">'+esc(BL[r.bid].rman)+'<br>'+BL[r.bid].rtime+'</span>';
+  return '--';
+}
+function linkFilter(){
+  var uid=parseInt($('lUid').value,10),kw=norm($('lAcc').value),s=$('lSt').value,b=$('lBegin').value.trim(),e=$('lEnd').value.trim();
+  if(e&&e.length<=10)e+=' 23:59:59';
+  return REC.filter(function(r){
+    if(uid&&r.uid!==uid)return false;
+    if(kw&&r.acc.indexOf(kw)<0)return false;
+    if(s&&st(r)!==s)return false;
+    if(b&&r.t<b)return false;
+    if(e&&r.t>e)return false;
+    return true;
+  }).sort(function(x,y){return x.t<y.t?1:x.t>y.t?-1:0;});
+}
+function renderLink(){
+  var rows=linkFilter();
+  $('tbLink').innerHTML=rows.length?rows.map(function(r){
+    var m=M[r.uid],ban=restricted(r.uid);
+    return '<tr><td>'+r.uid+'</td><td>'+esc(m.uname)+'</td>'+
+      '<td><span class="acc accm" title="点击展开完整账号" data-full="'+esc(r.acc)+'">'+esc(mask(r.acc))+'</span></td>'+
+      '<td>'+WAY[r.way]+'</td><td>'+r.t+'</td><td>'+STL[st(r)]+'</td><td>'+relCell(r)+'</td>'+
+      '<td>'+(ban?'<span class="m-ban">禁止提现</span>':'<span class="m-ok">可提现</span>')+'</td>'+
+      '<td class="stk"><button class="op" data-his="'+esc(r.acc)+'">绑定历史</button>'+(st(r)==='on'?'<button class="op del" data-free="'+r.uid+'">解除限制</button>':'')+'</td></tr>';
+  }).join(''):'<tr class="empty"><td colspan="9">无数据</td></tr>';
+  pager(rows.length);
+}
+$('tbLink').addEventListener('click',function(e){
+  var t=e.target;
+  if(t.dataset.his){gotoAcc(t.dataset.his);return;}
+  if(t.dataset.free){freeMember(+t.dataset.free);return;}
+});
+function freeMember(uid){
+  var on=REC.filter(function(r){return r.uid===uid&&st(r)==='on';});
+  openLayer('解除限制',480,0,'<div class="cf"><span class="ico">?</span>会员ID：<b>'+uid+'</b>（'+esc(M[uid].uname)+'）<br>当前被 <b>'+on.length+'</b> 个拉黑账号连带：'+on.map(function(r){return '<span class="acc">'+esc(mask(r.acc))+'</span>';}).join('、')+
+    '<br>解除后该会员可以正常提现；用拉黑账号本身提现仍会被拦。之后再有新的连带会重新限制。</div>',
+    '确认解除',function(){var t=nowStr();on.forEach(function(r){r.hman=OPERATOR;r.htime=t;});renderLink();msg('操作成功');});
+}
+$('lQ').onclick=function(){renderLink();};
+$('lR').onclick=function(){['lUid','lAcc','lBegin','lEnd'].forEach(function(i){$(i).value='';});$('lSt').value='';renderLink();};
+$('lE').onclick=function(){msg('原型：已导出 '+linkFilter().length+' 条连带记录，列与列表一致','info');};
+function gotoAcc(acc){
+  var a=accObj(acc);if(!a)return;
+  tab=tabOf(a.wt);renderTabs();
+  $('sAcc').value=acc;$('sUid').value='';$('sType').value='';$('sMin').value='1';$('sBlk').value='';
+  open={};open[acc]=true;showTab();
+}
+
+/* ================= 页签切换 / 通用 ================= */
+function renderTabs(){
+  $('tabs').innerHTML=TABS.map(function(t){return '<li class="'+(t.tab===tab?'on':'')+'" data-t="'+t.tab+'">'+(t.link?'<span class="nw">'+t.name+'</span>':t.name)+'</li>';}).join('');
+  if(tab<6){var types=TABS[tab-1].types;$('sType').innerHTML='<option value="">不限</option>'+types.map(function(w){return '<option value="'+w+'">'+WT[w]+'</option>';}).join('');$('sTypeBox').style.display=types.length>1?'':'none';}
+}
+function showTab(){
+  var link=tab===6;
+  $('sfAcc').style.display=link?'none':'';$('twAcc').style.display=link?'none':'';
+  $('sfLink').style.display=link?'':'none';$('twLink').style.display=link?'':'none';
+  if(link)renderLink();else renderAcc();
+}
+$('tabs').addEventListener('click',function(e){var li=e.target.closest('li');if(!li)return;tab=+li.dataset.t;renderTabs();showTab();});
+function renderAll(){if(tab===6)renderLink();else renderAcc();}
+function pager(total){
+  $('pg').innerHTML='<a class="dis">‹</a><span class="pg cur">1</span><a class="dis">›</a><span class="lpx">到第 <input value="1" style="width:40px;height:28px;border:1px solid #e2e2e2;text-align:center"> 页 <a style="margin-left:4px">确定</a></span><span class="lpx">共 '+total+' 条</span><select><option>10 条/页</option><option selected>20 条/页</option><option>50 条/页</option><option>100 条/页</option></select>';
+}
+function openLayer(title,w,h,html,okText,fn){
+  var mk=document.createElement('div');mk.className='lmask';
+  var ly=document.createElement('div');ly.className='layer';ly.style.width=w+'px';if(h)ly.style.height=h+'px';
+  ly.innerHTML='<div class="lh">'+title+'<span class="lx">✕</span></div><div class="lbd">'+html+'</div><div class="lf"><a class="b0">'+okText+'</a><a class="b1">取 消</a></div>';
+  document.body.appendChild(mk);document.body.appendChild(ly);
+  function close(){mk.remove();ly.remove();}
+  ly.querySelector('.lx').onclick=close;ly.querySelector('.b1').onclick=close;
+  ly.querySelector('.b0').onclick=function(){close();fn();};
+}
+var mt=null;
+function msg(t,icon,sim){var b=$('lmsg');$('lmsgT').innerHTML=t+(sim?'<span class="sim">'+sim+'</span>':'');var i=$('lmsgI');i.className='mi '+(icon||'ok');i.textContent=icon==='info'?'!':'✓';b.style.display='block';clearTimeout(mt);mt=setTimeout(function(){b.style.display='none';},sim?5000:(icon==='info'?3500:1800));}
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('.accm');if(!a)return;a.textContent=a.getAttribute('data-full');a.classList.remove('accm');a.removeAttribute('title');});
+var tip=$('tip');
+document.addEventListener('mouseover',function(e){
+  var t=e.target.closest&&e.target.closest('[data-tip]');if(!t){tip.style.display='none';return;}
+  tip.innerHTML=t.getAttribute('data-tip');tip.style.display='block';
+  var r=t.getBoundingClientRect();var top=r.top-tip.offsetHeight-8;if(top<4)top=r.bottom+8;
+  tip.style.top=top+'px';tip.style.left=Math.max(6,Math.min(r.left,window.innerWidth-tip.offsetWidth-10))+'px';
+});
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){var l=document.querySelector('.layer');if(l){l.previousSibling.remove();l.remove();}else closeDoc();}});
+
+renderTabs();showTab();
+})();
+</script>
+</body>
+</html>
