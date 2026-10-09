@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会员列表累计充值金额筛选与排序</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.sub h1{font-size:15px;color:#1e78d7;font-weight:500}
+.crumb{font-size:11.5px;color:#8a9bb0}.crumb .c0{color:#333}.crumb .sep{margin:0 7px;color:#b5bdc8}
+.wrap{padding:14px 44px 60px 6px}
+.card{background:#fff;border-radius:4px;padding:18px 14px 20px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+
+/* ===== 查询区（照 UserManage.cshtml） ===== */
+.searchbox{display:flex;flex-wrap:wrap;row-gap:12px;padding:0 0 4px}
+.fg{display:flex;align-items:center;width:16.66%;min-width:250px;padding-right:18px;position:relative}
+.fg label{flex:none;width:76px;text-align:right;padding-right:6px;font-size:13px;color:#333;white-space:nowrap}
+.fc{flex:1;max-width:178px;min-width:0;height:26px;border:1px solid #d9d9d9;border-radius:2px;padding:0 8px;font:inherit;font-size:11px;color:#444;background:#fff}
+.fc::placeholder{color:#888}
+.fc:focus{outline:none;border-color:#7460ee}
+textarea.fc{resize:vertical;padding-top:5px;line-height:1.3;min-height:26px}
+.lsel{position:relative;flex:1;max-width:178px}
+.lsel select{width:100%;max-width:none;appearance:none;-webkit-appearance:none;padding:0 24px 0 8px;font-size:12px;color:#333}
+.lsel::after{content:"";position:absolute;right:9px;top:11px;border:5px solid transparent;border-top-color:#c2c2c2;pointer-events:none}
+/* Task-630 两输入框区间组 */
+.fg.rg{width:auto;min-width:0;padding-right:26px}
+.fg.rg label{width:auto;min-width:76px}
+.rgp{display:inline-flex;align-items:center;white-space:nowrap}
+.rgp .fc{width:80px;flex:none;font-size:11.5px;padding:0 6px}
+.rgp .sep{margin:0 5px;color:#999}
+.fg.rg.bank label{width:auto}
+.fg.wide label{width:auto;min-width:76px}
+.fg.rg.bank .fc{width:140px}
+/* 问号帮助 */
+.rbq{display:inline-block;width:14px;height:14px;line-height:14px;text-align:center;font-size:8px;color:#fff;background:#bfbfbf;border-radius:50%;cursor:help;margin-left:4px;font-style:normal;vertical-align:middle}
+.rbq-bubble{position:fixed;z-index:100000;max-width:360px;background:#303133;color:#fff;font-size:13px;line-height:1.7;text-align:left;padding:10px 14px;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.3);pointer-events:none;display:none}
+
+/* 按钮条 */
+.bar{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-top:12px}
+.gbtn{display:flex;gap:8px 8px;flex-wrap:wrap;flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;gap:5px;height:27px;padding:0 10px;border:0;border-radius:3px;background:#7460ee;color:#fff;font:inherit;font-size:12px;font-weight:600;letter-spacing:1px;cursor:pointer;box-shadow:0 2px 4px rgba(116,96,238,.45);white-space:nowrap}
+.btn:hover{background:#6352d6}
+.btn.rb{background:#7752fd;letter-spacing:0}
+.bar2{display:flex;justify-content:flex-end;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 2px}
+.btn.ol{background:#fff;color:#7460ee;border:1px solid #7460ee;box-shadow:none}
+.navr{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tabb{height:30px;padding:0 12px;border:1px solid #808080;background:#fff;color:#333;font:inherit;font-size:12.5px;cursor:pointer;border-radius:2px}
+.tabb.on{background:#7460ee;border-color:#7460ee;color:#fff;box-shadow:0 2px 5px rgba(116,96,238,.45)}
+
+/* NEW 角标 */
+.nw::after{content:"NEW";position:absolute;top:-9px;right:8px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);pointer-events:none;z-index:3;letter-spacing:.3px}
+.fg.nw .fc{border-color:#ffa39e}
+th.nw{position:relative}
+th.nw::after{top:-7px;right:-4px}
+
+/* 原型提示条 */
+.hint{margin-top:14px;border:1px dashed #9b8cf0;border-radius:6px;background:#fbfaff;padding:8px 12px;font-size:12px;color:#5b3fd0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.hint .pt{display:inline-block;font-size:11px;color:#6C4FE0;background:#f1edff;border:1px solid #d9d0fb;border-radius:3px;padding:0 6px;font-weight:600}
+
+/* ===== 表格（真实页面 table-striped bordered，左对齐） ===== */
+.tbl{overflow-x:auto;margin-top:8px}
+table.dl{border-collapse:collapse;width:100%;font-size:12.5px}
+.dl th{background:#e9ebf1;color:#333;font-weight:600;height:36px;border:1px solid #dfe2e8;padding:0 8px;text-align:left;white-space:nowrap}
+.dl td{border:1px solid #e6e8ed;height:30px;padding:3px 8px;text-align:left;white-space:nowrap;color:#333;vertical-align:middle}
+.dl tbody tr:nth-child(odd)>td{background:#f8f9fb}
+.dl tbody tr:hover>td{background:#f1f2f6}
+.dl .empty td{height:80px;color:#999;text-align:center}
+.uid{color:#7752fd;cursor:pointer}
+.sw{display:inline-block;width:30px;height:16px;border-radius:9px;background:#26c281;position:relative;vertical-align:middle}
+.sw::after{content:"";position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;background:#fff}
+.sw.off{background:#ddd}.sw.off::after{right:auto;left:2px}
+.red{color:red}.grn{color:green}.dgrn{color:darkgreen}
+.lbtn{display:inline-block;height:22px;line-height:22px;padding:0 7px;border-radius:2px;color:#fff;font-size:11px;margin-right:3px;cursor:pointer;background:#1e9fff}
+.lbtn.w{background:#ff5722}.lbtn.n{background:#1e9fff}.lbtn.g{background:#5fb878}.lbtn.d{background:#393d49}
+.dl th.th-sortable{cursor:pointer;user-select:none;background:#f4f1fe}
+.dl th.th-sortable:hover{background:#e9e3fc}
+.dl th.th-sortable[data-dir]{background:#e3dafb;color:#7752fd}
+.th-sort-lbl{display:inline-flex;align-items:center;gap:6px}
+.th-sorter{display:inline-flex;flex-direction:column;gap:3px;flex:0 0 auto}
+.th-sorter i{display:block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent}
+.th-sorter i.up{border-bottom:6px solid #a9afc0}
+.th-sorter i.down{border-top:6px solid #a9afc0}
+th.th-sortable:hover .th-sorter i.up{border-bottom-color:#8b7fd4}
+th.th-sortable:hover .th-sorter i.down{border-top-color:#8b7fd4}
+th.th-sortable[data-dir="asc"] .th-sorter i.up{border-bottom-color:#7752fd}
+th.th-sortable[data-dir="asc"] .th-sorter i.down{border-top-color:#c3bce6}
+th.th-sortable[data-dir="desc"] .th-sorter i.down{border-top-color:#7752fd}
+th.th-sortable[data-dir="desc"] .th-sorter i.up{border-bottom-color:#c3bce6}
+
+/* 分页（GetPostPager） */
+.pager{display:flex;align-items:center;flex-wrap:wrap;gap:14px 0;padding:26px 0 0 30px;font-size:12.5px;color:#333}
+.pager .pl{display:flex;align-items:center;gap:6px;margin-right:200px}
+.pager .pl input{width:85px;height:26px;border:1px solid #d9d9d9;border-radius:2px;padding:0 6px;font:inherit}
+.pager .pl select{height:26px;border:1px solid #d9d9d9;border-radius:2px;font-size:11px;color:#666;padding:0 4px}
+.pager .pl button{height:26px;padding:0 10px;border:1px solid #c9c9c9;background:#fff;border-radius:2px;cursor:pointer;font:inherit;font-size:12px}
+.pager .pc{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pager .pc a{display:inline-block;height:28px;line-height:26px;padding:0 9px;border:1px solid #c9c9c9;background:#f5f5f5;border-radius:2px;cursor:pointer;color:#444;user-select:none}
+.pager .pc a.cur{background:#7460ee;border-color:#7460ee;color:#fff;cursor:default}
+.pager .pc a.dis{color:#aaa;cursor:not-allowed}
+.pager .pc .tt{margin-left:8px}
+
+/* jquery toast */
+.toast{position:fixed;top:16px;right:20px;width:320px;color:#fff;border-radius:4px;padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:300;font-size:12.5px;display:none}
+.toast.suc{background:#2bbf6a}.toast.warn{background:#f0a020}
+.toast b{display:block;font-size:13.5px;margin-bottom:2px}
+
+/* 原型演示：导出文件内容 */
+.mmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:150;display:none}
+.demo{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:1100px;max-width:94vw;max-height:88vh;background:#fff;border:2px dashed #9b8cf0;border-radius:8px;z-index:151;display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+.demo .dh{padding:11px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;gap:10px;flex:none}
+.demo .dh b{font-size:14px}
+.demo .dh .pt{display:inline-block;font-size:11px;color:#6C4FE0;background:#f1edff;border:1px solid #d9d0fb;border-radius:3px;padding:0 6px;margin-right:8px;font-weight:600}
+.demo .dh .x{cursor:pointer;color:#999;font-size:20px;line-height:1}
+.demo .db{padding:12px 16px 16px;overflow:auto;min-height:0}
+.demo .cond{font-size:12px;color:#555;line-height:2;margin-bottom:8px}
+.demo .cond span{display:inline-block;background:#f5f6f8;border:1px solid #e6e8eb;border-radius:3px;padding:0 7px;margin:0 6px 4px 0;line-height:20px}
+.demo .cond span.hl{background:#fff1f0;border-color:#ffccc7;color:#cf1322;font-weight:600}
+.demo table{border-collapse:collapse;width:100%;font-size:12px}
+.demo th{background:#fafafa;border:1px solid #e6e6e6;padding:6px 8px;white-space:nowrap;font-weight:600;text-align:left}
+.demo td{border:1px solid #eee;padding:6px 8px;white-space:nowrap;vertical-align:top}
+
+/* ===== 抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (max-width:700px){.wrap{padding:12px 16px 50px}.fg{width:100%;min-width:0}.fg.rg{width:100%}.fc,.lsel{max-width:none}.pager{padding-left:0}.pager .pl{margin-right:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
+  <div style="display:flex;gap:16px;align-items:center"><span id="today"></span><span>当前币种：<b style="color:#c0392b">INR</b></span></div>
+</div>
+<div class="sub">
+  <h1>会员列表</h1>
+  <div class="crumb"><span class="c0">会员管理</span><span class="sep">›</span>会员管理<span class="sep">›</span>会员列表</div>
+</div>
+
+<div class="wrap">
+ <div class="card">
+  <div class="searchbox" id="sb">
+   <div class="fg"><label for="UserID">会员ID</label><textarea class="fc" id="UserID" rows="1" placeholder="会员ID" autocomplete="off"></textarea></div>
+   <div class="fg"><label for="RelativeID">代理ID</label><input class="fc" id="RelativeID" type="number" placeholder="代理ID" autocomplete="off"></div>
+   <div class="fg"><label for="UserName">会员账号</label><input class="fc" id="UserName" placeholder="会员账号" autocomplete="off"></div>
+   <div class="fg"><label for="LoginIp">注册IP</label><input class="fc" id="LoginIp" placeholder="注册IP" autocomplete="off"></div>
+   <div class="fg"><label for="Remark">备注</label><input class="fc" id="Remark" placeholder="备注" autocomplete="off"></div>
+   <div class="fg"><label for="ChannelID">渠道</label><span class="lsel"><select class="fc" id="ChannelID"><option value="">全部</option><option value="1001">test01</option><option value="1002">fb_in_02</option><option value="1003">tg_pk_01</option></select></span></div>
+
+   <div class="fg"><label for="PhoneType">注册设备</label><span class="lsel"><select class="fc" id="PhoneType"><option value="">请选择</option><option value="1">Android</option><option value="2">IOS</option><option value="0">PC</option></select></span></div>
+   <div class="fg"><label for="UserState">用户状态</label><span class="lsel"><select class="fc" id="UserState"><option value="">请选择</option><option value="1">正常</option><option value="0">禁用</option></select></span></div>
+   <div class="fg"><label for="AgentType">代理状态</label><span class="lsel"><select class="fc" id="AgentType"><option value="">请选择</option><option value="0">未开通</option><option value="1">外部代理</option><option value="2">内部代理</option></select></span></div>
+   <div class="fg"><label for="InviterCode">邀请码</label><input class="fc" id="InviterCode" placeholder="邀请码" autocomplete="off"></div>
+   <div class="fg"><label for="Vip_Level">VIP等级</label><span class="lsel"><select class="fc" id="Vip_Level"><option value="">请选择</option><option value="0">L0</option><option value="1">L1</option><option value="2">L2</option><option value="3">L3</option><option value="4">L4</option><option value="5">L5</option><option value="6">L6</option><option value="7">L7</option><option value="8">L8</option><option value="9">L9</option><option value="10">L10</option></select></span></div>
+   <div class="fg"><label for="StartTime">注册时间</label><input class="fc" id="StartTime" placeholder="注册时间" autocomplete="off"></div>
+
+   <div class="fg"><label for="EndTime">结束时间</label><input class="fc" id="EndTime" placeholder="注册时间" autocomplete="off"></div>
+   <div class="fg"><label for="ActivityStartTime">在线时间</label><input class="fc" id="ActivityStartTime" placeholder="最后在线时间" autocomplete="off"></div>
+   <div class="fg"><label for="ActivityEndTime">结束时间</label><input class="fc" id="ActivityEndTime" placeholder="最后在线时间" autocomplete="off"></div>
+   <div class="fg"><label for="UserGroupId">会员分组</label><span class="lsel"><select class="fc" id="UserGroupId"><option value="">请选择</option><option value="1">默认分组</option><option value="2">VIP客户</option><option value="3">风控观察</option><option value="4">禁止提现</option></select></span></div>
+   <div class="fg"><label for="RegisterDevice">注册指纹</label><input class="fc" id="RegisterDevice" placeholder="注册浏览器指纹" autocomplete="off"></div>
+   <div class="fg"><label for="BlockStates">黑名单状态</label><span class="lsel"><select class="fc" id="BlockStates"><option value="">全部</option><option value="0" selected>正常</option><option value="1">黑名单</option></select></span></div>
+
+   <div class="fg wide"><label for="ActiveBlockState">活动黑名单状态</label><span class="lsel"><select class="fc" id="ActiveBlockState"><option value="">全部</option><option value="0">正常</option><option value="1">黑名单</option></select></span></div>
+
+   <div class="fg rg"><label>充值次数<i class="rbq" data-tip="累计成功充值的笔数（只算充值到账的订单，不含赠送 / 红包）。怎么查：填一格 = 精确（填  查从未充值）；两格 = 区间（1~3 查充值 1 到 3 次）。">?</i></label>
+     <span class="rgp"><input class="fc" id="RechargeTimesMin" type="number" min="0" placeholder="最小" autocomplete="off" oninput="value=value.replace(/[^\d]/g,'')"><span class="sep">~</span><input class="fc" id="RechargeTimesMax" type="number" min="0" placeholder="最大" autocomplete="off" oninput="value=value.replace(/[^\d]/g,'')"></span></div>
+   <div class="fg rg"><label>未登录天数<i class="rbq" data-tip="距今多少天没上线 = 今天 − 最后在线日期（今天来过 = 0 天）。怎么查：30 查正好 30 天）；两格 = 区间（30~90 查 30 到 90 天；想查“30 天以上“把右格填大些，如 30~9999）">?</i></label>
+     <span class="rgp"><input class="fc" id="NoLoginDaysMin" type="number" min="0" placeholder="最小" autocomplete="off" oninput="value=value.replace(/[^\d]/g,'')"><span class="sep">~</span><input class="fc" id="NoLoginDaysMax" type="number" min="0" placeholder="最大" autocomplete="off" oninput="value=value.replace(/[^\d]/g,'')"></span></div>
+   <div class="fg rg"><label>流水倍数<i class="rbq" data-tip="有效投注 ÷ 总充值，看会员投注活跃度（倍数越高投得越多）；没充值不算、显示”—“。怎么查：填一格 = 精确（ 查正好 3 倍）；两格 = 区间（0~1 查 1 倍以下、疑似薅羊毛）。">?</i></label>
+     <span class="rgp"><input class="fc" id="TurnoverRateMin" type="number" min="0" step="0.1" placeholder="最小" autocomplete="off"><span class="sep">~</span><input class="fc" id="TurnoverRateMax" type="number" min="0" step="0.1" placeholder="最大" autocomplete="off"></span></div>
+   <div class="fg rg"><label>总盈亏<i class="rbq" data-tip="会员累计输赢（会员视角）：正数 = 会员赢、负数 = 会员输。怎么查：填一格 = 精确；两格 = 区间。找亏损填负数（-2000~-500 查亏 500 到 2000）；找大赢家填正数（如 1000~99999)。">?</i></label>
+     <span class="rgp"><input class="fc" id="ProfitAmount" type="number" step="0.01" placeholder="最小" autocomplete="off"><span class="sep">~</span><input class="fc" id="ProfitAmountMax" type="number" step="0.01" placeholder="最大" autocomplete="off"></span></div>
+
+   <div class="fg rg nw"><label>累计充值金额<i class="rbq" data-tip="累计成功充值的金额，与列表「充值金额」列同一个数（只算充值到账的本金，不含赠送 / 红包；没充值过的按 0）。怎么查：只填最小 = 大于等于；只填最大 = 小于等于；两格都填 = 区间（如 0~100 查充值不到 100 的会员，10000~999999 查大额会员）。">?</i></label>
+     <span class="rgp"><input class="fc" id="RechargeAmountMin" type="number" min="0" step="0.01" placeholder="最小" autocomplete="off"><span class="sep">~</span><input class="fc" id="RechargeAmountMax" type="number" min="0" step="0.01" placeholder="最大" autocomplete="off"></span></div>
+
+   <div class="fg rg bank"><label for="BankBind">银行卡绑定手机号<i class="rbq" data-tip="输入手机号，精确查询绑定该手机号的提现银行卡对应会员">?</i></label><span class="rgp"><input class="fc" id="BankBind" placeholder="银行卡绑定手机号" autocomplete="off"></span></div>
+  </div>
+
+  <div class="bar">
+   <div class="gbtn">
+    <button class="btn" id="btnSearch" type="button">🔍 查 询</button>
+    <button class="btn" id="btnReset" type="button">↻ 重 置</button>
+    <button class="btn" type="button">👤 批量拉黑</button>
+    <button class="btn" type="button">🔑 批量拉白</button>
+    <button class="btn" type="button">👤 批量禁用</button>
+    <button class="btn" type="button">🔑 批量启用</button>
+    <button class="btn" type="button">👤 批量转内部代理</button>
+    <button class="btn" type="button">🔑 批量转外部代理</button>
+    <button class="btn" type="button">👤 批量分组</button>
+    <button class="btn" id="btnExport" type="button">📄 导 出</button>
+    <button class="btn" type="button">📄 导入批量操作</button>
+    <button class="btn" type="button">＋ 批量添加用户</button>
+    <button class="btn" type="button">👤 批量隐藏</button>
+    <button class="btn" type="button">👤 批量转移渠道</button>
+    <button class="btn" type="button">👤 批量删除用户备注</button>
+    <button class="btn" type="button">👤 批量重置Google验证码</button>
+    <button class="btn rb" type="button">💰 批量操作是否给上级返佣 ▾</button>
+   </div>
+  </div>
+  <div class="bar2">
+   <button class="btn ol" type="button" title="原型未模拟自定义列">⚙ 自定义列 <span id="colCount"></span></button>
+   <div class="navr" id="qt">
+    <button class="tabb" data-r="today" type="button">今天</button>
+    <button class="tabb" data-r="yday" type="button">昨天</button>
+    <button class="tabb" data-r="week" type="button">本周</button>
+    <button class="tabb" data-r="lweek" type="button">上周</button>
+    <button class="tabb" data-r="month" type="button">本月</button>
+    <button class="tabb" data-r="lmonth" type="button">上月</button>
+    <button class="tabb on" data-r="all" type="button">所有</button>
+   </div>
+  </div>
+
+  <div class="hint"><span class="pt">原型演示</span>表格往右滚到「充值金额」列：列头带排序箭头（降序 → 升序 → 取消），与保险箱余额 / 余额 / 打码量同一套；筛选区「累计充值金额」两格试试 0~100、10000~999999、只填最小、最小&gt;最大。</div>
+
+  <div class="tbl">
+   <table class="dl" id="datalist">
+    <thead><tr>
+     <th><input type="checkbox" id="ckall"></th>
+     <th>会员ID</th>
+     <th>昵称</th>
+     <th class="th-sortable" data-sort="SafeAmount" title="点击排序：降序 → 升序 → 取消"><span class="th-sort-lbl">保险箱余额<span class="th-sorter"><i class="up"></i><i class="down"></i></span></span></th>
+     <th>会员账号</th>
+     <th>银行卡绑定手机号<i class="rbq" data-tip="会员绑定提现银行卡时预留的手机号；绑定多张卡时默认显示主卡，点▾可展开全部；未绑定银行卡显示「未绑定」">?</i></th>
+     <th class="th-sortable" data-sort="Amount" title="点击排序：降序 → 升序 → 取消"><span class="th-sort-lbl">余额<span class="th-sorter"><i class="up"></i><i class="down"></i></span></span></th>
+     <th>三方余额</th>
+     <th>积分</th>
+     <th>红包/券 剩余额度</th>
+     <th>邀请码</th>
+     <th>渠道号</th>
+     <th>注册IP</th>
+     <th>注册设备</th>
+     <th class="th-sortable" data-sort="AmountofCode" title="点击排序：降序 → 升序 → 取消"><span class="th-sort-lbl">打码量<span class="th-sorter"><i class="up"></i><i class="down"></i></span></span></th>
+     <th>分组</th>
+     <th>类型</th>
+     <th>黑名单</th>
+     <th>状态</th>
+     <th>在线状态</th>
+     <th>最后在线</th>
+     <th>未登录天数<i class="rbq" data-tip="会员距最后一次 在线/活跃 已过去的天数（今天在线过=0；从未在线显示“未登录”）">?</i></th>
+     <th>上级代理id</th>
+     <th>代理</th>
+     <th>是否可领取返佣<i class="rbq" data-tip="控制该会员能否收到下级带来的返佣。关闭后，该会员作为上级时将收不到下级带来的佣金。">?</i></th>
+     <th>是否给上级返佣<i class="rbq" data-tip="关闭后，该会员的投注流水与充值均不再给任何上级(6级)返佣，且不计入任何上级的返佣等级计算。不影响代理线结构、不影响该会员自身获得的返佣。">?</i></th>
+     <th>前台谷歌</th>
+     <th>后台谷歌</th>
+     <th>首次登录时间</th>
+     <th>注册时间</th>
+     <th>VIP等级</th>
+     <th>充值次数</th>
+     <th class="th-sortable nw" data-sort="RechargeAmount" title="点击排序：降序 → 升序 → 取消"><span class="th-sort-lbl">充值金额<span class="th-sorter"><i class="up"></i><i class="down"></i></span></span></th>
+     <th>首充时间</th>
+     <th>最后充值时间</th>
+     <th>总流水<i class="rbq" data-tip="会员累计有效投注金额（不含撤单、无效局等），数据统计到昨天为止">?</i></th>
+     <th>总盈亏<i class="rbq" data-tip="会员累计输赢，按有效投注计算：正数为盈利、负数为亏损，数据统计到昨天为止">?</i></th>
+     <th>流水倍数<i class="rbq" data-tip="有效投注 ÷ 总充值；没有充值时显示 —">?</i></th>
+     <th>操作</th>
+     <th>备注</th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+   </table>
+  </div>
+  <div class="pager" id="pager"></div>
+ </div>
+</div>
+
+<div class="rbq-bubble" id="bubble"></div>
+<div class="toast warn" id="twarn"><b id="twt">搜索条件</b><span id="twb"></span></div>
+<div class="toast suc" id="tsuc"><b>导出数据</b>报表将在1-10秒钟导出成功请等待！</div>
+
+<div class="mmask" id="mmask"></div>
+<div class="demo" id="demo">
+ <div class="dh"><div><span class="pt">原型演示</span><b>导出文件内容</b> <span style="color:#999;font-size:12px" id="fname"></span></div><span class="x" id="demox">✕</span></div>
+ <div class="db">
+  <div class="cond" id="dcond"></div>
+  <table><thead><tr><th>会员ID</th><th>会员账号</th><th>余额</th><th>保险箱余额</th><th>打码量</th><th>注册时间</th><th>VIP等级</th><th>充值次数</th><th>充值金额</th><th>首充时间</th><th>最后充值时间</th><th>总流水</th><th>总盈亏</th><th>流水倍数</th></tr></thead><tbody id="dtb"></tbody></table>
+ </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>会员列表 · 累计充值金额筛选与排序 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:220px">页面</th><th>改动点</th></tr>
+      <tr><td>会员管理 → <b>会员列表</b></td><td>新增筛选「累计充值金额」（最小 ~ 最大）；「充值金额」列头加排序箭头；导出带上新筛选和排序</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">「累计充值金额」筛选的数就是列表「充值金额」列的数：成功到账的充值本金，不含赠送、红包</div>
+      <div class="kf">只填最小 = 大于等于，只填最大 = 小于等于，两格都填 = 区间；与充值次数 / 未登录天数 / 流水倍数 / 总盈亏四组同一套</div>
+      <div class="kf">「充值金额」列头可排序：降序 → 升序 → 取消，同一时间只有一列生效，与保险箱余额 / 余额 / 打码量同一套</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>筛选口径</b><span class="kb">核心</span>：按列表「充值金额」列的数筛，没充值过的会员按 0 算。只填最小 = 大于等于最小；只填最大 = 小于等于最大；两格都填 = 最小到最大（含两端）。最小大于最大不查询，提示方式同现有四组。
+      <table class="t">
+        <tr><th style="width:140px">填法</th><th>查出来的会员</th></tr>
+        <tr><td>0 ~ 100</td><td>充值金额不到 100 的，含从未充值</td></tr>
+        <tr><td>10000 ~ （不填）</td><td>充值金额 10000 及以上</td></tr>
+        <tr><td>（不填） ~ 0</td><td>从未充值</td></tr>
+      </table>
+    </div>
+
+    <div class="br key"><span class="bn">02</span><b>排序</b><span class="kb">核心</span>：点「充值金额」列头循环 降序 → 升序 → 取消；同一时间只有一列生效，点别的可排序列直接切换；取消后回默认的注册时间倒序。同值按会员ID从大到小；没充值过的按 0 参与排序。</div>
+
+    <div class="br key"><span class="bn">03</span><b>导出</b><span class="kb">核心</span>：带上累计充值金额条件，与其他筛选一起生效；选了「充值金额」排序时，导出行序与列表一致。</div>
+
+    <div class="br"><span class="bn">04</span><b>输入</b>：只允许 0 和正数，最多两位小数。</div>
+
+    <div class="br"><span class="bn">05</span><b>重置</b>：点「重置」清空两格，排序一并取消。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>口径</td><td>只算成功到账的充值本金；平台赠送、红包不算</td></tr>
+      <tr><td>范围</td><td>只做老后台会员列表；代理后台不涉及</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>列表查询、导出两处都要加新条件；导出是单独收集筛选值的，别漏；排序值也一起带过去。</li>
+      <li>没有充值记录的会员这个金额是空的，筛选和排序都按 0 处理：填 0 ~ 100 要能查到从未充值的会员，升序时他们排最前。</li>
+      <li>可排序列的白名单里加上「充值金额」；导出按列头排序时的本地排序也要支持这一列。</li>
+      <li>现有四组问号提示里写的「填一格 = 精确」与实际不符，一起改成「只填最小 = 大于等于，只填最大 = 小于等于，两格都填 = 区间」。</li>
+      <li>新筛选查得慢的话，在存会员累计充值金额的表上加索引。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function esc(s){return s===null||s===undefined?'':String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function pad(n){return n<10?'0'+n:''+n;}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function n2(v){return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function p2(v){return (Math.round(v*100)/100).toFixed(2);}
+var NOW=new Date(),TODAY=fmt(NOW);
+$('today').textContent=TODAY;
+function dayAgo(n,hm){var d=new Date(NOW);d.setDate(d.getDate()-n);return fmt(d)+' '+(hm||'10:00:00');}
+
+/* ================= 演示数据 =================
+ id,昵称,保险箱,账号,银行卡手机(数组),余额,三方余额,积分,红包,邀请码,渠道号,注册IP,设备(1安卓2苹果0PC),打码量,分组,黑名单(0/1),状态(1正常0禁用),
+ 最后在线(距今天数,-1=从未),上级ID,代理(0未开通1外部2内部),可领返佣,给上级返佣,前台谷歌(0未绑1已绑),注册(距今天数),VIP,充值次数,充值金额(null=无记录),首充(距今天数),最后充值(距今天数),总流水,总盈亏,备注 */
+var RAW=[
+ [74,'',0,'917701234',[],0,0,0,0,'CE5AJZ','1001','103.21.58.20',1,0,'默认分组',0,1,0,0,0,1,1,0,1,0,13,1400,8,7,2010,-610,''],
+ [73,'',0,'917701235',[],0,0,0,0,'K2M8QA','1001','103.21.58.21',1,0,'默认分组',0,1,2,0,0,1,1,0,2,0,0,0,null,null,0,0,''],
+ [72,'',0,'917701236',[],0,0,0,0,'ZQ9D1L','1002','49.36.112.7',2,0,'默认分组',0,1,-1,0,0,1,1,0,2,0,0,0,null,null,0,0,''],
+ [71,'Raj',500,'919812345',['919812345'],850.5,120,300,50,'HG7XP2','1001','49.36.98.41',1,12600,'VIP客户',0,1,0,0,1,1,1,1,2,4,13,1600,9,2,4292.4,-87.6,'大客户'],
+ [70,'',0,'918800123',[],0,0,0,0,'P0QW3R','1003','27.115.62.9',1,0,'默认分组',0,1,3,74,0,1,1,0,2,0,1,200,10,10,588,-12,''],
+ [69,'Priya',1200,'917000888',['917000888','917000889'],4800,0,1580,0,'BM4NT6','1002','8.211.42.128',2,98000,'VIP客户',0,1,0,0,0,1,1,1,3,5,40,40500,10,1,4900,4800,'已核实身份'],
+ [68,'',0,'917701240',[],0,0,0,0,'LQ2S8E','1001','103.21.58.30',1,0,'默认分组',0,1,5,71,0,1,1,0,3,0,1,100,10,10,0,0,''],
+ [67,'',0,'917701241',[],0,0,0,0,'TR5VX1','1001','103.21.58.31',0,0,'默认分组',0,1,9,0,0,1,1,0,3,0,0,0,null,null,0,0,''],
+ [66,'',0,'917701242',[],0,0,0,0,'WN8ZC4','1003','47.236.10.25',1,0,'风控观察',1,1,12,0,0,1,0,0,3,0,0,0,null,null,0,0,'多账号'],
+ [65,'Amit',0,'919900555',['919900555'],15.2,0,200,0,'QD7HK9','1002','49.36.111.3',1,2600,'默认分组',0,1,1,69,0,1,1,0,15,2,6,2500,14,3,2650,-1210,''],
+ [64,'',300,'918811222',[],0,0,0,0,'XK3LP5','1001','103.21.58.40',2,600,'默认分组',0,1,0,0,0,1,1,0,15,1,3,760.5,15,4,765,-800,''],
+ [63,'Vikas',0,'917712345',['917712345'],2300,0,900,100,'JF6UD2','1001','103.21.58.41',1,40000,'VIP客户',0,1,0,0,2,1,1,1,21,6,25,12000,21,1,30200,-9100,'内部代理'],
+ [62,'',0,'918822333',[],0,0,0,0,'UV9EA7','1002','49.36.120.8',1,0,'默认分组',0,0,20,0,0,1,1,0,24,0,2,300,24,22,300,-300,'禁用'],
+ [61,'Sunil',0,'917733444',[],60,0,120,0,'GB1RM3','1003','27.115.60.1',1,1200,'默认分组',0,1,2,63,0,1,1,0,29,3,4,5000,29,5,4800,-1900,''],
+ [60,'',0,'917744555',[],0,0,0,0,'OP4TN8','1001','103.21.58.50',1,0,'默认分组',0,1,30,0,0,1,1,0,45,0,1,99.99,45,45,80,-80,''],
+ [59,'老会员',0,'917755666',['917755666'],30,0,50,0,'EA2KQ0','1001','103.21.58.51',0,500,'默认分组',0,1,60,0,0,1,1,0,400,0,0,null,null,null,0,0,'老库未建等级行']
+];
+var LIST=RAW.map(function(r){
+  var o={id:r[0],nick:r[1],safe:r[2],acc:r[3],bank:r[4],amount:r[5],third:r[6],integral:r[7],red:r[8],inviter:r[9],channel:r[10],ip:r[11],dev:r[12],code:r[13],group:r[14],block:r[15],state:r[16],
+    onlineAgo:r[17],parent:r[18],agent:r[19],rebateBet:r[20],rebateAll:r[21],google:r[22],regAgo:r[23],vip:r[24],rtimes:r[25],ramt:r[26],firstAgo:r[27],lastAgo:r[28],bet:r[29],profit:r[30],remark:r[31]};
+  o.uid=2250000+o.id;
+  o.addTime=dayAgo(o.regAgo,pad(8+o.id%10)+':'+pad(o.id*7%60)+':'+pad(o.id*13%60));
+  o.firstLogin=o.addTime.substring(0,10);
+  o.lastOnline=o.onlineAgo<0?'':dayAgo(o.onlineAgo,pad(9+o.id%9)+':'+pad(o.id*11%60)+':'+pad(o.id*3%60));
+  o.firstRecharge=o.firstAgo===null?'':dayAgo(o.firstAgo).substring(0,10);
+  o.lastRecharge=o.lastAgo===null?'':dayAgo(o.lastAgo).substring(0,10);
+  o.ramtNum=o.ramt===null?0:o.ramt;              /* 无记录按 0 参与筛选、排序 */
+  o.rate=o.ramtNum>0?Math.floor(o.bet/o.ramtNum*10)/10:null;
+  return o;
+});
+
+/* ================= 查询条件 ================= */
+var TEXT=['UserID','RelativeID','UserName','LoginIp','Remark','ChannelID','PhoneType','UserState','AgentType','InviterCode','Vip_Level','StartTime','EndTime','ActivityStartTime','ActivityEndTime','UserGroupId','RegisterDevice','BlockStates','ActiveBlockState','BankBind'];
+var RANGE=[
+ {name:'充值总次数',min:'RechargeTimesMin',max:'RechargeTimesMax'},
+ {name:'未登录天数',min:'NoLoginDaysMin',max:'NoLoginDaysMax'},
+ {name:'流水倍数',min:'TurnoverRateMin',max:'TurnoverRateMax'},
+ {name:'总盈亏',min:'ProfitAmount',max:'ProfitAmountMax'},
+ {name:'累计充值金额',min:'RechargeAmountMin',max:'RechargeAmountMax'}
+];
+var ALL=TEXT.slice();RANGE.forEach(function(g){ALL.push(g.min,g.max);});
+function cond(){var c={};ALL.forEach(function(f){c[f]=$(f).value.trim();});return c;}
+function num(v){return v===''?null:parseFloat(v);}
+
+/* Task-630：最小 > 最大 拦截（照 validateRangeInputs） */
+var toastT=null;
+function toastwarn(t,b){var el=$('twarn');$('twt').textContent=t;$('twb').textContent=b;el.style.display='block';clearTimeout(toastT);toastT=setTimeout(function(){el.style.display='none';},3200);}
+function validateRangeInputs(){
+  for(var i=0;i<RANGE.length;i++){
+    var g=RANGE[i],a=$(g.min).value.trim(),b=$(g.max).value.trim();
+    if(a===''&&b==='')continue;
+    if(parseFloat(a)>parseFloat(b)){toastwarn('搜索条件',g.name+'的区间：最小值不能大于最大值！');return false;}
+  }
+  return true;
+}
+
+function filter(c){
+  var ids=null;
+  if(c.UserID){ids=c.UserID.split(/\s+/).filter(function(s){return /^\d+$/.test(s);}).map(Number);}
+  var tMin=num(c.RechargeTimesMin),tMax=num(c.RechargeTimesMax);
+  var dMin=num(c.NoLoginDaysMin),dMax=num(c.NoLoginDaysMax);
+  var rMin=num(c.TurnoverRateMin),rMax=num(c.TurnoverRateMax);
+  var pMin=num(c.ProfitAmount),pMax=num(c.ProfitAmountMax);
+  var aMin=num(c.RechargeAmountMin),aMax=num(c.RechargeAmountMax);
+  return LIST.filter(function(o){
+    if(ids&&ids.indexOf(o.uid)<0&&ids.indexOf(o.id)<0)return false;
+    if(c.RelativeID&&String(o.parent)!==c.RelativeID)return false;
+    if(c.UserName&&o.acc!==c.UserName)return false;
+    if(c.LoginIp&&o.ip!==c.LoginIp)return false;
+    if(c.Remark&&o.remark.indexOf(c.Remark)<0)return false;
+    if(c.ChannelID&&o.channel!==c.ChannelID)return false;
+    if(c.PhoneType!==''&&String(o.dev)!==c.PhoneType)return false;
+    if(c.UserState!==''&&String(o.state)!==c.UserState)return false;
+    if(c.AgentType!==''&&String(o.agent)!==c.AgentType)return false;
+    if(c.InviterCode&&o.inviter!==c.InviterCode)return false;
+    if(c.Vip_Level!==''&&String(o.vip)!==c.Vip_Level)return false;
+    if(c.StartTime&&o.addTime<c.StartTime)return false;
+    if(c.EndTime&&o.addTime>c.EndTime)return false;
+    if(c.ActivityStartTime&&(o.lastOnline===''||o.lastOnline<c.ActivityStartTime))return false;
+    if(c.ActivityEndTime&&(o.lastOnline===''||o.lastOnline>c.ActivityEndTime))return false;
+    if(c.UserGroupId){var gm={'1':'默认分组','2':'VIP客户','3':'风控观察','4':'禁止提现'};if(o.group!==gm[c.UserGroupId])return false;}
+    if(c.BlockStates!==''&&String(o.block)!==c.BlockStates)return false;
+    if(c.BankBind&&!o.bank.some(function(p){return p.indexOf(c.BankBind)>=0;}))return false;
+    /* 充值次数：≥ / ≤ */
+    if(tMin!==null&&!(o.rtimes>=tMin))return false;
+    if(tMax!==null&&!(o.rtimes<=tMax))return false;
+    /* 未登录天数：从未上线视作无限大 */
+    var days=o.onlineAgo<0?Infinity:o.onlineAgo;
+    if(dMin!==null&&!(days>=dMin))return false;
+    if(dMax!==null&&!(days<=dMax))return false;
+    /* 流水倍数 */
+    if(rMin!==null&&rMax!==null){
+      if(rMin===0&&rMax===0){if(!(o.ramtNum===0||o.bet===0))return false;}
+      else{if(!(o.ramtNum>0&&o.bet>=o.ramtNum*rMin&&o.bet<=o.ramtNum*rMax))return false;}
+    }else{
+      if(rMin!==null){if(rMin===0){if(!(o.ramtNum>0))return false;}else if(!(o.ramtNum>0&&o.bet>=o.ramtNum*rMin))return false;}
+      if(rMax!==null){if(rMax===0){if(!(o.ramtNum===0||o.bet===0))return false;}else if(!(o.ramtNum>0&&o.bet<=o.ramtNum*rMax))return false;}
+    }
+    /* 总盈亏 */
+    if(pMin!==null&&!(o.profit>=pMin))return false;
+    if(pMax!==null&&!(o.profit<=pMax))return false;
+    /* 累计充值金额（新增）：无记录按 0 */
+    if(aMin!==null&&!(o.ramtNum>=aMin))return false;
+    if(aMax!==null&&!(o.ramtNum<=aMax))return false;
+    return true;
+  });
+}
+
+/* ================= 列头排序（Task-667 三态，加入 RechargeAmount） ================= */
+var SORTABLE={SafeAmount:function(o){return o.safe;},Amount:function(o){return o.amount;},AmountofCode:function(o){return o.code;},RechargeAmount:function(o){return o.ramtNum;}};
+var sort=null;   /* {col,dir} ；null = 默认 注册时间倒序 */
+function paint(){
+  document.querySelectorAll('th.th-sortable').forEach(function(th){th.removeAttribute('data-dir');});
+  if(sort){var th=document.querySelector('th.th-sortable[data-sort="'+sort.col+'"]');if(th)th.setAttribute('data-dir',sort.dir);}
+}
+function nextDirection(cur,col){if(!cur||cur.col!==col)return 'desc';if(cur.dir==='desc')return 'asc';return '';}
+function sortRows(rows){
+  var r=rows.slice();
+  if(!sort){r.sort(function(a,b){return a.addTime<b.addTime?1:a.addTime>b.addTime?-1:b.uid-a.uid;});return r;}
+  var get=SORTABLE[sort.col],sign=sort.dir==='desc'?-1:1;
+  r.sort(function(a,b){var c=(get(a)-get(b))*sign;return c!==0?c:b.uid-a.uid;});   /* 同值按会员ID从大到小 */
+  return r;
+}
+document.querySelectorAll('th.th-sortable').forEach(function(th){
+  th.addEventListener('click',function(){
+    if(!validateRangeInputs())return;
+    var col=th.getAttribute('data-sort'),dir=nextDirection(sort,col);
+    sort=dir===''?null:{col:col,dir:dir};
+    pageNo=1;search(true);
+  });
+});
+
+/* ================= 渲染 ================= */
+var applied=null,pageNo=1,pageSize=20,cur=[];
+function devName(d){return d===1?'Android':d===2?'IOS':'PC';}
+function agentName(a){return a===0?'<span class="red">未开通</span>':a===1?'外部代理':'内部代理';}
+function render(){
+  var rows=sortRows(filter(applied)),total=rows.length,pages=Math.ceil(total/pageSize);
+  if(pages>0&&pageNo>pages)pageNo=1;
+  var list=rows.slice((pageNo-1)*pageSize,pageNo*pageSize);cur=list;
+  paint();
+  var tb=$('tb');
+  if(!list.length){tb.innerHTML='<tr class="empty"><td colspan="40">暂无数据</td></tr>';}
+  else tb.innerHTML=list.map(function(o){
+    var pc=o.profit>0?'green':o.profit<0?'red':'#666';
+    var bank=o.bank.length===0?'<span class="red">未绑定</span>':(esc(o.bank[0])+(o.bank.length>1?' <span style="color:#7752fd">▾'+o.bank.length+'张</span>':''));
+    var online=o.onlineAgo===0?'<font color=green>在线</font>':'<font color=red>离线</font>';
+    var days=o.onlineAgo<0?'未登录':o.onlineAgo;
+    return '<tr>'+
+      '<td><input type="checkbox"></td>'+
+      '<td><span class="uid">'+o.uid+'</span></td>'+
+      '<td>'+esc(o.nick)+'</td>'+
+      '<td>'+p2(o.safe)+'</td>'+
+      '<td>'+esc(o.acc)+'</td>'+
+      '<td>'+bank+'</td>'+
+      '<td>'+p2(o.amount)+'</td>'+
+      '<td>'+p2(o.third)+'</td>'+
+      '<td>'+o.integral+'</td>'+
+      '<td><div>红包 '+p2(o.red)+'</div></td>'+
+      '<td>'+esc(o.inviter)+'</td>'+
+      '<td>'+esc(o.channel)+'</td>'+
+      '<td>'+esc(o.ip)+'</td>'+
+      '<td>'+devName(o.dev)+'</td>'+
+      '<td>'+p2(o.code)+'</td>'+
+      '<td>'+esc(o.group)+'</td>'+
+      '<td>普通会员</td>'+
+      '<td>'+(o.block===1?'<span class="red">黑名单</span>':'正常')+'</td>'+
+      '<td>'+(o.state===1?'<font color=green>正常</font>':'<font color=red>禁用</font>')+'</td>'+
+      '<td>'+online+'</td>'+
+      '<td>'+esc(o.lastOnline)+'</td>'+
+      '<td>'+days+'</td>'+
+      '<td>'+o.parent+'</td>'+
+      '<td>'+agentName(o.agent)+'</td>'+
+      '<td><span class="sw'+(o.rebateBet?'':' off')+'"></span></td>'+
+      '<td><span class="sw'+(o.rebateAll?'':' off')+'"></span></td>'+
+      '<td>'+(o.google?'<span class="dgrn">已绑定</span>':'<span class="red">未绑定</span>')+'</td>'+
+      '<td></td>'+
+      '<td>'+o.firstLogin+'</td>'+
+      '<td>'+o.addTime+'</td>'+
+      '<td>L'+o.vip+'</td>'+
+      '<td>'+o.rtimes+'</td>'+
+      '<td>'+p2(o.ramtNum)+'</td>'+
+      '<td>'+o.firstRecharge+'</td>'+
+      '<td>'+o.lastRecharge+'</td>'+
+      '<td>'+n2(o.bet)+'</td>'+
+      '<td><span style="color:'+pc+'">'+n2(o.profit)+'</span></td>'+
+      '<td>'+(o.rate===null?'—':o.rate.toFixed(1)+'x')+'</td>'+
+      '<td>'+(o.agent>0?'<span class="lbtn n">红包充值</span>':'')+'<span class="lbtn n">修改密码</span><span class="lbtn w">删除</span><span class="lbtn g">修改用户名</span><span class="lbtn d">三方信息</span></td>'+
+      '<td>'+esc(o.remark)+'</td>'+
+    '</tr>';
+  }).join('');
+  renderPager(total,Math.max(pages,1));
+  $('colCount').textContent='';
+}
+function renderPager(total,pages){
+  var h='<div class="pl">共'+pages+'页，前往<input id="goNo" autocomplete="off">页，'+
+    '<select id="ps"><option value="10">10条/页</option><option value="20">20条/页</option><option value="50">50条/页</option><option value="100">100条/页</option></select>'+
+    '<button type="button" id="goBtn">GO</button></div>'+
+    '<div class="pc"><a data-g="1" class="'+(pageNo<=1?'dis':'')+'">首页</a><a data-g="'+(pageNo-1)+'" class="'+(pageNo<=1?'dis':'')+'">上一页</a>';
+  for(var i=1;i<=pages;i++)h+='<a data-g="'+i+'" class="'+(i===pageNo?'cur':'')+'">'+i+'</a>';
+  h+='<a data-g="'+(pageNo+1)+'" class="'+(pageNo>=pages?'dis':'')+'">下一页</a><a data-g="'+pages+'" class="'+(pageNo>=pages?'dis':'')+'">尾页</a><span class="tt">共'+total+'条</span></div>';
+  var p=$('pager');p.innerHTML=h;
+  $('ps').value=String(pageSize);
+  $('ps').onchange=function(){pageSize=+this.value;pageNo=1;render();};
+  $('goBtn').onclick=function(){var n=parseInt($('goNo').value,10);if(n>=1&&n<=pages){pageNo=n;render();}};
+  p.querySelectorAll('a[data-g]').forEach(function(a){a.onclick=function(){if(a.classList.contains('dis')||a.classList.contains('cur'))return;pageNo=+a.getAttribute('data-g');render();};});
+}
+
+function search(keepPage){
+  if(!validateRangeInputs())return;
+  if(!keepPage)pageNo=1;
+  applied=cond();render();
+}
+function reset(){
+  ALL.forEach(function(f){$(f).value='';});
+  $('BlockStates').value='0';
+  sort=null;pageNo=1;pageSize=20;
+  setQT('all');
+  applied=cond();render();
+}
+$('btnSearch').onclick=function(){search(false);};
+$('btnReset').onclick=reset;
+ALL.forEach(function(f){var el=$(f);if(el.tagName==='INPUT')el.addEventListener('keydown',function(e){if(e.key==='Enter')search(false);});});
+
+/* 右上角时间快捷页签（注册时间） */
+function rangeOf(k){
+  var d=new Date(NOW),s,e;
+  function dd(x){return fmt(x);}
+  if(k==='today'){s=e=dd(d);}
+  else if(k==='yday'){d.setDate(d.getDate()-1);s=e=dd(d);}
+  else if(k==='week'){var w=(d.getDay()+6)%7;var a=new Date(d);a.setDate(d.getDate()-w);var b=new Date(a);b.setDate(a.getDate()+6);s=dd(a);e=dd(b);}
+  else if(k==='lweek'){var w2=(d.getDay()+6)%7;var a2=new Date(d);a2.setDate(d.getDate()-w2-7);var b2=new Date(a2);b2.setDate(a2.getDate()+6);s=dd(a2);e=dd(b2);}
+  else if(k==='month'){var a3=new Date(d.getFullYear(),d.getMonth(),1),b3=new Date(d.getFullYear(),d.getMonth()+1,0);s=dd(a3);e=dd(b3);}
+  else if(k==='lmonth'){var a4=new Date(d.getFullYear(),d.getMonth()-1,1),b4=new Date(d.getFullYear(),d.getMonth(),0);s=dd(a4);e=dd(b4);}
+  else return ['',''];
+  return [s+' 00:00:00',e+' 23:59:59'];
+}
+function setQT(k){document.querySelectorAll('#qt .tabb').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-r')===k);});}
+document.querySelectorAll('#qt .tabb').forEach(function(b){
+  b.onclick=function(){var r=rangeOf(b.getAttribute('data-r'));$('StartTime').value=r[0];$('EndTime').value=r[1];setQT(b.getAttribute('data-r'));search(false);};
+});
+
+/* ================= 问号提示（rbq-bubble） ================= */
+var bub=$('bubble');
+document.addEventListener('mouseover',function(e){
+  var i=e.target.closest&&e.target.closest('.rbq');
+  if(!i)return;
+  bub.textContent=i.getAttribute('data-tip');bub.style.display='block';
+  var r=i.getBoundingClientRect(),w=bub.offsetWidth,h=bub.offsetHeight;
+  var left=Math.min(Math.max(8,r.left-20),document.documentElement.clientWidth-w-8);
+  var top=r.top-h-8;if(top<8)top=r.bottom+8;
+  bub.style.left=left+'px';bub.style.top=top+'px';
+});
+document.addEventListener('mouseout',function(e){if(e.target.closest&&e.target.closest('.rbq'))bub.style.display='none';});
+
+/* ================= 导出（条件、排序与页面一致） ================= */
+var toastS=null;
+function closeDemo(){$('demo').style.display='none';$('mmask').style.display='none';}
+$('btnExport').onclick=function(){
+  if(!validateRangeInputs())return;
+  var c=cond();
+  var t=$('tsuc');t.style.display='block';clearTimeout(toastS);toastS=setTimeout(function(){t.style.display='none';},3000);
+  var rows=filter(c);
+  rows=sort?sortRows(rows):rows.slice().sort(function(a,b){return a.uid-b.uid;});   /* 未选列头排序 = 会员ID升序取数 */
+  var d=new Date();
+  $('fname').textContent=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds())+'UserManage.xlsx · 共 '+rows.length+' 条';
+  var tx={UserID:'会员ID',RelativeID:'代理ID',UserName:'会员账号',LoginIp:'注册IP',Remark:'备注',ChannelID:'渠道',PhoneType:'注册设备',UserState:'用户状态',AgentType:'代理状态',InviterCode:'邀请码',Vip_Level:'VIP等级',StartTime:'注册时间起',EndTime:'注册时间止',ActivityStartTime:'在线时间起',ActivityEndTime:'在线时间止',UserGroupId:'会员分组',RegisterDevice:'注册指纹',BlockStates:'黑名单状态',ActiveBlockState:'活动黑名单状态',BankBind:'银行卡绑定手机号'};
+  var parts=[];
+  TEXT.forEach(function(f){var v=c[f];if(f==='BlockStates')v=v===''?'全部':(v==='0'?'正常':'黑名单');if(v==='')return;parts.push('<span>'+tx[f]+'：'+esc(v)+'</span>');});
+  RANGE.forEach(function(g){var a=c[g.min],b=c[g.max];if(a===''&&b==='')return;parts.push('<span'+(g.name==='累计充值金额'?' class="hl"':'')+'>'+g.name+'：'+(a===''?'不限':esc(a))+' ~ '+(b===''?'不限':esc(b))+'</span>');});
+  var sn={SafeAmount:'保险箱余额',Amount:'余额',AmountofCode:'打码量',RechargeAmount:'充值金额'};
+  parts.push('<span'+(sort&&sort.col==='RechargeAmount'?' class="hl"':'')+'>排序：'+(sort?sn[sort.col]+(sort.dir==='desc'?' 降序':' 升序'):'默认（会员ID升序）')+'</span>');
+  $('dcond').innerHTML='导出条件：'+(parts.length?parts.join(''):'<span>不限</span>');
+  $('dtb').innerHTML=rows.length?rows.map(function(o){
+    return '<tr><td>'+o.uid+'</td><td>'+esc(o.acc)+'</td><td>'+p2(o.amount)+'</td><td>'+p2(o.safe)+'</td><td>'+p2(o.code)+'</td><td>'+o.addTime+'</td><td>L'+o.vip+'</td><td>'+o.rtimes+'</td><td>'+p2(o.ramtNum)+'</td><td>'+o.firstRecharge+'</td><td>'+o.lastRecharge+'</td><td>'+n2(o.bet)+'</td><td>'+n2(o.profit)+'</td><td>'+(o.rate===null?'—':o.rate.toFixed(1)+'x')+'</td></tr>';
+  }).join(''):'<tr><td colspan="14" style="text-align:center;color:#999;height:60px">无数据</td></tr>';
+  setTimeout(function(){$('demo').style.display='flex';$('mmask').style.display='block';},600);
+};
+$('demox').onclick=closeDemo;$('mmask').onclick=closeDemo;
+
+/* ================= 需求说明抽屉 ================= */
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if($('demo').style.display==='flex')closeDemo();else closeDoc();}});
+
+reset();
+})();
+</script>
+</body>
+</html>
