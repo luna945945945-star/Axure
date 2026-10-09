@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>自动出款配置 · 游戏类型投注阈值</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sub h1{font-size:15px;color:#2b6cb0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:14px 44px 60px 22px}
+.main{background:#fff;border-radius:4px;padding:5px 15px 15px;box-shadow:0 1px 3px rgba(0,0,0,.05);min-width:1100px}
+
+/* NEW 角标 */
+.nw{position:relative;display:inline-block}
+.nw::after{content:"NEW";position:absolute;top:-12px;right:-18px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);pointer-events:none;z-index:3}
+
+/* ===== layui 表单（照 AutoWithdrawConfig.cshtml） ===== */
+.layui-form{width:800px;margin:20px}
+.layui-field-title{margin:20px 0;border:0;border-top:1px solid #eee;padding:0}
+.layui-field-title legend{margin-left:20px;padding:0 10px;font-size:20px;font-weight:300}
+.layui-form-item{margin-bottom:15px;clear:both;position:relative}
+.layui-form-item::after{content:"";display:block;clear:both}
+.layui-form-label{position:relative;float:left;display:block;width:200px;padding:9px 15px;font-weight:400;line-height:20px;text-align:right}
+.layui-input-block{margin-left:215px;min-height:36px;width:600px}
+.layui-input{height:38px;line-height:38px;border:1px solid #e6e6e6;border-radius:2px;padding-left:10px;width:160px;font:inherit;font-size:14px;color:#333;background:#fff;display:block}
+.layui-input:focus{outline:0;border-color:#c9c9c9}
+.layui-input::placeholder{color:#c2c2c2}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+.hint-r{padding-left:10px;float:right;padding-top:10px;color:#888;font-size:13px}
+.hint-i{padding-left:10px;color:#888;font-size:13px}
+.layui-btn{display:inline-block;height:38px;line-height:38px;padding:0 18px;background:#fff;color:#1e9fff;border:1px solid #9fd3ff;border-radius:2px;font:inherit;font-size:14px;cursor:pointer}
+.layui-btn:hover{background:#f3f9ff}
+/* 开关 */
+.lsw{position:relative;display:inline-block;vertical-align:middle;height:22px;line-height:22px;min-width:35px;padding:0 5px;border:1px solid #d2d2d2;border-radius:20px;background:#fff;cursor:pointer;transition:.1s linear;user-select:none}
+.lsw i{position:absolute;left:5px;top:3px;width:16px;height:16px;border-radius:20px;background:#d2d2d2;transition:.1s linear}
+.lsw em{position:relative;display:inline-block;width:25px;margin-left:21px;text-align:center;color:#999;font-style:normal;font-size:12px}
+.lsw.on{border-color:#5FB878;background:#5FB878}
+.lsw.on i{left:100%;margin-left:-21px;background:#fff}
+.lsw.on em{margin-left:5px;margin-right:21px;color:#fff}
+.lsw.dis{opacity:.55;cursor:not-allowed}
+/* 复选框 */
+.lcb{position:relative;display:inline-block;vertical-align:middle;height:30px;line-height:30px;margin-right:10px;padding-right:30px;background:#fff;cursor:pointer;font-size:0;user-select:none}
+.lcb span{display:inline-block;vertical-align:middle;height:100%;padding:0 10px;font-size:14px;border-radius:2px 0 0 2px;background:#d2d2d2;color:#fff}
+.lcb i{position:absolute;right:0;top:0;width:30px;height:30px;border:1px solid #d2d2d2;border-left:0;border-radius:0 2px 2px 0;color:#fff;font-size:17px;line-height:28px;text-align:center;font-style:normal}
+.lcb:hover i{border-color:#c2c2c2}
+.lcb.on span{background:#5FB878}.lcb.on i{color:#5FB878}
+.lcb.dis{cursor:not-allowed}.lcb.dis span{background:#eee;color:#c2c2c2}.lcb.dis i{border-color:#eee}
+/* 页面原有的带标题边框（打码倍数 / 代理红包） */
+.codebox,.agentcodebox{position:relative;border:1px solid #d9d3d3;margin-left:102px;width:1000px;margin-bottom:15px}
+.codebox{padding:20px 20px 20px 0;height:169px}
+.agentcodebox{padding:20px 20px 10px}
+.codebox::before,.agentcodebox::before{position:absolute;top:-9px;left:14px;background:#fff;padding:0 6px;font-size:13px;color:#fb3a3a}
+.codebox::before{content:"打码倍数(充提差负盈利开关)"}
+.agentcodebox::before{content:"代理红包自动出款条件"}
+.agent-red-item{display:flex;align-items:center;margin-bottom:18px}
+.agent-red-label{width:260px;text-align:right;padding-right:15px;float:none}
+.agent-red-input{display:flex;align-items:center;gap:0;margin-left:0;width:auto}
+.agent-red-input .layui-input{width:150px}
+.percent-unit{display:inline-flex;align-items:center;justify-content:center;width:60px;height:38px;border:1px solid #d9d3d3;background:#fff;font-size:14px;color:#333}
+.desc{margin:10px;color:#888;font-size:13px;line-height:1.4}
+.flexb{display:flex;align-items:center;gap:12px}
+.flexb .layui-input{width:150px}
+.flexb .d{color:#888;font-size:13px;line-height:1.4;max-width:700px}
+
+/* ===== 新增：游戏类型投注阈值 ===== */
+.gtbox{position:relative;border:1px solid #d9d3d3;margin:12px 0 4px;padding:18px 16px 8px;width:600px;background:#fff}
+.gtbox .gtt{position:absolute;top:-9px;left:14px;background:#fff;padding:0 6px;font-size:13px;color:#fb3a3a;line-height:18px}
+.gt-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.gt-name{display:inline-block;width:64px;text-align:right;color:#333}
+.gt-lbl{color:#666;white-space:nowrap}
+.gt-row .layui-input{width:140px}
+
+.gt-tip{font-size:12px;color:#999;line-height:1.5;white-space:nowrap}
+.gt-tip.empty{color:#b9770e}
+.gt-desc{color:#888;font-size:12.5px;line-height:1.6;margin:4px 0 6px}
+.gt-none{color:#999;font-size:13px;line-height:30px}
+
+/* layer.msg */
+.lmsg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.72);color:#fff;padding:12px 22px 12px 50px;border-radius:2px;z-index:400;font-size:14px;max-width:80vw;line-height:1.7;display:none}
+.lmsg .mi{position:absolute;left:15px;top:14px;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-size:14px;font-weight:700}
+.lmsg .mi.ok{background:#5fb878}.lmsg .mi.info{background:#ffb800}
+.lmsg .sim{display:block;font-size:12px;color:#ffd591;margin-top:2px}
+
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd table.t td.c{text-align:center}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd .no{color:#c0392b;font-weight:600}.prd .ok{color:#237a4b;font-weight:600}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
+  <div style="display:flex;gap:16px;align-items:center"><span id="today"></span><span>当前币种：<b style="color:#c0392b">INR</b></span></div>
+</div>
+<div class="sub">
+  <h1>自动出款配置</h1>
+  <div class="crumb">系统管理 &nbsp;›&nbsp; 自动出款配置 &nbsp;›&nbsp; <b>自动出款配置</b></div>
+</div>
+
+<div class="wrap">
+ <div class="main">
+  <div class="layui-form">
+    <fieldset class="layui-field-title"><legend>自动出款</legend></fieldset>
+    <div style="padding-left:75px;padding-bottom:5px;">满足以下全部条件的订单可以进行自动出款</div>
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">是否启用自动出款</label>
+      <div class="layui-input-block"><div class="lsw on" data-sw="autoWithdraw"><em>是</em><i></i></div></div>
+    </div>
+
+    <div class="configClass" id="configClass">
+      <div class="layui-form-item">
+        <label class="layui-form-label">提现金额&lt;=</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="50000"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">总提款/总充值&lt;=</label>
+        <label class="hint-r">例:配置2.1则代表总提现大于总充值金额的2.1倍则不能自动出款</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="2.5"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">无充值连续提现次数&lt;</label>
+        <label class="hint-r">例:配置2则代表上次充值后已经提款过1次的不能自动出款</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="2"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">累计提款次数&gt;=</label>
+        <label class="hint-r">例:配置5则代表累计提款次数小于5次的不能自动出款</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="0"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">当日盈利金额&gt;=</label>
+        <label class="hint-r">当日派彩金额-当日投注金额大于等于填写的不能自动出款</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="100000"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">3日内人工充值(人工)&gt;=</label>
+        <label class="hint-r">3日内人工充值金额大于等于填写值的不能自动出款(0:则不限制)</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="0"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">3日内人工充值(彩金)&gt;=</label>
+        <label class="hint-r">3日内人工充值彩金金额大于等于填写值的不能自动出款(0:则不限制)</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="0"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">账号余额&gt;=</label>
+        <label class="hint-r">账号余额大于等于填写值的不能自动出款</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="0"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">首存金额&gt;=</label>
+        <label class="hint-r">账号首充存款金额大于等于填写值的不能自动出款</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="0"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">同设备数&gt;=</label>
+        <label class="hint-r">同设备数大于等于填写值的不能自动出款</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="3"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">当日出款笔数&gt;=</label>
+        <label class="hint-r">当日出款笔数大于等于配置的值时不能自动出款(0:则不限制)</label>
+        <div class="layui-input-block"><input type="number" class="layui-input" value="0"></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">最后一次充值时间&gt;</label>
+        <div class="layui-input-block" style="display:flex;align-items:center;gap:10px;">
+          <input type="number" class="layui-input" value="0">
+          <span style="color:#888;font-size:13px;line-height:1.4;">例: 配置5,则代表(当前日期 - 最后一次充值日期)的天数大于配置的值,不能出款（0:则不限制）</span>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">代理红包自动出款条件</label>
+        <div class="layui-input-block"><div class="lsw" data-sw="agentRed"><em>否</em><i></i></div></div>
+      </div>
+      <div class="agentcodebox" id="agentcodebox" style="display:none">
+        <div class="layui-form-item agent-red-item">
+          <label class="layui-form-label agent-red-label">红包总额 / 总充值金额&gt;=</label>
+          <div class="layui-input-block agent-red-input"><input type="number" class="layui-input" placeholder="0.00" value="0"><span class="percent-unit">%</span><span class="desc">（此处配置的是百分比，红包总金额 ÷ 总充值金额 ≥ 设置比例时不能自动出款，例如输入: 10 = 10%）</span></div>
+        </div>
+        <div class="layui-form-item agent-red-item">
+          <label class="layui-form-label agent-red-label">历史红包领取总额&gt;=</label>
+          <div class="layui-input-block agent-red-input"><input type="number" class="layui-input" placeholder="0.00" value="0"><span class="desc">代理红包历史领取总额，大于该值则不能自动出款（0 表示不限制）</span></div>
+        </div>
+        <div class="layui-form-item agent-red-item">
+          <label class="layui-form-label agent-red-label">最后一次充值红包领取总金额&gt;=</label>
+          <div class="layui-input-block agent-red-input"><input type="number" class="layui-input" placeholder="0.00" value="0"><span class="desc">从上一次充值到本次提现区间内领取的红包总额（0 表示不限制）</span></div>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">是否允许非法定货币出款</label>
+        <div class="layui-input-block flexb"><div class="lsw" data-sw="virtual"><em>否</em><i></i></div><span class="d">开关打开时，任何需要转换汇率的出款方式都可以自动出款，如 USDT、TRX 等</span></div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label" style="padding-top:6px">打码倍数&lt;=</label>
+        <div class="layui-input-block flexb"><input type="number" class="layui-input" value="1"><span class="d">打码倍数小于等于填写值的不能自动出款（若在不满足打码倍数的前提下，满足下方充提负盈利条件也可自动出款，0 表示不限制）</span></div>
+      </div>
+
+      <div class="codebox">
+        <div class="layui-form-item">
+          <label class="layui-form-label">充提差负盈利开关</label>
+          <div class="layui-input-block"><div class="lsw on" data-sw="poor"><em>是</em><i></i></div></div>
+        </div>
+        <div class="layui-form-item" id="divPoor" style="display:flex;align-items:center;padding-left:50px;">
+          <label class="layui-form-label" style="margin-left:-50px;">充提差负盈利&gt;=</label>
+          <div class="layui-input-block" style="margin-left:5px;display:flex;align-items:center;gap:10px;">
+            <input type="number" class="layui-input" style="width:150px" placeholder="0.00" value="500.00">
+            <label style="flex:1;line-height:1.2;width:90%;color:#888;font-size:13px;">负盈利计算公式(历史充值总额 - 历史提现总额 - 待处理金额 - 账号余额)=负盈利价值大于等于配置值的时候自动出款(可以输入正负数或者小数)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">是否需要完成首充</label>
+        <div class="layui-input-block"><div class="lsw on" data-sw="first"><em>是</em><i></i></div><label class="hint-i">开关打开需要会员完成首充才能自动出款</label></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">是否判断会员备注</label>
+        <div class="layui-input-block"><div class="lsw on" data-sw="remark"><em>是</em><i></i></div><label class="hint-i">开关打开需要会员备注无内容才能自动出款</label></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">是否限定用户分组</label>
+        <div class="layui-input-block"><div class="lsw" data-sw="group"><em>否</em><i></i></div><label class="hint-i">开关打开需要选中的分组才能自动出款</label></div>
+      </div>
+      <div class="layui-form-item">
+        <div class="layui-input-block" id="checkboxGroup" style="width:500px;display:none"></div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">是否启用自动下款</label>
+        <div class="layui-input-block"><div class="lsw on" data-sw="autoPay"><em>是</em><i></i></div><label class="hint-i">开启,则自动出款,关闭,符合条件的出款进入建议页签</label></div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">是否限制币种和上一笔入款币种一致</label>
+        <div class="layui-input-block"><div class="lsw" data-sw="currency"><em>否</em><i></i></div><label class="hint-i">开启,需要判断最近一笔入款和出款的币种一致才能出款</label></div>
+      </div>
+
+      <!-- ===== 限制游戏类型不可自动出款（本次改造） ===== -->
+      <div class="layui-form-item">
+        <label class="layui-form-label">限制游戏类型不可自动出款</label>
+        <div class="layui-input-block" id="checkboxGameTypeGroup" style="width:720px">
+          <div id="gtCbs"></div>
+          <label class="hint-i nw" style="padding-left:0;display:inline-block;margin-top:8px">(选中的游戏类型，上次成功提现后该类型有效投注额大于填写值的不能自动出款；不填则有投注即不能自动出款)</label>
+          <div class="gtbox" id="gtBox">
+            <span class="gtt nw">游戏类型投注阈值</span>
+            <div id="gtRows"></div>
+            <div class="gt-desc">金额为本站币种，最多两位小数；不填或填 0 = 该类型有投注即不能自动出款（与现在相同）</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">Bank(银行卡)提现是否走AR钱包出款</label>
+        <div class="layui-input-block"><div class="lsw on dis" data-sw="bank"><em>是</em><i></i></div><label class="hint-i">(若开启该开关,满足自动出款条件的Bank提现订单会自动提交到AR钱包出款)</label></div>
+      </div>
+    </div>
+
+    <div class="layui-form-item" style="padding-top:15px;">
+      <div class="layui-input-block"><button class="layui-btn" id="btnSave">修改</button></div>
+    </div>
+  </div>
+ </div>
+</div>
+
+<div class="lmsg" id="lmsg"><span class="mi" id="lmsgI"></span><span id="lmsgT"></span></div>
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>自动出款配置 · 游戏类型投注阈值 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身。页面的样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:200px">页面</th><th>改动点</th></tr>
+      <tr><td>系统管理 → <b>自动出款配置</b></td><td>「限制游戏类型不可自动出款」勾选的每个类型增加一个「有效投注额 &gt;」阈值；提示文案更新；保存时阈值的变化记入操作日志</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">勾选的类型：上次成功提现之后，该类型有效投注额 <b>大于</b> 阈值的不能自动出款；等于或小于阈值通过</div>
+      <div class="kf">勾选不填阈值 = 有投注就不能自动出款（与现在相同）；不勾选 = 不限制</div>
+      <div class="kf">投注数据取不到，不能自动出款</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>判定口径</b><span class="kb">核心</span>：对每个勾选的类型，取会员最近一笔成功提现完成之后到本次判定为止、该类型的有效投注额合计，大于阈值则不能自动出款，等于或小于阈值通过。任一类型不通过，该笔提现不能自动出款；全部通过，继续其他自动出款条件。会员没有成功提现记录的，从注册起算。</div>
+
+    <div class="br key"><span class="bn">02</span><b>阈值取值</b><span class="kb">核心</span>：阈值为本站币种金额，不小于 0，最多两位小数。不填视为 0，即该类型有效投注额大于 0 就不能自动出款。未勾选的类型不参与判定；一个都不勾，本条规则不生效。</div>
+
+    <div class="br key"><span class="bn">03</span><b>数据取不到</b><span class="kb">核心</span>：投注统计取不到（报表失败、返回为空、查询异常），按不能自动出款处理。</div>
+
+    <div class="br"><span class="bn">04</span><b>不通过备注</b>：不能自动出款时，提现订单的自动出款备注写明类型、该类型有效投注额、阈值，例：「真人视讯 有效投注 12,000.00 &gt; 阈值 5,000.00」；数据取不到写「游戏类型投注统计失败」。</div>
+
+    <div class="br"><span class="bn">05</span><b>生效范围</b>：保存后立即生效。提现提交时、待审核订单被定时重评时，都按当时的配置判定。每个站点各自配置。</div>
+
+    <div class="br"><span class="bn">06</span><b>判定示例</b>：配置 真人视讯 5,000、体育 20,000、棋牌 不填，电子、彩票不勾选。
+      <table class="t">
+        <tr><th style="width:60px">示例</th><th>上次成功提现后各类型有效投注额</th><th style="width:150px">结果</th></tr>
+        <tr><td class="c">A</td><td>真人视讯 4,800　体育 25,000　棋牌 0　电子 100,000</td><td><span class="no">不能自动出款</span>：体育 25,000 &gt; 20,000（电子未勾选，不参与）</td></tr>
+        <tr><td class="c">B</td><td>真人视讯 5,000　体育 0　棋牌 10</td><td><span class="no">不能自动出款</span>：棋牌 10 &gt; 0</td></tr>
+        <tr><td class="c">C</td><td>真人视讯 5,000　体育 20,000　棋牌 0</td><td><span class="ok">通过</span>：三项都等于或小于阈值</td></tr>
+        <tr><td class="c">D</td><td>会员从未成功提现，注册后真人视讯 6,000</td><td><span class="no">不能自动出款</span>：从注册起算，6,000 &gt; 5,000</td></tr>
+      </table>
+    </div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>类型范围</td><td>只按彩票、真人视讯、体育、电子、棋牌五个大类配置，不按厂商或单个游戏</td></tr>
+      <tr><td>金额口径</td><td>只看有效投注额，不看投注笔数、盈亏</td></tr>
+      <tr><td>已有配置</td><td>上线前已勾选的类型没有阈值，按不填处理，行为与现在相同</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>现有的勾选和保存方式不动，阈值作为新增配置保存。上线后老配置没有阈值，行为与现在一致，不需要迁移数据。</li>
+      <li>判定只改现有那一处（提现提交和定时重评共用的同一段）：把「该类型有没有注单」换成「上次成功提现后该类型有效投注额是否大于阈值」。统计窗口的起点和打码倍数用的是同一个起点，直接复用，不要另起一套。</li>
+      <li>五个类型分别统计、分别比较，不要把几个类型的金额加在一起比。</li>
+      <li>SaaS 站从游戏统计报表按类型汇总，非 SaaS 站从各类注单表按投注时间汇总，两种站点都要测。上线前核对 SaaS 报表返回的游戏分类名称与这五个类型能一一对上，对不上的类型按不能自动出款处理并记日志。</li>
+      <li>报表失败、返回为空、查询异常一律按不能自动出款，不要当成没投注放行。</li>
+      <li>页面提示文案按原型改；保存时阈值的变化和现有的勾选变化一起写入操作日志。</li>
+      <li>老后台和前台上线顺序不限：先上哪一个，行为都与现在相同。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function pad(n){return n<10?'0'+n:''+n;}
+var d=new Date();$('today').textContent=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+
+/* ========== 开关（照 layui switch） ========== */
+var SW={autoWithdraw:true,agentRed:false,virtual:false,poor:true,first:true,remark:true,group:false,autoPay:true,currency:false,bank:true};
+function paintSw(){
+  document.querySelectorAll('.lsw').forEach(function(el){var k=el.dataset.sw,on=!!SW[k];el.classList.toggle('on',on);el.querySelector('em').textContent=on?'是':'否';});
+  $('configClass').style.display=SW.autoWithdraw?'':'none';
+  $('agentcodebox').style.display=SW.agentRed?'':'none';
+  $('divPoor').style.display=SW.poor?'flex':'none';
+  $('checkboxGroup').style.display=SW.group?'':'none';
+}
+document.addEventListener('click',function(e){
+  var el=e.target.closest&&e.target.closest('.lsw');if(!el||el.classList.contains('dis'))return;
+  SW[el.dataset.sw]=!SW[el.dataset.sw];paintSw();
+});
+
+/* ========== 用户分组复选框（不改） ========== */
+var GROUPS=['普通会员','VIP会员','代理','测试组'],gsel={};
+function renderGroups(){
+  var all=GROUPS.every(function(g){return gsel[g];});
+  $('checkboxGroup').innerHTML='<div class="lcb'+(all?' on':'')+'" data-g="__all"><span>全选</span><i>✓</i></div>'+GROUPS.map(function(g){return '<div class="lcb'+(gsel[g]?' on':'')+'" data-g="'+g+'"><span>'+g+'</span><i>✓</i></div>';}).join('');
+}
+$('checkboxGroup').addEventListener('click',function(e){
+  var el=e.target.closest('.lcb');if(!el)return;var g=el.dataset.g;
+  if(g==='__all'){var all=GROUPS.every(function(x){return gsel[x];});GROUPS.forEach(function(x){gsel[x]=!all;});}
+  else gsel[g]=!gsel[g];
+  renderGroups();
+});
+
+/* ========== 限制游戏类型（本次改造） ========== */
+/* 顺序与现有页面一致：彩票 3、真人视讯 1、体育 2、电子 0、棋牌 4 */
+var GT=[{id:3,name:'彩票'},{id:1,name:'真人视讯'},{id:2,name:'体育'},{id:0,name:'电子'},{id:4,name:'棋牌'}];
+var sel={1:true,2:true,4:true};           /* 现有勾选：真人视讯、体育、棋牌 */
+var thr={1:'5000.00',2:'20000.00',4:''};   /* 新增阈值：棋牌不填 */
+var saved={sel:JSON.parse(JSON.stringify(sel)),thr:JSON.parse(JSON.stringify(thr))};
+function renderGt(){
+  var all=GT.every(function(g){return sel[g.id];});
+  $('gtCbs').innerHTML='<div class="lcb'+(all?' on':'')+'" data-gt="__all"><span>全选</span><i>✓</i></div>'+GT.map(function(g){return '<div class="lcb'+(sel[g.id]?' on':'')+'" data-gt="'+g.id+'"><span>'+g.name+'</span><i>✓</i></div>';}).join('');
+  var rows=GT.filter(function(g){return sel[g.id];});
+  $('gtBox').style.display=rows.length?'':'none';
+  $('gtRows').innerHTML=rows.map(function(g){
+    var v=thr[g.id]||'',empty=v===''||parseFloat(v)===0;
+    return '<div class="gt-row"><span class="gt-name">'+g.name+'</span><span class="gt-lbl">有效投注额 &gt;</span><input type="number" class="layui-input gt-in" data-gt="'+g.id+'" min="0" step="0.01" placeholder="0.00" value="'+v+'"><span class="gt-tip'+(empty?' empty':'')+'">'+(empty?'有投注即不能自动出款':'超过 '+fmt(v)+' 不能自动出款')+'</span></div>';
+  }).join('');
+}
+function fmt(v){var n=parseFloat(v);if(isNaN(n))return v;return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+$('gtCbs').addEventListener('click',function(e){
+  var el=e.target.closest('.lcb');if(!el)return;var k=el.dataset.gt;
+  if(k==='__all'){var all=GT.every(function(g){return sel[g.id];});GT.forEach(function(g){sel[g.id]=!all;});}
+  else sel[k]=!sel[k];
+  renderGt();
+});
+$('gtRows').addEventListener('input',function(e){
+  var t=e.target;if(!t.classList.contains('gt-in'))return;
+  var v=t.value;
+  if(v.indexOf('.')>=0){var p=v.split('.');if(p[1].length>2){v=p[0]+'.'+p[1].slice(0,2);t.value=v;}}
+  thr[t.dataset.gt]=v;
+  var tip=t.parentNode.querySelector('.gt-tip'),empty=v===''||parseFloat(v)===0;
+  tip.className='gt-tip'+(empty?' empty':'');tip.textContent=empty?'有投注即不能自动出款':'超过 '+fmt(v)+' 不能自动出款';
+});
+$('gtRows').addEventListener('change',function(e){
+  var t=e.target;if(!t.classList.contains('gt-in')||t.value==='')return;
+  var n=parseFloat(t.value);if(isNaN(n)||n<0)return;
+  t.value=n.toFixed(2);thr[t.dataset.gt]=t.value;
+});
+
+/* ========== 保存（照现有 Save：校验 → 提示 → 刷新） ========== */
+function gtLog(s){return GT.filter(function(g){return s.sel[g.id];}).map(function(g){var v=s.thr[g.id];return g.name+':'+(v===''||v===undefined?'不填':fmt(v));}).join(',');}
+function gtIds(s){return GT.filter(function(g){return s.sel[g.id];}).map(function(g){return g.id;}).join(',');}
+$('btnSave').onclick=function(){
+  var bad=GT.some(function(g){if(!sel[g.id])return false;var v=thr[g.id];if(v===''||v===undefined)return false;return !/^\d+(\.\d{1,2})?$/.test(v);});
+  if(bad){msg('游戏类型投注阈值只能填不小于 0 的数字，最多两位小数','info');return;}
+  var cur={sel:JSON.parse(JSON.stringify(sel)),thr:JSON.parse(JSON.stringify(thr))};
+  var log='限制游戏类型不可自动出款：【'+gtIds(saved)+'】->【'+gtIds(cur)+'】，游戏类型投注阈值：【'+gtLog(saved)+'】->【'+gtLog(cur)+'】';
+  saved=cur;
+  msg('保存成功','ok','原型：保存后页面刷新；操作日志记「'+log+'」');
+};
+
+/* ========== 通用 ========== */
+var mt=null;
+function msg(t,icon,sim){var b=$('lmsg');$('lmsgT').innerHTML=t+(sim?'<span class="sim">'+sim+'</span>':'');var i=$('lmsgI');i.className='mi '+(icon||'ok');i.textContent=icon==='info'?'!':'✓';b.style.display='block';clearTimeout(mt);mt=setTimeout(function(){b.style.display='none';},sim?6000:(icon==='info'?3000:1800));}
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDoc();});
+
+paintSw();renderGroups();renderGt();
+})();
+</script>
+</body>
+</html>
