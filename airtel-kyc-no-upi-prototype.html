@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Airtel 绑定免填 UPI ID</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333;min-height:100vh}
+.stage{display:flex;justify-content:center;align-items:flex-start;gap:28px;padding:28px 60px 40px 28px;flex-wrap:wrap}
+
+/* 演示面板（页面外） */
+.demo{width:268px;background:#fff;border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:12.5px;color:#555}
+.demo h3{font-size:13px;color:#6C4FE0;margin-bottom:6px}
+.demo p{line-height:1.7;margin-bottom:10px;color:#888;font-size:12px}
+.demo .scenes{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.demo .scenes button{font:inherit;font-size:12px;text-align:left;border:1px solid #d3caf5;background:#f7f5ff;color:#4b3aa8;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1.5}
+.demo .scenes button:hover{border-color:#6C4FE0}
+.demo .scenes button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.demo .who{background:#fafbfc;border:1px solid #eef0f3;border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.8;color:#555}
+.demo .who b{color:#333;font-weight:600}
+.demo .who .k{color:#999;display:inline-block;width:92px;vertical-align:top}
+.demo .who .v{display:inline-block;width:calc(100% - 92px)}
+.demo .steps{margin:10px 0 0;padding:8px 10px;background:#fff7f7;border:1px solid #ffd6d6;border-radius:6px;font-size:12px;line-height:1.8;color:#8a2b2b}
+.demo .steps b{color:#c0392b}
+.demo label.tg{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:#666;cursor:pointer}
+.demo .sub{font-size:11.5px;color:#aaa;margin-top:10px;line-height:1.7}
+
+/* 手机 */
+.phone{width:395px;height:832px;border-radius:36px;background:#111;padding:10px;box-shadow:0 10px 40px rgba(0,0,0,.25);flex:0 0 auto}
+.screen{width:375px;height:812px;border-radius:28px;overflow:hidden;background:#F7F8FF;position:relative;display:flex;flex-direction:column;color:#1E2637}
+
+/* NavBar（还原前台 NavBar） */
+.navbar{height:46px;background:#fff;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto;z-index:5}
+.navbar .lft{position:absolute;left:12px;top:0;height:100%;display:flex;align-items:center;cursor:pointer}
+.navbar .lft svg{width:18px;height:18px}
+.navbar .ttl{font-size:18px;line-height:18px;color:#1E2637}
+.page{flex:1;overflow-y:auto;position:relative;scrollbar-width:none}
+.page::-webkit-scrollbar{display:none}
+
+/* 提现页 · 快捷 UPI 区域（还原 upiQuickTypes + c2cUpi） */
+.wd{padding:10px 12px 40px}
+.wd .omit{border:1px dashed #d9dbe3;border-radius:10px;padding:10px;color:#b6bcc8;font-size:11.5px;text-align:center;margin-bottom:10px;line-height:1.6}
+.quickWay{background:#fff;border-radius:10px;padding:10px;margin-bottom:10px}
+.quickWay-title{display:flex;align-items:center;font-weight:600;font-size:15px;margin-bottom:13px;color:#1E2637}
+.quickWay-title svg{width:24px;height:24px;margin-right:11px}
+.quickWay-list{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+.quickWay-item{border-radius:5px;background:#fff;width:100%;height:45px;padding:10px;display:flex;align-items:center;justify-content:center;border:1px solid #eef0f3;cursor:pointer;font-size:13px;color:#1E2637}
+.quickWay-item .logo{width:30px;height:20px;border-radius:4px;margin-right:10px;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;letter-spacing:.2px}
+.quickWay-item.select{background:#f95959;color:#fff;border:1px solid #f95959}
+.c2cUpi{height:80px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.04);border-radius:10px;padding:18px 10px;text-align:left;position:relative;margin-bottom:12px;cursor:pointer}
+.c2cUpi.noUpi{color:#B6BCC8;text-align:center;padding:52px 0 0;font-size:13px}
+.c2cUpi.noUpi::before{content:"+";position:absolute;left:50%;top:9px;transform:translateX(-50%);width:44px;height:44px;line-height:40px;border-radius:50%;border:1.5px dashed #c9cdd8;color:#c9cdd8;font-size:28px}
+.c2cUpi .title{height:20px;line-height:20px;font-size:14px;color:#1E2637;display:flex;align-items:center;gap:6px}
+.c2cUpi .title .logo{width:23px;height:15px;border-radius:3px;color:#fff;font-size:7px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.c2cUpi .name{height:18px;line-height:18px;color:#768096;font-size:13px}
+.c2cUpi .right-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#B6BCC8;font-size:12px}
+
+/* FastUPI 账户列表页（还原 Withdraw-FastUpi） */
+.upi_C{padding:0 12px 50px;min-height:100%}
+.upi_C-list{padding-top:10px}
+.upi_C-item{border-radius:10px;background:#fff;overflow:hidden}
+.upi_C-item+.upi_C-item{margin-top:10px}
+.upi_C-item .header{height:34px;display:flex;align-items:center;padding:0 10px;border-bottom:.5px solid #E1E1E1}
+.upi_C-item .header-title{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:600;color:#1E2637}
+.upi_C-item .header-title .logo{width:26px;height:17px;border-radius:3px;color:#fff;font-size:7.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.upi-body{padding:10px;font-size:13px;color:#768096;line-height:1.9}
+.upi-body-id{position:relative;display:inline-block}
+.upi-select{display:flex;align-items:center;gap:7px;margin-top:6px;cursor:pointer;font-size:12.5px;color:#768096}
+.upi-select .select-btn{width:16px;height:16px;border-radius:50%;border:1px solid #768096}
+.upi-select .select-btn.isSelect{border:4.5px solid #f95959}
+.noData{background:#fff;padding:44px 0 14px;color:#B6BCC8;text-align:center;border-radius:10px;margin-top:10px;position:relative;font-size:13px}
+.noData::before{content:"";position:absolute;left:50%;top:10px;transform:translateX(-50%);width:28px;height:22px;border:1.5px solid #c9cdd8;border-radius:4px;opacity:.8}
+.upi_C-addbtn{position:absolute;bottom:0;left:0;right:0;height:50px;line-height:50px;font-weight:700;font-size:15px;background:#f95959;color:#fff;text-align:center;cursor:pointer;z-index:4}
+
+/* 添加 FastUPI 页（还原 AddFastUpi，750 设计稿按 1/2 换算） */
+.addupi_C{padding:10px 10px 75px;position:relative}
+.addupi_C-header{height:21px;line-height:21px;font-weight:700;font-size:18px;color:#1E2637;display:flex;align-items:center;gap:8px}
+.addupi_C-header .logo{width:51px;height:21px;border-radius:4px;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.addupi_C-title{height:20px;line-height:20px;margin:25px 0 12px;font-weight:500;font-size:16px;color:#1E2637;position:relative}
+.upi-input{height:35px;padding:0 10px;font-size:14px;color:#768096;background:#fff;width:100%;border-radius:2px;display:flex;align-items:center;position:relative}
+.upi-input input{width:100%;border:0;outline:0;font:inherit;font-size:14px;color:#1E2637;background:transparent}
+.upi-input input::placeholder{color:#768096}
+.upi-input input[readonly]{cursor:default;color:#768096}
+.first-bind-tip{margin:8px 0 0;color:#f95959;font-size:11px;line-height:1.4}
+.tip{color:#f95959;font-size:11px;margin:10px 5px 20px;display:flex;align-items:flex-start;gap:4px;line-height:1.5}
+.tip svg{width:12px;height:12px;flex:0 0 auto;margin-top:2px}
+.addupi_C-uploader{display:flex;width:80px;height:80px;padding:12px;flex-direction:column;justify-content:center;align-items:center;gap:8px;background:#fff;border-radius:5px;cursor:pointer;position:relative}
+.addupi_C-uploader-btn{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:4px;color:#768096;font-size:10px;line-height:1.3}
+.addupi_C-uploader-btn svg{width:21px;height:21px}
+.addupi_C-uploader .thumb{width:56px;height:56px;border-radius:4px;background:repeating-linear-gradient(0deg,#1E2637 0 3px,#fff 3px 6px),repeating-linear-gradient(90deg,#1E2637 0 3px,#fff 3px 6px);background-blend-mode:multiply;opacity:.85}
+.bind-bank-sumbit{position:absolute;left:0;right:0;bottom:0;height:60px;line-height:60px;background:#f95959;color:#fff;font-size:15px;text-align:center;letter-spacing:.6px;cursor:pointer;z-index:4}
+.bind-bank-sumbit.disable{background:linear-gradient(90deg,#CCCEDC 15.38%,#CDCFDD 98.73%);pointer-events:none}
+
+/* 新增：Airtel 自动绑定提示 */
+.auto-tip{position:relative;margin:10px 5px 0;color:#768096;font-size:11.5px;line-height:1.5;display:flex;align-items:flex-start;gap:4px}
+.auto-tip svg{width:12px;height:12px;flex:0 0 auto;margin-top:2px}
+.new{position:absolute;background:#f5222d;color:#fff;font-size:9px;font-weight:700;line-height:1;padding:3px 5px;border-radius:8px 8px 8px 2px;box-shadow:0 2px 6px rgba(245,34,45,.35);pointer-events:none;letter-spacing:.3px;z-index:6}
+.auto-tip .new{top:-10px;right:-4px}
+
+/* 对比用：被隐藏项的虚影 */
+.ghost{border:1.5px dashed #f5222d;border-radius:4px;color:#f5222d;font-size:11.5px;padding:8px 10px;margin-top:12px;background:rgba(245,34,45,.04);line-height:1.5}
+.ghost b{display:inline-block;background:#f5222d;color:#fff;font-size:9px;border-radius:3px;padding:1px 5px;margin-right:6px;vertical-align:1px}
+
+/* OTP 验证弹窗（还原 NotifyKycOtpModal） */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:20;display:none;align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.ntf-kyc-otp{position:relative;display:flex;flex-direction:column;align-items:center;width:350px;max-width:calc(100% - 24px);background:#f95959;border-radius:10px;padding-bottom:10px}
+.ntf-kyc-otp__header{display:flex;align-items:center;justify-content:space-between;width:100%;padding:16px 0 8px}
+.ntf-kyc-otp__header h5{font-weight:700;font-size:19px;color:#fff}
+.ntf-kyc-otp__header-line{display:inline-block;width:55px;height:1px;border-radius:10px;background:linear-gradient(90deg,#f95959 -2.73%,rgba(255,255,255,0) 91.36%)}
+.ntf-kyc-otp__header-line--left{transform:matrix(-1,0,0,1,0,0)}
+.ntf-kyc-otp__content{width:330px;max-width:100%;padding:10px 12px;background:#fff;border-radius:10px}
+.ntf-kyc-otp__hit{margin-bottom:5px;color:#1E2637;font-size:13px;line-height:18px}
+.ntf-kyc-otp__hit p{margin:5px 0;position:relative}
+.ntf-kyc-otp__hit p:first-child{font-weight:500;font-size:14px;padding:0 5px;text-align:center}
+.ntf-kyc-otp__hit-value{color:#FB5B5B;font-weight:600}
+.ntf-kyc-otp__title{margin-bottom:10px;color:#1E2637;font-size:14px}
+.van-cell{margin-bottom:10px;padding:4px 5px;border-radius:20px;background:#F7F8FF;display:flex;align-items:center;min-height:36px}
+.van-cell input{flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:13px;color:#1E2637;padding:0 8px;min-width:0}
+.van-cell input:disabled{color:#B6BCC8}
+.van-cell input::placeholder{color:#B6BCC8}
+.ntf-kyc-otp__code{width:95px;height:30px;border:0;border-radius:25px;background:linear-gradient(90deg,#f95959 0%,#ff9a8e 100%);color:#fff;font:inherit;font-size:12px;cursor:pointer;flex:0 0 auto}
+.ntf-kyc-otp__code:disabled{opacity:.5;cursor:default}
+.ntf-kyc-otp__actions .btn{display:block;width:100%;height:35px;line-height:35px;border-radius:25px;text-align:center;font-size:14px;cursor:pointer;border:1px solid transparent}
+.ntf-kyc-otp__actions .btn.primary{background:linear-gradient(90deg,#f95959 0%,#ff9a8e 100%);color:#fff}
+.ntf-kyc-otp__actions .btn.primary.dis{opacity:.5;pointer-events:none}
+.ntf-kyc-otp__actions .btn.default{border-color:#f95959;color:#f95959;background:transparent;margin-top:14px}
+.ntf-kyc-otp__footer{position:absolute;bottom:-50px;display:flex;align-items:center;justify-content:center;width:100%}
+.ntf-kyc-otp__footer span{display:block;width:30px;height:30px;cursor:pointer}
+.ntf-kyc-otp__footer svg{width:100%;height:100%}
+.ntf-kyc-otp .ghost{margin:4px 0 8px}
+
+/* 提示 */
+.toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:260px;background:rgba(0,0,0,.72);color:#fff;font-size:14px;line-height:20px;padding:10px 14px;border-radius:8px;text-align:center;z-index:40;display:none;word-break:break-word}
+.toast.on{display:block}
+
+/* 需求说明抽屉（V1 原型统一样式） */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:20px}
+.prd ol.dev li{margin:4px 0}
+.prd code{font-family:Menlo,Consolas,monospace;font-size:12px;background:#f5f5f7;padding:0 4px;border-radius:3px;color:#333}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="demo">
+    <h3>原型操作提示</h3>
+    <p>选一个场景后，在手机里按真实流程走：提现页选银行 → 账户列表点 Add → 填写 → Save → OTP 弹窗 Send、输码、Submit。</p>
+    <div class="scenes" id="scenes"></div>
+    <div class="who" id="who"></div>
+    <div class="steps" id="steps"></div>
+    <label class="tg"><input type="checkbox" id="ghostTg"> 用虚线标出 Airtel 被隐藏的项（对比用，不属于页面）</label>
+    <p class="sub">UPI Name 自动带入并锁定、首次绑定锁名提示、手机号校验、Slice 的 PIN、二维码与 UPI ID 比对，都是现有功能，照搬未改。</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen" id="screen">
+      <div class="navbar"><div class="lft" id="navBack"><svg viewBox="0 0 24 24" fill="none" stroke="#1E2637" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg></div><div class="ttl" id="navTitle"></div></div>
+      <div class="page" id="page"></div>
+      <div class="overlay" id="overlay"></div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>快捷提现 · Airtel 绑定免填 UPI ID · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型页面。</div>
+    <table class="t">
+      <tr><th style="width:300px">页面</th><th>改动点</th></tr>
+      <tr><td>前台 → 提现 → 快捷提现 UPI → <b>添加 Airtel 账户页</b></td><td>去掉「UPI ID」输入框和「upload QR code for payment」上传区；手机号下方新增一行自动绑定提示</td></tr>
+      <tr><td>前台 → <b>OTP Verify 验证弹窗</b>（添加 Airtel 账户时）</td><td>不显示「UPI ID」那一行</td></tr>
+      <tr><td>前台 → 快捷提现 UPI → <b>Airtel 账户列表页</b></td><td>「UPI ID」显示钱包返回的 UPI ID</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">添加 Airtel 账户只需：选 Airtel → 填手机号 → 收验证码 → 验证。验证通过后，系统用钱包返回的 UPI ID 完成绑定，会员不用填 UPI ID、不用传收款二维码</div>
+      <div class="kf">PhonePe、Paytm、Mobikwik、Slice 等其他银行的添加流程和校验完全不变</div>
+      <div class="kf">老版本 APP 仍会让会员填 UPI ID，照样能绑定成功，最终绑定的也是钱包返回的 UPI ID</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>适用范围</b><span class="kb">核心</span>：只对快捷提现 UPI 里所选银行为 Airtel 的添加账户流程生效。</div>
+
+    <div class="br key"><span class="bn">02</span><b>Airtel 添加页</b><span class="kb">核心</span>：只保留 UPI Name 和 Phone Number 两项；UPI Name 的带入与锁定、手机号的校验照现有规则。两项填好即可点 Save 进入 OTP 验证。</div>
+
+    <div class="br key"><span class="bn">03</span><b>验证与绑定</b><span class="kb">核心</span>：OTP 验证通过后，直接用钱包返回的 UPI ID 生成该会员的 Airtel 提现账户；账户列表和后续出款都用这个 UPI ID。</div>
+
+    <div class="br"><span class="bn">04</span><b>钱包没返回 UPI ID</b>：本次绑定失败，不生成账户，提示会员重新验证。</div>
+
+    <div class="br"><span class="bn">05</span><b>UPI ID 重复</b>：钱包返回的 UPI ID 已被本人或其他会员绑定过，本次绑定失败，提示「This Airtel account has already been linked」。</div>
+
+    <div class="br"><span class="bn">06</span><b>老版本 APP</b>：会员仍填写 UPI ID 和二维码，照原流程提交；验证通过后同样以钱包返回的 UPI ID 为准绑定。</div>
+
+    <div class="br"><span class="bn">07</span><b>绑定数量</b>：快捷提现 UPI 账户数量上限取后台「配置管理 › 参数配置 › Fast Upi绑定数量」的值；Airtel 账户和 PhonePe、Paytm 等其他快捷提现 UPI 账户合并计数，一个会员名下所有快捷提现 UPI 账户加起来不能超过这个值。达到上限后，Airtel 在发送验证码和保存绑定两步都按现有提示拦下，不再往下走。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:140px">项</th><th>说明</th></tr>
+      <tr><td>适用范围</td><td>只在快捷提现 UPI 的 Airtel；普通 UPI、银行卡等其他提现方式不涉及</td></tr>
+      <tr><td>提现时的 KYC 重新验证</td><td>不涉及，仍按已绑定的账户验证</td></tr>
+      <tr><td>本次不做</td><td>不向会员展示或让会员修改钱包返回的 UPI ID，账户列表只读显示</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>Airtel 的 UPI ID 必填要在两处同时放开：发送验证码那一步，和验证后保存绑定那一步。只放开一处，会员仍会被拦。</li>
+      <li>判断 UPI ID 是否重复，要用钱包返回的 UPI ID 去比，不能用会员提交的那个（Airtel 新流程提交的是空）。本人和其他会员的账户都要比。</li>
+      <li>钱包验证通过但没返回 UPI ID 时要拦下来，不能生成一个 UPI ID 为空的账户。</li>
+      <li>老版本 APP 会继续把会员填的 UPI ID 传上来，服务端照原来处理，不要把它当错误拦掉。</li>
+      <li>服务端先上线，客户端（APP / H5）后上线，两边不必同一天发布。</li>
+      <li>OTP 弹窗里「UPI ID」那行在 Airtel 新流程没有值，要隐藏，不能显示空白。</li>
+      <li>新文案「Your UPI ID will be linked automatically after verification.」「This Airtel account has already been linked.」「Failed to get your UPI ID. Please verify again.」按站点已开放的语言补翻译。</li>
+      <li>先向钱包确认 Airtel 的银行编码写法，客户端和服务端按同一个编码判断。</li>
+    </ol>
+
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cap=s=>s?s.charAt(0).toUpperCase()+s.slice(1):'';
+
+// 前台真实文案（uat 分支 en 语言包）
+const T={withdraw:'Withdraw',paymentMethods:'Payment Method',paymentMethod:'Payment method',addUpi:'Add UPI',
+  accountName:'Account name',currentPayment:'Current Payment',currentChange:'Change to Current Account',noPaymentMethodsYet:'No payment method',upiAddPaymentMethod:'Add payment method',
+  UPIInformation:'Information UPI',phEnterUPIName:'Please enter UPI name',firstBindNameLockTip:'This is your first payout account. The name will be locked once saved, and all future withdrawal methods must use the same name.',
+  phoneN:'Phone Number',plsEnterTel:'Please enter the phone number',upiTip1:'For the security of your account, please fill in your real mobile phone number',
+  phEnterUPIID:'Please enter your UPI ID',pin:'PIN code',enterPin:'Please enter your PIN code',pinFormatError:'Please enter a 4-digit PIN code',
+  withdrawQrcode:'upload QR code for payment',uploadImage:'Upload Image',changeImage:'Change Image',withdrawQrcodeTips:'Please upload the QR code for payment',qrupiId:'The UPI ID does not match the payment QR code. Please upload it again',
+  save:'Save',pphone:'Please enter your phone number.',wrongTel:'Invalid phone number. Please enter a valid number.',UPIID:'Please enter correct UPI ID',code254:'Duplicate upi id',addedSuccessfully:'Added successfully',
+  verifyOpt:'OTP Verify',paymentTips:'To ensure account security, we need to verify your ownership of the following account.',VerificationCode:'Verification Code',phEnterVerificationCode:'Please enter the confirmation code',send:'Send',submit:'Submit',cancel:'Cancel',
+  // 本次新增文案
+  autoLinkTip:'Your UPI ID will be linked automatically after verification.',airtelLinked:'This Airtel account has already been linked.',noUpiReturned:'Failed to get your UPI ID. Please verify again.'};
+
+// 钱包返回的 KYC 银行列表
+const BANKS=[
+  {code:'phonepe',name:'PhonePe',bg:'linear-gradient(101deg,#2184DC,#0242CF)',ab:'PhonePe'},
+  {code:'paytm',name:'Paytm',bg:'linear-gradient(101deg,#6FD0FA,#38B5EB)',ab:'Paytm'},
+  {code:'mobikwik',name:'Mobikwik',bg:'linear-gradient(101deg,#8937DC,#52259F)',ab:'MobiKwik'},
+  {code:'airtel',name:'Airtel',bg:'linear-gradient(101deg,#FC4141,#FB1818)',ab:'airtel'},
+  {code:'freeCharge',name:'FreeCharge',bg:'linear-gradient(101deg,#FF9752,#F56224)',ab:'Freecharge'},
+  {code:'slice',name:'Slice',bg:'linear-gradient(92deg,#E51BE9,#C71ECA)',ab:'slice'}
+];
+const bank=c=>BANKS.find(b=>b.code===c);
+const logo=(c,cls)=>{const b=bank(c);return `<span class="logo ${cls||''}" style="background:${b.bg}">${esc(b.ab)}</span>`;};
+
+// 演示场景
+const SCENES=[
+  {k:'a',label:'① Airtel · 新版客户端（本次改动）',bank:'airtel',oldApp:false,walletUpi:'9876543210@airtel',outcome:'ok',
+   who:'新版 APP / H5。添加页没有 UPI ID 和二维码；验证通过后用钱包返回的 UPI ID 绑定。'},
+  {k:'b',label:'② PhonePe · 其他银行流程不变',bank:'phonepe',oldApp:false,walletUpi:'9876543210@ybl',outcome:'ok',
+   who:'非 Airtel 的银行照旧：填 UPI ID、传二维码、比对一致后才能验证。'},
+  {k:'c',label:'③ Airtel · 老版本 APP',bank:'airtel',oldApp:true,walletUpi:'9876543210@airtel',outcome:'ok',
+   who:'老版本 APP 仍显示 UPI ID 和二维码，会员照填；验证通过后仍以钱包返回的 UPI ID 为准。'},
+  {k:'d',label:'④ Airtel · 返回的 UPI ID 已被绑定',bank:'airtel',oldApp:false,walletUpi:'9876543210@airtel',outcome:'dup',
+   who:'钱包返回的 UPI ID 已经绑在别的账户上，本次绑定失败。'},
+  {k:'e',label:'⑤ Airtel · 钱包没返回 UPI ID',bank:'airtel',oldApp:false,walletUpi:'',outcome:'noupi',
+   who:'验证通过但钱包没给 UPI ID，不生成账户，提示重新验证。'}
+];
+
+const MEMBER={name:'RAVI KUMAR',phone:'9876543210'}; // 会员已锁定姓名、已绑定手机号
+const S={scene:SCENES[0],page:'withdraw',bank:'airtel',bid:0,list:[],form:null,modal:null,ghost:false};
+
+const isAirtelNew=()=>S.bank==='airtel'&&!S.scene.oldApp;
+
+function newForm(){
+  S.form={name:MEMBER.name,phone:MEMBER.phone,upi:S.scene.oldApp?'ravi@airtel':'',pin:'',qr:false};
+}
+function setScene(sc){
+  S.scene=sc;S.bank=sc.bank;S.page='withdraw';S.list=[];S.bid=0;S.modal=null;
+  renderScenes();render();
+}
+function renderScenes(){
+  $('scenes').innerHTML=SCENES.map(s=>`<button class="${s===S.scene?'on':''}" data-k="${s.k}">${esc(s.label)}</button>`).join('');
+  $('scenes').querySelectorAll('button').forEach(b=>b.onclick=()=>setScene(SCENES.find(s=>s.k===b.dataset.k)));
+  const sc=S.scene;
+  $('who').innerHTML=
+    `<div><span class="k">场景说明</span><span class="v">${esc(sc.who)}</span></div>`+
+    `<div><span class="k">所选银行</span><span class="v"><b>${esc(bank(sc.bank).name)}</b></span></div>`+
+    `<div><span class="k">客户端版本</span><span class="v"><b>${sc.oldApp?'老版本（仍要求填 UPI ID）':'新版本'}</b></span></div>`+
+    `<div><span class="k">会员姓名/手机</span><span class="v"><b>${esc(MEMBER.name)}</b> / ${esc(MEMBER.phone)}</span></div>`+
+    `<div><span class="k">钱包验证后返回</span><span class="v"><b>${sc.walletUpi?esc(sc.walletUpi):'（没有 UPI ID）'}</b></span></div>`;
+  const stepsMap={
+    ok:sc.bank==='airtel'&&!sc.oldApp?'<b>结果：</b>绑定成功，账户列表显示钱包返回的 UPI ID。':sc.oldApp?'<b>结果：</b>会员填的是 ravi@airtel，实际绑定 '+esc(sc.walletUpi)+'（以钱包返回为准）。':'<b>结果：</b>流程与现在一样，绑定会员填的 UPI ID（钱包返回一致）。',
+    dup:'<b>结果：</b>Submit 后提示「'+esc(T.airtelLinked)+'」，不生成账户。',
+    noupi:'<b>结果：</b>Submit 后提示「'+esc(T.noUpiReturned)+'」，不生成账户，停留在验证弹窗。'
+  };
+  $('steps').innerHTML=stepsMap[sc.outcome];
+}
+
+function render(){
+  const b=bank(S.bank);
+  if(S.page==='withdraw'){$('navTitle').textContent=T.withdraw;renderWithdraw();}
+  else if(S.page==='list'){$('navTitle').textContent=cap(b.code)+' '+T.paymentMethod;renderList();}
+  else{$('navTitle').textContent=cap(b.code)+' '+T.paymentMethod;renderAdd();}
+  renderModal();
+}
+
+/* 提现页：快捷 UPI 的选银行区 + 账户区 */
+function renderWithdraw(){
+  const act=S.list.find(x=>x.bid===S.bid&&x.bank===S.bank);
+  $('page').innerHTML=`
+  <div class="wd">
+    <div class="omit">余额、提现方式、金额等区域本次未改，此处略</div>
+    <div class="quickWay">
+      <div class="quickWay-title"><svg viewBox="0 0 24 24" fill="none" stroke="#f95959" stroke-width="1.8"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></svg><p>${T.paymentMethods}</p></div>
+      <div class="quickWay-list">${BANKS.map(bk=>`<div class="quickWay-item ${bk.code===S.bank?'select':''}" data-c="${bk.code}">${logo(bk.code)}<span>${esc(bk.name)}</span></div>`).join('')}</div>
+    </div>
+    <div class="c2cUpi ${act?'':'noUpi'}" id="c2c">${act?`<div class="title">${logo(act.bank)}<span>${esc(cap(act.bank))}</span></div><div class="name">${esc(act.upi)}</div><span class="right-icon">›</span>`:esc(T.addUpi)}</div>
+  </div>`;
+  $('page').querySelectorAll('.quickWay-item').forEach(el=>el.onclick=()=>{S.bank=el.dataset.c;S.bid=0;render();});
+  $('c2c').onclick=()=>{S.page='list';render();};
+}
+
+/* Withdraw-FastUpi 账户列表页 */
+function renderList(){
+  const items=S.list.filter(x=>x.bank===S.bank);
+  $('page').innerHTML=`<div class="upi_C"><div class="upi_C-list">${items.length?items.map(it=>`
+    <div class="upi_C-item">
+      <div class="header"><div class="header-title">${logo(it.bank)}<span>${esc(cap(it.bank))}</span></div></div>
+      <div class="upi-body">
+        <div class="upi-body-name">${T.accountName}: ${esc(it.name)}</div>
+        <div class="upi-body-id">UPI ID: ${esc(it.upi)}</div>
+        <div class="upi-select" data-b="${it.bid}"><div class="select-btn ${it.bid===S.bid?'isSelect':''}"></div><span>${it.bid===S.bid?T.currentPayment:T.currentChange}</span></div>
+      </div>
+    </div>`).join(''):`<div class="noData">${T.noPaymentMethodsYet}</div>`}</div></div>
+  <div class="upi_C-addbtn" id="btnAdd">${T.upiAddPaymentMethod}</div>`;
+  $('page').querySelectorAll('.upi-select').forEach(el=>el.onclick=()=>{S.bid=+el.dataset.b;S.page='withdraw';render();});
+  $('btnAdd').onclick=()=>{newForm();S.page='add';render();};
+}
+
+/* AddFastUpi 添加页 */
+function renderAdd(){
+  const f=S.form,an=isAirtelNew(),slice=S.bank==='slice';
+  const ghost=S.ghost&&an;
+  $('page').innerHTML=`
+  <div class="addupi_C">
+    <div class="addupi_C-header">${logo(S.bank)}${T.UPIInformation}</div>
+    <div class="addupi_C-title">UPI Name</div>
+    <div class="upi-input"><input id="iName" maxlength="30" placeholder="${T.phEnterUPIName}" value="${esc(f.name)}" readonly></div>
+    <div class="addupi_C-title">${T.phoneN}</div>
+    <div class="upi-input"><input id="iPhone" maxlength="10" inputmode="numeric" placeholder="${T.plsEnterTel}" value="${esc(f.phone)}"></div>
+    <div class="tip"><svg viewBox="0 0 24 24" fill="none" stroke="#f95959" stroke-width="2"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5.5M12 16.2v.3"/></svg>${T.upiTip1}</div>
+    ${an?`<div class="auto-tip"><svg viewBox="0 0 24 24" fill="none" stroke="#768096" stroke-width="2"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5.5M12 16.2v.3"/></svg>${T.autoLinkTip}<span class="new">NEW</span></div>`:''}
+    ${ghost?`<div class="ghost"><b>Airtel 隐藏</b>UPI ID 标题 + 输入框</div>`:''}
+    ${an?'':`<div class="addupi_C-title">UPI ID</div>
+    <div class="upi-input"><input id="iUpi" maxlength="30" placeholder="${T.phEnterUPIID}" value="${esc(f.upi)}"></div>`}
+    ${slice?`<div class="addupi_C-title">${T.pin}</div><div class="upi-input"><input id="iPin" maxlength="4" inputmode="numeric" placeholder="${T.enterPin}" value="${esc(f.pin)}"></div>`:''}
+    ${ghost?`<div class="ghost"><b>Airtel 隐藏</b>${esc(T.withdrawQrcode)} 标题 + 上传区</div>`:''}
+    ${an?'':`<div class="addupi_C-title">${T.withdrawQrcode}</div>
+    <div class="addupi_C-uploader" id="upl">${f.qr?`<div class="thumb"></div>`:`<div class="addupi_C-uploader-btn"><svg viewBox="0 0 42 42" fill="none" stroke="#f95959" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.25 21.0073V36.75H36.75V21"/><path d="M28.875 13.125L21 5.25L13.125 13.125"/><path d="M20.9922 28V5.25"/></svg><span>${T.uploadImage}</span></div>`}</div>`}
+  </div>
+  <div class="bind-bank-sumbit" id="btnSave">${T.save}</div>`;
+  $('iPhone').oninput=e=>{e.target.value=e.target.value.replace(/[^0-9]/g,'');f.phone=e.target.value;syncBtn();};
+  if($('iUpi'))$('iUpi').oninput=e=>{e.target.value=e.target.value.replace(/[一-龥]/g,'');f.upi=e.target.value;syncBtn();};
+  if($('iPin'))$('iPin').oninput=e=>{e.target.value=e.target.value.replace(/[^0-9]/g,'');f.pin=e.target.value;};
+  if($('upl'))$('upl').onclick=()=>{ // 模拟上传：现有逻辑会解码二维码并和 UPI ID 比对
+    if(!f.upi){toast(T.phEnterUPIID);return;}
+    f.qr=true;render();
+  };
+  $('btnSave').onclick=bindSubmit;
+  syncBtn();
+}
+function syncBtn(){const f=S.form,b=$('btnSave');if(!b)return;b.classList.toggle('disable',!(f.name&&f.phone&&(isAirtelNew()||f.upi)));}
+
+function bindSubmit(){
+  const f=S.form,an=isAirtelNew();
+  const upiRegex=/^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*$/;
+  if(!f.phone)return toast(T.pphone);
+  if(f.phone.length!==10)return toast(T.wrongTel);
+  if(S.bank==='slice'&&!/^\d{4}$/.test(f.pin))return toast(T.pinFormatError);
+  if(!an){
+    if(!upiRegex.test(f.upi))return toast(T.UPIID);
+    if(!f.qr)return toast(T.withdrawQrcodeTips);
+  }
+  S.modal={code:'',pin:'',sent:false,secs:0};
+  renderModal();
+}
+
+/* OTP Verify 弹窗 */
+let timer;
+function renderModal(){
+  const ov=$('overlay');
+  if(!S.modal){ov.classList.remove('on');ov.innerHTML='';clearInterval(timer);return;}
+  const m=S.modal,f=S.form,an=isAirtelNew(),slice=S.bank==='slice',ghost=S.ghost&&an;
+  ov.classList.add('on');
+  ov.innerHTML=`
+  <div class="ntf-kyc-otp">
+    <div class="ntf-kyc-otp__header"><span class="ntf-kyc-otp__header-line ntf-kyc-otp__header-line--left"></span><h5>${T.verifyOpt}</h5><span class="ntf-kyc-otp__header-line ntf-kyc-otp__header-line--right"></span></div>
+    <div class="ntf-kyc-otp__content">
+      <div class="ntf-kyc-otp__hit">
+        <p>${T.paymentTips}!</p>
+        <p>${T.paymentMethod}: <span class="ntf-kyc-otp__hit-value">${esc(cap(S.bank))}</span></p>
+        ${an?'':`<p>UPI ID: <span class="ntf-kyc-otp__hit-value">${esc(f.upi)}</span></p>`}
+      </div>
+      ${ghost?`<div class="ghost"><b>Airtel 隐藏</b>UPI ID 那一行</div>`:''}
+      <div class="ntf-kyc-otp__title">${T.phoneN}</div>
+      <div class="van-cell"><input disabled value="${esc(f.phone)}" placeholder="${T.phoneN}"></div>
+      ${slice?`<div class="ntf-kyc-otp__title">${T.pin}</div><div class="van-cell"><input id="mPin" inputmode="numeric" maxlength="4" placeholder="${T.enterPin}" value="${esc(m.pin)}"></div>`:''}
+      <div class="ntf-kyc-otp__title">${T.VerificationCode}</div>
+      <div class="van-cell"><input id="mCode" inputmode="numeric" maxlength="6" placeholder="${T.phEnterVerificationCode}" value="${esc(m.code)}"><button class="ntf-kyc-otp__code" id="mSend" ${m.secs>0?'disabled':''}>${m.secs>0?m.secs+'S':T.send}</button></div>
+      <div class="ntf-kyc-otp__actions">
+        <div class="btn primary ${m.code?'':'dis'}" id="mSubmit">${T.submit}</div>
+        <div class="btn default" id="mCancel">${T.cancel}</div>
+      </div>
+    </div>
+    <div class="ntf-kyc-otp__footer"><span id="mClose"><svg viewBox="0 0 60 60" fill="none"><path d="M30 57C44.9117 57 57 44.9117 57 30C57 15.0883 44.9117 3 30 3C15.0883 3 3 15.0883 3 30C3 44.9117 15.0883 57 30 57Z" stroke="white" stroke-width="4" stroke-linejoin="round"/><path d="M43 17L17 43" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 17L43 43" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+  </div>`;
+  const code=$('mCode');
+  code.oninput=()=>{code.value=code.value.replace(/[^0-9]/g,'');m.code=code.value;$('mSubmit').classList.toggle('dis',!m.code);};
+  if($('mPin'))$('mPin').oninput=e=>{e.target.value=e.target.value.replace(/[^0-9]/g,'');m.pin=e.target.value;};
+  $('mSend').onclick=()=>{ // 发送验证码：Airtel 新流程不带 UPI ID
+    m.sent=true;m.secs=60;renderModal();
+    clearInterval(timer);timer=setInterval(()=>{m.secs--;const b=$('mSend');if(!b){clearInterval(timer);return;}if(m.secs<=0){clearInterval(timer);m.secs=0;b.disabled=false;b.textContent=T.send;}else b.textContent=m.secs+'S';},1000);
+  };
+  const close=()=>{S.modal=null;clearInterval(timer);renderModal();};
+  $('mCancel').onclick=close;$('mClose').onclick=close;
+  $('mSubmit').onclick=()=>{
+    if(!m.code)return;
+    if(slice&&!m.pin)return toast(T.enterPin);
+    const sc=S.scene;
+    if(sc.outcome==='dup'){m.code='';toast(T.airtelLinked);renderModal();return;}
+    if(sc.outcome==='noupi'){m.code='';toast(T.noUpiReturned);renderModal();return;}
+    // 绑定成功：以钱包返回的 UPI ID 为准
+    const upi=sc.walletUpi||f.upi;
+    const bid=S.list.length+1;
+    S.list.push({bid,bank:S.bank,name:f.name,upi});
+    S.bid=bid;S.modal=null;clearInterval(timer);
+    toast(T.addedSuccessfully);
+    S.page='list';render();
+  };
+}
+
+$('navBack').onclick=()=>{
+  if(S.page==='add'){S.page='list';render();}
+  else if(S.page==='list'){S.page='withdraw';render();}
+  else toast('（模拟：返回上一页）');
+};
+$('ghostTg').onchange=e=>{S.ghost=e.target.checked;render();};
+
+let tt;
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2000);}
+
+// 需求说明抽屉
+const openDoc=()=>{$('drawer').classList.add('on');$('dmask').classList.add('on');};
+const closeDoc=()=>{$('drawer').classList.remove('on');$('dmask').classList.remove('on');};
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDoc();});
+
+setScene(SCENES[0]);
+</script>
+</body>
+</html>
