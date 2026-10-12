@@ -1,0 +1,1 @@
+import{l as e}from"./vue-router-lHZH_zM8.js";import{Yn as t,qn as n}from"./main-BWbVHf5k.js";import"./useRouteTabs-CB35i14z.js";function r(e){console.error(e)}function i(i){let a;i||(a=e());let{push:o,replace:s}=i||a;function c(e=t.BASE_HOME,i=!1){if(e)if(n(e))i?s(e).catch(r):o(e).catch(r);else{let t=e;i?s(t).catch(r):o(t).catch(r)}}return c}export{i as t};

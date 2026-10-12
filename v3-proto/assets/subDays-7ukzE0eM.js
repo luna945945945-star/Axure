@@ -1,0 +1,1 @@
+import{Ut as e}from"./vendor-naive-CpvyjugV.js";function t(t,n,r){return e(t,-n,r)}export{t};

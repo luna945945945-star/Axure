@@ -1,0 +1,1 @@
+import{Fn as e,qn as t}from"./vendor-naive-CpvyjugV.js";import{nr as n,tr as r}from"./main-BWbVHf5k.js";var i=Symbol(`betRecordEmbed`);function a(e){n(r.global.locale.value,`game`),t(i,e)}function o(){return e(i,void 0)}export{o as n,a as t};

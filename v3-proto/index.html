@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-cmn-Hans" id="htmlRoot" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      // [部署兜底] SPA 深链还原：配合 GitHub Pages 根 404.html 重定向，把 /base/?/x/y 还原成 /base/x/y
+      (function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search.slice(1).split('&').map(function (s) {
+            return s.replace(/~and~/g, '&');
+          }).join('?');
+          window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+        }
+      })(window.location);
+      // [部署兜底] 线上(github.io)注入演示 token 跳过登录；本地 dev 不受影响
+      try {
+        if (location.hostname.endsWith('github.io') || location.hostname === 'v3-lottoplatform-backend.pages.dev') {
+          var __k = 'ACCESS-TOKEN';
+          if (!localStorage.getItem(__k)) {
+            localStorage.setItem(__k, JSON.stringify({ value: 'prototype-demo', expire: null }));
+          }
+          // 角色不再在此预设默认值——已改由 role.ts 的 lockedRole() 按部署路径强制锁定
+          // （/lotto-v3-admin/ → admin，/lotto-v3/ → tenant，不可通过浮窗互切，2026-07-22）
+        }
+      } catch (e) {}
+    </script>
+    <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" />
+    <meta content="webkit" name="renderer" />
+    <meta
+      content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0"
+      name="viewport"
+    />
+    <!-- 原型环境专用标签页图标：固定绿底白字「V3」，不跟主题色变，方便和真实环境区分
+         （src/components/Brand/favicon.ts 在主题切换时同步指向同一文件）-->
+    <link id="app-favicon" rel="icon" sizes="any" type="image/svg+xml" href="/Axure/v3-proto/prototype-favicon.svg" />
+    <title>AR 原型平台</title>
+    <script type="module" crossorigin src="/Axure/v3-proto/assets/main-BWbVHf5k.js"></script>
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/_plugin-vue_export-helper-BJ1fRKRD.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/rolldown-runtime-CpWojdLp.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/modulepreload-polyfill-Cf3xff8G.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/preload-helper-D-2bB0Cw.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/vendor-codemirror-C-09vs3r.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/vendor-lodash-Bt5EL6tn.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/vendor-naive-CpvyjugV.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/vendor-editor-CQFsqbtp.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/vue-router-lHZH_zM8.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/memberSeeds-C59STHc0.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/tenantMaster-CCxu_DKC.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/merchantMembers-C8oL99uI.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/role-DWM2BTKv.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/usePermission-BVt7c-r5.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/main-BWbVHf5k.js">
+    <link rel="modulepreload" crossorigin href="/Axure/v3-proto/assets/hooks-B24cJhVl.js">
+    <link rel="stylesheet" crossorigin href="/Axure/v3-proto/assets/hooks-D1xxkpw4.css">
+    <link rel="stylesheet" crossorigin href="/Axure/v3-proto/assets/main-BVm1lleK.css">
+  </head>
+  <body>
+    <div id="appProvider" style="display: none"></div>
+    <div id="app">
+      <style>
+        .first-loading-wrap {
+          display: flex;
+          width: 100%;
+          height: 100vh;
+          justify-content: center;
+          align-items: center;
+          flex-direction: column;
+        }
+
+        .first-loading-wrap > h1 {
+          font-size: 128px;
+        }
+
+        .first-loading-wrap .loading-wrap {
+          padding: 98px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .dot {
+          animation: antRotate 1.2s infinite linear;
+          transform: rotate(45deg);
+          position: relative;
+          display: inline-block;
+          font-size: 32px;
+          width: 32px;
+          height: 32px;
+          box-sizing: border-box;
+        }
+
+        .dot i {
+          width: 14px;
+          height: 14px;
+          position: absolute;
+          display: block;
+          background-color: #1890ff;
+          border-radius: 100%;
+          transform: scale(0.75);
+          transform-origin: 50% 50%;
+          opacity: 0.3;
+          animation: antSpinMove 1s infinite linear alternate;
+        }
+
+        .dot i:nth-child(1) {
+          top: 0;
+          left: 0;
+        }
+
+        .dot i:nth-child(2) {
+          top: 0;
+          right: 0;
+          -webkit-animation-delay: 0.4s;
+          animation-delay: 0.4s;
+        }
+
+        .dot i:nth-child(3) {
+          right: 0;
+          bottom: 0;
+          -webkit-animation-delay: 0.8s;
+          animation-delay: 0.8s;
+        }
+
+        .dot i:nth-child(4) {
+          bottom: 0;
+          left: 0;
+          -webkit-animation-delay: 1.2s;
+          animation-delay: 1.2s;
+        }
+
+        @keyframes antRotate {
+          to {
+            -webkit-transform: rotate(405deg);
+            transform: rotate(405deg);
+          }
+        }
+
+        @-webkit-keyframes antRotate {
+          to {
+            -webkit-transform: rotate(405deg);
+            transform: rotate(405deg);
+          }
+        }
+
+        @keyframes antSpinMove {
+          to {
+            opacity: 1;
+          }
+        }
+
+        @-webkit-keyframes antSpinMove {
+          to {
+            opacity: 1;
+          }
+        }
+      </style>
+      <div class="first-loading-wrap">
+        <div class="loading-wrap">
+          <span class="dot dot-spin"><i></i><i></i><i></i><i></i></span>
+        </div>
+      </div>
+    </div>
+    <script>
+      var globalThis = window;
+    </script>
+  </body>
+</html>

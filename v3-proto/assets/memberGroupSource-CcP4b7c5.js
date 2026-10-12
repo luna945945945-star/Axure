@@ -1,0 +1,1 @@
+import"./data-DCKNXvnH.js";var e={daman:1050,"91club":1048,fun88:1052,jeetwin:1054,"55club":1021,ugame:1040,pop888:1038,betbra:1042,bdggame:1070,thaifortune:1030,euroking:1080};export{e as t};
