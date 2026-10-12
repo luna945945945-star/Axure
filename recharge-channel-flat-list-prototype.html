@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>充值 / 提现通道列表优化 · 交互原型</title>
+<style>
+/* 取值对齐 ar_platform_admin（origin/uat）默认主题：主题色 #0960bd、Naive UI small 控件 */
+:root{
+  --pri:#0960bd;--pri-h:#357dc9;--pri-soft:rgba(9,96,189,.08);
+  --line:#efeff5;--line2:#e0e0e6;--bg:#f5f7f9;
+  --t1:#1f2225;--t2:#333639;--t3:#767c82;--t4:#a2a7ad;
+  --ok:#18a058;--err:#d03050;--warn:#f0a020;--info:#2080f0;--link:#1677ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);background:var(--bg)}
+button{font:inherit}
+.newf{display:inline-block;background:#f5222d;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:0 4px;line-height:14px;letter-spacing:.2px;vertical-align:1px;margin-left:4px;font-style:normal}
+
+/* 列宽：按内容自适应 + 表头右边缘拖动调宽（最小 60px）+ 双击恢复自适应 */
+.g th{position:sticky}
+.g th .rz{position:absolute;top:0;right:-4px;width:8px;height:100%;cursor:col-resize;z-index:4}
+.g th .rz:hover,.g th .rz.on{background:linear-gradient(90deg,transparent 3px,var(--pri) 3px,var(--pri) 5px,transparent 5px)}
+body.resizing{cursor:col-resize;user-select:none}
+/* 充值大类：逗号分隔的文字，大类名内不断行，跟着列宽换行 */
+.cats{display:block;white-space:normal;overflow-wrap:anywhere}
+.cats>span{white-space:nowrap}
+table.g.u td{overflow:hidden}
+/* 两个视图都按 uat 实测：两行单元格、行高约 54px，通道名称超长省略（uat 现状） */
+table.g.u td{padding:5px 8px;line-height:22px}
+table.g.u .kv{line-height:22px}
+table.g.u .kv .v{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+table.g.measuring .kv .v{overflow:visible}
+table.g.measuring td.wr .cats{white-space:nowrap}
+table.g.u td.wr .cats>span{white-space:normal}
+table.g.u td span{white-space:nowrap}
+table.g.u td.wr .cats{white-space:normal}
+table.g.u .idc{display:flex;flex-direction:column;gap:2px}
+/* 新方案：两行样式，单元格内不折行 */
+table.g.cp2 td{padding:6px 8px;line-height:22px}
+table.g.cp2 .kv .v{white-space:nowrap}
+table.g.cp2 td.wr{white-space:normal}
+table.g.cp2 td span{white-space:nowrap}
+table.g.cp2 td.wr .cats{white-space:normal}
+table.g.cp2 td.wr .cats>span{white-space:nowrap}
+/* 新方案：V1 式单行紧凑表 */
+table.g.cp td{padding:6px 8px;white-space:nowrap;line-height:20px}
+table.g.cp td.wr{white-space:normal}
+table.g.cp th{padding:8px 8px}
+table.g.cp .num{font-variant-numeric:tabular-nums}
+.fx1,.fx2,.fx3{position:sticky;z-index:1}
+.fx1{left:0}.fx2{left:110px}.fx3{left:190px;box-shadow:6px 0 6px -6px rgba(0,0,0,.18)}
+.g th.fx1,.g th.fx2,.g th.fx3{z-index:3}
+.avw{color:var(--err);margin-left:6px;font-size:12px}
+.cats .cur{font-weight:700}
+.cats .off{color:#a2a7ad}
+/* 原型演示条（不属于页面） */
+.demo{display:flex;align-items:center;gap:12px;margin:10px 16px 0;padding:8px 12px;background:#fffbe6;border:1px dashed #f0c36d;border-radius:4px;font-size:12.5px;color:#7a5a00;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid #d9a93a;border-radius:4px;overflow:hidden}
+.seg span{padding:3px 14px;cursor:pointer;background:#fff;color:#7a5a00}
+.seg span.on{background:#d9a93a;color:#fff;font-weight:600}
+.demo .cnt b{color:var(--t1)}
+
+/* ============ 顶部路径 ============ */
+.top{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 0}
+.crumb{font-size:12px;color:var(--t3)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--t2);font-weight:600}
+.req-btn{height:30px;padding:0 14px;border-radius:15px;background:#fff;border:1px solid #9bbbe4;color:var(--pri);font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 2px 8px rgba(9,96,189,.12)}
+.req-btn:hover{background:#f0f6fd}
+
+.page{padding:10px 16px 40px}
+.panel{background:#fff;border-radius:3px;padding:0 12px 10px}
+.tabs{display:flex;gap:28px;border-bottom:1px solid var(--line2);margin:0 -12px 12px;padding:0 12px}
+.tabs>span{padding:10px 2px;cursor:pointer;color:var(--t2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs>span.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:600}
+
+/* ============ 搜索区 ============ */
+.sf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 24px;margin-bottom:12px}
+.fi{display:flex;align-items:center;min-width:0}
+.fi>label{flex:0 0 130px;text-align:right;padding-right:10px;color:var(--t2);white-space:nowrap}
+.fi>label i{color:var(--err);font-style:normal;margin-right:3px}
+.fi select,.fi input{height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 8px;font-size:13px;background:#fff;color:var(--t1);outline:none;min-width:0;flex:1}
+.fi select.ph{color:var(--t4)}
+.fi input::placeholder{color:var(--t4)}
+.fi select:focus,.fi input:focus{border-color:var(--pri)}
+.fi.hl select{border-color:#f0a020;box-shadow:0 0 0 2px rgba(240,160,32,.2)}
+.act{justify-content:flex-end;gap:8px;grid-column:-2/-1}
+.btn{height:28px;padding:0 14px;border-radius:3px;border:1px solid var(--line2);background:#fff;color:var(--t2);cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn:hover{color:var(--pri);border-color:var(--pri)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.pri:hover{background:var(--pri-h);border-color:var(--pri-h);color:#fff}
+.btn.danger{background:var(--err);border-color:var(--err);color:#fff}
+.lnk{color:var(--link);cursor:pointer;white-space:nowrap}
+.lnk:hover{text-decoration:underline}
+.lnk.del{color:var(--err)}
+
+/* ============ 工具栏 ============ */
+.tb{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.aw-tip{display:flex;flex-direction:column;justify-content:center;margin-left:8px;padding:2px 10px;border-left:3px solid var(--pri);background:#f4f8fd;font-size:12px;line-height:1.5;color:var(--t2)}
+.aw-tip .s{color:var(--t3)}
+.tb .sp{flex:1}
+.tb .hint{font-size:12.5px;color:var(--t3)}
+.tb .hint b{color:var(--t1)}
+
+/* ============ 表格（列宽对齐 uat index.vue） ============ */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:3px;max-height:calc(100vh - 290px);overflow-y:auto}
+table.g{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;table-layout:fixed}
+.g th{background:#fafafc;font-weight:600;color:var(--t2);padding:10px 10px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;white-space:nowrap;position:sticky;top:0;z-index:2}
+.g td{padding:9px 8px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;vertical-align:middle;background:#fff;line-height:1.55}
+.g td.l{text-align:left}
+.g tr:hover td{background:#f8f9fb}
+.g tr.flash td{background:#fff7e6 !important;transition:background .2s}
+.g th.newcol{background:#fff1f0}
+.fxl{position:sticky;left:0;z-index:1;box-shadow:6px 0 6px -6px rgba(0,0,0,.18)}
+.g th.fxl{z-index:3}
+.fxr{position:sticky;right:0;z-index:1;box-shadow:-6px 0 6px -6px rgba(0,0,0,.18)}
+.g th.fxr{z-index:3}
+.tg{display:inline-block;padding:0 7px;line-height:20px;border-radius:3px;border:1px solid;font-size:12px;white-space:nowrap}
+.tg.ok{color:var(--ok);border-color:rgba(24,160,88,.3);background:rgba(24,160,88,.08)}
+.tg.info{color:var(--info);border-color:rgba(32,128,240,.3);background:rgba(32,128,240,.08)}
+.tg.def{color:var(--t2);border-color:var(--line2);background:#fafafc}
+.kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:1px 6px;line-height:22px;text-align:left}
+.kv .k{color:#64748b;white-space:nowrap}
+.kv .v{min-width:0;overflow-wrap:anywhere}
+.ok-t{color:var(--ok)}
+.err-t{color:var(--err)}
+.mute{color:#94a3b8}
+.sw{display:inline-block;width:32px;height:18px;border-radius:9px;background:#dbdbdf;position:relative;cursor:pointer;vertical-align:middle}
+.sw i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s}
+.sw.on{background:var(--pri)}
+.sw.on i{left:16px}
+.qm{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid #b8bcc2;color:#999;font-size:9px;cursor:help;vertical-align:1px;font-weight:400;margin-left:3px}
+.ops{display:flex;gap:10px;justify-content:center}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:12px 4px 2px;font-size:12.5px;color:var(--t2)}
+.pg-n{min-width:24px;height:24px;border:1px solid var(--line2);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:var(--t3)}
+.pg-n.on{border-color:var(--pri);color:var(--pri)}
+
+/* 现状：充值大类合并单元格 */
+.cat-logo{width:40px;height:40px;border-radius:50%;border:1px solid var(--line2);display:inline-flex;align-items:center;justify-content:center;font-weight:700;color:var(--t3);background:#f6f7f9;font-size:13px}
+.cat-cell{display:flex;flex-direction:column;align-items:center;gap:8px}
+.cat-cell .n{font-weight:600}
+
+/* 排序按钮 */
+.sorts{display:inline-flex;gap:4px;align-items:center}
+.sb{width:24px;height:22px;border-radius:3px;border:0;background:rgba(9,96,189,.1);color:var(--pri);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:12px;line-height:1}
+.sb:hover{background:rgba(9,96,189,.18)}
+.sb[disabled]{background:#f2f3f5;color:#c2c6cc;cursor:not-allowed}
+.sorts .q{color:#94a3b8;cursor:help;font-size:13px;margin-left:2px}
+
+/* 新方案：所挂大类小表 */
+.mt{display:grid;grid-template-columns:minmax(110px,max-content) 78px 56px;gap:0 10px;text-align:left;line-height:22px}
+.mt .h{color:#94a3b8;font-size:12px;border-bottom:1px solid var(--line);margin-bottom:2px}
+.mt .c{white-space:nowrap}
+.mt .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.mt .cur{font-weight:700}
+.mt .off{color:#a2a7ad}
+
+/* ============ 消息 / 提示 / 弹窗 ============ */
+.msgs{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.msg{background:#fff;box-shadow:0 3px 6px -4px rgba(0,0,0,.12),0 6px 16px 0 rgba(0,0,0,.08),0 9px 28px 8px rgba(0,0,0,.05);border-radius:3px;padding:9px 14px;display:flex;gap:8px;align-items:flex-start;max-width:640px;transition:all .3s}
+.msg.out{opacity:0;transform:translateY(-6px)}
+.msg .ic{width:16px;height:16px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:2px;background:var(--ok)}
+.tip{position:fixed;z-index:1100;background:#1f2733;color:#fff;font-size:12px;line-height:1.7;padding:6px 10px;border-radius:4px;max-width:400px;white-space:pre-line;pointer-events:none;display:none;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:900;display:none;align-items:flex-start;justify-content:center;padding-top:6vh;overflow-y:auto}
+.mask.show{display:flex}
+.dlg{background:#fff;border-radius:4px;box-shadow:0 6px 24px rgba(0,0,0,.2);width:440px;max-width:94vw;margin-bottom:40px}
+.dlg.wide{width:min(1020px,96vw)}
+/* 左右一屏 */
+.lr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 14px}
+.lr-col{min-width:0}
+.lr-col+.lr-col{border-left:1px solid var(--line2);padding-left:14px}
+.lr-h{font-weight:700;font-size:14px;margin:0 0 10px;padding-left:8px;border-left:3px solid var(--pri);line-height:16px}
+.fm2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.fm2 .it{display:flex;flex-direction:column;gap:3px;margin-bottom:7px;min-width:0}
+.fm2 .it.w{grid-column:1/-1}
+.fm2 label{color:var(--t2);font-size:12.5px}
+.fm2 label i{color:var(--err);font-style:normal;margin-left:2px}
+.fm2 input,.fm2 select,.lr select{height:30px;border:1px solid var(--line2);border-radius:3px;padding:0 8px;font-size:13px;background:#fff;min-width:0}
+.fm2 .ip{min-height:30px}
+.card{border:1px solid var(--line2);border-radius:4px;padding:9px 12px;background:#fcfcfd;margin-bottom:10px}
+.card-h{font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.lr-row{display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap}
+.lr-row .lb{color:var(--t2);white-space:nowrap}
+.lr-row input[type=number]{height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 6px}
+.lr-row select{flex:1;min-width:110px}
+#ed-mask .dlg-b,#wd-ed-mask .dlg-b{max-height:calc(100vh - 160px);overflow-y:auto}
+#cf-mask{z-index:950}
+#wd-ed-mask .dlg.wide{width:min(1020px,96vw)}
+#wd-ed-mask .lr{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 20px}
+#wd-ed-mask .lr-col+.lr-col{padding-left:20px}
+.card2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+@media (max-width:1100px){.lr{grid-template-columns:1fr}.lr-col+.lr-col{border-left:0;padding-left:0}}
+.dlg-h{padding:14px 18px;font-size:15px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.dlg-h .x{cursor:pointer;color:var(--t3);font-weight:400}
+.dlg-b{padding:0 18px 8px;line-height:1.8}
+.dlg-f{padding:10px 18px 14px;display:flex;justify-content:flex-end;gap:8px}
+.dlg-b ul{margin:4px 0 0 18px}
+
+/* 编辑弹窗：两列表单 */
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px}
+.fm .it{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fm .it.w{grid-column:1/-1}
+.fm label{color:var(--t2)}
+.fm label i{color:var(--err);font-style:normal;margin-left:2px}
+.ip{min-height:30px;border:1px solid var(--line2);border-radius:3px;padding:4px 8px;background:#fff;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ip.dis{background:#fafafc;color:var(--t4)}
+.ms{position:relative;cursor:pointer}
+.ms .chip{display:inline-flex;align-items:center;gap:4px;background:#f2f3f5;border-radius:3px;padding:0 6px;line-height:22px;font-size:12.5px}
+.ms .chip b{font-weight:400;color:var(--t3);cursor:pointer}
+.ms .pop{position:absolute;left:-1px;right:-1px;top:calc(100% + 4px);background:#fff;border:1px solid var(--line2);border-radius:3px;box-shadow:0 6px 16px rgba(0,0,0,.1);z-index:5;display:none;padding:4px 0}
+.ms.open .pop{display:block}
+.ms .op{padding:5px 12px;display:flex;justify-content:space-between}
+.ms .op:hover{background:#f3f5f8}
+.ms .op.sel{color:var(--pri)}
+.ms .op.dis{color:var(--t4);cursor:not-allowed}
+.hintline{font-size:12px;color:var(--t3)}
+.gift{border:1px solid var(--line2);border-radius:4px;padding:10px 12px;background:#fcfcfd}
+.gift .tt{font-weight:600;margin-bottom:2px}
+.gift .row{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.gift input[type=number]{width:110px;height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 8px}
+table.et{border-collapse:collapse;margin-top:8px;font-size:12.5px;min-width:520px}
+table.et th,table.et td{border:1px solid var(--line2);padding:5px 10px;text-align:left;white-space:nowrap}
+table.et th{background:#fafafc;font-weight:600;color:var(--t2)}
+table.et td.r{text-align:right;font-variant-numeric:tabular-nums}
+.newbox{outline:2px dashed #ffa39e;outline-offset:3px;border-radius:3px}
+
+/* ============ 右侧需求说明抽屉 ============ */
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:12px;padding:12px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:2px}
+.req-handle:hover{background:var(--pri-h)}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:800;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-900px;width:880px;max-width:94vw;height:100%;background:#fff;z-index:801;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 18px;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:var(--t3);font-size:18px}
+.req-body{flex:1;overflow-y:auto;padding:16px 18px 40px;font-size:12.5px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body .h1:first-child{margin-top:0}
+.req-body table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 6px}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 8px;text-align:left;font-weight:600;color:#1c4c8c}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 8px;vertical-align:top;line-height:1.7;text-align:left}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 11px;margin:6px 0;line-height:1.75;border-radius:0 4px 4px 0}
+.req-body .br b{color:#1c4c8c}
+.req-body .br ul{margin:4px 0 0 18px}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+.req-body code{font-family:Menlo,Consolas,monospace;font-size:11.5px;background:#f2f3f5;padding:0 4px;border-radius:3px}
+
+@media (max-width:1535px){.sf{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:1100px){.sf{grid-template-columns:repeat(2,minmax(0,1fr))}.fi>label{flex-basis:110px}}
+@media (max-width:720px){.sf{grid-template-columns:1fr}.fm{grid-template-columns:1fr}}
+/* NEW 标记：悬浮在表头右上角，不占列宽（量列宽时也不计入） */
+.g th .newf{position:absolute;top:0;right:3px;margin:0;line-height:10px;padding:0 3px;border-radius:0 0 3px 3px;pointer-events:none;z-index:1}
+/* 暂时隐藏：现状对照 + 需求说明（body.hide-review；去掉这个 class 即恢复） */
+body.hide-review .rv,body.hide-review .req-handle,body.hide-review .req-btn,body.hide-review .req-mask,body.hide-review .req-drawer{display:none !important}
+/* 快捷金额：从其他大类复制 / 粘贴填充 */
+.qa-copy{display:flex;gap:8px;align-items:center;margin:4px 0 10px;padding:8px 10px;border:2px dashed #ffa39e;border-radius:4px;background:#fffafa;flex-wrap:wrap}
+.qa-copy input{flex:1;min-width:260px;height:30px;border:1px solid var(--line2);border-radius:3px;padding:0 8px;font-family:Menlo,Consolas,monospace;font-size:12.5px}
+.qa-rows .lr-row{margin-top:6px}
+.qa-rows .lr-row input,.qa-rows .lr-row select{height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 6px}
+.qa-rows .lr-row select{flex:0 0 110px;min-width:0}
+.pc{margin-top:4px;padding:6px 10px;border-radius:4px}
+.pc table.et{margin-top:4px}
+.pc table.et th,.pc table.et td{padding:3px 8px;white-space:normal}
+.pc .card-h{gap:8px;margin-bottom:6px}
+.up{width:70px;height:70px;border:1px dashed var(--line2);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--t4);font-size:24px;background:#fafafc}
+#rcc-mask .dlg-b{max-height:calc(100vh - 150px);overflow-y:auto}
+#rcc-mask .card{margin-bottom:6px;padding:7px 12px}
+#rcc-mask .fm2 .it{margin-bottom:5px}
+#rcc-mask .qa-copy input{min-width:160px}
+#rcc-mask .qa-copy{margin:2px 0 8px}
+.ol-sum{margin-top:8px;padding:6px 8px;background:#f4f8fd;border-left:3px solid var(--pri);font-size:12.5px;line-height:1.7;color:var(--t2)}
+.as-row{flex-wrap:nowrap;gap:6px}
+.as-row select{flex:1 1 auto;min-width:150px;width:auto}
+.as-row .lb{flex:0 0 auto;width:56px}
+.as-amt{margin-top:4px}
+.as-blk+.as-blk{margin-top:6px;padding-top:6px;border-top:1px dashed var(--line2)}
+.fm2 .it.err input{border-color:var(--err);box-shadow:0 0 0 2px rgba(208,48,80,.15)}
+input.err-in{border-color:var(--err) !important;box-shadow:0 0 0 2px rgba(208,48,80,.15)}
+.btn.sm{height:24px;padding:0 10px;font-size:12px}
+.btn.pri-o{color:var(--pri);border-color:var(--pri);background:#fff}
+.qa-menu{position:relative;display:inline-block}
+.qa-pop{display:none;position:absolute;right:0;top:calc(100% + 4px);z-index:20;background:#fff;border:1px solid var(--line2);border-radius:4px;box-shadow:0 6px 16px rgba(0,0,0,.12);padding:4px 0;width:300px}
+.qa-menu.open .qa-pop{display:block}
+.qa-it{display:block;padding:6px 12px;cursor:pointer;line-height:1.5}
+.qa-it:hover{background:#f3f5f8}
+.qa-it b{display:block;font-weight:500;color:var(--t1);font-size:13px}
+.qa-it i{display:block;font-style:normal;color:var(--t3);font-size:12px}
+/* 通道弹窗右栏：不用一块块的卡片，和左栏一样平铺，组与组之间一条细线 */
+#ed-mask .lr-col .card,#wd-ed-mask .lr-col .card{border:0;border-top:1px solid var(--line2);border-radius:0;background:none;padding:10px 0 8px;margin:0}
+#ed-mask .lr-col .lr-h+.card,#wd-ed-mask .lr-col .lr-h+.card,#wd-ed-mask .lr-col .lr-h+.card2>.card:first-child,#wd-ed-mask .lr-col .lr-h+.card2>.card{border-top:0;padding-top:0}
+#wd-ed-mask .card2{border-bottom:0}
+#ed-mask .newbox,#wd-ed-mask .newbox{outline:none}
+#ed-mask .card-h,#wd-ed-mask .card-h{font-size:13px;color:var(--t2)}
+/* 只读字段：长文字换行完整显示，不溢出 */
+.fm2 .ip{height:auto;min-height:30px;white-space:normal;word-break:break-all;line-height:1.4;padding-top:5px;padding-bottom:5px}
+.cb{position:relative;flex:1 1 160px;min-width:160px}
+.cb input{width:100%;height:30px;border:1px solid var(--line2);border-radius:3px;padding:0 8px}
+.cb input:focus{border-color:var(--pri);outline:0}
+.cb-pop{display:none;position:absolute;left:0;right:0;top:calc(100% + 2px);z-index:30;background:#fff;border:1px solid var(--line2);border-radius:3px;box-shadow:0 6px 16px rgba(0,0,0,.12);max-height:200px;overflow-y:auto;padding:4px 0}
+.cb:focus-within .cb-pop{display:block}
+.cb-it{display:block;padding:5px 10px;cursor:pointer;line-height:1.45}
+.cb-it:hover{background:#f3f5f8}
+.cb-it b{display:block;font-weight:500;font-size:13px;color:var(--t1)}
+.cb-it i{display:block;font-style:normal;font-size:12px;color:var(--t3);white-space:normal;word-break:break-all}
+.cb-empty{display:block;padding:6px 10px;color:var(--t4);font-size:12.5px}
+.qa-add{margin-top:8px;height:28px;border:1px dashed var(--line2);border-radius:3px;display:flex;align-items:center;justify-content:center;gap:4px;color:var(--pri);cursor:pointer;font-size:12.5px}
+.qa-add:hover{border-color:var(--pri);background:#f4f8fd}
+.as-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:8px}
+.as-g{display:inline-flex;align-items:center;gap:6px;flex:1 1 auto}
+.as-g select{flex:1 1 150px;min-width:150px;height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 6px}
+.as-g input{width:96px;height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 6px}
+.as-g input:disabled,.as-g select:disabled{background:#fafafc;color:var(--t4)}
+.as-g .lb{white-space:nowrap;color:var(--t2)}
+.as-tag{font-size:12px;color:var(--t3);margin-top:2px}
+.qa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qa-cell{position:relative;display:flex}
+.qa-cell input{width:100%;height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 20px 0 6px}
+.qa-cell .x{position:absolute;right:5px;top:6px;font-size:11px;color:var(--t4);cursor:pointer}
+.qa-cell .x:hover{color:#d4380d}
+.seg2{display:inline-flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden}
+.seg2 span{padding:3px 16px;cursor:pointer;background:#fff}
+.seg2 span.on{color:var(--pri);box-shadow:inset 0 0 0 1px var(--pri)}
+#qa-mask textarea{width:100%;border:1px solid var(--line2);border-radius:3px;padding:4px 6px;font:inherit;resize:vertical}
+.fm2 .it label.rd{display:inline-flex;align-items:center;gap:4px;margin:0;font-size:inherit;color:inherit}
+.nf-wrap{position:relative;display:inline-block}
+.newf.nf-up{position:absolute;top:-9px;right:-30px;margin:0;line-height:12px;cursor:help}
+.seg2.dis span{cursor:not-allowed;color:var(--t4);background:#fafafc}
+.if-chs{border:1px solid var(--line2);border-radius:3px;margin-top:6px;max-height:210px;overflow:auto;padding:4px 8px;display:flex;flex-direction:column;gap:2px}
+.if-chs label.rd{padding:3px 0;font-size:13px;color:var(--t1)}
+.if-chs label.rd.dis{color:var(--t4)}
+.if-dd{border:1px solid var(--line2);border-radius:3px;box-shadow:0 3px 10px rgba(0,0,0,.08);padding:4px 0}
+.if-dd .o{padding:6px 10px;display:flex;justify-content:space-between}
+.if-dd .o:hover{background:#f5f7fa}
+.if-dd .o.dis{color:var(--t4);background:#fafafc;cursor:not-allowed}
+.if-dd .o.dis span{color:#d4380d;font-size:12px}
+input.err{border-color:#ff4d4f!important}
+.if-form{display:flex;flex-direction:column;gap:12px}
+.if-row{display:flex;align-items:flex-start;gap:10px}
+.if-row>label{flex:0 0 80px;text-align:right;line-height:30px;color:var(--t1)}
+.if-row>label i{color:var(--err);font-style:normal;margin-left:2px}
+.if-row select,.if-row textarea{flex:1;min-width:0;border:1px solid var(--line2);border-radius:3px;font:inherit}
+.if-row select{height:30px;padding:0 8px}
+.if-row textarea{padding:6px 8px;resize:vertical}
+.ol-sum .ol-h{font-weight:600;margin-bottom:2px}
+.ol-sum ul{margin:0;padding-left:16px}
+.ol-sum li{margin:2px 0}
+.pck td{vertical-align:top}
+.pck-cats{display:flex;flex-wrap:wrap;gap:2px 12px;padding:3px 6px;border:1px solid transparent;border-radius:3px}
+.pck-cats.bad{border-color:#ff4d4f;background:#fff1f0}
+.pck-cats label.rd{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.pck select{width:100%;height:28px;border:1px solid var(--line2);border-radius:3px}
+.pck select.bad{border-color:#ff4d4f;background:#fff1f0}
+.pck-miss{font-size:12px;color:var(--t3);margin-top:2px}
+.warn-t{color:#d46b08}
+.pz-stat{display:flex;flex-direction:column;gap:2px;padding:6px 10px;background:#fafafc;border:1px solid var(--line2);border-radius:3px;font-size:12.5px}
+.pz-stat .bad{color:#d4380d}
+</style>
+</head>
+<body class="hide-review">
+
+<!-- ===================== 右侧需求说明 ===================== -->
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="req-mask" onclick="closeReq()"></div>
+<div class="req-drawer" id="req-drawer">
+  <div class="req-head"><span class="t">需求说明 · 充值 / 提现通道列表优化</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body">
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:230px">页面</th><th>改动点</th></tr>
+      <tr><td>财务管理 → 充值管理 → 充值通道（列表页签）</td><td>① 列表从「按大类展开」改成「一条通道一行」。② 版式沿用现在：左侧「充值大类」合并列原位改成「充值大类」文字列；去掉「内置充值大类」列；「充值通道奖励」挂多个大类时第二行写生效奖励区间（只挂 1 个大类时不变）。其余列和两行单元格写法不动；列宽改为按内容自适应、可拖动（R2-1）。</td></tr>
+      <tr><td>财务管理 → 提现管理 → 提现通道（列表页签）</td><td>① 列宽不再写死，规则同充值通道 R2-1。② 「通道ID」下方加上 / 下 / 置顶 / 置底四个排序按钮，调整后台列表显示顺序，不用先筛选。③ 「成功率统计」列拆成「今日已提交」（笔数 + 新增的金额，V1 口径）和「近1小时成功笔数」两列。见 W1~W3。</td></tr>
+      <tr><td>充值管理 → 充值大类 / 提现管理 → 提现大类 → 编辑弹窗</td><td>弹窗改左右一屏，字段不变；快捷金额加「从其他大类复制」、粘贴多个金额自动拆分、逐个删除（R9）；充值大类的「会员最大待支付单数」和新增的「连续未支付限制」合成一张「下单限制」卡（R8）。</td></tr>
+      <tr><td>提现管理 → 提现大类（列表）</td><td>列与 uat 一致，不删不加。</td></tr>
+      <tr><td>提现通道 → 新增 / 编辑弹窗</td><td>改左右一屏（左：通道基础信息；右：提现金额区间、自动出款、通道手续费、是否整百提现）；新增时提现金额区间按商户币种默认填充（R10），出款显示名称默认填通道名。</td></tr>
+      <tr><td>充值 / 提现通道列表 → 查询栏「商户」</td><td>切换商户不清空其他条件（R11）。</td></tr>
+      <tr><td>充值 / 提现通道 → 新增弹窗、列表操作列</td><td>操作列加「复制到其他商户」（R12）；新增弹窗「商户」仍为单选，和现在一样。</td></tr>
+      <tr><td>同页 → 编辑充值通道弹窗</td><td>弹窗改左右一屏（左：通道基础信息；右：自动切换通道（样式同 uat）、手续费、充值通道奖励），字段不变；新增时充值金额区间按商户币种默认填充（R10），前台显示名称默认填通道名；动态编码通道「三方通道编码」必填；「生效奖励」挂多个大类时写区间，与列表同口径。</td></tr>
+      <tr><td>提现管理 → 新页签「IFSC风控管理」</td><td>集团维护某 IFSC 不能提交到哪些三方通道，只对印度商户生效（W4）。</td></tr>
+    </table>
+    <div class="br">背景：运营提了两件事。一是一个三方通道勾多个充值大类后，列表在每个大类下各显示一行，20 条通道挂满 5 个大类要翻 100 行；<b>实际上数据库里就是一条通道</b>，开关、权重、删除本来就按通道生效，这次只改展示。二是中台通道列表一屏行数太少，没有 V1 精简：现在每个格子里塞两三行「标签：值」，平均行高 85px，一屏只有 8 行左右；V1 是一列一个值、单行，一屏 17 行以上。</div>
+
+    <div class="h1">二、名词</div>
+    <table class="t">
+      <tr><th style="width:130px">名词</th><th>说明</th></tr>
+      <tr><td>所挂大类</td><td>这条通道勾选的充值大类。玩家在这些大类下都能看到这条通道。</td></tr>
+      <tr><td>大类内排序</td><td>通道在某个大类里的前后顺序，每个大类各排各的，会同步到玩家端，决定玩家看到的通道顺序。</td></tr>
+      <tr><td>通道奖励</td><td>通道上自定义的充值赠送比率。没有自定义时跟随大类。</td></tr>
+      <tr><td>生效奖励</td><td>玩家实际拿到的比率，取「大类奖励」和「通道奖励」中较高的那个。同一条通道挂在不同大类下，生效奖励可能不一样。</td></tr>
+    </table>
+
+    <div class="h1">三、功能描述与业务规则</div>
+    <div class="br"><b><span class="bn">R1</span>列表一条通道一行</b>
+      <ul>
+        <li>每条通道只出现一次，条数和分页都按通道算。</li>
+        <li>不筛选充值大类时，按通道 ID 倒序排列（新建的在上面）；筛选了某个充值大类时，只列出挂了这个大类的通道，按这个大类里的排序排列。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R2</span>列表样式沿用现在（最小改动）</b>
+      <ul>
+        <li>列顺序：商户 → 状态 → 通道ID → 前台显示名称 / 通道名称（前台显示名称在上、加粗，点开编辑） → 充值大类 → 成功率统计 → 轮询权重 → 通道编码 → 充值通道奖励 → 其余和现在一样。单元格两行写法不变。</li>
+        <li>与现在相比只动这几处：① 左侧「充值大类」列（带图标、按大类合并）去掉，改成「充值大类」文字列，放在名称列后；② 去掉「内置充值大类」列（它是按行所在大类显示的，一条通道多个大类后没有意义）；③「充值通道奖励」挂多个大类时第二行改写生效奖励区间，只挂 1 个大类时不变，见 R6。</li>
+        <li>列宽按 R2-1 自适应，「充值大类」变宽的部分由「状态」「通道ID」「充值通道奖励」自适应后省下的空白抵消，第一屏能看到的列比现在多。</li>
+        <li>商户列保留在最左侧，整页合并成一格。</li>
+        <li>通道名称按内容自适应后完整显示；用户把列拖窄了才省略。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R2-1</span>列宽：按内容自适应，可自由拖动</b>
+      <ul>
+        <li>打开页面时每列按当前页内容最宽的那个值给宽度，不再用代码里写死的宽度（现在「状态」「通道ID」「充值通道奖励」右侧大片空白就是写死宽度造成的）。「充值大类」默认按「相邻两个大类」最长的宽度给。</li>
+        <li>表头右边缘可以拖动调宽，<b>能拉宽也能缩窄</b>，最小 60px；缩窄后放不下的内容省略显示，悬停看全。</li>
+        <li>双击表头右边缘：这一列恢复按内容自适应。</li>
+        <li>拖过的宽度按「账号 + 页面」记住，下次打开还是这个宽度（现在的列设置已经这样存，存在本机浏览器里，换电脑或换浏览器不带过去）。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R3</span>「充值大类」列</b>
+      <ul>
+        <li>逐个列出所挂的大类名称，按「充值大类」页签的大类顺序排列，大类之间用英文逗号「,」分隔；一个大类名不会被拆到两行，只在逗号后换行。默认列宽 = 本页最长的「相邻两个大类」的宽度，所以默认大约一行两个；列宽可以拖（R2-1），拖宽一行放得更多，拖窄自动多换几行，不会压到旁边的列。挂的大类多时这一行会变高，不缩写、不概括。</li>
+        <li>表头叫「充值大类」，和现在一样。大类本身已关闭的，名称后标「（已关闭）」并置灰。筛选了某个大类时，该大类名称加粗。</li>
+        <li>不在这一列显示各大类的奖励（运营要求赠送比例不在通道列表展示）；大类奖励在「充值大类」页签看。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R4</span>排序（通道ID 下方的四个按钮，位置和现在一样）</b>
+      <ul>
+        <li>上移 / 下移 / 置顶 / 置底只在查询栏选了某个充值大类后可用，排的是这个大类里的顺序，同步到玩家端；列表此时按这个大类内的顺序排列。</li>
+        <li>没选大类时四个按钮置灰，悬停提示「先在查询栏选择充值大类，再调整该大类内的排序」。</li>
+        <li>大类内第一条的上移 / 置顶、最后一条的下移 / 置底置灰，和现在一样。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R5</span>开关、删除按通道生效（和现在一致，只是提示写清楚）</b>
+      <ul>
+        <li>关开关 = 这条通道在所有所挂大类下一起关；删除 = 整条通道删掉。两个确认框都写明会影响哪几个大类。</li>
+        <li>只想把通道从某个大类下撤掉，到「编辑」里取消勾选那个大类。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R6</span>充值通道奖励列</b>
+      <ul>
+        <li>奖励口径不变（已核对 uat 发放代码）：玩家在哪个大类下单，就按那个大类算，生效奖励 = max(该大类奖励, 通道自定义奖励)。同一条通道挂多个大类、没设自定义时，在各大类下分别跟各自大类的奖励走。这是合理的：玩家看到和选择的是大类，奖励是给「支付方式」的运营手段，通道只是后台路由。</li>
+        <li><b>只挂 1 个大类</b>：和现在完全一样。第一行「通道奖励」：自定义比率或 --，自定义不高于大类时红字「不生效」；第二行「生效奖励」：比率 + 来源标签（跟随大类 / 跟随通道），没有奖励写 --。</li>
+        <li><b>挂多个大类</b>：第一行同上（自定义不高于任何一个所挂大类时红字「不生效」）。第二行「生效奖励」写区间「最低~最高」，即这条通道在各个所挂大类下实际发放比率的最低值和最高值（每个大类按 max(大类奖励, 通道奖励) 算，已关闭的大类不算）；最低 = 最高时只写一个值，全是 0 写 --；不带来源标签。例：挂 A 2%、B 1%、C 0% 且没设自定义 → 0%~2%；自定义 1.5% → 1.5%~2%；自定义 3% → 3%。</li>
+        <li>区间只说明范围，各大类具体生效多少 = max(该大类奖励, 通道奖励)，大类奖励在「充值大类」页签看。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R8</span>下单限制：最大待支付单数 + 连续未支付限制（充值大类）</b>
+      <ul>
+        <li>目的：防止会员反复拉单不付款，拉低通道在三方那边的成功率。运营原需求是「上次充值成功后 M 分钟内最多 N 单，超过限制 O 分钟」；和现有「会员最大待支付单数」放一起看会懵，而且三方单要 30 分钟才超时，有待支付上限时「5 分钟 10 单」这类配置永远不会触发。所以合并成一张「下单限制」卡，两条规则分工明确。</li>
+        <li><b>① 会员最大待支付单数 [P]</b>（现有字段，逻辑不变）：会员在本大类同时挂着的未付单达到 P，再拉单提示「你的待支付订单数量已超出此通道限制，请前往处理」。管的是「一口气拉好几张码」。</li>
+        <li><b>② 连续 [N] 笔订单未支付成功，暂停该会员在本大类充值 [O] 分钟</b>（新增，0 = 不启用）：从会员上一次充值成功之后开始数，在本大类每拉单成功一笔记 1（三方下单失败没拿到付款信息的不算）；拉到第 N 笔仍没有任何一笔付成功，再拉单就暂停 O 分钟，提示「通道繁忙，请稍后再试或更换其他支付方式」，不走备用通道，可以换其他大类。管的是「拉单、等过期、再拉单」长期刷。</li>
+        <li>清零：会员自己任意一笔充值成功（任意大类，含本地银行卡、USDT；<b>不含后台人工充值</b>）立即清零并解除暂停；暂停满 O 分钟后计数也清零重新数；会员 24 小时没在本大类拉单，计数自动清零（系统固定规则，防止几天前的零星未付累计起来误伤正常会员）。</li>
+        <li>配置校验：② 的 N 和 O 要么都填 0，要么都 &gt; 0；① 有值时 N 必须大于 P，否则会先被①拦住、②永远不触发，保存时提示。卡片下方实时逐条写出当前配置的效果；规则细节（计数口径、清零条件、超时时间对触发的影响）放在「下单限制」后的「?」里。</li>
+        <li>只对三方大类生效（本地大类②不显示）；只对已上中台的站点生效。测试会员：沿用现有「会员最大待支付单数」对测试会员的处理方式，不单独区分。</li>
+        <li><b>防误伤</b>（通道故障、回调延迟、选错金额重拉、会员 UPI 限额满、新会员首充失败，正常会员也会连续未支付）：① 弹窗提示建议值：笔数不少于 5 笔且大于会员最大待支付单数（一般比它多 2~3 笔），暂停 10~30 分钟；配得更严（笔数 &lt; 5 或暂停 &gt; 30 分钟）时说明框橙字提醒，不拦保存；② 暂停提示语引导更换其他支付方式；③ 充值大类页加「暂停中的会员」：按会员ID/账号、大类查正在暂停的会员，客服可手动解除（解除即清零，记操作日志）；④ 同页顶部按大类显示触发人数（近1小时 / 今日），近1小时 ≥ 10 人标红提示「先检查该大类通道是否异常」（阈值为判断，可调）。</li>
+        <li>不做：按三方返回的「支付失败」状态排除计数（各家三方是否回失败状态不一，开发量大，第一期不做）。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R9</span>快捷金额：从其他大类复制 / 粘贴自动拆分（充值大类、提现大类）</b>
+      <ul>
+        <li>运营原话：「自动读取当前快捷按钮金额，我从其他通道复制过来，这里粘贴，直接填充下面的按钮快捷金额」。中台快捷金额在大类上，所以加在编辑充值大类「快捷金额配置」、编辑提现大类「快捷提现金额」上。</li>
+        <li><b>从其他大类复制</b>（快捷金额标题右侧按钮；「+ 新增金额」放在金额列表下方）：点开后选商户（本商户或同集团同币种的其他商户），在大类框里输入关键字模糊搜索（不区分大小写、忽略空格和连字符；下拉每项同时显示该大类的金额），点选大类即替换下方现有金额，不用再点按钮。充值可勾「连同赠送设置」；不勾时，金额和本大类原有某行相同的保留原赠送，新金额赠送比率 0。一步到位，不经过剪贴板。</li>
+        <li><b>粘贴自动拆分</b>（无按钮）：在任一金额框里粘贴含多个金额的文本（如 100,200,500,1000），从这一格开始依次填到后面的格子，格子不够自动新增，最多 12 个（提现 8 个），多出的提示没填；只粘一个金额时就是普通粘贴。分隔符：中英文逗号、空格、顿号、分号、换行；非数字和 ≤0 的忽略；重复只留第一个。适合从表格、聊天里复制一串金额过来。</li>
+        <li>以上都只改弹窗里的内容，点「确定」才保存。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R10</span>新增通道默认金额区间</b>
+      <ul>
+        <li>运营原话：「每个国家充值提现大类给一个默认通道限额区间，添加通道的时候默认填充，有需要手动改」。</li>
+        <li>已定：新增充值 / 提现通道时，「金额区间」按商户币种默认填充，运营可以手动改。默认值写在代码里，不加配置页面，以后要调整让开发改。</li>
+        <li>各币种默认值（待运营给值，先按下面的值开发，拿到后改前端对照表即可）：INR 充值 100 ~ 100000、提现 100 ~ 100000（参考 V1 印度站点实际配置）；PKR、BDT、MYR、BRL 等待定。没有给值的币种沿用 V1 的默认值（充值 1 ~ 5000、提现 10 ~ 30000）。</li>
+        <li>为什么不照搬 V1：V1 是代码写死的 1 ~ 5000 / 10 ~ 30000，不分币种（ThirdGameApi PayTypeEntity / WithdrawTypeEntity 默认值），马来、巴西这类币值高的站点明显不合适，基本都要手动改。</li>
+        <li>只在新增时预填；复制到其他商户时沿用来源通道的区间；编辑已有通道不受影响。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R11</span>列表切换商户不清空其他查询条件（充值通道、提现通道）</b>
+      <ul>
+        <li>运营原话：「我更改商户的时候，后面的其他条件已经选的，不要变……我要批量检查一轮三方」。现在 uat 切商户会清空三方映射码、大类、币种、通道、三方商户号。</li>
+        <li>改为：切商户后已选条件全部保留，直接按新商户重新查询。三方映射码、币种、状态、通道名称关键字各站点通用，原样保留。</li>
+        <li>按站点各自一套 ID 的条件（充值 / 提现大类、通道 ID、三方商户号）：按名称 / 编码在新商户里找同名的一项，找到就换成新商户的那一项继续用；找不到才清空，并提示「新商户下没有同名的，已清空：xx」。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R12</span>复制到其他商户（充值通道、提现通道）</b>
+      <ul>
+        <li>背景：集团下多个站点要接同一个新三方，三方商户号（凭证）挂在集团上只填一次，但通道要在每个站点逐条新增，10 个站点就要开 10 次弹窗。</li>
+        <li>已定：不做「新增时多选商户」，新增弹窗「商户」保持单选（同现在）；只做「复制到其他商户」。</li>
+        <li>入口：通道列表操作列加「复制到其他商户」，打开同一个弹窗，带出本通道全部配置（显示名称、权重、金额区间、手续费、奖励、备注等），只需勾选目标商户；新建通道状态默认「关闭」，建议各站点测通后再开。</li>
+        <li>大类匹配：各站点的大类 ID 不同，先按名称自动匹配（忽略大小写、空格、连字符），在预检表里预选好；运营可以逐个商户改选 / 补选（充值多选、提现单选，选项是该商户自己的大类）。没匹配上的标红并写明「来源大类在该商户没有同名」；某商户一个都不选就跳过。</li>
+        <li>自动切换通道的备用通道不复制（备用通道是各站点自己的通道），建好后到各商户单独配置。</li>
+        <li><b>充值通道奖励</b>（已定）：所有目标商户统一用弹窗里的奖励设置（复制时 = 来源通道的设置），不读各商户 V1 原来的比率；自定义奖励时提交前输一次谷歌验证码，对所有商户生效。后端多商户接口按「已勾修改」处理，校验一次谷歌码。</li>
+        <li><b>动态编码通道</b>：通道字典是「动态编码」类型时，「三方通道编码」必填。复制时带出来源通道的编码，所选商户都用这个编码（三方商户号是集团共用的，编码通常一致，判断）。没填点「确定」时，自动定位到该字段并红框提示「该通道是动态编码，必须填写」。个别商户编码不同，建好后到该商户单独改。</li>
+        <li>提交前预检：复制时，点「确定」先弹出预检表，每个商户一行，列出可改选的挂载大类和预计结果（将新增 / 跳过及原因），确认后才提交（表单本身保持一屏）。提交后逐个商户独立处理，部分成功，结果弹窗列出成功几个、失败几个及原因。显示名称在目标商户已存在、或目标商户已有同一三方商户号下的这条通道（现有「支付通道重复」校验）时，该商户跳过，不自动改名。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">R7</span>编辑弹窗</b>
+      <ul>
+        <li>从列表点「编辑」不再区分是从哪个大类点进来的，弹窗内容一样。</li>
+        <li>「充值通道奖励」卡片里的「生效奖励」与列表 R6 同口径：挂 1 个大类写比率 + 来源（和现在一样）；挂多个大类写区间「最低~最高」（同 R6）。勾选或取消大类、改自定义比率时实时刷新。不逐个大类列出比率。</li>
+      </ul>
+    </div>
+
+    <div class="h1">三-B、提现通道规则</div>
+    <div class="br">背景：① 提现通道列宽也是写死的，「状态」「通道ID」等列右侧空白缩不回去。② 提现通道表里本来就有「排序」字段，但页面上没有任何地方能改，所有通道都是 0。③ 运营对照 V1 老后台，要把 V1 有、中台没有的「今日提现状态已提交金额」补到中台，口径和 V1 一致。</div>
+    <div class="br"><b><span class="bn">W1</span>列宽</b>
+      <ul><li>与充值通道 R2-1 完全一样：按内容自适应、可拉宽可缩窄（最小 60px）、双击恢复、按账号 + 页面记住。</li></ul>
+    </div>
+    <div class="br"><b><span class="bn">W2</span>排序（通道ID 下方四个按钮）</b>
+      <ul>
+        <li>作用：调整<b>后台提现通道列表的显示顺序</b>。玩家看不到提现通道，不影响玩家端；不影响自动出款（自动出款按「自动出款权重」）。附带影响：出款员审核提现单时「出款通道」下拉框也按这个顺序排（现有逻辑，不用改）。</li>
+        <li>不加前置条件，和以前充值通道的箭头一样直接点：上移 / 下移和当前列表里相邻的那一行换位，置顶 / 置底移到当前列表最前 / 最后。筛选了提现大类时，只在这个大类的通道之间移动。</li>
+        <li>列表默认按排序值倒序、再按创建时间倒序。存量通道排序值都是 0，所以没调过之前顺序和现在一样（按创建时间倒序）。</li>
+        <li>列表第一条的上移 / 置顶、最后一条的下移 / 置底置灰；没有编辑权限看不到按钮（同充值通道）。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">W4</span>IFSC风控管理（新页签）</b>
+      <ul>
+        <li>集团维护，规则 = 11 位完整 IFSC × 三方通道；对本集团所有印度（INR）商户生效。集团下没有 INR 商户时不显示此页签。</li>
+        <li>可选通道只限 INR、内置提现大类为银行卡的三方通道；非 INR 商户的提现单不比对 IFSC（巴西站点同字段存 CPF）。</li>
+        <li>新增（同竞品）：选一个限制通道 + 批量粘贴 IFSC（逗号 / 空格 / 换行 / 分号分隔）；保存时转大写、去重，跳过格式非法（4 位字母 + 0 + 6 位字母或数字）和该通道已存在的，并提示跳过了哪些。比对时去空格、不区分大小写。</li>
+        <li>生效：审核「出款通道」下拉里命中的通道置灰，写「该 IFSC 受限」；自动出款跳过命中通道，没有可用通道时回到人工池；提交三方前再硬校验一次（含 KYC 重提）。</li>
+        <li>非 V3 模式站点由 V1 自己出款，不受此规则约束。</li>
+        <li>已定：保留集团级（三方商户号集团共用，同一三方打不进某银行对所有商户都一样，配一次全集团生效，避免逐站点重复配置和漏配）。页面在提现通道下，但列表不随查询栏「商户」变化。</li>
+        <li>权限：能管本集团全部印度商户的账号可以新增 / 删除；只管部分商户的账号只能查看（新增、批量删除、删除置灰并提示「需有本集团全部印度商户的权限」），避免改规则影响自己管不到的商户。</li>
+      </ul>
+    </div>
+    <div class="br"><b><span class="bn">W3</span>今日已提交（和 V1 口径一致）</b>
+      <ul>
+        <li>原「成功率统计」一列拆成两列：「今日已提交」（两行：今日已提交笔数 / 今日已提交金额，列头加问号提示写清口径）和「近1小时成功笔数」（单独一列，数据不变）。第一行沿用现在的叫法、口径改成 V1 的；金额是新增的。V1 老后台叫「今日提现状态已提交笔数 / 金额」，中台用短叫法省宽度。字号和其他列一致，每行仍是两行高。</li>
+        <li>统计对象：当前仍处于「已提交」状态（已提交三方、还没收到成功 / 失败结果）、提交时间在商户本地时区今天的提现单。三方回了结果就不再计入。</li>
+        <li>笔数 = 这些单的数量；金额 = 这些单的实际到账金额合计（申请金额 − 手续费），和 V1 的 RealityAmount 同口径。只算正式会员，测试会员不算。</li>
+        <li>金额一律按商户法币显示，USDT 通道也显示法币；千分位 + 商户币种小数位（INR / BDT 两位；VND / IDR 零位）。只展示，不参与搜索、排序、导出。</li>
+        <li>实时查当前订单，不走 10 分钟刷新的统计视图；查询失败时显示 0，不影响列表。</li>
+        <li>提醒：「通道余额」是三方商户号级别的余额，同一三方商户号下多条通道（含集团内其他站点）共用一个数，不能逐行拿「余额 − 已提交金额」判断够不够。</li>
+      </ul>
+    </div>
+
+    <div class="h1">四、与 V1、竞品（新 SaaS）对比</div>
+    <table class="t">
+      <tr><th style="width:120px">点</th><th style="width:190px">V1</th><th style="width:190px">竞品</th><th>我们（及不能照搬的原因）</th></tr>
+      <tr><td>一屏行数</td><td>单行表，一屏 17 行以上，但很多字段要横向滑动才看得到</td><td>单行表</td><td>两行样式：行数比单行少，但常看的字段集中在第一屏，不用左右滑动。</td></tr>
+      <tr><td>值显示</td><td>部分列截断加省略号</td><td>部分列截断</td><td>不截断，列宽给足、横向滚动，左右固定列保证不迷路。</td></tr>
+      <tr><td>充值大类</td><td>一条通道只有一个大类</td><td>一格里拼「名称-ID-系统大类」，挤成 4~5 行</td><td>只写大类名称，用英文逗号分隔，默认一行约两个（R3）。</td></tr>
+      <tr><td>排序</td><td>一列数字</td><td>没有，按权重排</td><td>我们的排序按大类各排各的、同步玩家端，所以通道ID 下的排序按钮要先选大类才能用。</td></tr>
+      <tr><td>赠送比例</td><td>通道上一列「充值赠送比率」</td><td>只在大类上，列表不显示</td><td>第一行显示通道自定义奖励（同 V1）；第二行生效奖励：挂 1 个大类写比率，挂多个大类写区间（R6），不逐个大类列出（同运营要求）。</td></tr>
+      <tr><td>状态</td><td>一个开关</td><td>一个开关</td><td>开关 + 不可用时红字原因：中台多了总控通道、三方商户号两层上游，会让通道不可用。</td></tr>
+      <tr><td>商户</td><td>单站点</td><td>单站点</td><td>中台多站点，保留商户列。</td></tr>
+      <tr><td>三方商户昵称/商户号</td><td>没有</td><td>没有</td><td>保留：三方商户号在集团内多站点共用，出问题时要按商户号定位。</td></tr>
+      <tr><td>权重行内改 + 变更记录、支付模式</td><td>没有</td><td>有</td><td>本次不做。中台没有权重变更记录，列表接口也不返回支付模式，需要的话单独提。</td></tr>
+    </table>
+
+    <div class="h1">五、开发说明（已核对 uat 代码，2026-10-12）</div>
+    <table class="t">
+      <tr><th style="width:80px">端</th><th>改动</th></tr>
+      <tr><td>后端</td><td>
+        ① <code>RechargeChannelService.GetCategoryChannelPageList</code> / <code>QueryChannelPageAsync</code>：现在由 <code>ExpandByMountedCategory</code> 把「通道 × 所挂大类」展开再分页。改为不展开、按通道分页；传了 <code>ChannelCategoryId</code> 时只取挂了该大类的通道，并按该大类的挂载 <code>Sort</code> 降序；不传时按 <code>Id</code> 降序。<br>
+        ② 列表行的 <code>Categories</code> 补齐：大类名称、大类状态、大类内排第几 / 共几条；通道奖励不生效的大类名单（供红字提示）。<br>
+        ③ <code>Get</code> 详情接口的 <code>tenantCategoryId</code> 改为可选；只挂 1 个大类时照旧返回该大类的大类奖励 / 生效奖励，挂多个大类时前端按 R6 显示，不需要逐个大类返回。<br>
+        ④ 开关 <code>UpdateState</code>、删除 <code>Delete</code>、排序 <code>UpdateSort</code>（本来就要传大类）、V1 同步都不用改。
+      </td></tr>
+      <tr><td>后端<br>（R8 下单限制）</td><td>
+        <b>评估：不用大改。</b>① 是现有「会员最大待支付单数」，不改；② 和它同一套做法（按「商户 + 大类 + 会员」在 Redis 记数，参照 <code>UserPendingRechargeOrderCacheHelper</code>）。<br>
+        ① 表 <code>tab_recharge_category</code> 加 2 个 int 列（默认 0）：<code>UnpaidStreakLimit</code>（连续未支付笔数）/ <code>UnpaidBlockMinutes</code>（暂停分钟）；实体、只读实体（静态缓存）、<code>RechargeCategoryReq</code>、详情、列表带上；保存时校验 N &gt; P。<br>
+        ② 拦截：<code>RechargePayApiService.CreateThirdRechargeOrder</code> 里大类确定之后、选通道之前，读该会员在该大类的暂停标记，命中直接返回新错误码「通道繁忙」，不进选路、不走备用。<br>
+        ③ 计数：三方下单成功后（与 <code>UserPendingRechargeOrderCacheHelper.AddAsync</code> 同处），「商户 + 会员」的 Hash 里该大类字段 +1（字段 24 小时过期，每次 +1 时续期）；+1 后 ≥ N 时写暂停字段（过期 = O 分钟）并把计数清零。<br>
+        ④ 清零：<code>RechargeOrderService.UpdateTenantRechargeOrderAsPayedAsync</code> 成功后删该会员整个 Key（所有大类），与现有删待支付计数器同处，try-catch，Redis 故障不阻塞到账；人工充值不清零（若人工充值也走这个方法，需按订单类型排除）。<br>
+        ⑤ 暂停记录：触发暂停时写一张暂停记录表（商户、会员、大类、笔数、开始 / 结束时间、解除人），供「暂停中的会员」查询和触发统计；手动解除 = 删 Redis 暂停标记和计数 + 更新记录，按商户权限校验。<br>⑥ 不改：V1、选路逻辑、通道测试下单（不计数）。粗估（判断）：后端 2~2.5 天，前端 1 天。
+      </td></tr>
+      <tr><td>后端<br>（R10 默认区间）</td><td>
+        不改。新增弹窗按商户币种预填默认区间（前端写死一份币种 → 默认值对照，见 R10）。
+      </td></tr>
+      <tr><td>前端<br>（R10 / R11 / 提现弹窗）</td><td>
+        ① 新增充值 / 提现通道：按所选商户的币种预填 <code>minAmount / maxAmount</code>（前端一份币种 → 默认值对照：INR 充值 100 / 100000、提现 100 / 100000，其他币种待运营给值，没给的用 V1 值 1 / 5000、10 / 30000）；切换商户时，没手动改过就按新商户币种重填。<br>
+        ② <code>WithdrawChannelEditModal.vue</code> 按左右一屏重排（同充值）。<br>
+        ③ 列表查询区：去掉商户 <code>onUpdate:value</code> 里清空映射码 / 大类 / 币种 / 通道 / 三方商户号的代码；大类、通道、三方商户号的下拉按新商户重拉后，按名称 / 编码匹配回填，匹配不到才清空并提示。
+      </td></tr>
+      <tr><td>后端<br>（R12 多商户）</td><td>
+        现有 <code>RechargeChannelService.BatchAdd</code> / <code>WithdrawChannelService.BatchAdd</code> 都是按单个 <code>TenantId</code> 处理、并校验该站点属于当前集团（<code>OrgId</code>），三方商户号本来就挂集团。新增「复制到其他商户」接口：入参 = 来源通道 Id + 弹窗里的通道配置 + [{ 商户 Id, 大类 Id 列表 }]（大类由运营在预检表里按商户选定），循环对每个商户调用现有单站点新增逻辑（每个商户独立事务，含现有的 V1 同步），返回每个商户的成功 / 失败原因；再加一个预检接口：按商户返回可选大类（只列内置大类类型对得上的）、按名称自动匹配结果（忽略大小写、空格、连字符）、显示名称是否重名、是否已有这条三方通道。要补商户权限校验（<code>HasChannelTenantPermission</code>）和币种校验。可选商户复用 <code>PayCodeService.GetTenantSupportPayCodeList</code>（集团已启用商户号 ∩ 站点币种）。粗估 1.5~2 天（判断）。
+      </td></tr>
+      <tr><td>前端<br>（R12 多商户）</td><td>
+        列表操作列加「复制到其他商户」+ 预检表 + 结果弹窗，打开同一弹窗并带出本通道配置（不带备用通道，状态默认关闭）。粗估 2 天（判断）。
+      </td></tr>
+      <tr><td>前端<br>（R9 快捷金额）</td><td>
+        纯前端，后端不改（保存仍走现有大类保存接口，金额个数上限不变）。粘贴拆分：金额输入框 <code>@paste</code> 拦截多值。「从其他大类复制」：本商户用已加载的大类列表；跨商户直接调现有大类列表接口（<code>RechargeCategory/GetPageList</code>、<code>WithdrawCategory/GetPageList</code> 按请求 <code>TenantId</code> 查、权限过滤器已校验商户权限，返回里带 <code>QuickConfig</code>），只列同币种商户。注意：充值复制金额后，若「大额金额」起点不在新金额里，现有保存校验会拦，需运营同步改大额金额。改动文件：<code>rechargeCategory/components/RechargeTypeEditModal.vue</code>、<code>withdrawCategory/components/WithdrawCategoryEditModal.vue</code>。
+      </td></tr>
+      <tr><td>前端</td><td>
+        ① <code>rechargeChannel/index.vue</code>：列顺序按 R2 调整；<code>categoryDisplayName</code> 列改渲染所挂的全部大类（英文逗号分隔、大类名内不断行，去掉图标和 <code>rowSpan</code>），表头仍叫「充值大类」，挪到名称列后；名称列两行对调；去掉「充值大类」列、「内置充值大类」列和 <code>rechargeChannelGrouping.ts</code> 的 <code>rowSpan</code> 分组逻辑。<br>
+        ② 新增「充值大类」列；排序按钮按「查询栏是否选了充值大类」决定是否可用，<code>UpdateSort</code> 传查询栏的大类。<br>
+        ③ 开关 / 删除确认文案带上所挂大类名称。<br>
+        ④ <code>RechargeChannelEditModal.vue</code>：「生效奖励」按 R7 区分单大类 / 多大类显示；<code>fetchDetail</code> 不再传行所在大类。<br>
+        ⑤ 列设置版本号 <code>COLUMN_SETTING_VERSION</code> 升一版，避免老的列配置缓存把新列藏掉。<br>
+        ⑥ 列宽（R2-1）：表格公共组件 <code>ProCrudTable.vue</code> 的 <code>mergedColumns</code> 本来就给每列开了 <code>resizable</code>，但 2026-10-05 的提交 <code>a76c3ab0</code>「按初始列宽限制表格拖动下限」把 <code>minWidth</code> 设成了列定义里的 <code>width</code>，所以只能拉宽不能缩窄。本页给每列显式传 <code>minWidth: 60</code> 即可放开（组件已是 <code>col.minWidth ?? 初始宽度</code>），不动公共组件、不影响其他页面。<br>
+        ⑦ 按内容自适应：数据加载完后，按本页数据量出每列内容最宽值（表头和单元格取大；「充值大类」按相邻两个大类 + 逗号最长的那一对）；所有单元格加 <code>overflow: hidden</code>，拖窄时内容不压到隔壁列，作为没有手动宽度时的默认宽度；用户拖过的宽度仍走现有列设置存储（IndexedDB <code>ProTableSettingsDB</code>，按 用户Id + 页面 区分）。双击把手 = 清掉该列已存宽度。
+      </td></tr>
+      <tr><td>提现·后端</td><td>
+        ① 新增 <code>WithdrawChannel/UpdateSort</code>（参照 <code>RechargeChannel/UpdateSort</code>：通道 Id + 动作 1 上移 / 2 下移 / 3 置顶 / 4 置底），在该商户 <code>TenantId</code>、<code>InOutType=Withdraw</code> 的全部提现通道范围内整体重编号 <code>Sort</code>（降序）；带提现大类筛选时只和同大类的相邻通道换位。提现没有多挂大类，不涉及挂载表。<br>
+        ② <code>WithdrawChannelService.GetPageList</code>：现在固定按 <code>CreateTime</code> 倒序，改为 <code>Sort</code> 倒序、再 <code>CreateTime</code> 倒序（不论是否筛选）。审核详情的出款通道下拉 <code>WithdrawOrderService</code> 已按 <code>Sort</code> 倒序，不用改。<br>
+        ③ 今日已提交：笔数 / 金额改为实时查商户库 <code>tab_withdraw_order</code>：<code>TenantId</code> = 当前商户、<code>TenantChannelId</code> in 本页通道、<code>WithdrawState = 3</code>（等待第三方出款）、<code>UserType = 0</code>、<code>SubmittedTime ≥ 商户时区今天 0 点</code>；按 <code>TenantChannelId</code> 分组取 <code>Count</code> 和 <code>SUM(Amount − Fee)</code>。替换 <code>FillWithdrawChannelStatisticAsync</code> 里从 ADB 视图 <code>rt_withdraw_submit_10min</code> 取 <code>TodaySubmitCount</code> 的逻辑；近 1 小时成功笔数仍走 ADB 视图不动；加超时保护，失败降级为 0。<code>WithdrawChannelRsp</code> 新增 <code>TodaySubmitAmount</code>。
+      </td></tr>
+      <tr><td>提现·前端</td><td>
+        ① <code>withdrawChannel/index.vue</code>：通道ID 单元格第二行加排序按钮，复用充值 <code>renderChannelSortActions</code> 的写法；始终可用，只按列表首行 / 末行置灰边界按钮。<br>
+        ② 列宽同充值：每列显式传 <code>minWidth: 60</code>，数据加载后按内容量宽作为默认宽度。<br>
+        ③ <code>renderSuccessStatsCell</code> 加「今日已提交金额」一行，金额按币种格式化；原 <code>successRateStats</code> 列改为「今日已提交」两行（笔数 / 金额）并用 <code>renderPrototypeTooltipHeader</code> 加口径提示；近 1 小时成功笔数拆成单独一列。标签「今日已提交笔数」沿用现有文案，新增「今日已提交金额」（zh 语言包里现有的 <code>todaySubmitSuccessAmount</code>「今日提现状态已提交金额」改成短叫法，或新增一个 key），en / vi / id 补齐；<code>src/api/withdraw/types.ts</code> 加 <code>todaySubmitAmount</code>。<br>
+        ④ 列设置版本号升一版。
+      </td></tr>
+      <tr><td>不改</td><td>提现通道的搜索条件、代付测试；自动出款的权重规则（只多一步跳过 IFSC 受限通道）；玩家端出通道、V1 同步、自动权重、自动切换通道的逻辑。</td></tr>
+    </table>
+
+    <div class="h1">六、原型说明</div>
+    <table class="t">
+      <tr><th style="width:120px">项</th><th>说明</th></tr>
+      <tr><td>顶部黄色条</td><td>原型对照用，不需要开发。「页面」切换充值通道 / 提现通道；右侧实时显示当前窗口的平均行高和一屏行数。切「现状（uat）」看现在的展开样式，切「新方案」看改后的样式，两边用同一份数据，在一边改开关、排序、编辑，切过去能看到同样的结果。</td></tr>
+      <tr><td>NEW 标记</td><td>红色 NEW、粉色列头、虚线框只用来标注本次改动，不需要开发。</td></tr>
+      <tr><td>演示数据</td><td>商户、大类、通道名称参照 uat 的 (1048)91club 截图，权重、成功率、奖励比率都是编的。</td></tr>
+      <tr><td>没画的</td><td>代收测试弹窗、自动权重弹窗、今日提现总次数配置、其余搜索条件与现在一致，原型里只做占位。</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== 原型对照条 ===================== -->
+<div class="demo">
+  <b>页面：</b>
+  <div class="seg" id="pg"><span data-p="rc" class="on">充值通道</span><span data-p="wd">提现通道</span></div>
+  <span class="rv"><b style="margin-left:6px">原型对照：</b></span>
+  <div class="seg rv" id="seg"><span data-v="old">现状（uat）</span><span data-v="new" class="on">新方案</span></div>
+  <span class="cnt rv" id="demo-cnt"></span><span class="cnt rv" id="demo-rows"></span>
+  <span style="margin-left:auto">黄色条只是原型切换用，不属于页面</span>
+</div>
+
+<div id="page-rc">
+<div class="top">
+  <div class="crumb">财务管理<span class="sep">/</span>充值管理<span class="sep">/</span><span class="cur">充值通道</span></div>
+  <div class="req-btn" onclick="openReq()">📋 需求说明</div>
+</div>
+
+<div class="page"><div class="panel">
+  <div class="tabs" id="rc-tabs"><span data-t="cat" onclick="switchTab('rc','cat')">充值大类</span><span data-t="ch" class="on" onclick="switchTab('rc','ch')">充值通道</span></div>
+  <div id="rc-cat-view" style="display:none">
+    <div class="sf">
+      <div class="fi"><label><i>*</i>商户</label><select><option>(1048)91club</option></select></div>
+      <div class="fi"><label>充值大类</label><select class="ph"><option>请选择前台显示名称</option></select></div>
+      <div class="fi act"><button class="btn" onclick="msg('重置')">重置</button><button class="btn pri" onclick="renderCatList('rc')">搜索</button></div>
+    </div>
+    <div class="tb"><button class="btn pri" onclick="openRcCat(0)">新增</button><button class="btn" onclick="PZ.open()"><span class="nf-wrap">暂停中的会员<em class="newf nf-up" style="right:-34px" data-tip="新增：查询因「连续未支付限制」被暂停的会员，客服可手动解除；顶部按大类统计触发人数，触发异常多时提示先查通道。">NEW</em></span></button></div>
+    <div class="tw"><table class="g u" id="rc-cat-grid"></table></div>
+  </div>
+  <div id="rc-ch-view">
+
+  <div class="sf">
+    <div class="fi"><label><i>*</i>商户</label><select id="f-tenant" onchange="onTenantChange('rc',this)"><option>(1048)91club</option><option>(1052)91club-pk</option><option>(1060)91club-bd</option></select></div>
+    <div class="fi"><label>三方映射码</label><select class="ph" id="f-pc"><option value="">请选择三方映射码</option></select></div>
+    <div class="fi"><label>通道ID/名称</label><input id="f-name" placeholder="请输入通道ID/名称"></div>
+    <div class="fi"><label>三方商户昵称/商户号</label><select class="ph"><option>请选择三方商户昵称/商户号</option></select></div>
+    <div class="fi" id="fi-cat"><label>充值大类</label><select class="ph" id="f-cat"><option value="">请选择充值大类</option></select></div>
+    <div class="fi"><label>通道币种</label><select class="ph"><option>请选择通道币种</option></select></div>
+    <div class="fi"><label>状态</label><select class="ph" id="f-st"><option value="">请选择状态</option><option value="1">开启</option><option value="0">关闭</option></select></div>
+    <div class="fi act"><button class="btn" onclick="resetSearch()">重置</button><button class="btn pri" onclick="doSearch()">查询</button></div>
+  </div>
+
+  <div class="tb">
+    <button class="btn pri" onclick="openAdd()">新增</button>
+    <button class="btn" onclick="msg('自动权重弹窗本次不改')">自动权重</button>
+    <div class="aw-tip"><span>距离下次更新 03:27</span><span class="s">自动权重开启中：每隔 5 分钟自动更新一次接单权重</span></div>
+    <div class="sp"></div>
+    <div class="hint" id="sort-hint" style="display:none"></div>
+  </div>
+
+  <div class="tw"><table class="g" id="grid"></table></div>
+  <div class="pager" id="pager"></div>
+  </div><!-- /rc-ch-view -->
+</div></div>
+</div><!-- /page-rc -->
+
+<!-- ===================== 提现通道 ===================== -->
+<div id="page-wd" style="display:none">
+<div class="top">
+  <div class="crumb">财务管理<span class="sep">/</span>提现管理<span class="sep">/</span><span class="cur">提现通道</span></div>
+  <div class="req-btn" onclick="openReq()">📋 需求说明</div>
+</div>
+<div class="page"><div class="panel">
+  <div class="tabs" id="wd-tabs"><span data-t="cat" onclick="switchTab('wd','cat')">提现大类</span><span data-t="ch" class="on" onclick="switchTab('wd','ch')">提现通道</span><span data-t="ifsc" id="wd-tab-ifsc" onclick="switchTab('wd','ifsc')"><span class="nf-wrap">IFSC风控管理<em class="newf nf-up" style="right:-26px" data-tip="新增页签。集团下有印度（INR）商户才显示，没有印度商户的集团看不到。">NEW</em></span></span></div>
+  <div id="wd-cat-view" style="display:none">
+    <div class="sf">
+      <div class="fi"><label><i>*</i>商户</label><select><option>(1102)veergame</option></select></div>
+      <div class="fi"><label>提现大类</label><select class="ph"><option>请选择提现大类</option></select></div>
+      <div class="fi act"><button class="btn" onclick="msg('重置')">重置</button><button class="btn pri" onclick="renderCatList('wd')">搜索</button></div>
+    </div>
+    <div class="tb"><button class="btn pri" onclick="msg('今日提现总次数配置：与现在一致，原型略')">今日提现总次数配置</button></div>
+    <div class="tw"><table class="g u" id="wd-cat-grid"></table></div>
+  </div>
+  <div id="wd-ch-view">
+  <div class="sf">
+    <div class="fi"><label><i>*</i>商户</label><select id="wd-f-tenant" onchange="onTenantChange('wd',this)"><option>(1102)veergame</option><option>(1105)veergame-pk</option><option>(1108)veergame-bd</option></select></div>
+    <div class="fi"><label>三方映射码</label><select class="ph"><option>请选择三方映射码</option></select></div>
+    <div class="fi"><label>通道ID/名称</label><select class="ph"><option>请选择通道ID/名称</option></select></div>
+    <div class="fi"><label>三方商户昵称/商户号</label><select class="ph"><option>请选择三方商户昵称/商户号</option></select></div>
+    <div class="fi" id="wd-fi-cat"><label>提现大类</label><select class="ph" id="wd-f-cat"><option value="">请选择提现大类</option></select></div>
+    <div class="fi"><label>通道币种</label><select class="ph"><option>请选择通道币种</option></select></div>
+    <div class="fi"><label>状态</label><select class="ph"><option>请选择状态</option></select></div>
+    <div class="fi act"><button class="btn" onclick="WD.resetSearch()">重置</button><button class="btn pri" onclick="WD.doSearch()">搜索</button></div>
+  </div>
+  <div class="tb">
+    <button class="btn pri" onclick="WD.openAdd()">新增</button>
+    <div class="sp"></div>
+    <span class="hint" id="wd-sort-hint" style="display:none"></span>
+  </div>
+  <div class="tw"><table class="g u" id="wd-grid"></table></div>
+  <div class="pager" id="wd-pager"></div>
+  </div><!-- /wd-ch-view -->
+  <div id="wd-ifsc-view" style="display:none">
+    <div class="sf">
+      <div class="fi"><label>IFSC</label><input id="if-q-ifsc" placeholder="请输入 IFSC"></div>
+      <div class="fi"><label>限制通道名称</label><input id="if-q-nm" placeholder="请输入限制通道名称"></div>
+      <div class="fi"><label>三方映射码</label><input id="if-q-pc" placeholder="请输入三方映射码"></div>
+      <div class="fi act"><button class="btn" onclick="IF.reset()">重置</button><button class="btn pri" onclick="IF.render()">查询</button></div>
+    </div>
+    <div class="tb">
+      <button class="btn pri" onclick="IF.openAdd()">新增</button>
+      <button class="btn" id="if-bdel" onclick="IF.batchDel()" disabled>批量删除</button>
+      <span class="hint">集团统一维护，对本集团所有印度（INR）商户的提现单生效；其他国家商户不受影响。命中的通道在审核「出款通道」下拉里置灰，自动出款跳过。</span>
+      <div class="sp"></div>
+      <span class="lnk" onclick="IF.openPreview()">效果预览：审核出款通道下拉</span>
+    </div>
+    <div class="tw"><table class="g u" id="if-grid"></table></div>
+    <div class="pager" id="if-pager"></div>
+  </div><!-- /wd-ifsc-view -->
+</div></div>
+</div><!-- /page-wd -->
+
+<!-- 弹窗 -->
+<div class="mask" id="cf-mask"><div class="dlg"><div class="dlg-h"><span id="cf-t">提示</span><span class="x" onclick="closeCf()">✕</span></div><div class="dlg-b" id="cf-b"></div><div class="dlg-f"><button class="btn" onclick="closeCf()">取消</button><button class="btn pri" id="cf-ok">确定</button></div></div></div>
+<div class="mask" id="rcc-mask"><div class="dlg wide"><div class="dlg-h"><span id="rcc-t"></span><span class="x" onclick="closeRcCat()">✕</span></div><div class="dlg-b" id="rcc-b"></div><div class="dlg-f"><button class="btn" onclick="closeRcCat()">取消</button><button class="btn pri" onclick="saveRcCat()">确定</button></div></div></div>
+<div class="mask" id="qa-mask"><div class="dlg wide"><div class="dlg-h"><span id="qa-t"></span><span class="x" onclick="closeQa()">✕</span></div><div class="dlg-b" id="qa-b"></div><div class="dlg-f"><button class="btn" onclick="closeQa()">取消</button><button class="btn pri" onclick="saveQa()">确定</button></div></div></div>
+<div class="mask" id="wd-ed-mask"><div class="dlg wide"><div class="dlg-h"><span id="wd-ed-t"></span><span class="x" onclick="WD.closeEdit()">✕</span></div><div class="dlg-b" id="wd-ed-b"></div><div class="dlg-f"><button class="btn" onclick="WD.closeEdit()">取消</button><button class="btn pri" onclick="WD.saveEdit()">确定</button></div></div></div>
+<div class="mask" id="ed-mask"><div class="dlg wide"><div class="dlg-h"><span id="ed-t"></span><span class="x" onclick="closeEdit()">✕</span></div><div class="dlg-b" id="ed-b"></div><div class="dlg-f"><button class="btn" onclick="closeEdit()">取消</button><button class="btn pri" onclick="saveEdit()">确定</button></div></div></div>
+<div class="mask" id="if-mask"><div class="dlg" style="width:640px"><div class="dlg-h"><span>新增 IFSC 风控</span><span class="x" onclick="IF.close()">✕</span></div><div class="dlg-b" id="if-b"></div><div class="dlg-f"><button class="btn" onclick="IF.close()">取消</button><button class="btn pri" onclick="IF.save()">保存</button></div></div></div>
+<div class="mask" id="ifp-mask"><div class="dlg" style="width:560px"><div class="dlg-h"><span>效果预览：提现审核 → 出款通道</span><span class="x" onclick="IF.closePreview()">✕</span></div><div class="dlg-b" id="ifp-b"></div><div class="dlg-f"><button class="btn pri" onclick="IF.closePreview()">关闭</button></div></div></div>
+<div class="mask" id="pz-mask"><div class="dlg" style="width:min(980px,96vw)"><div class="dlg-h"><span>暂停中的会员（连续未支付限制）</span><span class="x" onclick="PZ.close()">✕</span></div><div class="dlg-b" id="pz-b"></div><div class="dlg-f"><button class="btn pri" onclick="PZ.close()">关闭</button></div></div></div>
+<div class="msgs" id="msgs"></div>
+<div class="tip" id="tip"></div>
+
+<script>
+/* ===================== 演示数据 ===================== */
+// 大类：sort 越大越靠前（与充值大类页签一致）；gift 为大类奖励（原始比率）
+const CATS = [
+  {id:31, name:'UPI-QR',          sys:'三方法币',      gift:0.02,  sort:120, on:1, logo:'UP', dmin:100, dmax:50000, pend:3, fq:[0,0]},
+  {id:32, name:'Innate UPI-QR',   sys:'三方法币',      gift:0.02,  sort:110, on:1, logo:'IN', dmin:100, dmax:50000, pend:2, fq:[6,30]},
+  {id:33, name:'Expert Paytm-QR', sys:'三方法币',    gift:0,     sort:100, on:1, logo:'EX', dmin:100, dmax:10000, pend:2, fq:[6,30]},
+  {id:34, name:'UPI-transfer',    sys:'三方法币',      gift:0.01,  sort:90,  on:1, logo:'UT', dmin:200, dmax:50000, pend:3, fq:[0,0]},
+  {id:35, name:'UPI-QR PAY',      sys:'三方法币',      gift:0,     sort:80,  on:1, logo:'UQ', dmin:100, dmax:20000, pend:3, fq:[0,0]},
+  {id:36, name:'Bank Transfer',   sys:'三方法币',    gift:0.005, sort:70,  on:1, logo:'BT', dmin:500, dmax:100000, pend:5, fq:[0,0]},
+  {id:38, name:'Paytm Wallet',    sys:'三方法币',    gift:0,     sort:65,  on:1, logo:'PW', dmin:0, dmax:0, pend:0, fq:[0,0]},
+  {id:39, name:'PhonePe-UPI',     sys:'三方法币',      gift:0.01,  sort:62,  on:1, logo:'PP', dmin:100, dmax:20000, pend:3, fq:[0,0]},
+  {id:37, name:'Pay',             sys:'三方法币',      gift:0,     sort:60,  on:0, logo:'PA', dmin:0, dmax:0, pend:0, fq:[0,0]},
+];
+const catById = id => CATS.find(c=>c.id===id);
+
+// 通道：src 1=跟随大类 2=自定义；rate=自定义比率
+let CH = [
+  {id:302270, sid:10107, nm:'ArUpi',                pc:'Net_ArUpi',    cn:'ARUPI',       st:1, w:1100, rt:1100, src:1, rate:0,     min:100, max:50000, fee:'0.0000', code:'ARUPI', mch:['ArUpi-91','AR91001'], sr:['41.85%','42.4%','43.1%','44.04%'], upd:['ops_ravi','2026-10-11 21:04']},
+  {id:302268, sid:12301, nm:'FastPay2INR-Bank',     pc:'FastPayINR',   cn:'FastPay-Bank',st:1, w:30,   rt:22,   src:1, rate:0,     min:500, max:100000,fee:'0.0000', code:'',      mch:['FastPay','FP880231'], sr:['35.2%','38.9%','40.1%','41.7%'], upd:['ops_ravi','2026-10-10 14:22']},
+  {id:302265, sid:12022, nm:'MovPay2INR-QR',        pc:'MovPayINR',    cn:'MovPay-QR',   st:1, w:55,   rt:48,   src:1, rate:0,     min:200, max:5000,  fee:'0.0000', code:'',      mch:['Mov-91','MV100293'],   sr:['41.18%','57.5%','46.2%','43.98%'], upd:['ops_anna','2026-10-10 11:09']},
+  {id:302262, sid:12204, nm:'VstarPay2INR-QR',      pc:'VstarPayINR',  cn:'VstarPay-QR', st:0, av:'三方商户关闭', w:33,   rt:0,    src:1, rate:0,     min:200, max:5000,  fee:'0.0000', code:'',      mch:['Vstar-91','VS5521'],   sr:['38.1%','51.22%','49.3%','51.96%'], upd:['ops_anna','2026-10-09 18:40']},
+  {id:302260, sid:10986, dyn:true, ccode:'C88', nm:'CedarPay2INR-QR',      pc:'CedarPayINR',  cn:'CedarPay-QR', st:1, w:40,   rt:36,   src:2, rate:0.03,    min:100, max:10000, fee:'0.0000', code:'',      mch:['Cedar-91','CD77812'],  sr:['31.82%','52.94%','50.1%','48.9%'], upd:['ops_ravi','2026-10-09 10:15']},
+  {id:302258, sid:12114, nm:'BussPay2INR-QR',       pc:'BussPayINR',   cn:'BussPay-QR',  st:1, w:50,   rt:41,   src:2, rate:0.03,  min:200, max:50000, fee:'0.0000', code:'',      mch:['Buss-91','BS20019'],   sr:['29.41%','41.86%','42.7%','43.26%'], upd:['ops_anna','2026-10-08 16:02']},
+  {id:302255, sid:10947, nm:'HaoxPay2INR-QR',       pc:'HaoxPayINR',   cn:'WPay-QR',     st:1, w:54,   rt:50,   src:2, rate:0.015, min:100, max:50000, fee:'0.0000', code:'',      mch:['WPay-91','WP33018'],   sr:['21.74%','35.78%','38.4%','41.86%'], upd:['ops_ravi','2026-10-08 09:47']},
+  {id:302253, sid:12133, nm:'NewWinPay2INR-QR',     pc:'NewWinPay2INR',cn:'NewWin-QR',   st:1, w:71,   rt:66,   src:1, rate:0,     min:200, max:10000, fee:'0.0000', code:'',      mch:['NewWin-91','NW10088'], sr:['45.45%','50%','48.6%','49.07%'], upd:['ops_anna','2026-10-07 20:31']},
+  {id:302251, sid:10201, nm:'ArbPay2INR',           pc:'ArbPayINR',    cn:'ArbPayINR',   st:1, w:100,  rt:92,   src:1, rate:0,     min:100, max:50000, fee:'0.0000', code:'3',     mch:['Arb-91','AB1500'],     sr:['100%','75%','80.2%','78.32%'], upd:['ops_ravi','2026-10-07 13:12']},
+  {id:302250, sid:12116, nm:'RushPay2INR-QR',       pc:'RushPayINR',   cn:'RushPay-QR',  st:1, w:100,  rt:88,   src:1, rate:0,     min:100, max:10000, fee:'0.0000', code:'',      mch:['Rush-91','RP40031'],   sr:['22.22%','35%','39.9%','42.52%'], upd:['ops_anna','2026-10-06 17:55']},
+  {id:302247, sid:10606, nm:'WePay2INR-PaytmQR',    pc:'WePay2INR',    cn:'WePay-Paytm', st:1, w:0,    rt:0,    src:1, rate:0,     min:100, max:50000, fee:'0.0000', code:'',      mch:['WePay-91','WE90021'],  sr:['0%','0%','0%','0%'], upd:['ops_ravi','2026-10-06 10:03']},
+  {id:302244, sid:10317, nm:'SuperPay2INR-PaytmQR', pc:'SuperPay2INR', cn:'SuperPay-Paytm',st:1, w:0,   rt:0,    src:1, rate:0,     min:100, max:50000, fee:'0.0000', code:'',      mch:['SuperPay-91','SP60012'],sr:['0%','0%','0%','0%'], upd:['ops_anna','2026-10-05 15:28']},
+];
+const chById = id => CH.find(c=>c.id===id);
+
+// 每个大类内的通道顺序（数组下标 0 = 最靠前），对应挂载表 Sort 降序
+let ORDER = {
+  31:[302270,302258],
+  32:[302251,302253,302265,302255,302258,302260,302262,302250],
+  33:[302244,302247,302253,302255,302258,302262],
+  34:[302244,302250,302265,302258,302255],
+  35:[302244,302250,302255,302258,302262],
+  36:[302268,302265,302258],
+  38:[302258,302255,302262],
+  39:[302258,302255,302262],
+  37:[302268],
+};
+const mountsOf = chId => CATS.filter(c=>ORDER[c.id]&&ORDER[c.id].includes(chId)).map(c=>c.id); // 按大类顺序
+function effGift(ch, cat){ const custom = ch.src===2 ? ch.rate : 0; return Math.max(cat.gift, custom); }
+function effSrc(ch, cat){ return (ch.src===2 && ch.rate>cat.gift) ? '跟随通道' : '跟随大类'; }
+const pct = r => `${Number((r*100).toFixed(4))}%`;
+
+/* ===================== 状态 ===================== */
+let VIEW = 'new';
+let Q = {cat:'', st:'', name:'', pc:''};
+let flashKey = null;
+
+/* ===================== 搜索区 ===================== */
+(function initSearch(){
+  const fc = document.getElementById('f-cat');
+  CATS.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name+(c.on?'':'（已关闭）'); fc.appendChild(o); });
+  const fp = document.getElementById('f-pc');
+  [...new Set(CH.map(c=>c.pc))].forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=p; fp.appendChild(o); });
+  ['f-cat','f-st','f-pc'].forEach(id=>{ const el=document.getElementById(id); el.addEventListener('change',()=>el.classList.toggle('ph',!el.value)); });
+})();
+function doSearch(){
+  Q.cat = document.getElementById('f-cat').value;
+  Q.st = document.getElementById('f-st').value;
+  Q.name = document.getElementById('f-name').value.trim().toLowerCase();
+  Q.pc = document.getElementById('f-pc').value;
+  render();
+}
+function resetSearch(){
+  ['f-cat','f-st','f-pc'].forEach(id=>{ const el=document.getElementById(id); el.value=''; el.classList.add('ph'); });
+  document.getElementById('f-name').value='';
+  doSearch();
+}
+function passFilter(ch){
+  if(Q.st!=='' && String(ch.st)!==Q.st) return false;
+  if(Q.pc && ch.pc!==Q.pc) return false;
+  if(Q.name && !(String(ch.id).includes(Q.name) || ch.nm.toLowerCase().includes(Q.name) || ch.cn.toLowerCase().includes(Q.name))) return false;
+  return true;
+}
+
+/* ===================== 行数据 ===================== */
+// 现状：通道 × 所挂大类展开，按 大类 sort desc → 大类内顺序
+function rowsOld(){
+  const rows=[];
+  [...CATS].sort((a,b)=>b.sort-a.sort).forEach(cat=>{
+    if(Q.cat && String(cat.id)!==Q.cat) return;
+    (ORDER[cat.id]||[]).forEach(id=>{ const ch=chById(id); if(ch && passFilter(ch)) rows.push({ch, cat}); });
+  });
+  return rows;
+}
+// 新方案：一条通道一行；选了大类按该大类内顺序，否则按 ID 倒序
+function rowsNew(){
+  if(Q.cat){
+    return (ORDER[+Q.cat]||[]).map(chById).filter(ch=>ch && passFilter(ch)).map(ch=>({ch}));
+  }
+  return [...CH].sort((a,b)=>b.id-a.id).filter(passFilter).map(ch=>({ch}));
+}
+
+/* ===================== 单元格渲染 ===================== */
+const esc = s => String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+function kv(pairs){ return `<div class="kv">${pairs.map(([k,v])=>`<span class="k">${k}：</span><span class="v">${v}</span>`).join('')}</div>`; }
+function stateCell(ch){
+  return kv([['通道状态',`<span class="sw ${ch.st?'on':''}" onclick="askToggle(${ch.id})"><i></i></span>`],['可用状态','<span class="ok-t">可用</span>']]);
+}
+function sortBtns(ch, catId){
+  let pos=-1,total=0, enabled=!!catId;
+  if(catId){ const arr=ORDER[catId]||[]; pos=arr.indexOf(ch.id); total=arr.length; }
+  const dis = d => !enabled || total<=1 || ((d==='up'||d==='top') ? pos<=0 : pos>=total-1);
+  const tipText = enabled ? null : '先在查询栏选择充值大类，再调整该大类内的排序';
+  const b = (d,ic,lb) => `<span ${tipText?`data-tip="${tipText}"`:`data-tip="${lb}"`}><button class="sb" ${dis(d)?'disabled':''} onclick="doSort(${ch.id},${catId||0},'${d}')">${ic}</button></span>`;
+  return `<span class="sorts">${b('up','↑','上移')}${b('down','↓','下移')}${b('top','⤒','置顶')}${b('bottom','⤓','置底')}<span class="q" data-tip="此配置会同步到前端排序">ⓘ</span></span>`;
+}
+function idCell(ch, catId){
+  return `<div class="idc">${kv([['通道ID',`${ch.id} <span class="tg info">${esc(ch.pc)}</span>`]])}<div>${sortBtns(ch,catId)}</div></div>`;
+}
+// 新方案：前台显示名称放第一行（同商户不重名，运营按它认通道），通道名称放第二行
+function nameCellNew(ch){ return kv([['前台显示名称',`<b class="lnk" onclick="openEdit(${ch.id})">${esc(ch.cn)}</b>`],['通道名称',`[${ch.sid}]${esc(ch.nm)}`]]); }
+function nameCell(ch){ return kv([['通道名称',`[${ch.sid}]${esc(ch.nm)}`],['前台显示名称',esc(ch.cn)]]); }
+function srCell(ch){
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;text-align:left;line-height:22px">
+    <span>近10分钟：<span class="err-t">${ch.sr[0]}</span></span><span>近30分钟：<span class="err-t">${ch.sr[1]}</span></span>
+    <span>近1小时：<span class="ok-t">${ch.sr[2]}</span></span><span>近24小时：<span class="ok-t">${ch.sr[3]}</span></span></div>`;
+}
+function weightCell(ch){ return `<div style="text-align:left;line-height:22px">预设权重：${ch.w}<br><span class="mute">实时权重：${ch.rt}</span></div>`; }
+// 现状：通道奖励 + 生效奖励（按行所在大类）
+function giftCellOld(ch, cat){
+  const custom = ch.src===2;
+  const notEff = custom && ch.rate>0 && ch.rate<=cat.gift;
+  const eff = effGift(ch,cat);
+  return `<div style="text-align:left;line-height:24px">
+    <div><span class="mute">通道奖励：</span>${custom?pct(ch.rate):'--'} ${notEff?'<span class="err-t">不生效</span>':''}</div>
+    <div><span class="mute">生效奖励：</span>${eff>0?pct(eff)+' <span class="tg info">'+effSrc(ch,cat)+'</span>':'--'}</div></div>`;
+}
+// 新方案：只留通道奖励；自定义比率不高于某大类时写明在哪些大类下不生效
+function giftCellNew(ch){
+  if(ch.src!==2) return `<div style="text-align:left"><span class="mute">通道奖励：</span>跟随大类</div>`;
+  const lose = mountsOf(ch.id).map(catById).filter(c=>ch.rate<=c.gift).map(c=>c.name);
+  return `<div style="text-align:left;line-height:24px"><div><span class="mute">通道奖励：</span>${pct(ch.rate)}</div>${lose.length?`<div class="err-t">在 ${lose.map(esc).join('、')} 下不生效</div>`:''}</div>`;
+}
+// 新方案：所挂大类小表
+function mountCell(ch){
+  const ids = mountsOf(ch.id);
+  let h = `<div class="mt">`;
+  ids.forEach(cid=>{
+    const c=catById(cid), arr=ORDER[cid], cur=String(cid)===Q.cat, eff=effGift(ch,c);
+    const cls = `${cur?'cur':''} ${c.on?'':'off'}`;
+    h += `<span class="c ${cls}">${esc(c.name)}${c.on?'':'（大类已关闭）'}</span>`
+       + `<span class="num ${cls}">${eff>0?pct(eff):'--'}</span>`
+       + `<span class="num ${cls}">${arr.indexOf(ch.id)+1}/${arr.length}</span>`;
+  });
+  return h+'</div>';
+}
+function catCellOld(cat){
+  return `<div class="cat-cell"><span class="cat-logo">${cat.logo}</span><span class="n">${esc(cat.name)}</span></div>`;
+}
+function opsCell(ch){
+  return `<div class="ops"><span class="lnk" onclick="msg('代收测试弹窗本次不改')">代收测试</span><span class="lnk" onclick="openEdit(${ch.id})">编辑</span><span class="lnk" onclick="openCopy(${ch.id})">复制到其他商户<em class="newf" style="position:static;margin-left:2px">NEW</em></span><span class="lnk del" onclick="askDelete(${ch.id})">删除</span></div>`;
+}
+const tail = ch => [
+  `<td>${ch.min.toFixed(2)} ~ ${ch.max.toFixed(2)}</td>`,
+  `<td>${ch.fee}</td>`,
+  `<td>所有</td>`,
+  `<td><span class="tg ok">INR</span></td>`,
+  `<td class="l">${kv([['昵称',esc(ch.mch[0])],['商户号',esc(ch.mch[1])]])}</td>`,
+  `<td class="l">${kv([['类型',ch.code?'固定':'不使用']].concat(ch.code?[['编码',esc(ch.code)]]:[]))}</td>`,
+  `<td class="l">${kv([['网关地址','https://api.'+ch.pc.toLowerCase()+'.com/pay'],['回调白名单IP','43.204.232.0 | 13.200.10.249']])}</td>`,
+];
+const tail2 = ch => [
+  `<td>00:00 ~ 23:59</td>`,
+  `<td class="l">--</td>`,
+  `<td class="l">${ch.upd[0]}<br><span class="mute">${ch.upd[1]}</span></td>`,
+  `<td class="fxr">${opsCell(ch)}</td>`,
+];
+
+/* ===================== 新方案：单行单元格 ===================== */
+function stCellCp(ch){ return `<span class="sw ${ch.st?'on':''}" onclick="askToggle(${ch.id})"><i></i></span>${ch.av?`<span class="avw">${ch.av}</span>`:''}`; }
+// 充值大类：用英文逗号分隔，大类名内部不断行（空格换成不换行空格），只在逗号后换行；
+// 默认列宽 = 本页最长的「两个大类」的宽度（见 fitColumns），列宽可拖，拖宽一行放得更多，拖窄自动换行。
+const nb = t => esc(t).replace(/ /g,'&nbsp;');
+function catsCellCp(ch){
+  const ids = mountsOf(ch.id), on = CATS.filter(c=>c.on), onIds = on.map(c=>c.id);
+  const mountedOn = ids.filter(id=>onIds.includes(id)), closed = ids.filter(id=>!onIds.includes(id)).map(catById);
+  const nm = c => `<span class="${String(c.id)===Q.cat?'cur':''} ${c.on?'':'off'}">${nb(c.name)}${c.on?'':'（已关闭）'}</span>`;
+  const full = mountedOn.map(catById).map(c=>c.name).join(', ');
+  const miss = on.filter(c=>!mountedOn.includes(c.id));
+  // 一律逐个列出大类名称（不用「全部大类 / 除 X」的概括写法）
+  const items = mountedOn.map(catById).map(nm).concat(closed.map(nm));
+  return `<span class="cats">${items.join(', ')}</span>`;
+}
+function sortCellCp(ch){ const arr=ORDER[+Q.cat]||[]; return `<span class="num" style="display:inline-block;width:34px;text-align:right;margin-right:6px">${arr.indexOf(ch.id)+1}/${arr.length}</span>${sortBtns(ch,+Q.cat).replace(/<span class="q"[^>]*>ⓘ<\/span>/,'')}`; }
+function giftCellCp(ch){
+  if(ch.src!==2) return '<span class="mute">--</span>';
+  const ms=mountsOf(ch.id).map(catById), lose=ms.filter(c=>ch.rate<=c.gift).map(c=>c.name);
+  const w = !lose.length ? '' : lose.length===ms.length
+    ? `<span class="avw" data-tip="所挂大类的奖励都不低于通道奖励，通道奖励在所有大类下都不生效">不生效</span>`
+    : `<span class="avw" data-tip="在 ${lose.join('、')} 下不生效（大类奖励更高）">部分不生效</span>`;
+  return `${pct(ch.rate)}${w}`;
+}
+function rowCp(ch){
+  const sr = ch.sr.map((v,k)=>`<td class="num ${k<2?'err-t':'ok-t'}">${v}</td>`).join('');
+  return `<td class="fx1 l">${stCellCp(ch)}</td><td class="fx2 num">${ch.id}</td><td class="fx3 l"><span class="lnk" onclick="openEdit(${ch.id})">${esc(ch.cn)}</span></td>`
+    + `<td class="l wr">${catsCellCp(ch)}</td>` + (Q.cat?`<td class="l">${sortCellCp(ch)}</td>`:'')
+    + sr + `<td class="num">${ch.w} / ${ch.rt}</td><td>${giftCellCp(ch)}</td>`
+    + `<td>${esc(ch.pc)}</td><td class="l">[${ch.sid}]${esc(ch.nm)}</td><td class="num">${ch.min.toFixed(2)}</td><td class="num">${ch.max.toFixed(2)}</td><td class="num">${ch.fee}</td><td>所有</td><td>INR</td>`
+    + `<td>${esc(ch.mch[0])}</td><td>${esc(ch.mch[1])}</td><td>${ch.code?'固定：'+esc(ch.code):'不使用'}</td>`
+    + `<td class="l">https://api.${ch.pc.toLowerCase()}.com/pay</td><td class="l">43.204.232.0 | 13.200.10.249</td><td>00:00 ~ 23:59</td><td>--</td><td>${ch.upd[0]}　<span class="mute">${ch.upd[1]}</span></td>`
+    + `<td class="fxr">${opsCell(ch)}</td>`;
+}
+
+function stateCell2(ch){
+  const av = ch.av ? `<span class="err-t">${ch.av}</span>` : '<span class="ok-t">可用</span>';
+  return kv([['通道状态',`<span class="sw ${ch.st?'on':''}" onclick="askToggle(${ch.id})"><i></i></span>`],['可用状态',av]]);
+}
+// 充值通道奖励：只挂 1 个大类 → 和现在完全一样（通道奖励 / 生效奖励 + 来源标签）；
+// 挂多个大类 → 第二行写生效奖励区间「最低~最高」（effRange）
+// 生效奖励一行（列表与编辑弹窗共用）：挂 1 个大类写具体比率 + 来源；挂多个大类写区间
+function effLine(ch, catIds){
+  const ms = catIds.map(catById);
+  if(!ms.length) return '<span class="mute">请先选择充值大类</span>';
+  if(ms.length===1){ const e=effGift(ch,ms[0]); return e>0 ? `${pct(e)} <span class="tg info">${effSrc(ch,ms[0])}</span>` : '--'; }
+  return effRange(ch, ms);
+}
+// 挂多个大类：生效奖励写区间「最低~最高」（只算启用中的大类；大类关闭时不发奖励）；最低=最高时只写一个值，全是 0 写 --
+function effRange(ch, ms){
+  const vals = ms.filter(c=>c.on).map(c=>effGift(ch,c));
+  if(!vals.length) return '--';
+  const lo=Math.min(...vals), hi=Math.max(...vals);
+  if(hi<=0) return '--';
+  return lo===hi ? pct(hi) : `${pct(lo)}~${pct(hi)}`;
+}
+function giftCell2(ch){
+  const ms = mountsOf(ch.id).map(catById);
+  if(ms.length<=1) return giftCellOld(ch, ms[0] || {gift:0});
+  const custom = ch.src===2 && ch.rate>0;
+  const win = custom ? ms.filter(c=>ch.rate>c.gift) : [];
+  const lose = custom ? ms.filter(c=>ch.rate<=c.gift) : [];
+  const warn = !custom || !lose.length ? '' : lose.length===ms.length
+    ? '<span class="err-t" data-tip="所挂大类的奖励都不低于通道奖励，通道奖励在所有大类下都不生效">不生效</span>'
+    : '';
+  const eff = effRange(ch, ms);
+  return `<div style="text-align:left;line-height:22px">
+    <div><span class="mute">通道奖励：</span>${custom?pct(ch.rate):'--'} ${warn}</div>
+    <div><span class="mute">生效奖励：</span>${eff}</div></div>`;
+}
+
+/* ===================== 表格 ===================== */
+function render(){
+  const g = document.getElementById('grid');
+  document.querySelectorAll('#seg span').forEach(s=>s.classList.toggle('on', s.dataset.v===VIEW));
+  document.getElementById('fi-cat').classList.toggle('hl', VIEW==='new' && !Q.cat);
+  let head, body='', count;
+  if(VIEW==='old'){
+    const rows = rowsOld(); count = rows.length;
+    head = `<colgroup>${[140,160,240,300,260,260,160,280,104,96,104,100,224,168,300,150,98,160,260,160].map(w=>`<col style="width:${w}px">`).join('')}</colgroup>
+      <tr><th class="fxl">商户</th><th>充值大类</th><th>状态</th><th>通道ID</th><th>通道名称</th><th>成功率统计</th><th>轮询权重</th><th>充值通道奖励</th><th>充值金额区间</th><th>手续费</th><th>可见充值等级</th><th>通道币种</th><th>三方商户昵称/商户号</th><th>通道编码</th><th>网关信息</th><th>内置充值大类</th><th>可用时间段</th><th>备注</th><th>最后修改人/时间</th><th class="fxr">操作</th></tr>`;
+    rows.forEach((r,i)=>{
+      const prev=rows[i-1]; let span=0;
+      if(!prev || prev.cat.id!==r.cat.id){ span=1; while(rows[i+span] && rows[i+span].cat.id===r.cat.id) span++; }
+      const key = r.ch.id+'-'+r.cat.id;
+      body += `<tr class="${flashKey&&(flashKey===key||flashKey===String(r.ch.id))?'flash':''}">`
+        + (span?`<td class="fxl" rowspan="${span}"><span class="tg def">(1048)91club</span></td><td rowspan="${span}">${catCellOld(r.cat)}</td>`:'')
+        + `<td class="l">${stateCell(r.ch)}</td><td class="l">${idCell(r.ch, r.cat.id)}</td><td class="l">${nameCell(r.ch)}</td><td>${srCell(r.ch)}</td><td>${weightCell(r.ch)}</td><td>${giftCellOld(r.ch,r.cat)}</td>`
+        + tail(r.ch).join('') + `<td><span class="tg ok">${esc(r.cat.sys)}</span></td>` + tail2(r.ch).join('') + '</tr>';
+    });
+    document.getElementById('sort-hint').innerHTML = '每行的排序按钮调整的是该行所在大类内的顺序';
+  } else {
+    const rows = rowsNew(); count = rows.length;
+    // 最小改动版：列顺序、列宽、单元格写法全部沿用 uat，只改「充值大类」列内容、去掉「内置充值大类」、奖励列只留通道奖励
+    const cols = [[140,'商户'],[200,'状态'],[300,'通道ID'],[260,'前台显示名称 / 通道名称',1],[300,'充值大类',1],[260,'成功率统计'],[160,'轮询权重'],[168,'通道编码'],[160,'充值通道奖励',1],
+      [104,'充值金额区间'],[96,'手续费'],[104,'可见充值等级'],[100,'通道币种'],[224,'三方商户昵称/商户号'],[300,'网关信息'],[98,'可用时间段'],[160,'备注'],[260,'最后修改人/时间'],[160,'操作']];
+    const tips = {'充值大类':'通道勾选的全部充值大类，英文逗号分隔，逐个列出；默认宽度约放两个大类，可拖动列宽。','充值通道奖励':'通道奖励：通道上自定义的奖励，没有写 --。\n生效奖励：挂 1 个大类写比率 + 来源；挂多个大类写区间「最低~最高」。','通道ID':'第二行是排序按钮：在查询栏选了充值大类后可用，\n调整的是该大类内的顺序，会同步到玩家端。'};
+    head = `<colgroup>${cols.map(c=>`<col style="width:${c[0]}px">`).join('')}</colgroup><tr>${cols.map((c,i)=>{
+      const cls = i===0?'fxl':i===cols.length-1?'fxr':'';
+      return `<th class="${cls} ${c[2]?'newcol':''} ${VIEW==='new'&&c[1]==='充值大类'?'catcol':''}">${c[1]}${c[2]?'<em class="newf">NEW</em>':''}${tips[c[1]]?`<span class="qm" data-tip="${tips[c[1]]}">?</span>`:''}</th>`;}).join('')}</tr>`;
+    rows.forEach((r,i)=>{
+      const ch=r.ch;
+      body += `<tr class="${flashKey&&flashKey.split('-')[0]===String(ch.id)?'flash':''}">`
+        + (i===0?`<td class="fxl" rowspan="${rows.length}"><span class="tg def">(1048)91club</span></td>`:'')
+        + `<td class="l">${stateCell2(ch)}</td><td class="l">${idCell(ch, Q.cat?+Q.cat:0)}</td><td class="l">${nameCellNew(ch)}</td><td class="l wr">${catsCellCp(ch)}</td>`
+        + `<td>${srCell(ch)}</td><td>${weightCell(ch)}</td>${tail(ch)[5]}<td class="l">${giftCell2(ch)}</td>`
+        + tail(ch).filter((_,k)=>k!==5).join('') + tail2(ch).join('') + '</tr>';
+    });
+    document.getElementById('sort-hint').innerHTML = Q.cat
+      ? `已选大类 <b>${esc(catById(+Q.cat).name)}</b>：列表按该大类内顺序排列，通道ID 下方的按钮调整的就是这个大类内的顺序`
+      : '排序按钮需先在查询栏选择充值大类';
+  }
+  if(!count) body = `<tr><td colspan="20" class="mute" style="padding:40px">无数据</td></tr>`;
+  g.classList.add('u');
+  g.innerHTML = head + body;
+  fitColumns();
+  document.getElementById('pager').innerHTML = `共 ${count} 条 <span class="pg-n">‹</span><span class="pg-n on">1</span><span class="pg-n">›</span> <select style="height:24px;border:1px solid var(--line2);border-radius:3px"><option>50 / 页</option></select>`;
+  const oldN = rowsOldAll(), newN = CH.length;
+  document.getElementById('demo-cnt').innerHTML = `同一份数据：现状 <b>${oldN}</b> 行 ／ 新方案 <b>${newN}</b> 行（${newN} 条通道）`;
+  flashKey = null;
+  requestAnimationFrame(()=>{ const trs=[...g.querySelectorAll('tr')].slice(1); if(!trs.length) return;
+    const avg=trs.reduce((a,r)=>a+r.getBoundingClientRect().height,0)/trs.length, top=document.querySelector('.tw').getBoundingClientRect().top+window.scrollY+40;
+    document.getElementById('demo-rows').innerHTML=`｜ 当前窗口 ${innerWidth}×${innerHeight}：平均行高 <b>${Math.round(avg)}px</b>，一屏约 <b>${Math.max(0,Math.floor((innerHeight-top)/avg))}</b> 行`; });
+}
+window.addEventListener('resize',()=>{ if(PAGE==='rc') render(); else WD.render(); });
+function rowsOldAll(){ return CATS.reduce((s,c)=>s+(ORDER[c.id]||[]).length,0); }
+
+/* ===================== 列宽：自适应 + 拖动 ===================== */
+// 每列的上限（目前没有列需要封顶；「充值大类」默认宽度在 fitColumns 里单独按「两个大类」算）
+const COL_MAX = {};
+const COL_MIN = 60;
+function colKey(th){ return VIEW+'|'+th.textContent.replace(/NEW|\?/g,'').trim(); }
+function loadW(){ try{ return JSON.parse(localStorage.getItem('rc-proto-colw')||'{}'); }catch(e){ return {}; } }
+function saveW(o){ try{ localStorage.setItem('rc-proto-colw', JSON.stringify(o)); }catch(e){} }
+function fitColumns(){
+  const g=document.getElementById('grid'), cols=[...g.querySelectorAll('col')], ths=[...g.querySelectorAll('tr:first-child th')];
+  if(cols.length!==ths.length) return;
+  // 1) 让浏览器按内容排一次（不折行、不省略），量出每列的自然宽度
+  g.classList.add('measuring'); g.style.tableLayout='auto'; g.style.width='max-content';
+  cols.forEach(c=>c.style.width='');
+  const natural = ths.map(th=>{ const k=th.textContent.replace(/NEW|\?/g,'').trim(); const w=Math.ceil(th.getBoundingClientRect().width); return Math.min(COL_MAX[k]||9999, Math.max(COL_MIN,w)); });
+  // 充值大类：不按整行最长，按「相邻两个大类 + 逗号」最长的那一对给宽度
+  const ci = ths.findIndex(th=>th.classList.contains('catcol'));
+  if(ci>=0){
+    let pair = 0;
+    g.querySelectorAll('td.wr .cats').forEach(c=>{
+      const sp=[...c.children].map(x=>x.getBoundingClientRect().width), sep=6;
+      sp.forEach((w,k)=>{ pair=Math.max(pair, w + (k+1<sp.length ? sep+sp[k+1]+sep : 0)); });
+    });
+    const head = ths[ci].querySelector('.ht') ? ths[ci].querySelector('.ht').getBoundingClientRect().width+40 : 90;
+    natural[ci] = Math.max(COL_MIN, Math.ceil(Math.max(pair, head)) + 18);
+  }
+  g.classList.remove('measuring');
+  // 2) 有手动拖过的用手动宽度，否则用自然宽度
+  const saved=loadW();
+  const widths = ths.map((th,i)=> saved[colKey(th)] || natural[i]);
+  cols.forEach((c,i)=>c.style.width=widths[i]+'px');
+  g.style.tableLayout='fixed'; g.style.width=widths.reduce((a,b)=>a+b,0)+'px';
+  // 3) 表头右边缘加拖动把手
+  ths.forEach((th,i)=>{
+    if(th.querySelector('.rz')) return;
+    const h=document.createElement('span'); h.className='rz'; h.dataset.tip='拖动调整列宽，双击恢复按内容自适应'; th.appendChild(h);
+    h.addEventListener('mousedown',e=>{
+      e.preventDefault(); const x0=e.clientX, w0=cols[i].getBoundingClientRect().width||widths[i];
+      h.classList.add('on'); document.body.classList.add('resizing');
+      const mv=ev=>{ const w=Math.max(COL_MIN, Math.round(w0+ev.clientX-x0)); cols[i].style.width=w+'px'; widths[i]=w; g.style.width=widths.reduce((a,b)=>a+b,0)+'px'; };
+      const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); h.classList.remove('on'); document.body.classList.remove('resizing');
+        const o=loadW(); o[colKey(th)]=widths[i]; saveW(o); };
+      document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+    });
+    h.addEventListener('dblclick',()=>{ const o=loadW(); delete o[colKey(th)]; saveW(o); fitColumns(); msg('已恢复为按内容自适应宽度'); });
+  });
+}
+function resetAllWidths(){ const o=loadW(); Object.keys(o).filter(k=>k.startsWith(VIEW+'|')).forEach(k=>delete o[k]); saveW(o); fitColumns(); msg('已全部恢复为按内容自适应宽度'); }
+
+/* ===================== 交互：开关 ===================== */
+function askToggle(id){
+  const ch=chById(id), to=ch.st?0:1, names=mountsOf(id).map(c=>catById(c).name);
+  const body = VIEW==='new'
+    ? `确定要${to?'开启':'关闭'}通道 <b>[${ch.sid}]${esc(ch.nm)}</b> 吗？<br>该通道挂在以下 ${names.length} 个大类，会一起${to?'开启':'关闭'}：<ul>${names.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`
+    : `确定要${to?'开启':'关闭'}吗？`;
+  confirmDlg(to?'开启通道':'关闭通道', body, ()=>{
+    ch.st=to; ch.rt = to? Math.round(ch.w*0.9):0; flashKey=String(id);
+    render();
+    msg(VIEW==='old' && names.length>1 ? `操作成功。注意：其余 ${names.length-1} 个大类下的同名通道也一起${to?'开启':'关闭'}了（现在就是按通道生效）` : '操作成功');
+  });
+}
+/* ===================== 交互：删除 ===================== */
+function askDelete(id){
+  const ch=chById(id), names=mountsOf(id).map(c=>catById(c).name);
+  const body = VIEW==='new'
+    ? `确定删除通道 <b>[${ch.sid}]${esc(ch.nm)}</b> 吗？<br>删除后以下 ${names.length} 个大类下都不再有这条通道：<ul>${names.map(n=>`<li>${esc(n)}</li>`).join('')}</ul><span class="mute">只想从某个大类撤下，请到「编辑」里取消勾选该大类。</span>`
+    : `确认删除 ID ${id} 的充值通道吗？`;
+  confirmDlg('删除通道', body, ()=>{
+    CH = CH.filter(c=>c.id!==id); Object.keys(ORDER).forEach(k=>ORDER[k]=ORDER[k].filter(x=>x!==id));
+    render();
+    msg(VIEW==='old' && names.length>1 ? `删除成功。注意：其余 ${names.length-1} 个大类下的这条通道也一起删了（现在就是按通道删除）` : '删除成功');
+  }, true);
+}
+/* ===================== 交互：排序 ===================== */
+function doSort(id, catId, d){
+  if(!catId) return;
+  const arr=ORDER[catId], i=arr.indexOf(id); if(i<0) return;
+  arr.splice(i,1);
+  const to = d==='up'? i-1 : d==='down'? i+1 : d==='top'? 0 : arr.length;
+  arr.splice(Math.max(0,Math.min(arr.length,to)),0,id);
+  flashKey = VIEW==='old' ? id+'-'+catId : String(id);
+  render(); msg(`排序已更新（${catById(catId).name} 内）`);
+}
+
+/* ===================== 编辑弹窗 ===================== */
+let ED=null;
+// ===== 新增 / 编辑充值通道：左右一屏（左：通道基础信息；右：规则与费用） =====
+const DICT = [ // 新增时可选的通道字典（演示）
+  {sid:12455, nm:'PayFastINR-QR', pc:'PayFastINR', cur:'INR', code:''},
+  {sid:12460, nm:'QuickPay2INR-UPI', pc:'QuickPay2INR', cur:'INR', code:'', dyn:true},
+];
+function openEdit(id){
+  const ch=chById(id);
+  ED = {mode:'edit', code:ch.ccode||'', codeErr:false, gcode:'', id, cats:mountsOf(id), src:ch.src, rate:ch.rate, w:ch.w, modify:false, fq:(ch.fq||[0,0,0]).slice(),
+        cn:ch.cn, min:ch.min, max:ch.max, st:ch.st, as:!!ch.as, asRows:(ch.asRows||[[null,'',''],[null,'','']]).map(r=>r.slice()),
+        fee:ch.fee, tfr:ch.tfr||0, tfa:ch.tfa||0, rmk:ch.rmk||''};
+  document.getElementById('ed-t').textContent = `编辑充值通道 -${id}`;
+  drawEdit(); document.getElementById('ed-mask').classList.add('show');
+}
+function openCopy(id){
+  const ch=chById(id);
+  ED = {mode:'add', code:ch.ccode||'', codeErr:false, gcode:'', id:0, copy:id, tenants:[], dict:null, cats:mountsOf(id), src:ch.src, rate:ch.rate, w:ch.w, modify:true, fq:(ch.fq||[0,0,0]).slice(),
+        cn:ch.cn, min:ch.min, max:ch.max, amtFrom:'', amtTouched:true, st:0, as:false, asRows:[[null,'',''],[null,'','']],
+        fee:ch.fee, tfr:ch.tfr||0, tfa:ch.tfa||0, rmk:ch.rmk||''};
+  document.getElementById('ed-t').textContent = `复制通道到其他商户 - ${id}`;
+  drawEdit(); document.getElementById('ed-mask').classList.add('show');
+}
+function rcPickTenant(id){ ED.tenants=[id]; if(!ED.amtTouched){ const d=curDef('rc', SITES_RC.find(x=>x.id===id).cur); ED.min=d[0]; ED.max=d[1]; } drawEdit(); }
+function toggleTenantRc(t){ const i=ED.tenants.indexOf(t); if(i>=0) ED.tenants.splice(i,1); else ED.tenants.push(t); drawEdit(); document.getElementById('tms').classList.add('open'); }
+function openAdd(){
+  ED = {mode:'add', code:'', codeErr:false, gcode:'', id:0, copy:0, tenants:[1048], dict:null, cats:[], src:1, rate:0, w:0, modify:true, fq:[0,0,0], cn:'', min:100, max:100000, amtFrom:'', amtTouched:false, st:1, as:false,
+        asRows:[[null,'',''],[null,'','']], fee:'0.0000', tfr:0, tfa:0, rmk:''};
+  document.getElementById('ed-t').textContent = '新增充值通道';
+  drawEdit(); document.getElementById('ed-mask').classList.add('show');
+}
+function asCard(add){
+  if(add && (ED.copy || ED.tenants.length>1)) return `<div class="card"><div class="card-h">自动切换通道</div><div class="hintline">复制到其他商户时不带备用通道（备用通道是各商户自己的通道），建好后到各商户单独配置。</div></div>`;
+  const others = CH.filter(x=>x.id!==ED.id);
+  // 自动切换通道：照 uat 原样式（充值通道N + 切换充值金额范围 + 小额/大额说明）；右栏放不下时金额范围整体换到下一行，不挤压
+  const asRow = (k,label,tag) => `<div class="as-blk">
+      <div class="as-line">
+        <span class="as-g"><span class="lb">${label}</span><select onchange="ED.asRows[${k}][0]=this.value?+this.value:null" ${ED.as?'':'disabled'}><option value="">请选择切换通道</option>${others.map(o=>`<option value="${o.id}" ${ED.asRows[k][0]===o.id?'selected':''}>[${o.id}] ${esc(o.cn)}</option>`).join('')}</select></span>
+        <span class="as-g"><span class="lb">切换充值金额范围：</span><input type="number" placeholder="最小金额" value="${ED.asRows[k][1]}" ${ED.as?'':'disabled'} oninput="ED.asRows[${k}][1]=this.value"><span>~</span><input type="number" placeholder="最大金额" value="${ED.asRows[k][2]}" ${ED.as?'':'disabled'} oninput="ED.asRows[${k}][2]=this.value"></span>
+      </div>
+      <div class="as-tag">（${tag}）</div></div>`;
+  return `<div class="card">
+        <div class="card-h">自动切换通道 <span class="sw ${ED.as?'on':''}" onclick="ED.as=!ED.as;drawEdit()"><i></i></span></div>
+        <div class="hintline">开启后可配置小额/大额自动切换通道</div>
+        ${asRow(0,'充值通道1','小额自动切换通道')}${asRow(1,'充值通道2','大额自动切换通道')}
+      </div>`;
+}
+// R10 新增通道金额区间按商户币种预填：INR 已定，其他币种待运营给值，没给的用 V1 默认值
+const CUR_DEF = {INR:{rc:[100,100000], wd:[100,100000]}};
+const V1_DEF = {rc:[1,5000], wd:[10,30000]};
+const curDef = (page,cur) => (CUR_DEF[cur]||{})[page] || V1_DEF[page];
+const curHint = (page,cur) => { const d=curDef(page,cur); return `按商户币种默认填充（${cur}：${d[0]} ~ ${d[1]}${CUR_DEF[cur]?'':'，该币种待运营给值，暂用 V1 默认'}），按三方实际限额修改`; };
+const NI = (v,on,w) => `<input type="number" value="${v}" oninput="${on}" style="width:${w||'100%'}">`;
+function drawEdit(){
+  const add = ED.mode==='add', ch = add ? (ED.copy ? chById(ED.copy) : ED.dict!=null ? DICT[ED.dict] : null) : chById(ED.id);
+  const chips = ED.cats.map(cid=>`<span class="chip">${esc(catById(cid).name)}<b onclick="event.stopPropagation();toggleCat(${cid})">✕</b></span>`).join('');
+  const opts = CATS.map(c=>`<div class="op ${ED.cats.includes(c.id)?'sel':''} ${c.on?'':'dis'}" onclick="event.stopPropagation();${c.on?`toggleCat(${c.id})`:''}"><span>${esc(c.name)}${c.on?'':'（禁用）'}</span><span>${ED.cats.includes(c.id)?'✓':''}</span></div>`).join('');
+  const others = CH.filter(x=>x.id!==ED.id);
+  const asRow = (k,label) => `<div class="lr-row"><span class="lb">${label}</span>
+      <select onchange="ED.asRows[${k}][0]=this.value?+this.value:null" ${ED.as?'':'disabled'}><option value="">请选择备用通道</option>${others.map(o=>`<option value="${o.id}" ${ED.asRows[k][0]===o.id?'selected':''}>[${o.id}] ${esc(o.cn)}</option>`).join('')}</select>
+      <span class="lb">金额区间</span>${NI(ED.asRows[k][1],`ED.asRows[${k}][1]=this.value`,'90px')} ~ ${NI(ED.asRows[k][2],`ED.asRows[${k}][2]=this.value`,'90px')}</div>`;
+  document.getElementById('ed-b').innerHTML = `
+  <div class="lr">
+    <!-- 左：通道基础信息 -->
+    <div class="lr-col">
+      <div class="lr-h">通道基础信息</div>
+      <div class="fm2">
+        <div class="it"><label>${ED.copy?'复制到商户':'商户'}<i>*</i>${ED.copy?`<em class="newf" style="position:static;margin-left:4px">NEW</em><span class="qm" data-tip="可多选同集团、同币种（INR）的商户，每个商户各建一条。\\n从 (1048)91club 复制，已带出本通道全部配置（不含备用通道），状态默认关闭">?</span>`:''}</label>${ED.copy?siteChooser(SITES_RC, ED.tenants, 1048, 'toggleTenantRc', 'tms'):add?`<select onchange="rcPickTenant(+this.value)">${SITES_RC.map(x=>`<option value="${x.id}" ${ED.tenants[0]===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:`<div class="ip dis">(1048)91club</div>`}</div>
+        <div class="it"><label>通道名称<i>*</i></label>${add && !ED.copy
+          ? `<select onchange="ED.dict=this.value===''?null:+this.value; if(ED.dict!=null && !ED.cn) ED.cn=DICT[ED.dict].nm.slice(0,20); drawEdit()"><option value="">请选择通道名称</option>${DICT.map((d,k)=>`<option value="${k}" ${ED.dict===k?'selected':''}>[${d.sid}] ${esc(d.nm)}</option>`).join('')}</select>`
+          : `<div class="ip dis">[${ch.sid}]${esc(ch.nm)}</div>`}</div>
+        <div class="it"><label>三方映射码<i>*</i></label><div class="ip dis">${ch?esc(ch.pc):'选择通道名称后带出'}</div></div>
+        <div class="it"><label>前台显示名称<i>*</i></label><input value="${esc(ED.cn)}" maxlength="20" placeholder="请输入前台显示名称" oninput="ED.cn=this.value"></div>
+        <div class="it w"><label>充值大类<i>*</i></label>
+          <div class="ip ms" id="ms" onclick="this.classList.toggle('open')">${chips||'<span class="mute">请选择充值大类（可多选）</span>'}<div class="pop">${opts}</div></div></div>
+        <div class="it ${ED.codeErr?'err':''}" id="ed-code-it"><label>三方通道编码${ch&&ch.dyn?'<i>*</i>':''}</label>${ch&&ch.dyn
+          ? `<input id="ed-code" value="${esc(ED.code||'')}" placeholder="动态编码，必填" oninput="ED.code=this.value; if(ED.codeErr&&this.value.trim()){ED.codeErr=false; document.getElementById('ed-code-it').classList.remove('err'); const e=document.getElementById('ed-code-err'); if(e) e.remove();}">${ED.codeErr?`<span class="err-t" id="ed-code-err" style="font-size:12px">该通道是动态编码，必须填写${add&&(ED.copy||ED.tenants.length>1)?'；所选商户都使用这个编码':''}</span>`:''}`
+          : `<div class="ip dis">${ch&&ch.code?esc(ch.code):'该通道编码类型=不使用，不可编辑'}</div>`}</div>
+        <div class="it"><label>通道币种</label><div class="ip dis">INR</div></div>
+        <div class="it"><label>轮询权重<i>*</i></label>${NI(ED.w,'ED.w=+this.value||0')}</div>
+        <div class="it"><label>可见充值等级</label><select><option>全部</option></select></div>
+        <div class="it"><label>网关地址</label><div class="ip dis">${ch?`https://api.${ch.pc.toLowerCase()}.com/pay`:'--'}</div></div>
+        <div class="it"><label>回调白名单IP</label><div class="ip dis">${ch?'43.204.232.0 | 13.200.10.249':'--'}</div></div>
+        <div class="it"><label>可用时间段<i>*</i></label><div class="ip">00:00 ~ 23:59</div></div>
+        <div class="it"><label>充值金额区间<i>*</i></label><div class="ip" style="padding:0 8px;gap:4px">${NI(ED.min,'ED.min=+this.value||0;ED.amtTouched=true','45%')} ~ ${NI(ED.max,'ED.max=+this.value||0;ED.amtTouched=true','45%')}</div>
+          ${add&&!ED.copy?`<span class="hintline">${curHint('rc', SITES_RC.find(x=>x.id===ED.tenants[0]).cur)}</span>`:''}</div>
+        <div class="it"><label>状态</label><div class="ip" style="border:0;padding-left:0"><span class="sw ${ED.st?'on':''}" onclick="ED.st=ED.st?0:1;drawEdit()"><i></i></span></div></div>
+        <div class="it"><label>备注</label><input value="${esc(ED.rmk)}" maxlength="300" placeholder="请输入备注" oninput="ED.rmk=this.value"></div>
+      </div>
+    </div>
+    <!-- 右：规则与费用 -->
+    <div class="lr-col">
+      <div class="lr-h">规则与费用</div>
+${asCard(add)}
+      <div class="card">
+        <div class="card-h">手续费</div>
+        <div class="lr-row"><span class="lb">向会员收取手续费率</span>${NI(ED.fee,'ED.fee=this.value','90px')}<span class="mute">0~1，0.25=25%</span></div>
+        <div class="lr-row"><span class="lb">三方手续费比例</span>${NI(ED.tfr,'ED.tfr=+this.value||0','76px')} %<span class="lb" style="margin-left:8px">单笔</span>${NI(ED.tfa,'ED.tfa=+this.value||0','76px')}</div>
+      </div>
+      <div class="card">
+        <div class="card-h">充值通道奖励</div>
+        <div class="hintline">生效奖励 = max(充值大类奖励, 充值通道奖励)</div>
+        <div class="lr-row"><span class="lb">奖励来源</span>
+          <label><input type="radio" name="src" ${ED.src===1?'checked':''} ${ED.modify?'':'disabled'} onchange="ED.src=1;drawEdit()"> 跟随大类</label>
+          <label><input type="radio" name="src" ${ED.src===2?'checked':''} ${ED.modify?'':'disabled'} onchange="ED.src=2;drawEdit()"> 自定义</label>
+          ${add?'':`<label><input type="checkbox" ${ED.modify?'checked':''} onchange="ED.modify=this.checked;drawEdit()"> 是否修改</label>${ED.modify?'':'<span class="mute">勾选后方可编辑</span>'}`}
+        </div>
+        ${ED.src===2?`<div class="lr-row"><span class="lb">充值赠送比率</span>${NI(ED.rate,'ED.rate=+this.value||0','90px')} <span>= ${pct(ED.rate)}</span>${ED.modify?`<span class="lb" style="margin-left:8px">谷歌验证码</span><input id="ed-gcode" value="${esc(ED.gcode||'')}" placeholder="请输入谷歌验证码" style="width:120px" oninput="ED.gcode=this.value; this.classList.remove('err-in')">`:''}</div>`:''}
+        <div class="lr-row"><span class="lb">生效奖励</span>${effLine({src:ED.src, rate:ED.rate}, ED.cats)}</div>
+      </div>
+    </div>
+  </div>`;
+}
+function applyRcDefaultRange(){ /* 新增充值通道金额区间按商户币种默认（INR 100 ~ 100000），不按大类带出 */ }
+function toggleCat(cid){
+  const i=ED.cats.indexOf(cid); if(i>=0) ED.cats.splice(i,1); else ED.cats.push(cid);
+  ED.cats.sort((a,b)=>CATS.findIndex(c=>c.id===a)-CATS.findIndex(c=>c.id===b));
+  applyRcDefaultRange();
+  drawEdit(); document.getElementById('ms').classList.add('open');
+}
+function saveEdit(){
+  if(ED.mode==='add' && !ED.copy && ED.dict==null){ msg('请选择通道名称'); return; }
+  if(!ED.cn.trim()){ msg('请输入前台显示名称'); return; }
+  if(!ED.cats.length){ msg('充值大类至少选 1 个'); return; }
+  { const c = ED.mode==='add' ? (ED.copy ? chById(ED.copy) : DICT[ED.dict]) : chById(ED.id);
+    if(c && c.dyn && !(ED.code||'').trim()){ ED.codeErr=true; drawEdit(); const it=document.getElementById('ed-code-it'); it.scrollIntoView({block:'center'}); document.getElementById('ed-code').focus(); msg('请填写三方通道编码'); return; } }
+  if(ED.mode==='add' && (ED.copy || ED.tenants.length>1) && ED.src===2 && !(ED.gcode||'').trim()){ const g=document.getElementById('ed-gcode'); if(g){ g.classList.add('err-in'); g.focus(); } msg('自定义奖励要输入谷歌验证码，验证一次对所有商户生效'); return; }
+  if(ED.mode==='add'){
+    if(!ED.tenants.length){ msg('请选择商户'); return; }
+    const rows = precheckRows(SITES_RC, ED.tenants, ED.cats.map(c=>catById(c).name), ED.cn, 1048, CATS.filter(c=>c.on).map(c=>c.name), CH.map(c=>c.cn), ED.copy?chById(ED.copy).sid:0);
+    if(ED.tenants.length===1 && !ED.copy){ closeEdit(); rows[0].ok ? msg('新增成功（原型不落数据）') : showResult('新增结果', rows); return; }
+    precheckConfirm(rows, '充值大类', ()=>{ closeEdit(); showResult(ED.copy?'复制结果':'新增结果', rows); }); return;
+  }
+  const ch=chById(ED.id), before=mountsOf(ED.id);
+  before.filter(c=>!ED.cats.includes(c)).forEach(c=>ORDER[c]=ORDER[c].filter(x=>x!==ED.id));
+  ED.cats.filter(c=>!before.includes(c)).forEach(c=>(ORDER[c]=ORDER[c]||[]).push(ED.id)); // 新挂的排到该大类末尾
+  if(ED.modify){ ch.src=ED.src; ch.rate=ED.src===2?ED.rate:0; }
+  ch.w=ED.w; ch.cn=ED.cn; ch.min=ED.min; ch.max=ED.max; ch.st=ED.st; ch.as=ED.as; ch.asRows=ED.asRows; ch.fee=ED.fee; ch.tfr=ED.tfr; ch.tfa=ED.tfa; ch.rmk=ED.rmk; ch.upd=['当前用户','2026-10-12 15:30'];
+  flashKey=String(ED.id); closeEdit(); render(); msg('保存成功');
+}
+function closeEdit(){ document.getElementById('ed-mask').classList.remove('show'); }
+
+/* ===================== 通用 ===================== */
+let cfFn=null;
+function confirmDlg(t,b,fn,danger){
+  document.getElementById('cf-t').textContent=t; document.getElementById('cf-b').innerHTML=b; cfFn=fn;
+  const ok=document.getElementById('cf-ok'); ok.className='btn '+(danger?'danger':'pri');
+  document.getElementById('cf-mask').classList.add('show');
+}
+function closeCf(){ document.getElementById('cf-mask').classList.remove('show'); }
+document.getElementById('cf-ok').onclick=()=>{ closeCf(); cfFn&&cfFn(); };
+function msg(t){
+  const box=document.getElementById('msgs'), m=document.createElement('div');
+  m.className='msg'; m.innerHTML=`<span class="ic">✓</span><span>${t}</span>`; box.appendChild(m);
+  setTimeout(()=>{m.classList.add('out'); setTimeout(()=>m.remove(),300);},2600);
+}
+function openReq(){ document.getElementById('req-mask').classList.add('show'); document.getElementById('req-drawer').classList.add('show'); }
+function closeReq(){ document.getElementById('req-mask').classList.remove('show'); document.getElementById('req-drawer').classList.remove('show'); }
+document.querySelectorAll('#seg span').forEach(s=>s.onclick=()=>{ VIEW=s.dataset.v; document.querySelectorAll('#seg span').forEach(x=>x.classList.toggle('on',x.dataset.v===VIEW)); if(PAGE==='rc') render(); else WD.render(); });
+const tip=document.getElementById('tip');
+document.addEventListener('mouseover',e=>{ const t=e.target.closest('[data-tip]'); if(!t){tip.style.display='none';return;}
+  tip.textContent=t.dataset.tip; tip.style.display='block'; const r=t.getBoundingClientRect();
+  tip.style.left=Math.min(window.innerWidth-tip.offsetWidth-8, r.left)+'px'; tip.style.top=(r.top-tip.offsetHeight-6)+'px'; });
+document.addEventListener('click',e=>{ if(typeof QA!=='undefined' && QA && QA.menu && !e.target.closest('.qa-menu')){ QA.menu=false; qaRedraw(); } ['ms','tms','wtms'].forEach(id=>{ const ms=document.getElementById(id); if(ms && !ms.contains(e.target)) ms.classList.remove('open'); }); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeCf(); closeEdit(); closeQa(); WD.closeEdit(); closeRcCat(); closeReq(); } });
+
+/* ===================== 提现通道（WD 命名空间；与充值共用 VIEW / msg / esc / kv） ===================== */
+const WD = (()=>{
+  const CATS = [{id:51,name:'Bank Transfer',sys:'银行卡'},{id:52,name:'UPI',sys:'UPI'},{id:53,name:'USDT',sys:'USDT'}];
+  const catById = id => CATS.find(c=>c.id===id);
+  // sub/amt = 此刻仍处于「已提交」状态的单数 / 实际到账金额合计（V1 口径，按商户法币，USDT 通道也是法币）；ok = 近1小时成功笔数
+  const CH = [
+    {id:306073,cat:53,sid:12195,nm:'Wallet66-BSC',pc:'Wallet66USDTCU',cn:'Wallet66USDTCU',st:0,bal:'0',bt:'--',sub:1,amt:37500,ok:0,mch:['Wallet66USDTCU(1102)','2284309bb68e507ff2'],w:0,mn:1,mx:2,ac:0,code:['固定','BSC'],cur:'USDT',ct:9},
+    {id:305268,cat:51,sid:12211,nm:'WYPayINR-Bank',pc:'WYPayINR',cn:'WYPay',st:1,bal:'31535.54',bt:'2026-10-12 12:15',sub:8,amt:46320,ok:1,mch:['WYPayINR(1102)','634070'],w:30,mn:110,mx:10000,ac:0,code:['不使用',''],cur:'INR',ct:8},
+    {id:304793,cat:51,sid:12181,nm:'CQGPayINR-Bank',pc:'CQGPayINR',cn:'CQGPay',st:0,bal:'0',bt:'2026-10-12 12:15',sub:0,amt:0,ok:0,mch:['CQGPayINR(1102)','900'],w:0,mn:100,mx:50000,ac:0,code:['不使用',''],cur:'INR',ct:7},
+    {id:303965,cat:51,sid:10561,nm:'CedarPayINR-Bank',pc:'CedarPayINR',cn:'Cedarpay',st:0,bal:'541556.32',bt:'2026-10-12 12:13',sub:0,amt:0,ok:0,mch:['CedarPayINR(1102)','VEERGAME'],w:1,mn:100,mx:5000,ac:20000,code:['不使用',''],cur:'INR',ct:6},
+    {id:303750,cat:51,sid:12203,nm:'LKgoPayINR-Bank',pc:'LKgoPayINR',cn:'LKgoPay',st:1,bal:'1188231.278',bt:'2026-10-12 12:13',sub:24,amt:98760,ok:5,mch:['LKgoPayI（1102）','1090'],w:1,mn:100,mx:5000,ac:20000,code:['固定','10015'],cur:'INR',ct:5},
+    {id:303745,cat:51,sid:12133,nm:'3TPayINR-Bank',pc:'3TPayINR',cn:'3TPay',st:1,bal:'362926.8',bt:'2026-10-12 12:13',sub:13,amt:41850,ok:0,mch:['3TPayINR(1102)','f7c8bd68a7f44d3718'],w:1,mn:100,mx:5000,ac:20000,code:['固定','890'],cur:'INR',ct:4},
+    {id:303636,cat:51,sid:10086,nm:'NineNinePayINR-Bank',pc:'NineNinePayINR',cn:'99Pay',st:0,bal:'-0.01',bt:'2026-10-12 12:13',sub:0,amt:0,ok:0,mch:['NineNinePayINR(1102)','8628260831001'],w:0,mn:1000,mx:1000,ac:119,code:['固定','551220'],cur:'INR',ct:3},
+    {id:303630,cat:52,sid:10090,nm:'ArbPayINR-UPI',pc:'ArbPayINR',cn:'ArbPay-UPI',st:1,bal:'3340853.35',bt:'2026-10-12 12:13',sub:272,amt:1083640,ok:31,mch:['ArbPayINR(1102)','AB1102'],w:5,mn:100,mx:50000,ac:20000,code:['不使用',''],cur:'INR',ct:2},
+    {id:303628,cat:52,sid:12207,nm:'3TPayINR-UPI',pc:'3TPayINR',cn:'3TPay-UPI',st:1,bal:'362926.8',bt:'2026-10-12 12:13',sub:57,amt:203410,ok:9,mch:['3TPayINR(1102)','f7c8bd68a7f44d3718'],w:3,mn:100,mx:20000,ac:20000,code:['固定','891'],cur:'INR',ct:1},
+    {id:303626,cat:52,sid:12319,nm:'WYPayINR-UPI',pc:'WYPayINR',cn:'WYPay-UPI',st:1,bal:'31535.54',bt:'2026-10-12 12:15',sub:14,amt:52300,ok:2,mch:['WYPayINR(1102)','634070'],w:2,mn:110,mx:10000,ac:0,code:['不使用',''],cur:'INR',ct:0},
+  ];
+  const chById = id => CH.find(c=>c.id===id);
+  // 排序 = 后台列表的显示顺序：整个商户的提现通道一个顺序（Sort 降序；存量全是 0，按创建时间倒序起步）
+  let ORDER = [...CH].sort((a,b)=>b.ct-a.ct).map(x=>x.id);
+  const Q = {cat:''}; let flashId = null;
+  const fmtAmt = n => Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); // 商户法币 INR 两位小数
+
+  const fc = document.getElementById('wd-f-cat');
+  CATS.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name; fc.appendChild(o); });
+  fc.addEventListener('change',()=>fc.classList.toggle('ph',!fc.value));
+  function doSearch(){ Q.cat=fc.value; render(); }
+  function resetSearch(){ fc.value=''; fc.classList.add('ph'); doSearch(); }
+
+  // 不加前置条件：箭头始终可用，在「当前列表看到的这些行」里上下移动（和 uat 充值通道一样直接点）
+  function sortBtns(ch){
+    const ids = rows().map(x=>x.id), pos = ids.indexOf(ch.id), total = ids.length;
+    const dis = d => total<=1 || ((d==='up'||d==='top') ? pos<=0 : pos>=total-1);
+    const b = (d,ic,lb) => `<span data-tip="${lb}"><button class="sb" ${dis(d)?'disabled':''} onclick="WD.doSort(${ch.id},'${d}')">${ic}</button></span>`;
+    return `<span class="sorts">${b('up','↑','上移')}${b('down','↓','下移')}${b('top','⤒','置顶')}${b('bottom','⤓','置底')}<span class="q" data-tip="调整后台提现通道列表的显示顺序">ⓘ</span></span>`;
+  }
+  const cells = {
+    tenant: ch => `<span class="tg def">(1102)veergame</span>`,
+    state:  ch => kv([['通道状态',`<span class="sw ${ch.st?'on':''}" onclick="WD.toggleSt(${ch.id})"><i></i></span>`],['可用状态','<span class="ok-t">可用</span>']]),
+    bal:    ch => kv([['通道余额',esc(ch.bal)],['更新时间',`<span class="mute">${ch.bt}</span>`]]),
+    id:     ch => VIEW==='new'
+              ? `<div class="idc">${kv([['通道ID',`${ch.id} <span class="tg info">${esc(ch.pc)}</span>`]])}<div>${sortBtns(ch)}</div></div>`
+              : kv([['通道ID',`${ch.id} <span class="tg info">${esc(ch.pc)}</span>`]]),
+    name:   ch => kv([['通道名称',`[${ch.sid}]${esc(ch.nm)}`],['出款显示名称',esc(ch.cn)]]),
+    stat:   ch => VIEW==='new'
+              ? kv([['今日已提交笔数',ch.sub],['今日已提交金额',fmtAmt(ch.amt)]])
+              : kv([['今日已提交笔数',ch.sub],['近1小时成功笔数',ch.ok]]),
+    ok1h:   ch => ch.ok,
+    mch:    ch => kv([['昵称',esc(ch.mch[0])],['商户号',esc(ch.mch[1])]]),
+    w:      ch => ch.w, amt: ch => `${ch.mn}~${ch.mx}`, ac: ch => ch.ac,
+    code:   ch => kv([['类型',ch.code[0]]].concat(ch.code[1]?[['编码',esc(ch.code[1])]]:[])),
+    cur:    ch => `<span class="tg ok">${ch.cur}</span>`,
+    cat:    ch => esc(catById(ch.cat).name),
+    gw:     ch => kv([['网关地址',`https://api.${ch.pc.toLowerCase()}.com/payout`],['回调白名单IP','127.0.0.1']]),
+    sys:    ch => `<span class="tg ok">${catById(ch.cat).sys}</span>`,
+    rmk:    ch => '--',
+    upd:    ch => `<div style="text-align:left">ops_ravi<br><span class="mute">2026-10-0${1+ch.ct%9} 1${ch.ct}:20</span></div>`,
+    ops:    ch => `<div class="ops"><span class="lnk" onclick="msg('代付测试本次不改')">代付测试</span><span class="lnk" onclick="WD.openEdit(${ch.id})">编辑</span><span class="lnk" onclick="WD.openCopy(${ch.id})">复制到其他商户<em class="newf" style="position:static;margin-left:2px">NEW</em></span><span class="lnk del" onclick="msg('删除本次不改')">删除</span></div>`,
+  };
+  const STAT_TIP = '今日 = 商户本地时区当天 0 点到现在\n已提交 = 当前仍处于「已提交」状态（已提交三方、未收到结果）的单，三方回了成功 / 失败就不再计入\n金额 = 实际到账金额合计（申请金额 − 手续费），按商户法币，USDT 通道也是法币\n只算正式会员；实时数据\n口径和 V1 老后台「今日提现状态已提交笔数 / 金额」一致（中台列表里简称「今日已提交笔数 / 金额」）';
+  // [key, 表头, uat 写死宽度, 固定列]
+  const COLS = () => [
+    ['tenant','商户',140,'fxl'],['state','状态',168],['bal','通道余额 <span class="mute" style="font-weight:400">(UTC+5:30)</span>',198],['id','通道ID',246],['name','通道名称',260],
+    ['stat', VIEW==='new' ? `今日已提交<span class="qm" data-tip="${STAT_TIP}">?</span><em class="newf">NEW</em>` : '成功率统计',240],
+    ...(VIEW==='new' ? [['ok1h','近1小时成功笔数<em class="newf">NEW</em>',120]] : []),
+    ['mch','三方商户昵称/商户号',224],['w','自动出款权重',110],['amt','提现金额区间',104],['ac','自动关闭阈值',122],['code','三方通道编码',168],
+    ['cur','通道币种',100],['cat','提现大类',160],['gw','网关信息',300],['sys','内置提现大类',140],['rmk','备注',160],['upd','最后修改人/时间',260],['ops','操作',160,'fxr'],
+  ];
+  const LEFT = new Set(['state','bal','id','name','stat','mch','code','gw','upd']);
+  const rows = () => ORDER.map(chById).filter(c=>!Q.cat || c.cat===+Q.cat);
+
+  function render(){
+    const cols = COLS(), rs = rows(), g = document.getElementById('wd-grid');
+    document.getElementById('wd-sort-hint').innerHTML = VIEW!=='new' ? '' : Q.cat
+      ? `已选提现大类 <b>${esc(catById(+Q.cat).name)}</b>：列表按该大类内顺序排列，通道ID 下方按钮调整的就是这个顺序`
+      : '';
+    const head = `<colgroup>${cols.map(c=>`<col style="width:${c[2]}px">`).join('')}</colgroup><tr>${cols.map(c=>{
+      const nw = VIEW==='new' && (c[0]==='id'||c[0]==='stat'||c[0]==='ok1h');
+      return `<th class="${c[3]||''} ${nw?'newcol':''}">${c[1]}${VIEW==='new'&&c[0]==='id'?'<em class="newf">NEW</em><span class="qm" data-tip="第二行是排序按钮：调整后台提现通道列表的显示顺序。">?</span>':''}</th>`;}).join('')}</tr>`;
+    const body = rs.map((ch,i)=>`<tr class="${flashId===ch.id?'flash':''}">${cols.map(c=>{
+        if(c[0]==='tenant' && i>0) return '';
+        const rsp = c[0]==='tenant' ? ` rowspan="${rs.length}"` : '';
+        return `<td class="${c[3]||''} ${LEFT.has(c[0])?'l':''}"${rsp}>${cells[c[0]](ch)}</td>`; }).join('')}</tr>`).join('');
+    g.innerHTML = head + body;
+    if(VIEW==='new') fit(); else { g.style.tableLayout='fixed'; g.style.width=cols.reduce((a,c)=>a+c[2],0)+'px'; }
+    document.getElementById('wd-pager').innerHTML = `共 ${rs.length} 条`;
+    flashId = null;
+  }
+  // 列宽：按内容自适应 + 拖动（最小 60）+ 双击恢复；与充值通道同一套
+  const MIN = 60;
+  const loadW = () => { try{ return JSON.parse(localStorage.getItem('wd-proto-colw')||'{}'); }catch(e){ return {}; } };
+  const saveW = o => { try{ localStorage.setItem('wd-proto-colw', JSON.stringify(o)); }catch(e){} };
+  function fit(){
+    const g=document.getElementById('wd-grid'), cl=[...g.querySelectorAll('col')], ths=[...g.querySelectorAll('th')], keys=COLS().map(c=>c[0]);
+    g.classList.add('measuring'); g.style.tableLayout='auto'; g.style.width='max-content'; cl.forEach(c=>c.style.width='');
+    const natural = ths.map(th=>Math.max(MIN, Math.ceil(th.getBoundingClientRect().width)));
+    g.classList.remove('measuring');
+    const saved=loadW(), widths = ths.map((th,i)=>saved[keys[i]] || natural[i]);
+    cl.forEach((c,i)=>c.style.width=widths[i]+'px');
+    g.style.tableLayout='fixed'; g.style.width=widths.reduce((a,b)=>a+b,0)+'px';
+    ths.forEach((th,i)=>{
+      const h=document.createElement('span'); h.className='rz'; h.dataset.tip='拖动调整列宽，双击恢复按内容自适应'; th.appendChild(h);
+      h.addEventListener('mousedown',e=>{
+        e.preventDefault(); const x0=e.clientX, w0=widths[i]; h.classList.add('on'); document.body.classList.add('resizing');
+        const mv=ev=>{ widths[i]=Math.max(MIN, Math.round(w0+ev.clientX-x0)); cl[i].style.width=widths[i]+'px'; g.style.width=widths.reduce((a,b)=>a+b,0)+'px'; };
+        const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); h.classList.remove('on'); document.body.classList.remove('resizing'); const o=loadW(); o[keys[i]]=widths[i]; saveW(o); };
+        document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+      });
+      h.addEventListener('dblclick',()=>{ const o=loadW(); delete o[keys[i]]; saveW(o); render(); msg('已恢复为按内容自适应宽度'); });
+    });
+  }
+  function resetAllWidths(){ saveW({}); render(); msg('已全部恢复为按内容自适应宽度'); }
+  function doSort(id,d){
+    // 在当前看到的行里移动，再落回整体顺序（筛选了大类时，只和同大类的相邻行换位）
+    const ids = rows().map(x=>x.id), i = ids.indexOf(id); if(i<0) return;
+    ids.splice(i,1); const to = d==='up'?i-1 : d==='down'?i+1 : d==='top'?0 : ids.length;
+    ids.splice(Math.max(0,Math.min(ids.length,to)),0,id);
+    const slots = ORDER.map((x,k)=>ids.includes(x)?k:-1).filter(k=>k>=0);
+    slots.forEach((k,n)=>ORDER[k]=ids[n]);
+    flashId=id; render(); msg('排序已更新');
+  }
+  function toggleSt(id){ const c=chById(id); c.st=c.st?0:1; flashId=id; render(); msg('操作成功'); }
+
+  // ===== 新增 / 编辑提现通道：左右一屏（左：通道基础信息；右：金额与出款规则） =====
+  const WDICT = [{sid:12455, nm:'PayFastINR-Bank', pc:'PayFastINR', cat:51}, {sid:12460, nm:'QuickPay2INR-UPI', pc:'QuickPay2INR', cat:52}];
+  let E = null;
+  const wcat = id => (typeof WD_CATS!=='undefined' ? WD_CATS : CATS).find(c=>c.id===id);
+  function applyWdRange(){ /* 新增提现通道金额区间按商户币种默认（INR 100 ~ 100000），不按提现大类带出 */ }
+
+  function openEdit(id){
+    const ch = chById(id);
+    E = {mode:'edit', id, cat:ch.cat, cn:ch.cn, w:ch.w, ac:ch.ac, mn:ch.mn, mx:ch.mx, tfr:ch.tfr||0, tfa:ch.tfa||0, hund:!!ch.hund, st:ch.st, rmk:ch.rmk||'', code:ch.code[1]||'', amtTouched:true};
+    document.getElementById('wd-ed-t').textContent = `编辑提现通道 -${id}`; draw(); document.getElementById('wd-ed-mask').classList.add('show');
+  }
+  function openCopy(id){
+    const ch = chById(id);
+    E = {mode:'add', id:0, copy:id, tenants:[], dict:null, cat:ch.cat, cn:ch.cn, w:ch.w, ac:ch.ac, mn:ch.mn, mx:ch.mx, tfr:ch.tfr||0, tfa:ch.tfa||0, hund:!!ch.hund, st:0, rmk:ch.rmk||'', code:ch.code[1]||'', amtTouched:true, amtFrom:''};
+    document.getElementById('wd-ed-t').textContent = `复制通道到其他商户 - ${id}`; draw(); document.getElementById('wd-ed-mask').classList.add('show');
+  }
+  function toggleTenant(t){ const i=E.tenants.indexOf(t); if(i>=0) E.tenants.splice(i,1); else E.tenants.push(t); draw(); document.getElementById('wtms').classList.add('open'); }
+  function openAdd(){
+    E = {mode:'add', id:0, copy:0, tenants:[1102], dict:null, cat:null, cn:'', w:0, ac:0, mn:100, mx:100000, tfr:0, tfa:0, hund:false, st:1, rmk:'', code:'', amtTouched:false, amtFrom:''};
+    document.getElementById('wd-ed-t').textContent = '新增提现通道'; draw(); document.getElementById('wd-ed-mask').classList.add('show');
+  }
+  function draw(){
+    const add = E.mode==='add', ch = add ? (E.copy ? chById(E.copy) : E.dict!=null ? WDICT[E.dict] : null) : chById(E.id);
+    const pc = ch ? ch.pc : '';
+    document.getElementById('wd-ed-b').innerHTML = `<div class="lr">
+      <div class="lr-col">
+        <div class="lr-h">通道基础信息</div>
+        <div class="fm2">
+          <div class="it ${E.copy?'w':''}"><label>${E.copy?'复制到商户':'商户'}<i>*</i>${E.copy?`<em class="newf" style="position:static;margin-left:4px">NEW</em><span class="qm" data-tip="可多选同集团、同币种（INR）的商户，每个商户各建一条。\\n从 (1102)veergame 复制，已带出本通道全部配置，状态默认关闭">?</span>`:''}</label>${E.copy?siteChooser(SITES_WD, E.tenants, 1102, 'WD.toggleTenant', 'wtms'):add?`<select onchange="WD.pickTenant(+this.value)">${SITES_WD.map(x=>`<option value="${x.id}" ${E.tenants[0]===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:'<div class="ip dis">(1102)veergame</div>'}</div>
+          <div class="it"><label>三方映射码<i>*</i></label>${add && !E.copy
+            ? `<select onchange="WD.pickPc(this.value)"><option value="">请选择三方映射码</option>${[...new Set(WDICT.map(d=>d.pc))].map(x=>`<option ${E.pc===x?'selected':''}>${esc(x)}</option>`).join('')}</select>`
+            : `<div class="ip dis">${esc(pc)}</div>`}</div>
+          <div class="it"><label>通道名称</label>${add && !E.copy
+            ? (E.pc ? `<select onchange="WD.pickDict(this.value)"><option value="">请选择通道名称</option>${WDICT.map((d,k)=>d.pc===E.pc?`<option value="${k}" ${E.dict===k?'selected':''}>[${d.sid}] ${esc(d.nm)}</option>`:'').join('')}</select>` : `<div class="ip dis">请先选择三方映射码</div>`)
+            : `<div class="ip dis">[${ch.sid}]${esc(ch.nm)}</div>`}</div>
+          <div class="it"><label>出款显示名称<i>*</i></label><input value="${esc(E.cn)}" maxlength="20" placeholder="请输入出款显示名称" oninput="WD.set('cn',this.value)"></div>
+          <div class="it"><label>通道币种</label><div class="ip dis">${pc?'INR':'选择三方映射码后自动带出'}</div></div>
+          <div class="it"><label>提现大类<i>*</i></label><select onchange="WD.pickCat(this.value)"><option value="">请选择提现大类</option>${CATS_W().map(c=>`<option value="${c.id}" ${E.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+          <div class="it"><label>三方通道编码</label><input value="${esc(E.code)}" placeholder="该通道编码类型=不使用时不可编辑" oninput="WD.set('code',this.value)"></div>
+          <div class="it"><label>网关地址</label><div class="ip dis">${pc?`https://api.${pc.toLowerCase()}.com/payout`:'--'}</div></div>
+          <div class="it"><label>回调白名单IP</label><div class="ip dis">${pc?'127.0.0.1':'--'}</div></div>
+          <div class="it"><label>状态</label><div class="ip" style="border:0;padding-left:0;gap:16px"><label class="rd"><input type="radio" name="wst" ${E.st?'checked':''} onchange="WD.set('st',1)"> 开启</label><label class="rd"><input type="radio" name="wst" ${E.st?'':'checked'} onchange="WD.set('st',0)"> 关闭</label></div></div>
+          <div class="it"><label>备注</label><input value="${esc(E.rmk)}" maxlength="300" placeholder="请输入备注" oninput="WD.set('rmk',this.value)"></div>
+        </div>
+      </div>
+      <div class="lr-col">
+        <div class="lr-h">金额与出款规则</div>
+        <div class="card">
+          <div class="card-h"><span class="nf-wrap">提现金额区间<i style="color:var(--err);font-style:normal">*</i><em class="newf nf-up" data-tip="改动：新增通道时按商户币种默认填充（INR：100 ~ 100000），原来是 0 ~ 0">NEW</em></span></div>
+          <div class="lr-row">${NI(E.mn,"WD.set('mn',+this.value||0);WD.set('amtTouched',true)",'130px')} ~ ${NI(E.mx,"WD.set('mx',+this.value||0);WD.set('amtTouched',true)",'130px')}</div>
+          ${add&&!E.copy?`<div class="hintline">${curHint('wd', SITES_WD.find(x=>x.id===E.tenants[0]).cur)}</div>`:''}
+        </div>
+        <div class="card">
+          <div class="lr-row" style="margin-top:0"><span class="lb" style="width:96px">自动出款权重<i style="color:var(--err);font-style:normal">*</i></span>${NI(E.w,"WD.set('w',+this.value||0)",'130px')}<span class="qm" data-tip="权重越高，自动出款分到本通道的单越多">?</span></div>
+          <div class="lr-row"><span class="lb" style="width:96px">自动关闭阈值</span>${NI(E.ac,"WD.set('ac',+this.value||0)",'130px')}<span class="qm" data-tip="本通道三方商户号余额低于这个值时，系统自动关闭本通道；不填 = 不自动关闭。\n和自动出款权重无关，人工出款选这个通道同样受影响。">?</span></div>
+        </div>
+        <div class="card">
+          <div class="lr-row" style="margin-top:0"><span class="lb" style="width:96px">是否整百提现</span><span class="seg2"><span class="${E.hund?'on':''}" onclick="WD.set('hund',true,1)">是</span><span class="${E.hund?'':'on'}" onclick="WD.set('hund',false,1)">否</span></span></div>
+        </div>
+        <div class="card">
+          <div class="card-h">通道手续费配置<span class="qm" data-tip="三方向平台收取的手续费，与向会员收取的无关">?</span></div>
+          <div class="lr-row"><span class="lb">比例</span>${NI(E.tfr,"WD.set('tfr',+this.value||0)",'76px')} %<span class="lb" style="margin-left:8px">单笔</span>${NI(E.tfa,"WD.set('tfa',+this.value||0)",'76px')}</div>
+        </div>
+
+      </div></div>`;
+  }
+  const CATS_W = () => (typeof WD_CATS!=='undefined' ? WD_CATS : CATS);
+  function set(k,v,redraw){ E[k]=v; if(redraw) draw(); }
+  function pickDict(v){ E.dict = v===''?null:+v; if(E.dict!=null){ const d=WDICT[E.dict]; if(!E.cn) E.cn=d.nm.slice(0,20); if(!E.cat){ E.cat=d.cat; applyWdRange(); } } draw(); }
+  function pickCat(v){ E.cat = v===''?null:+v; applyWdRange(); draw(); }
+  function pickTenant(id){ E.tenants=[id]; if(!E.amtTouched){ const d=curDef('wd', SITES_WD.find(x=>x.id===id).cur); E.mn=d[0]; E.mx=d[1]; } draw(); }
+  function pickPc(v){ E.pc = v||null; E.dict = null; draw(); }
+  function saveEdit(){
+    if(E.mode==='add' && !E.copy && !E.pc){ msg('请选择三方映射码'); return; }
+    if(E.mode==='add' && !E.copy && E.dict==null){ msg('请选择通道名称'); return; }
+    if(!E.cn.trim()){ msg('请输入出款显示名称'); return; }
+    if(!E.cat){ msg('请选择提现大类'); return; }
+    if(E.mode==='add'){
+      if(!E.tenants.length){ msg('请选择商户'); return; }
+      const rows = precheckRows(SITES_WD, E.tenants, [CATS_W().find(c=>c.id===E.cat).name], E.cn, 1102, CATS_W().map(c=>c.name), CH.map(c=>c.cn), E.copy?chById(E.copy).sid:0);
+      if(E.tenants.length===1 && !E.copy){ closeEdit(); rows[0].ok ? msg('新增成功（原型不落数据）') : showResult('新增结果', rows); return; }
+      precheckConfirm(rows, '提现大类', ()=>{ closeEdit(); showResult(E.copy?'复制结果':'新增结果', rows); }); return;
+    }
+    const ch=chById(E.id); Object.assign(ch,{cat:E.cat,cn:E.cn,w:E.w,ac:E.ac,mn:E.mn,mx:E.mx,tfr:E.tfr,tfa:E.tfa,hund:E.hund,st:E.st,rmk:E.rmk});
+    flashId=E.id; closeEdit(); render(); msg('保存成功');
+  }
+  function closeEdit(){ document.getElementById('wd-ed-mask').classList.remove('show'); }
+  return {render, doSearch, resetSearch, resetAllWidths, doSort, toggleSt, openEdit, openAdd, openCopy, toggleTenant, set, pickDict, pickCat, pickPc, pickTenant, saveEdit, closeEdit, Q, CH};
+})();
+
+
+/* ===================== 大类页签 + 快捷金额：从其他大类复制 / 粘贴填充 ===================== */
+// 充值大类快捷金额：每行 = 金额 + 赠送类型 + 赠送值，最多 12 行；提现大类快捷提现金额：只有金额，最多 8 个（uat 现状）
+const RC_Q = {
+  31:[[100,'赠送比率',0],[200,'赠送比率',0],[500,'赠送比率',0.01],[1000,'赠送比率',0.02],[2000,'赠送比率',0.02],[5000,'赠送比率',0.03]],
+  32:[[300,'赠送比率',0],[500,'赠送比率',0],[1000,'赠送比率',0.01],[3000,'赠送比率',0.02],[5000,'赠送比率',0.03],[10000,'赠送比率',0.03]],
+  33:[[100,'赠送比率',0],[300,'赠送比率',0],[500,'赠送比率',0]],
+  34:[], 35:[[200,'赠送金额',0],[500,'赠送金额',10]], 36:[[1000,'赠送比率',0],[5000,'赠送比率',0]], 38:[], 39:[], 37:[],
+};
+const WD_CATS = [ // 字段按 uat 提现大类：每日提现次数 day、最小/最大提现金额、是否整百 whole、提现费率 fee(%)、收取费率金额范围 fr、可用时间段 t、提现提示 tip
+  {id:51,name:'Bank Transfer',sys:'银行卡',on:1,day:5,min:300,max:50000,whole:0,fee:0,fr:[10000,100000],t:['00:00','23:59'],sort:100,man:'ben_jmeter_001',time:'2026-10-08 14:22:05',tip:'提现将在 30 分钟内到账'},
+  {id:52,name:'UPI',sys:'UPI',on:1,day:5,min:110,max:50000,whole:1,fee:0,fr:[0,10000],t:['00:00','23:55'],sort:9,man:'system',time:'2026-09-30 10:11:42',tip:''},
+  {id:53,name:'USDT',sys:'USDT',on:1,day:3,min:10,max:10000,whole:0,fee:0.02,fr:[500,0],t:['00:00','23:59'],sort:7,man:'system',time:'2026-09-30 10:11:42',tip:''},
+];
+const WD_Q = {51:[300,500,1000,2000,5000,10000,20000,50000], 52:[110,200,500,1000], 53:[]};
+const QA_MAX = {rc:12, wd:8};
+let QA = null;
+
+
+/* ===================== 充值大类：列表 + 新增 / 编辑弹窗（按 uat 字段） ===================== */
+// 本地大类（演示，只在充值大类列表里出现，不挂三方通道）
+const LOCAL_CATS = [
+  {id:61, name:'Local E-Wallet', sys:'本地电子钱包', on:1, sort:18, pend:0},
+  {id:62, name:'Local Bank',     sys:'本地银行卡',   on:1, sort:9,  pend:0},
+  {id:63, name:'Local UPI',      sys:'本地UPI',      on:0, sort:8,  pend:0},
+  {id:64, name:'Local USDT',     sys:'本地USDT',     on:0, sort:4,  pend:0},
+];
+const isLocalCat = c => /^本地/.test(c.sys);
+const allRcCats = () => CATS.concat(LOCAL_CATS);
+const ICON = (on,big) => `<span style="display:inline-block;width:${big?70:22}px;height:${big?70:22}px;background:${on?'#1677ff':'#e5e7eb'};border-radius:3px;vertical-align:middle"></span>`;
+const fqText = c => isLocalCat(c) ? '<span class="mute">--</span>' : (c.fq && c.fq[0]>0 ? `连续 ${c.fq[0]} 笔未付，暂停 ${c.fq[1]} 分钟` : '不启用');
+function renderRcCatList(){
+  const g = document.getElementById('rc-cat-grid');
+  const list = allRcCats().slice().sort((a,b)=>(b.sort||0)-(a.sort||0));
+  const W = [130,90,140,150,120,250,220,120,80,100,70,120,170,190];
+  g.innerHTML = `<colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup>
+    <tr><th class="fxl">商户</th><th>ID</th><th>选中前图标/选中后图标</th><th>充值大类</th><th>内置充值大类</th><th class="newcol">下单限制<em class="newf">NEW</em><span class="qm" data-tip="最大待支付单数：现有字段，逻辑不变。\\n连续未支付限制：会员在本大类连续 N 笔没付成功，暂停他在本大类充值 O 分钟（新增，只对三方大类）。">?</span></th>
+
+    <th>快捷充值金额</th><th>充值大类奖励</th><th>状态</th><th>VIP充值赠送</th><th>排序</th><th>最后修改人</th><th>最后修改时间 <span class="mute" style="font-weight:400">(UTC+5:30)</span></th><th class="fxr">操作</th></tr>`
+    + list.map((c,i)=>`<tr>${i===0?`<td class="fxl" rowspan="${list.length}"><span class="tg def">(1048)91club</span></td>`:''}
+      <td>${100000+c.id}</td><td>${ICON(c.on)} ${ICON(c.on)}</td><td>${esc(c.name)}</td><td><span class="tg ok">${esc(c.sys)}</span></td>
+      <td class="l">${kv([['最大待支付单数', c.pend>0?c.pend:'不限制'],['连续未支付限制', isLocalCat(c)?'<span class="mute">不适用</span>':(c.fq&&c.fq[0]>0?`${c.fq[0]} / 暂停 ${c.fq[1]} 分钟`:'--')]])}</td>
+      <td>${(RC_Q[c.id]||[]).length?(RC_Q[c.id]).map(r=>r[0]).join(' / '):'--'}</td>
+      <td>${c.gift>0?pct(c.gift):'未配置'}</td>
+      <td><span class="sw ${c.on?'on':''}"><i></i></span></td><td><span class="sw ${c.vip?'on':''}"><i></i></span></td>
+      <td>${c.sort||0}</td><td>${esc(c.man||'system')}</td><td>${esc(c.time||'2026-10-05 16:47:14')}</td>
+      <td class="fxr"><div class="ops"><span class="lnk" onclick="openRcCat(${c.id})">编辑</span><span class="lnk" onclick="goRcChannels(${c.id})">充值通道管理</span></div></td></tr>`).join('');
+}
+function goRcChannels(id){
+  switchTab('rc','ch');
+  const f=document.getElementById('f-cat'); if(CATS.some(c=>c.id===id)){ f.value=id; f.classList.remove('ph'); } doSearch();
+}
+let RCC = null;
+function openRcCat(id){
+  const c = id ? allRcCats().find(x=>x.id===id) : null;
+  const rows = c ? (RC_Q[c.id]||[]).map(r=>r.slice()) : Array.from({length:6},()=>['','赠送比率',0]);
+  RCC = {mode:c?'edit':'add', c, name:c?c.name:'', sys:c?c.sys:'', sort:c?c.sort||0:0, pend:c?c.pend||0:0, fq:(c&&c.fq||[0,0]).slice(),
+         st:c?c.on:1, vip:c?!!c.vip:false, gift:c?c.gift||0:0, giftModify:false, big:(c&&c.big||['','']).slice(), dmin:c?c.dmin||0:0, dmax:c?c.dmax||0:0, rows};
+  QA = {page:'rc', rows:RCC.rows, box:'', imp:null};
+  document.getElementById('rcc-t').textContent = c ? '编辑充值大类' : '新增充值大类';
+  drawRcCat(); document.getElementById('rcc-mask').classList.add('show');
+}
+function qaSyncBoxSilent(){ QA.box = QA.rows.filter(r=>r[0]!=='' && r[0]!=null).map(r=>r[0]).join(','); }
+function drawRcCat(){
+  const R=RCC, add=R.mode==='add', local = R.sys ? /^本地/.test(R.sys) : false;
+  const rowHtml = (r,k) => `<div class="lr-row"><span class="lb">金额${k+1}:</span>
+      <input type="text" inputmode="decimal" value="${r[0]??''}" placeholder="请输入金额" style="width:100px" onpaste="qaPaste(event,${k})" oninput="QA.rows[${k}][0]=this.value===''?'':+this.value">
+      <select style="flex:0 0 96px;min-width:0" onchange="QA.rows[${k}][1]=this.value">${['赠送比率','赠送金额'].map(o=>`<option ${r[1]===o?'selected':''}>${o}</option>`).join('')}</select>
+      <input type="number" value="${r[2]??0}" style="width:80px" oninput="QA.rows[${k}][2]=+this.value||0">
+      <span class="lnk del" onclick="QA.rows.splice(${k},1); drawRcCat()">删除</span></div>`;
+  const SYS = ['三方法币','三方Usdt','ArUpiPay','ARPay','本地银行卡','本地UPI','本地电子钱包','本地USDT'];
+  const FQ_TIP = '防止会员在本大类反复拉单不付款，拉低通道在三方那边的成功率。\n计数：会员上次任意一笔充值成功之后，最近 M 分钟内在本大类拉单成功的单数（三方下单失败的不算；本大类下不管走哪条通道都算）。\n达到 N 单：该会员在本大类被限制 O 分钟，限制期内在本大类拉单直接失败，提示「通道繁忙，请稍后再试或更换其他支付方式」；不走备用通道。可以换其他大类充值。\n解除：O 分钟到，或该会员任意一笔充值成功。\n三项都填 0 = 不限制。';
+  document.getElementById('rcc-b').innerHTML = `<div class="lr">
+    <div class="lr-col">
+      <div class="fm2">
+        <div class="it"><label>选中前图标<i>*</i></label>${add?'<span class="up">+</span>':ICON(R.st,1)}<span class="hintline">尺寸：70px * 70px，格式：jpg/png/webp</span></div>
+        <div class="it"><label>选中后图标<i>*</i></label>${add?'<span class="up">+</span>':ICON(R.st,1)}<span class="hintline">尺寸：70px * 70px，格式：jpg/png/webp</span></div>
+        <div class="it"><label>商户<i>*</i></label>${add?'<select><option>(1048)91club</option></select>':'<div class="ip dis">(1048)91club</div>'}</div>
+        <div class="it"><label>内置充值大类<i>*</i></label>${add?`<select onchange="RCC.sys=this.value; drawRcCat()"><option value="">请选择内置充值大类</option>${SYS.map(x=>`<option ${R.sys===x?'selected':''}>${x}</option>`).join('')}</select>`:`<div class="ip dis">${esc(R.sys)}</div>`}</div>
+        <div class="it"><label>充值大类<i>*</i></label><input value="${esc(R.name)}" placeholder="请输入前台显示名称" oninput="RCC.name=this.value"></div>
+        <div class="it"><label>排序<i>*</i></label>${NI(R.sort,'RCC.sort=+this.value||0')}</div>
+      </div>
+      ${orderLimitCard(R, local)}
+      <div class="card"><div class="card-h" style="justify-content:space-between">状态 <span class="sw ${R.st?'on':''}" onclick="RCC.st=RCC.st?0:1; drawRcCat()"><i></i></span></div><div class="hintline">开启后该充值类型可用</div></div>
+      <div class="card"><div class="card-h" style="justify-content:space-between">VIP充值赠送 <span class="sw ${R.vip?'on':''}" onclick="RCC.vip=!RCC.vip; drawRcCat()"><i></i></span></div><div class="hintline">开启后该充值大类按全局 VIP 充值赠送规则发放赠送</div></div>
+      <div class="card"><div class="card-h">充值大类奖励</div><div class="hintline">该大类下所有通道默认按此比率发放（通道可单独加码，取高生效）</div>
+        <div class="lr-row"><span class="lb">充值赠送比率:</span><input type="number" value="${R.gift}" ${R.giftModify?'':'disabled'} style="width:150px" oninput="RCC.gift=+this.value||0"> <span>= ${pct(R.gift)}</span>
+          <label><input type="checkbox" ${R.giftModify?'checked':''} onchange="RCC.giftModify=this.checked; drawRcCat()"> ${add?'是否设置':'是否修改'}</label></div></div>
+    </div>
+    <div class="lr-col">
+      <div class="card-h" style="justify-content:space-between;margin-bottom:4px">快捷金额配置 ${qaHeadLinks()}</div>
+${qaToolbar()}
+      <div class="qa-rows card" style="min-height:120px">${QA.rows.map(rowHtml).join('') || '<div class="mute">还没有快捷金额</div>'}<div class="qa-add" onclick="if(QA.rows.length>=qaMax()){msg('最多 '+qaMax()+' 个');return;} QA.rows.push(QA.page==='rc'?['','赠送比率',0]:['']); qaRedraw()">+ 新增金额<span class="mute">（${QA.rows.length} / ${qaMax()}）</span></div></div>
+      <div class="card"><div class="card-h">大额金额</div>
+        <div class="lr-row">金额 ≥ <input type="number" value="${R.big[0]}" placeholder="请输入金额" style="width:130px" oninput="RCC.big[0]=this.value"> 的快捷金额，</div>
+        <div class="lr-row" style="margin-top:4px">仅充值等级 ≥ <select style="flex:0 0 110px;min-width:0" onchange="RCC.big[1]=this.value"><option value="">请选择</option>${['L1','L2','L3','L4','L5'].map(l=>`<option ${R.big[1]===l?'selected':''}>${l}</option>`).join('')}</select> 的会员可见</div>
+        <div class="hintline">不填则所有会员显示全部快捷金额</div></div>
+    </div></div>`;
+}
+
+// 「下单限制」卡：① 最大待支付单数（现有字段）② 连续几笔未付成功就暂停（新增）。下面实时写一句白话说明效果，配置冲突时提示
+const THIRD_TIMEOUT = 30; // 该站点三方订单超时分钟（站点设置 ThirdRechargeAutoCancelTime，默认 30）
+function orderLimitSummary(R, local){ // 按当前配置逐条写效果；规则说明放在标题「?」里
+  const P=R.pend, N=R.fq[0], O=R.fq[1];
+  const li = [];
+  li.push(P>0 ? `① 会员最多同时有 <b>${P}</b> 笔待支付订单，超出后不能下单。` : '① 会员最大待支付单数：不限制。');
+  if(local) li.push('② 连续未支付限制：本地大类不适用。');
+  else if(!(N>0 && O>0)) li.push('② 连续未支付限制：未启用（建议不少于 5 笔且大于会员最大待支付单数，暂停 10~30 分钟）。');
+  else {
+    li.push(`② 会员连续 <b>${N}</b> 笔未支付，暂停本大类充值 <b>${O}</b> 分钟。`);
+    if(N<5 || O>30) li.push(`<span class="warn-t">${N<5?`笔数小于 5`:''}${N<5&&O>30?'、':''}${O>30?`暂停超过 30 分钟`:''}，偏严，可能误伤付款失败的正常会员。</span>`);
+    li.push(`会员成功充值任意一笔后，未支付笔数重新计算，暂停立即解除。`);
+  }
+  return `<div class="ol-h">按当前配置：</div><ul>${li.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+}
+const OL_TIP = '会员最大待支付单数（原有）：会员在本大类同时挂着的待支付订单达到上限后，不能再下单，提示「你的待支付订单数量已超出此通道限制，请前往处理」，0 表示不限制。\n连续未支付限制（新增）：从会员上一次充值成功后开始计数，会员在本大类每成功下单一笔记 1 笔（三方下单失败的不算）；连续达到 N 笔都没有支付成功，暂停该会员在本大类充值 O 分钟，期间下单提示「通道繁忙，请稍后再试或更换其他支付方式」，可以换其他大类充值。\n建议笔数不少于 5 笔且大于会员最大待支付单数，暂停 10~30 分钟：通道故障、回调延迟、选错金额重拉时，正常会员也会连续未支付。\n被暂停的会员可在充值大类页「暂停中的会员」查询和手动解除。\n重新计算：会员自己任意一笔充值成功（不限大类，含本地银行卡、USDT；后台人工充值不算），未支付笔数清零并解除暂停；暂停结束后也从 0 重新计算；会员 24 小时没在本大类下单，自动清零。\n两项同时生效；连续未支付笔数要大于会员最大待支付单数，否则不会触发（未支付订单 30 分钟才超时，有待支付上限时累计到 N 笔需要更长时间）。只对三方大类生效。';
+function orderLimitCard(R, local){
+  const P=R.pend, N=R.fq[0];
+  const warn = !local && N>0 && P>0 && N<=P ? `<div class="err-t" style="font-size:12px;margin-top:4px">连续未支付笔数要大于会员最大待支付单数，否则会先被待支付上限拦住，连续未支付限制永远不会触发。</div>` : '';
+  return `<div class="card ${local?'':'newbox'}">
+    <div class="card-h">下单限制<span class="qm" data-tip="${OL_TIP}">?</span>${local?'':'<em class="newf" style="position:static;margin-left:6px">NEW</em>'}</div>
+    <div class="lr-row"><span class="lb">① 会员最大待支付单数</span>${NI(P,'RCC.pend=+this.value||0; drawRcCatKeep()','56px')}<span class="mute">(0 表示不限制)</span></div>
+    ${local?'':`<div class="lr-row"><span class="lb">② 连续</span>${NI(N,'RCC.fq[0]=+this.value||0; drawRcCatKeep()','56px')}<span class="lb">笔未支付，暂停</span>${NI(R.fq[1],'RCC.fq[1]=+this.value||0; drawRcCatKeep()','56px')}<span class="lb">分钟</span><span class="mute">(0 表示不启用)</span></div>`}
+    <div class="ol-sum">${orderLimitSummary(R, local)}</div>${warn}
+  </div>`;
+}
+// 输入时只刷新说明，不重绘输入框（避免丢焦点）
+function drawRcCatKeep(){
+  const box=document.querySelector('#rcc-b .ol-sum'); if(!box) return;
+  const local = RCC.sys ? /^本地/.test(RCC.sys) : false;
+  box.innerHTML = orderLimitSummary(RCC, local);
+  const card=box.parentElement; const old=card.querySelector('.err-t'); if(old) old.remove();
+  const P=RCC.pend, N=RCC.fq[0];
+  if(!local && N>0 && P>0 && N<=P){ const d=document.createElement('div'); d.className='err-t'; d.style.cssText='font-size:12px;margin-top:4px'; d.textContent='连续未支付笔数要大于会员最大待支付单数，否则会先被待支付上限拦住，连续未支付限制永远不会触发。'; card.appendChild(d); }
+}
+function saveRcCat(){
+  const R=RCC;
+  if(!R.name.trim()){ msg('请输入充值大类'); return; }
+  if(R.mode==='add' && !R.sys){ msg('请选择内置充值大类'); return; }
+  const f=R.fq; if(f.some(v=>v<0) || ((f[0]>0)!==(f[1]>0))){ msg('连续未支付限制：笔数和暂停分钟要么都填 0（不启用），要么都填大于 0 的整数'); return; }
+  if(f[0]>0 && R.pend>0 && f[0]<=R.pend){ msg('连续未支付笔数要大于会员最大待支付单数，否则不会生效'); return; }
+  if(R.mode==='add'){ closeRcCat(); msg('新增成功（原型不落数据）'); return; }
+  Object.assign(R.c,{name:R.name, sort:R.sort, pend:R.pend, fq:f.slice(), on:R.st, vip:R.vip, gift:R.gift, big:R.big.slice(), dmin:R.dmin, dmax:R.dmax, man:'当前用户', time:'2026-10-12 15:30:00'});
+  RC_Q[R.c.id] = QA.rows.filter(r=>r[0]!=='' && r[0]!=null);
+  closeRcCat(); renderRcCatList(); msg('保存成功');
+}
+function closeRcCat(){ document.getElementById('rcc-mask').classList.remove('show'); }
+
+function switchTab(page, t){
+  document.querySelectorAll(`#${page}-tabs span`).forEach(s=>s.classList.toggle('on', s.dataset.t===t));
+  document.getElementById(`${page}-cat-view`).style.display = t==='cat' ? '' : 'none';
+  document.getElementById(`${page}-ch-view`).style.display = t==='ch' ? '' : 'none';
+  const iv=document.getElementById(`${page}-ifsc-view`); if(iv) iv.style.display = t==='ifsc' ? '' : 'none';
+  if(t==='ifsc') IF.render();
+  if(t==='cat'){ if(page==='rc') renderRcCatList(); else renderCatList(page); }
+}
+function renderCatList(page){ // 只剩提现大类在用（充值大类走 renderRcCatList）；列按 uat 提现大类页面
+  const g = document.getElementById(`${page}-cat-grid`);
+  const list = WD_CATS.slice().sort((x,y)=>(y.sort||0)-(x.sort||0));
+  const f2 = v => (+v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fr = c => `${f2(c.fr[0]||0)}~${f2(c.fr[1]||0)}`; // 同 uat：库里存 decimal，空存 0
+  const W = [130,90,140,150,120,150,110,120,100,340,90,130,120,70,130,170,70,80];
+  g.innerHTML = `<colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup>
+    <tr><th class="fxl">商户</th><th>ID</th><th>选中前图标/选中后图标</th><th>提现大类</th><th>内置提现大类</th><th>单会员当日可提现次数</th><th>最小提现金额</th><th>最大提现金额</th><th>是否整百提现</th><th>快捷提现金额</th><th>手续费率</th><th>收取手续费区间</th><th>可用时间段</th><th>排序</th><th>最后修改人</th><th>最后修改时间 <span class="mute" style="font-weight:400">(UTC+5:30)</span></th><th>状态</th><th class="fxr">操作</th></tr>`
+    + list.map(c=>`<tr><td class="fxl"><span class="tg def">(1102)veergame</span></td>
+      <td>${100000+c.id}</td><td>${ICON(c.on)} ${ICON(c.on)}</td><td>${esc(c.name)}</td><td><span class="tg ok">${esc(c.sys)}</span></td>
+      <td>${c.day}</td><td>${f2(c.min)}</td><td>${f2(c.max)}</td><td>${c.whole?'是':'否'}</td>
+      <td>${(WD_Q[c.id]||[]).length?WD_Q[c.id].join(' / '):'--'}</td><td>${+(c.fee*100).toFixed(2)}%</td><td>${fr(c)}</td><td>${c.t[0]}~${c.t[1]}</td>
+      <td>${c.sort}</td><td>${esc(c.man)}</td><td>${esc(c.time)}</td><td><span class="sw ${c.on?'on':''}" onclick="WD_CATS.find(x=>x.id===${c.id}).on^=1; renderCatList('wd')"><i></i></span></td><td class="fxr"><span class="lnk" onclick="openQa('wd',${c.id})">编辑</span></td></tr>`).join('');
+}
+function openQa(page, id){
+  const c = (page==='rc' ? CATS : WD_CATS).find(x=>x.id===id);
+  const rows = page==='rc' ? (RC_Q[id]||[]).map(r=>r.slice()) : (WD_Q[id]||[]).map(a=>[a]);
+  QA = {page, id, c, f:JSON.parse(JSON.stringify(c)), rows, imp:null, box: rows.map(r=>r[0]).join(','), dmin:c.dmin||0, dmax:c.dmax||0, pend:c.pend||0, fq:(c.fq||[0,0,0]).slice()};
+  document.getElementById('qa-t').innerHTML = `<span class="nf-wrap">编辑${page==='rc'?'充值':'提现'}大类 - ${esc(c.name)}<em class="newf nf-up" data-tip="改动：弹窗改为左右一屏（左：基础信息与金额规则；右：快捷提现金额、收取费率金额范围、提现提示、可用时间段），字段与现在一致">NEW</em></span>`;
+  drawQa(); document.getElementById('qa-mask').classList.add('show');
+}
+function qaSyncBox(){ QA.box = QA.rows.filter(r=>r[0]!=='' && r[0]!=null).map(r=>r[0]).join(','); const el=document.getElementById('qa-box'); if(el) el.value=QA.box; }
+function drawQa(){ // 只剩编辑提现大类在用；字段按 uat「编辑提现大类」，左右一屏：左基础与金额规则，右快捷金额、手续费范围、提示、时间
+  const F = QA.f;
+  const amt = (r,k) => `<span class="qa-cell"><input type="text" inputmode="decimal" value="${r[0]??''}" placeholder="请输入金额" onpaste="qaPaste(event,${k})" oninput="QA.rows[${k}][0]=this.value===''?'':+this.value"><span class="x" title="删除" onclick="QA.rows.splice(${k},1); drawQa()">✕</span></span>`;
+  document.getElementById('qa-b').innerHTML = `<div class="lr">
+    <div class="lr-col">
+      <div class="fm2">
+        <div class="it"><label>选中前图标<i>*</i></label>${ICON(1,1)}<span class="hintline">尺寸：70px * 70px，格式：jpg/png/webp</span></div>
+        <div class="it"><label>选中后图标<i>*</i></label>${ICON(1,1)}<span class="hintline">尺寸：70px * 70px，格式：jpg/png/webp</span></div>
+        <div class="it w"><label>商户<i>*</i></label><div class="ip dis">(1102)veergame</div></div>
+        <div class="it"><label>内置提现大类<i>*</i></label><div class="ip dis">${esc(F.sys)}</div></div>
+        <div class="it"><label>提现大类</label><input value="${esc(F.name)}" oninput="QA.f.name=this.value"></div>
+        <div class="it"><label>每日提现次数</label>${NI(F.day,'QA.f.day=+this.value||0')}</div>
+        <div class="it"><label>提现费率（%）</label>${NI(F.fee,'QA.f.fee=+this.value||0')}</div>
+        <div class="it"><label>排序<i>*</i></label>${NI(F.sort,'QA.f.sort=+this.value||0')}</div>
+        <div class="it"><label>状态</label><div class="ip" style="border:0;padding:0;gap:16px"><label class="rd"><input type="radio" name="qa-on" ${F.on?'checked':''} onchange="QA.f.on=1"> 启用</label><label class="rd"><input type="radio" name="qa-on" ${F.on?'':'checked'} onchange="QA.f.on=0"> 禁用</label></div></div>
+        <div class="it"><label>最小提现金额<i>*</i></label>${NI(F.min,'QA.f.min=+this.value||0')}</div>
+        <div class="it"><label>最大提现金额<i>*</i></label>${NI(F.max,'QA.f.max=+this.value||0')}</div>
+        <div class="it"><label>是否整百提现</label><div class="ip" style="border:0;padding:0"><span class="seg2 ${F.sys==='USDT'?'dis':''}"><span class="${F.whole?'on':''}" onclick="if(QA.f.sys!=='USDT'){QA.f.whole=1; drawQa()}">是</span><span class="${F.whole?'':'on'}" onclick="if(QA.f.sys!=='USDT'){QA.f.whole=0; drawQa()}">否</span></span></div></div>
+      </div>
+    </div>
+    <div class="lr-col">
+      <div class="card-h" style="justify-content:space-between;margin-bottom:4px"><span class="nf-wrap">快捷提现金额<em class="newf nf-up" data-tip="改动：每个金额右侧 ✕ 单独删除（原来是底部「删除」按钮删最后一个）；「新增金额」放在金额下方并显示已用个数；粘贴一串金额（逗号 / 空格分隔）自动拆到各个框；「从其他大类复制」为新增">NEW</em></span> ${qaHeadLinks()}</div>
+${qaToolbar()}
+      <div class="qa-grid">${QA.rows.map(amt).join('')}</div>
+      ${QA.rows.length?'':'<div class="mute" style="margin:6px 0">还没有快捷金额</div>'}
+      <div class="qa-add" onclick="if(QA.rows.length>=qaMax()){msg('最多 '+qaMax()+' 个');return;} QA.rows.push(['']); qaRedraw()">+ 新增金额<span class="mute">（${QA.rows.length} / ${qaMax()}）</span></div>
+      <div class="fm2" style="margin-top:12px">
+        <div class="it w"><label>收取费率金额范围</label><span class="hintline" style="margin:0 0 4px">说明：即单笔提现多少范围内，会收取手续费，为空时表示不限制</span>
+          <div class="ip" style="border:0;padding:0;gap:6px"><input type="number" value="${F.fr[0]}" placeholder="最小金额" style="flex:1" oninput="QA.f.fr[0]=this.value"><span>~</span><input type="number" value="${F.fr[1]}" placeholder="最大金额" style="flex:1" oninput="QA.f.fr[1]=this.value"></div></div>
+        <div class="it w"><label>提现提示</label><textarea rows="2" placeholder="请输入提现提示" oninput="QA.f.tip=this.value">${esc(F.tip||'')}</textarea></div>
+        <div class="it w"><label>可用时间段<i>*</i></label><div class="ip" style="border:0;padding:0;gap:6px"><input type="time" value="${F.t[0]}" style="flex:1" oninput="QA.f.t[0]=this.value"><span>~</span><input type="time" value="${F.t[1]}" style="flex:1" oninput="QA.f.t[1]=this.value"></div></div>
+      </div>
+    </div></div>`;
+}
+
+/* ===================== 快捷金额：粘贴自动拆分 / 复制金额 / 从其他大类导入 ===================== */
+const qaRedraw = () => (document.getElementById('rcc-mask').classList.contains('show') ? drawRcCat() : drawQa());
+const qaMax = () => QA_MAX[QA.page];
+const qaParse = t => { const out=[]; (t||'').split(/[,，、;；\s]+/).forEach(x=>{ if(x==='') return; const n=Number(x); if(isFinite(n) && n>0 && !out.includes(n)) out.push(n); }); return out; };
+const qaRowFor = (a, old) => { if(QA.page!=='rc') return [a]; const o=(old||QA.rows).find(r=>+r[0]===a); return o ? [a,o[1],o[2]] : [a,'赠送比率',0]; };
+function qaHeadLinks(){
+  return `<span style="display:inline-flex;gap:8px;align-items:center;font-weight:400">
+    <button class="btn sm" onclick="qaImpToggle()" data-tip="选一个已配好的大类（本商户或同集团同币种的其他商户），把它的快捷金额复制过来">从其他大类复制<em class="newf" style="position:static;margin-left:4px">NEW</em></button>
+</span>`;
+}
+function qaToolbar(){
+  const tip = '';
+  if(!QA.imp) return tip;
+  const sites = QA.page==='rc' ? SITES_RC : SITES_WD, me = QA.page==='rc' ? 1048 : 1102;
+  // 选大类：可输入模糊搜索（不区分大小写、忽略空格和连字符），点选即把金额填到下方，不用再点按钮
+  return tip + `<div class="card newbox imp" style="margin-bottom:8px;background:#fff">
+    <div class="lr-row" style="margin-top:0"><span class="lb">从</span>
+      <select style="flex:0 0 200px" onchange="QA.imp.site=+this.value; QA.imp.q=''; qaRedraw()">${sites.filter(x=>x.cur==='INR').map(x=>`<option value="${x.id}" ${x.id===QA.imp.site?'selected':''}>${esc(x.name)}${x.id===me?'（本商户）':''}</option>`).join('')}</select>
+      <span class="cb"><input id="qa-imp-q" value="${esc(QA.imp.q||'')}" placeholder="输入大类名称搜索" autocomplete="off" oninput="QA.imp.q=this.value; qaImpList()"><span class="cb-pop" id="qa-imp-pop">${qaImpItems()}</span></span>
+      <span class="lnk" style="color:var(--t3)" onclick="QA.imp=null; qaRedraw()">关闭</span>
+    </div>
+    <div class="lr-row">${QA.page==='rc'?`<label><input type="checkbox" ${QA.imp.gift?'checked':''} onchange="QA.imp.gift=this.checked"> 连同赠送设置</label>`:''}<span class="mute">点选大类后直接替换下方现有金额，点「确定」才保存</span></div>
+  </div>`;
+}
+const qaNorm = t => (t||'').toLowerCase().replace(/[\s\-_]/g,'');
+function qaImpItems(){
+  const q = qaNorm(QA.imp.q), src = qaImpSources(QA.imp.site).filter(x=>!q || qaNorm(x.name).includes(q));
+  if(!src.length) return `<span class="cb-empty">没有匹配的大类</span>`;
+  return src.map(x=>`<span class="cb-it" onmousedown="event.preventDefault(); QA.imp.cat=${JSON.stringify(x.name).replace(/"/g,'&quot;')}; qaImpDo()"><b>${esc(x.name)}</b><i>${x.rows.map(r=>r[0]).join(', ')}</i></span>`).join('');
+}
+function qaImpList(){ const p=document.getElementById('qa-imp-pop'); if(p) p.innerHTML=qaImpItems(); }
+
+function qaImpToggle(){ QA.imp = QA.imp ? null : {site: QA.page==='rc'?1048:1102, cat:'', q:'', gift:true}; qaRedraw(); const i=document.getElementById('qa-imp-q'); if(i) i.focus(); }
+// 导入来源：本商户取真实配置，其他商户用演示数据（按大类名称）
+function qaImpSources(siteId){
+  const meId = QA.page==='rc' ? 1048 : 1102, curId = QA.page==='rc' ? (RCC&&RCC.c?RCC.c.id:0) : QA.id;
+  if(QA.page==='rc'){
+    if(siteId===meId) return CATS.filter(c=>c.id!==curId && (RC_Q[c.id]||[]).length).map(c=>({name:c.name, rows:RC_Q[c.id]}));
+    const x=SITES_RC.find(y=>y.id===siteId); return (x.cats||[]).map((n,i)=>({name:n, rows:[100,300,500,1000,2000,5000].slice(0,4+i%3).map((a,k)=>[a*(1+i%2),'赠送比率',k>2?0.01:0])}));
+  }
+  if(siteId===meId) return WD_CATS.filter(c=>c.id!==curId && (WD_Q[c.id]||[]).length).map(c=>({name:c.name, rows:WD_Q[c.id].map(a=>[a])}));
+  const x=SITES_WD.find(y=>y.id===siteId); return (x.cats||[]).map((n,i)=>({name:n, rows:[300,500,1000,2000,5000,10000].slice(0,4+i).map(a=>[a])}));
+}
+function qaImpDo(){
+  const pick = qaImpSources(QA.imp.site).find(x=>x.name===QA.imp.cat); if(!pick) return;
+  const old = QA.rows, withGift = QA.page==='rc' && QA.imp.gift;
+  QA.rows = pick.rows.slice(0,qaMax()).map(r=> withGift ? r.slice() : qaRowFor(+r[0], old));
+  QA.imp = null; qaRedraw(); msg(`已复制 ${QA.rows.length} 个金额${QA.page==='rc'?(withGift?'（含赠送设置）':'（赠送设置按本大类原有的保留，新金额赠送 0）'):''}，点「确定」后保存`);
+}
+function qaPaste(e, k){
+  const nums = qaParse((e.clipboardData||window.clipboardData).getData('text'));
+  if(nums.length<=1) return; // 单个金额按普通粘贴
+  e.preventDefault();
+  const max=qaMax(), old=QA.rows.map(r=>r.slice()); let cut=0;
+  nums.forEach((a,i)=>{ const idx=k+i; if(idx>=max){ cut++; return; } QA.rows[idx]=qaRowFor(a, old); });
+  qaRedraw(); msg(`已拆分填入 ${nums.length-cut} 个金额${cut?`，超过 ${max} 个，多出的 ${cut} 个未填`:''}`);
+}
+
+function qaCopy(){
+  const t = QA.rows.filter(r=>r[0]!=='' && r[0]!=null).map(r=>r[0]).join(',');
+  if(!t){ msg('还没有快捷金额可复制'); return; }
+  const done = () => msg(`已复制：${t}，到别的大类在任一金额框里粘贴即可`);
+  try{ navigator.clipboard.writeText(t).then(done, done); }catch(e){ done(); }
+}
+function qaFill(){
+  const max = QA_MAX[QA.page], raw = (document.getElementById('qa-box').value||'').split(/[,，、;；\s]+/).filter(x=>x!=='');
+  const nums = [], bad = [];
+  raw.forEach(x=>{ const n=Number(x); if(!isFinite(n) || n<=0) bad.push(x); else if(!nums.includes(n)) nums.push(n); });
+  if(!nums.length){ msg('没有识别到有效金额'); return; }
+  const cut = nums.length>max ? nums.length-max : 0, use = nums.slice(0,max);
+  const old = QA.rows;
+  QA.rows = use.map(a=>{ if(QA.page!=='rc') return [a]; const o=old.find(r=>+r[0]===a); return o ? [a,o[1],o[2]] : [a,'赠送比率',0]; });
+  QA.box = use.join(','); (document.getElementById('rcc-mask').classList.contains('show') ? drawRcCat() : drawQa());
+  msg(`已填充 ${use.length} 个金额` + (bad.length?`，忽略无效 ${bad.length} 个`:'') + (cut?`，超过 ${max} 个，多出的 ${cut} 个未填`:''));
+}
+function saveQa(){
+  const rows = QA.rows.filter(r=>r[0]!=='' && r[0]!=null);
+  if(QA.page==='rc'){ if((QA.dmin>0)!==(QA.dmax>0) || (QA.dmax>0 && QA.dmin>QA.dmax)){ msg('新增通道默认限额：两项都填且最小 ≤ 最大，或都不填'); return; }
+    const f=QA.fq; if(f.some(v=>v<0) || (f.some(v=>v>0) && !f.every(v=>v>0))){ msg('拉单频率限制：三项要么都填 0（不限制），要么都填大于 0 的整数'); return; }
+    RC_Q[QA.id] = rows; QA.c.dmin=QA.dmin; QA.c.dmax=QA.dmax; QA.c.pend=QA.pend; QA.c.fq=f.slice(); } else { const F=QA.f;
+    if(!(F.fee>=0 && F.fee<=1)){ msg('提现费率请填 0~1 的小数（0.1 = 10%）'); return; }
+    if(F.min>F.max){ msg('最小提现金额不能大于最大提现金额'); return; }
+    if(+F.fr[1]>0 && +F.fr[0]>+F.fr[1]){ msg('收取费率金额范围：最小不能大于最大'); return; }
+    WD_Q[QA.id] = rows.map(r=>r[0]); Object.assign(QA.c, F); }
+  closeQa(); renderCatList(QA.page); msg('保存成功');
+}
+function closeQa(){ document.getElementById('qa-mask').classList.remove('show'); }
+
+
+/* ===================== 暂停中的会员（连续未支付限制：查询 / 手动解除 / 触发统计） ===================== */
+const PZ = (()=>{
+  // 示例：当前被暂停的会员（真实数据来自暂停记录表；到期自动消失）
+  let ROWS = [
+    {k:1, uid:'1048203391', acc:'98*****310', cat:33, n:6, st:'2026-10-12 15:02:11', end:'2026-10-12 15:32:11'},
+    {k:2, uid:'1048199820', acc:'91*****772', cat:33, n:6, st:'2026-10-12 15:05:40', end:'2026-10-12 15:35:40'},
+    {k:3, uid:'1048211004', acc:'70*****085', cat:33, n:6, st:'2026-10-12 15:08:02', end:'2026-10-12 15:38:02'},
+    {k:4, uid:'1048187731', acc:'88*****451', cat:32, n:6, st:'2026-10-12 14:51:37', end:'2026-10-12 15:21:37'},
+  ];
+  // 触发统计（近 1 小时 / 今日人数）；近 1 小时 ≥ 10 人标异常
+  const STAT = {33:[14,22], 32:[2,9]};
+  const ALERT = 10;
+  let Q = {uid:'', cat:''};
+  const catName = id => (allRcCats().find(c=>c.id===id)||{name:'--'}).name;
+  function draw(){
+    const list = ROWS.filter(r=>(!Q.uid || r.uid.includes(Q.uid.trim()) || r.acc.includes(Q.uid.trim())) && (!Q.cat || r.cat===+Q.cat));
+    const enabled = allRcCats().filter(c=>c.fq && c.fq[0]>0);
+    document.getElementById('pz-b').innerHTML = `
+      <div class="pz-stat">${enabled.map(c=>{ const st=STAT[c.id]||[0,0], bad=st[0]>=ALERT; return `<span class="${bad?'bad':''}">${esc(c.name)}：近1小时 <b>${st[0]}</b> 人 / 今日 <b>${st[1]}</b> 人${bad?'　⚠ 明显偏高，先检查该大类通道是否异常':''}</span>`; }).join('') || '<span class="mute">没有大类启用连续未支付限制</span>'}</div>
+      <div class="sf" style="margin:8px 0">
+        <div class="fi"><label>会员ID/账号</label><input id="pz-q" style="width:200px" value="${esc(Q.uid)}" placeholder="请输入会员ID或账号" oninput="PZ.setQ('uid',this.value)"></div>
+        <div class="fi"><label>充值大类</label><select onchange="PZ.setQ('cat',this.value)"><option value="">全部</option>${enabled.map(c=>`<option value="${c.id}" ${+Q.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+      </div>
+      <table class="g u" style="width:100%"><tr><th>会员ID</th><th>会员账号</th><th>充值大类</th><th>连续未支付笔数</th><th>暂停开始</th><th>自动解除时间</th><th>操作</th></tr>
+      ${list.length?list.map(r=>`<tr><td>${r.uid}</td><td>${r.acc}</td><td>${esc(catName(r.cat))}</td><td>${r.n}</td><td>${r.st}</td><td>${r.end}</td><td><span class="lnk" onclick="PZ.release(${r.k})">解除</span></td></tr>`).join(''):'<tr><td colspan="7" class="mute" style="padding:20px">暂无被暂停的会员</td></tr>'}</table>
+      <div class="hintline" style="margin-top:6px">只列出正在暂停中的会员，到期自动消失；会员自己任意一笔充值成功也会立即解除（后台人工充值不算）。手动解除记入操作日志。</div>`;
+  }
+  function setQ(k,v){ Q[k]=v; draw(); if(k==='uid'){ const el=document.getElementById('pz-q'); el.focus(); el.setSelectionRange(el.value.length,el.value.length); } }
+  function release(k){ const r=ROWS.find(x=>x.k===k); confirmDlg('解除暂停', `确定解除会员 ${r.uid} 在「${esc(catName(r.cat))}」的暂停？解除后可立即在本大类充值，未支付笔数清零。`, ()=>{ ROWS=ROWS.filter(x=>x.k!==k); draw(); msg('已解除'); }); }
+  function open(){ draw(); document.getElementById('pz-mask').classList.add('show'); }
+  function close(){ document.getElementById('pz-mask').classList.remove('show'); }
+  return {open, close, setQ, release};
+})();
+
+/* ===================== IFSC风控管理（集团维护；只对印度 INR 商户生效） ===================== */
+const IF = (()=>{
+  // 规则：IFSC（11 位完整）× 三方通道（字典 sid）。集团内所有 INR 商户共用
+  let ROWS = [
+    {k:1, t:'2026-10-04 00:24:50', ifsc:'AIRP0000001', sid:12211, op:'dhzuzhang05'},
+    {k:2, t:'2026-10-01 21:06:55', ifsc:'AIRP0000001', sid:12203, op:'dhzuzhang05'},
+    {k:3, t:'2026-09-14 18:30:48', ifsc:'PYTM0123456', sid:12133, op:'dhzuzhang04'},
+  ];
+  let seq = 10, SEL = new Set(), A = null;
+  // 可选通道：本集团 INR 商户下、内置提现大类=银行卡的三方通道（按三方通道去重；UPI / USDT / 其他币种不列，这些提现不走 IFSC）
+  const dict = () => { const m=new Map(); WD.CH.filter(c=>c.cur==='INR' && c.cat===51).forEach(c=>{ if(!m.has(c.sid)) m.set(c.sid,{sid:c.sid, nm:c.cn, pc:c.pc}); }); return [...m.values()]; };
+  const bySid = sid => dict().find(d=>d.sid===sid) || {sid, nm:'--', pc:'--'};
+  const norm = v => (v||'').trim().toUpperCase();
+  const RE = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+  function render(){
+    const qi=norm(document.getElementById('if-q-ifsc').value), qn=document.getElementById('if-q-nm').value.trim().toLowerCase(), qp=document.getElementById('if-q-pc').value.trim().toLowerCase();
+    const list = ROWS.filter(r=>{ const d=bySid(r.sid); return (!qi||r.ifsc.includes(qi)) && (!qn||d.nm.toLowerCase().includes(qn)) && (!qp||d.pc.toLowerCase().includes(qp)); });
+    const all = list.length && list.every(r=>SEL.has(r.k));
+    document.getElementById('if-grid').innerHTML = `<colgroup><col style="width:44px"><col style="width:180px"><col style="width:140px"><col style="width:120px"><col style="width:160px"><col style="width:170px"><col style="width:140px"><col style="width:80px"></colgroup>
+      <tr><th><input type="checkbox" ${all?'checked':''} onchange="IF.selAll(this.checked)"></th><th>时间</th><th>IFSC</th><th>限制通道ID</th><th>限制通道名称</th><th>三方映射码</th><th>操作人员</th><th>操作</th></tr>`
+      + (list.length ? list.map(r=>{ const d=bySid(r.sid); return `<tr><td><input type="checkbox" ${SEL.has(r.k)?'checked':''} onchange="IF.sel(${r.k},this.checked)"></td><td>${r.t}</td><td>${r.ifsc}</td><td>${r.sid}</td><td>${esc(d.nm)}</td><td>${esc(d.pc)}</td><td>${esc(r.op)}</td><td><span class="lnk" style="color:#d4380d" onclick="IF.del(${r.k})">删除</span></td></tr>`; }).join('')
+        : `<tr><td colspan="8" class="mute" style="padding:24px">暂无数据</td></tr>`);
+    document.getElementById('if-pager').innerHTML = `共 ${list.length} 条`;
+    document.getElementById('if-bdel').disabled = !SEL.size;
+  }
+  function reset(){ ['if-q-ifsc','if-q-nm','if-q-pc'].forEach(id=>document.getElementById(id).value=''); render(); }
+  function sel(k,on){ on?SEL.add(k):SEL.delete(k); render(); }
+  function selAll(on){ document.querySelectorAll('#if-grid tr').length; ROWS.forEach(r=>on?SEL.add(r.k):SEL.delete(r.k)); render(); }
+  function del(k){ const r=ROWS.find(x=>x.k===k); confirmDlg('删除确认', `确定删除 ${r.ifsc} 对 [${r.sid}] ${bySid(r.sid).nm} 的限制？删除后该 IFSC 可以正常提交到这个通道。`, ()=>{ ROWS=ROWS.filter(x=>x.k!==k); SEL.delete(k); render(); msg('删除成功'); }, 1); }
+  function batchDel(){ const n=SEL.size; confirmDlg('批量删除', `确定删除选中的 ${n} 条限制？`, ()=>{ ROWS=ROWS.filter(x=>!SEL.has(x.k)); SEL.clear(); render(); msg(`已删除 ${n} 条`); }, 1); }
+  // 新增（同竞品）：先选一个限制通道，再批量粘贴 IFSC；保存时自动转大写、去重、跳过格式非法和已存在的
+  function openAdd(){ A={sid:'', txt:''}; draw(); document.getElementById('if-mask').classList.add('show'); }
+  const parse = t => (t||'').split(/[\s,，;；]+/).map(norm).filter(Boolean);
+  function draw(){
+    document.getElementById('if-b').innerHTML = `<div class="if-form">
+      <div class="if-row"><label>限制通道<i>*</i></label><select onchange="IF.setSid(this.value)" class="${A.sid?'':'ph'}"><option value="">请选择限制通道</option>${dict().map(d=>`<option value="${d.sid}" ${+A.sid===d.sid?'selected':''}>[${d.sid}] ${esc(d.nm)}（${esc(d.pc)}）</option>`).join('')}</select></div>
+      <div class="if-row"><label>IFSC 列表<i>*</i></label><textarea id="if-txt" rows="6" placeholder="请输入 IFSC，支持一次性输入多个，多个可用逗号 / 空格 / 换行 / 分号分隔" oninput="IF.setTxt(this.value)">${esc(A.txt)}</textarea></div>
+      <div class="if-row"><label></label><span class="hintline" style="margin:0">ⓘ 支持一次性批量粘贴多个 IFSC，系统会自动去重并跳过格式非法项。</span></div>
+      <div class="if-row"><label></label><span class="hintline" style="margin:0">限制通道只列本集团印度（INR）商户、内置提现大类为「银行卡」的三方通道。</span></div>
+    </div>`;
+  }
+  function setSid(v){ A.sid=v; draw(); }
+  function refocus(id){ const el=document.getElementById(id); if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
+  function setTxt(v){ A.txt=v; }
+  function save(){
+    if(!A.sid){ msg('请选择限制通道'); return; }
+    const all=parse(A.txt); if(!all.length){ msg('请输入 IFSC'); return; }
+    const sid=+A.sid, uniq=[...new Set(all)], bad=uniq.filter(x=>!RE.test(x)), good=uniq.filter(x=>RE.test(x));
+    const had=new Set(ROWS.filter(r=>r.sid===sid).map(r=>r.ifsc)), exist=good.filter(x=>had.has(x)), add=good.filter(x=>!had.has(x));
+    if(!add.length){ msg('没有可新增的 IFSC（格式非法或已存在）'); return; }
+    const now=new Date(), t=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${now.toTimeString().slice(0,8)}`;
+    add.forEach(x=>ROWS.unshift({k:++seq, t, ifsc:x, sid, op:'luna'}));
+    close(); render();
+    const dup=all.length-uniq.length;
+    if(bad.length||exist.length||dup) confirmDlg('保存结果', `<div>新增 <b>${add.length}</b> 条。</div>${dup?`<div class="mute">重复输入已去重：${dup} 个</div>`:''}${exist.length?`<div class="mute">该通道已限制，跳过：${exist.join('、')}</div>`:''}${bad.length?`<div class="err-t">格式非法，跳过：${bad.map(esc).join('、')}</div>`:''}`, null);
+    else msg(`已新增 ${add.length} 条`);
+  }
+  function close(){ document.getElementById('if-mask').classList.remove('show'); }
+  // 预览：模拟提现审核详情的「出款通道」下拉，命中的通道置灰并写明原因
+  let P = {ifsc:'AIRP0000001', cur:'INR'};
+  function openPreview(){ drawPreview(); document.getElementById('ifp-mask').classList.add('show'); }
+  function drawPreview(){
+    const v=norm(P.ifsc), blk=new Set(P.cur==='INR' ? ROWS.filter(r=>r.ifsc===v).map(r=>r.sid) : []);
+    const chs = dict();
+    document.getElementById('ifp-b').innerHTML = `<div class="fm2">
+      <div class="it"><label>提现单商户</label><select onchange="IF.setP('cur',this.value)">${[['INR','(1102)veergame · 印度'],['PKR','(1105)veergame-pk · 巴基斯坦']].map(([c,n])=>`<option value="${c}" ${P.cur===c?'selected':''}>${n}</option>`).join('')}</select></div>
+      <div class="it"><label>会员银行卡 IFSC</label><input id="ifp-in" value="${esc(P.ifsc)}" oninput="IF.setP('ifsc',this.value)"></div>
+      <div class="it w"><label>出款通道（模拟审核详情下拉，已展开）</label>
+        <div class="if-dd">${chs.map(d=>blk.has(d.sid)?`<div class="o dis">[${d.sid}] ${esc(d.nm)}<span>该 IFSC 受限</span></div>`:`<div class="o">[${d.sid}] ${esc(d.nm)}</div>`).join('')}</div>
+        <span class="hintline">${P.cur!=='INR'?'非印度商户的提现单不比对 IFSC，全部通道照常可选。':blk.size?`命中 ${blk.size} 个通道：下拉里置灰不可选；自动出款跳过这些通道，其余通道都不可用时回到人工池。`:'该 IFSC 没有限制，全部通道照常可选。'}</span></div>
+    </div>`;
+  }
+  function setP(k,v){ P[k]=v; drawPreview(); if(k==='ifsc') refocus('ifp-in'); }
+  function closePreview(){ document.getElementById('ifp-mask').classList.remove('show'); }
+  return {render, reset, sel, selAll, del, batchDel, openAdd, setSid, setTxt, save, close, openPreview, setP, closePreview};
+})();
+
+/* ===================== 列表切换商户：不清空其他查询条件 ===================== */
+// 换商户只换数据范围，已选的查询条件原样保留，直接按新商户重新查询。
+// 按商户各自一套 ID 的条件（充值 / 提现大类、通道 ID、三方商户号）按名称 / 编码到新商户里找同名的，找到就换成新商户的那一项；找不到才清空并提示。
+function onTenantChange(page, sel){
+  const kept=[], cleared=[];
+  if(page==='rc'){
+    const pc=document.getElementById('f-pc'), cat=document.getElementById('f-cat'), nm=document.getElementById('f-name'), st=document.getElementById('f-st');
+    if(pc.value) kept.push('三方映射码 '+pc.value);
+    if(cat.value){ const c=catById(+cat.value); if(c && c.on){ kept.push('充值大类 '+c.name); } else { cleared.push('充值大类'); cat.value=''; cat.classList.add('ph'); } }
+    if(nm.value.trim()) kept.push('通道ID/名称 '+nm.value.trim());
+    if(st.value) kept.push('状态 '+(st.value==='1'?'开启':'关闭'));
+    doSearch();
+  } else {
+    const cat=document.getElementById('wd-f-cat');
+    if(cat.value) kept.push('提现大类 '+cat.options[cat.selectedIndex].text);
+    WD.doSearch();
+  }
+  msg(`已切换到 ${sel.value}` + (kept.length?`，保留：${kept.join('、')}`:'') + (cleared.length?`；新商户下没有同名的，已清空：${cleared.join('、')}`:''));
+}
+
+
+/* ===================== 复制到其他商户 ===================== */
+// 同集团站点（演示）。cats = 该站点有的大类名称（各站点大类 ID 不同，按名称匹配）；names = 该站点已有的显示名称（同站点不能重名）
+const SITES_RC = [
+  {id:1048, name:'(1048)91club',     cur:'INR'},
+  {id:1051, name:'(1051)91club-in2', cur:'INR', cats:['UPI-QR','Innate UPI-QR','Expert Paytm-QR','UPI-transfer','UPI-QR PAY','Bank Transfer'], names:['SuperPay-Paytm','ArbPayINR']},
+  {id:1055, name:'(1055)91club-in3', cur:'INR', cats:['UPI-QR','Innate UPI-QR','Paytm-QR','UPI Transfer','upi qr pay','Bank Transfer'], names:[]},
+  {id:1058, name:'(1058)91club-in4', cur:'INR', cats:['Paytm','UPI','Bank'], names:[], sids:[12022]},
+  {id:1052, name:'(1052)91club-pk',  cur:'PKR'},
+  {id:1060, name:'(1060)91club-bd',  cur:'BDT'},
+];
+const SITES_WD = [
+  {id:1102, name:'(1102)veergame',     cur:'INR'},
+  {id:1103, name:'(1103)veergame-in2', cur:'INR', cats:['Bank Transfer','UPI'], names:['WYPay']},
+  {id:1104, name:'(1104)veergame-in3', cur:'INR', cats:['Bank','UPI'], names:[]},
+  {id:1105, name:'(1105)veergame-pk',  cur:'PKR'},
+  {id:1108, name:'(1108)veergame-bd',  cur:'BDT'},
+];
+// 商户多选：只能选同集团、同币种（INR）的站点；复制时排除来源站点
+function siteChooser(sites, selected, exclude, onToggle, id){
+  const chips = selected.map(t=>{ const x=sites.find(y=>y.id===t); return `<span class="chip">${esc(x.name)}<b onclick="event.stopPropagation();${onToggle}(${t})">✕</b></span>`; }).join('');
+  const opts = sites.filter(x=>x.id!==exclude).map(x=>{ const ok=x.cur==='INR', on=selected.includes(x.id);
+    return `<div class="op ${on?'sel':''} ${ok?'':'dis'}" onclick="event.stopPropagation();${ok?`${onToggle}(${x.id})`:''}"><span>${esc(x.name)}${ok?'':`（币种 ${x.cur}，与通道 INR 不同）`}</span><span>${on?'✓':''}</span></div>`; }).join('');
+  return `<div class="ip ms" id="${id}" onclick="this.classList.toggle('open')">${chips||'<span class="mute">请选择商户（可多选）</span>'}<div class="pop">${opts}</div></div>`;
+}
+// 预检：每个站点一行，按名称匹配大类、检查显示名称重名
+// 复制到其他商户：提交前预检。大类按名称自动匹配（忽略大小写、空格、连字符），每个商户的大类可以在预检表里改选 / 补选
+const catKey = n => (n||'').toLowerCase().replace(/[\s\-_]+/g,'');
+function precheckRows(sites, tenants, catNames, dispName, srcSiteId, srcCats, srcNames, sid){
+  return tenants.map(t=>{
+    const x = sites.find(y=>y.id===t), opts = (x.id===srcSiteId ? srcCats : x.cats) || [], names = (x.id===srcSiteId ? srcNames : x.names) || [];
+    const sel = catNames.map(n=>opts.find(o=>catKey(o)===catKey(n))).filter(Boolean);
+    const miss = catNames.filter(n=>!opts.some(o=>catKey(o)===catKey(n)));
+    const dup = !!(dispName && names.includes(dispName.trim())), has = !!(sid && (x.sids||[]).includes(sid));
+    const r={x, opts, sel:[...new Set(sel)], miss, dup, has, res:'', ok:false}; pckEval(r); return r;
+  });
+}
+let PCK = null;
+function pckEval(r){
+  if(r.has){ r.ok=false; r.res='<span class="err-t">跳过：该商户已有这条三方通道</span>'; }
+  else if(r.dup){ r.ok=false; r.res='<span class="err-t">跳过：显示名称已存在</span>'; }
+  else if(!r.sel.length){ r.ok=false; r.res='<span class="err-t">跳过：未选大类</span>'; }
+  else { r.ok=true; r.res='<span class="ok-t">将新增</span>'; }
+}
+function pckCell(r,i){
+  if(PCK.multi){
+    return `<div class="pck-cats ${r.sel.length?'':'bad'}">${r.opts.map(o=>`<label class="rd"><input type="checkbox" ${r.sel.includes(o)?'checked':''} onchange="pckToggle(${i},'${esc(o).replace(/'/g,"\\'")}',this.checked)"> ${esc(o)}</label>`).join('')}</div>`;
+  }
+  return `<select class="${r.sel.length?'':'bad'}" onchange="PCK.rows[${i}].sel=this.value?[this.value]:[]; pckDraw()"><option value="">请选择${PCK.label}</option>${r.opts.map(o=>`<option ${r.sel[0]===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+}
+function pckDraw(){
+  PCK.rows.forEach(pckEval);
+  const ok = PCK.rows.filter(r=>r.ok).length;
+  document.getElementById('cf-b').innerHTML = `<div class="pc newbox"><div class="card-h">提交前预检<em class="newf" style="position:static;margin-left:6px">NEW</em></div>
+    <div class="hintline" style="margin:0 0 4px">每个商户各建一条，互不影响。${PCK.label}按名称自动匹配（忽略大小写、空格、连字符），可以逐个商户改选；没匹配上的标红，请手动选择，不选则跳过该商户。</div>
+    <table class="et pck" style="width:100%"><tr><th style="width:170px">商户</th><th>挂载${PCK.label}${PCK.multi?'（可多选）':''}</th><th style="width:170px">预计结果</th></tr>
+    ${PCK.rows.map((r,i)=>`<tr><td>${esc(r.x.name)}</td><td>${pckCell(r,i)}${r.miss.length?`<div class="pck-miss">来源大类在该商户没有同名：${r.miss.map(esc).join('、')}</div>`:''}</td><td>${r.res}</td></tr>`).join('')}</table></div>
+    <div style="margin-top:8px">将为 <b class="ok-t">${ok}</b> 个商户新增，<b class="err-t">${PCK.rows.length-ok}</b> 个商户跳过。确认提交？</div>`;
+}
+function pckToggle(i,o,on){ const r=PCK.rows[i]; r.sel = on ? [...r.sel,o] : r.sel.filter(x=>x!==o); pckDraw(); }
+// 多商户提交前的预检确认：逐商户列出匹配结果，可改选大类，确认后才提交（弹在编辑弹窗之上）
+function precheckConfirm(rows, catLabel, onOk){
+  ['tms','wtms'].forEach(id=>{ const x=document.getElementById(id); if(x) x.classList.remove('open'); });
+  PCK = {rows, label:catLabel, multi: catLabel==='充值大类'};
+  confirmDlg('提交前预检', '', ()=>setTimeout(()=>{ if(!PCK.rows.some(r=>r.ok)){ msg('没有可新增的商户'); return; } onOk(); },0));
+  pckDraw();
+  document.querySelector('#cf-mask .dlg').style.width='min(900px,94vw)';
+}
+function showResult(title, rows){
+  document.querySelector('#cf-mask .dlg').style.width='';
+  const ok=rows.filter(r=>r.ok), bad=rows.filter(r=>!r.ok);
+  confirmDlg(title, `成功 <b class="ok-t">${ok.length}</b> 个，失败 <b class="err-t">${bad.length}</b> 个。${bad.length?`<ul>${bad.map(r=>`<li>${esc(r.x.name)}：${r.res.replace(/<[^>]+>/g,'').replace('跳过：','')}</li>`).join('')}</ul>`:''}${ok.length?'<div class="mute">新建的通道在各商户的通道列表里，状态按弹窗所选。</div>':''}`, ()=>{});
+}
+
+/* ===================== 页面切换（充值 / 提现） ===================== */
+let PAGE = 'rc';
+function showPage(p){
+  PAGE = p;
+  document.querySelectorAll('#pg span').forEach(s=>s.classList.toggle('on', s.dataset.p===p));
+  document.getElementById('page-rc').style.display = p==='rc' ? '' : 'none';
+  document.getElementById('page-wd').style.display = p==='wd' ? '' : 'none';
+  ['demo-cnt','demo-rows'].forEach(id=>document.getElementById(id).style.display = p==='rc' ? '' : 'none');
+  if(p==='rc') render(); else WD.render();
+}
+document.querySelectorAll('#pg span').forEach(s=>s.onclick=()=>showPage(s.dataset.p));
+render();
+</script>
+</body>
+</html>
