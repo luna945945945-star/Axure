@@ -355,8 +355,6 @@ input.err{border-color:#ff4d4f!important}
 .pck select.bad{border-color:#ff4d4f;background:#fff1f0}
 .pck-miss{font-size:12px;color:var(--t3);margin-top:2px}
 .warn-t{color:#d46b08}
-.pz-stat{display:flex;flex-direction:column;gap:2px;padding:6px 10px;background:#fafafc;border:1px solid var(--line2);border-radius:3px;font-size:12.5px}
-.pz-stat .bad{color:#d4380d}
 </style>
 </head>
 <body class="hide-review">
@@ -451,7 +449,7 @@ input.err{border-color:#ff4d4f!important}
         <li>清零：会员自己任意一笔充值成功（任意大类，含本地银行卡、USDT；<b>不含后台人工充值</b>）立即清零并解除暂停；暂停满 O 分钟后计数也清零重新数；会员 24 小时没在本大类拉单，计数自动清零（系统固定规则，防止几天前的零星未付累计起来误伤正常会员）。</li>
         <li>配置校验：② 的 N 和 O 要么都填 0，要么都 &gt; 0；① 有值时 N 必须大于 P，否则会先被①拦住、②永远不触发，保存时提示。卡片下方实时逐条写出当前配置的效果；规则细节（计数口径、清零条件、超时时间对触发的影响）放在「下单限制」后的「?」里。</li>
         <li>只对三方大类生效（本地大类②不显示）；只对已上中台的站点生效。测试会员：沿用现有「会员最大待支付单数」对测试会员的处理方式，不单独区分。</li>
-        <li><b>防误伤</b>（通道故障、回调延迟、选错金额重拉、会员 UPI 限额满、新会员首充失败，正常会员也会连续未支付）：① 弹窗提示建议值：笔数不少于 5 笔且大于会员最大待支付单数（一般比它多 2~3 笔），暂停 10~30 分钟；配得更严（笔数 &lt; 5 或暂停 &gt; 30 分钟）时说明框橙字提醒，不拦保存；② 暂停提示语引导更换其他支付方式；③ 充值大类页加「暂停中的会员」：按会员ID/账号、大类查正在暂停的会员，客服可手动解除（解除即清零，记操作日志）；④ 同页顶部按大类显示触发人数（近1小时 / 今日），近1小时 ≥ 10 人标红提示「先检查该大类通道是否异常」（阈值为判断，可调）。</li>
+        <li><b>防误伤</b>（通道故障、回调延迟、选错金额重拉、会员 UPI 限额满、新会员首充失败，正常会员也会连续未支付）：① 弹窗提示建议值：笔数不少于 5 笔且大于会员最大待支付单数（一般比它多 2~3 笔），暂停 10~30 分钟；配得更严（笔数 &lt; 5 或暂停 &gt; 30 分钟）时说明框橙字提醒，不拦保存；② 暂停提示语引导更换其他支付方式。第一期不做后台查看 / 手动解除被暂停会员（已定），所以暂停时间建议设短，误伤的会员等暂停结束即可恢复。</li>
         <li>不做：按三方返回的「支付失败」状态排除计数（各家三方是否回失败状态不一，开发量大，第一期不做）。</li>
       </ul>
     </div>
@@ -562,7 +560,7 @@ input.err{border-color:#ff4d4f!important}
         ② 拦截：<code>RechargePayApiService.CreateThirdRechargeOrder</code> 里大类确定之后、选通道之前，读该会员在该大类的暂停标记，命中直接返回新错误码「通道繁忙」，不进选路、不走备用。<br>
         ③ 计数：三方下单成功后（与 <code>UserPendingRechargeOrderCacheHelper.AddAsync</code> 同处），「商户 + 会员」的 Hash 里该大类字段 +1（字段 24 小时过期，每次 +1 时续期）；+1 后 ≥ N 时写暂停字段（过期 = O 分钟）并把计数清零。<br>
         ④ 清零：<code>RechargeOrderService.UpdateTenantRechargeOrderAsPayedAsync</code> 成功后删该会员整个 Key（所有大类），与现有删待支付计数器同处，try-catch，Redis 故障不阻塞到账；人工充值不清零（若人工充值也走这个方法，需按订单类型排除）。<br>
-        ⑤ 暂停记录：触发暂停时写一张暂停记录表（商户、会员、大类、笔数、开始 / 结束时间、解除人），供「暂停中的会员」查询和触发统计；手动解除 = 删 Redis 暂停标记和计数 + 更新记录，按商户权限校验。<br>⑥ 不改：V1、选路逻辑、通道测试下单（不计数）。粗估（判断）：后端 2~2.5 天，前端 1 天。
+        ⑤ 不改：V1、选路逻辑、通道测试下单（不计数）。粗估（判断）：后端 1~1.5 天，前端 0.5 天。
       </td></tr>
       <tr><td>后端<br>（R10 默认区间）</td><td>
         不改。新增弹窗按商户币种预填默认区间（前端写死一份币种 → 默认值对照，见 R10）。
@@ -639,7 +637,7 @@ input.err{border-color:#ff4d4f!important}
       <div class="fi"><label>充值大类</label><select class="ph"><option>请选择前台显示名称</option></select></div>
       <div class="fi act"><button class="btn" onclick="msg('重置')">重置</button><button class="btn pri" onclick="renderCatList('rc')">搜索</button></div>
     </div>
-    <div class="tb"><button class="btn pri" onclick="openRcCat(0)">新增</button><button class="btn" onclick="PZ.open()"><span class="nf-wrap">暂停中的会员<em class="newf nf-up" style="right:-34px" data-tip="新增：查询因「连续未支付限制」被暂停的会员，客服可手动解除；顶部按大类统计触发人数，触发异常多时提示先查通道。">NEW</em></span></button></div>
+    <div class="tb"><button class="btn pri" onclick="openRcCat(0)">新增</button></div>
     <div class="tw"><table class="g u" id="rc-cat-grid"></table></div>
   </div>
   <div id="rc-ch-view">
@@ -733,7 +731,6 @@ input.err{border-color:#ff4d4f!important}
 <div class="mask" id="ed-mask"><div class="dlg wide"><div class="dlg-h"><span id="ed-t"></span><span class="x" onclick="closeEdit()">✕</span></div><div class="dlg-b" id="ed-b"></div><div class="dlg-f"><button class="btn" onclick="closeEdit()">取消</button><button class="btn pri" onclick="saveEdit()">确定</button></div></div></div>
 <div class="mask" id="if-mask"><div class="dlg" style="width:640px"><div class="dlg-h"><span>新增 IFSC 风控</span><span class="x" onclick="IF.close()">✕</span></div><div class="dlg-b" id="if-b"></div><div class="dlg-f"><button class="btn" onclick="IF.close()">取消</button><button class="btn pri" onclick="IF.save()">保存</button></div></div></div>
 <div class="mask" id="ifp-mask"><div class="dlg" style="width:560px"><div class="dlg-h"><span>效果预览：提现审核 → 出款通道</span><span class="x" onclick="IF.closePreview()">✕</span></div><div class="dlg-b" id="ifp-b"></div><div class="dlg-f"><button class="btn pri" onclick="IF.closePreview()">关闭</button></div></div></div>
-<div class="mask" id="pz-mask"><div class="dlg" style="width:min(980px,96vw)"><div class="dlg-h"><span>暂停中的会员（连续未支付限制）</span><span class="x" onclick="PZ.close()">✕</span></div><div class="dlg-b" id="pz-b"></div><div class="dlg-f"><button class="btn pri" onclick="PZ.close()">关闭</button></div></div></div>
 <div class="msgs" id="msgs"></div>
 <div class="tip" id="tip"></div>
 
@@ -1617,7 +1614,7 @@ function orderLimitSummary(R, local){ // 按当前配置逐条写效果；规则
   }
   return `<div class="ol-h">按当前配置：</div><ul>${li.map(x=>`<li>${x}</li>`).join('')}</ul>`;
 }
-const OL_TIP = '会员最大待支付单数（原有）：会员在本大类同时挂着的待支付订单达到上限后，不能再下单，提示「你的待支付订单数量已超出此通道限制，请前往处理」，0 表示不限制。\n连续未支付限制（新增）：从会员上一次充值成功后开始计数，会员在本大类每成功下单一笔记 1 笔（三方下单失败的不算）；连续达到 N 笔都没有支付成功，暂停该会员在本大类充值 O 分钟，期间下单提示「通道繁忙，请稍后再试或更换其他支付方式」，可以换其他大类充值。\n建议笔数不少于 5 笔且大于会员最大待支付单数，暂停 10~30 分钟：通道故障、回调延迟、选错金额重拉时，正常会员也会连续未支付。\n被暂停的会员可在充值大类页「暂停中的会员」查询和手动解除。\n重新计算：会员自己任意一笔充值成功（不限大类，含本地银行卡、USDT；后台人工充值不算），未支付笔数清零并解除暂停；暂停结束后也从 0 重新计算；会员 24 小时没在本大类下单，自动清零。\n两项同时生效；连续未支付笔数要大于会员最大待支付单数，否则不会触发（未支付订单 30 分钟才超时，有待支付上限时累计到 N 笔需要更长时间）。只对三方大类生效。';
+const OL_TIP = '会员最大待支付单数（原有）：会员在本大类同时挂着的待支付订单达到上限后，不能再下单，提示「你的待支付订单数量已超出此通道限制，请前往处理」，0 表示不限制。\n连续未支付限制（新增）：从会员上一次充值成功后开始计数，会员在本大类每成功下单一笔记 1 笔（三方下单失败的不算）；连续达到 N 笔都没有支付成功，暂停该会员在本大类充值 O 分钟，期间下单提示「通道繁忙，请稍后再试或更换其他支付方式」，可以换其他大类充值。\n建议笔数不少于 5 笔且大于会员最大待支付单数，暂停 10~30 分钟：通道故障、回调延迟、选错金额重拉时，正常会员也会连续未支付。\n重新计算：会员自己任意一笔充值成功（不限大类，含本地银行卡、USDT；后台人工充值不算），未支付笔数清零并解除暂停；暂停结束后也从 0 重新计算；会员 24 小时没在本大类下单，自动清零。\n两项同时生效；连续未支付笔数要大于会员最大待支付单数，否则不会触发（未支付订单 30 分钟才超时，有待支付上限时累计到 N 笔需要更长时间）。只对三方大类生效。';
 function orderLimitCard(R, local){
   const P=R.pend, N=R.fq[0];
   const warn = !local && N>0 && P>0 && N<=P ? `<div class="err-t" style="font-size:12px;margin-top:4px">连续未支付笔数要大于会员最大待支付单数，否则会先被待支付上限拦住，连续未支付限制永远不会触发。</div>` : '';
@@ -1803,40 +1800,6 @@ function saveQa(){
 }
 function closeQa(){ document.getElementById('qa-mask').classList.remove('show'); }
 
-
-/* ===================== 暂停中的会员（连续未支付限制：查询 / 手动解除 / 触发统计） ===================== */
-const PZ = (()=>{
-  // 示例：当前被暂停的会员（真实数据来自暂停记录表；到期自动消失）
-  let ROWS = [
-    {k:1, uid:'1048203391', acc:'98*****310', cat:33, n:6, st:'2026-10-12 15:02:11', end:'2026-10-12 15:32:11'},
-    {k:2, uid:'1048199820', acc:'91*****772', cat:33, n:6, st:'2026-10-12 15:05:40', end:'2026-10-12 15:35:40'},
-    {k:3, uid:'1048211004', acc:'70*****085', cat:33, n:6, st:'2026-10-12 15:08:02', end:'2026-10-12 15:38:02'},
-    {k:4, uid:'1048187731', acc:'88*****451', cat:32, n:6, st:'2026-10-12 14:51:37', end:'2026-10-12 15:21:37'},
-  ];
-  // 触发统计（近 1 小时 / 今日人数）；近 1 小时 ≥ 10 人标异常
-  const STAT = {33:[14,22], 32:[2,9]};
-  const ALERT = 10;
-  let Q = {uid:'', cat:''};
-  const catName = id => (allRcCats().find(c=>c.id===id)||{name:'--'}).name;
-  function draw(){
-    const list = ROWS.filter(r=>(!Q.uid || r.uid.includes(Q.uid.trim()) || r.acc.includes(Q.uid.trim())) && (!Q.cat || r.cat===+Q.cat));
-    const enabled = allRcCats().filter(c=>c.fq && c.fq[0]>0);
-    document.getElementById('pz-b').innerHTML = `
-      <div class="pz-stat">${enabled.map(c=>{ const st=STAT[c.id]||[0,0], bad=st[0]>=ALERT; return `<span class="${bad?'bad':''}">${esc(c.name)}：近1小时 <b>${st[0]}</b> 人 / 今日 <b>${st[1]}</b> 人${bad?'　⚠ 明显偏高，先检查该大类通道是否异常':''}</span>`; }).join('') || '<span class="mute">没有大类启用连续未支付限制</span>'}</div>
-      <div class="sf" style="margin:8px 0">
-        <div class="fi"><label>会员ID/账号</label><input id="pz-q" style="width:200px" value="${esc(Q.uid)}" placeholder="请输入会员ID或账号" oninput="PZ.setQ('uid',this.value)"></div>
-        <div class="fi"><label>充值大类</label><select onchange="PZ.setQ('cat',this.value)"><option value="">全部</option>${enabled.map(c=>`<option value="${c.id}" ${+Q.cat===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
-      </div>
-      <table class="g u" style="width:100%"><tr><th>会员ID</th><th>会员账号</th><th>充值大类</th><th>连续未支付笔数</th><th>暂停开始</th><th>自动解除时间</th><th>操作</th></tr>
-      ${list.length?list.map(r=>`<tr><td>${r.uid}</td><td>${r.acc}</td><td>${esc(catName(r.cat))}</td><td>${r.n}</td><td>${r.st}</td><td>${r.end}</td><td><span class="lnk" onclick="PZ.release(${r.k})">解除</span></td></tr>`).join(''):'<tr><td colspan="7" class="mute" style="padding:20px">暂无被暂停的会员</td></tr>'}</table>
-      <div class="hintline" style="margin-top:6px">只列出正在暂停中的会员，到期自动消失；会员自己任意一笔充值成功也会立即解除（后台人工充值不算）。手动解除记入操作日志。</div>`;
-  }
-  function setQ(k,v){ Q[k]=v; draw(); if(k==='uid'){ const el=document.getElementById('pz-q'); el.focus(); el.setSelectionRange(el.value.length,el.value.length); } }
-  function release(k){ const r=ROWS.find(x=>x.k===k); confirmDlg('解除暂停', `确定解除会员 ${r.uid} 在「${esc(catName(r.cat))}」的暂停？解除后可立即在本大类充值，未支付笔数清零。`, ()=>{ ROWS=ROWS.filter(x=>x.k!==k); draw(); msg('已解除'); }); }
-  function open(){ draw(); document.getElementById('pz-mask').classList.add('show'); }
-  function close(){ document.getElementById('pz-mask').classList.remove('show'); }
-  return {open, close, setQ, release};
-})();
 
 /* ===================== IFSC风控管理（集团维护；只对印度 INR 商户生效） ===================== */
 const IF = (()=>{
