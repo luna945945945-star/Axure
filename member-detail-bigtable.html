@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会员详情改版 · 大表版（V3 中台）</title>
+<style>
+/* 取值对齐 ar_platform_admin（origin/uat）默认主题：主题色 #0960bd；概况页排版和字段顺序照 V1 老后台 UserDetaile.cshtml */
+:root{
+  --pri:#0960bd;--pri-h:#357dc9;
+  --bd:#d9dce1;--bd2:#cfd3d9;--bg:#f2f4f7;--hd:#f3f4f6;
+  --txt:#464a53;--lab:#5f6368;--red:#ff0000;
+  --ok:#18a058;--err:#d03050;--link:#1677ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:300 12px/1.42857 "Microsoft YaHei","微软雅黑",SimSun,"宋体",Arial,Helvetica,sans-serif;color:var(--txt);background:var(--bg)}
+button,input,select{font:inherit}
+.newf{display:inline-block;background:#f5222d;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:0 4px;line-height:14px;vertical-align:1px;margin-left:4px;font-style:normal}
+.hide{display:none!important}
+.lnk{color:var(--link);cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.lab{color:var(--lab)}
+.pos{color:var(--ok)}.neg{color:var(--err)}.warn{color:var(--err)}.ok{color:var(--ok)}
+.btn{height:26px;padding:0 10px;border-radius:3px;border:1px solid var(--bd2);background:#fff;color:var(--txt);cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;font-size:12px}
+.btn:hover{color:var(--pri);border-color:var(--pri)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.xs{height:21px;padding:0 7px;font-size:11.5px}
+.btn.v1b{height:19px;padding:0 6px;font-size:11.5px;background:#1e9fff;border-color:#1e9fff;color:#fff;border-radius:2px}
+.btn.v1p{height:23px;padding:0 9px;font-size:12px;background:#5c6bc0;border-color:#5c6bc0;color:#fff;border-radius:3px}
+
+/* ============ 顶部路径 ============ */
+.top{display:flex;align-items:center;justify-content:space-between;padding:4px 12px 0}
+.crumb{font-size:12px;color:var(--lab)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--txt);font-weight:600}
+.req-btn{height:28px;padding:0 14px;border-radius:14px;background:#fff;border:1px solid #9bbbe4;color:var(--pri);font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.req-btn:hover{background:#f0f6fd}
+
+/* ============ 弹窗壳：照 V3 现在的弹窗尺寸，全屏由用户点图标切换 ============ */
+.modal{max-width:1500px;margin:4px auto 24px;background:#fff;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,.08);display:flex;flex-direction:column;height:calc(100vh - 40px);min-height:620px;overflow:hidden}
+.modal.full{max-width:none;margin:4px 8px 24px}
+.mh{height:46px;flex:0 0 46px;display:flex;align-items:center;gap:8px;padding:0 20px;border-bottom:1px solid var(--bd);font-size:16px;font-weight:600;color:#1f2225}
+.mh .tag{display:inline-block;padding:0 7px;line-height:20px;border:1px solid rgba(32,128,240,.35);background:rgba(32,128,240,.08);color:#2080f0;border-radius:3px;font-size:12px;font-weight:400}
+.mh .fs{margin-left:6px;color:#8c8c8c;cursor:pointer;font-size:14px;font-weight:400}
+.mh .ops{margin-left:auto;display:inline-flex;gap:6px}
+.mh .x{margin-left:14px;color:#8c8c8c;cursor:pointer;font-size:16px;font-weight:400}
+.toolbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;margin:8px 10px 0;padding:6px 10px;background:#f8fafc;border-radius:6px;border:1px solid #f0f0f0;font-size:13px}
+.toolbar label{color:#595959;white-space:nowrap}
+.toolbar .req{color:#d03050}
+.toolbar input{height:28px;border:1px solid #e0e0e6;border-radius:3px;padding:0 8px;background:#fff;outline:none;font-size:13px;color:#333}
+.toolbar input::placeholder{color:#c2c2c2}
+.toolbar input:focus{border-color:var(--pri)}
+.toolbar .range{display:inline-flex;align-items:center;border:1px solid #e0e0e6;border-radius:3px;background:#fff;height:28px}
+.toolbar .range input{border:none;height:26px;width:118px;text-align:center}
+.toolbar .range .arr{color:#c2c2c2;padding:0 2px}
+.toolbar .range .cal{color:#c2c2c2;padding:0 8px 0 4px;font-size:12px}
+.toolbar .btn.pri{height:28px;padding:0 14px;font-size:13px;border-radius:3px}
+
+/* 身份条（所有页签常驻） */
+.idbar{flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;padding:6px 12px;border-bottom:1px solid var(--bd);background:#fff}
+.idbar .it{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;padding:0 10px;border-right:1px solid var(--bd)}
+.idbar .it:first-child{padding-left:0}
+.idbar .it:last-child{border-right:none}
+.idbar .it i{font-style:normal;color:var(--lab)}
+.idbar .it b{font-weight:600}
+.idbar .id{font-size:15px;color:var(--pri);font-weight:700}
+
+/* 页签 */
+.tabs{flex:0 0 auto;display:flex;gap:28px;border-bottom:1px solid var(--bd);padding:0 16px;margin-top:4px;overflow-x:auto;scrollbar-width:none}
+.tabs span{padding:9px 0 8px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;font-size:14px;color:#333639}
+.tabs span em{font-style:normal;font-size:12px;color:#8c8c8c;margin-right:4px}
+.tabs span:hover{color:var(--pri)}
+.tabs span.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:600}
+.tabs span.on em{color:var(--pri)}
+.tabc{flex:1;min-height:0;overflow:auto;padding:10px 12px 24px;background:#fff}
+
+/* ============ 第 0 页：审核概况（照 V1 老后台） ============ */
+.sheet{display:flex;flex-direction:column;gap:12px}
+.st{font-weight:inherit;font-size:12px;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.st .go{font-weight:400;color:var(--link);cursor:pointer;font-size:12px}
+.st .go:hover{text-decoration:underline}
+.st .note{font-weight:400;color:var(--lab);font-size:12px}
+/* V1 式表格：全边框、居中、字体照 V1 老后台 */
+table.v1{width:100%;border-collapse:collapse;font-size:12px;background:#fff}
+table.v1.main{font-size:13.5px}
+table.v1.main td{line-height:20px}
+.v1 th,.v1 td{border:1px solid var(--bd);padding:5px 6px;line-height:17px;text-align:center;vertical-align:middle;white-space:nowrap;font-variant-numeric:tabular-nums}
+.v1 th{background:var(--hd);font-weight:900}
+.v1 th.rt{background:#fff;color:var(--red);font-size:18px;font-weight:300;padding:6px}
+.v1 td.lt,.v1 th.lt{text-align:left}
+.v1 td.w{white-space:normal}
+.v1 td.lb{white-space:normal;line-height:16px}
+.v1 .big{font-weight:inherit}
+.v1 tr.strip td{border-top:2px solid var(--bd2)}
+.tip{display:inline-block;width:14px;height:14px;line-height:14px;border-radius:50%;background:#bbbbbb;color:#fff;font-size:12px;text-align:center;margin-left:3px;cursor:help;vertical-align:1px;font-style:normal}
+.cp{color:#8c8c8c;cursor:pointer;font-size:12px;margin-left:2px}
+.cp:hover{color:var(--link)}
+.lnk.sm{font-size:11px;margin-left:4px}
+.v1 td.ip{max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default}
+.v1 td.rmk{text-align:left;color:var(--red);font-weight:300;font-size:12px;white-space:normal;line-height:1.5}
+.v1 td.rmk .btn{margin-left:4px;vertical-align:middle}
+/* 顶部大表 14 列：和 V1 一样两段表头 */
+table.v1.main td{padding:5px 6px;white-space:nowrap}
+table.v1.main td.rmk,table.v1.main td.w{white-space:normal}
+@media (max-width:1560px){table.v1.main td.lb{white-space:normal}}
+.tl{text-decoration:underline dotted #b0b4ba;text-underline-offset:3px;cursor:help}
+.band4{display:grid;grid-template-columns:0.95fr 1.2fr 2.2fr;gap:12px;align-items:stretch}
+.band4>div{display:flex;flex-direction:column}
+.band4>div>table.v1{flex:1}
+.band4 table.v1{table-layout:fixed}
+.band4 .v1 td,.band4 .v1 th{overflow:hidden;text-overflow:ellipsis}
+.band4 .v1 td.ip{max-width:none}
+.bet .lnk{font-weight:600}
+@media (max-width:1280px){.band4{grid-template-columns:1fr 1fr}.band4 .bet{grid-column:1/-1}}
+@media (max-width:1200px){.band4{grid-template-columns:1fr}.modal{height:auto}}
+
+/* 其他页签骨架（照 V3 现有） */
+.v3card{border:1px solid var(--bd);border-radius:6px;background:#fff}
+.v3card .hd{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--bd);font-weight:600}
+.v3card .empty{padding:36px 0;text-align:center;color:#b0b4ba;font-size:12px}
+.v3card .empty i{display:block;font-style:normal;font-size:22px;color:#c9ccd1;margin-bottom:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.wc{display:flex;flex-wrap:wrap;gap:12px;padding:12px}
+.wc .c{width:300px;border:1px solid var(--bd);border-radius:4px;background:#fff}
+.wc .c .h{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#f7f8fa;border-bottom:1px solid var(--bd)}
+.wc .c .h b{font-weight:600}
+.wc .c .r{display:flex;padding:4px 10px;border-bottom:1px solid #f0f0f0;line-height:18px}
+.wc .c .r:last-child{border-bottom:none}
+.wc .c .r i{font-style:normal;color:var(--lab);flex:0 0 100px}
+.wc .c .r span{flex:1;word-break:break-all}
+.v3panel{border:1px solid var(--bd);border-radius:6px;padding:10px 12px;background:#fff}
+.v3form{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:12px;margin-bottom:8px}
+.v3form label{color:#333639;white-space:nowrap}
+.v3form input,.v3form select{height:26px;border:1px solid #e0e0e6;border-radius:3px;padding:0 8px;background:#fff;font-size:12px;min-width:150px}
+.v3form .rt{margin-left:auto;display:inline-flex;gap:8px}
+.v3form input[type=radio]{min-width:0;width:auto;height:auto;margin:0 3px 0 0;vertical-align:-2px}
+.chips{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin:6px 0;font-size:11.5px}
+.chips span{padding:1px 6px;border:1px solid #e0e0e6;border-radius:3px;color:#595959;cursor:pointer;background:#fff}
+.chips span.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:8px 4px 0;font-size:12px;color:#595959}
+.pager .pg{min-width:22px;height:22px;border:1px solid #e0e0e6;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;background:#fff}
+.pager .pg.on{border-color:var(--pri);color:var(--pri)}
+.logwrap{display:grid;grid-template-columns:96px 1fr;gap:12px}
+.vtabs{display:flex;flex-direction:column;gap:8px}
+.vtabs span{border:1px solid var(--bd);border-radius:4px;padding:10px 6px;text-align:center;cursor:pointer;background:#fff;font-size:12px}
+.vtabs span.on{border-color:var(--pri);color:var(--pri);font-weight:600}
+.g tr.sum td{background:#fafafc;font-weight:600}
+.g .sortable::after{content:" ↓";color:#999;font-size:11px}
+.seg.sm span{height:24px;line-height:24px;padding:0 10px;font-size:12px}
+.rk-t{font-weight:700;font-size:13px;margin:2px 0 6px}
+.rk-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--bd);font-size:12.5px}
+.rk-l{flex:0 0 140px;text-align:right;color:#767c82}
+.rk-v{flex:1;color:#333639;font-family:Menlo,Consolas,monospace;font-size:12px;word-break:break-all}
+.rk-n{color:#767c82;white-space:nowrap}
+.rk-n b{color:#333639;font-weight:600}
+.rk-n b.warn{color:var(--err)}
+.rk-b{height:28px;padding:0 14px}
+.rk-rel{margin-top:14px}
+.hist{display:flex;gap:4px;margin:8px 10px 0;padding:6px 10px;background:#f0f5ff;border:1px solid #d6e4ff;border-radius:6px;font-size:12px}
+.mh .hist{margin:0 0 0 10px;padding:0;background:none;border:none;font-weight:400}
+.hist .h{display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 10px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#595959;cursor:pointer}
+.hist .h.on{border-color:#1677ff;background:#e6f4ff;color:#1677ff;font-weight:500}
+.hist .h i{font-style:normal;color:#8c8c8c}
+.agnote{font-size:12px;color:#767c82;margin:0 0 8px}
+.rk-row.hl{background:#fffbe6}
+.rl{color:var(--link);cursor:pointer;text-decoration:underline}
+.lvl{display:inline-block;min-width:24px;padding:0 7px;line-height:18px;border-radius:9px;font-weight:700;font-size:12px;text-align:center;border:1px solid}
+.lv-vip{background:#fff7e6;color:#d46b08;border-color:#ffd591}
+.lv-rc{background:#e6f4ff;color:#0958d9;border-color:#91caff}
+.lv-ag{background:#f9f0ff;color:#722ed1;border-color:#d3adf7}
+.lang-sw{display:inline-flex;border:1px solid #c9d1dc;border-radius:14px;overflow:hidden;font-size:12px;background:#fff}
+.lang-sw span{padding:3px 12px;cursor:pointer;color:#333639}
+.lang-sw span.on{background:#0960bd;color:#fff}
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:900}
+.dlg{position:fixed;top:18%;left:50%;transform:translateX(-50%);width:440px;max-width:92vw;background:#fff;border-radius:6px;box-shadow:0 8px 28px rgba(0,0,0,.2);z-index:901;font-size:13px}
+.dlg .dh{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-weight:600;font-size:14px;border-bottom:1px solid #efeff5}
+.dlg .dx{cursor:pointer;color:#999}
+.dlg .db{padding:16px}
+.dlg .df{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px;border-top:1px solid #efeff5}
+.dlg .fr{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.dlg .fr label.k{flex:0 0 90px;text-align:right;color:#555}
+.dlg textarea,.dlg input[type=text]{flex:1;border:1px solid #e0e0e6;border-radius:3px;padding:6px 8px;font:inherit}
+.dlg textarea{height:80px;resize:vertical}
+.dlg table{width:100%;border-collapse:collapse;font-size:12px}.dlg th,.dlg td{border:1px solid #e8e8ee;padding:6px 8px;text-align:left}.dlg th{background:#f5f6f8}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#f6ffed;border:1px solid #b7eb8f;color:#389e0d;padding:6px 16px;border-radius:4px;z-index:950;font-size:13px}
+/* 其他页签骨架 */
+.ph{background:#fff;padding:4px 2px}
+.ph h4{font-size:12px;margin-bottom:6px}
+.ph p{color:var(--lab);font-size:12px;margin-bottom:8px;line-height:1.6}
+.ph .subtab{display:flex;gap:16px;border-bottom:1px solid var(--bd);margin-bottom:8px}
+.ph .subtab span{padding:5px 2px;border-bottom:2px solid transparent;cursor:pointer;color:var(--txt)}
+.ph .subtab span.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:600}
+.sf{display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:8px;align-items:center;font-size:12.5px}
+.sf .fi{display:inline-flex;align-items:center;gap:6px}
+.sf input,.sf select{height:26px;border:1px solid var(--bd2);border-radius:3px;padding:0 6px;background:#fff;min-width:120px}
+table.g{border-collapse:collapse;width:100%;font-size:12px}
+.g th{background:var(--hd);font-weight:600;color:var(--txt);padding:6px 10px;border:1px solid var(--bd);text-align:center;white-space:nowrap}
+.g td{padding:6px 10px;border:1px solid var(--bd);text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+.g td.l,.g th.l{text-align:left}
+.sec{margin-top:14px}
+.sec h5{font-size:12px;margin-bottom:6px;color:var(--txt)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+
+.chg1{display:flex;align-items:center;gap:10px;min-width:0;white-space:nowrap}.chg1 .chgt{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}.chg1 .lnk{flex:0 0 auto}
+
+table.v1.main td.wv{white-space:normal;word-break:break-all;line-height:15px;font-size:12px}
+table.v1.main td.wrapv{white-space:normal}
+table.v1.main td.wrapv .lg{display:inline-block;margin-right:22px;white-space:nowrap}
+table.v1.main td.wrapv .ml{color:#8c8c8c;margin:0 6px}
+table.v1.main td.wrapv .ml:first-child{margin-left:0}
+
+/* 一屏：行距收紧 */
+table.v1.main td,table.v1.main th{padding-top:4px;padding-bottom:4px}
+.band4 .v1 td,.band4 .v1 th{padding-top:3px;padding-bottom:3px}
+.acct .v1 td,.acct .v1 th{padding-top:3px;padding-bottom:3px}
+
+table.v1.main td.ipc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+table.v1.main td.lgip{text-align:left}
+table.v1.main td.lgip .ipt{display:inline-block;max-width:230px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
+table.v1.main td.lgip .ml{color:#8c8c8c;margin:0 6px 0 12px}
+table.v1.main td.rmk2,table.v1.main td.rmk2 .chgt{color:var(--red);font-weight:300;font-size:12px}
+.bet .st{flex-wrap:nowrap;white-space:nowrap}
+.band4 .st{height:24px;margin-bottom:4px}
+table.v1.main td.lgn{text-align:left}
+table.v1.main td.lgn .ml{color:#8c8c8c;margin-right:8px}
+
+.rf{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;margin-left:6px;vertical-align:middle;background:#1e9fff;color:#fff;border-radius:3px;font-size:14px;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 1px 2px rgba(30,159,255,.35)}
+.rf:hover{background:#0b84e3}
+.rf.spin{animation:rfspin .7s linear infinite}
+@keyframes rfspin{to{transform:rotate(360deg)}}
+.betw{display:inline-flex;align-items:center;gap:4px;flex-wrap:wrap;row-gap:2px}
+table.v1.main td:has(.betw){white-space:normal}
+
+.betw #bet-val{margin-right:2px}
+.betw .btn{padding:0 5px}
+.v1 .btn.rfb{margin-left:6px;vertical-align:middle}
+.v1 .btn.rfb[disabled]{opacity:.6;cursor:default}
+
+table.v1.main td.rkc{text-align:left;padding-left:5px;padding-right:5px;white-space:nowrap}
+table.v1.main td.rkc .ml{color:#8c8c8c;font-size:11.5px}
+table.v1.main td.rkc .rkw{display:flex;justify-content:space-between;align-items:center;gap:4px}
+table.v1.main td.rkc .rl{font-weight:700}
+table.v1.main{table-layout:fixed}
+table.v1.main th.rkh{font-size:16px;white-space:nowrap}
+table.v1.main td.nw13{font-size:12.5px;white-space:nowrap}
+
+.rfi{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:6px;vertical-align:middle;border:1px solid #1e9fff;border-radius:4px;color:#1e9fff;background:#e8f4ff;cursor:pointer}
+.rfi:hover{background:#1e9fff;color:#fff}
+.rfi.spin svg{animation:rfspin .7s linear infinite}
+@keyframes rfspin{to{transform:rotate(360deg)}}
+
+/* 打码量、用户备注：按钮统一靠右，上下对齐 */
+.opw{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%}
+.opw .opb{display:inline-flex;gap:4px;flex:0 0 auto;margin-left:auto}
+.opw .opb .btn{margin-left:0!important}
+table.v1.main td:has(.opw){white-space:normal}
+
+/* 自定义悬浮提示：替代浏览器原生 title（有的环境不显示） */
+.htip{position:fixed;z-index:3000;max-width:340px;padding:6px 10px;background:rgba(31,34,37,.94);color:#fff;font-size:12px;line-height:1.6;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.2);pointer-events:none;white-space:normal;word-break:break-all;display:none}
+
+/* 英文：标签长，允许换行，不截断 */
+html[lang="en"] table.v1.main td.lb,html[lang="en"] table.v1.main td.nw13{white-space:normal;line-height:14px;font-size:12.5px}
+html[lang="en"] table.v1.main th.rt{white-space:normal;font-size:15px;line-height:18px}
+html[lang="en"] table.v1.main th.rt .lnk{display:inline-block}
+html[lang="en"] table.v1.main td.rkc{white-space:normal}
+html[lang="en"] table.v1.main td.rkc .rkw{flex-wrap:wrap;row-gap:0}
+html[lang="en"] table.v1.main td.rkc .ml{font-size:11px;line-height:13px}
+html[lang="en"] .band4 .v1 td,html[lang="en"] .band4 .v1 th{white-space:normal}
+
+/* ===== 需求说明抽屉（不需开发） ===== */
+.req-handle{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:499;background:var(--pri);color:#fff;font-size:12px;padding:12px 6px;border-radius:8px 0 0 8px;writing-mode:vertical-rl;cursor:pointer;letter-spacing:2px;box-shadow:-2px 0 8px rgba(9,96,189,.3)}
+.req-handle:hover{background:var(--pri-h)}
+.req-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:800;display:none}
+.req-mask.show{display:block}
+.req-drawer{position:fixed;top:0;right:-940px;width:920px;max-width:96vw;height:100%;background:#fff;z-index:801;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
+.req-drawer.show{right:0}
+.req-head{padding:16px 18px;border-bottom:1px solid #e5e8ec;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.req-head .t{font-size:15px;font-weight:700}
+.req-x{cursor:pointer;color:#8c8c8c;font-size:18px}
+.req-body{flex:1;overflow-y:auto;padding:16px 18px 40px;font-size:12.5px;color:#262a2e}
+.req-body .lead{background:#f2f6fc;border:1px solid #d7e3f3;border-radius:4px;padding:10px 12px;line-height:1.8;margin-bottom:6px}
+.req-body .h1{font-size:14.5px;font-weight:700;margin:22px 0 10px;padding-left:9px;border-left:3px solid var(--pri)}
+.req-body table.t{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 6px;table-layout:auto}
+.req-body table.t th{background:#f2f6fc;border:1px solid #dbe2ea;padding:7px 8px;text-align:left;font-weight:600;color:#1c4c8c;white-space:normal}
+.req-body table.t td{border:1px solid #e5e8ec;padding:7px 8px;vertical-align:top;line-height:1.7;text-align:left;background:#fff;white-space:normal}
+.req-body .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:8px 11px;margin:8px 0;line-height:1.8;border-radius:0 4px 4px 0}
+.req-body .br>b{color:#1c4c8c}
+.req-body .br ul{margin:4px 0 0 18px}
+.req-body .br li{margin:2px 0}
+.req-body .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:6px;font-family:Menlo,Consolas,monospace}
+.req-body code{font-family:Menlo,Consolas,monospace;font-size:11.5px;background:#f2f3f5;padding:0 4px;border-radius:3px}
+.req-body .sys{display:inline-block;font-size:11px;padding:0 6px;border-radius:3px;line-height:18px;font-weight:600;white-space:nowrap}
+.req-body .s1{background:#fdf3e2;color:#b9770e}.req-body .s3{background:#e8f1fb;color:#0b58a8}.req-body .sm{background:#f0f2f5;color:#5a6472}
+
+/* 大表固定：切换页签只换下面的内容 */
+.sumfix{flex:0 0 auto;padding:10px 12px 0;background:#fff}
+.sumfix+.tabc,.tabc{padding-top:10px}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="crumb">会员<span class="sep">/</span>会员列表<span class="sep">/</span><span class="cur">会员详情</span></div>
+  <div style="display:flex;gap:10px;align-items:center"><div class="lang-sw"><span data-l="zh" class="on" onclick="setLang('zh')">中文</span><span data-l="en" onclick="setLang('en')">English</span></div></div>
+</div>
+
+<div class="modal">
+  <div class="mh">会员详情 - 会员ID: <span id="mh-uid">2255460</span> <span class="tag">(2001)sit-inr</span><span class="fs" id="fs-btn" title="全屏" onclick="toggleFull()">⛶</span><div class="hist" id="hist"><span class="h on" data-id="2255460" onclick="switchMember('2255460')">ID: 2255460 <i>×</i></span><span class="h" data-id="2258888" onclick="switchMember('2258888')">ID: 2258888 <i>×</i></span></div><span class="ops"></span><span class="x" title="关闭">✕</span></div>
+  <div class="toolbar">
+    <label>会员ID<span class="req">*</span></label><input id="q-uid" value="2255460" style="width:96px">
+    <label>日期</label>
+    <span class="range"><input id="range-start" value="2026-10-07 18:30:12" placeholder="选择日期范围"><span class="arr">→</span><input id="range-end" value="2026-10-09 15:10:00" placeholder="选择日期范围"><span class="cal">▭</span></span>
+    <button class="btn pri">查询</button>
+  </div>
+
+
+  <!-- ===================== 0 审核概况 ===================== -->
+  <!-- 审核概况大表：所有页签共用，固定在页签下方，切换页签时不动 -->
+  <div class="sumfix">
+      <!-- 顶部大表：照 V1 两段表头。左边是重点（充值提现 / 彩金；余额 / 打码洗码 / 代理数据），右边是非第一眼（VIP / 保险箱；账号数据） -->
+      <table class="v1 main">
+        <colgroup><col style="width:8.27%"><col style="width:10.98%"><col style="width:7.79%"><col style="width:12.87%"><col style="width:7.72%"><col style="width:8.60%"><col style="width:9.82%"><col style="width:9.15%"><col style="width:8.67%"><col style="width:7.99%"><col style="width:8.13%"></colgroup>
+        <tr><th class="rt" colspan="2">充值提现<span class="lnk" style="font-size:12px;font-weight:400;margin-left:12px" onclick="jump(1)">充提信息 →</span></th><th class="rt" colspan="2">彩金汇总</th><th class="rt" colspan="2">活动奖励<span class="lnk" style="font-size:12px;font-weight:400;margin-left:12px" onclick="jump(7)">活动信息 →</span></th><th class="rt rkh">关联数<span class="lnk" style="font-size:12px;font-weight:400;margin-left:6px" onclick="jump(4)">风控信息 →</span></th><th class="rt" colspan="4">注册 / 首充首提</th></tr>
+        <tr><td class="lb">人工充值</td><td>500.00 / 1</td><td class="lb tl" title="总彩金 = 活动奖励合计 + 充值赠送 + 彩金充值 + 邀请奖励 + 合伙人奖励 + 返水金额；括号内 = 总彩金 ÷ 累计充值；占充值 > 5% 红色、≤ 5% 绿色">总彩金<span class="tip">?</span></td><td class="big"><b style="font-weight:700">33,540.00</b> <span style="font-weight:400;font-size:12px">(占充值 <b class="neg" style="font-weight:700">10.6%</b>)</span></td><td class="lb">每日签到</td><td>6,820.00</td><td class="rkc" title="注册IP：2401:4900:a401:b9b0:f020:bbff:fe5f:9b8；同一个注册 IP 的其他会员数，不含本人，超过 3 标红"><span class="rkw"><span class="rl" onclick="openRisk('注册IP',22)"><b class="warn">22 ⚠</b></span><span class="ml">同IP注册用户数</span></span></td><td class="lb">注册时间</td><td>2026-04-10 14:54</td><td class="lb">注册IP</td><td class="ipc" title="2401:4900:a401:b9b0:f020:bbff:fe5f:9b8">2401:4900:a401:b9b0:f020:bbff:fe5f:9b8</td></tr>
+        <tr><td class="lb">累计充值</td><td>317,341.00 / 1,454</td><td class="lb tl" title="各类活动奖励（含 VIP 升级礼包、VIP 每月奖励）合计，点数字到「活动信息」看每项明细">活动奖励合计<span class="tip">?</span></td><td><span class="lnk" onclick="jump(7)">19,306.00</span></td><td class="lb">首充奖励</td><td>3,500.00</td><td class="rkc" title="注册浏览器指纹：bf9baae59158eadb674a96772ccd9fb9；同一个注册指纹的其他会员数，不含本人，超过 3 标红"><span class="rkw"><span class="rl" onclick="openRisk('绑定浏览器指纹',4)"><b class="warn">4 ⚠</b></span><span class="ml">同指纹注册用户</span></span></td><td class="lb">最后登录时间</td><td>2026-10-09 14:54</td><td class="lb">最后登录IP</td><td class="ipc" title="2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e">2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e</td></tr>
+        <tr><td class="lb">累计提现</td><td>247,021.00 / 654</td><td class="lb">充值赠送</td><td>9,860.00</td><td class="lb">大转盘</td><td>2,960.00</td><td class="rkc" title="2026-10-09 14:54:52　IP：2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e；用同一个 IP 登录过的其他会员数，不含本人"><span class="rkw"><span class="rl" onclick="openRisk('登录IP',1)"><b>1</b></span><span class="ml">第1次同IP用户数</span></span></td><td class="lb">首充金额</td><td>500.00</td><td class="lb">首充日期</td><td>2026-04-10</td></tr>
+        <tr><td class="lb tl" title="累计充值 − 累计提现，不含人工加扣款；正数绿、负数红">累计充提差<span class="tip">?</span></td><td class="big pos nb">70,320.00</td><td class="lb">彩金充值</td><td>2,500.00</td><td class="lb">电子大奖</td><td>2,180.00</td><td class="rkc" title="2026-10-08 21:08:11　IP：2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e"><span class="rkw"><span class="rl" onclick="openRisk('登录IP',1)"><b>1</b></span><span class="ml">第2次同IP用户数</span></span></td><td class="lb">次充金额</td><td>1,000.00</td><td class="lb">次充日期</td><td>2026-04-12</td></tr>
+        <tr><td class="lb">等待出款</td><td>5,000.00 / 1</td><td class="lb">邀请奖励</td><td>300.00</td><td class="lb">每周奖励</td><td>1,650.00</td><td class="rkc" title="2026-10-07 18:02:40　IP：49.36.12.77"><span class="rkw"><span class="rl" onclick="openRisk('登录IP',0)"><b>0</b></span><span class="ml">第3次同IP用户数</span></span></td><td class="lb">三充金额</td><td>2,000.00</td><td class="lb">三充日期</td><td>2026-04-15</td></tr>
+        <tr><td class="lb tl" title="会员累计被驳回 / 退回的提现金额与次数（V1 同名字段）">累计提现退回<span class="tip">?</span></td><td>4,300.00 / 3</td><td class="lb">合伙人奖励</td><td>0.00</td><td class="lb tl" title="按领取金额排在第 5 名以后的活动（含 VIP 升级礼包、VIP 每月奖励），点开到「活动信息」看全部">其他 17 项<span class="tip">?</span></td><td><span class="lnk" onclick="jump(7)">2,196.00</span></td><td class="rkc" title="会员取款账户里被最多会员绑定过的那个账户的绑定会员数（含本人）：UPI 9876543210@ybl 被 2 个会员绑定过；≥ 2 标红"><span class="rkw"><span class="rl" onclick="openRisk('UPI账号',1)"><b class="warn">2 ⚠</b></span><span class="ml">总绑定次数</span></span></td><td class="lb">首提金额</td><td>2,000.00</td><td class="lb">首提日期</td><td>2026-04-20</td></tr>
+        <tr><th class="rt" colspan="2">余额</th><th class="rt" colspan="2">打码/洗码<span class="lnk" style="font-size:12px;font-weight:400;margin-left:12px" onclick="jump(2)">投注信息 →</span></th><th class="rt" colspan="2">代理数据<span class="lnk" style="font-size:12px;font-weight:400;margin-left:12px" onclick="jump(8)">代理信息 →</span></th><th class="rt" colspan="5">账号数据</th></tr>
+        <tr><td class="lb">用户余额</td><td class="big">7,826.10</td><td class="lb">累计打码量</td><td>2,187,340.00</td><td class="lb">总获得佣金</td><td>1,286.00</td><td class="lb">会员ID</td><td>2255460 <span class="cp" title="复制">⧉</span></td><td class="lb">账号</td><td colspan="2">+91*******4111 <span class="cp" title="复制">⧉</span></td></tr>
+        <tr><td class="lb">保险箱及三方余额</td><td>1,500.00 / <span id="third-val">320.00</span><span class="rfi" title="刷新三方余额" onclick="refreshThird(this)"><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M13.6 6.2A5.8 5.8 0 1 0 13.8 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14.2 2.4v4.2H10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td><td class="lb">需要打码量</td><td>14,836.40</td><td class="lb">下级数量</td><td><span class="lnk" onclick="jump(8)">12 / 37</span></td><td class="lb">是否领取返佣</td><td>是</td><td class="lb">绑定(邮箱/手机号)</td><td colspan="2">—</td></tr>
+        <tr><td class="lb">未开奖下注金额</td><td>0.00</td><td class="lb">会员洗码量</td><td>0.00</td><td class="lb">上级代理ID</td><td>2251830 <span class="cp" title="复制">⧉</span></td><td class="lb">用户积分 / 充值等级</td><td>0 / <span class="lvl lv-rc">L3</span></td><td class="lb tl" title="会员在代理树里的层数，顶级代理为 1">会员层级<span class="tip">?</span></td><td colspan="2">3 级</td></tr>
+        <tr><td class="lb tl" title="累计打码量 ÷ 需要打码量，保留两位小数；≤ 3 红色（照 V1）；没有需要打码量时显示红色 --">本次打码倍数<span class="tip">?</span></td><td>4.05</td><td class="lb">返水金额</td><td>1,174.00</td><td class="lb">总代ID</td><td>2240011 <span class="cp" title="复制">⧉</span></td><td class="lb">VIP等级</td><td><span class="lvl lv-vip">VIP 2</span></td><td class="lb">VIP经验值</td><td colspan="2">1,202,295</td></tr>
+        <tr><td class="lb">用户状态</td><td><span class="ok" id="state-val">启用</span>　<button class="btn v1b" onclick="openDlg('state')">修改</button></td><td class="lb">打码量</td><td><span class="opw"><span id="bet-val">3,996</span><span class="opb"><button class="btn v1b" onclick="openDlg('bet')">修改</button><button class="btn xs" onclick="openLog('bet')">修改记录</button></span></span></td><td class="lb">会员分组</td><td><b style="font-weight:700">高价值</b></td><td class="lb">用户类型</td><td>真实用户</td><td class="lb">语种</td><td colspan="2">英语</td></tr>
+        <!-- 备注条：并入大表最后两行，列宽和上面对齐；用户备注排第一位 -->
+        <tr class="strip"><td class="lb">用户备注</td><td colspan="3" class="rmk"><span class="opw"><span id="rmk-text">09-30 客服A：多次申诉提现延迟，已安抚；注意同设备 3 个账号</span><span class="opb"><button class="btn v1b" onclick="openDlg('remark')">修改</button><button class="btn xs" onclick="openLog('remark')">修改记录</button></span></span></td><td class="lb nw13">会员近期操作记录</td><td colspan="6" class="w lt rmk2" id="chg-text"><span class="chg1"><span class="chgt" title="2026-10-08 21:14 新增 UPI 账户 9876543210@ybl（本次出款使用）；2026-10-08 21:10 修改登录密码">2026-10-08 21:14 新增 UPI 账户 9876543210@ybl（本次出款使用）；2026-10-08 21:10 修改登录密码</span><span class="lnk" onclick="jump(6)">操作日志 →</span></span></td></tr>
+      </table>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <span class="on" data-t="0"><em>0</em>审核概况</span>
+    <span data-t="1"><em>1</em>充提信息</span>
+    <span data-t="7"><em>2</em>活动信息</span>
+    <span data-t="2"><em>3</em>投注信息</span>
+    <span data-t="6"><em>4</em>操作日志</span>
+    <span data-t="3"><em>5</em>钱包信息</span>
+    <span data-t="4"><em>6</em>风控信息</span>
+    <span data-t="8"><em>7</em>代理信息</span>
+    <span data-t="5"><em>8</em>资金账变</span>
+  </div>
+
+  <div class="tabc" id="tab-0">
+    <div class="sheet">
+
+
+
+      <!-- 四张小表：照 V1 -->
+      <div class="band4">
+        <div>
+          <div class="st">最后 3 次充值信息：</div>
+          <table class="v1">
+            <colgroup><col style="width:42%"><col style="width:30%"><col style="width:28%"></colgroup>
+            <tr><th>充值时间</th><th>金额</th><th>类型</th></tr>
+            <tr><td title="2026-10-09 11:02:41">2026-10-09 11:02</td><td>5,000.00</td><td>PhonePe</td></tr>
+            <tr><td title="2026-10-08 22:15:09">2026-10-08 22:15</td><td>2,000.00</td><td>UPI 快捷</td></tr>
+            <tr><td title="2026-10-08 09:40:33">2026-10-08 09:40</td><td>1,000.00</td><td>人工充值</td></tr>
+          </table>
+        </div>
+        <div>
+          <div class="st">最后 3 次提现信息：</div>
+          <table class="v1">
+            <colgroup><col style="width:20%"><col style="width:34%"><col style="width:22%"><col style="width:24%"></colgroup>
+            <tr><th class="tl" title="≤ 3 红色、> 3 绿色（照 V1）">提现倍数<span class="tip">?</span></th><th>提现时间</th><th>金额</th><th>类型</th></tr>
+            <tr><td class="pos">4.56</td><td title="2026-10-07 18:30:12">2026-10-07 18:30</td><td>8,000.00</td><td>HDFC 银行卡</td></tr>
+            <tr><td class="pos">3.91</td><td title="2026-09-28 13:05:20">2026-09-28 13:05</td><td>6,500.00</td><td>HDFC 银行卡</td></tr>
+            <tr><td class="neg">2.70</td><td title="2026-09-21 10:12:05">2026-09-21 10:12</td><td>4,000.00</td><td>SBI 银行卡</td></tr>
+          </table>
+        </div>
+        <div class="bet">
+          <div class="st">会员投注信息：<button class="btn v1p" onclick="setPreset('last')">上次提现至今</button><span class="go" onclick="jump(2)">投注信息 →</span><span class="note">统计区间 <span id="bet-range">2026-10-07 18:30:12 ~ 2026-10-09 15:10:00</span></span></div>
+          <table class="v1">
+            <tr><th style="width:80px"></th><th>合计</th><th><span class="lnk" onclick="jump(2,'自营彩票')">自营彩票</span></th><th><span class="lnk" onclick="jump(2,'电子')">电子</span></th><th><span class="lnk" onclick="jump(2,'视讯')">视讯</span></th><th><span class="lnk" onclick="jump(2,'体育')">体育</span></th><th><span class="lnk" onclick="jump(2,'棋牌')">棋牌</span></th></tr>
+            <tr><td class="lb">投注金额:</td><td>61,420.00</td><td>38,200.00</td><td>16,100.00</td><td>1,000.00</td><td>0.00</td><td>6,120.00</td></tr>
+            <tr><td class="lb">有效投注:</td><td><b>60,150.00</b></td><td>38,200.00</td><td>15,900.00</td><td>0.00</td><td>0.00</td><td>6,050.00</td></tr>
+            <tr><td class="lb">手续费:</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+            <tr><td class="lb">盈亏:</td><td class="neg">-2,510.00</td><td class="neg">-1,100.00</td><td class="neg">-900.00</td><td>0.00</td><td>0.00</td><td class="neg">-510.00</td></tr>
+            <tr><td class="lb">订单数:</td><td>1,284</td><td>1,120</td><td>96</td><td>8</td><td>0</td><td>60</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 取款账户：照 V1 的会员银行卡信息表 -->
+      <div class="acct">
+        <div class="st">会员取款账户信息：<span class="go" onclick="jump(3)">钱包信息 →</span><button class="btn xs">添加</button></div>
+        <table class="v1">
+          <tr><th>类型</th><th>使用次数</th><th>备注</th><th>操作</th><th>持卡人姓名 / 卡号 / IFSC（UPI ID）</th><th>银行信息</th><th>手机 / 邮箱</th><th>添加时间</th><th>最近修改时间</th></tr>
+          <tr><td>UPI</td><td>0</td><td class="w" id="w-note"><b>本次出款</b>，<span class="warn">新增 1 天，首次使用</span></td><td><span class="lnk">编辑</span></td><td class="w">RAHUL KUMAR / 9876543210@ybl</td><td>PhonePe</td><td>+91******3210</td><td>2026-10-08 21:14</td><td>2026-10-08 21:14</td></tr>
+          <tr><td>UPI</td><td>6</td><td>—</td><td><span class="lnk">编辑</span></td><td class="w">RAHUL KUMAR / rahul.k@okaxis</td><td>Google Pay</td><td>+91******3210</td><td>2026-06-02 10:21</td><td>2026-06-02 10:21</td></tr>
+          <tr><td>银行卡</td><td>14</td><td>—</td><td><span class="lnk">编辑</span></td><td class="w">RAHUL KUMAR / 50100234567890 / HDFC0001234</td><td class="w">HDFC Bank</td><td>+91******3210 / rahul.k@gmail.com</td><td>2026-04-11 09:03</td><td>2026-09-15 08:30</td></tr>
+          <tr><td>银行卡</td><td>3</td><td>—</td><td><span class="lnk">编辑</span></td><td class="w">RAHUL KUMAR / 32145678901 / SBIN0004321</td><td class="w">State Bank of India</td><td>+91******3210</td><td>2026-05-20 15:40</td><td>2026-05-20 15:40</td></tr>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================== 1 充提信息 ===================== -->
+  <div class="tabc hide" id="tab-1">
+    <div class="ph">
+      <div class="subtab" id="cw-sub"><span class="on" onclick="showCw(0)">充值记录</span><span onclick="showCw(1)">提现记录</span></div>
+      <div id="cw-0">
+        <div class="v3form"><label>时间区间</label><input value="2026-10-07 18:30:12" style="min-width:140px"> → <input value="2026-10-09 15:10:00" style="min-width:140px"><label>状态</label><select><option>全部</option><option>成功</option><option>待支付</option><option>失败</option></select><label>充值类型</label><select><option>全部</option><option>三方</option><option>本地银行</option><option>人工充值</option></select><span class="rt"><button class="btn pri" style="height:26px">搜索</button><button class="btn" style="height:26px">重置</button></span></div>
+        <table class="g">
+          <tr><th>订单号</th><th>充值类型</th><th>银行/UPI</th><th>订单金额</th><th>实付金额/手续费</th><th>上分金额</th><th>状态</th><th>备注</th><th>订单日期</th><th>到账日期</th><th>操作人</th></tr>
+          <tr><td>R2026100911024100123</td><td>三方 · PhonePe</td><td>9876543210@ybl</td><td>5,000.00</td><td>5,000.00 / 0.00</td><td>5,100.00</td><td>成功</td><td>—</td><td>2026-10-09 11:02:41</td><td>2026-10-09 11:03:05</td><td>系统</td></tr>
+          <tr><td>R2026100822150900118</td><td>三方 · UPI 快捷</td><td>9876543210@ybl</td><td>2,000.00</td><td>2,000.00 / 0.00</td><td>2,000.00</td><td>成功</td><td>—</td><td>2026-10-08 22:15:09</td><td>2026-10-08 22:15:40</td><td>系统</td></tr>
+          <tr><td>R2026100809403300106</td><td>人工充值</td><td>—</td><td>1,000.00</td><td>1,000.00 / 0.00</td><td>1,000.00</td><td>成功</td><td>线下转账补单</td><td>2026-10-08 09:40:33</td><td>2026-10-08 09:40:33</td><td>财务A</td></tr>
+          <tr><td>R2026100809121000102</td><td>三方 · PhonePe</td><td>9876543210@ybl</td><td>4,000.00</td><td>4,000.00 / 0.00</td><td>4,080.00</td><td>成功</td><td>—</td><td>2026-10-08 09:12:10</td><td>2026-10-08 09:12:52</td><td>系统</td></tr>
+          <tr><td>R2026100520301800087</td><td>三方 · PhonePe</td><td>9876543210@ybl</td><td>2,500.00</td><td>0.00 / 0.00</td><td>0.00</td><td>超时取消</td><td>—</td><td>2026-10-05 20:30:18</td><td>—</td><td>系统</td></tr>
+          <tr><td>R2026100112084500061</td><td>本地银行</td><td>HDFC 50100234567890</td><td>3,000.00</td><td>3,000.00 / 0.00</td><td>3,000.00</td><td>成功</td><td>—</td><td>2026-10-01 12:08:45</td><td>2026-10-01 12:35:10</td><td>财务B</td></tr>
+        </table>
+        <div class="pager"><span>共 6 条</span><span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span><span class="pg" style="padding:0 8px">20 / 页</span><span>跳至</span><span class="pg" style="padding:0 8px">1</span></div>
+      </div>
+      <div id="cw-1" class="hide">
+        <div class="v3form"><label>时间区间</label><input value="2026-10-07 18:30:12" style="min-width:140px"> → <input value="2026-10-09 15:10:00" style="min-width:140px"><label>状态</label><select><option>全部</option><option>审核中</option><option>已出款</option><option>驳回</option></select><label>提现类型</label><select><option>全部</option><option>银行卡</option><option>UPI</option><option>USDT</option></select><span class="rt"><button class="btn pri" style="height:26px">搜索</button><button class="btn" style="height:26px">重置</button></span></div>
+        <table class="g">
+          <tr><th>订单号</th><th>银行卡详细</th><th>提现倍数</th><th>提现类型</th><th>提现金额</th><th>手续费</th><th>实际到账金额</th><th>人工备注</th><th>第三方详细</th><th>状态</th><th>申请时间</th><th>备注</th><th>操作人</th></tr>
+          <tr><td>W2026100915021000456</td><td>UPI 9876543210@ybl（Rahul K）</td><td>4.05</td><td>UPI</td><td>5,000.00</td><td>0.00</td><td>5,000.00</td><td>—</td><td>—</td><td>审核中</td><td>2026-10-09 15:02:10</td><td>—</td><td>—</td></tr>
+          <tr><td>W2026100718301200321</td><td>HDFC 50100234567890（Rahul K）</td><td>4.56</td><td>银行卡</td><td>8,000.00</td><td>80.00</td><td>7,920.00</td><td>—</td><td>ArbPay · 2026-10-07 18:41 成功</td><td>已出款</td><td>2026-10-07 18:30:12</td><td>—</td><td>系统</td></tr>
+          <tr><td>W2026100220114800210</td><td>SBI 32145678901（Rahul K）</td><td>0.82</td><td>银行卡</td><td>3,000.00</td><td>0.00</td><td>0.00</td><td>打码未达标</td><td>—</td><td>驳回</td><td>2026-10-02 20:11:48</td><td>打码不足</td><td>财务B</td></tr>
+          <tr><td>W2026092813052000188</td><td>HDFC 50100234567890（Rahul K）</td><td>3.91</td><td>银行卡</td><td>6,500.00</td><td>65.00</td><td>6,435.00</td><td>—</td><td>ArbPay · 2026-09-28 13:16 成功</td><td>已出款</td><td>2026-09-28 13:05:20</td><td>—</td><td>系统</td></tr>
+          <tr><td>W2026092110120500097</td><td>SBI 32145678901（Rahul K）</td><td>2.70</td><td>银行卡</td><td>4,000.00</td><td>40.00</td><td>3,960.00</td><td>—</td><td>ArbPay · 2026-09-21 10:20 成功</td><td>已出款</td><td>2026-09-21 10:12:05</td><td>—</td><td>系统</td></tr>
+        </table>
+        <div class="pager"><span>共 5 条</span><span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span><span class="pg" style="padding:0 8px">20 / 页</span><span>跳至</span><span class="pg" style="padding:0 8px">1</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== 2 投注信息 ===================== -->
+  <div class="tabc hide" id="tab-2">
+    <div class="v3panel">
+      <div class="v3form"><label>时间区间</label><input value="2026-10-07 18:30:12" style="min-width:140px"> → <input value="2026-10-09 15:10:00" style="min-width:140px"><span><input type="radio" name="bp" checked> 从上次提现至今　<input type="radio" name="bp"> 所有</span><span class="rt"><button class="btn pri" style="height:26px">搜索</button><button class="btn" style="height:26px">重置</button></span></div>
+      <div class="chips"><div id="bet-cats" style="display:flex;gap:4px;margin-right:auto"></div><span class="on">今天</span><span>昨天</span><span>本周</span><span>上周</span><span>本月</span><span>上月</span><span>⚙ 自定义列</span></div>
+      <table class="g" id="bet-detail"></table>
+      <div class="pager"><span id="bet-count">共 4 条</span><span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span><span class="pg" style="padding:0 8px">20 / 页</span><span>跳至</span><span class="pg" style="padding:0 8px">1</span></div>
+    </div>
+  </div>
+
+  <!-- ===================== 3 钱包信息 ===================== -->
+  <div class="tabc hide" id="tab-3">
+    <div class="grid2">
+      <div class="v3card"><div class="hd"><span>会员银行卡信息</span><button class="btn pri" style="height:22px;padding:0 8px;font-size:11.5px">新增</button></div>
+        <div class="wc">
+          <div class="c"><div class="h"><span>卡号：<b>7890</b></span><span class="lnk">编辑</span></div>
+            <div class="r"><i>持卡人姓名</i><span>RAHUL KUMAR</span></div>
+            <div class="r"><i>卡号</i><span>50100234567890</span></div>
+            <div class="r"><i>IFSCCODE</i><span>HDFC0001234</span></div>
+            <div class="r"><i>银行名称</i><span>HDFC Bank</span></div>
+            <div class="r"><i>手机</i><span>+91******3210</span></div>
+            <div class="r"><i>邮箱</i><span>rahul.k@gmail.com</span></div>
+            <div class="r"><i>所在省/市/支行</i><span>--</span></div>
+          </div>
+          <div class="c"><div class="h"><span>卡号：<b>8901</b></span><span class="lnk">编辑</span></div>
+            <div class="r"><i>持卡人姓名</i><span>RAHUL KUMAR</span></div>
+            <div class="r"><i>卡号</i><span>32145678901</span></div>
+            <div class="r"><i>IFSCCODE</i><span>SBIN0004321</span></div>
+            <div class="r"><i>银行名称</i><span>State Bank of India</span></div>
+            <div class="r"><i>手机</i><span>+91******3210</span></div>
+            <div class="r"><i>邮箱</i><span>rahul.k@gmail.com</span></div>
+            <div class="r"><i>所在省/市/支行</i><span>--</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="v3card"><div class="hd"><span>会员电子钱包信息</span><button class="btn pri" style="height:22px;padding:0 8px;font-size:11.5px">新增</button></div><div class="empty"><i>▣</i>暂无数据</div></div>
+      <div class="v3card"><div class="hd"><span>会员UPI信息</span><button class="btn pri" style="height:22px;padding:0 8px;font-size:11.5px">新增</button></div>
+        <div class="wc">
+          <div class="c"><div class="h"><span>UPI：<b>9876543210@ybl</b></span><span class="lnk">编辑</span></div>
+            <div class="r"><i>UPI名称</i><span>RAHUL KUMAR</span></div>
+            <div class="r"><i>UPI账号</i><span>9876543210@ybl</span></div>
+            <div class="r"><i>添加时间</i><span>2026-10-08 21:14</span></div>
+            <div class="r"><i>最近修改时间</i><span>2026-10-08 21:14</span></div>
+          </div>
+          <div class="c"><div class="h"><span>UPI：<b>rahul.k@okaxis</b></span><span class="lnk">编辑</span></div>
+            <div class="r"><i>UPI名称</i><span>RAHUL KUMAR</span></div>
+            <div class="r"><i>UPI账号</i><span>rahul.k@okaxis</span></div>
+            <div class="r"><i>添加时间</i><span>2026-06-02 10:21</span></div>
+            <div class="r"><i>最近修改时间</i><span>2026-06-02 10:21</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="v3card"><div class="hd"><span>会员USDT信息</span><button class="btn pri" style="height:22px;padding:0 8px;font-size:11.5px">新增</button></div><div class="empty"><i>▣</i>暂无数据</div></div>
+    </div>
+  </div>
+
+  <!-- ===================== 4 风控信息 ===================== -->
+  <div class="tabc hide" id="tab-4">
+    <div class="v3panel">
+      <div class="rk-t">风控关联信息</div>
+      <div class="rk"><div class="rk-row"><span class="rk-l">绑定浏览器指纹：</span><span class="rk-v">bf9baae59158eadb674a96772ccd9fb9</span><span class="rk-n">关联账户数：<b class="warn">4</b></span><button class="btn rk-b" onclick="showRel('绑定浏览器指纹',4)">查看关联账户</button></div><div class="rk-row"><span class="rk-l">最后登录浏览器指纹：</span><span class="rk-v">bf9baae59158eadb674a96772ccd9fb9</span><span class="rk-n">关联账户数：<b class="warn">4</b></span><button class="btn rk-b" onclick="showRel('最后登录浏览器指纹',4)">查看关联账户</button></div><div class="rk-row"><span class="rk-l">登录IP：</span><span class="rk-v">2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e</span><span class="rk-n">关联账户数：<b>1</b></span><button class="btn rk-b" onclick="showRel('登录IP',1)">查看关联账户</button></div><div class="rk-row"><span class="rk-l">注册IP：</span><span class="rk-v">2401:4900:a401:b9b0:f020:bbff:fe5f:9b8</span><span class="rk-n">关联账户数：<b class="warn">22</b></span><button class="btn rk-b" onclick="showRel('注册IP',22)">查看关联账户</button></div><div class="rk-row"><span class="rk-l">UPI账号：</span><span class="rk-v">98******10@ybl</span><span class="rk-n">关联账户数：<b>1</b></span><button class="btn rk-b" onclick="showRel('UPI账号',1)">查看关联账户</button></div><div class="rk-row"><span class="rk-l">银行卡号：</span><span class="rk-v">5010******7890</span><span class="rk-n">关联账户数：<b>0</b></span><button class="btn rk-b" onclick="showRel('银行卡号',0)">查看关联账户</button></div></div>
+      <div class="rk-rel hide" id="rk-rel"><div class="rk-t" id="rk-rel-t">关联账户</div>
+      <table class="g"><tr><th>会员ID</th><th>账号</th><th>状态</th><th>用户类型</th><th>注册时间</th><th>累计充值</th><th>累计提现</th><th>最后登录</th><th>取款账户持有人</th></tr>
+        <tr><td class="lnk">2255461</td><td>+91*******4112</td><td>启用</td><td>真实用户</td><td>2026-04-10 14:58</td><td>0.00</td><td>0.00</td><td>2026-04-10</td><td>—</td></tr>
+        <tr><td class="lnk">2255478</td><td>+91*******4190</td><td class="neg">禁用</td><td>真实用户</td><td>2026-04-10 15:20</td><td>500.00</td><td>1,200.00</td><td>2026-05-02</td><td>RAHUL KUMAR</td></tr>
+        <tr><td class="lnk">2256102</td><td>+91******0021</td><td>启用</td><td>真实用户</td><td>2026-04-12 09:03</td><td>12,000.00</td><td>9,800.00</td><td>2026-10-08</td><td>AMIT S</td></tr>
+      </table>
+      <div class="pager"><span id="rk-cnt">共 3 条</span><span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span><span class="pg" style="padding:0 8px">20 / 页</span></div></div>
+    </div>
+  </div>
+
+  <!-- ===================== 5 资金账变 ===================== -->
+  <div class="tabc hide" id="tab-5">
+    <div class="v3panel">
+      <div class="v3form"><label>订单号</label><input placeholder="请输入订单号"><label>账变类型</label><select><option>请选择账变类型</option></select><label>操作人</label><input placeholder="请输入操作人"><label>时间区间</label><input value="2026-10-10 00:00:00" style="min-width:140px"> → <input value="2026-10-10 23:59:59" style="min-width:140px"><span class="rt"><button class="btn pri" style="height:26px">搜索</button><button class="btn" style="height:26px">重置</button><span class="lnk" style="line-height:26px">收起</span></span></div>
+      <div class="chips"><span class="on">今天</span><span>昨天</span><span>本周</span><span>上周</span><span>本月</span><span>上月</span><span>所有</span><span>⚙ 自定义列</span></div>
+      <table class="g"><tr><th>订单号</th><th>账变类型</th><th>币种</th><th>变动前余额</th><th>账变金额</th><th>变动后余额</th><th>备注说明</th><th>操作人</th><th>账变时间 (UTC+5:30)</th><th>操作</th></tr>
+        <tr><td>AC202610100100005870...</td><td>洗码反水</td><td><span style="border:1px solid rgba(24,160,88,.3);padding:0 5px;border-radius:3px;color:var(--ok)">INR</span></td><td>99,000.00</td><td class="pos">+0.50</td><td>99,000.50</td><td>--</td><td>系统</td><td>2026-10-10 01:00:00</td><td><span class="lnk">修改备注</span></td></tr>
+        <tr class="sum"><td>页面总计</td><td></td><td></td><td></td><td class="pos">+0.50</td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr class="sum"><td>总计</td><td></td><td></td><td></td><td class="pos">+0.50</td><td></td><td></td><td></td><td></td><td></td></tr>
+      </table>
+      <div class="pager"><span>共 1 条</span><span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span><span class="pg" style="padding:0 8px">20 / 页</span><span>跳至</span><span class="pg" style="padding:0 8px">1</span></div>
+    </div>
+  </div>
+
+  <!-- ===================== 7 活动信息 ===================== -->
+  <div class="tabc hide" id="tab-7">
+    <div class="v3panel">
+      <div class="v3form"><label>时间区间</label><input value="2026-04-10 00:00:00" style="min-width:140px"> → <input value="2026-10-09 23:59:59" style="min-width:140px"><label>彩金分类</label><select><option>全部</option><option>活动</option><option>充值类</option><option>返水</option><option>代理</option><option>VIP</option></select><span class="rt"><button class="btn pri" style="height:26px">搜索</button><button class="btn" style="height:26px">重置</button></span></div>
+      <div class="chips"><span>今天</span><span>昨天</span><span>本周</span><span>上周</span><span>本月</span><span>上月</span><span class="on">所有</span></div>
+      <table class="g"><tr><th class="l">彩金类型</th><th>分类</th><th>领取金额</th><th>领取次数</th><th>最近领取时间</th><th>操作</th></tr>
+<tr><td class="l">每日签到</td><td>活动</td><td>6,820.00</td><td>214</td><td>2026-10-09 08:12</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">首充奖励</td><td>活动</td><td>3,500.00</td><td>1</td><td>2026-04-10 15:20</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">大转盘</td><td>活动</td><td>2,960.00</td><td>37</td><td>2026-10-08 21:30</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">电子大奖</td><td>活动</td><td>2,180.00</td><td>6</td><td>2026-10-06 19:44</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">每周奖励</td><td>活动</td><td>1,650.00</td><td>11</td><td>2026-10-06 00:05</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">每日奖励</td><td>活动</td><td>900.00</td><td>45</td><td>2026-10-09 00:05</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">回归奖励</td><td>活动</td><td>600.00</td><td>2</td><td>2026-08-15 10:02</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">锦标赛奖励</td><td>活动</td><td>400.00</td><td>3</td><td>2026-09-28 22:00</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">新手礼包</td><td>活动</td><td>196.00</td><td>1</td><td>2026-04-10 15:10</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">邀请转盘奖励</td><td>活动</td><td>100.00</td><td>4</td><td>2026-07-12 11:30</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">回归新充值奖励</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">下载APP并充值</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">新会员首充负盈利送彩金</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">新会员玩游戏送彩金</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">充值优惠券奖金总额</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">已领红包</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">注册送金</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">超级大奖</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">新会员礼包</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">TG频道活动</td><td>活动</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">充值赠送</td><td>充值类</td><td>9,860.00</td><td>41</td><td>2026-10-09 11:02</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">彩金充值</td><td>充值类</td><td>2,500.00</td><td>12</td><td>2026-10-08 10:15</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">返水金额</td><td>返水</td><td>1,174.00</td><td>96</td><td>2026-10-09 00:30</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">邀请奖励</td><td>代理</td><td>300.00</td><td>3</td><td>2026-07-12 10:21</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">合伙人奖励</td><td>代理</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">代理红包充值</td><td>代理</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">VIP会员每月奖励</td><td>VIP</td><td>400.00</td><td>4</td><td>2026-10-01 00:05</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr><td class="l">VIP会员升级礼包</td><td>VIP</td><td>0.00</td><td>0</td><td>—</td><td><span class="lnk" onclick="jump(5)">账变明细</span></td></tr><tr class="sum"><td class="l">合计</td><td></td><td>33,540.00</td><td>496</td><td></td><td></td></tr></table>
+      <div class="pager"><span>共 28 条（按领取金额从高到低）</span></div>
+    </div>
+  </div>
+  <!-- ===================== 8 代理信息 ===================== -->
+  <div class="tabc hide" id="tab-8">
+    <div class="v3panel">
+      <div class="v3form"><label>商户</label><select disabled><option>(2001)sit-inr</option></select><label>代理ID</label><input id="ag-id" value="2255460" style="min-width:110px"><label>下级ID</label><input placeholder="下级ID" style="min-width:110px"><label>会员账号</label><input placeholder="请输入会员账号" style="min-width:130px"><label>最小层级</label><input style="min-width:60px;width:60px"><label>最大层级</label><input style="min-width:60px;width:60px"><label>注册设备</label><select><option>全部</option></select><label>会员状态</label><select><option>全部</option></select><label>注册日期</label><input placeholder="选择时间范围" style="min-width:180px"><label>交易时间</label><input placeholder="选择时间范围" style="min-width:180px"><label>VIP等级</label><select><option>全部</option></select><label>备注</label><input placeholder="备注" style="min-width:110px"><span class="rt"><button class="btn pri" style="height:26px">搜索</button><button class="btn" style="height:26px">重置</button></span></div>
+      <div class="agnote">代理ID 自动带入当前会员；同时打开多个会员时，带入点「代理信息」时所在的那个会员。页面和中台「会员 → 下级会员列表」一致。</div>
+      <div style="overflow-x:auto"><table class="g"><tr><th>商户</th><th>会员ID</th><th>会员账号</th><th>VIP等级</th><th>上级ID</th><th>相对层级</th><th>直属下级</th><th>全部下级</th><th>注册日期</th><th>会员状态</th><th>在线状态</th><th>注册设备</th><th>黑名单状态</th><th>投注(金额/次)</th><th>充值(金额/次)</th><th>提现(金额/次)</th><th>返佣(金额/次)</th><th>账户金额</th><th>备注</th></tr>
+<tr><td>(2001)sit-inr</td><td class="lnk">2258888</td><td>+91******8888</td><td>VIP 1</td><td>2255460</td><td>1</td><td>3</td><td>5</td><td>2026-06-18 12:20</td><td>启用</td><td>在线</td><td>Android</td><td>正常</td><td>8,200.00 / 412</td><td>8,200.00 / 6</td><td>3,000.00 / 2</td><td>412.00 / 9</td><td>1,286.40</td><td>—</td></tr><tr><td>(2001)sit-inr</td><td class="lnk">2259012</td><td>+91******1201</td><td>VIP 0</td><td>2255460</td><td>1</td><td>0</td><td>0</td><td>2026-07-02 09:41</td><td>启用</td><td>离线</td><td>iOS</td><td>正常</td><td>2,100.00 / 96</td><td>2,100.00 / 3</td><td>0.00 / 0</td><td>96.00 / 4</td><td>320.00</td><td>—</td></tr><tr><td>(2001)sit-inr</td><td class="lnk">2259450</td><td>+91******0045</td><td>VIP 0</td><td>2258888</td><td>2</td><td>0</td><td>0</td><td>2026-08-11 21:05</td><td class="neg">禁用</td><td>离线</td><td>H5</td><td class="neg">黑名单</td><td>500.00 / 20</td><td>500.00 / 1</td><td>0.00 / 0</td><td>0.00 / 0</td><td>0.00</td><td>—</td></tr></table></div>
+      <div class="pager"><span>共 3 条</span><span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span><span class="pg" style="padding:0 8px">20 / 页</span></div>
+    </div>
+  </div>
+  <!-- ===================== 6 操作日志 ===================== -->
+  <div class="tabc hide" id="tab-6">
+    <div class="logwrap">
+      <div class="vtabs"><span class="on">会员前台日志</span><span>平台操作日志</span></div>
+      <div class="v3panel">
+        <div class="v3form"><label>关键字</label><input placeholder="请输入关键字"><label>日志类型</label><select><option>全部</option></select><label>时间区间</label><input placeholder="选择时间范围" style="min-width:140px"> → <input placeholder="选择时间范围" style="min-width:140px"><span class="rt"><button class="btn pri" style="height:26px">搜索</button><button class="btn" style="height:26px">重置</button></span></div>
+        <div class="chips"><span>今天</span><span>昨天</span><span>本周</span><span>上周</span><span>本月</span><span>上月</span><span>⚙ 自定义列</span></div>
+        <table class="g"><tr><th>日志标题</th><th>操作用户</th><th>用户IP</th><th>IP所在地</th><th>操作系统</th><th>浏览器</th><th>日志时间 (UTC+5:30)</th><th>日志状态</th><th>内容描述</th></tr>
+          <tr><td>新增取款账户</td><td>2255460</td><td>2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e</td><td>印度 · 德里</td><td>Android</td><td>Chrome</td><td>2026-10-08 21:14:02</td><td>成功</td><td>新增 UPI 9876543210@ybl</td></tr>
+          <tr><td>修改登录密码</td><td>2255460</td><td>2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e</td><td>印度 · 德里</td><td>Android</td><td>Chrome</td><td>2026-10-08 21:10:40</td><td>成功</td><td>--</td></tr>
+        </table>
+        <div class="pager"><span>共 2 条</span><span class="pg">‹</span><span class="pg on">1</span><span class="pg">›</span><span class="pg" style="padding:0 8px">20 / 页</span><span>跳至</span><span class="pg" style="padding:0 8px">1</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================= 需求说明（不需开发） ================= -->
+<div class="req-handle" onclick="openReq()">需 求 说 明</div>
+<div class="req-mask" id="req-mask" onclick="closeReq()"></div>
+<div class="req-drawer" id="req-drawer">
+  <div class="req-head"><span class="t">需求说明 · V3 会员详情改版（审核概况 + 9 个页签）</span><span class="req-x" onclick="closeReq()">✕</span></div>
+  <div class="req-body">
+    <div class="lead">把 V3 中台会员详情的首个页签「基本信息」换成「<b>审核概况</b>」：出款审核要看的钱、打码、关联、账号、备注信息，在 1920×1080 和 1680×1050 下<b>一屏看完、不用滚动</b>；排版和字段名称照 V1 老后台会员详情。页签从 6 个改为 9 个。<br>标 <span class="sys s1">新增</span> 的是 V3 现在没有、要新做的；<span class="sys s3">调整</span> 是 V3 已有、改了位置或显示方式；<span class="sys sm">不改</span> 照 V3 现状。字段口径没写的，一律沿用 V1 / V3 现有口径。</div>
+
+    <div class="h1">一、改造页面</div>
+    <table class="t">
+      <tr><th style="width:190px">页面 / 位置</th><th>改动点</th></tr>
+      <tr><td>V3 中台会员详情弹窗<br>（会员列表、充值订单、提现订单、出款审核等所有入口共用）</td><td>
+        ① 标题栏：会员ID、商户标签后面加<b>全屏图标</b>（用户自己切全屏 / 退出全屏，默认不全屏，弹窗尺寸照 V3 现在最宽 1500）；原来单独一行的<b>多会员 ID 标签</b>挪到全屏图标后面，省一行。<br>
+        ② 查询条（会员ID、日期、查询）照 V3 现在不变。<br>
+        ③ 页签从 6 个改为 9 个：0 审核概况、1 充提信息、2 活动信息、3 投注信息、4 操作日志、5 钱包信息、6 风控信息、7 代理信息、8 资金账变。原「基本信息」页签由「审核概况」替代。<br>④ <b>审核概况大表固定</b>：查询条下方的大表（充值提现 … 用户备注 / 会员近期操作记录）所有页签共用、位置固定，切换任何页签都不动。<b>页签条放在大表下方</b>（大表和内容区中间），页签只切换它下面的内容区，内容超出时在内容区里滚动，大表不跟着滚。</td></tr>
+      <tr><td>V1 老后台会员详情</td><td>不改</td></tr>
+    </table>
+    <table class="t">
+      <tr><th style="width:110px">页签</th><th style="width:60px">状态</th><th>内容</th></tr>
+      <tr><td>0 审核概况</td><td><span class="sys s1">新增</span></td><td>替代原「基本信息」。大表固定显示（所有页签都在）；此页签下方内容为最后 3 次充值 / 提现、会员投注信息、会员取款账户信息。见第三节 01～05</td></tr>
+      <tr><td>1 充提信息</td><td><span class="sys s3">调整</span></td><td>改成两个子页签「充值记录」「提现记录」：该会员的订单列表，列照 V1 充值记录 / 提现记录页（去掉会员ID、客户信息、操作列），带时间区间、状态、类型筛选和分页。原页签里的人工充值、首充次充三充、等待出款、最后 3 次充提挪到审核概况</td></tr>
+      <tr><td>2 活动信息</td><td><span class="sys s1">新增</span></td><td>该会员每种彩金逐项列出：彩金类型、分类、领取金额、领取次数、最近领取时间、操作「账变明细」（跳资金账变并筛该类型），按领取金额从高到低；时间区间 + 彩金分类筛选，快捷项 今天 / 昨天 / 本周 / 上周 / 本月 / 上月 / 所有，默认「所有」。原基本信息里的活动奖励 17 项、VIP每月奖励、VIP升级礼包、代理红包充值、TG频道活动都在这里看</td></tr>
+      <tr><td>3 投注信息</td><td><span class="sys s3">调整</span></td><td>V3 现有页面不变，表格上方加「游戏大类」切换（全部 + 商户已开的大类）</td></tr>
+      <tr><td>4 操作日志</td><td><span class="sys sm">不改</span></td><td>会员前台日志 / 平台操作日志，照 V3 现在</td></tr>
+      <tr><td>5 钱包信息</td><td><span class="sys s3">调整</span></td><td>V3 现有；UPI 等账户卡片加「添加时间」「最近修改时间」</td></tr>
+      <tr><td>6 风控信息</td><td><span class="sys s1">新增</span></td><td>关联项逐行列出：绑定浏览器指纹、最后登录浏览器指纹、登录IP、注册IP、UPI账号、银行卡号，每行显示值和「关联账户数」（不含本人，超过 3 红字）；点「查看关联账户」在下方展开关联会员列表（会员ID、账号、状态、用户类型、注册时间、累计充值、累计提现、最后登录、取款账户持有人）</td></tr>
+      <tr><td>7 代理信息</td><td><span class="sys s1">新增</span></td><td>直接嵌中台「会员 → 下级会员列表」（搜索项和列一致），代理ID 自动带入当前会员；同时开了多个会员时，带入当前选中的那个</td></tr>
+      <tr><td>8 资金账变</td><td><span class="sys sm">不改</span></td><td>照 V3 现在</td></tr>
+    </table>
+    <div class="br">每个页签沿用现有权限控制方式，各自一个权限码，没权限的页签不显示；新增的 3 个页签（活动信息、风控信息、代理信息）要新加权限码。</div>
+
+    <div class="h1">二、名词（新加字段的定义）</div>
+    <table class="t">
+      <tr><th style="width:150px">名词</th><th>定义 / 口径</th></tr>
+      <tr><td><b>总彩金</b> <span class="sys s1">新增</span></td><td>= 活动奖励合计 + 充值赠送 + 彩金充值 + 邀请奖励 + 合伙人奖励 + 返水金额，注册以来累计。后面括号「占充值 X%」= 总彩金 ÷ 累计充值，保留 1 位小数；累计充值为 0 时不显示括号。<br>整格加粗；占比 <b>&gt; 5% 红色，≤ 5% 绿色</b>。（原型提示文字里曾多写了「+ VIP 奖励」，VIP 两项已经算在活动奖励合计里，会重复，本版已去掉）</td></tr>
+      <tr><td><b>活动奖励合计</b> <span class="sys s1">新增</span></td><td>活动信息页签里「分类 = 活动」的所有彩金合计，含 VIP升级礼包、VIP每月奖励。数字可点，跳活动信息页签</td></tr>
+      <tr><td><b>活动奖励（前 5 + 其他 N 项）</b> <span class="sys s3">调整</span></td><td>V3 现在是 17 项固定全列。改成按注册以来领取金额从高到低取前 5 项，只显示金额（不显示次数）；第 6 行「其他 N 项」= 第 6 名以后的合计，数字可点跳活动信息。不足 5 项有几项显示几项，没有剩余就不显示第 6 行。6 行相加 = 活动奖励合计</td></tr>
+      <tr><td><b>累计提现退回</b> <span class="sys s1">新增</span></td><td>V1 同名字段：会员累计被驳回 / 退回的提现，金额 / 次数，取 FinanceList 账变类型 6 + 9（V1 同算法）</td></tr>
+      <tr><td><b>金额 / 笔数</b> <span class="sys s3">调整</span></td><td>人工充值、累计充值、累计提现、等待出款显示「金额 / 笔数」。人工充值笔数 = FinanceList 类型 11 的次数；等待出款笔数取过程返回的 Withdraw_Times_0 + Withdraw_Times_3</td></tr>
+      <tr><td><b>保险箱及三方余额 + 刷新</b> <span class="sys s3">调整</span></td><td>V1 原名：保险箱余额 / 三方余额 一格显示。三方余额后面加<b>刷新图标</b>（蓝色描边小方块，悬停变实心），点了重新查询该会员在各三方游戏的余额合计，查询中图标转动，完成后更新数字。V3 现有 <code>/ThirdGame/GetThirdBalanceList</code> 能否直接复用，开发确认</td></tr>
+      <tr><td><b>本次打码倍数</b> <span class="sys s3">调整</span></td><td>= 累计打码量 ÷ 需要打码量，保留两位小数。颜色照 V1：<b>≤ 3 红色，&gt; 3 正常黑字</b>；没有需要打码量时显示红色「--」</td></tr>
+      <tr><td><b>提现倍数</b> <span class="sys s3">调整</span></td><td>最后 3 次提现表第一列。颜色照 V1：<b>≤ 3 红色，&gt; 3 绿色</b>（V3 现在一律红色加粗，改掉）</td></tr>
+      <tr><td><b>下级数量</b> <span class="sys s3">调整</span></td><td>直属 / 全部。全部下级取过程返回的 Children_Total。数字可点，跳代理信息页签</td></tr>
+      <tr><td><b>总代ID</b> <span class="sys s1">新增</span></td><td>会员所在代理线最顶层的代理ID，带复制图标。会员列表接口已有 GeneralAgentId，详情接口补上</td></tr>
+      <tr><td><b>会员层级</b> <span class="sys s1">新增</span></td><td>会员在代理树里的层数，顶级代理为 1，其直属下级为 2，以此类推；取 tb_chart_relative.Lv，显示「N 级」</td></tr>
+      <tr><td><b>关联数</b> <span class="sys s1">新增</span></td><td>大表中间一列，集中放风控关联数字（每格「数字 + 名称」，数字可点，跳风控信息页签并高亮对应行；鼠标悬停显示对应的 IP / 指纹 / 时间）：<br>· <b>同IP注册用户数</b>：同一个注册 IP 的其他会员数，不含本人；超过 3 红字加 ⚠（V3 已有）<br>· <b>同指纹注册用户</b>：同一个注册浏览器指纹的其他会员数，不含本人；超过 3 红字加 ⚠（V3 已有）<br>· <b>第 1～3 次同IP用户数</b>：最近 3 次登录各自的 IP，用同一个 IP 登录过的其他会员数，不含本人（V3 已有）<br>· <b>总绑定次数</b> <span class="sys s1">新增</span>：会员名下所有取款账户（银行卡、UPI、电子钱包、USDT）中，<b>被最多会员绑定过的那一个账户</b>的绑定会员数，<b>含本人</b>；≥ 2 红字加 ⚠；悬停显示是哪个账户，点了跳风控信息对应的 UPI账号 / 银行卡号行</td></tr>
+      <tr><td><b>最后登录时间 / 最后登录IP</b> <span class="sys s3">调整</span></td><td>最近一次登录的时间（到分钟）和 IP，放在注册时间 / 注册IP 正下方，方便对比</td></tr>
+      <tr><td><b>首提金额 / 首提日期</b> <span class="sys s1">新增</span></td><td>会员第一笔<b>成功出款</b>的金额和日期（日期到天，和首充日期一致）；没提过显示「—」</td></tr>
+      <tr><td><b>用户积分 / 充值等级</b> <span class="sys s3">调整</span></td><td>两个字段合一格：用户积分（V1 有、V3 没有，取 V1 同一字段）/ 充值等级（蓝色圆角标签）</td></tr>
+      <tr><td><b>会员分组</b> <span class="sys s1">新增</span></td><td>会员列表已有 UserGroupName，详情接口补上；值<b>加粗</b></td></tr>
+      <tr><td><b>修改记录</b> <span class="sys s1">新增</span></td><td>打码量、用户备注后面各一个「修改记录」按钮，弹窗列出历次修改：时间、操作人、改前、改后。参考 V1 <code>GetUserFieldChangeLog</code>（备注 type 5、打码量 type 6）</td></tr>
+      <tr><td><b>会员近期操作记录</b> <span class="sys s1">新增</span></td><td>最近 3 天会员在前台做过的敏感操作：修改登录密码、修改资金密码、修改绑定手机 / 邮箱、新增或修改取款账户（带账号），按时间倒序用「；」连接。文字样式和用户备注一样（红色细字）；固定一行，放不下末尾省略号，悬停看全文；后面「操作日志 →」跳操作日志页签。没有记录显示「—」</td></tr>
+      <tr><td><b>会员投注信息</b> <span class="sys s1">新增</span></td><td>照 V1 的游戏横向矩阵：列 = 合计 + 各游戏大类（按商户已开的大类动态出列），行 = 投注金额、有效投注、手续费、盈亏、订单数。统计区间 = 顶部日期；标题旁「上次提现至今」把顶部日期填成「最近一笔成功提现时间 ~ 现在」。大类名可点，跳投注信息页签并选中该大类</td></tr>
+      <tr><td><b>使用次数</b> <span class="sys s1">新增</span></td><td>取款账户表：用这个账户成功出款的笔数（口径待确认）</td></tr>
+      <tr><td><b>取款账户备注</b> <span class="sys s1">新增</span></td><td>当前打开的提现订单用的那个账户标「本次出款」；添加不到 3 天的红字「新增 N 天，首次使用」</td></tr>
+      <tr><td><b>账号 / 手机号脱敏</b> <span class="sys s1">新增</span></td><td>账号和手机号显示时保留区号和后 4 位，中间用 * 代替，如 +91*******4111、+91******3210。邮箱、UPI ID、银行卡号本版不脱敏</td></tr>
+    </table>
+
+    <div class="h1">三、功能描述与业务规则</div>
+    <div class="br"><span class="bn">01</span><b>审核概况整体布局</b><br>
+      从上到下：大表（两段，11 列，最后一行是用户备注 / 会员近期操作记录，<b>固定区</b>，所有页签共用）→ 页签内容区。审核概况页签的内容区是：一排三块（最后 3 次充值、最后 3 次提现、会员投注信息，上下对齐）→ 会员取款账户信息；切到其他页签时，内容区换成该页签的内容，大表不动。大表里的「XX信息 →」和可点数字跳转时，也只切换内容区。大表、小表、取款账户都是注册以来的累计 / 现状值，<b>不受顶部日期影响</b>；顶部日期只作用于会员投注信息（和 V1 一样）。1920×1080、1680×1050 一屏放下；1440×900 笔记本需要往下滚一点。</div>
+    <div class="br"><span class="bn">02</span><b>大表第一段（6 行）</b>
+      <table class="t">
+        <tr><th style="width:120px">组</th><th>字段（从上到下）</th></tr>
+        <tr><td>充值提现（充提信息 →）</td><td>人工充值、累计充值、累计提现、累计充提差、等待出款、累计提现退回。累计充提差 = 累计充值 − 累计提现（不含人工加扣款），正数绿、负数红</td></tr>
+        <tr><td>彩金汇总</td><td>总彩金（占充值 %）、活动奖励合计、充值赠送、彩金充值、邀请奖励、合伙人奖励</td></tr>
+        <tr><td>活动奖励（活动信息 →）</td><td>领取金额前 5 项 + 其他 N 项</td></tr>
+        <tr><td>关联数（风控信息 →）</td><td>同IP注册用户数、同指纹注册用户、第 1～3 次同IP用户数、总绑定次数</td></tr>
+        <tr><td>注册 / 首充首提</td><td>注册时间 | 注册IP；最后登录时间 | 最后登录IP；首充 / 次充 / 三充 / 首提 的金额 | 日期。IP 放不下用「…」，悬停看全文</td></tr>
+      </table></div>
+    <div class="br"><span class="bn">03</span><b>大表第二段（5 行）</b>
+      <table class="t">
+        <tr><th style="width:120px">组</th><th>字段（从上到下）</th></tr>
+        <tr><td>余额</td><td>用户余额、保险箱及三方余额（三方余额带刷新）、未开奖下注金额、本次打码倍数、用户状态（带「修改」）</td></tr>
+        <tr><td>打码/洗码（投注信息 →）</td><td>累计打码量、需要打码量、会员洗码量、返水金额、打码量（带「修改」「修改记录」）</td></tr>
+        <tr><td>代理数据（代理信息 →）</td><td>总获得佣金、下级数量、上级代理ID、总代ID、会员分组</td></tr>
+        <tr><td>账号数据</td><td>会员ID | 账号；是否领取返佣 | 绑定(邮箱/手机号)；用户积分 / 充值等级 | 会员层级；VIP等级 | VIP经验值；用户类型 | 语种。会员ID、账号、上级代理ID、总代ID 带复制图标</td></tr>
+      </table>
+      「修改」打开的弹窗和接口用 V3 现有的（改状态 / 改备注 / 改打码量），只是入口从原基本信息挪到这里。打码量、用户备注两格的「修改」「修改记录」按钮都靠格子右边，上下对齐；打码量数字很长时按钮自动换到第二行，不会和数字重叠。</div>
+    <div class="br"><span class="bn">04</span><b>最后 3 次充值 / 提现</b><br>两张表分开放、左右对比：充值（充值时间、金额、类型）；提现（提现倍数、提现时间、金额、类型，只取成功出款的）。时间到分钟，悬停看秒。</div>
+    <div class="br"><span class="bn">05</span><b>会员取款账户信息</b><br>列顺序：类型、使用次数、备注、操作（编辑）、持卡人姓名 / 卡号 / IFSC（UPI ID）、银行信息、手机 / 邮箱、添加时间、最近修改时间。「添加」按钮在标题行。添加时间、最近修改时间取 tab_WithdrawalBankCard 的 AddTime / UpdateTime。</div>
+    <div class="br"><span class="bn">06</span><b>跳转汇总</b>
+      <table class="t">
+        <tr><th style="width:280px">点击</th><th>结果</th></tr>
+        <tr><td>充提信息 →</td><td>充提信息页签</td></tr>
+        <tr><td>活动信息 →、活动奖励合计数字、其他 N 项数字</td><td>活动信息页签</td></tr>
+        <tr><td>投注信息 →（打码/洗码、会员投注信息标题）</td><td>投注信息页签；点矩阵大类名时同时选中该大类</td></tr>
+        <tr><td>代理信息 →、下级数量数字</td><td>代理信息页签，代理ID 带入当前会员</td></tr>
+        <tr><td>风控信息 →、关联数里的数字</td><td>风控信息页签，高亮对应行并展开关联账户</td></tr>
+        <tr><td>操作日志 →（会员近期操作记录后）</td><td>操作日志页签</td></tr>
+        <tr><td>钱包信息 →（取款账户标题）</td><td>钱包信息页签</td></tr>
+      </table></div>
+    <div class="br"><span class="bn">07</span><b>和 V3 现在的「基本信息」相比，去掉 / 不再显示的</b>
+      <ul>
+        <li>首次登录（一般和注册时间相同，运营确认不要）</li>
+        <li>注册浏览器指纹的值（同指纹注册用户数还在关联数里，悬停可看指纹）</li>
+        <li>今日 / 累计 的充值、提现、充提差、有效投注、输赢、活动优惠：只保留累计值；有效投注、输赢看会员投注信息矩阵（按顶部日期）</li>
+        <li>保险箱的已领取收益、待领取收益、保险箱利率（运营确认不要）</li>
+        <li>累计提现手续费</li>
+        <li>活动奖励 17 项全列、TG频道活动、代理红包充值、VIP每月奖励、VIP升级礼包：改到活动信息页签看，金额计入活动奖励合计 / 总彩金</li>
+        <li>V1 的「是否有效」不放（只表示累计充值次数和金额达到后台门槛，审核用不上）</li>
+      </ul></div>
+    <div class="br"><span class="bn">08</span><b>后端改动汇总</b>
+      <ul>
+        <li><b>补映射</b>（V1 过程已返回或其他接口已有，详情接口 DTO 没带）：会员详情接口（<code>UserManageService.GetUserDetail</code> → <code>sp_Get_UserDetails</code>，DTO <code>UserDetailsRsp</code>）补 Withdraw_Times_0 / Withdraw_Times_3、Children_Total、总代ID、会员层级 Lv、会员分组、用户积分；钱包接口补取款账户 AddTime / UpdateTime</li>
+        <li><b>新开发</b>：首提金额 / 日期；备注、打码量修改记录；会员近期操作记录（前台日志按类型取 3 天）；总绑定次数；投注按游戏大类汇总 + 投注信息页签大类筛选（<code>GetUserBetTotal</code> 现在没有大类参数）；活动信息页签（按彩金类型汇总金额、次数、最近领取时间）；风控信息页签（各关联项的关联账户数和关联账户列表）；取款账户使用次数、本次出款标记；三方余额刷新；3 个新页签的权限码</li>
+        <li><b>前端算</b>：人工充值笔数、累计提现退回、总彩金、占充值 %、活动奖励合计、活动奖励前 5 排序、两个倍数的颜色、账号 / 手机号脱敏</li>
+      </ul></div>
+    <div class="br"><span class="bn">09</span><b>行业常规与注意点</b>（经验判断，未做调研）
+      <ul>
+        <li>出款审核 / 会员 360 视图的常见做法是「首屏一页看完钱 + 风险，明细再进页签」，本方案一致。审核最常看的：充提差和彩金占比（是否套利）、打码倍数（是否达标）、关联账户和新加的取款账户（是否多开 / 盗号）</li>
+        <li>倍数门槛 3 倍、彩金占充值 5%、关联超过 3 标红都是演示 / V1 沿用的阈值，建议后续做成商户可配置</li>
+        <li>账号脱敏后，复制图标复制出来的是完整号还是脱敏号，要和 V3 现有「敏感信息显示」权限对齐（待确认）</li>
+        <li>同 IP 统计遇到 IPv6 时，同一家庭 / 运营商网络的地址前缀相同但后缀会变，建议按前 64 位匹配，否则同IP数会偏低（待风控确认）</li>
+      </ul></div>
+    <div class="br"><span class="bn">10</span><b>多国家 / 多币种注意</b>
+      <ul>
+        <li>金额小数位按商户币种显示（INR 2 位；越南盾等小币种通常 0 位、数字很长）。大表列宽固定，打码量等长数字已做换行处理，上线前用小币种站点数据再看一次</li>
+        <li>取款账户类型和表头随币种变：印度 银行卡（IFSC）/ UPI；巴西 PIX；越南等 银行卡；USDT 地址</li>
+        <li>手机号脱敏按「保留区号 + 后 4 位」，不同国家区号长度不同（+91、+55、+84），按实际区号截取</li>
+        <li>所有时间按商户时区显示，和 V3 现有页签一致</li>
+        <li>文案走 V3 语言包。原型右上角中英文切换已测：英文下标签较长的格子会折成两行，整页仍不溢出；越南语、葡语更长，上线前再看一次</li>
+      </ul></div>
+    <div class="br"><span class="bn">11</span><b>待确认</b>
+      <ul>
+        <li>取款账户「使用次数」口径：成功出款笔数，还是所有提交笔数</li>
+        <li>三方余额刷新能否复用现有 <code>/ThirdGame/GetThirdBalanceList</code></li>
+        <li>活动信息「最近领取时间」能否取到（开发确认）</li>
+        <li>最后登录浏览器指纹是否有采集（风控信息页签用到）</li>
+        <li>账号脱敏和复制、敏感信息权限的关系</li>
+        <li>V1 老后台会员详情是否同步改（本需求不改）</li>
+      </ul></div>
+
+    <div class="h1">四、原型说明</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>不需开发</td><td>右上角「中文 / English」切换、右侧「需求说明」入口和抽屉只用于演示；英文译法优先取 V3 en 语言包，最终以语言包为准</td></tr>
+      <tr><td>演示数据</td><td>都是模拟的：会员 2255460、商户 (2001)sit-inr（INR）、统计区间 2026-10-07 18:30 ~ 2026-10-09 15:10。修改、修改记录、刷新、跳转都能点，结果是演示</td></tr>
+      <tr><td>样式</td><td>颜色、间距、组件沿用 V3 现有风格，不以原型为准；红 / 绿只用在有含义的地方（警示、正负、达标）</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="dmask hide" id="dmask" onclick="closeDlg()"></div>
+<div class="dlg hide" id="dlg"><div class="dh"><span id="dlg-t">修改</span><span class="dx" onclick="closeDlg()">✕</span></div><div class="db" id="dlg-b"></div><div class="df" id="dlg-f"><button class="btn" onclick="closeDlg()">取消</button><button class="btn pri" onclick="saveDlg()">确定</button></div></div>
+<script>
+/* ===== 中英文切换（原型演示用；英文优先取 V3 en 语言包的现有译法） ===== */
+var I18N={
+'会员':'Member','会员列表':'Member List','会员详情':'Member Detail','会员详情 - 会员ID:':'Member Detail - Member ID:','改状态':'Edit Status','改备注':'Edit Remark','改打码量':'Edit Bet Amount',
+'会员ID':'Member ID','日期':'Date','查询':'Search','审核概况':'Overview','充提信息':'Deposit & Withdraw','活动信息':'Activity Info','投注信息':'Betting Info','操作日志':'Operation Log','钱包信息':'Wallet Info','风控信息':'Risk Info','代理信息':'Agent Info','资金账变':'Fund Records',
+'充值提现':'Deposit & Withdraw','充提信息 →':'Deposit & Withdraw →','彩金汇总':'Bonus Summary','活动奖励':'Activity Rewards','活动信息 →':'Activity Info →','保险箱':'Safe Box','人工充值':'Manual Deposit','总彩金':'Total Bonus','(占充值 10.6%)':'(10.6% of deposit)',
+'每日签到':'Daily Sign In','VIP经验值':'VIP Experience','待领取收益':'Pending Earnings','累计充值':'Total Deposit','活动奖励合计':'Activity Rewards Total','首充奖励':'First Deposit Reward','VIP等级':'VIP Level','保险箱收益':'Safe Box Earnings','累计提现':'Total Withdraw','充值赠送':'Deposit Gift','大转盘':'Lucky Wheel',
+'VIP升级礼包':'VIP Upgrade Gift','保险箱利率':'Safe Box Rate','累计充提差':'Total Difference','彩金充值':'Bonus Deposit','电子大奖':'Slot Jackpot','VIP每月奖励':'VIP Monthly Reward','等待出款':'Pending Withdraw','邀请奖励':'Invite Reward','每周奖励':'Weekly Reward','累计提现退回':'Total Withdraw Refund','合伙人奖励':'Partner Reward',
+'余额':'Balance','打码/洗码':'Bet / Code Wash','投注信息 →':'Betting Info →','代理数据':'Agent Data','代理信息 →':'Agent Info →','账号数据':'Account Data','用户余额':'User Balance','累计打码量':'Total Bet Amount','总获得佣金':'Total Commission','首次登录':'First Login','注册时间':'Register Time','最后登录':'Last Login',
+'同IP注册数 / 同指纹数':'Same IP / Same Fingerprint Registers','最后3次登录信息':'Last 3 Logins','用户积分 / 充值等级':'Points / Recharge Level','刷新':'Refresh','刷新中':'Refreshing','刷新三方余额':'Refresh third party balance','三方余额已刷新（原型演示）':'Third party balance refreshed (demo)','总绑定次数':'Total Bindings','关联数':'Associations','同IP注册用户数':'Same IP Registers','同指纹注册用户':'Same Fingerprint Registers','第1次同IP用户数':'Login 1 same IP','第2次同IP用户数':'Login 2 same IP','第3次同IP用户数':'Login 3 same IP','最后登录时间':'Last Login Time','最后登录IP':'Last Login IP','≤ 3 红色、> 3 绿色（照 V1）':'≤ 3 red, > 3 green (same as V1)','语种':'Language','英语':'English',"(占充值":"(of deposit","总彩金 = 活动奖励合计 + 充值赠送 + 彩金充值 + 邀请奖励 + 合伙人奖励 + 返水金额；括号内 = 总彩金 ÷ 累计充值；占充值 > 5% 红色、≤ 5% 绿色":"Total Bonus = Activity Rewards Total + Deposit Gift + Bonus Deposit + Invite Reward + Partner Reward + Rebate Amount; bracket = Total Bonus ÷ Total Deposit; > 5% red, ≤ 5% green","注册IP：2401:4900:a401:b9b0:f020:bbff:fe5f:9b8；同一个注册 IP 的其他会员数，不含本人，超过 3 标红":"Register IP: 2401:4900:a401:b9b0:f020:bbff:fe5f:9b8; other members registered from the same IP, excluding self; red when over 3","各类活动奖励（含 VIP 升级礼包、VIP 每月奖励）合计，点数字到「活动信息」看每项明细":"Sum of all activity rewards (incl. VIP Upgrade Gift and VIP Monthly Reward); click the number to see each item in Activity Info","注册浏览器指纹：bf9baae59158eadb674a96772ccd9fb9；同一个注册指纹的其他会员数，不含本人，超过 3 标红":"Register fingerprint: bf9baae59158eadb674a96772ccd9fb9; other members registered with the same fingerprint, excluding self; red when over 3","2026-10-09 14:54:52　IP：2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e；用同一个 IP 登录过的其他会员数，不含本人":"2026-10-09 14:54:52  IP: 2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e; other members who logged in from the same IP, excluding self","2026-10-08 21:08:11　IP：2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e":"2026-10-08 21:08:11  IP: 2401:4900:bdb1:78c3:7c94:35ff:fe4e:a71e","2026-10-07 18:02:40　IP：49.36.12.77":"2026-10-07 18:02:40  IP: 49.36.12.77","会员取款账户里被最多会员绑定过的那个账户的绑定会员数（含本人）：UPI 9876543210@ybl 被 2 个会员绑定过；≥ 2 标红":"Among the member's withdraw accounts, the one bound by the most members: UPI 9876543210@ybl is bound by 2 members (incl. self); red when >= 2","累计打码量 ÷ 需要打码量，保留两位小数；≤ 3 红色（照 V1）；没有需要打码量时显示红色 --":"Total Bet Amount ÷ Required Bet Amount, 2 decimals; red when ≤ 3 (same as V1); shows red -- when there is no required bet amount",'保险箱及三方余额':'Safe Box & Third Party Balance','需要打码量':'Required Bet Amount','下级数量':'Downline Count','账号':'Account','绑定(邮箱/手机号)':'Bind (Email/Phone)','首充金额':'1st Deposit Amount','首充日期':'1st Deposit Date','未开奖下注金额':'Unsettled Bet Amount','会员洗码量':'Member Wash Amount','上级代理ID':'Parent Agent ID',
+'用户积分':'Points','是否有效':'Valid','是':'Yes','否':'No','次充金额':'2nd Deposit Amount','次充日期':'2nd Deposit Date','本次打码倍数':'Current Bet Multiplier','返水金额':'Rebate Amount','总代ID':'Top Agent ID','用户类型':'Member Type','真实用户':'Real User','充值等级':'Deposit Level','三充金额':'3rd Deposit Amount','三充日期':'3rd Deposit Date',
+'会员层级':'Member Level','是否领取返佣':'Rebate Claimed','首提金额':'1st Withdraw Amount','首提日期':'1st Withdraw Date','用户备注':'User Remark','09-30 客服A：多次申诉提现延迟，已安抚；注意同设备 3 个账号':'09-30 CS-A: complained about withdrawal delay several times, calmed; note 3 accounts on the same device',
+'修改':'Edit','修改记录':'Change Log','打码量':'Bet Amount','用户状态':'User Status','启用':'Enabled','禁用':'Disabled','会员分组':'Member Group','高价值':'High Value','会员近期操作记录':'Recent Member Activity','会员前台 3 天内：':'Front end, last 3 days: ',
+'2026-10-08 21:14 新增 UPI 账户 9876543210@ybl（本次出款使用）；2026-10-08 21:10 修改登录密码':'2026-10-08 21:14 added UPI account 9876543210@ybl (used by this withdrawal); 2026-10-08 21:10 changed login password',
+'操作日志 →':'Operation Log →','最后 3 次充值信息：':'Last 3 Deposits:','充值时间':'Deposit Time','金额':'Amount','类型':'Type','UPI 快捷':'UPI Quick','最后 3 次提现信息：':'Last 3 Withdrawals:','提现倍数':'Withdraw Multiplier','提现时间':'Withdraw Time','HDFC 银行卡':'HDFC Bank Card','SBI 银行卡':'SBI Bank Card',
+'最后 3 次登录信息：':'Last 3 Logins:','登录日期':'Login Time','同IP数':'Same IP','注册信息：':'Register Info:','风控信息 →':'Risk Info →','注册IP':'Register IP','同IP注册数':'Same IP Registers','注册浏览器指纹':'Register Fingerprint','同指纹数':'Same Fingerprint',
+'会员投注信息：':'Member Betting:','上次提现至今':'Since Last Withdraw','统计区间':'Range','点大类名进投注信息页签看该大类下各彩种 / 厂商的明细':'Click a category to see game / provider details in Betting Info','合计':'Total','自营彩票':'Lottery','电子':'Slots','视讯':'Live','体育':'Sports','棋牌':'Chess',
+'投注金额:':'Bet Amount:','有效投注:':'Valid Bet:','手续费:':'Fee:','盈亏:':'Win/Loss:','订单数:':'Orders:','会员取款账户信息：':'Withdraw Accounts:','钱包信息 →':'Wallet Info →','持卡人姓名 / 卡号 / IFSC（UPI ID）':'Holder / Card No / IFSC (UPI ID)','银行信息':'Bank','手机 / 邮箱':'Phone / Email',
+'添加时间':'Added Time','最近修改时间':'Last Modified','使用次数':'Times Used','备注':'Remark','操作':'Action','本次出款':'This withdrawal','新增 1 天，首次使用':'added 1 day ago, first use','编辑':'Edit','银行卡':'Bank Card','添加':'Add',
+'充值记录':'Deposit Records','提现记录':'Withdraw Records','时间区间':'Time Range','状态':'Status','全部':'All','成功':'Success','待支付':'Unpaid','失败':'Failed','充值类型':'Deposit Type','三方':'Third Party','本地银行':'Local Bank','搜索':'Search','重置':'Reset','订单号':'Order No',
+'银行/UPI':'Bank/UPI','订单金额':'Order Amount','实付金额/手续费':'Paid / Fee','上分金额':'Credited','订单日期':'Order Date','到账日期':'Credited Date','操作人':'Operator','三方 · PhonePe':'Third Party · PhonePe','系统':'System','三方 · UPI 快捷':'Third Party · UPI Quick','线下转账补单':'Offline transfer supplement',
+'财务A':'Finance A','超时取消':'Timeout cancelled','财务B':'Finance B','20 / 页':'20 / page','跳至':'Go to','审核中':'Reviewing','已出款':'Paid','驳回':'Rejected','提现类型':'Withdraw Type','银行卡详细':'Bank Card Detail','提现金额':'Withdraw Amount','手续费':'Fee','实际到账金额':'Actual Amount',
+'人工备注':'Manual Remark','第三方详细':'Third Party Detail','申请时间':'Apply Time','ArbPay · 2026-10-07 18:41 成功':'ArbPay · 2026-10-07 18:41 Success','打码未达标':'Bet not met','打码不足':'Insufficient bet','ArbPay · 2026-09-28 13:16 成功':'ArbPay · 2026-09-28 13:16 Success','ArbPay · 2026-09-21 10:20 成功':'ArbPay · 2026-09-21 10:20 Success',
+'从上次提现至今':'Since last withdraw','所有':'All','今天':'Today','昨天':'Yesterday','本周':'This Week','上周':'Last Week','本月':'This Month','上月':'Last Month','⚙ 自定义列':'⚙ Columns','游戏大类':'Game Category','游戏厂商':'Game Provider','子游戏名称':'Game Name','子游戏ID':'Game ID','投注笔数':'Bet Count',
+'投注金额':'Bet Amount','有效投注金额':'Valid Bet Amount','派彩金额':'Payout Amount','会员盈亏':'Member Win/Loss','查看详情':'View Detail','页面总计':'Page Total','总计':'Total','会员银行卡信息':'Bank Card Info','新增':'Add','卡号：':'Card No:','持卡人姓名':'Holder Name','卡号':'Card No','银行名称':'Bank Name',
+'手机':'Phone','邮箱':'Email','所在省/市/支行':'Province / City / Branch','会员电子钱包信息':'E-Wallet Info','暂无数据':'No data','会员UPI信息':'UPI Info','UPI名称':'UPI Name','UPI账号':'UPI Account','会员USDT信息':'USDT Info','风控关联信息':'Risk Associations',
+'绑定浏览器指纹：':'Bound Fingerprint:','关联账户数：':'Linked Accounts: ','查看关联账户':'View Linked Accounts','最后登录浏览器指纹：':'Last Login Fingerprint:','登录IP：':'Login IP:','注册IP：':'Register IP:','UPI账号：':'UPI Account:','银行卡号：':'Bank Card No:','关联账户':'Linked Accounts','取款账户持有人':'Withdraw Account Holder',
+'账变类型':'Change Type','请选择账变类型':'Select change type','收起':'Collapse','币种':'Currency','变动前余额':'Balance Before','账变金额':'Change Amount','变动后余额':'Balance After','备注说明':'Description','账变时间 (UTC+5:30)':'Change Time (UTC+5:30)','洗码反水':'Code Wash Rebate','修改备注':'Edit Remark',
+'彩金分类':'Bonus Category','活动':'Activity','充值类':'Deposit','返水':'Rebate','代理':'Agent','彩金类型':'Bonus Type','分类':'Category','领取金额':'Amount Received','领取次数':'Times Received','最近领取时间':'Last Received','账变明细':'Fund Records',
+'每日奖励':'Daily Reward','回归奖励':'Return Reward','锦标赛奖励':'Tournament Reward','新手礼包':'Newbie Gift','邀请转盘奖励':'Invite Wheel Reward','回归新充值奖励':'Return New Deposit Reward','下载APP并充值':'Download App & Deposit','新会员首充负盈利送彩金':'New Member 1st Deposit Loss Bonus','新会员玩游戏送彩金':'New Member Play Bonus',
+'充值优惠券奖金总额':'Recharge Coupon Bonus Total','已领红包':'Red Packets Received','注册送金':'Register Gift','超级大奖':'Super Prize','新会员礼包':'New Member Gift','TG频道活动':'TG Channel Activity','代理红包充值':'Agent Red Packet Deposit','VIP会员每月奖励':'VIP Monthly Reward','VIP会员升级礼包':'VIP Upgrade Gift',
+'商户':'Merchant','代理ID':'Agent ID','下级ID':'Downline ID','会员账号':'Member Account','最小层级':'Min Level','最大层级':'Max Level','注册设备':'Register Device','会员状态':'Member Status','注册日期':'Register Date','交易时间':'Trade Time',
+'代理ID 自动带入当前会员；同时打开多个会员时，带入点「代理信息」时所在的那个会员。页面和中台「会员 → 下级会员列表」一致。':'Agent ID is filled with the current member; with several members open, the one you are on when clicking "Agent Info" is used. Same as Member → Downline List.',
+'上级ID':'Parent ID','相对层级':'Relative Level','直属下级':'Direct Downlines','全部下级':'All Downlines','在线状态':'Online Status','黑名单状态':'Blacklist Status','投注(金额/次)':'Bet (Amount/Times)','充值(金额/次)':'Deposit (Amount/Times)','提现(金额/次)':'Withdraw (Amount/Times)','返佣(金额/次)':'Commission (Amount/Times)','账户金额':'Account Amount',
+'在线':'Online','正常':'Normal','离线':'Offline','黑名单':'Blacklisted','会员前台日志':'Member Front-end Log','平台操作日志':'Platform Operation Log','关键字':'Keyword','日志类型':'Log Type','日志标题':'Log Title','操作用户':'Operator','用户IP':'User IP','IP所在地':'IP Location','操作系统':'OS','浏览器':'Browser','日志时间 (UTC+5:30)':'Log Time (UTC+5:30)','日志状态':'Log Status','内容描述':'Description',
+'新增取款账户':'Add Withdraw Account','印度 · 德里':'India · Delhi','新增 UPI 9876543210@ybl':'Added UPI 9876543210@ybl','修改登录密码':'Change login password','全屏':'Fullscreen','退出全屏':'Exit fullscreen','关闭':'Close','选择日期范围':'Select date range','复制':'Copy','保险箱余额 / 三方余额':'Safe box balance / third party balance',
+'总彩金 = 活动奖励合计 + 充值赠送 + 彩金充值 + 邀请奖励 + 合伙人奖励 + 返水金额 + VIP 奖励；括号内 = 总彩金 ÷ 累计充值':'Total Bonus = Activity Rewards Total + Deposit Gift + Bonus Deposit + Invite Reward + Partner Reward + Rebate Amount + VIP rewards; bracket = Total Bonus ÷ Total Deposit',
+'按领取金额排在第 5 名以后的活动（含 VIP 升级礼包、VIP 每月奖励），点开到「活动信息」看全部':'Activities ranked 6th and below by amount (incl. VIP Upgrade Gift, VIP Monthly Reward); click to see all in Activity Info','各类活动奖励合计，点数字看每项明细':'Sum of all activity rewards; click to see each item','累计充值 − 累计提现，不含人工加扣款；正数绿、负数红':'Total Deposit − Total Withdraw, excluding manual adjustments; positive green, negative red',
+'会员累计被驳回 / 退回的提现金额与次数（V1 同名字段）':'Total rejected / refunded withdrawal amount and count (same as V1)','上次提现后打码量 ÷ 需要打码量，≥ 1 为达标':'Bet since last withdraw ÷ required bet; ≥ 1 means met','累计打码量 ÷ 需要打码量，≥ 1 为达标':'Total bet ÷ required bet; ≥ 1 means met','会员在代理树里的层数，顶级代理为 1':'Depth in the agent tree; top agent is 1',
+'用同一个 IP 登录过的其他会员数，不含本人；IPv6 按前 64 位匹配（待风控确认）':'Other members who logged in from this IP, excluding self; IPv6 matched by /64 (to be confirmed)','同一个注册 IP 的其他会员数，不含本人；超过 3 标红':'Other members with the same register IP, excluding self; red above 3','同一个注册指纹的其他会员数，不含本人；超过 3 标红':'Other members with the same register fingerprint, excluding self; red above 3',
+'请输入订单号':'Enter order no','请输入操作人':'Enter operator','请输入会员账号':'Enter member account','选择时间范围':'Select time range','请输入关键字':'Enter keyword',
+'充提信息：两个子页签，分别是该会员的充值记录和提现记录（列照 V1 的充值记录 / 提现记录页，去掉会员ID、客户信息、操作列）':'Deposit & Withdraw: two sub-tabs with this member\'s deposit and withdraw records (columns follow V1 deposit / withdraw record pages, without Member ID, customer info and action columns)','注册 / 首充首提':'Register / First Deposits','确定':'OK','取消':'Cancel','修改用户状态':'Edit User Status','修改用户备注':'Edit User Remark','修改打码量':'Edit Bet Amount','请输入备注':'Enter remark','请输入打码量':'Enter bet amount','用户备注修改记录':'User Remark Change Log','打码量修改记录':'Bet Amount Change Log','时间':'Time','改前':'Before','改后':'After','已保存（原型演示）':'Saved (prototype)','当前打码量':'Current bet amount','新打码量':'New bet amount'
+};
+var I18N_RULES=[
+ [/^([\d,.]+) \/ ([\d,]+) 次$/,'$1 / $2 times'],[/^(\d+) 级$/,'Lv $1'],[/^其他 (\d+) 项$/,'Others ($1)'],[/^([\d,.]+) · 查看全部$/,'$1 · View all'],[/^共 (\d+) 条（按领取金额从高到低）$/,'Total $1 (by amount, high to low)'],[/^共 (\d+) 条$/,'Total $1'],
+ [/^关联账户 · (.+)（(\d+)）$/,function(m,a,b){return 'Linked Accounts · '+(I18N[a]||a)+' ('+b+')'}]
+];
+var curLang='zh';
+function trText(t){var k=t.trim();if(!k)return null;if(I18N[k]!=null)return t.replace(k,I18N[k]);for(var i=0;i<I18N_RULES.length;i++){var r=I18N_RULES[i];if(r[0].test(k))return t.replace(k,k.replace(r[0],r[1]))}return null}
+function applyLang(){
+  var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT),n;
+  while(n=w.nextNode()){var p=n.parentElement;if(!p||p.closest('script,style,.lang-sw,.req-drawer,.req-handle'))continue;
+    if(n.__zh==null){if(!/[一-鿿]/.test(n.nodeValue))continue;n.__zh=n.nodeValue}
+    if(curLang==='zh'){n.nodeValue=n.__zh}else{var e=trText(n.__zh);n.nodeValue=e!=null?e:n.__zh}}
+  document.querySelectorAll('[title],[placeholder]').forEach(function(el){['title','placeholder'].forEach(function(a){var v=el.getAttribute(a);if(v==null)return;var key='zh'+a;if(el.dataset[key]==null){if(!/[一-鿿]/.test(v))return;el.dataset[key]=v}
+    var z=el.dataset[key];el.setAttribute(a,curLang==='zh'?z:(trText(z)||z))})});
+  document.documentElement.lang=curLang==='zh'?'zh-CN':'en';
+  document.querySelectorAll('.lang-sw span').forEach(function(s){s.classList.toggle('on',s.dataset.l===curLang)});
+}
+function setLang(l){curLang=l;applyLang()}
+
+/* ===== 改状态 / 改备注 / 改打码量 / 修改记录（原型演示） ===== */
+var dlgType=null;
+function T(z){return curLang==='en'&&I18N[z]?I18N[z]:z}
+function openDlg(t){dlgType=t;var b=document.getElementById('dlg-b'),h='';
+  if(t==='state'){var cur=document.getElementById('state-val').textContent;var en=cur===T('启用')||cur==='启用';h='<div class="fr"><label class="k">'+T('用户状态')+'</label><label><input type="radio" name="st" value="1"'+(en?' checked':'')+'> '+T('启用')+'</label>&nbsp;&nbsp;<label><input type="radio" name="st" value="0"'+(en?'':' checked')+'> '+T('禁用')+'</label></div>';document.getElementById('dlg-t').textContent=T('修改用户状态')}
+  if(t==='remark'){h='<div class="fr"><label class="k">'+T('用户备注')+'</label><textarea id="dlg-in" placeholder="'+T('请输入备注')+'">'+document.getElementById('rmk-text').textContent+'</textarea></div>';document.getElementById('dlg-t').textContent=T('修改用户备注')}
+  if(t==='bet'){h='<div class="fr"><label class="k">'+T('当前打码量')+'</label><span>'+document.getElementById('bet-val').textContent+'</span></div><div class="fr"><label class="k">'+T('新打码量')+'</label><input type="text" id="dlg-in" placeholder="'+T('请输入打码量')+'"></div>';document.getElementById('dlg-t').textContent=T('修改打码量')}
+  b.innerHTML=h;document.getElementById('dlg-f').classList.remove('hide');show(true)}
+function openLog(t){dlgType=null;var rows=t==='remark'?[['2026-09-30 14:20','客服A','—','09-30 客服A：多次申诉提现延迟，已安抚；注意同设备 3 个账号']]:[['2026-10-07 18:31','系统','8,000.00','0.00'],['2026-10-08 09:40','财务A','0.00','3,996.00']];
+  var h='<table><tr><th>'+T('时间')+'</th><th>'+T('操作人')+'</th><th>'+T('改前')+'</th><th>'+T('改后')+'</th></tr>'+rows.map(function(r){return '<tr><td>'+r[0]+'</td><td>'+T(r[1])+'</td><td>'+T(r[2])+'</td><td>'+T(r[3])+'</td></tr>'}).join('')+'</table>';
+  document.getElementById('dlg-t').textContent=T(t==='remark'?'用户备注修改记录':'打码量修改记录');document.getElementById('dlg-b').innerHTML=h;document.getElementById('dlg-f').classList.add('hide');show(true)}
+function show(v){document.getElementById('dmask').classList.toggle('hide',!v);document.getElementById('dlg').classList.toggle('hide',!v)}
+function closeDlg(){show(false)}
+function saveDlg(){
+  if(dlgType==='state'){var v=document.querySelector('#dlg-b input[name=st]:checked').value;var e=document.getElementById('state-val');e.textContent=v==='1'?'启用':'禁用';e.className=v==='1'?'ok':'neg'}
+  if(dlgType==='remark'){var r=document.getElementById('rmk-text');r.textContent=document.getElementById('dlg-in').value||'—'}
+  if(dlgType==='bet'){var x=document.getElementById('dlg-in').value.trim();if(x){var n=parseFloat(x.replace(/,/g,''));if(!isNaN(n))document.getElementById('bet-val').textContent=n.toLocaleString('en-US')}}
+  closeDlg();var t=document.createElement('div');t.className='toast';t.textContent=T('已保存（原型演示）');document.body.appendChild(t);setTimeout(function(){t.remove()},1500)}
+/* 动态渲染的内容（投注明细、关联账户标题等）切到英文后自动跟着翻译 */
+var __mo=new MutationObserver(function(){if(curLang!=='en')return;__mo.disconnect();applyLang();__mo.observe(document.body,{subtree:true,childList:true,characterData:true})});
+__mo.observe(document.body,{subtree:true,childList:true,characterData:true});
+
+// 页签切换
+var tabs=document.querySelectorAll('#tabs span');
+function showCw(n){document.querySelectorAll('#cw-sub span').forEach(function(s,i){s.classList.toggle('on',i==n)});document.getElementById('cw-0').classList.toggle('hide',n!=0);document.getElementById('cw-1').classList.toggle('hide',n!=1)}
+function showTab(n){
+  tabs.forEach(function(s){s.classList.toggle('on',s.dataset.t==String(n))});
+  for(var i=0;i<=8;i++){var el=document.getElementById('tab-'+i);if(el)el.classList.toggle('hide',i!=n)}
+  document.getElementById('tab-'+n).scrollTop=0;
+}
+tabs.forEach(function(s){s.addEventListener('click',function(){showTab(s.dataset.t);if(s.dataset.t=='2')showBetCat(curCat);if(s.dataset.t=='8')document.getElementById('ag-id').value=curMember})});
+
+// 投注信息：照 V3 现有列，只加「游戏大类」切换（演示数据）
+var betCats=['全部','自营彩票','电子','视讯','体育','棋牌'];
+var betRows=[
+  ['自营彩票','ARLottery','WinGo 30s','WinGo_30S','1,120','38,200.00','38,200.00','37,100.00','-1,100.00'],
+  ['电子','JILI','Crash','JILI_CRASH','96','16,100.00','15,900.00','15,200.00','-900.00'],
+  ['视讯','EVO','Baccarat','EVO_BAC','8','1,000.00','0.00','1,000.00','0.00'],
+  ['棋牌','KM','Teen Patti','KM_TP','60','6,120.00','6,050.00','5,610.00','-510.00']
+];
+var curCat='全部';
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function num(t){return parseFloat(String(t).replace(/,/g,''))||0}
+function showBetCat(cat){
+  curCat=cat||'全部';
+  var seg=document.getElementById('bet-cats');seg.innerHTML='';
+  betCats.forEach(function(c){var sp=document.createElement('span');sp.textContent=c;if(c===curCat)sp.className='on';sp.onclick=function(){showBetCat(c)};seg.appendChild(sp)});
+  var rows=betRows.filter(function(r){return curCat==='全部'||r[0]===curCat});
+  var h='<tr><th>游戏大类</th><th>游戏厂商</th><th>子游戏名称</th><th>子游戏ID</th><th>投注笔数</th><th>投注金额</th><th>有效投注金额</th><th>派彩金额</th><th class="sortable">会员盈亏</th><th>操作</th></tr>';
+  var t=[0,0,0,0,0];
+  rows.forEach(function(r){t[0]+=num(r[4]);t[1]+=num(r[5]);t[2]+=num(r[6]);t[3]+=num(r[7]);t[4]+=num(r[8]);
+    h+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td><td>'+r[5]+'</td><td>'+r[6]+'</td><td>'+r[7]+'</td><td class="'+(num(r[8])<0?'neg':'pos')+'">'+r[8]+'</td><td><span class="lnk">查看详情</span></td></tr>'});
+  var pl=(t[4]>=0?'+':'')+fmt(t[4]);
+  ['页面总计','总计'].forEach(function(n){h+='<tr class="sum"><td>'+n+'</td><td></td><td></td><td></td><td>'+t[0]+'</td><td>'+fmt(t[1])+'</td><td>'+fmt(t[2])+'</td><td>'+fmt(t[3])+'</td><td class="'+(t[4]<0?'neg':'pos')+'">'+pl+'</td><td></td></tr>'});
+  document.getElementById('bet-detail').innerHTML=h;
+  document.getElementById('bet-count').textContent='共 '+rows.length+' 条';
+}
+showBetCat(curCat);
+function toggleFull(){var m=document.querySelector('.modal');m.classList.toggle('full');document.getElementById('fs-btn').title=m.classList.contains('full')?'退出全屏':'全屏'}
+function showRel(name,n){var w=document.getElementById('rk-rel');w.classList.remove('hide');document.getElementById('rk-rel-t').textContent='关联账户 · '+name+'（'+n+'）';document.getElementById('rk-cnt').textContent='共 '+n+' 条';w.scrollIntoView({block:'nearest'})}
+var curMember='2255460';
+function switchMember(id){curMember=id;document.querySelectorAll('#hist .h').forEach(function(h){h.classList.toggle('on',h.dataset.id===id)});document.getElementById('q-uid').value=id;var t=document.getElementById('mh-uid');if(t)t.textContent=id;var a=document.getElementById('ag-id');if(a)a.value=id}
+function openRisk(name,n){showTab(4);document.querySelectorAll('#tab-4 .rk-row').forEach(function(r){r.classList.toggle('hl',r.querySelector('.rk-l').textContent.indexOf(name)===0)});showRel(name,n)}
+function jump(n,cat){showTab(n);if(n==2)showBetCat(cat||curCat);if(n==8){var a=document.getElementById('ag-id');if(a)a.value=curMember}}
+
+// 时间预设：投注信息标题旁的「上次提现至今」按钮，把日期填成上次提现时间 ～ 现在
+var presetMap={last:['2026-10-07 18:30:12','2026-10-09 15:10:00']};
+function setPreset(p){
+  var r=presetMap[p];document.getElementById('range-start').value=r[0];document.getElementById('range-end').value=r[1];
+  document.getElementById('bet-range').textContent=r[0]+' ~ '+r[1];
+}
+
+function refreshThird(el){if(el.classList.contains('spin'))return;el.classList.add('spin');setTimeout(function(){el.classList.remove('spin');document.getElementById('third-val').textContent='312.50';var t=document.createElement('div');t.className='toast';t.textContent=T('三方余额已刷新（原型演示）');document.body.appendChild(t);setTimeout(function(){t.remove()},1500)},900)}
+
+/* ===== 悬浮提示：鼠标移到带说明的地方（? 图标、虚线标签、截断的 IP 等）显示 ===== */
+(function(){
+  var tip=document.createElement('div');tip.className='htip';document.body.appendChild(tip);
+  function show(el){
+    if(el.hasAttribute('title')){el.dataset.tip=el.getAttribute('title');el.removeAttribute('title')}
+    var s=el.dataset.tip;if(!s)return;
+    tip.textContent=(typeof T==='function')?T(s):s;tip.style.display='block';
+    var r=el.getBoundingClientRect(),w=tip.offsetWidth,h=tip.offsetHeight;
+    var x=Math.min(Math.max(8,r.left+r.width/2-w/2),window.innerWidth-w-8);
+    var y=r.top-h-6;if(y<8)y=r.bottom+6;
+    tip.style.left=x+'px';tip.style.top=y+'px';
+  }
+  document.addEventListener('mouseover',function(e){
+    var el=e.target.closest('[title],[data-tip]');
+    if(el)show(el);else tip.style.display='none';
+  });
+  document.addEventListener('scroll',function(){tip.style.display='none'},true);
+})();
+
+function openReq(){document.getElementById('req-mask').classList.add('show');document.getElementById('req-drawer').classList.add('show')}
+function closeReq(){document.getElementById('req-mask').classList.remove('show');document.getElementById('req-drawer').classList.remove('show')}
+</script>
+</body>
+</html>
