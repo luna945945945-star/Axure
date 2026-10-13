@@ -315,6 +315,15 @@ input.err-in{border-color:var(--err) !important;box-shadow:0 0 0 2px rgba(208,48
 .as-g input:disabled,.as-g select:disabled{background:#fafafc;color:var(--t4)}
 .as-g .lb{white-space:nowrap;color:var(--t2)}
 .as-tag{font-size:12px;color:var(--t3);margin-top:2px}
+/* 自动切换通道：照 uat，每条一行（充值通道N + 下拉 + 切换充值金额范围 + 两个金额），整块带边框 */
+#ed-mask .dlg.wide{width:min(1160px,96vw)}
+#ed-mask .lr{grid-template-columns:minmax(0,45fr) minmax(0,55fr)}
+#ed-mask .lr-col .card.as-box{border:1px solid var(--line2);border-radius:4px;padding:10px 12px;margin:0 0 10px}
+.as-line{flex-wrap:nowrap}
+.as-g:first-child{flex:1 1 auto;min-width:0}
+.as-g:first-child select{flex:1 1 auto;min-width:120px;width:auto}
+.as-g+.as-g{flex:0 0 auto}
+.as-g input{width:84px}
 .qa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .qa-cell{position:relative;display:flex}
 .qa-cell input{width:100%;height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 20px 0 6px}
@@ -1161,7 +1170,7 @@ function asCard(add){
         <span class="as-g"><span class="lb">切换充值金额范围：</span><input type="number" placeholder="最小金额" value="${ED.asRows[k][1]}" ${ED.as?'':'disabled'} oninput="ED.asRows[${k}][1]=this.value"><span>~</span><input type="number" placeholder="最大金额" value="${ED.asRows[k][2]}" ${ED.as?'':'disabled'} oninput="ED.asRows[${k}][2]=this.value"></span>
       </div>
       <div class="as-tag">（${tag}）</div></div>`;
-  return `<div class="card">
+  return `<div class="card as-box">
         <div class="card-h">自动切换通道 <span class="sw ${ED.as?'on':''}" onclick="ED.as=!ED.as;drawEdit()"><i></i></span></div>
         <div class="hintline">开启后可配置小额/大额自动切换通道</div>
         ${asRow(0,'充值通道1','小额自动切换通道')}${asRow(1,'充值通道2','大额自动切换通道')}
