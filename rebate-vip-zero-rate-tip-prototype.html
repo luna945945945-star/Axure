@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>返水洗码率为 0 提示</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333;min-height:100vh}
+.stage{display:flex;justify-content:center;align-items:flex-start;gap:28px;padding:28px 60px 40px 28px;flex-wrap:wrap}
+
+/* 演示面板（页面外） */
+.demo{width:290px;background:#fff;border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:12.5px;color:#555}
+.demo h3{font-size:13px;color:#6C4FE0;margin-bottom:6px}
+.demo p{line-height:1.7;margin-bottom:10px;color:#888;font-size:12px}
+.demo .scenes{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.demo .scenes button{font:inherit;font-size:12px;text-align:left;border:1px solid #d3caf5;background:#f7f5ff;color:#4b3aa8;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1.5}
+.demo .scenes button:hover{border-color:#6C4FE0}
+.demo .scenes button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.demo .who{background:#fafbfc;border:1px solid #eef0f3;border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.8;color:#555}
+.demo .who table{width:100%;border-collapse:collapse;margin-top:6px;font-size:11.5px}
+.demo .who th,.demo .who td{border:1px solid #eceef2;padding:2px 4px;text-align:center;white-space:nowrap}
+.demo .who th{background:#f5f3ff;color:#4b3aa8;font-weight:600}
+.demo .steps{margin:10px 0 0;padding:8px 10px;background:#fff7f7;border:1px solid #ffd6d6;border-radius:6px;font-size:12px;line-height:1.8;color:#8a2b2b}
+.demo .steps b{color:#c0392b}
+.demo .sub{font-size:11.5px;color:#aaa;margin-top:10px;line-height:1.7}
+
+/* 手机（6club 深色主题） */
+.phone{width:395px;height:832px;border-radius:36px;background:#000;padding:10px;box-shadow:0 10px 40px rgba(0,0,0,.25);flex:0 0 auto}
+.screen{--bg1:#1c1c22;--bg2:#2a2a31;--bg3:#35353d;--t1:#f2f2f2;--t2:#a8a5a1;--main:#f5c45e;--grad:linear-gradient(180deg,#fde08b,#f6a83c);--orange:#f19b3b;--red:#e5484d;
+  width:375px;height:812px;border-radius:28px;overflow:hidden;background:var(--bg1);position:relative;display:flex;flex-direction:column;color:var(--t1)}
+.navbar{height:46px;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto;background:var(--bg1)}
+.navbar .lft{position:absolute;left:12px;top:0;height:100%;display:flex;align-items:center}
+.navbar .lft svg{width:18px;height:18px}
+.navbar .ttl{font-size:18px;color:var(--main)}
+.page{flex:1;overflow-y:auto;padding:0 12px 20px;scrollbar-width:none}
+.page::-webkit-scrollbar{display:none}
+
+/* 还原 main/Laundry 页（750 设计稿按 1/2 换算） */
+.tabs{display:flex;gap:5px;height:70px;align-items:center;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:0 12px}
+.tabs::-webkit-scrollbar{display:none}
+.tab_item{flex:0 0 95px;height:50px;border-radius:5px;background:var(--bg2);color:var(--t2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:12px}
+.tab_item svg{width:22px;height:22px;margin-bottom:1px}
+.tab_item.tab_active{background:var(--grad);color:#3b2a0b}
+.box{background:var(--bg2);border-radius:5px;padding:8px}
+.box .title{height:25px;line-height:25px;font-size:14px;color:var(--t1)}
+.box .lab{display:flex;align-items:center;gap:5px;width:fit-content;min-width:125px;height:25px;border:1px solid var(--main);border-radius:5px;padding:0 6px;font-size:11px;color:var(--main);margin-top:2px}
+.box .lab svg{width:16px;height:16px}
+.box .number{display:flex;align-items:center;font-weight:700;font-size:18px;margin:10px 0}
+.box .number svg{width:24px;height:24px;margin-right:7px;color:var(--main)}
+.box .txt{background:var(--bg3);width:85%;line-height:15px;padding:7px 8px;font-size:11px;border-radius:5px;color:var(--t2);margin-bottom:7px}
+.c-row{display:flex;justify-content:space-between}
+.c-row .item{width:calc(50% - 3px);background:var(--bg3);padding:7px 8px;border-radius:5px}
+.c-row .tit{color:var(--t2);font-size:11px;margin-bottom:4px}
+.c-row .num{color:var(--orange);font-size:16px;font-weight:700}
+.c-row .num.red{color:var(--red)}
+.box .tip{padding:7px;color:var(--t2);font-size:12px}
+.box .btn{display:block;width:100%;height:35px;line-height:35px;text-align:center;background:var(--bg3);border-radius:40px;font-size:15px;color:var(--t1);border:0;margin-top:3px;cursor:pointer;font-family:inherit}
+.box .btn.active{background:var(--grad);color:#3b2a0b}
+.list-wrap{margin-top:10px;padding-bottom:15px}
+.list-wrap .title{height:25px;line-height:25px;padding-left:10px;font-weight:700;font-size:18px;position:relative;margin-bottom:10px}
+.list-wrap .title::before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:15px;background:var(--main)}
+.rec{background:var(--bg2);border-radius:5px;padding:8px;margin-bottom:10px;font-size:12px}
+.rec .hd{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #3c3c44;padding-bottom:5px;margin-bottom:7px}
+.rec .hd .name{font-size:15px;font-weight:700}
+.rec .hd .time{color:var(--t2);font-size:11px}
+.rec .hd .state{color:#18b660}
+.rec .bd{display:flex;justify-content:space-between;color:var(--t2);line-height:1.8}
+.rec .bd .r{text-align:right;color:var(--t1)}
+.rec .bd .r .red{color:var(--red)}.rec .bd .r .orange{color:var(--orange)}
+.all-record{display:block;width:100%;height:40px;border:1px solid var(--main);background:transparent;color:var(--main);border-radius:20px;font-size:15px;font-family:inherit}
+
+/* vant 失败提示 */
+.toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:250px;background:rgba(0,0,0,.72);color:#fff;font-size:14px;line-height:20px;padding:14px 14px 16px;border-radius:8px;text-align:center;z-index:40;display:none;white-space:pre-line;word-break:break-word}
+.toast.on{display:block}
+.toast .ico{display:block;margin:0 auto 6px;width:28px;height:28px;border-radius:50%;border:2px solid #fff;font:700 18px/24px Arial}
+.toast .nw{position:relative;display:inline-block}
+.new{position:absolute;background:#f5222d;color:#fff;font-size:9px;font-weight:700;line-height:1;padding:3px 5px;border-radius:8px 8px 8px 2px;box-shadow:0 2px 6px rgba(245,34,45,.35);pointer-events:none;letter-spacing:.3px;z-index:6;top:-12px;right:-10px}
+
+/* 成功弹窗（现有） */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:30;display:none;align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.dlg{width:290px;background:var(--bg2);border-radius:10px;padding:18px 16px 16px;text-align:center}
+.dlg .ok{width:60px;height:60px;border-radius:50%;background:var(--grad);margin:-48px auto 8px;display:flex;align-items:center;justify-content:center;color:#3b2a0b;font-size:30px;font-weight:700}
+.dlg h4{font-size:15px;margin-bottom:8px}
+.dlg .tip{color:var(--t2);font-size:13px}
+.dlg .amt{margin:6px 0 14px;font-size:13px;color:var(--t2)}
+.dlg .amt span{color:var(--orange);font-size:18px;font-weight:700;margin-left:4px}
+.dlg .btn{height:36px;line-height:36px;border-radius:18px;background:var(--grad);color:#3b2a0b;cursor:pointer}
+
+/* 需求说明抽屉（V1 原型统一样式） */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:20px}
+.prd ol.dev li{margin:4px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="demo">
+    <h3>原型操作提示</h3>
+    <p>选一个场景，可以切换顶部游戏类型页签，然后点 One-Click Rebate 看提示。</p>
+    <div class="scenes" id="scenes"></div>
+    <div class="who" id="who"></div>
+    <div class="steps" id="steps"></div>
+    <p class="sub">页面结构、文案照 uat 前台 Rebate 页还原（6club 深色主题）。投注量不足 100 时按钮不可点、成功弹窗都是现有功能。新提示里的错误编号由开发分配，原型用 XXX 占位。</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="navbar"><div class="lft"><svg viewBox="0 0 24 24" fill="none" stroke="#f5c45e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg></div><div class="ttl">Rebate</div></div>
+      <div class="page">
+        <div class="tabs" id="tabs"></div>
+        <div class="box">
+          <div class="title" id="boxTitle"></div>
+          <div class="lab"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z"/><path d="M8 12l3 3 5-6" stroke="#2a2a31" stroke-width="2" fill="none"/></svg>Real-time count</div>
+          <div class="number"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v5c0 1.7 2.7 3 6 3M3 12v5c0 1.7 2.7 3 6 3"/><circle cx="16" cy="15" r="5"/></svg><span id="vol"></span></div>
+          <div class="txt">Upgrade VIP level to increase rebate rate</div>
+          <div class="c-row">
+            <div class="item" id="leftItem"></div>
+            <div class="item"><p class="tit">Total rebate</p><span class="num" id="totalReb"></span></div>
+          </div>
+          <div class="tip">Automatic code washing at 01:00:00 every morning</div>
+          <button class="btn" id="btn">One-Click Rebate</button>
+        </div>
+        <div class="list-wrap">
+          <div class="title">Rebate history</div>
+          <div id="recs"></div>
+          <button class="all-record">All history</button>
+        </div>
+      </div>
+      <div class="overlay" id="overlay">
+        <div class="dlg"><div class="ok">✓</div><h4 id="dlgTitle"></h4><div class="tip">One-Click Rebate succesfull</div><div class="amt">Rebate amount:<span id="dlgAmt"></span></div><div class="btn" id="dlgOk">Confirm</div></div>
+      </div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>投注返水 · 洗码率为 0 时的提示语 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型页面。</div>
+    <table class="t">
+      <tr><th style="width:300px">页面</th><th>改动点</th></tr>
+      <tr><td>前台 → <b>Rebate（投注返水）页</b></td><td>点 One-Click Rebate 时，因当前 VIP 等级洗码率为 0 领不到返水，提示改为新文案</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">有投注量、但会员当前 VIP 等级的洗码率为 0，算出的返水为 0 → 提示「Your current VIP level has no rebate. Upgrade your VIP level to get rebates.」</div>
+      <div class="kf">其他领不到返水的情况，仍提示原来的「Wash code is not enough」</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>触发条件</b><span class="kb">核心</span>：点 One-Click Rebate 后，本次领取范围内有投注量，但按会员当前 VIP 等级，有投注量的游戏类型洗码率都是 0，算出的返水为 0 时，显示新提示。选 All 时看参与领取的全部游戏类型，选单个游戏类型时只看该类型；只要有一类算出的返水大于 0，就照常领取。</div>
+
+    <div class="br key"><span class="bn">02</span><b>按配置判断</b><span class="kb">核心</span>：以会员当前 VIP 等级在后台配置的洗码率为准，不限定 VIP0；哪个等级的洗码率为 0，该等级的会员就会看到新提示。</div>
+
+    <div class="br"><span class="bn">03</span><b>提示样式</b>：沿用现有报错样式，显示新的错误编号和新文案。</div>
+
+    <div class="br"><span class="bn">04</span><b>多语言</b>：英文为「Your current VIP level has no rebate. Upgrade your VIP level to get rebates.」，中文为「您当前的VIP等级暂无返水，升级VIP等级即可获得返水」；其他语种没有译文时显示英文。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:140px">项</th><th>说明</th></tr>
+      <tr><td>适用范围</td><td>全站前台 Rebate 页的 One-Click Rebate</td></tr>
+      <tr><td>本次不做</td><td>不改洗码率、领取门槛和返水计算规则；凌晨自动洗码不涉及</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>新增一个提示（新的错误编号），不要改原「Wash code is not enough」的文案和触发条件，其他领不到的情况仍走原提示。</li>
+      <li>选 All 时体育不参与领取，判断「有投注量的类型洗码率都为 0」时也不算体育。</li>
+      <li>服务端自带的默认英文提示也用同一句新文案；前台语言包要加这个新编号的词条。</li>
+      <li>服务端和前台一起上线；只上服务端时，前台会直接显示服务端的英文提示。</li>
+    </ol>
+
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const TABS=[{k:-1,name:'All',ic:'all'},{k:3,name:'Lottery',ic:'lot'},{k:1,name:'Casino',ic:'cas'},{k:4,name:'Rummy',ic:'rum'},{k:0,name:'Slots',ic:'slot'}];
+const ICON={
+  all:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="14" width="8" height="2" rx="1"/><rect x="13" y="18" width="8" height="2" rx="1"/></svg>',
+  lot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><text x="12" y="16" text-anchor="middle" font-size="9" fill="currentColor" stroke="none">8</text></svg>',
+  cas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 3l4 3 4-3M10 10l5 2.5-5 2.5z"/></svg>',
+  rum:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="11" height="15" rx="2"/><rect x="9" y="3" width="11" height="15" rx="2"/></svg>',
+  slot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M9 5v14M15 5v14"/></svg>'};
+const T={c160:'Wash code is not enough',newTip:'Your current VIP level has no rebate. Upgrade your VIP level to get rebates.'}; // newTip 为本次新增
+const RATE={VIP0:{3:0,1:0,4:0,0:0},VIP1:{3:0.05,1:0.05,4:0.05,0:0.05}};
+const VOL_A={3:600,1:820,4:0,0:447.68};
+const SCENES=[
+  {k:'a',label:'① VIP0 · All 页 · 有投注',vip:'VIP0',tab:-1,vol:VOL_A,
+   exp:'<b>本次改动：</b>点 One-Click Rebate → 提示「Error: XXX / '+T.newTip+'」（原来是 Error: 160 / Wash code is not enough）。'},
+  {k:'b',label:'② VIP0 · Casino 页 · 有投注',vip:'VIP0',tab:1,vol:VOL_A,
+   exp:'<b>本次改动：</b>Casino 页洗码率显示 0%，点 One-Click Rebate 同样出新提示。'},
+  {k:'c',label:'③ VIP1 · All 页 · 有投注',vip:'VIP1',tab:-1,vol:VOL_A,
+   exp:'<b>不变：</b>洗码率大于 0，照常领取，弹出成功弹窗。'},
+  {k:'d',label:'④ VIP0 · 投注量不足 100',vip:'VIP0',tab:-1,vol:{3:30,1:20,4:0,0:0},
+   exp:'<b>不变：</b>投注量不足 100，按钮灰色、点了没反应，不会出任何提示。'}
+];
+let S,tab,recs=[],totalReb=0;
+
+const fmt=n=>Number(n).toFixed(2);
+const volOf=k=>k===-1?Object.values(S.vol).reduce((a,b)=>a+b,0):(S.vol[k]||0);
+function render(){
+  $('tabs').innerHTML=TABS.map(t=>`<div class="tab_item ${t.k===tab?'tab_active':''}" data-k="${t.k}">${ICON[t.ic]}<span>${t.name}</span></div>`).join('');
+  const cur=TABS.find(t=>t.k===tab),v=volOf(tab);
+  $('boxTitle').textContent=cur.name+'-Total betting rebate';
+  $('vol').textContent=fmt(v);
+  $('leftItem').innerHTML=tab===-1?`<p class="tit">Today rebate</p><span class="num">${+fmt(recs.filter(r=>r.today).reduce((a,r)=>a+r.amt,0))||0}</span>`
+    :`<p class="tit">Rebate rate</p><span class="num red">${RATE[S.vip][tab]}%</span>`;
+  $('totalReb').textContent=+fmt(totalReb)||0;
+  $('btn').classList.toggle('active',v>=100);
+  $('recs').innerHTML=recs.map(r=>`<div class="rec"><div class="hd"><div><p class="name">${r.name}</p><span class="time">${r.time}</span></div><div class="state">Completed</div></div>
+    <div class="bd"><div><p>Betting rebate</p><p>Rebate rate</p><p>Rebate amount</p></div><div class="r"><p>${fmt(r.vol)}</p><p class="red">${r.rate}%</p><p class="orange">${fmt(r.amt)}</p></div></div></div>`).join('');
+}
+let tt;
+function toast(html){const el=$('toast');el.innerHTML=html;el.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on'),2800);}
+function pick(k){
+  S=JSON.parse(JSON.stringify(SCENES.find(s=>s.k===k)));tab=S.tab;recs=[];totalReb=0;
+  document.querySelectorAll('#scenes button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  const r=RATE[S.vip];
+  $('who').innerHTML=`会员等级 <b>${S.vip}</b>，可领取投注量与洗码率：<table><tr><th></th><th>Lottery</th><th>Casino</th><th>Rummy</th><th>Slots</th></tr>
+    <tr><td>投注量</td><td>${S.vol[3]}</td><td>${S.vol[1]}</td><td>${S.vol[4]}</td><td>${S.vol[0]}</td></tr>
+    <tr><td>洗码率</td><td>${r[3]}%</td><td>${r[1]}%</td><td>${r[4]}%</td><td>${r[0]}%</td></tr></table>`;
+  $('steps').innerHTML=S.exp;$('toast').classList.remove('on');render();
+}
+$('tabs').onclick=e=>{const el=e.target.closest('.tab_item');if(!el)return;tab=+el.dataset.k;render();};
+$('btn').onclick=()=>{
+  const v=volOf(tab);if(v<100)return;
+  const keys=tab===-1?[3,1,4,0]:[tab];
+  const items=keys.filter(k=>S.vol[k]>0).map(k=>({k,vol:S.vol[k],rate:RATE[S.vip][k],amt:S.vol[k]*RATE[S.vip][k]/100}));
+  const sum=items.reduce((a,i)=>a+i.amt,0);
+  if(sum<=0)return toast('<span class="ico">!</span>Error: XXX \n <span class="nw">'+T.newTip+'<span class="new">NEW</span></span>');
+  const now=new Date(),ts=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+now.toTimeString().slice(0,8);
+  items.forEach(i=>{recs.unshift({name:TABS.find(t=>t.k===i.k).name,time:ts,vol:i.vol,rate:i.rate,amt:i.amt,today:true});S.vol[i.k]=0;});
+  totalReb+=sum;
+  $('dlgTitle').textContent=TABS.find(t=>t.k===tab).name+'-Betting rebate';$('dlgAmt').textContent=fmt(sum);
+  $('overlay').classList.add('on');render();
+};
+$('dlgOk').onclick=()=>$('overlay').classList.remove('on');
+
+$('scenes').innerHTML=SCENES.map(s=>`<button data-k="${s.k}">${s.label}</button>`).join('');
+$('scenes').onclick=e=>{const b=e.target.closest('button');if(b)pick(b.dataset.k);};
+pick('a');
+
+const openDoc=()=>{$('drawer').classList.add('on');$('dmask').classList.add('on');};
+const closeDoc=()=>{$('drawer').classList.remove('on');$('dmask').classList.remove('on');};
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDoc();});
+</script>
+</body>
+</html>
