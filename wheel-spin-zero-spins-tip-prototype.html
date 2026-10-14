@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>大转盘 0/0 提示语</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333;min-height:100vh}
+.stage{display:flex;justify-content:center;align-items:flex-start;gap:28px;padding:28px 60px 40px 28px;flex-wrap:wrap}
+
+/* 演示面板（页面外） */
+.demo{width:280px;background:#fff;border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:12.5px;color:#555}
+.demo h3{font-size:13px;color:#6C4FE0;margin-bottom:6px}
+.demo p{line-height:1.7;margin-bottom:10px;color:#888;font-size:12px}
+.demo .scenes{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.demo .scenes button{font:inherit;font-size:12px;text-align:left;border:1px solid #d3caf5;background:#f7f5ff;color:#4b3aa8;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1.5}
+.demo .scenes button:hover{border-color:#6C4FE0}
+.demo .scenes button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.demo .who{background:#fafbfc;border:1px solid #eef0f3;border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.8;color:#555}
+.demo .steps{margin:10px 0 0;padding:8px 10px;background:#fff7f7;border:1px solid #ffd6d6;border-radius:6px;font-size:12px;line-height:1.8;color:#8a2b2b}
+.demo .steps b{color:#c0392b}
+.demo .sub{font-size:11.5px;color:#aaa;margin-top:10px;line-height:1.7}
+
+/* 手机 */
+.phone{width:395px;height:832px;border-radius:36px;background:#111;padding:10px;box-shadow:0 10px 40px rgba(0,0,0,.25);flex:0 0 auto}
+.screen{width:375px;height:812px;border-radius:28px;overflow:hidden;background:#f0f0ee;position:relative;display:flex;flex-direction:column;color:#1E2637}
+
+/* NavBar */
+.navbar{height:46px;background:#fff;display:flex;align-items:center;justify-content:center;position:relative;flex:0 0 auto;z-index:5}
+.navbar .lft{position:absolute;left:12px;top:0;height:100%;display:flex;align-items:center}
+.navbar .lft svg{width:18px;height:18px}
+.navbar .ttl{font-size:18px;color:#1E2637}
+.page{flex:1;overflow-y:auto;position:relative;scrollbar-width:none}
+.page::-webkit-scrollbar{display:none}
+
+/* 还原 activity/Turntable 页 */
+.tt-wrap{padding:0 12px 24px}
+.tt-back{background:#fff;border-radius:0 0 10px 10px;padding:56px 10px 12px;margin:0 0 6px}
+.tt-item{height:40px;background:#f1f1f1;border-radius:10px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;margin-top:12px;font-family:Georgia,"Times New Roman",serif}
+.tt-item:first-child{margin-top:0}
+.tt-item .label{font-size:14px;color:#1E2637}
+.tt-item .wallet{height:30px;min-width:110px;border-radius:15px;background:linear-gradient(90deg,#23a95b,#36c871);color:#fff;font:700 13px/30px -apple-system,Arial,sans-serif;padding:0 10px 0 12px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tt-item .wallet .re{width:16px;height:16px;cursor:pointer}
+.tt-item .count{font-size:16px;font-weight:700;color:#7d8597}
+.tt-item .count .count-progress{color:#e5484d}
+
+.tt-main{position:relative;width:340px;height:340px;margin:14px auto 0}
+.rim{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,#f39c12 0 66%,#f6b12b 66% 100%);box-shadow:inset 0 0 0 8px #ffcc33}
+.dot{position:absolute;width:10px;height:10px;border-radius:50%;background:#e8603c;transform:translate(-50%,-50%)}
+.dot.w{background:#fff;width:13px;height:13px}
+.wheel{position:absolute;inset:20px;border-radius:50%;background:conic-gradient(from -22.5deg,#e95df0 0 45deg,#a04ee0 45deg 90deg,#39a4ec 90deg 135deg,#4fe1d1 135deg 180deg,#55e64a 180deg 225deg,#f4ef1c 225deg 270deg,#f06a1d 270deg 315deg,#f0699d 315deg 360deg);transition:transform 3.2s cubic-bezier(.17,.67,.2,1)}
+.wheel .seg{position:absolute;left:50%;top:50%;width:0;height:0}
+.wheel .seg span{position:absolute;left:-40px;top:-142px;width:80px;text-align:center;color:#fff;font:500 11px Arial,sans-serif}
+.wheel .seg i{position:absolute;left:-17px;top:-120px;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,#f5c04a 0 55%,#e9a72c 56%);box-shadow:inset 0 0 0 2px #ffd56b;font:700 11px/34px Arial;color:#c4791b;text-align:center;font-style:normal}
+.go{position:absolute;left:50%;top:50%;width:76px;height:76px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#c0392b 0 58%,#8e1f15 60% 70%,#e8b23a 71%);display:flex;align-items:center;justify-content:center;color:#f7c66b;font:900 24px Arial;cursor:pointer;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.go::before{content:"";position:absolute;top:-22px;left:50%;transform:translateX(-50%);border-left:11px solid transparent;border-right:11px solid transparent;border-bottom:26px solid #e8b23a}
+
+.tt-entry{display:flex;justify-content:space-around;margin:22px 0 6px;list-style:none}
+.tt-entry li{text-align:center;font-size:12.5px;color:#1E2637;width:110px}
+.tt-entry .ic{width:42px;height:46px;border-radius:5px;background:#21a95c;margin:0 auto 6px;position:relative}
+.tt-entry .ic::before{content:"";position:absolute;left:8px;right:8px;top:10px;height:3px;background:#fff;box-shadow:0 7px 0 #fff,0 14px 0 #fff}
+.tt-title{display:flex;align-items:center;gap:8px;font:700 18px Georgia,serif;margin:16px 0 8px;color:#1E2637}
+.tt-title i{width:18px;height:22px;border:2px solid #21a95c;border-radius:3px;display:inline-block}
+.tt-table .hd{display:flex;background:#21a95c;color:#fff;border-radius:6px 6px 0 0;height:42px;align-items:center;font-size:15px}
+.tt-table .hd div{flex:1;text-align:center}
+.tt-table .bd{background:#fff;min-height:80px;border-radius:0 0 6px 6px;color:#b6bcc8;font-size:12.5px;text-align:center;padding-top:28px}
+.tt-table .row{display:flex;font-size:12px;color:#555;padding:8px 0;border-bottom:1px solid #f2f2f2}
+.tt-table .row div{flex:1;text-align:center}
+
+/* vant 失败提示 */
+.toast{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:240px;background:rgba(0,0,0,.7);color:#fff;font-size:14px;line-height:20px;padding:14px 14px 16px;border-radius:8px;text-align:center;z-index:40;display:none;white-space:pre-line;word-break:break-word}
+.toast.on{display:block}
+.toast .ico{display:block;margin:0 auto 6px;width:28px;height:28px;border-radius:50%;border:2px solid #fff;font:700 18px/24px Arial}
+.new{position:absolute;background:#f5222d;color:#fff;font-size:9px;font-weight:700;line-height:1;padding:3px 5px;border-radius:8px 8px 8px 2px;box-shadow:0 2px 6px rgba(245,34,45,.35);pointer-events:none;letter-spacing:.3px;z-index:6;top:-9px;right:-6px}
+
+/* 中奖弹窗（现有功能，简化示意） */
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:30;display:none;align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.win{width:270px;background:#fff;border-radius:12px;padding:22px 16px 16px;text-align:center}
+.win h4{font-size:17px;color:#1E2637;margin-bottom:6px}
+.win .amt{font-size:26px;font-weight:700;color:#21a95c;margin:6px 0 14px}
+.win .btn{height:36px;line-height:36px;border-radius:18px;background:#21a95c;color:#fff;cursor:pointer}
+.win .sub{font-size:11px;color:#b6bcc8;margin-top:8px}
+
+/* 需求说明抽屉（V1 原型统一样式） */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:20px}
+.prd ol.dev li{margin:4px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="demo">
+    <h3>原型操作提示</h3>
+    <p>选一个场景，然后点转盘中间的 GO，看弹出的提示。</p>
+    <div class="scenes" id="scenes"></div>
+    <div class="who" id="who"></div>
+    <div class="steps" id="steps"></div>
+    <p class="sub">页面结构、文案照 uat 前台 Wheel Spin 页还原；中奖弹窗是现有功能，这里只简单示意。</p>
+  </div>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="navbar"><div class="lft"><svg viewBox="0 0 24 24" fill="none" stroke="#1E2637" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4l-8 8 8 8"/></svg></div><div class="ttl">Wheel Spin</div></div>
+      <div class="page">
+        <div class="tt-wrap">
+          <div class="tt-back">
+            <div class="tt-item"><span class="label">Total Recharge</span>
+              <div class="wallet"><span id="amt"></span><svg class="re" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M20 12a8 8 0 0 1-14 5.3M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg></div>
+            </div>
+            <div class="tt-item"><span class="label">Number of spins</span>
+              <div class="count"><span class="count-progress" id="rot"></span>/<span id="sum"></span></div>
+            </div>
+          </div>
+          <div class="tt-main" id="main">
+            <div class="rim" id="rim"></div>
+            <div class="wheel" id="wheel"></div>
+            <div class="go" id="go">GO</div>
+          </div>
+          <ul class="tt-entry">
+            <li><div class="ic"></div>Event Description</li>
+            <li><div class="ic"></div>Event Details</li>
+            <li><div class="ic"></div>Activity Rules</li>
+          </ul>
+          <div class="tt-title"><i></i>History</div>
+          <div class="tt-table">
+            <div class="hd"><div>Spin time</div><div>Reward type</div><div>prize</div></div>
+            <div class="bd" id="hist">No data</div>
+          </div>
+        </div>
+      </div>
+      <div class="overlay" id="overlay">
+        <div class="win"><h4>Congratulations</h4><div class="amt" id="winAmt"></div><div class="btn" id="winOk">Confirm</div><div class="sub">中奖弹窗为现有功能，此处仅示意</div></div>
+      </div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>大转盘 · 次数 0/0 时的提示语 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型页面。</div>
+    <table class="t">
+      <tr><th style="width:300px">页面</th><th>改动点</th></tr>
+      <tr><td>前台 → 活动 → <b>Wheel Spin（大转盘）页</b></td><td>次数显示为 0/0 的会员点 GO，提示改为新文案</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">次数显示 0/0 时点 GO，提示「You don't have any free spins」</div>
+      <div class="kf">剩余次数为 0、总次数不为 0（如 0/7）时，仍提示「Your draws have been used up」</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>触发条件</b><span class="kb">核心</span>：点 GO 后被判定为次数不足，且页面上「Number of spins」的总次数为 0 时，显示新文案。活动未开放、VIP 等级不符、账号不能抽奖、需先绑定提现账户、活动维护中，仍按各自原提示。</div>
+
+    <div class="br key"><span class="bn">02</span><b>提示样式</b><span class="kb">核心</span>：新文案不带「Error: 905」前缀，只显示文案本身。</div>
+
+    <div class="br"><span class="bn">03</span><b>0/0 的范围</b>：按当天的次数判断，与会员以前是否充值过无关；当天没充值、当天充值未达到获得次数的门槛、充值后次数还没到账，都按 0/0 处理。</div>
+
+    <div class="br"><span class="bn">04</span><b>多语言</b>：英文为「You don't have any free spins」，中文为「您暂无免费抽奖次数」；其他语种没有译文时显示英文。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:140px">项</th><th>说明</th></tr>
+      <tr><td>适用范围</td><td>全站前台 Wheel Spin 活动页</td></tr>
+      <tr><td>本次不做</td><td>不改次数的获得和计算规则</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>只改前台页面，服务端不动。</li>
+      <li>不要在点 GO 前用 0/0 直接拦下，要等服务端返回「次数已用完」后再换文案，否则会盖掉规则 01 里其他拦截的提示。</li>
+      <li>新文案用新的语言包词条，不要改原「Your draws have been used up」词条，0/7 等情况还要用。</li>
+      <li>总次数取页面上已经拿到的那个数，不用另外请求。</li>
+    </ol>
+
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const T={used:'Your draws have been used up',bind:'You can participate in the turntable after binding {0}',
+  noFree:"You don't have any free spins"}; // noFree 为本次新增
+const PRIZES=['Rs10','Rs30','Rs80','Rs200','Rs5,000','Rs20,000','Rs50,000','Rs99,999'];
+
+const SCENES=[
+  {k:'a',label:'① 今天未充值 · 0/0',amt:0,rot:0,sum:0,block:null,
+   who:'今天还没充值，次数 0/0。',exp:'<b>本次改动：</b>提示「You don\'t have any free spins」，不带 Error: 905。'},
+  {k:'b',label:'② 今天充值未达门槛 · 0/0',amt:50,rot:0,sum:0,block:null,
+   who:'今天充了 Rs50，没达到获得次数的门槛，次数仍是 0/0。',exp:'<b>本次改动：</b>同样提示新文案。'},
+  {k:'c',label:'③ 次数已用完 · 0/7',amt:3000,rot:0,sum:7,block:null,
+   who:'今天拿到 7 次，已全部转完。',exp:'<b>不变：</b>仍提示「Error: 905 / Your draws have been used up」。'},
+  {k:'d',label:'④ 还有次数 · 3/7',amt:3000,rot:3,sum:7,block:null,
+   who:'今天拿到 7 次，还剩 3 次。',exp:'<b>不变：</b>正常转盘、弹中奖结果，剩余次数减 1。'},
+  {k:'e',label:'⑤ 未绑定提现账户 · 0/0',amt:0,rot:0,sum:0,block:'bind',
+   who:'活动要求先绑定 UPI，会员还没绑；次数也是 0/0。',exp:'<b>不变：</b>先按绑定要求提示「You can participate in the turntable after binding UPI」，不出新文案。'}
+];
+let S,spinning=false,deg=0,hist=[];
+
+function money(n){return 'Rs'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function buildWheel(){
+  $('wheel').innerHTML=PRIZES.map((p,i)=>`<div class="seg" style="transform:rotate(${i*45}deg)"><span>${p}</span><i>Rs</i></div>`).join('');
+  let h='';for(let i=0;i<24;i++){const a=i*15*Math.PI/180,r=160;const x=170+r*Math.sin(a),y=170-r*Math.cos(a);h+=`<div class="dot ${i%3===0?'w':''}" style="left:${x}px;top:${y}px"></div>`;}
+  $('rim').innerHTML=h;
+}
+function render(){
+  $('amt').textContent=money(S.amt);$('rot').textContent=S.rot;$('sum').textContent=S.sum;
+  $('hist').innerHTML=hist.length?hist.map(r=>`<div class="row"><div>${r.t}</div><div>Amount reward</div><div>${r.p}</div></div>`).join(''):'No data';
+  $('hist').style.paddingTop=hist.length?'0':'28px';
+}
+let tt;
+function toast(html){const el=$('toast');el.innerHTML=html;el.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on'),2600);}
+function pick(k){
+  S={...SCENES.find(s=>s.k===k)};hist=[];
+  document.querySelectorAll('#scenes button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  $('who').innerHTML=S.who;$('steps').innerHTML=S.exp;
+  $('toast').classList.remove('on');render();
+}
+$('go').onclick=()=>{
+  if(spinning)return;
+  if(S.block==='bind')return toast('<span class="ico">!</span>'+T.bind.replace('{0}','UPI'));
+  if(S.rot<=0){
+    if(S.sum===0)return toast('<span class="ico">!</span><span style="position:relative;display:inline-block">'+T.noFree+'<span class="new">NEW</span></span>');
+    return toast('<span class="ico">!</span>Error: 905 \n '+T.used);
+  }
+  spinning=true;const idx=Math.floor(Math.random()*4);
+  deg+=360*5+(360-(deg%360))-idx*45;$('wheel').style.transform=`rotate(${deg}deg)`;
+  setTimeout(()=>{spinning=false;S.rot--;const now=new Date();hist.unshift({t:now.toTimeString().slice(0,8),p:PRIZES[idx]});render();$('winAmt').textContent=PRIZES[idx];$('overlay').classList.add('on');},3300);
+};
+$('winOk').onclick=()=>$('overlay').classList.remove('on');
+
+$('scenes').innerHTML=SCENES.map(s=>`<button data-k="${s.k}">${s.label}</button>`).join('');
+$('scenes').onclick=e=>{const b=e.target.closest('button');if(b)pick(b.dataset.k);};
+buildWheel();pick('a');
+
+const openDoc=()=>{$('drawer').classList.add('on');$('dmask').classList.add('on');};
+const closeDoc=()=>{$('drawer').classList.remove('on');$('dmask').classList.remove('on');};
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDoc();});
+</script>
+</body>
+</html>
