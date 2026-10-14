@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>相同提现账号 · 绑定会员数</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sub h1{font-size:15px;color:#2b6cb0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:14px 44px 60px 22px}
+.main{background:#fff;border-radius:4px;padding:15px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.acc{font-family:Consolas,Monaco,Menlo,monospace}
+.accm{cursor:pointer}
+.grey{color:#98a2b0}
+
+/* 角标：NEW=新增，改=调整 */
+.nw,.chg{position:relative;display:inline-block}
+.nw::after,.chg::after{position:absolute;top:-12px;right:-16px;color:#fff;font:700 9px/14px Arial,"PingFang SC",sans-serif;padding:0 4px;border-radius:7px;pointer-events:none;z-index:3}
+.nw::after{content:"NEW";background:#ff4d4f;box-shadow:0 1px 3px rgba(255,77,79,.45)}
+.chg::after{content:"改";background:#fa8c16;box-shadow:0 1px 3px rgba(250,140,22,.45);right:-12px}
+
+/* 原型演示条（非产品内容） */
+.demo{margin:0 0 10px;padding:7px 12px;border:1px dashed #c3b8ee;border-radius:6px;background:#f7f5ff;color:#4b3aa8;font-size:12.5px}
+.demo a{color:#6C4FE0;text-decoration:underline;cursor:pointer;margin-left:6px}
+
+/* 页签（照 SameWithdrawAccountView .swa-tabs） */
+.swtabs{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;background:#f1f3f7;border:1px solid #e6e8eb;border-radius:8px;margin-bottom:10px}
+.swtabs li{list-style:none;min-width:120px;line-height:30px;padding:0 18px;font-size:14px;color:#5a6472;border-radius:6px;cursor:pointer;text-align:center}
+.swtabs li:hover{color:#2b6cb0;background:rgba(43,108,176,.08)}
+.swtabs li.on{color:#fff;background:#2b6cb0;font-weight:500}
+
+/* 查询区 */
+.sf{background:#fff;border-radius:8px;padding:10px 10px 5px}
+.fi{display:inline-flex;align-items:center;margin:0 20px 12px 0;vertical-align:top}
+.fl{width:60px;margin-right:10px;line-height:20px;text-align:justify;text-align-last:justify;color:#333;font-size:14px;flex:none}
+.fl.keep{text-align:right;text-align-last:right}
+.fin{width:170px;height:36px;border:1px solid #dcdfe6;border-radius:4px;padding:0 10px;font:inherit;font-size:14px;color:#333;background:#fff}
+.fin:focus{outline:none;border-color:#2b6cb0}
+.fin:disabled{background:#f5f7fa;color:#b0b7c3;cursor:not-allowed}
+.fhint{display:inline-block;vertical-align:top;line-height:36px;margin:0 30px 12px -12px;font-size:12px;color:#b9770e;cursor:help}
+.bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+.lb{height:36px;padding:0 16px;font:inherit;font-size:14px;border-radius:6px;border:1px solid;cursor:pointer;color:#fff;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.b-search{background:#2b6cb0;border-color:#2b6cb0}
+.b-reset{background:#eef0f3;border-color:#eef0f3;color:#5a6472}
+.b-green{background:#2ecc71;border-color:#2ecc71}
+
+/* layui 表格 */
+.tw{border:1px solid #e6e6e6;overflow-x:auto;margin-top:10px;min-height:160px;background:#fff}
+table.lt{border-collapse:collapse;width:100%;font-size:14px;color:#666;min-width:1320px}
+.lt th{background:#fafafa;font-weight:400;color:#666;height:39px;border-bottom:1px solid #e6e6e6;border-right:1px solid #e6e6e6;padding:0 12px;text-align:center;white-space:nowrap}
+.lt td{border-bottom:1px solid #e6e6e6;border-right:1px solid #e6e6e6;padding:5px 12px;text-align:center;height:39px;white-space:nowrap}
+.lt th:last-child,.lt td:last-child{border-right:0}
+.lt tbody tr:hover>td{background:#f2f5f9}
+.lt .empty td{color:#999;height:120px}
+.lt th.sth{cursor:pointer;user-select:none}
+.lt th.sth:hover{background:#f0f2f5}
+.sorti{display:inline-flex;flex-direction:column;vertical-align:middle;margin-left:16px;gap:2px}
+.sorti i{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent}
+.sorti .up{border-bottom:5px solid #c2c2c2}.sorti .dn{border-top:5px solid #c2c2c2}
+.sorti .up.on{border-bottom-color:#2b6cb0}.sorti .dn.on{border-top-color:#2b6cb0}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;line-height:18px;border:1px solid transparent}
+.t-blocked{color:#c0392b;background:#fdedeb;border-color:#f5c6c0}
+.t-normal{color:#237a4b;background:#e7f7ee;border-color:#b7e4cb}
+.t-bind{color:#237a4b;background:#e7f7ee;border-color:#b7e4cb}
+.t-unbind{color:#c0392b;background:#fdedeb;border-color:#f5c6c0}
+.t-edit{color:#b9770e;background:#fdf3e2;border-color:#f6dfb4}
+.warn-tag{color:#cf1322;background:#fff1f0;border-color:#ffa39e;margin-left:6px}
+.op{height:24px;padding:0 8px;line-height:22px;font:inherit;font-size:11.5px;background:#fff;border:1px solid #2b6cb0;color:#2b6cb0;border-radius:4px;cursor:pointer}
+.op:hover{background:#eef4fb}
+.op.del{border-color:#e74c3c;color:#e74c3c}.op.del:hover{background:#fdedeb}
+.cnt-hit{cursor:pointer;display:block}
+.cnt{color:#1677ff;font-weight:bold;text-decoration:underline}
+.cnt-arrow{color:#98a2b0;font-size:11px;margin-left:4px}
+/* 绑定明细展开区 */
+tr.drow>td{background:#f7fafd!important;padding:0!important;white-space:normal;text-align:left}
+.dpanel{padding:10px 14px 12px}
+.dhd{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;color:#5a6472}
+.dhd b{color:#2b6cb0;font-size:14px}
+.dhd .acc{color:#1a2733}
+.dtbl{background:#fff;border:1px solid #e4e8ee;border-radius:6px;overflow:hidden}
+.dtbl table{width:100%;border-collapse:collapse;font-size:13px;color:#666}
+.dtbl th{background:#fafafa;font-weight:400;height:34px;border-bottom:1px solid #eef1f5;border-right:1px solid #eef1f5;padding:0 10px;text-align:center}
+.dtbl td{height:34px;border-bottom:1px solid #f2f4f7;border-right:1px solid #f2f4f7;padding:0 10px;text-align:center;white-space:nowrap}
+.dtbl tr.hl td{background:#fff8e6}
+.dtbl .dpg{padding:5px 12px;text-align:center;font-size:12px;background:#fafbfc;color:#98a2b0}
+.dtbl .dpg a{display:inline-block;min-width:22px;height:22px;line-height:20px;margin:0 2px;padding:0 6px;border:1px solid #e4e8ee;border-radius:3px;background:#fff;color:#5a6472;cursor:pointer}
+.dtbl .dpg a.on{background:#7c5cff;border-color:#7c5cff;color:#fff}
+
+/* layui 分页 */
+.lp{display:flex;align-items:center;padding:10px 0 0;font-size:12px;color:#333;flex-wrap:wrap}
+.lp a,.lp span.pg{display:inline-block;min-width:30px;height:28px;line-height:26px;border:1px solid #e2e2e2;text-align:center;padding:0 10px;background:#fff;color:#333;margin-right:-1px}
+.lp span.cur{background:#1e9fff;border-color:#1e9fff;color:#fff}
+.lp a.dis{color:#d2d2d2}
+.lp .lpx{margin-left:10px}
+.lp select{height:28px;border:1px solid #e2e2e2;margin-left:10px;font-size:12px}
+
+/* layer 弹窗 */
+.lmask{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150}
+.layer{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:2px;box-shadow:1px 1px 50px rgba(0,0,0,.3);z-index:151;display:flex;flex-direction:column;max-width:96vw;max-height:94vh}
+.layer .lh{height:52px;line-height:52px;padding:0 50px 0 24px;border-bottom:1px solid #eef0f3;color:#2b6cb0;font-size:16px;font-weight:600;flex:none;position:relative}
+.layer .lx{position:absolute;right:18px;top:0;color:#999;cursor:pointer;font-size:18px;font-weight:400}
+.layer .lbd{flex:1;overflow-y:auto;min-height:0}
+.layer .lf{flex:none;text-align:center;padding:16px 24px 24px;border-top:1px solid #f5f6f8}
+.layer .lf a{display:inline-block;height:34px;line-height:32px;padding:0 26px;margin:0 6px;border-radius:6px;font-size:13px;cursor:pointer;border:1px solid}
+.lf .b0{background:#2b6cb0;border-color:#2b6cb0;color:#fff}
+.lf .b1{background:#8792a2;border-color:#8792a2;color:#fff}
+.cf{padding:20px 22px 20px 62px;position:relative;line-height:1.8;font-size:14px;color:#333}
+.cf .ico{position:absolute;left:22px;top:22px;width:28px;height:28px;border-radius:50%;background:#ffb800;color:#fff;font-weight:700;text-align:center;line-height:28px;font-size:17px}
+.lform{padding:20px 24px 0 0}
+.lfi{display:flex;margin-bottom:15px}
+.lfl{width:110px;padding:9px 15px 9px 0;text-align:right;color:#333;flex:none;line-height:20px}
+.lfb{margin-left:30px;flex:1;min-width:0}
+.lfb input,.lfb textarea{width:100%;height:38px;border:1px solid #e6e6e6;border-radius:2px;padding:0 10px;font:inherit;font-size:14px;color:#333}
+.lfb textarea{height:100px;padding:6px 10px;resize:vertical;line-height:20px}
+.lfb input[readonly]{background:#fafafa}
+
+/* layer.msg */
+.lmsg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.72);color:#fff;padding:12px 22px 12px 50px;border-radius:2px;z-index:400;font-size:14px;max-width:80vw;line-height:1.7;display:none}
+.lmsg .mi{position:absolute;left:15px;top:14px;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;font-size:14px;font-weight:700}
+.lmsg .mi.ok{background:#5fb878}.lmsg .mi.info{background:#ffb800}
+
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>india82</b></div>
+  <div style="display:flex;gap:16px;align-items:center"><span id="today"></span><span>当前币种：<b style="color:#c0392b">INR</b></span></div>
+</div>
+<div class="sub">
+  <h1>相同提现账号</h1>
+  <div class="crumb">风控管理 &nbsp;›&nbsp; 相同提现账号 &nbsp;›&nbsp; <b>相同提现账号</b></div>
+</div>
+
+<div class="wrap">
+ <div class="main">
+  <div class="demo">原型演示（非页面内容）：<a id="demoJump">模拟从「提现账号黑名单」点「绑定历史」跳转过来（账号 60231188779900，只有 1 个会员绑过）</a></div>
+  <ul class="swtabs" id="tabs"></ul>
+  <div class="sf">
+   <div>
+    <div class="fi"><span class="fl">提现账号</span><input class="fin" id="sAcc" placeholder="支持模糊查询" autocomplete="off"></div>
+    <div class="fi"><span class="fl keep">会员ID</span><input class="fin" id="sUid" placeholder="精确匹配" autocomplete="off"></div>
+    <div class="fi" id="sTypeBox"><span class="fl">提现类型</span><select class="fin" id="sType"><option value="">不限</option></select></div>
+    <div class="fi"><span class="fl nw" style="margin-right:22px">绑定会员</span><select class="fin" id="sMem"><option value="1">≥ 1 人（全部）</option><option value="2" selected>≥ 2 人</option><option value="3">≥ 3 人</option><option value="5">≥ 5 人</option></select></div>
+    <div class="fi"><span class="fl chg" style="margin-right:18px">绑定次数</span><select class="fin" id="sMin"><option value="1" selected>≥ 1（全部）</option><option value="2">≥ 2</option><option value="3">≥ 3</option><option value="5">≥ 5</option></select></div>
+    <span class="fhint nw" id="fHint" style="display:none" title="已填会员ID或提现账号，绑定会员、绑定次数不生效">显示全部</span>
+    <div class="fi"><span class="fl">拉黑状态</span><select class="fin" id="sBlk"><option value="">全部</option><option value="1">已拉黑</option><option value="0">未拉黑</option></select></div>
+   </div>
+   <div class="bar">
+    <button class="lb b-search" id="sQ">🔍 查询</button>
+    <button class="lb b-reset" id="sR">↻ 重置</button>
+    <button class="lb b-green" id="sE">⇪ 导出</button>
+   </div>
+  </div>
+  <div class="tw">
+   <table class="lt">
+    <thead><tr>
+     <th style="min-width:220px">提现账号</th>
+     <th style="width:140px">提现类型</th>
+     <th style="width:150px" class="sth" data-sort="members"><span class="nw">绑定会员数</span><span class="sorti"></span></th>
+     <th style="width:150px" class="sth" data-sort="binds"><span class="chg">累计绑定次数</span><span class="sorti"></span></th>
+     <th style="width:190px" class="sth" data-sort="last"><span class="chg">最近绑定时间</span><span class="sorti"></span></th>
+     <th style="min-width:180px">当前绑定会员</th>
+     <th style="width:170px">黑名单状态</th>
+     <th style="width:100px">操作</th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+   </table>
+  </div>
+  <div class="lp" id="pg"></div>
+ </div>
+</div>
+
+<div class="lmsg" id="lmsg"><span class="mi" id="lmsgI"></span><span id="lmsgT"></span></div>
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>相同提现账号 · 绑定会员数 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身。页面的样子和交互直接看原型，红色 NEW 是新增，橙色「改」是调整。</div>
+    <table class="t">
+      <tr><th style="width:200px">页面</th><th>改动点</th></tr>
+      <tr><td>风控管理 → <b>相同提现账号</b>（5 个页签都改）</td><td>列表新增列「绑定会员数」，点击展开按会员汇总；「绑定会员数」「累计绑定次数」「最近绑定时间」表头可点击排序；新增筛选「绑定会员」；「绑定次数」筛选的默认值和列表默认排序调整；导出增加「绑定会员数」</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">列表直接显示每个账号被几个不同会员绑定过，不用点开明细</div>
+      <div class="kf">打开页面默认只看被 2 个及以上会员绑定过的账号，按会员数从多到少排</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>绑定会员数</b><span class="kb">核心</span>：历史绑定过该账号的不同会员 ID 个数，与展开绑定明细里「历史绑定过 N 个会员」口径相同（绑定明细里出现过的会员都算，含绑定、解绑、修改的记录）。放在「累计绑定次数」前面。</div>
+
+    <div class="br key"><span class="bn">02</span><b>两个数字各自展开</b><span class="kb">核心</span>：
+      <table class="t">
+        <tr><th style="width:130px">点击</th><th>展开内容</th></tr>
+        <tr><td>绑定会员数</td><td>按会员汇总，一个会员一行：会员ID、会员账号、收款人姓名、绑定次数（该会员绑定这个账号的次数）、最近绑定时间、当前在绑（是 / 否，与「当前绑定会员」列同口径）；按最近绑定时间倒序</td></tr>
+        <tr><td>累计绑定次数</td><td>现有绑定明细，不变</td></tr>
+      </table>
+      同一个账号同一时间只展开一种：点另一列切换，点同一列收起。按会员ID查询时，该会员所在行高亮，与绑定明细一致。
+    </div>
+
+    <div class="br key"><span class="bn">03</span><b>筛选</b><span class="kb">核心</span>：新增筛选「绑定会员」（按绑定会员数筛），选项 ≥1 人（全部）、≥2 人、≥3 人、≥5 人，默认 ≥2 人。「绑定次数」选项不变，默认值由 ≥2 改为 ≥1（全部）。两个筛选同时生效，都满足才显示；「重置」后回到默认值（绑定会员 ≥2 人，绑定次数 ≥1）。<br>填了会员ID或提现账号时，这两个筛选不生效（置灰），显示该会员或该账号的全部结果；清空后恢复生效。</div>
+
+    <div class="br key"><span class="bn">04</span><b>排序</b><span class="kb">核心</span>：
+      <table class="t">
+        <tr><th style="width:130px">项</th><th>规则</th></tr>
+        <tr><td>默认排序</td><td>先按绑定会员数从多到少，相同的再按累计绑定次数从多到少，再按提现账号</td></tr>
+        <tr><td>表头排序</td><td>「绑定会员数」「累计绑定次数」「最近绑定时间」三列可点击表头排序：第一次点击按从多到少（时间从新到旧），再点切换为从少到多（时间从旧到新）；该列相同的再按默认排序</td></tr>
+        <tr><td>生效范围</td><td>排序作用于全部查询结果，不只当前页；点「查询」、翻页、切换页签保持当前排序，点「重置」恢复默认排序；导出按当前排序</td></tr>
+      </table>
+    </div>
+
+    <div class="br"><span class="bn">05</span><b>导出</b>：增加「绑定会员数」列，位置与列表一致；按当前筛选（含新筛选）和当前排序导出。绑定明细不变。</div>
+
+    <div class="br"><span class="bn">06</span><b>从黑名单页跳转</b>：从「提现账号黑名单」页点「绑定历史」跳转过来时，精确查询该账号并展开绑定明细；因为带了提现账号，按 03 显示全部结果。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>统计范围</td><td>绑定会员数以绑定明细为准，明细开始记录之前已解绑的会员不计入</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>列表本来就是把绑定明细按账号汇总出来的，在同一个汇总里多加一个「不同会员 ID 计数」即可；会员 ID 已在现有索引里，不需要另外查。</li>
+      <li>会员ID 或提现账号有值时，后端查询忽略「绑定会员」「绑定次数」两个条件（导出同理），前端把两个下拉置灰；从黑名单页跳转进来不用再单独改这两个筛选的值。</li>
+      <li>表头排序在后端做（排序字段和方向随查询、翻页、导出一起传），作用于全部结果，不能只排当前页。</li>
+      <li>绑定会员汇总从同一份绑定明细按会员归总即可；「当前在绑」和列表「当前绑定会员」用同一个来源（会员现有的提现账号）。</li>
+      <li>只改这个页面的列表、筛选、排序、导出和新增的会员汇总；绑定明细、拉黑、解除等其他功能都不动。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function esc(s){return s===null||s===undefined?'':String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function mask(a){a=a||'';return a.length>8?a.substring(0,4)+'****'+a.substring(a.length-4):a;}
+function norm(v){return (v||'').replace(/\s/g,'').replace(/-/g,'').toLowerCase();}
+function pad(n){return n<10?'0'+n:''+n;}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
+$('today').textContent=fmt(new Date()).slice(0,10);
+
+/* ================= 演示数据（india82） ================= */
+var WT={1:'BANK CARD',4:'E-Wallet',6:'WavePay',8:'KBZPay',22:'RSN Wallet',23:'Easypaisa',24:'JazzCash',3:'USDT',11:'TRX',21:'ARPay',2:'UPI',20:'NewUPI',27:'FastUPI',5:'PIX'};
+var TABS=[{tab:1,name:'相同银行卡',types:[1]},{tab:2,name:'相同电子钱包',types:[4,6,8,22,23,24]},{tab:3,name:'相同加密货币',types:[3,11,21]},{tab:4,name:'相同UPI',types:[2,20,27]},{tab:5,name:'相同PIX',types:[5]}];
+var M={};
+[[6224083,'917****908','RISHABHGUPTA'],[5596986,'919****665','RISHABHGUPTA'],[7012345,'916****231','AMIT KUMAR'],[7012388,'918****402','SURESH YADAV'],
+ [7013001,'917****777','POOJA SINGH'],[7013452,'919****018','RAVI VERMA'],[7014003,'916****590','ANIL SHARMA'],[7015120,'918****333','MANOJ PATEL'],
+ [7016200,'917****120','VIKAS GUPTA'],[7017811,'919****876','DEEPAK JAIN'],[7018004,'916****444','SUNITA DEVI'],[7019500,'917****262','RAJESH KUMAR']]
+ .forEach(function(x){M[x[0]]={uname:x[1],name:x[2]};});
+function E(t,act,uid,src,op){return{t:t,act:act,uid:uid,src:src,op:op||''};}
+/* 截图账号 53088100026097：6224083 会员端绑定、客服工单解绑反复循环，43 次绑定只有 2 个会员 */
+var ev1=[
+ E('2026-10-10 22:08:30','解绑',6224083,'客服工单','2610101638263176213'),E('2026-10-10 21:36:21','绑定',6224083,'会员端'),
+ E('2026-10-09 17:27:30','解绑',5596986,'客服工单','2610091157262345419'),E('2026-10-08 23:00:22','绑定',5596986,'会员端'),
+ E('2026-10-03 23:14:20','解绑',6224083,'客服工单','2610031744198474813'),E('2026-10-03 22:38:03','绑定',6224083,'会员端'),
+ E('2026-10-01 06:01:20','解绑',5596986,'客服工单','2610010031148852770'),E('2026-10-01 05:55:35','绑定',5596986,'会员端'),
+ E('2026-09-28 11:20:30','解绑',6224083,'客服工单','2609280550278773592'),E('2026-09-27 22:10:00','绑定',6224083,'会员端'),
+ E('2026-09-21 23:53:10','解绑',6224083,'客服工单','2609211823055292842'),E('2026-09-21 19:11:10','绑定',6224083,'会员端'),
+ E('2026-09-21 17:07:30','解绑',6224083,'客服工单','2609211137230212940'),E('2026-09-20 14:51:18','绑定',6224083,'会员端'),
+ E('2026-09-20 10:33:30','解绑',6224083,'客服工单','2609200503292823738')
+];
+(function(){ /* 往前补 36 次「绑定+解绑」，凑满 43 次绑定 */
+  var base=new Date(2026,8,20,8,12,40).getTime();
+  for(var k=0;k<36;k++){
+    var b=new Date(base-k*40*3600*1000),u=(k%7===3)?5596986:6224083;
+    ev1.push(E(fmt(b),'绑定',u,'会员端'));
+    if(k>0){var ub=new Date(b.getTime()+(2*3600+21*60)*1000);ev1.push(E(fmt(ub),'解绑',u,'客服工单','26'+fmt(ub).replace(/\D/g,'').slice(2,8)+String(1000000000000+k*7919).slice(1)));}
+  }
+})();
+function loop(uid,n,startY,startM,startD){var r=[],t=new Date(startY,startM-1,startD,10,5,0).getTime();for(var i=0;i<n;i++){var b=new Date(t+i*5*86400000);r.push(E(fmt(b),'绑定',uid,'会员端'));if(i<n-1)r.push(E(fmt(new Date(b.getTime()+3*3600000)),'解绑',uid,'会员端'));}return r;}
+var ACC=[
+ {acc:'53088100026097',wt:1,black:true,ev:ev1},
+ {acc:'37201456789012',wt:1,black:false,ev:[E('2026-07-02 11:20:10','绑定',7012345,'会员端'),E('2026-07-09 18:02:44','解绑',7012345,'会员端'),E('2026-07-10 09:31:05','绑定',7012388,'会员端'),E('2026-08-01 20:15:31','解绑',7012388,'后台','admin_kim'),E('2026-08-03 13:40:12','绑定',7013001,'会员端'),E('2026-08-30 22:05:44','解绑',7013001,'会员端'),E('2026-09-02 10:18:29','绑定',7013452,'会员端'),E('2026-09-19 15:40:07','解绑',7013452,'客服工单','2609191540070011223'),E('2026-09-20 11:06:33','绑定',7019500,'会员端')]},
+ {acc:'91820044556677',wt:1,black:false,ev:[E('2026-06-15 10:02:17','绑定',7014003,'会员端'),E('2026-06-20 16:45:09','解绑',7014003,'会员端'),E('2026-06-21 08:30:56','绑定',7014003,'会员端'),E('2026-07-05 12:11:40','解绑',7014003,'会员端'),E('2026-07-06 19:22:03','绑定',7018004,'会员端'),E('2026-08-02 13:50:12','解绑',7018004,'后台','admin_kim'),E('2026-08-05 09:47:38','绑定',7015120,'会员端')]},
+ {acc:'60231188779900',wt:1,black:false,ev:loop(7016200,8,2026,8,1)},
+ {acc:'12340098765432',wt:1,black:true,ev:[E('2026-07-15 10:02:17','绑定',7017811,'会员端'),E('2026-07-20 16:45:09','解绑',7017811,'客服工单','2607201645090031122'),E('2026-07-21 08:30:56','绑定',7019500,'会员端'),E('2026-09-10 21:14:58','解绑',7019500,'会员端')]},
+ {acc:'77881234560011',wt:1,black:false,ev:[E('2026-08-11 10:18:29','绑定',7017811,'会员端'),E('2026-08-15 17:33:51','解绑',7017811,'会员端'),E('2026-08-16 09:12:40','绑定',7017811,'会员端')]},
+ {acc:'sharma.v@ybl',wt:2,black:false,ev:[E('2026-07-03 11:20:05','绑定',7014003,'会员端'),E('2026-08-10 22:05:44','解绑',7014003,'会员端'),E('2026-08-11 10:18:29','绑定',7012345,'会员端'),E('2026-09-01 15:40:07','解绑',7012345,'会员端'),E('2026-09-02 11:06:33','绑定',7013001,'会员端'),E('2026-09-25 09:30:00','解绑',7013001,'会员端'),E('2026-09-26 21:16:20','绑定',7018004,'会员端')]},
+ {acc:'9812345670@paytm',wt:20,black:false,ev:loop(7015120,6,2026,8,20)},
+ {acc:'rk.gupta@oksbi',wt:27,black:true,ev:[E('2026-08-01 12:11:40','绑定',7013452,'会员端'),E('2026-08-15 17:33:51','解绑',7013452,'会员端'),E('2026-08-16 09:02:11','绑定',7013452,'会员端'),E('2026-09-03 10:44:18','解绑',7013452,'会员端'),E('2026-09-04 20:15:31','绑定',7016200,'会员端')]}
+];
+
+/* ================= 计算 ================= */
+function holders(a){var h={};a.ev.slice().sort(function(x,y){return x.t<y.t?-1:1;}).forEach(function(e){if(e.act==='解绑')delete h[e.uid];else h[e.uid]=1;});return Object.keys(h).map(Number);}
+function rowOf(a){
+  var b=a.ev.filter(function(e){return e.act==='绑定';}),users={};
+  a.ev.forEach(function(e){users[e.uid]=1;});            /* 01：明细里出现过的不同会员 */
+  return{a:a,members:Object.keys(users).length,binds:b.length,last:b.map(function(e){return e.t;}).sort().pop()||'',holders:holders(a)};
+}
+var tab=1,open={},dpage={},exact='',sortKey='members',sortDir='desc';
+function filtered(){
+  var t=TABS[tab-1],kw=norm($('sAcc').value),uid=parseInt($('sUid').value,10),wt=$('sType').value,mem=+$('sMem').value,min=+$('sMin').value,blk=$('sBlk').value;
+  return ACC.filter(function(a){
+    if(t.types.indexOf(a.wt)<0)return false;
+    if(kw&&(exact?a.acc!==kw:a.acc.indexOf(kw)<0))return false;
+    if(uid&&!a.ev.some(function(e){return e.uid===uid;}))return false;
+    if(wt&&a.wt!==+wt)return false;
+    if(blk==='1'&&!a.black)return false;
+    if(blk==='0'&&a.black)return false;
+    return true;
+  }).map(rowOf).filter(function(r){return (kw||uid)?true:(r.members>=mem&&r.binds>=min);}) /* 03：填了会员ID或提现账号就不按两个次数筛选 */
+    .sort(function(x,y){ /* 04：按当前排序列，相同的再按默认顺序 */
+      var dflt=y.members-x.members||y.binds-x.binds||(x.a.acc<y.a.acc?-1:1);
+      var vx=x[sortKey]||'',vy=y[sortKey]||'',c=vx<vy?-1:vx>vy?1:0;
+      if(sortDir==='desc')c=-c;
+      return c||dflt;
+    });
+}
+
+/* ================= 渲染 ================= */
+function render(){
+  var rows=filtered(),uidHl=parseInt($('sUid').value,10)||0;
+  $('tb').innerHTML=rows.length?rows.map(function(r){
+    var a=r.a,cur=r.holders.length?String(r.holders[r.holders.length-1]):'<span class="grey">无</span>';
+    if(r.holders.length>1)cur+='<span class="tag warn-tag">⚠ 跨通道并存 '+r.holders.length+' 人</span>';
+    var arM='<span class="cnt-arrow">'+(open[a.acc]==='mem'?'▲':'▼')+'</span>',arD='<span class="cnt-arrow">'+(open[a.acc]==='det'?'▲':'▼')+'</span>';
+    var h='<tr><td><span class="acc accm" title="点击展开完整账号" data-full="'+esc(a.acc)+'">'+esc(mask(a.acc))+'</span></td><td>'+esc(WT[a.wt])+'</td>'+
+      '<td><a class="cnt-hit" data-mem="'+esc(a.acc)+'"><span class="cnt">'+r.members+'</span>'+arM+'</a></td>'+
+      '<td><a class="cnt-hit" data-det="'+esc(a.acc)+'"><span class="cnt">'+r.binds+'</span>'+arD+'</a></td>'+
+      '<td>'+(r.last||'--')+'</td><td>'+cur+'</td>'+
+      '<td>'+(a.black?'<span class="tag t-blocked">已拉黑</span>':'<span class="tag t-normal">未拉黑</span>')+'</td>'+
+      '<td>'+(a.black?'<button class="op" data-rel="'+esc(a.acc)+'">解除</button>':'<button class="op del" data-blk="'+esc(a.acc)+'">拉黑</button>')+'</td></tr>';
+    if(open[a.acc]==='det')h+=detailRow(r,uidHl);
+    if(open[a.acc]==='mem')h+=memberRow(r,uidHl);
+    return h;
+  }).join(''):'<tr class="empty"><td colspan="8">无数据</td></tr>';
+  renderSortIcons();
+  $('pg').innerHTML='<a class="dis">‹</a><span class="pg cur">1</span><a class="dis">›</a><span class="lpx">到第 <input value="1" style="width:40px;height:28px;border:1px solid #e2e2e2;text-align:center"> 页 <a style="margin-left:4px">确定</a></span><span class="lpx">共 '+rows.length+' 条</span><select><option>10 条/页</option><option selected>20 条/页</option><option>50 条/页</option><option>100 条/页</option></select>';
+}
+function detailRow(r,uidHl){
+  var a=r.a,ev=a.ev.slice().sort(function(x,y){return x.t<y.t?1:-1;}),size=20,pages=Math.max(1,Math.ceil(ev.length/size)),p=Math.min(dpage[a.acc]||1,pages);
+  var list=ev.slice((p-1)*size,p*size),pg='';for(var i=1;i<=pages;i++)pg+='<a class="'+(i===p?'on':'')+'" data-dp="'+i+'" data-acc="'+esc(a.acc)+'">'+i+'</a>';
+  return '<tr class="drow"><td colspan="8"><div class="dpanel"><div class="dhd"><div>绑定明细 · <span class="acc">'+esc(a.acc)+'</span>　历史绑定过 <b>'+r.members+'</b> 个会员　累计绑定 <b>'+r.binds+'</b> 次　<span class="grey">（绑定 / 解绑 / 后台修改，按时间倒序）</span></div><span class="grey" style="cursor:pointer" title="刷新明细">↻</span></div>'+
+    '<div class="dtbl"><table><thead><tr><th style="width:185px">时间</th><th style="width:90px">动作</th><th style="width:100px">会员ID</th><th style="width:160px">会员账号</th><th>收款人姓名</th><th style="width:100px">操作来源</th><th>操作人 / 工单号</th></tr></thead><tbody>'+
+    list.map(function(e){var cls=e.act==='绑定'?'t-bind':e.act==='解绑'?'t-unbind':'t-edit';var m=M[e.uid];return '<tr class="'+(uidHl&&e.uid===uidHl?'hl':'')+'"><td>'+e.t+'</td><td><span class="tag '+cls+'">'+e.act+'</span></td><td>'+e.uid+'</td><td>'+esc(m.uname)+'</td><td>'+esc(m.name)+'</td><td>'+e.src+'</td><td>'+esc(e.op)+'</td></tr>';}).join('')+
+    '</tbody></table><div class="dpg">共 '+ev.length+' 条　'+pg+'</div></div></div></td></tr>';
+}
+/* 02 绑定会员汇总：一个会员一行 */
+function memberRow(r,uidHl){
+  var a=r.a,g={};
+  a.ev.slice().sort(function(x,y){return x.t<y.t?-1:1;}).forEach(function(e){
+    if(!g[e.uid])g[e.uid]={uid:e.uid,binds:0,last:'',name:''};
+    var x=g[e.uid];x.name=M[e.uid].name;
+    if(e.act==='绑定'){x.binds++;x.last=e.t;}
+  });
+  var list=Object.keys(g).map(function(k){var x=g[k];x.cur=r.holders.indexOf(x.uid)>=0;return x;})
+    .sort(function(x,y){return (x.last||'')<(y.last||'')?1:-1;});
+  return '<tr class="drow"><td colspan="8"><div class="dpanel"><div class="dhd"><div>绑定会员 · <span class="acc">'+esc(a.acc)+'</span>　历史绑定过 <b>'+r.members+'</b> 个会员　累计绑定 <b>'+r.binds+'</b> 次　<span class="grey">（一个会员一行，按最近绑定时间倒序）</span></div></div>'+
+    '<div class="dtbl"><table><thead><tr><th style="width:120px">会员ID</th><th style="width:160px">会员账号</th><th>收款人姓名</th><th style="width:110px">绑定次数</th><th style="width:185px">最近绑定时间</th><th style="width:110px">当前在绑</th></tr></thead><tbody>'+
+    list.map(function(x){return '<tr class="'+(uidHl&&x.uid===uidHl?'hl':'')+'"><td>'+x.uid+'</td><td>'+esc(M[x.uid].uname)+'</td><td>'+esc(x.name)+'</td><td>'+x.binds+'</td><td>'+(x.last||'--')+'</td><td>'+(x.cur?'<span class="tag t-bind">是</span>':'<span class="grey">否</span>')+'</td></tr>';}).join('')+
+    '</tbody></table><div class="dpg">共 '+list.length+' 条</div></div></div></td></tr>';
+}
+function renderSortIcons(){
+  document.querySelectorAll('.sth').forEach(function(th){var k=th.dataset.sort;
+    th.querySelector('.sorti').innerHTML='<i class="up'+(k===sortKey&&sortDir==='asc'?' on':'')+'"></i><i class="dn'+(k===sortKey&&sortDir==='desc'?' on':'')+'"></i>';});
+}
+document.querySelector('.lt thead').addEventListener('click',function(e){
+  var th=e.target.closest('.sth');if(!th)return;var k=th.dataset.sort;
+  if(k===sortKey)sortDir=sortDir==='desc'?'asc':'desc';else{sortKey=k;sortDir='desc';}
+  render();
+});
+function renderTabs(){
+  $('tabs').innerHTML=TABS.map(function(t){return '<li class="'+(t.tab===tab?'on':'')+'" data-t="'+t.tab+'">'+t.name+'</li>';}).join('');
+  var types=TABS[tab-1].types;$('sType').innerHTML='<option value="">不限</option>'+types.map(function(w){return '<option value="'+w+'">'+WT[w]+'</option>';}).join('');$('sTypeBox').style.display=types.length>1?'':'none';
+}
+
+/* ================= 交互 ================= */
+$('tabs').addEventListener('click',function(e){var li=e.target.closest('li');if(!li)return;tab=+li.dataset.t;renderTabs();render();});
+$('tb').addEventListener('click',function(e){
+  var dp=e.target.closest('[data-dp]');if(dp){dpage[dp.dataset.acc]=+dp.dataset.dp;render();return;}
+  var d=e.target.closest('[data-det]');if(d){var k=d.getAttribute('data-det');open[k]=open[k]==='det'?'':'det';render();return;}
+  var mm=e.target.closest('[data-mem]');if(mm){var k2=mm.getAttribute('data-mem');open[k2]=open[k2]==='mem'?'':'mem';render();return;}
+  var a=e.target.closest('.accm');if(a){a.textContent=a.getAttribute('data-full');a.classList.remove('accm');a.removeAttribute('title');return;}
+  var t=e.target;
+  if(t.dataset.blk)blockDialog(t.dataset.blk);
+  if(t.dataset.rel)releaseConfirm(t.dataset.rel);
+});
+function syncLock(){var on=!!($('sAcc').value.trim()||$('sUid').value.trim());$('sMem').disabled=on;$('sMin').disabled=on;$('fHint').style.display=on?'':'none';}
+$('sAcc').addEventListener('input',function(){exact='';syncLock();});
+$('sUid').addEventListener('input',syncLock);
+$('sQ').onclick=function(){render();};
+$('sR').onclick=function(){$('sAcc').value='';$('sUid').value='';$('sType').value='';$('sMem').value='2';$('sMin').value='1';$('sBlk').value='';exact='';open={};sortKey='members';sortDir='desc';syncLock();render();};
+$('sE').onclick=function(){msg('原型：已导出 '+filtered().length+' 个账号。列：提现账号、提现类型、<b>绑定会员数</b>、累计绑定次数、最近绑定时间、当前绑定会员、黑名单状态（绑定明细 sheet 不变），按当前排序','info');};
+$('demoJump').onclick=function(){ /* 05：跳转进来两个筛选都 ≥1，精确查账号 */
+  tab=1;renderTabs();$('sAcc').value='60231188779900';exact='1';$('sUid').value='';$('sType').value='';$('sBlk').value='';syncLock();
+  open={};open['60231188779900']='det';render();msg('跳转带着提现账号：两个次数筛选自动不生效，显示该账号并展开绑定明细','info');
+};
+/* 拉黑 / 解除：现有功能，不改 */
+function blockDialog(acc){
+  openLayer('添加提现账号黑名单',780,360,'<div class="lform"><div class="lfi"><label class="lfl">提现账号</label><div class="lfb"><input class="acc" value="'+esc(acc)+'" readonly></div></div><div class="lfi"><label class="lfl">备注</label><div class="lfb"><textarea placeholder="选填，最多200字" maxlength="200"></textarea></div></div></div>',
+    '确认拉黑',function(){ACC.forEach(function(a){if(a.acc===acc)a.black=true;});render();msg('操作成功');});
+}
+function releaseConfirm(acc){
+  openLayer('解除账号拉黑',480,0,'<div class="cf"><span class="ico">?</span>提现账号：<b class="acc">'+esc(acc)+'</b><br>解除后该账号<b>可正常提现</b>，绑定该账号的会员恢复出款。</div>',
+    '确认解除',function(){ACC.forEach(function(a){if(a.acc===acc)a.black=false;});render();msg('操作成功');});
+}
+function openLayer(title,w,h,html,okText,fn){
+  var mk=document.createElement('div');mk.className='lmask';
+  var ly=document.createElement('div');ly.className='layer';ly.style.width=w+'px';if(h)ly.style.height=h+'px';
+  ly.innerHTML='<div class="lh">'+title+'<span class="lx">✕</span></div><div class="lbd">'+html+'</div><div class="lf"><a class="b0">'+okText+'</a><a class="b1">取 消</a></div>';
+  document.body.appendChild(mk);document.body.appendChild(ly);
+  function close(){mk.remove();ly.remove();}
+  ly.querySelector('.lx').onclick=close;ly.querySelector('.b1').onclick=close;ly.querySelector('.b0').onclick=function(){close();fn();};
+}
+var mt=null;
+function msg(t,icon){var b=$('lmsg');$('lmsgT').innerHTML=t;var i=$('lmsgI');i.className='mi '+(icon||'ok');i.textContent=icon==='info'?'!':'✓';b.style.display='block';clearTimeout(mt);mt=setTimeout(function(){b.style.display='none';},icon==='info'?4000:1800);}
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){var l=document.querySelector('.layer');if(l){l.previousSibling.remove();l.remove();}else closeDoc();}});
+
+renderTabs();syncLock();render();
+})();
+</script>
+</body>
+</html>
