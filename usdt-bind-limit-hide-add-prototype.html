@@ -157,7 +157,7 @@ body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;back
       <div class="kf">后台配置项和含义不变；运营把配置改大后，会员再进页面即重新出现「Add address」</div>
     </div>
 
-    <div class="br key"><span class="bn">01</span><b>计数口径</b><span class="kb">核心</span>：按会员名下全部 USDT 地址合计，不分 TRC20 / BEP20 / ERC20；被后台停用的地址也计入。与会员提交绑定时判断「已达上限」用的是同一个数。</div>
+    <div class="br key"><span class="bn">01</span><b>计数口径</b><span class="kb">核心</span>：按会员名下已绑定的 USDT 地址合计，不分主网络（TRC20、BEP20）；主网络被后台关闭后，该网络上已绑的地址照样计入。与会员提交绑定时判断「已达上限」用的是同一个数。</div>
 
     <div class="br key"><span class="bn">02</span><b>显示规则</b><span class="kb">核心</span>：已绑数量 &lt; 配置值，显示「Add address」；已绑数量 ≥ 配置值，不显示，该位置不留空白块、不出提示文字。</div>
 
@@ -174,12 +174,13 @@ body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;back
       <tr><th style="width:140px">项</th><th>说明</th></tr>
       <tr><td>适用范围</td><td>只针对 USDT 地址；银行卡、电子钱包、UPI 等其他提现方式不涉及</td></tr>
       <tr><td>本次不做</td><td>不做按主网络分别限制数量；不新增后台配置项</td></tr>
+      <tr><td>主网络关闭</td><td>已绑地址所在的主网络被关闭后，地址仍占名额；会员要换绑其他网络，需客服先删除该地址</td></tr>
       <tr><td>适用站点</td><td>所有站点，按各站自己的「USDT地址绑定数」生效</td></tr>
     </table>
 
     <div class="h1">四、开发注意事项</div>
     <ol class="dev">
-      <li>「是否已绑满」由服务端算好，随 USDT 地址列表一起返回给前端，前端只按这个结果显示或隐藏。不要让前端拿列表条数和配置比：列表只显示正常状态的地址，还会带上 TB 代付地址，和绑定时的计数对不上，会出现按钮显示了、点进去却被拦的情况。</li>
+      <li>「是否已绑满」由服务端算好，随 USDT 地址列表一起返回给前端，前端只按这个结果显示或隐藏。不要让前端拿列表条数和配置比：列表和绑定时的计数取数范围不完全一样，会出现按钮显示了、点进去却被拦的情况。</li>
       <li>「是否已绑满」的计数要和会员提交绑定时的上限判断用同一套逻辑，不能各写一份。</li>
       <li>提现页选 USDT、没有可用地址时的添加入口也要读同一个结果，不能只改 USDT Address 页。</li>
       <li>绑定成功回到列表时要重新取一次结果，不能用进入页面前缓存的数据。</li>
