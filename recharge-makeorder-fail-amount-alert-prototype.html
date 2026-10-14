@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>拉单失败金额明细预警</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333;min-height:100vh}
+.stage{display:flex;justify-content:center;align-items:flex-start;gap:24px;padding:28px 60px 40px 28px;flex-wrap:wrap}
+/* 演示面板（页面外） */
+.demo{width:440px;background:#fff;border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:12.5px;color:#555}
+.demo h3{font-size:13px;color:#6C4FE0;margin-bottom:6px}
+.demo h4{font-size:12.5px;color:#4b3aa8;margin:12px 0 6px}
+.demo p{line-height:1.7;margin-bottom:10px;color:#888;font-size:12px}
+.demo .scenes{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.demo .scenes button{font:inherit;font-size:12px;text-align:left;border:1px solid #d3caf5;background:#f7f5ff;color:#4b3aa8;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1.5}
+.demo .scenes button:hover{border-color:#6C4FE0}
+.demo .scenes button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.demo .cfg{background:#fafbfc;border:1px solid #eef0f3;border-radius:6px;padding:6px 10px;font-size:12px;line-height:1.8;color:#555}
+.demo .cfg b{color:#333}
+.demo .steps{margin:10px 0 0;padding:8px 10px;background:#fff7f7;border:1px solid #ffd6d6;border-radius:6px;font-size:12px;line-height:1.8;color:#8a2b2b}
+.demo .steps b{color:#c0392b}
+.demo table.raw{width:100%;border-collapse:collapse;font-size:11.5px}
+.demo table.raw th,.demo table.raw td{border:1px solid #eceef2;padding:3px 5px;text-align:center;white-space:nowrap}
+.demo table.raw th{background:#f5f3ff;color:#4b3aa8;font-weight:600}
+.demo table.raw td.l{text-align:left}
+.demo table.raw tr.hit td{background:#fff8e6}
+.demo table.raw .y{color:#c0392b}
+.demo table.raw .n{color:#bbb}
+.demo .cmp{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;color:#555;cursor:pointer;user-select:none}
+.demo .sub{font-size:11.5px;color:#aaa;margin-top:10px;line-height:1.7}
+/* Telegram 群聊 */
+.tg{width:600px;height:860px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 6px 28px rgba(0,0,0,.14);display:flex;flex-direction:column;flex:0 0 auto}
+.tg-hd{height:56px;background:#517da2;color:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;flex:0 0 auto}
+.tg-hd .av{width:38px;height:38px;border-radius:50%;background:#7ac1e4;display:flex;align-items:center;justify-content:center;font-weight:700}
+.tg-hd .nm{font-size:15px;font-weight:600;line-height:1.3}
+.tg-hd .st{font-size:12px;opacity:.75}
+.tg-bd{flex:1;overflow-y:auto;background:#cfdcc5 linear-gradient(160deg,#d6e2c4,#b9cfb0);padding:14px 12px 20px}
+.msg{display:flex;gap:8px;align-items:flex-end;margin-bottom:10px}
+.msg .av{width:32px;height:32px;border-radius:50%;background:#e17076;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:700}
+.bub{background:#fff;border-radius:10px 10px 10px 2px;padding:6px 10px 4px;max-width:540px;box-shadow:0 1px 1px rgba(0,0,0,.12);position:relative}
+.bub .who{font-size:12.5px;color:#e17076;font-weight:600;margin-bottom:2px}
+.bub .tm{font-size:10.5px;color:#a0acb6;text-align:right;margin-top:2px}
+.bub.mute{color:#8a96a0;font-size:12.5px}
+pre.tgpre{font:12px/1.45 Menlo,Consolas,"PingFang SC","Microsoft YaHei",monospace;color:#1f2d3a;white-space:pre;overflow-x:auto;background:#f4f6f8;border-radius:4px;padding:6px 8px}
+.newblk{display:block;background:#fff4d6;outline:1px dashed #f0b429;border-radius:3px;position:relative;margin:0 -4px;padding:0 4px}
+.new{position:absolute;background:#f5222d;color:#fff;font:700 9px/1 -apple-system,sans-serif;padding:3px 5px;border-radius:8px 8px 8px 2px;box-shadow:0 2px 6px rgba(245,34,45,.35);pointer-events:none;letter-spacing:.3px;z-index:6;top:-8px;right:-6px}
+/* 需求说明抽屉（V1 原型统一样式） */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd code.m{font:12px Menlo,Consolas,monospace;background:#f4f6f8;padding:1px 5px;border-radius:3px}
+.prd ol.dev{padding-left:20px}
+.prd ol.dev li{margin:4px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="demo">
+    <h3>原型操作提示</h3>
+    <p>选一个场景，右边是 TG 群里收到的「特殊情况预警」消息，黄底虚线框是本次新增的「拉单失败金额明细」。下面的演示数据是当天按三方、提交金额合并后的拉单情况。</p>
+    <div class="scenes" id="scenes"></div>
+    <div class="cfg">后台设置（参数设置 › 充值通道拉单失败预警设置）：拉单数量 &gt; <b>300</b>，拉单失败率 &gt;= <b>70</b>%</div>
+    <h4>当天演示数据（同一三方、同一金额已合并）</h4>
+    <div id="raw"></div>
+    <label class="cmp"><input type="checkbox" id="cmp"> 对比改动前（隐藏新增明细）</label>
+    <div class="steps" id="steps"></div>
+    <p class="sub">消息里的代付通道余额、拉单失败率预警表、商户余额预警都是现有内容，格式照现有推送还原；订单统计和订单量报表是单独的两条消息，这里略过。</p>
+  </div>
+  <div class="tg">
+    <div class="tg-hd"><div class="av">充</div><div><div class="nm">充值通道数据推送</div><div class="st">5 位成员</div></div></div>
+    <div class="tg-bd" id="chat"></div>
+  </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>充值通道拉单失败预警 · 按三方和金额展示失败明细 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型页面。</div>
+    <table class="t">
+      <tr><th style="width:300px">页面</th><th>改动点</th></tr>
+      <tr><td>TG 机器人推送 → <b>特殊情况预警</b></td><td>在「充值代收拉单失败率预警」后面，新增「充值代收拉单失败金额明细」</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">按三方列出当天拉单失败率高的提交金额</div>
+      <div class="kf">只看金额本身的失败情况，与通道是否上「拉单失败率预警」无关</div>
+    </div>
+    <div class="br key"><span class="bn">01</span><b>列出条件</b><span class="kb">核心</span>：当天同一三方、同一提交金额，拉单失败率 ≥ 后台「拉单失败率 &gt;=」设置值，且失败 ≥ 10 笔。没有可列的金额时，整段明细不推送。</div>
+    <div class="br key"><span class="bn">02</span><b>按三方分组</b><span class="kb">核心</span>：按通道的三方映射码分组，同一映射码下多个通道的数据合并；没有映射码的通道以通道名称为组。U 类通道不参与。</div>
+    <div class="br"><span class="bn">03</span><b>数值口径</b>：失败合计 = 该三方已列出金额的失败笔数之和；失败率 = 失败笔数 ÷ 拉单笔数，四舍五入取整；金额有小数时保留 2 位。</div>
+    <div class="br"><span class="bn">04</span><b>排序</b>：三方之间按失败合计从高到低；同一三方内按失败笔数从高到低，笔数相同金额小的在前。</div>
+    <div class="br"><span class="bn">05</span><b>条数上限</b>：每个三方最多列 10 档，超出部分显示为一行「另有 N 档金额未显示」。</div>
+    <div class="br"><span class="bn">06</span><b>统计范围</b>：每次推送统计当天 0 点至推送时的累计数据；金额按会员下单金额计。</div>
+    <div class="br"><span class="bn">07</span><b>位置</b>：放在「充值代收拉单失败率预警」之后、「商户余额预警」之前。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:140px">项</th><th>说明</th></tr>
+      <tr><td>拉单数量设置</td><td>后台「拉单数量 &gt;」对明细不生效</td></tr>
+      <tr><td>最低失败笔数</td><td>固定 10 笔，不可配置</td></tr>
+      <tr><td>推送频率</td><td>随机器人推送间隔推送</td></tr>
+      <tr><td>数据起点</td><td>上线当天从上线时刻起累计</td></tr>
+      <tr><td>语言</td><td>中文</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>新增按「通道 + 下单金额」的当天拉单计数，加 1 时机、清零时间、不计入的单都和现有通道拉单计数一致。</li>
+      <li>某金额失败笔数 = 该金额拉单笔数 − 当天库里同通道、同下单金额的订单数；两边都用下单金额，不能用回调后的实付金额。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const CFG={count:300,rate:70,minFail:10};
+// 每条：三方映射码、通道ID、金额、拉单笔数、失败笔数（当天累计）
+const SCENES=[
+  {k:'a',label:'① 常规：两家三方有失败集中的金额',
+   ch:[{code:'WOWPAY',id:26001},{code:'WOWPAY',id:26002},{code:'LUCKYPAY',id:27010},{code:'FASTPAY',id:28003}],
+   rows:[
+    ['WOWPAY',26001,100,400,330],['WOWPAY',26001,500,300,240],['WOWPAY',26001,1000,150,60],['WOWPAY',26001,2000,50,45],
+    ['WOWPAY',26002,100,120,90],['WOWPAY',26002,300,60,5],
+    ['LUCKYPAY',27010,100,600,80],['LUCKYPAY',27010,500,130,15],['LUCKYPAY',27010,3000,30,25],['LUCKYPAY',27010,5000,40,40],
+    ['FASTPAY',28003,100,200,4],['FASTPAY',28003,1000,5,5]],
+   exp:'<b>看点：</b>WOWPAY-26001 整体失败率 75% 上了拉单失败率预警；明细里 WOWPAY 两个通道的 100 合并成 520 笔。LUCKYPAY 整体只有 20% 没上榜，但 5000、3000 几乎全失败，照样列出。1000（40%）、FASTPAY 的 1000（只失败 5 笔）不列。'},
+  {k:'b',label:'② 通道整体没上榜，只有个别金额全失败',
+   ch:[{code:'LUCKYPAY',id:27010},{code:'PAYGO',id:29001}],
+   rows:[['LUCKYPAY',27010,100,600,30],['LUCKYPAY',27010,500,200,12],['LUCKYPAY',27010,5000,46,46],['LUCKYPAY',27010,10000,18,18],
+    ['PAYGO',29001,200,350,20],['PAYGO',29001,2000,25,22]],
+   exp:'<b>看点：</b>没有通道整体达到 70%，拉单失败率预警这一段不出现；但 LUCKYPAY 的 5000、10000 和 PAYGO 的 2000 失败率都超过 70%，明细照样推送。这就是「三方不支持某个金额」的典型情况。'},
+  {k:'c',label:'③ 一家三方超过 10 档金额',
+   ch:[{code:'QPAY',id:30001},{code:'QPAY',id:30002}],
+   rows:[[100,900,820],[200,300,260],[300,260,210],[500,520,470],[800,90,80],[999.5,60,60],[1000,400,350],[1500,60,55],[2000,200,170],[3000,80,72],[5000,70,70],[8000,20,20],[10000,40,40],[20000,12,12]]
+     .map((r,i)=>['QPAY',i%2?30002:30001,...r]),
+   exp:'<b>看点：</b>QPAY 有 14 档金额满足条件，只列失败最多的 10 档，最后一行提示「另有 4 档金额未显示」，失败合计只算列出的 10 档。999.5 这种带小数的金额显示为 999.50。'},
+  {k:'d',label:'④ 只有零星失败，不推明细',
+   ch:[{code:'WOWPAY',id:26001},{code:'LUCKYPAY',id:27010}],
+   rows:[['WOWPAY',26001,100,500,25],['WOWPAY',26001,1000,8,8],['LUCKYPAY',27010,500,300,9],['LUCKYPAY',27010,2000,120,30]],
+   exp:'<b>看点：</b>WOWPAY 的 1000 虽然 100% 失败，但只有 8 笔，不到 10 笔；其他金额失败率都不到 70%。所有三方都没有满足条件的金额，整段明细不出现。'}
+];
+let S,cmp=false;
+const fmtAmt=a=>Number.isInteger(a)?String(a):a.toFixed(2);
+const pct=(f,p)=>p?Math.round(f/p*100):0;
+// 现有表格格式（照 BuildChannelMakeOrderFailRateWarningMessage / BuildWithdrawBalanceMessage 还原：表头单元格后 2 个空格，数据行 1 个）
+const dw=s=>[...s].reduce((n,c)=>n+(/[⺀-￯]/.test(c)?2:1),0);
+const pad=(s,w)=>s+' '.repeat(Math.max(0,w-dw(s)));
+function table(headers,rows){
+  const w=headers.map((h,i)=>Math.max(dw(h),...rows.map(r=>dw(r[i]))));
+  const line=(l,m,r,f)=>l+w.map((x,i)=>f.repeat(x+2)+(i===w.length-1?r:m)).join('');
+  let s=line('┌','┬','┐','─')+'\n│'+headers.map((h,i)=>' '+pad(h,w[i])+'  │').join('')+'\n'+line('├','┼','┤','─')+'\n';
+  rows.forEach(r=>s+='│'+r.map((c,i)=>' '+pad(c,w[i])+' │').join('')+'\n');
+  return s+line('└','┴','┘','─')+'\n';
+}
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function calc(){
+  // 现有：按通道算整体拉单失败率
+  const byCh={};
+  S.rows.forEach(([code,id,amt,p,f])=>{const k=code+'-'+id;(byCh[k]=byCh[k]||{k,p:0,f:0});byCh[k].p+=p;byCh[k].f+=f;});
+  const chHit=Object.values(byCh).filter(c=>c.p>CFG.count&&pct(c.f,c.p)>=CFG.rate);
+  // 新增：按三方+金额合并
+  const m={};
+  S.rows.forEach(([code,id,amt,p,f])=>{const k=code+'|'+amt;(m[k]=m[k]||{code,amt,p:0,f:0,ids:new Set()});m[k].p+=p;m[k].f+=f;m[k].ids.add(id);});
+  const all=Object.values(m).map(x=>({...x,r:pct(x.f,x.p),hit:x.f>=CFG.minFail&&x.f/x.p*100>=CFG.rate}));
+  const groups={};
+  all.filter(x=>x.hit).forEach(x=>(groups[x.code]=groups[x.code]||[]).push(x));
+  const vendors=Object.entries(groups).map(([code,list])=>{
+    list.sort((a,b)=>b.f-a.f||a.amt-b.amt);
+    const shown=list.slice(0,10);
+    return {code,shown,more:list.length-shown.length,total:shown.reduce((n,x)=>n+x.f,0)};
+  }).sort((a,b)=>b.total-a.total);
+  return {chHit,all,vendors};
+}
+function render(){
+  const {chHit,all,vendors}=calc();
+  // 演示数据表
+  const sorted=[...all].sort((a,b)=>a.code.localeCompare(b.code)||a.amt-b.amt);
+  $('raw').innerHTML='<table class="raw"><tr><th>三方</th><th>通道</th><th>提交金额</th><th>拉单</th><th>失败</th><th>失败率</th><th>列出</th></tr>'+
+    sorted.map(x=>`<tr class="${x.hit?'hit':''}"><td class="l">${x.code}</td><td>${[...x.ids].join('、')}</td><td>${fmtAmt(x.amt)}</td><td>${x.p}</td><td>${x.f}</td><td>${x.r}%</td><td class="${x.hit?'y':'n'}">${x.hit?'✓':'—'}</td></tr>`).join('')+'</table>';
+  $('steps').innerHTML=S.exp;
+  // 消息
+  const SEP='====================================\n';
+  let pre='💰代付通道余额\n\n'+table(['三方名','余 额'],[['WOWPAY-31001','128,560.00'],['LUCKYPAY-31005','46,210.50'],['QPAY-31008','9,870.00']])+'所有开启的代付通道总额：【184640.50】\n';
+  let spec='';
+  if(chHit.length){
+    spec+=SEP+`⚠️⚠️⚠️充值代收拉单失败率预警：以下通道高于【${CFG.rate}%】失败率\n`+table(['通 道','拉单失败率','拉单次数'],chHit.map(c=>[c.k,pct(c.f,c.p)+'%',String(c.p)]));
+  }
+  let spH=esc(spec),newH='';
+  if(vendors.length&&!cmp){
+    let t=SEP+`⚠️⚠️⚠️充值代收拉单失败金额明细：以下金额拉单失败率≥【${CFG.rate}%】且失败≥【${CFG.minFail}】笔\n`;
+    vendors.forEach(v=>{
+      t+=`【${v.code}】失败合计 ${v.total} 笔\n`;
+      v.shown.forEach(x=>t+=`提交金额 ${fmtAmt(x.amt)}：拉单 ${x.p} 笔，失败 ${x.f} 笔（${x.r}%）\n`);
+      if(v.more>0)t+=`另有 ${v.more} 档金额未显示\n`;
+      t+='\n';
+    });
+    newH='<span class="newblk">'+esc(t.replace(/\n\n$/,'\n'))+'<span class="new">NEW</span></span>';
+  }
+  const tail=SEP+'⚠️⚠️⚠️商户余额预警：以下商户余额不足【15000】\n'+table(['三方名','余 额'],[['QPAY-31008','9,870.00']]);
+  const body=esc(pre)+esc(SEP+'‼️‼️特殊情况预警\n\n')+spH+newH+esc(tail);
+  const now=new Date(),tm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const bot=(inner,cls='')=>`<div class="msg"><div class="av">预</div><div class="bub ${cls}"><div class="who">通道预警机器人</div>${inner}<div class="tm">${tm}</div></div></div>`;
+  $('chat').innerHTML=bot('📊 今日订单统计（单独一条消息，略）','mute')+bot('📋 订单量报表（单独一条消息，略）','mute')+bot('<pre class="tgpre">'+body+'</pre>');
+  $('chat').scrollTop=$('chat').scrollHeight;
+}
+function pick(k){
+  S=SCENES.find(s=>s.k===k);
+  document.querySelectorAll('#scenes button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  render();
+}
+$('scenes').innerHTML=SCENES.map(s=>`<button data-k="${s.k}">${s.label}</button>`).join('');
+$('scenes').onclick=e=>{const b=e.target.closest('button');if(b)pick(b.dataset.k);};
+$('cmp').onchange=e=>{cmp=e.target.checked;render();};
+pick('a');
+const openDoc=()=>{$('drawer').classList.add('on');$('dmask').classList.add('on');};
+const closeDoc=()=>{$('drawer').classList.remove('on');$('dmask').classList.remove('on');};
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDoc();});
+</script>
+</body>
+</html>
