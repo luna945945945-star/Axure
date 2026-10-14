@@ -233,6 +233,7 @@ table.et td.r{text-align:right;font-variant-numeric:tabular-nums}
 .req-mask.show{display:block}
 .req-drawer{position:fixed;top:0;right:-900px;width:880px;max-width:94vw;height:100%;background:#fff;z-index:801;box-shadow:-4px 0 24px rgba(0,0,0,.18);transition:right .25s ease;display:flex;flex-direction:column}
 .req-drawer.show{right:0}
+.newcell{color:var(--pri);border-bottom:1px dashed var(--pri);cursor:help}
 .req-head{padding:16px 18px;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center}
 .req-head .t{font-size:15px;font-weight:700}
 .req-x{cursor:pointer;color:var(--t3);font-size:18px}
@@ -425,7 +426,7 @@ input.err{border-color:#ff4d4f!important}
     <div class="h1">一、改造页面</div>
     <table class="t">
       <tr><th style="width:210px">页面</th><th>改动点</th></tr>
-      <tr><td>充值管理 → 充值通道</td><td>列表一条通道一行；列宽自适应；新增 / 编辑弹窗改左右一屏；新增「复制到其他商户」</td></tr>
+      <tr><td>充值管理 → 充值通道</td><td>列表一条通道一行；列宽自适应；成功率统计「近24小时」改为「今日」；新增 / 编辑弹窗改左右一屏；新增「复制到其他商户」</td></tr>
       <tr><td>充值管理 → 充值大类</td><td>列表新增「连续未支付限制」列；弹窗新增「连续未支付限制」（V1 前台 API 同步改）；快捷金额可从其他大类复制、粘贴自动拆分</td></tr>
       <tr><td>提现管理 → 提现通道</td><td>列宽自适应、加排序按钮；「成功率统计」拆成「今日已提交」「近1小时成功笔数」两列；弹窗改左右一屏；新增「复制到其他商户」</td></tr>
       <tr><td>提现管理 → 提现大类</td><td>编辑弹窗改左右一屏；快捷金额同充值大类</td></tr>
@@ -450,6 +451,7 @@ input.err{border-color:#ff4d4f!important}
         <li>「充值通道奖励」：挂 1 个大类时和现在一样。挂多个大类时只算开启的大类：<br>· 通道奖励：自定义比率 ≤ 每一个大类奖励时红字「不生效」，只对部分大类不生效时不提示；<br>· 生效奖励：写区间「最低~最高」，每个大类按 max(大类奖励, 通道自定义比率) 算；最低 = 最高只写一个值，全为 0 写 --，不带来源。</li>
         <li>排序按钮：选了大类时才可点，调整该大类内的顺序（现有接口，传查询栏的大类）；没选时置灰，悬停提示「先在查询栏选择充值大类，再调整该大类内的排序」。首条的上移 / 置顶、末条的下移 / 置底置灰。</li>
         <li>开关、删除仍对整条通道生效，确认框列出所挂大类名称。</li>
+        <li>「成功率统计」第四项「近24小时」改为「今日」，替换，不保留近24小时：<br>· 区间：商户时区今天 0 点 ～ 最近一个已结束的 10 分钟整点（同其余三项的截止点）；<br>· 算法不变：成功笔数 ÷ 提交笔数，数据源不变；<br>· 0:00 ～ 0:11 今天还没有已结束的 10 分钟，显示 --；今天没有提交单也显示 --；<br>· 近10分钟、近30分钟、近1小时不变；四个语言包文案同步改；接口字段名 recent24HoursCount 不改。</li>
       </ul>
     </div>
     <div class="br"><b><span class="bn">02</span>列宽（充值、提现通道列表）</b>
@@ -795,9 +797,10 @@ function idCell(ch, catId){
 function nameCellNew(ch){ return kv([['前台显示名称',`<b class="lnk" onclick="openEdit(${ch.id})">${esc(ch.cn)}</b>`],['通道名称',`[${ch.sid}]${esc(ch.nm)}`]]); }
 function nameCell(ch){ return kv([['通道名称',`[${ch.sid}]${esc(ch.nm)}`],['前台显示名称',esc(ch.cn)]]); }
 function srCell(ch){
+  const last = VIEW==='new' ? `<span class="newcell" data-tip="原「近24小时」，改为商户时区今天 0 点到最近一个已结束的 10 分钟整点。\n0:00 ~ 0:11、今天没有提交单时显示 --">今日：</span>` : '近24小时：';
   return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;text-align:left;line-height:22px">
     <span>近10分钟：<span class="err-t">${ch.sr[0]}</span></span><span>近30分钟：<span class="err-t">${ch.sr[1]}</span></span>
-    <span>近1小时：<span class="ok-t">${ch.sr[2]}</span></span><span>近24小时：<span class="ok-t">${ch.sr[3]}</span></span></div>`;
+    <span>近1小时：<span class="ok-t">${ch.sr[2]}</span></span><span>${last}<span class="ok-t">${ch.sr[3]}</span></span></div>`;
 }
 function weightCell(ch){ return `<div style="text-align:left;line-height:22px">预设权重：${ch.w}<br><span class="mute">实时权重：${ch.rt}</span></div>`; }
 // 现状：通道奖励 + 生效奖励（按行所在大类）
