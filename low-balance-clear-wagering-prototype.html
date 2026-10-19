@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>余额不足打码量归零</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f2f3f7;color:#333}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.wrap{padding:14px 44px 80px 6px}
+
+/* ===== 页签（照 AmountOfCodConfig.cshtml） ===== */
+.nav{display:inline-flex;border:1px solid #ccc;border-radius:5px 5px 0 0;overflow:hidden;border-bottom-width:0;background:#fff}
+.nav-item1{display:inline-block;width:100px;text-align:center;padding:8px 0;cursor:pointer;color:#333;font-size:13px;user-select:none}
+.nav-item1.nav-active{background:#7752fd;color:#fff}
+.main{background:#fff;padding:10px 0 20px;min-height:400px}
+
+/* ===== 配置行 ===== */
+.row{display:flex;align-items:center;padding:6px 0;position:relative;min-height:46px}
+.row+hr{border:0;border-top:1px solid #eee;margin:0 10px}
+.lb{flex:none;width:210px;text-align:right;padding:8px 20px 8px 0;color:#000;font-weight:500;line-height:20px;position:relative}
+.lbr{flex:none;width:150px;text-align:right;padding:8px 20px 8px 0;color:#000;font-weight:500;line-height:20px;position:relative}
+.sp{flex:none;width:200px}
+.sp input,.sp select{width:180px;height:38px;border:1px solid #e6e6e6;border-radius:2px;padding:0 10px;font:inherit;font-size:13px;color:#333;background:#fff}
+.sp input:focus,.sp select:focus{outline:none;border-color:#7752fd}
+.rm{flex:0 1 300px;min-width:150px;padding:8px 10px;color:#76838f;font-weight:500;line-height:20px;white-space:pre-wrap;word-wrap:break-word}
+.rm.w360{flex-basis:360px}
+.op{margin-left:auto;padding-right:50px;flex:none}
+.lbtn{height:38px;line-height:38px;padding:0 18px;border:0;border-radius:2px;background:#1E9FFF;color:#fff;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.lbtn:hover{opacity:.85}
+
+/* NEW 角标 */
+.nw::after{content:"NEW";position:absolute;top:-4px;right:14px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);pointer-events:none;letter-spacing:.3px}
+.row.newrow .sp input,.row.newrow .sp select{border-color:#ffa39e}
+
+/* ===== 配置记录页签 ===== */
+.logq{display:flex;align-items:center;gap:10px;padding:14px 20px;flex-wrap:wrap}
+.logq label{color:#333}
+.logq input{height:32px;width:200px;border:1px solid #d9d9d9;border-radius:2px;padding:0 8px;font:inherit}
+.bbtn{height:32px;padding:0 14px;border:0;border-radius:3px;background:#36bea6;color:#fff;font:inherit;cursor:pointer}
+.ltb{width:calc(100% - 40px);margin:0 20px;border-collapse:collapse;font-size:12px;color:#464a53}
+.ltb th{background:#f7f7fb;border:1px solid #e6e6ee;padding:9px 8px;text-align:center;font-weight:600;white-space:nowrap}
+.ltb td{border:1px solid #eee;padding:8px;text-align:center;font-weight:300}
+.ltb td.l{text-align:left}
+
+/* toast */
+.toast{position:fixed;top:70px;right:30px;background:#fff;border-left:4px solid #36bea6;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:12px 18px;border-radius:3px;z-index:300;font-size:13px;display:none;max-width:360px}
+.toast.warn{border-left-color:#ffb22b}
+.toast b{display:block;margin-bottom:2px}
+
+/* ===== 原型演示 ===== */
+.demobtn{position:fixed;left:16px;bottom:18px;background:#fff;color:#6C4FE0;border:2px dashed #9b8cf0;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;z-index:60;box-shadow:0 2px 10px rgba(108,79,224,.18)}
+.mmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:150;display:none}
+.demo{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:1080px;max-width:94vw;max-height:90vh;background:#fff;border:2px dashed #9b8cf0;border-radius:8px;z-index:151;display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+.demo .dh{padding:11px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;gap:10px;flex:none}
+.demo .dh b{font-size:14px}
+.demo .pt{display:inline-block;font-size:11px;color:#6C4FE0;background:#f1edff;border:1px solid #d9d0fb;border-radius:3px;padding:0 6px;margin-right:8px;font-weight:600}
+.demo .x{cursor:pointer;color:#999;font-size:20px;line-height:1}
+.demo .db{padding:12px 16px 16px;overflow:auto;min-height:0}
+.cfgline{font-size:12px;color:#555;margin-bottom:10px;line-height:2}
+.cfgline span{display:inline-block;background:#f5f6f8;border:1px solid #e6e8eb;border-radius:3px;padding:0 7px;margin:0 6px 4px 0;line-height:20px}
+.cfgline span.hl{background:#f1edff;border-color:#d9d0fb;color:#4b3aa8;font-weight:600}
+.cfgline .off{background:#fff1f0;border-color:#ffccc7;color:#cf1322}
+.ddemo{display:grid;grid-template-columns:330px 1fr;gap:14px}
+.box{border:1px solid #ebebf2;border-radius:6px;padding:10px 12px}
+.box h4{font-size:12.5px;color:#4b3aa8;margin-bottom:8px}
+.sc{display:flex;flex-direction:column;gap:6px}
+.scb{text-align:left;border:1px solid #e3dcfb;background:#faf9ff;border-radius:4px;padding:6px 9px;font:inherit;font-size:12px;cursor:pointer;color:#333;line-height:1.5}
+.scb:hover,.scb.on{border-color:#6C4FE0;background:#f1edff}
+.scb small{display:block;color:#888}
+.st{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.st div{background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;padding:7px 9px}
+.st div small{display:block;color:#888;font-size:11.5px}
+.st div b{font-size:16px;font-weight:600;color:#333}
+.st div.code b{color:#cf1322}
+.st div.code.zero b{color:#389e0d}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ab{height:28px;padding:0 10px;border:1px solid #7460ee;background:#fff;color:#7460ee;border-radius:3px;font:inherit;font-size:12px;cursor:pointer}
+.ab:hover{background:#7460ee;color:#fff}
+.ab:disabled{border-color:#ddd;color:#bbb;background:#fafafa;cursor:not-allowed}
+.wd{font-size:12.5px;margin-bottom:8px;padding:6px 10px;border-radius:4px}
+.wd.ok{background:#f6ffed;border:1px solid #b7eb8f;color:#237804}
+.wd.no{background:#fff7e6;border:1px solid #ffd591;color:#ad4e00}
+.lg{border:1px solid #ebebf2;border-radius:5px;max-height:260px;overflow:auto;font-size:12px}
+.lg div{padding:5px 10px;border-bottom:1px dashed #eee;line-height:1.6}
+.lg div:last-child{border-bottom:0}
+.lg .t{color:#999;margin-right:6px}
+.lg .clr{background:#f6ffed;color:#237804}
+.lg .skip{background:#fffbe6;color:#874d00}
+.lg .sys{color:#6C4FE0}
+
+/* ===== 需求说明抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+
+@media (max-width:900px){
+  .wrap{padding:12px 16px 80px}
+  .row{flex-wrap:wrap}
+  .lb,.lbr{width:140px}
+  .rm,.rm.w360{flex-basis:100%;padding-left:140px}
+  .op{margin-left:140px;padding:4px 0}
+  .ddemo{grid-template-columns:1fr}
+  .st{grid-template-columns:repeat(2,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>SitINR</b></div>
+  <div>当前币种：<b style="color:#c0392b">INR</b></div>
+</div>
+
+<div class="wrap">
+  <div class="nav">
+    <a class="nav-item1 nav-active" id="tabCfg">参数配置</a>
+    <a class="nav-item1" id="tabLog">配置记录</a>
+  </div>
+
+  <!-- ================= 参数配置 ================= -->
+  <div class="main" id="pageCfg">
+    <div id="rows"></div>
+  </div>
+
+  <!-- ================= 配置记录 ================= -->
+  <div class="main" id="pageLog" style="display:none">
+    <div class="logq">
+      <label for="qName">配置名称</label><input id="qName" placeholder="配置名称" autocomplete="off">
+      <button class="bbtn" id="qBtn">查询</button>
+      <button class="bbtn" id="qAll">全部</button>
+    </div>
+    <table class="ltb">
+      <thead><tr><th>序号</th><th>配置名称</th><th>配置值(旧值→新值)</th><th>操作用户</th><th>操作时间</th><th>用户IP</th><th>IP所在地</th><th>内容描述</th></tr></thead>
+      <tbody id="logBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ================= 原型演示 ================= -->
+<div class="demobtn" id="demoOpen">▶ 原型演示：清零模拟</div>
+<div class="mmask" id="mmask"></div>
+<div class="demo" id="demo">
+  <div class="dh"><div><span class="pt">原型演示</span><b>会员打码量清零模拟</b></div><span class="x" id="demoX">✕</span></div>
+  <div class="db">
+    <div class="cfgline" id="cfgLine"></div>
+    <div class="ddemo">
+      <div class="box">
+        <h4>① 选一个场景</h4>
+        <div class="sc" id="scList"></div>
+      </div>
+      <div class="box">
+        <h4>② 会员当前状态（会员 2250071）</h4>
+        <div class="st" id="stBox"></div>
+        <div class="wd" id="wdBox"></div>
+        <h4>③ 会员操作</h4>
+        <div class="acts" id="acts"></div>
+        <h4>④ 过程记录</h4>
+        <div class="lg" id="lg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 需求说明 ================= -->
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>余额不足打码量归零 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:220px">页面</th><th>改动点</th></tr>
+      <tr><td>老后台 → <b>打码量配置</b>（参数配置页签）</td><td>新增一行：「打码量归零余额」+「打码量归零时机」（充值后解除 / 立即解除），共用一个「确认保存」</td></tr>
+      <tr><td>老后台 → 打码量配置（<b>配置记录</b>页签）</td><td>保存后记一条，配置名称「打码量归零设置」，显示两项的旧值 → 新值</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">会员总余额小于「打码量归零余额」时，把会员剩余打码量清为 0；归零余额填 0 = 不启用</div>
+      <div class="kf">充值后解除：下一笔充值到账时先清掉原有打码量，再加本次充值的打码量；立即解除：条件满足后系统自动清零，不用等充值</div>
+      <div class="kf">钱还在三方游戏里、或还有未结算的注单时，不清零</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>总余额口径</b><span class="kb">核心</span>：总余额 = 账户余额 + 三方游戏里还没转回平台的余额；保险箱余额不算。</div>
+
+    <div class="br key"><span class="bn">02</span><b>清零条件</b><span class="kb">核心</span>：以下同时满足才清零：
+      <table class="t">
+        <tr><th style="width:40px">#</th><th>条件</th></tr>
+        <tr><td>1</td><td>归零余额大于 0</td></tr>
+        <tr><td>2</td><td>会员剩余打码量大于 0</td></tr>
+        <tr><td>3</td><td>总余额 <b>小于</b> 归零余额（等于不清；例：归零余额 1，余额 0.99 清，1.00 不清）</td></tr>
+        <tr><td>4</td><td>没有未结算的注单（彩票未开奖、三方游戏未结算都算）</td></tr>
+      </table>
+    </div>
+
+    <div class="br key"><span class="bn">03</span><b>充值后解除</b><span class="kb">核心</span>：充值成功到账时，按到账<b>前</b>的总余额判断；满足条件就先把原有打码量清 0，再按现有规则加本次充值的打码量。线上充值、后台人工存款都算充值；彩金、红包、活动奖励到账不触发。</div>
+
+    <div class="br key"><span class="bn">04</span><b>立即解除</b><span class="kb">核心</span>：条件满足后，系统在 5 分钟内自动清零，不需要会员再充值。之后再充值、领奖励，按现有规则正常加打码量。</div>
+
+    <div class="br"><span class="bn">05</span><b>清零留痕</b>：每次清零记一条系统日志（操作人 system），写明会员ID、清零前打码量、当时总余额、归零时机，客服可在日志列表查到。</div>
+
+    <div class="br"><span class="bn">06</span><b>输入</b>：归零余额只能填 0 或正数，最多两位小数；默认 0，清空保存按 0 处理。归零时机默认「充值后解除」。</div>
+
+    <div class="br"><span class="bn">07</span><b>和「打码量平0数」的关系</b>：两项各自生效，互不影响。平0数看剩余打码量多少，归零余额看会员总余额多少。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>适用对象</td><td>本站全部会员，含代理账号</td></tr>
+      <tr><td>币种</td><td>按本站币种填写，每个站点单独配置；上线后默认 0（不启用）</td></tr>
+      <tr><td>已清零的打码量</td><td>不恢复；之后余额回升也不补回</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>总余额要把三方游戏里的钱算进去：会员最近一次把钱转进三方后还没转回平台，就当钱还在三方，不清零。只看账户余额会被钻空子（转进三方 → 清零 → 转回 → 直接提现）。</li>
+      <li>未结算注单必须排除：会员全押后余额变 0，如果这时清零，开奖赢了就能不打码直接提现。彩票未开奖要排除；三方游戏的未结算注单，以钱是否已全部转回平台为准。</li>
+      <li>充值后解除：线上充值有两套入账流程（普通模式和 V3 模式），加上后台人工存款，三处都要加，别漏。清零要在加本次打码量之前。</li>
+      <li>立即解除：用定时任务每 5 分钟跑一次，只捞「打码量大于 0 且账户余额小于归零余额」的会员再逐个判断；大站注意查询压力。</li>
+      <li>清零时要再判断一次条件，并且只把当时的打码量清掉：扫描到清零这段时间里会员可能刚充值或下注，不能把新加上的打码量一起清掉。</li>
+      <li>配置记录要同时记两项的旧值 → 新值；只改了其中一项也要记。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function esc(s){return s==null?'':String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+function pad(n){return n<10?'0'+n:''+n;}
+function now(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
+function n2(v){return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+/* ================= 配置数据（照 uat AmountOfCodConfig.cshtml 顺序与文案，值取截图） ================= */
+var MODES={recharge:'充值后解除',instant:'立即解除'};
+var MODE_TIP={
+  recharge:'(会员总余额低于归零余额后，在下一次充值成功时清零原有打码量)',
+  instant:'(会员总余额低于归零余额时，立即清零打码量)'
+};
+var CFG={rechargeCode:1,flat:99,clearBal:'0',clearMode:'recharge'};   /* 已保存的值 */
+var ROWS=[
+ ['充值赠送打码量倍数',1,'(会员充值额外赠送金额的打码量倍数)'],
+ ['首充打码量倍数',1,'(会员账户首次充值金额打码量倍数)'],
+ ['首充奖励打码量倍数',1,'(会员首充获得奖励金额的打码量倍数)'],
+ ['APP下载奖励打码量倍数',3,'(会员获得的APP下载奖励金额的打码量倍数)'],
+ ['红包打码量倍数',2,'(会员获得的红包金额的打码量倍数)'],
+ ['每日签到打码量倍数',1,'(会员获得每日签到金额的打码量倍数)'],
+ ['VIP奖励打码量倍数',1,'(会员获得的VIP奖励金额的打码量)'],
+ ['保险箱收益打码量倍数',29,'(会员获得的保险箱收益的打码量)'],
+ ['洗码量返水打码量倍数',5,'(会员洗码量获得的返水金额的打码量倍数)'],
+ ['每周任务奖励打码量倍数',2,'(会员获得每周任务奖励金额打码量的倍数)'],
+ ['每日任务奖励打码量倍数',2,'(会员获得每日任务奖励金额打码量的倍数)'],
+ ['爆大奖奖励打码量倍数',1,'(会员获得爆大奖奖励金额打码量的倍数)'],
+ ['邀请奖励打码量倍数',1,'(会员获得邀请奖励金额打码量的倍数)'],
+ ['手机号/邮箱绑定奖励打码量倍数',1,'(会员绑定手机号或邮箱获取奖励的打码量)'],
+ ['C2C奖励金额打码量倍数',2,'(会员C2C充值、提现奖励金额打码量倍数)'],
+ ['锦标赛排名奖励打码量倍数',2,'(会员获得锦标赛排名奖励打码量倍数)'],
+ ['新会员礼包打码量倍数',20,'(会员获得新会员礼包打码量倍数)'],
+ ['大转盘奖励打码量倍数',1,'(会员获得锦标赛排名奖励打码量倍数)'],
+ ['合伙人奖励打码量倍数',3,'(合伙人奖励打码量倍数)'],
+ ['邀请转盘奖金打码量倍数',10,'(邀请转盘奖金打码量倍数)'],
+ ['老会员回归固定奖金打码量倍数',2,'(老会员回归固定奖金打码量倍数)'],
+ ['老会员回归新充值赠送码量倍数',10,'(老会员回归新充值赠送码量倍数)']
+];
+
+function intInput(id,val){return '<input type="number" id="'+id+'" autocomplete="off" step="1" min="0" value="'+esc(val)+'">';}
+function renderRows(){
+  var h='';
+  /* 第 1 行：充值打码量倍数 + 打码量平0数（原样） */
+  h+='<div class="row"><span class="lb">充值打码量倍数</span><span class="sp">'+intInput('rRecharge',CFG.rechargeCode)+'</span>'+
+     '<span class="rm">(会员充值金额的打码量倍数)</span>'+
+     '<span class="lbr">打码量平0数</span><span class="sp">'+intInput('rFlat',CFG.flat)+'</span>'+
+     '<span class="rm">(会员剩余打码量等于或小于多少时直接为0)</span>'+
+     '<span class="op"><button class="lbtn" id="saveFirst">确认保存</button></span></div><hr>';
+  /* NEW：打码量归零余额 + 打码量归零时机 */
+  h+='<div class="row newrow"><span class="lb nw">打码量归零余额</span><span class="sp"><input type="text" inputmode="decimal" id="rClearBal" autocomplete="off" value="'+esc(CFG.clearBal)+'"></span>'+
+     '<span class="rm">(当会员总余额小于此余额时，按右侧归零时机清零打码量；填 0 为不启用)</span>'+
+     '<span class="lbr nw">打码量归零时机</span><span class="sp"><select id="rClearMode">'+
+       '<option value="recharge"'+(CFG.clearMode==='recharge'?' selected':'')+'>充值后解除</option>'+
+       '<option value="instant"'+(CFG.clearMode==='instant'?' selected':'')+'>立即解除</option></select></span>'+
+     '<span class="rm" id="modeTip">'+MODE_TIP[CFG.clearMode]+'</span>'+
+     '<span class="op"><button class="lbtn" id="saveClear">确认保存</button></span></div><hr>';
+  ROWS.forEach(function(r,i){
+    h+='<div class="row"><span class="lb">'+r[0]+'</span><span class="sp">'+intInput('r'+i,r[1])+'</span>'+
+       '<span class="rm w360">'+r[2]+'</span>'+
+       '<span class="op"><button class="lbtn" data-i="'+i+'">确认保存</button></span></div>'+(i<ROWS.length-1?'<hr>':'');
+  });
+  $('rows').innerHTML=h;
+
+  $('rClearMode').onchange=function(){$('modeTip').textContent=MODE_TIP[this.value];};
+  $('rClearBal').oninput=function(){
+    var v=this.value.replace(/[^\d.]/g,'');
+    var p=v.split('.');if(p.length>2)v=p[0]+'.'+p.slice(1).join('');
+    p=v.split('.');if(p[1]&&p[1].length>2)v=p[0]+'.'+p[1].substring(0,2);
+    this.value=v;
+  };
+  ['rRecharge','rFlat'].concat(ROWS.map(function(_,i){return 'r'+i;})).forEach(function(id){
+    $(id).oninput=function(){this.value=this.value.replace(/\D/g,'');};
+  });
+  $('saveFirst').onclick=function(){
+    var a=$('rRecharge').value||'1',b=$('rFlat').value||'1';
+    if(String(CFG.rechargeCode)!==a||String(CFG.flat)!==b)
+      addLog('打码量设置','充值打码量倍数：【'+CFG.rechargeCode+'】→【'+a+'】；打码量平0数：【'+CFG.flat+'】→【'+b+'】');
+    CFG.rechargeCode=+a;CFG.flat=+b;toast('操作成功','');
+  };
+  $('saveClear').onclick=saveClear;
+  Array.prototype.forEach.call(document.querySelectorAll('button[data-i]'),function(b){
+    b.onclick=function(){var i=+this.getAttribute('data-i'),v=$('r'+i).value||'1';
+      if(String(ROWS[i][1])!==v)addLog(ROWS[i][0],'【'+ROWS[i][1]+'】→【'+v+'】');
+      ROWS[i][1]=+v;toast('操作成功','');};
+  });
+}
+function balText(v){return +v===0?'0（不启用）':v;}
+function saveClear(){
+  var v=$('rClearBal').value.trim(),m=$('rClearMode').value;
+  if(v!==''&&!/^\d+(\.\d{1,2})?$/.test(v)){toast('操作失败','打码量归零余额只能填 0 或正数，最多两位小数',true);return;}
+  v=v===''?'0':String(+v);
+  if(v===CFG.clearBal&&m===CFG.clearMode){toast('操作成功','');return;}
+  addLog('打码量归零设置','归零余额：【'+balText(CFG.clearBal)+'】→【'+balText(v)+'】；归零时机：【'+MODES[CFG.clearMode]+'】→【'+MODES[m]+'】');
+  CFG.clearBal=v;CFG.clearMode=m;
+  $('rClearBal').value=v;
+  toast('操作成功',+v===0?'归零余额为 0，此功能不启用':'已启用：总余额小于 '+v+' 时'+MODES[m]);
+}
+
+/* ================= 配置记录 ================= */
+var LOGS=[
+  {name:'打码量设置',val:'充值打码量倍数：【1】→【1】；打码量平0数：【100】→【99】',user:'admin_ops',time:'2026-10-12 15:20:31',ip:'103.21.58.9',area:'印度',desc:'修改打码量配置'},
+  {name:'新会员礼包打码量倍数',val:'【10】→【20】',user:'admin_ops',time:'2026-10-08 11:02:47',ip:'103.21.58.9',area:'印度',desc:'修改打码量配置'}
+];
+function addLog(name,val){LOGS.unshift({name:name,val:val,user:'admin_luna',time:now(),ip:'103.21.58.12',area:'印度',desc:'修改打码量配置'});}
+function renderLog(){
+  var q=$('qName').value.trim();
+  var list=LOGS.filter(function(l){return !q||l.name.indexOf(q)>=0;});
+  $('logBody').innerHTML=list.length?list.map(function(l,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+esc(l.name)+'</td><td class="l">'+esc(l.val)+'</td><td>'+esc(l.user)+'</td><td>'+l.time+'</td><td>'+l.ip+'</td><td>'+l.area+'</td><td>'+esc(l.desc)+'</td></tr>';
+  }).join(''):'<tr><td colspan="8" style="color:#999">暂无数据</td></tr>';
+}
+$('qBtn').onclick=renderLog;
+$('qAll').onclick=function(){$('qName').value='';renderLog();};
+
+function showTab(log){
+  $('tabCfg').classList.toggle('nav-active',!log);$('tabLog').classList.toggle('nav-active',log);
+  $('pageCfg').style.display=log?'none':'';$('pageLog').style.display=log?'':'none';
+  if(log)renderLog();
+}
+$('tabCfg').onclick=function(){showTab(false);};
+$('tabLog').onclick=function(){showTab(true);};
+
+var tt;
+function toast(t,m,warn){var e=$('toast');e.className='toast'+(warn?' warn':'');e.innerHTML='<b>'+esc(t)+'</b>'+esc(m);e.style.display='block';clearTimeout(tt);tt=setTimeout(function(){e.style.display='none';},2600);}
+
+/* ================= 原型演示：清零模拟 ================= */
+var S;   /* {amount,third,code,pending} */
+var SCENES=[
+  {k:'ops',t:'运营案例：彩金输光',d:'送 1000 彩金、2 倍打码，打到 1200 输光，剩 800 打码',s:{amount:0,third:0,code:800,pending:0}},
+  {k:'third',t:'钱转进了三方游戏',d:'账户余额 0，但 1000 在三方游戏里还没转回',s:{amount:0,third:1000,code:800,pending:0}},
+  {k:'pend',t:'全押后还没开奖',d:'1000 彩金全押 WinGo，余额 0，等开奖',s:{amount:0,third:0,code:1000,pending:1000}},
+  {k:'left',t:'余额还剩 50',d:'没输光，还有 50 余额',s:{amount:50,third:0,code:800,pending:0}},
+  {k:'edge',t:'余额刚好等于归零余额',d:'余额 = 归零余额（默认按 1 演示）',s:{amount:null,third:0,code:800,pending:0}}
+];
+var curScene='ops';
+function thr(){return +CFG.clearBal||0;}
+function total(){return S.amount+S.third;}
+function check(){ /* 返回 null=满足；否则返回不满足原因 */
+  if(thr()<=0)return '归零余额未启用';
+  if(S.code<=0)return '打码量已经是 0';
+  if(S.pending>0)return '还有未结算的注单（'+n2(S.pending)+'）';
+  if(total()>=thr())return '总余额 '+n2(total())+(S.third>0?'（含三方 '+n2(S.third)+'）':'')+' 不小于归零余额 '+thr();
+  return null;
+}
+function lg(cls,txt){var d=document.createElement('div');d.className=cls||'';d.innerHTML='<span class="t">'+now().substring(11)+'</span>'+txt;var b=$('lg');b.insertBefore(d,b.firstChild);}
+function clearNow(why){
+  lg('clr','✅ 系统清零打码量：'+n2(S.code)+' → 0（'+why+'，当时总余额 '+n2(total())+'）；记系统日志');
+  S.code=0;
+}
+function instantScan(){
+  if(CFG.clearMode!=='instant')return;
+  var r=check();
+  if(r===null)clearNow('立即解除，5 分钟内自动扫描');
+  else if(thr()>0&&S.code>0)lg('skip','⏸ 定时扫描：不清零 —— '+r);
+}
+function deductCode(stake){
+  var before=S.code;S.code=Math.max(0,S.code-stake);
+  var t='打码量 '+n2(before)+' → '+n2(S.code);
+  if(CFG.flat>0&&S.code>0&&S.code<=CFG.flat){t+='，≤ 打码量平0数 '+CFG.flat+' → 0（现有规则）';S.code=0;}
+  return t;
+}
+var ACTS=[
+  {k:'lose',t:'下注 100 输掉',ok:function(){return S.amount>=100;},run:function(){S.amount-=100;lg('','会员下注 100 并输掉，余额 → '+n2(S.amount)+'；'+deductCode(100));}},
+  {k:'allin',t:'余额全押（未开奖）',ok:function(){return S.amount>0&&S.pending===0;},run:function(){var a=S.amount;S.pending=a;S.amount=0;lg('','会员全押 '+n2(a)+'，余额 → 0，等待开奖；'+deductCode(a));}},
+  {k:'win',t:'开奖：赢（2 倍）',ok:function(){return S.pending>0;},run:function(){var w=S.pending*2;S.amount+=w;S.pending=0;lg('','开奖赢了，派奖 '+n2(w)+'，余额 → '+n2(S.amount));}},
+  {k:'loss',t:'开奖：输',ok:function(){return S.pending>0;},run:function(){S.pending=0;lg('','开奖输了，余额仍为 '+n2(S.amount));}},
+  {k:'in',t:'余额转进三方游戏',ok:function(){return S.amount>0;},run:function(){S.third+=S.amount;lg('','会员进三方游戏，'+n2(S.amount)+' 转入三方，账户余额 → 0');S.amount=0;}},
+  {k:'tlose',t:'三方里输光',ok:function(){return S.third>0;},run:function(){var a=S.third;S.third=0;lg('','会员在三方游戏输掉 '+n2(a)+'，三方余额 → 0；'+deductCode(a));}},
+  {k:'out',t:'从三方转回',ok:function(){return S.third>0;},run:function(){S.amount+=S.third;lg('','三方余额 '+n2(S.third)+' 转回平台，账户余额 → '+n2(S.amount));S.third=0;}},
+  {k:'dep',t:'充值 1000',ok:function(){return true;},run:function(){
+     if(CFG.clearMode==='recharge'){
+       var r=check();
+       if(r===null)clearNow('充值后解除，到账前判断');
+       else if(thr()>0&&S.code>0)lg('skip','⏸ 充值到账前判断：不清零 —— '+r);
+     }
+     var add=1000*CFG.rechargeCode;S.amount+=1000;S.code+=add;
+     lg('','充值 1000 到账，余额 → '+n2(S.amount)+'；按充值打码量倍数 '+CFG.rechargeCode+' 加打码 '+n2(add)+'，打码量 → '+n2(S.code));
+  }}
+];
+function renderDemo(){
+  var off=thr()<=0;
+  $('cfgLine').innerHTML='当前已保存的配置：'+
+    '<span class="'+(off?'off':'hl')+'">打码量归零余额：'+(off?'0（不启用）':CFG.clearBal)+'</span>'+
+    '<span class="hl">打码量归零时机：'+MODES[CFG.clearMode]+'</span>'+
+    '<span>打码量平0数：'+CFG.flat+'</span><span>充值打码量倍数：'+CFG.rechargeCode+'</span>'+
+    (off?'<span style="border:0;background:none;color:#cf1322">先在页面上填「打码量归零余额」并保存，或</span><button class="ab" id="quick1">一键设为 1 · 充值后解除</button> <button class="ab" id="quick2">一键设为 1 · 立即解除</button>':
+      ' <button class="ab" id="swMode">切换为「'+(CFG.clearMode==='recharge'?'立即解除':'充值后解除')+'」</button>');
+  if($('quick1'))$('quick1').onclick=function(){quickSet('recharge');};
+  if($('quick2'))$('quick2').onclick=function(){quickSet('instant');};
+  if($('swMode'))$('swMode').onclick=function(){quickSet(CFG.clearMode==='recharge'?'instant':'recharge');};
+
+  $('stBox').innerHTML=
+    '<div><small>账户余额</small><b>'+n2(S.amount)+'</b></div>'+
+    '<div><small>三方游戏余额</small><b>'+n2(S.third)+'</b></div>'+
+    '<div><small>未结算注单</small><b>'+n2(S.pending)+'</b></div>'+
+    '<div class="code'+(S.code<=0?' zero':'')+'"><small>剩余打码量</small><b>'+n2(S.code)+'</b></div>';
+  var wd=$('wdBox');
+  if(S.code<=0){wd.className='wd ok';wd.textContent='打码量为 0：可以提现'+(S.amount>0?'（账户余额 '+n2(S.amount)+'）':'');}
+  else{wd.className='wd no';wd.textContent='还需打码 '+n2(S.code)+' 才能提现';}
+
+  $('acts').innerHTML=ACTS.map(function(a){return '<button class="ab" data-a="'+a.k+'"'+(a.ok()?'':' disabled')+'>'+a.t+'</button>';}).join('');
+  Array.prototype.forEach.call($('acts').querySelectorAll('button'),function(b){
+    b.onclick=function(){var a=ACTS.filter(function(x){return x.k===b.getAttribute('data-a');})[0];a.run();instantScan();renderDemo();};
+  });
+  $('scList').innerHTML=SCENES.map(function(s){return '<button class="scb'+(s.k===curScene?' on':'')+'" data-s="'+s.k+'">'+s.t+'<small>'+s.d+'</small></button>';}).join('');
+  Array.prototype.forEach.call($('scList').querySelectorAll('button'),function(b){b.onclick=function(){loadScene(b.getAttribute('data-s'));};});
+}
+function quickSet(mode){
+  CFG.clearBal=+CFG.clearBal>0?CFG.clearBal:'1';CFG.clearMode=mode;
+  renderRows();lg('sys','⚙ 配置改为：归零余额 '+CFG.clearBal+'，归零时机「'+MODES[mode]+'」');
+  instantScan();renderDemo();
+}
+function loadScene(k){
+  curScene=k;var sc=SCENES.filter(function(s){return s.k===k;})[0];
+  S=JSON.parse(JSON.stringify(sc.s));
+  if(S.amount===null)S.amount=thr()>0?thr():1;
+  $('lg').innerHTML='';
+  lg('sys','载入场景「'+sc.t+'」');
+  instantScan();renderDemo();
+}
+function openDemo(){loadScene(curScene);$('demo').style.display='flex';$('mmask').style.display='block';}
+function closeDemo(){$('demo').style.display='none';$('mmask').style.display='none';}
+$('demoOpen').onclick=openDemo;$('demoX').onclick=closeDemo;$('mmask').onclick=closeDemo;
+
+/* ================= 抽屉 ================= */
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if($('demo').style.display==='flex')closeDemo();else closeDoc();}});
+
+renderRows();
+})();
+</script>
+</body>
+</html>
