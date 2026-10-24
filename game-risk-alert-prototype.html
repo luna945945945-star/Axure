@@ -45,6 +45,7 @@ button{font:inherit}
 .btn.info{background:#2080f0;border-color:#2080f0;color:#fff}
 .btn.sm{height:24px;padding:0 10px;font-size:12px}
 .qd{display:flex;gap:6px;margin-left:84px;margin-top:-4px;margin-bottom:10px;flex-wrap:wrap}
+.qd.inl{margin:0}
 .qd span{height:22px;line-height:22px;padding:0 8px;border-radius:3px;background:#f2f3f5;color:var(--t2);font-size:12px;cursor:pointer;user-select:none}
 .qd span.on{background:rgba(9,96,189,.14);color:var(--pri)}
 /* 工具栏 */
@@ -90,22 +91,6 @@ th .tz{font-weight:400;color:var(--t3);font-size:12px}
 .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
 .sw.on{background:var(--pri)}
 .sw.on::after{left:20px}
-.vscope{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;position:relative}
-.vscope label{display:inline-flex;align-items:center;gap:4px;cursor:pointer;color:var(--t2)}
-.vscope input[type=radio]{accent-color:var(--pri)}
-.vsel{min-width:220px;max-width:420px;height:26px;border:1px solid var(--line2);border-radius:3px;background:#fff;padding:0 24px 0 8px;text-align:left;cursor:pointer;position:relative;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--t1)}
-.vsel::after{content:"▾";position:absolute;right:8px;top:0;line-height:24px;color:var(--t3)}
-.vsel.ph{color:var(--t4)}
-.vsel.bad{border-color:var(--err)}
-.vsel:disabled{background:#f5f5f7;color:var(--t4);cursor:not-allowed}
-.vpop{position:absolute;top:32px;left:50%;transform:translateX(-50%);width:520px;max-width:80vw;background:#fff;border:1px solid var(--line2);border-radius:4px;box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:20;padding:10px 12px;text-align:left;display:none}
-.vpop.show{display:block}
-.vpop .vg{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line)}
-.vpop .vg:last-of-type{border-bottom:0}
-.vpop .vg b{flex:0 0 40px;color:var(--t3);font-weight:400}
-.vpop .vg div{display:flex;flex-wrap:wrap;gap:4px 14px}
-.vpop .vg label{white-space:nowrap}
-.vpop .vft{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
 .sec{margin-top:16px;border:1px solid var(--line);border-radius:3px}
 .sec-h{background:#fafafc;padding:8px 12px;font-weight:600;border-bottom:1px solid var(--line);color:var(--t2)}
 .sec-b{padding:12px}
@@ -228,11 +213,12 @@ pre.tgpre{font:12.5px/1.55 -apple-system,"PingFang SC","Microsoft YaHei",sans-se
       <button class="btn pri" onclick="query()">查询</button>
     </div>
   </div>
-  <div class="qd" id="qd"><span class="on">今天</span><span>昨天</span><span>本周</span><span>上周</span><span>本月</span><span>上月</span><span>近7天</span><span>近30天</span></div>
 
   <div class="tb">
     <div class="tb-l"><span class="sel-info" id="totalInfo"></span></div>
     <div class="tb-r">
+      <div class="qd inl" id="qd"><span class="on">今天</span><span>昨天</span><span>本周</span><span>上周</span><span>本月</span><span>上月</span><span>近7天</span><span>近30天</span></div>
+      <span class="vd"></span>
       <button class="btn info sm" onclick="openRule()">⚙ 预警规则配置</button>
     </div>
   </div>
@@ -283,14 +269,7 @@ pre.tgpre{font:12.5px/1.55 -apple-system,"PingFang SC","Microsoft YaHei",sans-se
           <tr>
             <td><span class="sw" data-sw="r1"></span></td>
             <td><span class="tag">游戏亏损预警</span></td>
-            <td><div class="vscope">
-                <span>厂商范围<i class="newf">NEW</i></span>
-                <label><input type="radio" name="vmode" value="all" checked>全部厂商</label>
-                <label><input type="radio" name="vmode" value="pick">指定厂商</label>
-                <button type="button" class="vsel ph" id="vsel" disabled>请选择厂商</button>
-                <div class="vpop" id="vpop"></div>
-              </div>
-              <div class="thr"><span>单个游戏当日平台亏损 ≥</span><input id="r1v" value="10000"><span>U</span></div></td>
+            <td><div class="thr"><span>单个游戏当日平台亏损 ≥</span><input id="r1v" value="10000"><span>U</span></div></td>
             <td><span class="tag">Telegram</span></td>
           </tr>
           <tr>
@@ -302,7 +281,7 @@ pre.tgpre{font:12.5px/1.55 -apple-system,"PingFang SC","Microsoft YaHei",sans-se
           <tr>
             <td><span class="sw" data-sw="r3"></span></td>
             <td><span class="tag">投注波动预警</span></td>
-            <td><div class="thr"><span>昨日同时段投注 ≥</span><input id="r3b" value="2000"><span>U 时，今日投注涨幅或跌幅 ≥</span><input id="r3v" value="20" style="width:64px"><span>%</span></div></td>
+            <td><div class="thr"><span>前日全天投注 ≥</span><input id="r3b" value="2000"><span>U 时，昨日全天投注涨幅或跌幅 ≥</span><input id="r3v" value="20" style="width:64px"><span>%</span></div></td>
             <td><span class="tag">Telegram</span></td>
           </tr>
         </tbody>
@@ -344,7 +323,7 @@ pre.tgpre{font:12.5px/1.55 -apple-system,"PingFang SC","Microsoft YaHei",sans-se
     <table>
       <tr><th class="c1">页面</th><th>改动点</th></tr>
       <tr><td>报表管理 › 游戏风控预警（新）</td><td>新页面：查看本集团推送过的游戏风控预警记录、看推送原文；进入预警规则配置</td></tr>
-      <tr><td>预警规则配置弹窗（新）</td><td>游戏亏损预警、会员赢钱预警、投注波动预警三类的开关和触发阈值；游戏亏损预警的厂商范围；通知渠道 Telegram；Telegram 机器人 Token、群组 ID、发送测试消息</td></tr>
+      <tr><td>预警规则配置弹窗（新）</td><td>游戏亏损预警、会员赢钱预警、投注波动预警三类的开关和触发阈值；通知渠道 Telegram；Telegram 机器人 Token、群组 ID、发送测试消息</td></tr>
       <tr><td>集团 TG 群（新）</td><td>新增「游戏亏损预警」「投注波动预警」两种消息，本集团所有站点推到同一个群</td></tr>
     </table>
 
@@ -353,28 +332,28 @@ pre.tgpre{font:12.5px/1.55 -apple-system,"PingFang SC","Microsoft YaHei",sans-se
       <div class="kt">🎯 核心结论</div>
       <ol>
         <li>每 10 分钟检查：单个游戏当日平台亏损、单个会员当日净赢达到阈值就推 TG；同一游戏或会员每多达到一倍阈值再推一次；0 点后补查昨天全天，跨天的不漏报。</li>
-        <li>每个整点检查：单个游戏今日投注比昨日同时段涨或跌超过比例就推 TG，同一游戏同方向每天最多一次。</li>
+        <li>每天 0 点后：单个游戏昨日全天投注比前日全天涨或跌超过比例就推 TG。</li>
         <li>按集团配置一套规则和一个机器人，集团下所有站点共用，消息带站点编号。</li>
       </ol>
     </div>
-    <div class="rb k"><span class="no">01</span><div class="bd"><span class="core">核心</span><b>游戏亏损预警</b>：<b class="h">单个游戏当日平台亏损 ≥ 阈值</b>。平台亏损 = 会员派奖合计 − 投注合计。彩票按彩种算，同一彩种各时长合并（WinGo、5D、K3、TrxWinGo）；其他游戏按单个游戏算。<br><b>厂商范围</b>：选「全部厂商」时所有游戏都参与；选「指定厂商」时只有勾选厂商的游戏参与，彩票作为一项可勾选。厂商范围只影响游戏亏损预警，会员赢钱和投注波动预警始终按全部游戏算。</div></div>
+    <div class="rb k"><span class="no">01</span><div class="bd"><span class="core">核心</span><b>游戏亏损预警</b>：<b class="h">单个游戏当日平台亏损 ≥ 阈值</b>。平台亏损 = 会员派奖合计 − 投注合计。彩票按彩种算，同一彩种各时长合并（WinGo、5D、K3、TrxWinGo）；其他游戏按单个游戏算。</div></div>
     <div class="rb k"><span class="no">02</span><div class="bd"><span class="core">核心</span><b>会员赢钱预警</b>：<b class="h">单个会员当日在全部游戏上的净赢 ≥ 阈值</b>。净赢 = 该会员派奖合计 − 投注合计。</div></div>
-    <div class="rb k"><span class="no">03</span><div class="bd"><span class="core">核心</span><b>投注波动预警</b>：对象同 01。变化率 = （今日投注 − 昨日同时段投注）÷ 昨日同时段投注。<b class="h">涨幅 ≥ 比例或跌幅 ≥ 比例</b>触发；昨日同时段投注低于起算投注额的游戏不比较。</div></div>
+    <div class="rb k"><span class="no">03</span><div class="bd"><span class="core">核心</span><b>投注波动预警</b>：对象同 01。变化率 = （昨日全天投注 − 前日全天投注）÷ 前日全天投注。<b class="h">涨幅 ≥ 比例或跌幅 ≥ 比例</b>触发；前日全天投注低于起算投注额的游戏不比较。</div></div>
     <div class="rb k"><span class="no">04</span><div class="bd"><span class="core">核心</span><b>亏损 / 赢钱推送节奏</b>：每 10 分钟检查一次。同一游戏或会员当天首次达到阈值时推送，之后每达到阈值的 2 倍、3 倍……再各推一次；首次推送时已超过多倍的，按当前达到的倍数推。同一站点一次检查中新达到的项目合并成一条消息；没有新达到的项目不推送。次日重新计算。</div></div>
     <div class="rb k"><span class="no">05</span><div class="bd"><span class="core">核心</span><b>日终补查</b>：站点时间 0 点后，<b class="h">对昨天全天再检查一次游戏亏损和会员赢钱</b>，昨天已推过的档位不再推，只推新达到的档位（昨天最后几分钟达到的、注单晚到才达到的）。0 点后第一个小时内每次检查都补查昨天；这段时间检查没有运行的，恢复后第一次检查补查。补查推出的消息，统计时段为昨天全天并标明「日终补查」。</div></div>
-    <div class="rb"><span class="no">06</span><div class="bd"><b>投注波动推送节奏</b>：每个整点检查一次，0 点不检查，从 1 点开始。同一游戏涨幅、跌幅各自每天最多推一次；同一站点一次检查中触发的游戏合并成一条消息，涨幅在前、跌幅在后。</div></div>
-    <div class="rb"><span class="no">07</span><div class="bd"><b>统计口径</b>：站点时间当天 0 点至检查时刻；昨日同时段 = 站点时间昨天 0 点至与本次检查相同的时刻。只算已结算注单，按结算时间归属日期；投注按投注金额。U 金额 = 本币金额 ÷ 站点 U 充值汇率。</div></div>
+    <div class="rb"><span class="no">06</span><div class="bd"><b>投注波动推送节奏</b>：每天站点时间 0 点后检查一次，和日终补查一起做。同一站点触发的游戏合并成一条消息，涨幅在前、跌幅在后。</div></div>
+    <div class="rb"><span class="no">07</span><div class="bd"><b>统计口径</b>：亏损 / 赢钱为站点时间当天 0 点至检查时刻；投注波动为站点时间整天。只算已结算注单，按结算时间归属日期；投注按投注金额。U 金额 = 本币金额 ÷ 站点 U 充值汇率。</div></div>
     <div class="rb"><span class="no">08</span><div class="bd"><b>适用范围</b>：集团下全部站点，含统一开奖站点；全部三方游戏（含 UP 自营电子）和彩票。</div></div>
     <div class="rb"><span class="no">09</span><div class="bd"><b>消息内容</b>：
       <table>
         <tr><th class="c1">部分</th><th>内容</th></tr>
         <tr><td>消息头</td><td>预警名称、站点编号（站点名称）、统计时段（站点时间）</td></tr>
-        <tr><td>游戏亏损</td><td>游戏名称（三方为「厂商 · 游戏」，彩票为「彩票 · 彩种」）、本次达到的档位、今日平台亏损（U 和本币）、今日投注、昨日同时段投注、该游戏净赢最多的会员及其净赢</td></tr>
+        <tr><td>游戏亏损</td><td>游戏名称（三方为「厂商 · 游戏」，彩票为「彩票 · 彩种」）、本次达到的档位、今日平台亏损（U 和本币）、今日投注、该游戏净赢最多的会员及其净赢</td></tr>
         <tr><td>会员赢钱</td><td>会员 ID、本次达到的档位、今日净赢（U 和本币）、净赢最多的游戏及其净赢、注册时间、累计充值（U 和本币）</td></tr>
-        <tr><td>投注涨幅</td><td>游戏名称、今日投注、昨日同时段投注、涨幅、今日平台盈亏、投注最多的会员及其投注和占该游戏今日投注的比例</td></tr>
-        <tr><td>投注跌幅</td><td>游戏名称、今日投注、昨日同时段投注、跌幅</td></tr>
+        <tr><td>投注波动</td><td>游戏名称、昨日全天投注、前日全天投注、涨幅或跌幅</td></tr>
+
       </table>
-      档位 = 阈值 × 达到的倍数。日终补查的消息里，「今日」写成「当日」，「昨日同时段」写成「前一日全天」。</div></div>
+      档位 = 阈值 × 达到的倍数。日终补查的消息里，「今日」写成「当日」。</div></div>
     <div class="rb"><span class="no">10</span><div class="bd"><b>排序与格式</b>：游戏按今日平台亏损从高到低，会员按今日净赢从高到低，投注波动按变化幅度从大到小；金额四舍五入取整加千分位，比例四舍五入取整。</div></div>
     <div class="rb"><span class="no">11</span><div class="bd"><b>预警记录</b>：消息里每个游戏或会员各生成一条记录，详情可看整条推送原文。推送失败的记录显示「推送失败」，下次检查时重新推送，成功后改为「已推送」。</div></div>
     <div class="rb"><span class="no">12</span><div class="bd"><b>发送测试消息</b>：用弹窗里当前填写的 Token 和群组 ID 发一条测试消息，不用先保存；发送失败时提示失败原因。</div></div>
@@ -384,12 +363,11 @@ pre.tgpre{font:12.5px/1.55 -apple-system,"PingFang SC","Microsoft YaHei",sans-se
       <tr><th class="c1">项</th><th>说明</th></tr>
       <tr><td>配置范围</td><td>按集团一套，集团下所有站点共用，不能按站点单独设置</td></tr>
       <tr><td>阈值</td><td>亏损、赢钱、起算投注额：正整数，单位 U；波动比例：1 ~ 100 的整数，单位 %</td></tr>
-      <tr><td>厂商范围</td><td>可选厂商为本集团各站点已接入厂商的合集；选「指定厂商」至少勾选一个；之后新接入的厂商不会自动勾选，要手动加</td></tr>
-      <tr><td>上线默认值</td><td>游戏亏损 10,000 U，厂商范围为全部厂商；会员赢钱 5,000 U；投注波动 20%，起算投注额 2,000 U；三类默认关闭</td></tr>
+      <tr><td>上线默认值</td><td>游戏亏损 10,000 U；会员赢钱 5,000 U；投注波动 20%，起算投注额 2,000 U；三类默认关闭</td></tr>
       <tr><td>开关</td><td>关闭的预警类型不检查、不推送；开启任一类必须填写机器人 Token 和群组 ID</td></tr>
       <tr><td>机器人和群</td><td>每个集团一个机器人、一个群</td></tr>
       <tr><td>通知渠道</td><td>只推 Telegram，不发站内信</td></tr>
-      <tr><td>检查频率</td><td>亏损 / 赢钱固定 10 分钟，0 点后第一个小时内加做日终补查；投注波动固定整点（0 点除外）；均按站点时间，不可配置</td></tr>
+      <tr><td>检查频率</td><td>亏损 / 赢钱固定 10 分钟，0 点后第一个小时内加做日终补查；投注波动每天 0 点后一次；均按站点时间，不可配置</td></tr>
       <tr><td>修改阈值</td><td>当天修改后下次检查按新阈值判断；已推过的档位不再重推</td></tr>
       <tr><td>页面权限</td><td>查看列表、预警规则配置分开授权</td></tr>
       <tr><td>本次不做</td><td>当月累计亏损预警</td></tr>
@@ -401,13 +379,12 @@ pre.tgpre{font:12.5px/1.55 -apple-system,"PingFang SC","Microsoft YaHei",sans-se
       <li>数据在各站 V1 库，中台每 10 分钟要轮流查本集团所有站点当天的注单。现在中台连的是站点主库，大站当天注单量大，要评估对主库的压力，必要时改连只读库或按上次检查后的新增注单累加。</li>
       <li>上线前核对每个站点都已配好中台到站库的连接，没配的站点查不到。某个站点查询失败时跳过它继续查其他站点，并记日志。</li>
       <li>非统一开奖站点的自营彩票（WinGo、5D、K3、TrxWinGo）中台直接读不到：由这些站点的 V1 每 10 分钟把本站当天彩票按「彩种 × 会员」汇总的投注、派奖，以及每个彩种昨天同一时段的投注交给中台，中台和三方数据合在一起判断，同一会员的彩票和三方输赢要加在一起算。V1 统计「当天」要和中台用同一个站点时区。某站点超过 20 分钟没收到新汇总时，这次不判断该站彩票，并记日志。</li>
-      <li>厂商范围的可选列表要把本集团各站点已接入的厂商合在一起（按厂商编码去重），彩票单独作为一项；上线前先查各站点同一厂商的编码是否一致，不一致会在列表里出现重复项。</li>
       <li>每 10 分钟重新读当天全部注单，越到晚上越慢；建议只读上次检查之后新进库的注单，累加到对应日期的汇总里。注意按注单进库或更新的时间取新数据，不能按结算时间取，否则结算时间早、晚进库的注单会被永久漏掉。</li>
-      <li>「每 10 分钟」「整点」「0 点」都按各站点时间对齐；印度 UTC+5:30、缅甸 UTC+6:30 这类非整点时区要单独排时间。</li>
+      <li>「每 10 分钟」「0 点」都按各站点时间对齐，印度 UTC+5:30、缅甸 UTC+6:30 这类时区要单独排时间。</li>
       <li>日终补查要记住每个站点「哪天已补查完」，服务停机跨过 0 点后第一个小时的，恢复后要补上，不能跳过。</li>
       <li>统一开奖站点的注单已拉回本站，和自营站点一套统计，同一笔注单不能重复算。</li>
       <li>消息里的站点编号用中台商户编号，要核对它和 V1 老后台顶部「当前站点」是不是同一个数。</li>
-      <li>「已推到第几倍」「今天涨幅 / 跌幅推过没有」要按站点 + 日期 + 游戏或会员记住，服务重启或多台服务器同时跑都不能重复推。</li>
+      <li>「已推到第几倍」「投注波动这天比过没有」要按站点 + 日期 + 游戏或会员记住，服务重启或多台服务器同时跑都不能重复推。</li>
       <li>Telegram 对同一个群有发送频率限制，单条消息也有长度上限；一个集团站点多时要排队发送，单条超长时拆成多条。</li>
       <li>机器人 Token 属于密钥，页面上默认隐藏显示，日志里不要打印。</li>
       <li>上线顺序：非统一开奖站点的 V1 要和中台一起上线，否则这些站点的彩票不在预警范围内；先上线功能（默认关闭），各集团填好机器人并测试成功后再开启。开启前建议用日报表历史数据在一两个站估算投注波动 20% 每天会触发多少条，再定比例和起算投注额。</li>
@@ -424,25 +401,16 @@ const SITES={
   '1052':{code:'1052',name:'55club',cur:'PKR',rate:280},
   '1061':{code:'1061',name:'MM88',cur:'MMK',rate:4300}
 };
-const CFG={game:10000,member:5000,fluct:20,base:2000,vendors:null};/* vendors:null = 全部厂商 */
-/* 本集团各站点已接入厂商的合集，按游戏类型分组 */
-const VENDORS=[
-  ['彩票',['彩票']],
-  ['电子',['UP','JILI','PG','PP','CQ9','FC']],
-  ['真人',['Evolution','SEXY']],
-  ['体育',['SABA']],
-  ['棋牌',['KY']]
-];
-const vendorOf=g=>g.split(' · ')[0];
+const CFG={game:10000,member:5000,fluct:20,base:2000};
 const SEP='━━━━━━━━━━━━━━\n';
 
 /* ---------- 消息生成 ---------- */
 function lossMsg(site,date,t,ng,nm,cfg){
-  const loc=u=>`${fmt(u*site.rate)} ${site.cur}`,D=t?'今日':'当日',Y=t?'昨日同时段':'前一日全天';
+  const loc=u=>`${fmt(u*site.rate)} ${site.cur}`,D=t?'今日':'当日';
   let m=`🚨游戏亏损预警${t?'':'（日终补查）'}\n站点：${site.code}（${site.name}）\n统计：${date} 00:00 ~ ${t||'23:59'}（站点时间）${t?'':'，昨日全天'}\n`;
   if(ng.length){
     m+=SEP+`🎮游戏当日平台亏损 ≥【${fmt(cfg.game)} U】\n`;
-    ng.forEach((x,i)=>{m+=`${i+1}. ${x.g}【突破 ${fmt(x.l*cfg.game)} U】\n${D}平台亏损：${fmt(x.v)} U（${loc(x.v)}）\n${D}投注：${fmt(x.bet)} U｜${Y}：${fmt(x.ybet)} U\n净赢最多会员：${x.top[0]}（${fmt(x.top[1])} U）\n`;if(i<ng.length-1)m+='\n';});
+    ng.forEach((x,i)=>{m+=`${i+1}. ${x.g}【突破 ${fmt(x.l*cfg.game)} U】\n${D}平台亏损：${fmt(x.v)} U（${loc(x.v)}）\n${D}投注：${fmt(x.bet)} U\n净赢最多会员：${x.top[0]}（${fmt(x.top[1])} U）\n`;if(i<ng.length-1)m+='\n';});
   }
   if(nm.length){
     m+=SEP+`👤会员当日净赢 ≥【${fmt(cfg.member)} U】\n`;
@@ -451,16 +419,11 @@ function lossMsg(site,date,t,ng,nm,cfg){
   return m.trimEnd();
 }
 const pct=r=>Math.round(Math.abs(r)*100);
-function fluctMsg(site,date,t,ups,downs,cfg){
-  let m=`📊投注波动预警\n站点：${site.code}（${site.name}）\n统计：${date} 00:00 ~ ${t}（站点时间），对比昨日同时段\n`;
-  if(ups.length){
-    m+=SEP+`📈投注涨幅 ≥【${cfg.fluct}%】\n`;
-    ups.forEach((x,i)=>{m+=`${i+1}. ${x.g}\n今日投注：${fmt(x.bet)} U｜昨日同时段：${fmt(x.ybet)} U\n涨幅：${pct(x.r)}%\n今日平台盈亏：${x.pl>=0?'盈利':'亏损'} ${fmt(Math.abs(x.pl))} U\n投注最多会员：${x.top[0]}（${fmt(x.top[1])} U，占 ${Math.round(x.top[1]/x.bet*100)}%）\n`;if(i<ups.length-1)m+='\n';});
-  }
-  if(downs.length){
-    m+=SEP+`📉投注跌幅 ≥【${cfg.fluct}%】\n`;
-    downs.forEach((x,i)=>{m+=`${i+1}. ${x.g}\n今日投注：${fmt(x.bet)} U｜昨日同时段：${fmt(x.ybet)} U\n跌幅：${pct(x.r)}%\n`;if(i<downs.length-1)m+='\n';});
-  }
+function fluctMsg(site,date,prev,ups,downs,cfg){
+  let m=`📊投注波动预警\n站点：${site.code}（${site.name}）\n统计：${date} 全天对比 ${prev} 全天（站点时间）\n`;
+  const item=(x,i,w)=>`${i+1}. ${x.g}\n昨日全天投注：${fmt(x.bet)} U｜前日全天投注：${fmt(x.ybet)} U\n${w}：${pct(x.r)}%\n`;
+  if(ups.length){m+=SEP+`📈投注涨幅 ≥【${cfg.fluct}%】\n`;ups.forEach((x,i)=>{m+=item(x,i,'涨幅');if(i<ups.length-1)m+='\n';});}
+  if(downs.length){m+=SEP+`📉投注跌幅 ≥【${cfg.fluct}%】\n`;downs.forEach((x,i)=>{m+=item(x,i,'跌幅');if(i<downs.length-1)m+='\n';});}
   return m.trimEnd();
 }
 
@@ -502,23 +465,16 @@ const SCENES=[
     {t:'00:10',date:'10-22',eod:true,send:'10-23',games:[{g:'PG · Mahjong Ways 2',v:10900,bet:12100,ybet:9300,top:['301122',5900]}],members:[{id:'301122',v:5900,tg:['PG · Mahjong Ways 2',5900],reg:'2026-10-18 16:22',dep:300}]}
   ]}],
   exp:'<b>看点：</b>23:50 游戏 8,200 U、会员 4,800 U 都没到，不推。会员 23:55 又赢了一把，但下一次检查已是 10-23 的 00:00，今天（10-23）还没有数据。同一次检查顺带补查 10-22 全天：游戏 10,400 U、会员 5,300 U 新达到阈值，补报一条，标「日终补查」。00:10 再补查时有一笔晚到的三方注单让会员涨到 5,900 U，档位没变，不重复推。'},
- {k:'e',kind:'fluct',label:'⑥ 投注波动：整点同时有涨有跌',
-  runs:[{site:'1048',date:'10-22',checks:[
-    {t:'14:00',games:[
-      {g:'JILI · Super Ace',bet:12400,ybet:8600,pl:-1850,top:['301122',3100]},
-      {g:'彩票 · WinGo',bet:15800,ybet:23100,pl:900,top:['220019',1200]},
-      {g:'PG · Mahjong Ways 2',bet:6900,ybet:6000,pl:420,top:['301122',800]},
-      {g:'UP · Fortune Gems',bet:3200,ybet:1500,pl:-600,top:['123456',2100]}
+ {k:'e',kind:'fluct',label:'⑥ 投注波动：0 点后日终对比，有涨有跌',
+  runs:[{site:'1048',date:'10-22',prev:'10-21',send:'10-23',checks:[
+    {t:'00:00',games:[
+      {g:'JILI · Super Ace',bet:18600,ybet:12900},
+      {g:'彩票 · WinGo',bet:31400,ybet:46200},
+      {g:'PG · Mahjong Ways 2',bet:13800,ybet:12000},
+      {g:'UP · Fortune Gems',bet:3200,ybet:1500}
     ]}
   ]}],
-  exp:'<b>看点：</b>Super Ace 涨 44%、WinGo 跌 32%，合并一条推出，涨幅在前。Mahjong Ways 2 只涨 15% 不推。Fortune Gems 虽然翻倍，但昨日同时段只有 1,500 U，低于起算投注额 2,000 U，不比较。涨幅带平台盈亏和投注最多会员，占比 25% 说明不是一个人撑起来的。'},
- {k:'f',kind:'fluct',label:'⑦ 投注波动：同方向每天只推一次',
-  runs:[{site:'1048',date:'10-22',checks:[
-    {t:'14:00',games:[{g:'JILI · Super Ace',bet:12400,ybet:8600,pl:-1850,top:['301122',3100]}]},
-    {t:'15:00',games:[{g:'JILI · Super Ace',bet:15100,ybet:10200,pl:-2600,top:['301122',3900]}]},
-    {t:'21:00',games:[{g:'JILI · Super Ace',bet:21800,ybet:28400,pl:1300,top:['301122',4500]}]}
-  ]}],
-  exp:'<b>看点：</b>14:00 涨 44% 推。15:00 仍涨 48%，今天涨幅已推过，不再推。21:00 反过来跌 23%，跌幅今天还没推过，推一次。'}
+  exp:'<b>看点：</b>10-23 的 00:00 把 10-22 全天和 10-21 全天比：Super Ace 涨 44%、WinGo 跌 32%，合并一条推出，涨幅在前。Mahjong Ways 2 只涨 15% 不推。Fortune Gems 虽然翻倍，但前日全天只有 1,500 U，低于起算投注额 2,000 U，不比较。'}
 ];
 
 function lv(v,th){return th>0&&v>=th?Math.floor(v/th):0;}
@@ -528,7 +484,6 @@ function buildLoss(run){
   run.checks.forEach(c=>{
     const ng=[],nm=[],D=c.date||run.date,T=c.eod?c.t+'<br><small>补查 '+D+'</small>':c.t;
     c.games.forEach(x=>{const v=val(x);
-      if(CFG.vendors&&!CFG.vendors.includes(vendorOf(x.g))){rows.push({t:T,kind:'游戏',name:x.g,parts:x.parts,v:fmt(v)+' U',res:'厂商「'+vendorOf(x.g)+'」未勾选，不报',hit:false});return;}
       const l=lv(v,CFG.game),k=D+'g'+x.g,hit=l>(pushed[k]||0);if(hit){pushed[k]=l;ng.push({...x,v,l});}
       rows.push({t:T,kind:'游戏',name:x.g,parts:x.parts,v:fmt(v)+' U',res:l?(hit?'突破 '+fmt(l*CFG.game)+' U，推送':'已推过 '+fmt(l*CFG.game)+' U 档'):'未达到',hit});});
     c.members.forEach(x=>{const l=lv(x.v,CFG.member),k=D+'m'+x.id,hit=l>(pushed[k]||0);if(hit){pushed[k]=l;nm.push({...x,l});}
@@ -539,21 +494,21 @@ function buildLoss(run){
     tr:x=>`<tr class="${x.hit?'hit':''}"><td>${x.t}</td><td>${x.kind}</td><td class="l">${esc(x.name)}${x.parts?'<br><small>'+x.parts.map(p=>p[0]+' '+fmt(p[1])).join(' + ')+'</small>':''}</td><td>${x.v}</td><td class="${x.hit?'red':'muted'}">${x.res}</td></tr>`};
 }
 function buildFluct(run){
-  const site=SITES[run.site],pushed={},msgs=[],rows=[];
+  const site=SITES[run.site],msgs=[],rows=[];
   run.checks.forEach(c=>{
     const ups=[],downs=[];
     c.games.forEach(x=>{
       let res,hit=false;const r=(x.bet-x.ybet)/x.ybet;
-      if(x.ybet<CFG.base)res='昨日同时段低于 '+fmt(CFG.base)+' U，不比较';
-      else if(r*100>=CFG.fluct){if(pushed['u'+x.g])res='涨 '+pct(r)+'%，今天已推过涨幅';else{pushed['u'+x.g]=1;hit=true;res='涨 '+pct(r)+'%，推送';ups.push({...x,r});}}
-      else if(-r*100>=CFG.fluct){if(pushed['d'+x.g])res='跌 '+pct(r)+'%，今天已推过跌幅';else{pushed['d'+x.g]=1;hit=true;res='跌 '+pct(r)+'%，推送';downs.push({...x,r});}}
+      if(x.ybet<CFG.base)res='前日全天低于 '+fmt(CFG.base)+' U，不比较';
+      else if(r*100>=CFG.fluct){hit=true;res='涨 '+pct(r)+'%，推送';ups.push({...x,r});}
+      else if(-r*100>=CFG.fluct){hit=true;res='跌 '+pct(r)+'%，推送';downs.push({...x,r});}
       else res=(r>=0?'涨 ':'跌 ')+pct(r)+'%，未达到';
       rows.push({t:c.t,name:x.g,bet:x.bet,ybet:x.ybet,res,hit});
     });
-    if(ups.length||downs.length)msgs.push({t:c.t,text:fluctMsg(site,run.date,c.t,ups.sort((a,b)=>b.r-a.r),downs.sort((a,b)=>a.r-b.r),CFG)});
+    if(ups.length||downs.length)msgs.push({t:c.t,send:run.send,text:fluctMsg(site,run.date,run.prev,ups.sort((a,b)=>b.r-a.r),downs.sort((a,b)=>a.r-b.r),CFG)});
   });
-  return {msgs,rows,head:'<tr><th>检查</th><th>游戏</th><th>今日投注</th><th>昨日同时段</th><th>结果</th></tr>',
-    tr:x=>`<tr class="${x.hit?'hit':''}"><td>${x.t}</td><td class="l">${esc(x.name)}</td><td>${fmt(x.bet)} U</td><td>${fmt(x.ybet)} U</td><td class="${x.hit?'red':'muted'}">${x.res}</td></tr>`};
+  return {msgs,rows,head:`<tr><th>检查</th><th>游戏</th><th>${run.date} 全天</th><th>${run.prev} 全天</th><th>结果</th></tr>`,
+    tr:x=>`<tr class="${x.hit?'hit':''}"><td>${run.send} ${x.t}</td><td class="l">${esc(x.name)}</td><td>${fmt(x.bet)} U</td><td>${fmt(x.ybet)} U</td><td class="${x.hit?'red':'muted'}">${x.res}</td></tr>`};
 }
 let S;
 function renderTG(){
@@ -563,7 +518,7 @@ function renderTG(){
     b.msgs.forEach(m=>all.push({send:run.date,...m}));
     raw+=`<div class="run-t">站点 ${site.code}（${site.name}，${site.cur}，1 U = ${fmt(site.rate)} ${site.cur}）</div><table class="rawt">${b.head}${b.rows.map(b.tr).join('')}</table>`;
   });
-  $('cfg').innerHTML=`集团规则：游戏亏损 ≥ <b>${fmt(CFG.game)}</b> U（厂商范围：${CFG.vendors?'指定 '+CFG.vendors.join('、'):'全部厂商'}）　会员赢钱 ≥ <b>${fmt(CFG.member)}</b> U　投注波动 ≥ <b>${CFG.fluct}%</b>（昨日同时段 ≥ ${fmt(CFG.base)} U 才比较）`;
+  $('cfg').innerHTML=`集团规则：游戏亏损 ≥ <b>${fmt(CFG.game)}</b> U　会员赢钱 ≥ <b>${fmt(CFG.member)}</b> U　投注波动 ≥ <b>${CFG.fluct}%</b>（前日全天 ≥ ${fmt(CFG.base)} U 才比较）`;
   $('raw').innerHTML=raw;$('steps').innerHTML=S.exp;
   all.sort((a,b)=>(a.send+a.t).localeCompare(b.send+b.t));
   const bot=m=>`<div class="tm-row"><div class="av">风</div><div class="bub"><div class="who">风控预警机器人</div><pre class="tgpre">${esc(m.text)}</pre><div class="tm">${m.t}</div></div></div>`;
@@ -587,9 +542,6 @@ function addRec(site,type,obj,content,period,time,push,text){REC.push({site,type
   addRec(s48,'会员赢钱预警','123456','今日净赢 9,800 U，突破 5,000 U','2026-10-22 00:00 ~ 12:10','2026-10-22 12:10:06','已推送',m1);
   const m2=lossMsg(s48,'10-22','12:20',[],[{id:'123456',v:13400,tg:['UP · Fortune Gems',13400],reg:'2026-10-19 21:03',dep:200,l:2}],CFG);
   addRec(s48,'会员赢钱预警','123456','今日净赢 13,400 U，突破 10,000 U','2026-10-22 00:00 ~ 12:20','2026-10-22 12:20:05','已推送',m2);
-  const mf=fluctMsg(s48,'10-22','14:00',[{g:'JILI · Super Ace',bet:12400,ybet:8600,pl:-1850,top:['301122',3100],r:(12400-8600)/8600}],[{g:'彩票 · WinGo',bet:15800,ybet:23100,r:(15800-23100)/23100}],CFG);
-  addRec(s48,'投注波动预警','JILI · Super Ace','今日投注 12,400 U，较昨日同时段 8,600 U 涨 44%','2026-10-22 00:00 ~ 14:00','2026-10-22 14:00:09','已推送',mf);
-  addRec(s48,'投注波动预警','彩票 · WinGo','今日投注 15,800 U，较昨日同时段 23,100 U 跌 32%','2026-10-22 00:00 ~ 14:00','2026-10-22 14:00:09','已推送',mf);
   const m3=lossMsg(s61,'10-22','15:40',[{g:'彩票 · 5D',v:11200,bet:9500,ybet:9000,top:['880021',10600],l:1}],[{id:'880021',v:10600,tg:['彩票 · 5D',10600],reg:'2026-10-20 08:41',dep:350,l:2}],CFG);
   addRec(s61,'游戏亏损预警','彩票 · 5D','今日平台亏损 11,200 U，突破 10,000 U','2026-10-22 00:00 ~ 15:40','2026-10-22 15:40:07','已推送',m3);
   addRec(s61,'会员赢钱预警','880021','今日净赢 10,600 U，突破 10,000 U','2026-10-22 00:00 ~ 15:40','2026-10-22 15:40:07','已推送',m3);
@@ -599,6 +551,9 @@ function addRec(site,type,obj,content,period,time,push,text){REC.push({site,type
   const m5=lossMsg(s48,'10-22',null,[{g:'PG · Mahjong Ways 2',v:10400,bet:11800,ybet:9300,top:['301122',5300],l:1}],[{id:'301122',v:5300,tg:['PG · Mahjong Ways 2',5300],reg:'2026-10-18 16:22',dep:300,l:1}],CFG);
   addRec(s48,'游戏亏损预警','PG · Mahjong Ways 2','日终补查：当日平台亏损 10,400 U，突破 10,000 U','2026-10-22 00:00 ~ 23:59','2026-10-23 00:00:06','已推送',m5);
   addRec(s48,'会员赢钱预警','301122','日终补查：当日净赢 5,300 U，突破 5,000 U','2026-10-22 00:00 ~ 23:59','2026-10-23 00:00:06','已推送',m5);
+  const mf=fluctMsg(s48,'10-22','10-21',[{g:'JILI · Super Ace',bet:18600,ybet:12900,r:(18600-12900)/12900}],[{g:'彩票 · WinGo',bet:31400,ybet:46200,r:(31400-46200)/46200}],CFG);
+  addRec(s48,'投注波动预警','JILI · Super Ace','10-22 全天投注 18,600 U，较 10-21 全天 12,900 U 涨 44%','2026-10-22 00:00 ~ 23:59','2026-10-23 00:00:09','已推送',mf);
+  addRec(s48,'投注波动预警','彩票 · WinGo','10-22 全天投注 31,400 U，较 10-21 全天 46,200 U 跌 32%','2026-10-22 00:00 ~ 23:59','2026-10-23 00:00:09','已推送',mf);
   REC.reverse();
 })();
 const tSel=$('fTenant');Object.values(SITES).forEach(s=>tSel.insertAdjacentHTML('beforeend',`<option value="${s.code}">(${s.code})${s.name}</option>`));
@@ -633,42 +588,11 @@ document.querySelectorAll('[data-sw]').forEach(s=>s.onclick=()=>{ST[s.dataset.sw
 ['r1v','r2v','r3b','r3v'].forEach(id=>$(id).oninput=e=>{e.target.value=e.target.value.replace(/[^0-9]/g,'');e.target.classList.remove('bad');});
 ['tgToken','tgChat'].forEach(id=>$(id).oninput=e=>e.target.classList.remove('bad'));
 $('eye').onclick=()=>{const i=$('tgToken'),show=i.type==='password';i.type=show?'text':'password';$('eye').textContent=show?'隐藏':'显示';};
-/* 厂商范围 */
-let VD={mode:'all',sel:[]};
-const vmodeEls=()=>document.querySelectorAll('input[name=vmode]');
-function renderVsel(){
-  const b=$('vsel'),pick=VD.mode==='pick';
-  b.disabled=!pick;b.classList.remove('bad');
-  b.textContent=pick&&VD.sel.length?`已选 ${VD.sel.length} 个：${VD.sel.join('、')}`:'请选择厂商';
-  b.classList.toggle('ph',!(pick&&VD.sel.length));
-  if(!pick)$('vpop').classList.remove('show');
-}
-function renderVpop(){
-  $('vpop').innerHTML=VENDORS.map(([grp,list])=>`<div class="vg"><b>${grp}</b><div>${list.map(v=>`<label><input type="checkbox" value="${v}" ${VD.sel.includes(v)?'checked':''}>${v==='彩票'?'彩票（WinGo、5D、K3、TrxWinGo）':v}</label>`).join('')}</div></div>`).join('')+
-    `<div class="vft"><span><span class="lnk" id="vAll">全选</span>　<span class="lnk" id="vInv">反选</span>　<span class="lnk" id="vNone">清空</span></span><span class="muted">已选 ${VD.sel.length} 个</span></div>`;
-}
-vmodeEls().forEach(r=>r.onchange=()=>{VD.mode=r.value;renderVsel();if(VD.mode==='pick'&&!VD.sel.length){renderVpop();$('vpop').classList.add('show');}});
-$('vsel').onclick=e=>{e.stopPropagation();renderVpop();$('vpop').classList.toggle('show');};
-$('vpop').onclick=e=>{e.stopPropagation();
-  const all=VENDORS.flatMap(g=>g[1]);
-  if(e.target.id==='vAll')VD.sel=all.slice();
-  else if(e.target.id==='vInv')VD.sel=all.filter(x=>!VD.sel.includes(x));
-  else if(e.target.id==='vNone')VD.sel=[];
-  else if(e.target.type==='checkbox'){const v=e.target.value;VD.sel=e.target.checked?[...VD.sel,v]:VD.sel.filter(x=>x!==v);VD.sel=all.filter(x=>VD.sel.includes(x));}
-  else return;
-  renderVpop();renderVsel();};
-document.addEventListener('click',()=>$('vpop').classList.remove('show'));
-function openRule(){
-  syncSw();
-  VD={mode:CFG.vendors?'pick':'all',sel:CFG.vendors?CFG.vendors.slice():[]};
-  vmodeEls().forEach(r=>r.checked=r.value===VD.mode);renderVsel();
-  openM('mRule');
-}
+function openRule(){syncSw();openM('mRule');}
 function bad(id,msg){$(id).classList.add('bad');$(id).focus();toast(msg,'error');return false;}
 function validRules(){
   const n=id=>$(id).value===''?NaN:Number($(id).value);
   if(!(n('r1v')>0))return bad('r1v','游戏亏损预警 的规则配置不完整');
-  if(VD.mode==='pick'&&!VD.sel.length){$('vsel').classList.add('bad');toast('游戏亏损预警 请至少勾选一个厂商','error');return false;}
   if(!(n('r2v')>0))return bad('r2v','会员赢钱预警 的规则配置不完整');
   if(!(n('r3b')>0))return bad('r3b','投注波动预警 的规则配置不完整');
   if(!(n('r3v')>=1&&n('r3v')<=100))return bad('r3v','投注波动比例请输入 1 ~ 100 的整数');
@@ -682,7 +606,7 @@ function validTg(){
 function saveRule(){
   if(!validRules())return;
   if((ST.r1||ST.r2||ST.r3)&&!validTg())return;
-  CFG.game=+$('r1v').value;CFG.member=+$('r2v').value;CFG.base=+$('r3b').value;CFG.fluct=+$('r3v').value;CFG.vendors=VD.mode==='pick'?VD.sel.slice():null;
+  CFG.game=+$('r1v').value;CFG.member=+$('r2v').value;CFG.base=+$('r3b').value;CFG.fluct=+$('r3v').value;
   renderTG();toast('规则保存成功');closeM('mRule');
 }
 function testSend(){
