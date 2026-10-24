@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>游戏风控预警 · 交互原型</title>
+<style>
+/* 取值对齐 ar_platform_admin（origin/uat）默认主题：主题色 #0960bd、Naive UI small 控件 */
+:root{
+  --pri:#0960bd;--pri-h:#357dc9;
+  --line:#efeff5;--line2:#e0e0e6;--bg:#f5f7f9;
+  --t1:#1f2225;--t2:#333639;--t3:#767c82;--t4:#a2a7ad;
+  --ok:#18a058;--err:#d03050;--warn:#f0a020;--link:#1677ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:hidden}
+body{font:13px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--t1);background:var(--bg)}
+button{font:inherit}
+.newf{display:inline-block;background:#f5222d;color:#fff;font-size:9px;font-weight:700;border-radius:3px;padding:0 4px;line-height:14px;vertical-align:1px;margin-left:4px;font-style:normal}
+.top{display:flex;align-items:center;justify-content:space-between;padding:10px 40px 0 16px;gap:12px;flex-wrap:wrap}
+.crumb{font-size:12px;color:var(--t3)}
+.crumb .sep{margin:0 6px;color:#c9cdd4}
+.crumb .cur{color:var(--t2);font-weight:600}
+.views{display:flex;gap:6px}
+.views button{height:28px;padding:0 14px;border-radius:3px;border:1px solid var(--line2);background:#fff;color:var(--t2);cursor:pointer}
+.views button.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.view{display:none}.view.on{display:block}
+.page{padding:10px 40px 60px 16px}
+.panel{background:#fff;border-radius:3px;padding:12px}
+/* 搜索区 */
+.sf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 18px;margin-bottom:12px}
+.fi{display:flex;align-items:center;min-width:0}
+.fi>label{flex:0 0 84px;text-align:right;padding-right:8px;color:var(--t2);white-space:nowrap}
+.fi.span2{grid-column:span 2}
+.fi select,.fi input{height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 8px;font-size:13px;background:#fff;color:var(--t1);outline:none;min-width:0;width:100%}
+.fi select:focus,.fi input:focus{border-color:var(--pri)}
+.rng{flex:1;display:flex;align-items:center;gap:6px;min-width:0}
+.rng input{flex:1;font-variant-numeric:tabular-nums}
+.rng span{color:var(--t4)}
+.act{display:flex;justify-content:flex-end;gap:8px}
+.btn{height:28px;padding:0 14px;border-radius:3px;border:1px solid var(--line2);background:#fff;color:var(--t2);cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.btn:hover{color:var(--pri);border-color:var(--pri)}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.pri:hover{background:var(--pri-h);border-color:var(--pri-h);color:#fff}
+.btn.info{background:#2080f0;border-color:#2080f0;color:#fff}
+.btn.sm{height:24px;padding:0 10px;font-size:12px}
+.qd{display:flex;gap:6px;margin-left:84px;margin-top:-4px;margin-bottom:10px;flex-wrap:wrap}
+.qd span{height:22px;line-height:22px;padding:0 8px;border-radius:3px;background:#f2f3f5;color:var(--t2);font-size:12px;cursor:pointer;user-select:none}
+.qd span.on{background:rgba(9,96,189,.14);color:var(--pri)}
+/* 工具栏 */
+.tb{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap}
+.tb-l,.tb-r{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tb .vd{width:1px;height:16px;background:var(--line2);margin:0 4px}
+.sel-info{font-size:12.5px;color:var(--t3)}
+/* 表格 */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:3px}
+table{border-collapse:separate;border-spacing:0;width:100%}
+th{background:#fafafc;font-weight:600;color:var(--t2);padding:9px 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle;background:#fff;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.l{text-align:left;white-space:normal;min-width:260px}
+tr:hover td{background:#f8f9fb}
+th .tz{font-weight:400;color:var(--t3);font-size:12px}
+.tag{display:inline-block;height:22px;line-height:20px;padding:0 7px;border:1px solid var(--line2);border-radius:3px;background:#fafafc;font-size:12px;color:var(--t2)}
+.tag.err{color:var(--err);border-color:rgba(208,48,80,.35);background:rgba(208,48,80,.06)}
+.tag.ok{color:var(--ok);border-color:rgba(24,160,88,.35);background:rgba(24,160,88,.06)}
+.red{color:var(--err)}
+.lnk{color:var(--link);cursor:pointer}
+.lnk:hover{text-decoration:underline}
+.muted{color:var(--t4)}
+.empty{padding:60px 0!important;color:var(--t4)}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:12px 4px 2px;font-size:12.5px;color:var(--t2)}
+.pg-n{min-width:24px;height:24px;border:1px solid var(--line2);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:var(--t3);padding:0 4px}
+.pg-n.on{border-color:var(--pri);color:var(--pri)}
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:900;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px}
+.mask.show{display:flex}
+.dlg{background:#fff;border-radius:4px;width:980px;max-width:100%;padding:18px 20px 16px;box-shadow:0 6px 24px rgba(0,0,0,.2);position:relative}
+.dlg.mid{width:720px}
+.dlg h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.dlg h3 .x{cursor:pointer;color:var(--t3);font-weight:400;font-size:18px}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.alert{background:rgba(32,128,240,.08);border:1px solid rgba(32,128,240,.25);border-radius:3px;padding:8px 12px;color:var(--t2);margin-bottom:12px;font-size:12.5px}
+.rule td{padding:8px 10px}
+.thr{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}
+.thr input{width:96px;height:26px;border:1px solid var(--line2);border-radius:3px;padding:0 8px;text-align:right;font-variant-numeric:tabular-nums;outline:none}
+.thr input:focus{border-color:var(--pri)}
+.thr input.bad{border-color:var(--err)}
+.thr span{color:var(--t2)}
+.sw{position:relative;display:inline-block;width:36px;height:18px;border-radius:9px;background:#dbdbdf;cursor:pointer;transition:background .2s;vertical-align:middle}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw.on{background:var(--pri)}
+.sw.on::after{left:20px}
+.vscope{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;position:relative}
+.vscope label{display:inline-flex;align-items:center;gap:4px;cursor:pointer;color:var(--t2)}
+.vscope input[type=radio]{accent-color:var(--pri)}
+.vsel{min-width:220px;max-width:420px;height:26px;border:1px solid var(--line2);border-radius:3px;background:#fff;padding:0 24px 0 8px;text-align:left;cursor:pointer;position:relative;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--t1)}
+.vsel::after{content:"▾";position:absolute;right:8px;top:0;line-height:24px;color:var(--t3)}
+.vsel.ph{color:var(--t4)}
+.vsel.bad{border-color:var(--err)}
+.vsel:disabled{background:#f5f5f7;color:var(--t4);cursor:not-allowed}
+.vpop{position:absolute;top:32px;left:50%;transform:translateX(-50%);width:520px;max-width:80vw;background:#fff;border:1px solid var(--line2);border-radius:4px;box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:20;padding:10px 12px;text-align:left;display:none}
+.vpop.show{display:block}
+.vpop .vg{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.vpop .vg:last-of-type{border-bottom:0}
+.vpop .vg b{flex:0 0 40px;color:var(--t3);font-weight:400}
+.vpop .vg div{display:flex;flex-wrap:wrap;gap:4px 14px}
+.vpop .vg label{white-space:nowrap}
+.vpop .vft{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.sec{margin-top:16px;border:1px solid var(--line);border-radius:3px}
+.sec-h{background:#fafafc;padding:8px 12px;font-weight:600;border-bottom:1px solid var(--line);color:var(--t2)}
+.sec-b{padding:12px}
+.frow{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.frow>label{flex:0 0 110px;text-align:right;color:var(--t2)}
+.frow>label .rq{color:var(--err);margin-right:2px}
+.frow input{height:28px;border:1px solid var(--line2);border-radius:3px;padding:0 8px;width:420px;max-width:100%;outline:none;font-family:Menlo,Consolas,monospace;font-size:12.5px}
+.frow input:focus{border-color:var(--pri)}
+.frow input.bad{border-color:var(--err)}
+.frow .sub{font-size:12px;color:var(--t3)}
+.eye{cursor:pointer;color:var(--t3);font-size:12px;user-select:none}
+.kv{display:grid;grid-template-columns:120px 1fr 120px 1fr;border:1px solid var(--line);border-radius:3px;margin-bottom:12px}
+.kv>div{padding:7px 10px;border-bottom:1px solid var(--line)}
+.kv>div:nth-last-child(-n+4){border-bottom:0}
+.kv .k{background:#fafafc;color:var(--t3);text-align:right}
+pre.raw{font:12.5px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f7f8fa;border:1px solid var(--line);border-radius:3px;padding:10px 12px;white-space:pre-wrap;word-break:break-all;max-height:420px;overflow:auto}
+/* 消息提示 */
+.msgs{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:1000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.msg-t{background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.12);border-radius:3px;padding:9px 14px;display:flex;gap:8px;align-items:center}
+.msg-t .ic{width:16px;height:16px;border-radius:50%;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.msg-t.success .ic{background:var(--ok)}
+.msg-t.error .ic{background:var(--err)}
+/* TG 演示 */
+.demo-wrap{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.demo{flex:1 1 520px;min-width:0;background:#fff;border-radius:3px;padding:12px}
+.demo h5{font-size:13px;margin:0 0 8px;color:var(--t2)}
+.scenes{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.scenes button{text-align:left;padding:7px 10px;border:1px solid var(--line2);border-radius:3px;background:#fff;cursor:pointer;color:var(--t2)}
+.scenes button.on{border-color:var(--pri);color:var(--pri);background:rgba(9,96,189,.06)}
+.cfg{font-size:12px;color:var(--t2);background:#fafafc;border:1px solid var(--line);border-radius:3px;padding:6px 10px;margin-bottom:8px;line-height:1.8}
+.steps{font-size:12.5px;line-height:1.8;color:var(--t2);background:#fffbe6;border:1px solid #ffe58f;border-radius:3px;padding:8px 10px;margin-bottom:10px}
+table.rawt{font-size:12px;margin-bottom:8px}
+table.rawt th,table.rawt td{padding:4px 6px;border:1px solid var(--line)}
+table.rawt td.l{min-width:0;text-align:left}
+table.rawt tr.hit td{background:#fff8e6}
+table.rawt small{color:var(--t3)}
+.run-t{font-size:12px;color:var(--pri);margin:6px 0 2px}
+.tg{width:520px;max-width:100%;height:860px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 6px 28px rgba(0,0,0,.14);display:flex;flex-direction:column;flex:0 0 auto;position:relative}
+.tg-hd{height:56px;background:#517da2;color:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;flex:0 0 auto}
+.tg-hd .av{width:38px;height:38px;border-radius:50%;background:#e8a24a;display:flex;align-items:center;justify-content:center;font-weight:700}
+.tg-hd .nm{font-size:15px;font-weight:600;line-height:1.3}
+.tg-hd .st{font-size:12px;opacity:.75}
+.tg-bd{flex:1;overflow-y:auto;background:#cfdcc5 linear-gradient(160deg,#d6e2c4,#b9cfb0);padding:14px 12px 20px}
+.tm-row{display:flex;gap:8px;align-items:flex-end;margin-bottom:10px}
+.tm-row .av{width:32px;height:32px;border-radius:50%;background:#e8a24a;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:700}
+.bub{background:#fff;border-radius:10px 10px 10px 2px;padding:6px 10px 4px;max-width:440px;min-width:0;box-shadow:0 1px 1px rgba(0,0,0,.12)}
+.bub .who{font-size:12.5px;color:#d0851f;font-weight:600;margin-bottom:2px}
+.bub .tm{font-size:10.5px;color:#a0acb6;text-align:right;margin-top:2px}
+.sys{text-align:center;margin:6px 0 10px}
+.sys span{display:inline-block;background:rgba(0,0,0,.18);color:#fff;font-size:11.5px;border-radius:10px;padding:1px 10px}
+pre.tgpre{font:12.5px/1.55 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#1f2d3a;white-space:pre-wrap;word-break:break-all}
+.tg-empty{color:#6b7a70;text-align:center;margin-top:40%;font-size:13px}
+.tg .newb{position:absolute;top:8px;right:10px;background:#f5222d;color:#fff;font:700 9px/1 -apple-system,sans-serif;padding:3px 5px;border-radius:8px 8px 8px 2px}
+/* 需求说明抽屉 */
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--pri);color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:700;box-shadow:-2px 0 8px rgba(9,96,189,.3)}
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:800;display:none}
+.dmask.on{display:block}
+.drawer{position:fixed;top:0;right:0;width:820px;max-width:100vw;height:100%;background:#fff;z-index:801;box-shadow:-4px 0 24px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.d-head{padding:14px 18px;border-bottom:1px solid var(--line2);display:flex;justify-content:space-between;align-items:center}
+.d-head .t{font-size:15px;font-weight:700}
+.d-x{cursor:pointer;color:var(--t3);font-size:18px}
+.d-body{flex:1;overflow-y:auto;padding:16px 18px 40px;font-size:12.5px;line-height:1.8}
+.d-body h4{font-size:13.5px;margin:20px 0 8px;padding-left:8px;border-left:3px solid var(--pri)}
+.d-body h4:first-child{margin-top:0}
+.d-body table{margin:6px 0 10px}
+.d-body th,.d-body td{padding:6px 8px;text-align:left;white-space:normal;vertical-align:top;border:1px solid var(--line2)}
+.d-body th{background:#fafafc}
+.d-body .c1{width:150px}
+.note{background:rgba(9,96,189,.06);border:1px solid rgba(9,96,189,.2);border-radius:3px;padding:7px 10px;margin-bottom:8px}
+.kc{border:1px solid rgba(9,96,189,.3);border-radius:4px;padding:10px 12px;margin-bottom:12px;background:#f6f9fd}
+.kc .kt{font-weight:700;margin-bottom:4px}
+.kc ol{padding-left:20px}
+.rb{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line2)}
+.rb .no{flex:0 0 26px;height:22px;border-radius:3px;background:#f2f3f5;color:var(--t2);font-weight:700;text-align:center;line-height:22px;font-size:12px}
+.rb .bd{flex:1;min-width:0}
+.rb .core{display:inline-block;background:var(--err);color:#fff;font-size:11px;border-radius:3px;padding:0 5px;line-height:17px;margin-right:4px}
+.rb.k .bd b.h{background:#fff1b8}
+.d-body ol.dev{padding-left:20px}
+.d-body ol.dev li{margin-bottom:4px}
+@media (max-width:1100px){.sf{grid-template-columns:repeat(2,minmax(0,1fr))}.kv{grid-template-columns:100px 1fr}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="crumb">报表管理<span class="sep">/</span><span class="cur">游戏风控预警</span><i class="newf">NEW</i></div>
+  <div class="views" id="views">
+    <button data-v="page" class="on">中台 · 游戏风控预警</button>
+    <button data-v="tg">TG 群消息演示</button>
+  </div>
+</div>
+
+<!-- ============ 视图1：中台页面 ============ -->
+<div class="view on" id="v-page">
+<div class="page"><div class="panel">
+  <div class="sf">
+    <div class="fi">
+      <label>商户</label>
+      <select id="fTenant"><option value="">全部</option></select>
+    </div>
+    <div class="fi">
+      <label>预警类型</label>
+      <select id="fType"><option value="">全部</option><option>游戏亏损预警</option><option>会员赢钱预警</option><option>投注波动预警</option></select>
+    </div>
+    <div class="fi">
+      <label>预警对象</label>
+      <input id="fObj" placeholder="游戏名称或会员ID">
+    </div>
+    <div class="fi">
+      <label>推送结果</label>
+      <select id="fPush"><option value="">全部</option><option>已推送</option><option>推送失败</option></select>
+    </div>
+    <div class="fi span2">
+      <label>预警时间</label>
+      <div class="rng"><input id="fStart" value="2026-10-22 00:00:00"><span>~</span><input id="fEnd" value="2026-10-22 23:59:59"></div>
+    </div>
+    <div class="fi span2 act">
+      <button class="btn" onclick="resetF()">重置</button>
+      <button class="btn pri" onclick="query()">查询</button>
+    </div>
+  </div>
+  <div class="qd" id="qd"><span class="on">今天</span><span>昨天</span><span>本周</span><span>上周</span><span>本月</span><span>上月</span><span>近7天</span><span>近30天</span></div>
+
+  <div class="tb">
+    <div class="tb-l"><span class="sel-info" id="totalInfo"></span></div>
+    <div class="tb-r">
+      <button class="btn info sm" onclick="openRule()">⚙ 预警规则配置</button>
+    </div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th>预警来源商户</th><th>预警类型</th><th>预警对象</th><th>预警内容</th>
+        <th>统计时段 <span class="tz">(站点时间)</span></th><th>通知渠道</th><th>推送结果</th>
+        <th>预警时间 <span class="tz">(站点时间)</span></th><th>操作</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div class="pager"><span id="pgTotal"></span><span class="pg-n">‹</span><span class="pg-n on">1</span><span class="pg-n">›</span><select><option>20 / 页</option></select></div>
+</div></div>
+</div>
+
+<!-- ============ 视图2：TG 演示 ============ -->
+<div class="view" id="v-tg">
+<div class="page">
+  <div class="demo-wrap">
+    <div class="demo">
+      <h5>选一个场景，右边是集团配置的 TG 群收到的消息；下表是每次检查的当日累计，黄底行是这一次推出去的项目。</h5>
+      <div class="scenes" id="scenes"></div>
+      <div class="steps" id="steps"></div>
+      <div class="cfg" id="cfg"></div>
+      <div id="raw"></div>
+    </div>
+    <div class="tg">
+      <span class="newb">NEW</span>
+      <div class="tg-hd"><div class="av">风</div><div><div class="nm">游戏风控预警</div><div class="st">风控预警机器人 · 本集团全部站点</div></div></div>
+      <div class="tg-bd" id="chat"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 预警规则配置弹窗 -->
+<div class="mask" id="mRule">
+  <div class="dlg">
+    <h3><span>预警规则配置<i class="newf">NEW</i></span><span class="x" onclick="closeM('mRule')">✕</span></h3>
+    <div class="alert">配置各类预警的触发阈值和通知方式，修改后实时生效。</div>
+    <div class="tw" style="overflow:visible">
+      <table class="rule">
+        <thead><tr><th style="width:80px">状态</th><th style="width:150px">预警类型</th><th><span class="red">*</span> 触发阈值</th><th style="width:120px"><span class="red">*</span> 通知渠道</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="sw" data-sw="r1"></span></td>
+            <td><span class="tag">游戏亏损预警</span></td>
+            <td><div class="vscope">
+                <span>厂商范围<i class="newf">NEW</i></span>
+                <label><input type="radio" name="vmode" value="all" checked>全部厂商</label>
+                <label><input type="radio" name="vmode" value="pick">指定厂商</label>
+                <button type="button" class="vsel ph" id="vsel" disabled>请选择厂商</button>
+                <div class="vpop" id="vpop"></div>
+              </div>
+              <div class="thr"><span>单个游戏当日平台亏损 ≥</span><input id="r1v" value="10000"><span>U</span></div></td>
+            <td><span class="tag">Telegram</span></td>
+          </tr>
+          <tr>
+            <td><span class="sw" data-sw="r2"></span></td>
+            <td><span class="tag">会员赢钱预警</span></td>
+            <td><div class="thr"><span>单个会员当日净赢 ≥</span><input id="r2v" value="5000"><span>U</span></div></td>
+            <td><span class="tag">Telegram</span></td>
+          </tr>
+          <tr>
+            <td><span class="sw" data-sw="r3"></span></td>
+            <td><span class="tag">投注波动预警</span></td>
+            <td><div class="thr"><span>昨日同时段投注 ≥</span><input id="r3b" value="2000"><span>U 时，今日投注涨幅或跌幅 ≥</span><input id="r3v" value="20" style="width:64px"><span>%</span></div></td>
+            <td><span class="tag">Telegram</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sec">
+      <div class="sec-h">Telegram 机器人</div>
+      <div class="sec-b">
+        <div class="frow"><label><span class="rq">*</span>机器人 Token</label><input id="tgToken" type="password" placeholder="请输入机器人 Token" value="7712093481:AAH3kQ9xLz-2vRbT8mWcY5uNpE1dGfJ0sKo"><span class="eye" id="eye">显示</span></div>
+        <div class="frow"><label><span class="rq">*</span>群组 ID</label><input id="tgChat" placeholder="请输入群组 ID" value="-1002318845561"></div>
+        <div class="frow"><label></label><button class="btn sm" onclick="testSend()">发送测试消息</button><span class="sub">往上面的群发一条测试消息，确认机器人已进群并能发言</span></div>
+      </div>
+    </div>
+    <div class="ft"><button class="btn" onclick="closeM('mRule')">关闭</button><button class="btn pri" onclick="saveRule()">保存</button></div>
+  </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div class="mask" id="mDetail">
+  <div class="dlg mid">
+    <h3><span>游戏风控预警详情</span><span class="x" onclick="closeM('mDetail')">✕</span></h3>
+    <div class="kv" id="dKv"></div>
+    <div style="color:var(--t2);margin-bottom:6px">推送消息原文</div>
+    <pre class="raw" id="dRaw"></pre>
+    <div class="ft"><button class="btn" onclick="closeM('mDetail')">关闭</button></div>
+  </div>
+</div>
+
+<div class="msgs" id="msgs"></div>
+
+<!-- 需求说明 -->
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+<div class="drawer" id="drawer">
+  <div class="d-head"><span class="t">游戏风控预警 · 需求说明</span><span class="d-x" id="closeDoc">✕</span></div>
+  <div class="d-body">
+    <h4>一、改造页面</h4>
+    <div class="note">📌 本说明只写业务规则；页面布局、弹窗、消息样子直接看原型。</div>
+    <table>
+      <tr><th class="c1">页面</th><th>改动点</th></tr>
+      <tr><td>报表管理 › 游戏风控预警（新）</td><td>新页面：查看本集团推送过的游戏风控预警记录、看推送原文；进入预警规则配置</td></tr>
+      <tr><td>预警规则配置弹窗（新）</td><td>游戏亏损预警、会员赢钱预警、投注波动预警三类的开关和触发阈值；游戏亏损预警的厂商范围；通知渠道 Telegram；Telegram 机器人 Token、群组 ID、发送测试消息</td></tr>
+      <tr><td>集团 TG 群（新）</td><td>新增「游戏亏损预警」「投注波动预警」两种消息，本集团所有站点推到同一个群</td></tr>
+    </table>
+
+    <h4>二、功能描述与业务规则</h4>
+    <div class="kc">
+      <div class="kt">🎯 核心结论</div>
+      <ol>
+        <li>每 10 分钟检查：单个游戏当日平台亏损、单个会员当日净赢达到阈值就推 TG；同一游戏或会员每多达到一倍阈值再推一次；0 点后补查昨天全天，跨天的不漏报。</li>
+        <li>每个整点检查：单个游戏今日投注比昨日同时段涨或跌超过比例就推 TG，同一游戏同方向每天最多一次。</li>
+        <li>按集团配置一套规则和一个机器人，集团下所有站点共用，消息带站点编号。</li>
+      </ol>
+    </div>
+    <div class="rb k"><span class="no">01</span><div class="bd"><span class="core">核心</span><b>游戏亏损预警</b>：<b class="h">单个游戏当日平台亏损 ≥ 阈值</b>。平台亏损 = 会员派奖合计 − 投注合计。彩票按彩种算，同一彩种各时长合并（WinGo、5D、K3、TrxWinGo）；其他游戏按单个游戏算。<br><b>厂商范围</b>：选「全部厂商」时所有游戏都参与；选「指定厂商」时只有勾选厂商的游戏参与，彩票作为一项可勾选。厂商范围只影响游戏亏损预警，会员赢钱和投注波动预警始终按全部游戏算。</div></div>
+    <div class="rb k"><span class="no">02</span><div class="bd"><span class="core">核心</span><b>会员赢钱预警</b>：<b class="h">单个会员当日在全部游戏上的净赢 ≥ 阈值</b>。净赢 = 该会员派奖合计 − 投注合计。</div></div>
+    <div class="rb k"><span class="no">03</span><div class="bd"><span class="core">核心</span><b>投注波动预警</b>：对象同 01。变化率 = （今日投注 − 昨日同时段投注）÷ 昨日同时段投注。<b class="h">涨幅 ≥ 比例或跌幅 ≥ 比例</b>触发；昨日同时段投注低于起算投注额的游戏不比较。</div></div>
+    <div class="rb k"><span class="no">04</span><div class="bd"><span class="core">核心</span><b>亏损 / 赢钱推送节奏</b>：每 10 分钟检查一次。同一游戏或会员当天首次达到阈值时推送，之后每达到阈值的 2 倍、3 倍……再各推一次；首次推送时已超过多倍的，按当前达到的倍数推。同一站点一次检查中新达到的项目合并成一条消息；没有新达到的项目不推送。次日重新计算。</div></div>
+    <div class="rb k"><span class="no">05</span><div class="bd"><span class="core">核心</span><b>日终补查</b>：站点时间 0 点后，<b class="h">对昨天全天再检查一次游戏亏损和会员赢钱</b>，昨天已推过的档位不再推，只推新达到的档位（昨天最后几分钟达到的、注单晚到才达到的）。0 点后第一个小时内每次检查都补查昨天；这段时间检查没有运行的，恢复后第一次检查补查。补查推出的消息，统计时段为昨天全天并标明「日终补查」。</div></div>
+    <div class="rb"><span class="no">06</span><div class="bd"><b>投注波动推送节奏</b>：每个整点检查一次，0 点不检查，从 1 点开始。同一游戏涨幅、跌幅各自每天最多推一次；同一站点一次检查中触发的游戏合并成一条消息，涨幅在前、跌幅在后。</div></div>
+    <div class="rb"><span class="no">07</span><div class="bd"><b>统计口径</b>：站点时间当天 0 点至检查时刻；昨日同时段 = 站点时间昨天 0 点至与本次检查相同的时刻。只算已结算注单，按结算时间归属日期；投注按投注金额。U 金额 = 本币金额 ÷ 站点 U 充值汇率。</div></div>
+    <div class="rb"><span class="no">08</span><div class="bd"><b>适用范围</b>：集团下全部站点，含统一开奖站点；全部三方游戏（含 UP 自营电子）和彩票。</div></div>
+    <div class="rb"><span class="no">09</span><div class="bd"><b>消息内容</b>：
+      <table>
+        <tr><th class="c1">部分</th><th>内容</th></tr>
+        <tr><td>消息头</td><td>预警名称、站点编号（站点名称）、统计时段（站点时间）</td></tr>
+        <tr><td>游戏亏损</td><td>游戏名称（三方为「厂商 · 游戏」，彩票为「彩票 · 彩种」）、本次达到的档位、今日平台亏损（U 和本币）、今日投注、昨日同时段投注、该游戏净赢最多的会员及其净赢</td></tr>
+        <tr><td>会员赢钱</td><td>会员 ID、本次达到的档位、今日净赢（U 和本币）、净赢最多的游戏及其净赢、注册时间、累计充值（U 和本币）</td></tr>
+        <tr><td>投注涨幅</td><td>游戏名称、今日投注、昨日同时段投注、涨幅、今日平台盈亏、投注最多的会员及其投注和占该游戏今日投注的比例</td></tr>
+        <tr><td>投注跌幅</td><td>游戏名称、今日投注、昨日同时段投注、跌幅</td></tr>
+      </table>
+      档位 = 阈值 × 达到的倍数。日终补查的消息里，「今日」写成「当日」，「昨日同时段」写成「前一日全天」。</div></div>
+    <div class="rb"><span class="no">10</span><div class="bd"><b>排序与格式</b>：游戏按今日平台亏损从高到低，会员按今日净赢从高到低，投注波动按变化幅度从大到小；金额四舍五入取整加千分位，比例四舍五入取整。</div></div>
+    <div class="rb"><span class="no">11</span><div class="bd"><b>预警记录</b>：消息里每个游戏或会员各生成一条记录，详情可看整条推送原文。推送失败的记录显示「推送失败」，下次检查时重新推送，成功后改为「已推送」。</div></div>
+    <div class="rb"><span class="no">12</span><div class="bd"><b>发送测试消息</b>：用弹窗里当前填写的 Token 和群组 ID 发一条测试消息，不用先保存；发送失败时提示失败原因。</div></div>
+
+    <h4>三、限制条件</h4>
+    <table>
+      <tr><th class="c1">项</th><th>说明</th></tr>
+      <tr><td>配置范围</td><td>按集团一套，集团下所有站点共用，不能按站点单独设置</td></tr>
+      <tr><td>阈值</td><td>亏损、赢钱、起算投注额：正整数，单位 U；波动比例：1 ~ 100 的整数，单位 %</td></tr>
+      <tr><td>厂商范围</td><td>可选厂商为本集团各站点已接入厂商的合集；选「指定厂商」至少勾选一个；之后新接入的厂商不会自动勾选，要手动加</td></tr>
+      <tr><td>上线默认值</td><td>游戏亏损 10,000 U，厂商范围为全部厂商；会员赢钱 5,000 U；投注波动 20%，起算投注额 2,000 U；三类默认关闭</td></tr>
+      <tr><td>开关</td><td>关闭的预警类型不检查、不推送；开启任一类必须填写机器人 Token 和群组 ID</td></tr>
+      <tr><td>机器人和群</td><td>每个集团一个机器人、一个群</td></tr>
+      <tr><td>通知渠道</td><td>只推 Telegram，不发站内信</td></tr>
+      <tr><td>检查频率</td><td>亏损 / 赢钱固定 10 分钟，0 点后第一个小时内加做日终补查；投注波动固定整点（0 点除外）；均按站点时间，不可配置</td></tr>
+      <tr><td>修改阈值</td><td>当天修改后下次检查按新阈值判断；已推过的档位不再重推</td></tr>
+      <tr><td>页面权限</td><td>查看列表、预警规则配置分开授权</td></tr>
+      <tr><td>本次不做</td><td>当月累计亏损预警</td></tr>
+      <tr><td>语言</td><td>TG 消息为中文</td></tr>
+    </table>
+
+    <h4>四、开发注意事项</h4>
+    <ol class="dev">
+      <li>数据在各站 V1 库，中台每 10 分钟要轮流查本集团所有站点当天的注单。现在中台连的是站点主库，大站当天注单量大，要评估对主库的压力，必要时改连只读库或按上次检查后的新增注单累加。</li>
+      <li>上线前核对每个站点都已配好中台到站库的连接，没配的站点查不到。某个站点查询失败时跳过它继续查其他站点，并记日志。</li>
+      <li>非统一开奖站点的自营彩票（WinGo、5D、K3、TrxWinGo）中台直接读不到：由这些站点的 V1 每 10 分钟把本站当天彩票按「彩种 × 会员」汇总的投注、派奖，以及每个彩种昨天同一时段的投注交给中台，中台和三方数据合在一起判断，同一会员的彩票和三方输赢要加在一起算。V1 统计「当天」要和中台用同一个站点时区。某站点超过 20 分钟没收到新汇总时，这次不判断该站彩票，并记日志。</li>
+      <li>厂商范围的可选列表要把本集团各站点已接入的厂商合在一起（按厂商编码去重），彩票单独作为一项；上线前先查各站点同一厂商的编码是否一致，不一致会在列表里出现重复项。</li>
+      <li>每 10 分钟重新读当天全部注单，越到晚上越慢；建议只读上次检查之后新进库的注单，累加到对应日期的汇总里。注意按注单进库或更新的时间取新数据，不能按结算时间取，否则结算时间早、晚进库的注单会被永久漏掉。</li>
+      <li>「每 10 分钟」「整点」「0 点」都按各站点时间对齐；印度 UTC+5:30、缅甸 UTC+6:30 这类非整点时区要单独排时间。</li>
+      <li>日终补查要记住每个站点「哪天已补查完」，服务停机跨过 0 点后第一个小时的，恢复后要补上，不能跳过。</li>
+      <li>统一开奖站点的注单已拉回本站，和自营站点一套统计，同一笔注单不能重复算。</li>
+      <li>消息里的站点编号用中台商户编号，要核对它和 V1 老后台顶部「当前站点」是不是同一个数。</li>
+      <li>「已推到第几倍」「今天涨幅 / 跌幅推过没有」要按站点 + 日期 + 游戏或会员记住，服务重启或多台服务器同时跑都不能重复推。</li>
+      <li>Telegram 对同一个群有发送频率限制，单条消息也有长度上限；一个集团站点多时要排队发送，单条超长时拆成多条。</li>
+      <li>机器人 Token 属于密钥，页面上默认隐藏显示，日志里不要打印。</li>
+      <li>上线顺序：非统一开奖站点的 V1 要和中台一起上线，否则这些站点的彩票不在预警范围内；先上线功能（默认关闭），各集团填好机器人并测试成功后再开启。开启前建议用日报表历史数据在一两个站估算投注波动 20% 每天会触发多少条，再定比例和起算投注额。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const SITES={
+  '1048':{code:'1048',name:'91club',cur:'INR',rate:90},
+  '1052':{code:'1052',name:'55club',cur:'PKR',rate:280},
+  '1061':{code:'1061',name:'MM88',cur:'MMK',rate:4300}
+};
+const CFG={game:10000,member:5000,fluct:20,base:2000,vendors:null};/* vendors:null = 全部厂商 */
+/* 本集团各站点已接入厂商的合集，按游戏类型分组 */
+const VENDORS=[
+  ['彩票',['彩票']],
+  ['电子',['UP','JILI','PG','PP','CQ9','FC']],
+  ['真人',['Evolution','SEXY']],
+  ['体育',['SABA']],
+  ['棋牌',['KY']]
+];
+const vendorOf=g=>g.split(' · ')[0];
+const SEP='━━━━━━━━━━━━━━\n';
+
+/* ---------- 消息生成 ---------- */
+function lossMsg(site,date,t,ng,nm,cfg){
+  const loc=u=>`${fmt(u*site.rate)} ${site.cur}`,D=t?'今日':'当日',Y=t?'昨日同时段':'前一日全天';
+  let m=`🚨游戏亏损预警${t?'':'（日终补查）'}\n站点：${site.code}（${site.name}）\n统计：${date} 00:00 ~ ${t||'23:59'}（站点时间）${t?'':'，昨日全天'}\n`;
+  if(ng.length){
+    m+=SEP+`🎮游戏当日平台亏损 ≥【${fmt(cfg.game)} U】\n`;
+    ng.forEach((x,i)=>{m+=`${i+1}. ${x.g}【突破 ${fmt(x.l*cfg.game)} U】\n${D}平台亏损：${fmt(x.v)} U（${loc(x.v)}）\n${D}投注：${fmt(x.bet)} U｜${Y}：${fmt(x.ybet)} U\n净赢最多会员：${x.top[0]}（${fmt(x.top[1])} U）\n`;if(i<ng.length-1)m+='\n';});
+  }
+  if(nm.length){
+    m+=SEP+`👤会员当日净赢 ≥【${fmt(cfg.member)} U】\n`;
+    nm.forEach((x,i)=>{m+=`${i+1}. 会员ID：${x.id}【突破 ${fmt(x.l*cfg.member)} U】\n${D}净赢：${fmt(x.v)} U（${loc(x.v)}）\n净赢最多游戏：${x.tg[0]}（${fmt(x.tg[1])} U）\n注册时间：${x.reg}\n累计充值：${fmt(x.dep)} U（${loc(x.dep)}）\n`;if(i<nm.length-1)m+='\n';});
+  }
+  return m.trimEnd();
+}
+const pct=r=>Math.round(Math.abs(r)*100);
+function fluctMsg(site,date,t,ups,downs,cfg){
+  let m=`📊投注波动预警\n站点：${site.code}（${site.name}）\n统计：${date} 00:00 ~ ${t}（站点时间），对比昨日同时段\n`;
+  if(ups.length){
+    m+=SEP+`📈投注涨幅 ≥【${cfg.fluct}%】\n`;
+    ups.forEach((x,i)=>{m+=`${i+1}. ${x.g}\n今日投注：${fmt(x.bet)} U｜昨日同时段：${fmt(x.ybet)} U\n涨幅：${pct(x.r)}%\n今日平台盈亏：${x.pl>=0?'盈利':'亏损'} ${fmt(Math.abs(x.pl))} U\n投注最多会员：${x.top[0]}（${fmt(x.top[1])} U，占 ${Math.round(x.top[1]/x.bet*100)}%）\n`;if(i<ups.length-1)m+='\n';});
+  }
+  if(downs.length){
+    m+=SEP+`📉投注跌幅 ≥【${cfg.fluct}%】\n`;
+    downs.forEach((x,i)=>{m+=`${i+1}. ${x.g}\n今日投注：${fmt(x.bet)} U｜昨日同时段：${fmt(x.ybet)} U\n跌幅：${pct(x.r)}%\n`;if(i<downs.length-1)m+='\n';});
+  }
+  return m.trimEnd();
+}
+
+/* ---------- 场景 ---------- */
+const SCENES=[
+ {k:'a',kind:'loss',label:'① 首次触发：91club 一款电子亏损过 1 万 U',
+  runs:[{site:'1048',date:'10-22',checks:[
+    {t:'12:00',games:[{g:'UP · Fortune Gems',v:6200,bet:4100,ybet:3000,top:['123456',4300]},{g:'JILI · Super Ace',v:3200,bet:5200,ybet:4800,top:['223344',2100]}],
+     members:[{id:'123456',v:4300,tg:['UP · Fortune Gems',4300],reg:'2026-10-19 21:03',dep:200},{id:'223344',v:2100,tg:['JILI · Super Ace',2100],reg:'2025-03-02 10:15',dep:8600}]},
+    {t:'12:10',games:[{g:'UP · Fortune Gems',v:12350,bet:8200,ybet:5100,top:['123456',9800]},{g:'JILI · Super Ace',v:3600,bet:5900,ybet:5300,top:['223344',2400]}],
+     members:[{id:'123456',v:9800,tg:['UP · Fortune Gems',9800],reg:'2026-10-19 21:03',dep:200},{id:'223344',v:2400,tg:['JILI · Super Ace',2400],reg:'2025-03-02 10:15',dep:8600}]}
+  ]}],
+  exp:'<b>看点：</b>12:00 都没到阈值，不推。12:10 Fortune Gems 平台亏损 12,350 U ≥ 1 万、会员 123456 净赢 9,800 U ≥ 5 千，合并成一条推出；Super Ace 只亏 3,600 U 不出现。会员注册才 3 天、累计充值 200 U，一眼能看出不是老会员。'},
+ {k:'b',kind:'loss',label:'② 同一天继续扩大：每多一倍才再推',
+  runs:[{site:'1048',date:'10-22',checks:[
+    {t:'12:10',games:[{g:'UP · Fortune Gems',v:12350,bet:8200,ybet:5100,top:['123456',9800]}],members:[{id:'123456',v:9800,tg:['UP · Fortune Gems',9800],reg:'2026-10-19 21:03',dep:200}]},
+    {t:'12:20',games:[{g:'UP · Fortune Gems',v:18900,bet:11600,ybet:5900,top:['123456',13400]}],members:[{id:'123456',v:13400,tg:['UP · Fortune Gems',13400],reg:'2026-10-19 21:03',dep:200}]},
+    {t:'12:30',games:[{g:'UP · Fortune Gems',v:23100,bet:13800,ybet:6400,top:['123456',15600]}],members:[{id:'123456',v:15600,tg:['UP · Fortune Gems',15600],reg:'2026-10-19 21:03',dep:200}]},
+    {t:'12:40',games:[{g:'UP · Fortune Gems',v:21500,bet:15200,ybet:6900,top:['123456',14100]}],members:[{id:'123456',v:14100,tg:['UP · Fortune Gems',14100],reg:'2026-10-19 21:03',dep:200}]}
+  ]}],
+  exp:'<b>看点：</b>12:10 首次推。12:20 游戏 18,900 还没到 2 万不推，会员 13,400 过了 1 万（2 倍）只推会员段。12:30 游戏过 2 万、会员过 1.5 万（3 倍），一起推。12:40 亏损回落，不推。'},
+ {k:'c',kind:'loss',label:'③ 缅甸站 5D：各时长合并后超过',
+  runs:[{site:'1061',date:'10-22',checks:[
+    {t:'15:40',games:[{g:'彩票 · 5D',parts:[['1分',5800],['3分',4100],['5分',1300],['10分',0]],bet:9500,ybet:9000,top:['880021',10600]},{g:'彩票 · WinGo',parts:[['30秒',1200],['1分',900],['3分',-400],['5分',300]],bet:22000,ybet:21000,top:['880133',700]}],
+     members:[{id:'880021',v:10600,tg:['彩票 · 5D',10600],reg:'2026-10-20 08:41',dep:350}]}
+  ]}],
+  exp:'<b>看点：</b>5D 单看每个时长都不到 1 万，合并后 11,200 U 推出。会员 880021 首次推送时已过 1 万（2 倍），直接显示「突破 10,000 U」。缅币金额很大，U 和本币都带千分位。'},
+ {k:'d',kind:'loss',label:'④ 同集团多个站点推到同一个群',
+  runs:[
+   {site:'1048',date:'10-22',checks:[{t:'18:20',games:[{g:'PG · Mahjong Ways 2',v:10050,bet:6100,ybet:6300,top:['301122',6200]},{g:'JILI · Super Ace',v:9980,bet:7000,ybet:6800,top:['223344',4900]}],members:[{id:'301122',v:6200,tg:['PG · Mahjong Ways 2',6200],reg:'2024-11-08 19:20',dep:52000}]}]},
+   {site:'1052',date:'10-22',checks:[{t:'18:20',games:[{g:'UP · Gates of Olympus',v:15400,bet:9800,ybet:7700,top:['560078',30200]}],members:[{id:'560078',v:30200,tg:['UP · Gates of Olympus',30200],reg:'2026-10-21 23:10',dep:100}]}]}
+  ],
+  exp:'<b>看点：</b>两个站同一时刻各推一条，靠消息头的站点编号区分。1048 站 Super Ace 9,980 U 差一点，不推。1052 站会员 560078 首次就到 6 倍，按「突破 30,000 U」推。'},
+ {k:'g',kind:'loss',label:'⑤ 跨天：23:50 后才达到，0 点后日终补查补报',
+  runs:[{site:'1048',date:'10-22',checks:[
+    {t:'23:50',games:[{g:'PG · Mahjong Ways 2',v:8200,bet:9100,ybet:8800,top:['301122',4800]}],members:[{id:'301122',v:4800,tg:['PG · Mahjong Ways 2',4800],reg:'2026-10-18 16:22',dep:300}]},
+    {t:'00:00',date:'10-23',games:[{g:'PG · Mahjong Ways 2',v:0,bet:0,ybet:0,top:['—',0]}],members:[]},
+    {t:'00:00',date:'10-22',eod:true,send:'10-23',games:[{g:'PG · Mahjong Ways 2',v:10400,bet:11800,ybet:9300,top:['301122',5300]}],members:[{id:'301122',v:5300,tg:['PG · Mahjong Ways 2',5300],reg:'2026-10-18 16:22',dep:300}]},
+    {t:'00:10',date:'10-22',eod:true,send:'10-23',games:[{g:'PG · Mahjong Ways 2',v:10900,bet:12100,ybet:9300,top:['301122',5900]}],members:[{id:'301122',v:5900,tg:['PG · Mahjong Ways 2',5900],reg:'2026-10-18 16:22',dep:300}]}
+  ]}],
+  exp:'<b>看点：</b>23:50 游戏 8,200 U、会员 4,800 U 都没到，不推。会员 23:55 又赢了一把，但下一次检查已是 10-23 的 00:00，今天（10-23）还没有数据。同一次检查顺带补查 10-22 全天：游戏 10,400 U、会员 5,300 U 新达到阈值，补报一条，标「日终补查」。00:10 再补查时有一笔晚到的三方注单让会员涨到 5,900 U，档位没变，不重复推。'},
+ {k:'e',kind:'fluct',label:'⑥ 投注波动：整点同时有涨有跌',
+  runs:[{site:'1048',date:'10-22',checks:[
+    {t:'14:00',games:[
+      {g:'JILI · Super Ace',bet:12400,ybet:8600,pl:-1850,top:['301122',3100]},
+      {g:'彩票 · WinGo',bet:15800,ybet:23100,pl:900,top:['220019',1200]},
+      {g:'PG · Mahjong Ways 2',bet:6900,ybet:6000,pl:420,top:['301122',800]},
+      {g:'UP · Fortune Gems',bet:3200,ybet:1500,pl:-600,top:['123456',2100]}
+    ]}
+  ]}],
+  exp:'<b>看点：</b>Super Ace 涨 44%、WinGo 跌 32%，合并一条推出，涨幅在前。Mahjong Ways 2 只涨 15% 不推。Fortune Gems 虽然翻倍，但昨日同时段只有 1,500 U，低于起算投注额 2,000 U，不比较。涨幅带平台盈亏和投注最多会员，占比 25% 说明不是一个人撑起来的。'},
+ {k:'f',kind:'fluct',label:'⑦ 投注波动：同方向每天只推一次',
+  runs:[{site:'1048',date:'10-22',checks:[
+    {t:'14:00',games:[{g:'JILI · Super Ace',bet:12400,ybet:8600,pl:-1850,top:['301122',3100]}]},
+    {t:'15:00',games:[{g:'JILI · Super Ace',bet:15100,ybet:10200,pl:-2600,top:['301122',3900]}]},
+    {t:'21:00',games:[{g:'JILI · Super Ace',bet:21800,ybet:28400,pl:1300,top:['301122',4500]}]}
+  ]}],
+  exp:'<b>看点：</b>14:00 涨 44% 推。15:00 仍涨 48%，今天涨幅已推过，不再推。21:00 反过来跌 23%，跌幅今天还没推过，推一次。'}
+];
+
+function lv(v,th){return th>0&&v>=th?Math.floor(v/th):0;}
+const val=x=>x.parts?x.parts.reduce((n,p)=>n+p[1],0):x.v;
+function buildLoss(run){
+  const site=SITES[run.site],pushed={},msgs=[],rows=[];
+  run.checks.forEach(c=>{
+    const ng=[],nm=[],D=c.date||run.date,T=c.eod?c.t+'<br><small>补查 '+D+'</small>':c.t;
+    c.games.forEach(x=>{const v=val(x);
+      if(CFG.vendors&&!CFG.vendors.includes(vendorOf(x.g))){rows.push({t:T,kind:'游戏',name:x.g,parts:x.parts,v:fmt(v)+' U',res:'厂商「'+vendorOf(x.g)+'」未勾选，不报',hit:false});return;}
+      const l=lv(v,CFG.game),k=D+'g'+x.g,hit=l>(pushed[k]||0);if(hit){pushed[k]=l;ng.push({...x,v,l});}
+      rows.push({t:T,kind:'游戏',name:x.g,parts:x.parts,v:fmt(v)+' U',res:l?(hit?'突破 '+fmt(l*CFG.game)+' U，推送':'已推过 '+fmt(l*CFG.game)+' U 档'):'未达到',hit});});
+    c.members.forEach(x=>{const l=lv(x.v,CFG.member),k=D+'m'+x.id,hit=l>(pushed[k]||0);if(hit){pushed[k]=l;nm.push({...x,l});}
+      rows.push({t:T,kind:'会员',name:x.id,v:fmt(x.v)+' U',res:l?(hit?'突破 '+fmt(l*CFG.member)+' U，推送':'已推过 '+fmt(l*CFG.member)+' U 档'):'未达到',hit});});
+    if(ng.length||nm.length)msgs.push({t:c.t,send:c.send||D,text:lossMsg(site,D,c.eod?null:c.t,ng.sort((a,b)=>b.v-a.v),nm.sort((a,b)=>b.v-a.v),CFG)});
+  });
+  return {msgs,rows,head:'<tr><th>检查</th><th>类型</th><th>游戏 / 会员</th><th>当日累计</th><th>结果</th></tr>',
+    tr:x=>`<tr class="${x.hit?'hit':''}"><td>${x.t}</td><td>${x.kind}</td><td class="l">${esc(x.name)}${x.parts?'<br><small>'+x.parts.map(p=>p[0]+' '+fmt(p[1])).join(' + ')+'</small>':''}</td><td>${x.v}</td><td class="${x.hit?'red':'muted'}">${x.res}</td></tr>`};
+}
+function buildFluct(run){
+  const site=SITES[run.site],pushed={},msgs=[],rows=[];
+  run.checks.forEach(c=>{
+    const ups=[],downs=[];
+    c.games.forEach(x=>{
+      let res,hit=false;const r=(x.bet-x.ybet)/x.ybet;
+      if(x.ybet<CFG.base)res='昨日同时段低于 '+fmt(CFG.base)+' U，不比较';
+      else if(r*100>=CFG.fluct){if(pushed['u'+x.g])res='涨 '+pct(r)+'%，今天已推过涨幅';else{pushed['u'+x.g]=1;hit=true;res='涨 '+pct(r)+'%，推送';ups.push({...x,r});}}
+      else if(-r*100>=CFG.fluct){if(pushed['d'+x.g])res='跌 '+pct(r)+'%，今天已推过跌幅';else{pushed['d'+x.g]=1;hit=true;res='跌 '+pct(r)+'%，推送';downs.push({...x,r});}}
+      else res=(r>=0?'涨 ':'跌 ')+pct(r)+'%，未达到';
+      rows.push({t:c.t,name:x.g,bet:x.bet,ybet:x.ybet,res,hit});
+    });
+    if(ups.length||downs.length)msgs.push({t:c.t,text:fluctMsg(site,run.date,c.t,ups.sort((a,b)=>b.r-a.r),downs.sort((a,b)=>a.r-b.r),CFG)});
+  });
+  return {msgs,rows,head:'<tr><th>检查</th><th>游戏</th><th>今日投注</th><th>昨日同时段</th><th>结果</th></tr>',
+    tr:x=>`<tr class="${x.hit?'hit':''}"><td>${x.t}</td><td class="l">${esc(x.name)}</td><td>${fmt(x.bet)} U</td><td>${fmt(x.ybet)} U</td><td class="${x.hit?'red':'muted'}">${x.res}</td></tr>`};
+}
+let S;
+function renderTG(){
+  let all=[],raw='';
+  S.runs.forEach(run=>{
+    const b=S.kind==='loss'?buildLoss(run):buildFluct(run),site=SITES[run.site];
+    b.msgs.forEach(m=>all.push({send:run.date,...m}));
+    raw+=`<div class="run-t">站点 ${site.code}（${site.name}，${site.cur}，1 U = ${fmt(site.rate)} ${site.cur}）</div><table class="rawt">${b.head}${b.rows.map(b.tr).join('')}</table>`;
+  });
+  $('cfg').innerHTML=`集团规则：游戏亏损 ≥ <b>${fmt(CFG.game)}</b> U（厂商范围：${CFG.vendors?'指定 '+CFG.vendors.join('、'):'全部厂商'}）　会员赢钱 ≥ <b>${fmt(CFG.member)}</b> U　投注波动 ≥ <b>${CFG.fluct}%</b>（昨日同时段 ≥ ${fmt(CFG.base)} U 才比较）`;
+  $('raw').innerHTML=raw;$('steps').innerHTML=S.exp;
+  all.sort((a,b)=>(a.send+a.t).localeCompare(b.send+b.t));
+  const bot=m=>`<div class="tm-row"><div class="av">风</div><div class="bub"><div class="who">风控预警机器人</div><pre class="tgpre">${esc(m.text)}</pre><div class="tm">${m.t}</div></div></div>`;
+  let last='',html='';
+  all.forEach(m=>{if(m.send!==last){last=m.send;const [mm,dd]=m.send.split('-');html+=`<div class="sys"><span>${+mm}月${+dd}日</span></div>`;}html+=bot(m);});
+  $('chat').innerHTML=all.length?html:'<div class="tg-empty">本场景没有推送</div>';
+  $('chat').scrollTop=0;
+}
+function pick(k){S=SCENES.find(s=>s.k===k);document.querySelectorAll('#scenes button').forEach(b=>b.classList.toggle('on',b.dataset.k===k));renderTG();}
+$('scenes').innerHTML=SCENES.map(s=>`<button data-k="${s.k}">${s.label}</button>`).join('');
+$('scenes').onclick=e=>{const b=e.target.closest('button');if(b)pick(b.dataset.k);};
+pick('a');
+
+/* ---------- 列表数据（取自上面场景推出的消息） ---------- */
+const REC=[];
+function addRec(site,type,obj,content,period,time,push,text){REC.push({site,type,obj,content,period,time,push,text});}
+(function seed(){
+  const s48=SITES['1048'],s52=SITES['1052'],s61=SITES['1061'];
+  const m1=lossMsg(s48,'10-22','12:10',[{g:'UP · Fortune Gems',v:12350,bet:8200,ybet:5100,top:['123456',9800],l:1}],[{id:'123456',v:9800,tg:['UP · Fortune Gems',9800],reg:'2026-10-19 21:03',dep:200,l:1}],CFG);
+  addRec(s48,'游戏亏损预警','UP · Fortune Gems','今日平台亏损 12,350 U，突破 10,000 U','2026-10-22 00:00 ~ 12:10','2026-10-22 12:10:06','已推送',m1);
+  addRec(s48,'会员赢钱预警','123456','今日净赢 9,800 U，突破 5,000 U','2026-10-22 00:00 ~ 12:10','2026-10-22 12:10:06','已推送',m1);
+  const m2=lossMsg(s48,'10-22','12:20',[],[{id:'123456',v:13400,tg:['UP · Fortune Gems',13400],reg:'2026-10-19 21:03',dep:200,l:2}],CFG);
+  addRec(s48,'会员赢钱预警','123456','今日净赢 13,400 U，突破 10,000 U','2026-10-22 00:00 ~ 12:20','2026-10-22 12:20:05','已推送',m2);
+  const mf=fluctMsg(s48,'10-22','14:00',[{g:'JILI · Super Ace',bet:12400,ybet:8600,pl:-1850,top:['301122',3100],r:(12400-8600)/8600}],[{g:'彩票 · WinGo',bet:15800,ybet:23100,r:(15800-23100)/23100}],CFG);
+  addRec(s48,'投注波动预警','JILI · Super Ace','今日投注 12,400 U，较昨日同时段 8,600 U 涨 44%','2026-10-22 00:00 ~ 14:00','2026-10-22 14:00:09','已推送',mf);
+  addRec(s48,'投注波动预警','彩票 · WinGo','今日投注 15,800 U，较昨日同时段 23,100 U 跌 32%','2026-10-22 00:00 ~ 14:00','2026-10-22 14:00:09','已推送',mf);
+  const m3=lossMsg(s61,'10-22','15:40',[{g:'彩票 · 5D',v:11200,bet:9500,ybet:9000,top:['880021',10600],l:1}],[{id:'880021',v:10600,tg:['彩票 · 5D',10600],reg:'2026-10-20 08:41',dep:350,l:2}],CFG);
+  addRec(s61,'游戏亏损预警','彩票 · 5D','今日平台亏损 11,200 U，突破 10,000 U','2026-10-22 00:00 ~ 15:40','2026-10-22 15:40:07','已推送',m3);
+  addRec(s61,'会员赢钱预警','880021','今日净赢 10,600 U，突破 10,000 U','2026-10-22 00:00 ~ 15:40','2026-10-22 15:40:07','已推送',m3);
+  const m4=lossMsg(s52,'10-22','18:20',[{g:'UP · Gates of Olympus',v:15400,bet:9800,ybet:7700,top:['560078',30200],l:1}],[{id:'560078',v:30200,tg:['UP · Gates of Olympus',30200],reg:'2026-10-21 23:10',dep:100,l:6}],CFG);
+  addRec(s52,'游戏亏损预警','UP · Gates of Olympus','今日平台亏损 15,400 U，突破 10,000 U','2026-10-22 00:00 ~ 18:20','2026-10-22 18:20:04','推送失败',m4);
+  addRec(s52,'会员赢钱预警','560078','今日净赢 30,200 U，突破 30,000 U','2026-10-22 00:00 ~ 18:20','2026-10-22 18:20:04','推送失败',m4);
+  const m5=lossMsg(s48,'10-22',null,[{g:'PG · Mahjong Ways 2',v:10400,bet:11800,ybet:9300,top:['301122',5300],l:1}],[{id:'301122',v:5300,tg:['PG · Mahjong Ways 2',5300],reg:'2026-10-18 16:22',dep:300,l:1}],CFG);
+  addRec(s48,'游戏亏损预警','PG · Mahjong Ways 2','日终补查：当日平台亏损 10,400 U，突破 10,000 U','2026-10-22 00:00 ~ 23:59','2026-10-23 00:00:06','已推送',m5);
+  addRec(s48,'会员赢钱预警','301122','日终补查：当日净赢 5,300 U，突破 5,000 U','2026-10-22 00:00 ~ 23:59','2026-10-23 00:00:06','已推送',m5);
+  REC.reverse();
+})();
+const tSel=$('fTenant');Object.values(SITES).forEach(s=>tSel.insertAdjacentHTML('beforeend',`<option value="${s.code}">(${s.code})${s.name}</option>`));
+let view=REC.slice();
+function renderList(){
+  $('tbody').innerHTML=view.length?view.map((r,i)=>`<tr>
+    <td>(${r.site.code})${r.site.name}</td><td>${r.type}</td><td>${esc(r.obj)}</td><td class="l">${r.content}</td>
+    <td>${r.period}</td><td>Telegram</td><td>${r.push==='已推送'?'<span class="tag ok">已推送</span>':'<span class="tag err">推送失败</span>'}</td>
+    <td>${r.time}</td><td><span class="lnk" onclick="openDetail(${i})">详情</span></td></tr>`).join(''):'<tr><td colspan="9" class="empty">暂无数据</td></tr>';
+  $('totalInfo').textContent=`共 ${view.length} 条`;$('pgTotal').textContent=`共 ${view.length} 条`;
+}
+function query(){
+  const t=$('fTenant').value,ty=$('fType').value,o=$('fObj').value.trim(),p=$('fPush').value;
+  view=REC.filter(r=>(!t||r.site.code===t)&&(!ty||r.type===ty)&&(!o||r.obj.toLowerCase().includes(o.toLowerCase()))&&(!p||r.push===p));
+  renderList();
+}
+function resetF(){['fTenant','fType','fPush'].forEach(id=>$(id).value='');$('fObj').value='';query();}
+$('qd').onclick=e=>{if(e.target.tagName!=='SPAN')return;document.querySelectorAll('#qd span').forEach(s=>s.classList.toggle('on',s===e.target));};
+renderList();
+
+function openDetail(i){
+  const r=view[i];
+  $('dKv').innerHTML=[['预警来源商户',`(${r.site.code})${r.site.name}`],['预警类型',r.type],['预警对象',esc(r.obj)],['推送结果',r.push],['统计时段',r.period],['预警时间',r.time],['预警内容',r.content],['通知渠道','Telegram']]
+    .map(([k,v])=>`<div class="k">${k}</div><div>${v}</div>`).join('');
+  $('dRaw').textContent=r.text;openM('mDetail');
+}
+
+/* ---------- 规则配置 ---------- */
+const ST={r1:false,r2:false,r3:false};
+function syncSw(){document.querySelectorAll('[data-sw]').forEach(s=>s.classList.toggle('on',ST[s.dataset.sw]));}
+document.querySelectorAll('[data-sw]').forEach(s=>s.onclick=()=>{ST[s.dataset.sw]=!ST[s.dataset.sw];syncSw();});
+['r1v','r2v','r3b','r3v'].forEach(id=>$(id).oninput=e=>{e.target.value=e.target.value.replace(/[^0-9]/g,'');e.target.classList.remove('bad');});
+['tgToken','tgChat'].forEach(id=>$(id).oninput=e=>e.target.classList.remove('bad'));
+$('eye').onclick=()=>{const i=$('tgToken'),show=i.type==='password';i.type=show?'text':'password';$('eye').textContent=show?'隐藏':'显示';};
+/* 厂商范围 */
+let VD={mode:'all',sel:[]};
+const vmodeEls=()=>document.querySelectorAll('input[name=vmode]');
+function renderVsel(){
+  const b=$('vsel'),pick=VD.mode==='pick';
+  b.disabled=!pick;b.classList.remove('bad');
+  b.textContent=pick&&VD.sel.length?`已选 ${VD.sel.length} 个：${VD.sel.join('、')}`:'请选择厂商';
+  b.classList.toggle('ph',!(pick&&VD.sel.length));
+  if(!pick)$('vpop').classList.remove('show');
+}
+function renderVpop(){
+  $('vpop').innerHTML=VENDORS.map(([grp,list])=>`<div class="vg"><b>${grp}</b><div>${list.map(v=>`<label><input type="checkbox" value="${v}" ${VD.sel.includes(v)?'checked':''}>${v==='彩票'?'彩票（WinGo、5D、K3、TrxWinGo）':v}</label>`).join('')}</div></div>`).join('')+
+    `<div class="vft"><span><span class="lnk" id="vAll">全选</span>　<span class="lnk" id="vInv">反选</span>　<span class="lnk" id="vNone">清空</span></span><span class="muted">已选 ${VD.sel.length} 个</span></div>`;
+}
+vmodeEls().forEach(r=>r.onchange=()=>{VD.mode=r.value;renderVsel();if(VD.mode==='pick'&&!VD.sel.length){renderVpop();$('vpop').classList.add('show');}});
+$('vsel').onclick=e=>{e.stopPropagation();renderVpop();$('vpop').classList.toggle('show');};
+$('vpop').onclick=e=>{e.stopPropagation();
+  const all=VENDORS.flatMap(g=>g[1]);
+  if(e.target.id==='vAll')VD.sel=all.slice();
+  else if(e.target.id==='vInv')VD.sel=all.filter(x=>!VD.sel.includes(x));
+  else if(e.target.id==='vNone')VD.sel=[];
+  else if(e.target.type==='checkbox'){const v=e.target.value;VD.sel=e.target.checked?[...VD.sel,v]:VD.sel.filter(x=>x!==v);VD.sel=all.filter(x=>VD.sel.includes(x));}
+  else return;
+  renderVpop();renderVsel();};
+document.addEventListener('click',()=>$('vpop').classList.remove('show'));
+function openRule(){
+  syncSw();
+  VD={mode:CFG.vendors?'pick':'all',sel:CFG.vendors?CFG.vendors.slice():[]};
+  vmodeEls().forEach(r=>r.checked=r.value===VD.mode);renderVsel();
+  openM('mRule');
+}
+function bad(id,msg){$(id).classList.add('bad');$(id).focus();toast(msg,'error');return false;}
+function validRules(){
+  const n=id=>$(id).value===''?NaN:Number($(id).value);
+  if(!(n('r1v')>0))return bad('r1v','游戏亏损预警 的规则配置不完整');
+  if(VD.mode==='pick'&&!VD.sel.length){$('vsel').classList.add('bad');toast('游戏亏损预警 请至少勾选一个厂商','error');return false;}
+  if(!(n('r2v')>0))return bad('r2v','会员赢钱预警 的规则配置不完整');
+  if(!(n('r3b')>0))return bad('r3b','投注波动预警 的规则配置不完整');
+  if(!(n('r3v')>=1&&n('r3v')<=100))return bad('r3v','投注波动比例请输入 1 ~ 100 的整数');
+  return true;
+}
+function validTg(){
+  if(!$('tgToken').value.trim())return bad('tgToken','请输入机器人 Token');
+  if(!$('tgChat').value.trim())return bad('tgChat','请输入群组 ID');
+  return true;
+}
+function saveRule(){
+  if(!validRules())return;
+  if((ST.r1||ST.r2||ST.r3)&&!validTg())return;
+  CFG.game=+$('r1v').value;CFG.member=+$('r2v').value;CFG.base=+$('r3b').value;CFG.fluct=+$('r3v').value;CFG.vendors=VD.mode==='pick'?VD.sel.slice():null;
+  renderTG();toast('规则保存成功');closeM('mRule');
+}
+function testSend(){
+  if(!validTg())return;
+  if(!/^\d+:[\w-]{20,}$/.test($('tgToken').value.trim())){toast('发送失败：机器人 Token 不正确','error');return;}
+  if(!/^-?\d+$/.test($('tgChat').value.trim())){toast('发送失败：群组 ID 不正确，或机器人不在该群','error');return;}
+  toast('测试消息已发送，请到群里确认');
+}
+
+/* ---------- 通用 ---------- */
+function openM(id){$(id).classList.add('show');}
+function closeM(id){$(id).classList.remove('show');}
+document.querySelectorAll('.mask').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeM(m.id);}));
+function toast(s,type='success'){
+  const d=document.createElement('div');d.className='msg-t '+type;d.innerHTML=`<span class="ic">${type==='success'?'✓':'!'}</span>${esc(s)}`;
+  $('msgs').appendChild(d);setTimeout(()=>d.remove(),2200);
+}
+$('views').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#views button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));};
+const openDoc=()=>{$('drawer').classList.add('on');$('dmask').classList.add('on');};
+const closeDoc=()=>{$('drawer').classList.remove('on');$('dmask').classList.remove('on');};
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDoc();document.querySelectorAll('.mask.show').forEach(m=>closeM(m.id));}});
+</script>
+</body>
+</html>
