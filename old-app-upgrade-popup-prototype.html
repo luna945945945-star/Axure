@@ -276,7 +276,7 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
       </div>
       <div class="scroll-x">
       <table class="tb">
-        <thead><tr><th>ID</th><th>标题</th><th>消息内容</th><th>状态</th><th>排序</th><th>时间</th><th>操作</th></tr></thead>
+        <thead><tr><th>ID</th><th>标题</th><th>消息内容</th><th>状态</th><th class="th-new">投放对象</th><th>排序</th><th>时间</th><th>操作</th></tr></thead>
         <tbody id="listBody"></tbody>
       </table>
       </div>
@@ -291,6 +291,7 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
       <div class="erow"><label>标题：</label><div class="f"><input class="fc" id="eTitle" maxlength="50" autocomplete="off"></div></div>
       <div class="erow"><label>排序：</label><div class="f"><input class="fc" id="eSort" type="number" min="0" step="1"></div></div>
       <div class="erow"><label>启用：</label><div class="f"><select class="fc" id="eState"><option value="0"> 启用</option><option value="1">关闭</option></select></div></div>
+      <div class="erow nw2"><label>投放对象：</label><div class="f"><select class="fc" id="eTarget"><option value="all">全部会员</option><option value="old">仅老版本 APP</option></select><div class="ehelp">选「仅老版本 APP」：只有没有版本号的安卓完整包会弹这条，其他端都看不到</div></div></div>
       <div class="erow"><label>消息内容：</label><div class="f">
         <div class="sn"><div class="sn-tb"><i>¶</i><i><b>B</b></i><i><u>U</u></i><i>A</i><i>≡</i><i>🔗</i><i>🖼</i><i>&lt;/&gt;</i></div>
         <div class="sn-ed" id="eMsg" contenteditable="true"></div></div>
@@ -348,7 +349,7 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
 <div class="demo" id="demo">
   <div class="dh"><div><span class="pt">原型演示</span><b>登录后首页弹窗消息：谁能看到升级公告</b></div><span class="x" id="demoX">✕</span></div>
   <div class="db">
-    <div class="cfgline">预置的升级公告（ID 93）：<span id="presetSt"></span><span class="seg" id="presetSeg"><a data-v="0">启用</a><a data-v="1">禁用</a></span>　数据和「弹窗消息」页同步，在编辑页改标题、内容、排序，这里点「退出重新登录」就按新的弹。</div>
+    <div class="cfgline">弹窗消息数据和「弹窗消息」页同步：在列表或编辑页改了投放对象、排序、启用，这里重新登录就按新的弹。</div>
     <div class="ddemo">
       <div class="box">
         <h4>① 选择用什么登录</h4>
@@ -392,31 +393,30 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
 <div class="handle" id="handleDoc">需求说明</div>
 <div class="dmask" id="dmask"></div>
 <div class="drawer" id="drawer">
-  <div class="dhead"><b>老版本 APP 升级公告（固定标题）+ 会员前台访问端统计 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dhead"><b>老版本 APP 升级公告 + 会员前台访问端统计 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
   <div class="dbody prd">
 
     <div class="h1">一、改造页面</div>
-    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型。</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
     <table class="t">
       <tr><th style="width:250px">页面</th><th>改动点</th></tr>
-      <tr><td>老后台 → 消息管理 → 公告消息 → <b>弹窗消息</b></td><td>页面不改；发版时每个站点预置一条固定标题的升级公告，默认禁用</td></tr>
-      <tr><td>前台（老版本 APP）</td><td>APP 不改；英文标题是固定标题的弹窗消息，只有老版本 APP 登录后能看到</td></tr>
+      <tr><td>老后台 → 消息管理 → 公告消息 → <b>弹窗消息</b>（新增 / 编辑）</td><td>新增「投放对象」：全部会员（默认）/ 仅老版本 APP</td></tr>
+      <tr><td>老后台 → 消息管理 → 公告消息 → <b>弹窗消息</b>（列表）</td><td>新增「投放对象」列</td></tr>
+      <tr><td>前台（老版本 APP）</td><td>APP 不改；后台配了「仅老版本 APP」的弹窗消息，只有老版本 APP 登录后能看到</td></tr>
       <tr><td>老后台 → <b>会员前台访问端统计</b>（新页面）</td><td>按访问端、设备类型、版本号统计会员数；会员数点开看会员明细，可导出</td></tr>
     </table>
 
     <div class="h1">二、功能描述与业务规则</div>
     <div class="keybox">
       <div class="kt">🎯 核心结论</div>
-      <div class="kf">固定标题：<b>⚠️ Update for a better experience</b>。英文标题是它的弹窗消息只发给老版本 APP，其他端都看不到</div>
-      <div class="kf">发版时预置好这条公告，默认禁用；运营改内容、点启用就生效，不想用了就禁用</div>
-      <div class="kf">弹窗消息会员可以关掉，只能提醒，不能强制升级</div>
+      <div class="kf">老版本 APP 的代码改不了，升级提醒用现有的「弹窗消息」来发，标题、内容、下载链接、多语言都在后台配</div>
+      <div class="kf">弹窗消息加「投放对象」：选「仅老版本 APP」的消息，只有老版本 APP 会弹，其他端都看不到</div>
+      <div class="kf">弹窗消息用户可以关掉，只能提醒，不能强制升级</div>
     </div>
 
-    <div class="br key"><span class="bn">01</span><b>固定标题</b><span class="kb">核心</span>：弹窗消息的<b>英文标题</b>等于「⚠️ Update for a better experience」（不区分大小写、忽略前后空格），就只发老版本 APP。其他语种的标题照意思翻译，不影响判断。英文标题改成别的，这条就变成普通弹窗消息，所有人都会弹。</div>
-
-    <div class="br key"><span class="bn">02</span><b>老版本 APP</b><span class="kb">核心</span>：指没有版本号的安卓完整包。
+    <div class="br key"><span class="bn">01</span><b>老版本 APP</b><span class="kb">核心</span>：指没有版本号的安卓完整包。其他端都不算：
       <table class="t">
-        <tr><th style="width:220px">登录用的端</th><th>能不能看到升级公告</th></tr>
+        <tr><th style="width:190px">登录用的端</th><th>能不能看到「仅老版本 APP」的消息</th></tr>
         <tr><td>老版本 APP（安卓完整包，没有版本号）</td><td><b>能</b></td></tr>
         <tr><td>新版本 APP（安卓完整包，有版本号）</td><td>不能（走现有的版本升级弹窗）</td></tr>
         <tr><td>安卓套壳包、老套壳包</td><td>不能</td></tr>
@@ -425,11 +425,19 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
       </table>
     </div>
 
-    <div class="br key"><span class="bn">03</span><b>预置公告</b><span class="kb">核心</span>：发版时每个站点自动加一条弹窗消息：标题为固定标题，状态禁用，排序 9999，内容和各语种翻译预先填好（见原型里 ID 93 这条）。运营可以改内容和其他语种标题，英文标题不要改。</div>
+    <div class="br key"><span class="bn">02</span><b>投放对象</b><span class="kb">核心</span>：
+      <table class="t">
+        <tr><th style="width:130px">投放对象</th><th>谁会弹</th></tr>
+        <tr><td>全部会员</td><td>所有端登录后都弹（现在的效果）；已有的弹窗消息都按「全部会员」</td></tr>
+        <tr><td>仅老版本 APP</td><td>只有老版本 APP 登录后弹</td></tr>
+      </table>
+    </div>
 
-    <div class="br"><span class="bn">04</span><b>弹出顺序和方式</b>：和现有弹窗消息一样：登录后进首页弹，按排序值从大到小、同值按时间从新到旧，点 Confirm 看下一条。老版本 APP 看到的是升级公告加上所有普通消息；排序 9999 保证升级公告第一个弹。每次重新登录都会再弹。</div>
+    <div class="br"><span class="bn">03</span><b>弹出顺序</b>：老版本 APP 看到的是「全部会员」和「仅老版本 APP」两类消息合在一起，按排序值从大到小、同值按时间从新到旧，跟现在一样。想让升级公告第一个弹，排序值设成最大。</div>
 
-    <div class="br"><span class="bn">05</span><b>停用</b>：把这条公告禁用就马上不弹；删掉或改英文标题也行，但改了英文标题会变成所有人都弹。</div>
+    <div class="br"><span class="bn">04</span><b>弹出方式</b>：和现有弹窗消息一样：登录后进首页弹，点 Confirm 看下一条，全部看完关闭。只启用的消息会弹，禁用后马上不弹。</div>
+
+    <div class="br"><span class="bn">05</span><b>升级公告内容</b>：在编辑页配标题和内容，内容里放安卓完整包的下载链接；每个语种分别填，跟现有弹窗消息一样。</div>
 
     <div class="br key"><span class="bn">06</span><b>记录访问端</b><span class="kb">核心</span>：会员登录成功时、已登录状态下打开时，记下访问端、版本号、设备类型和时间；APP 和网页都记，没登录的不记。APP 取不到版本号的记「未知」；网页类（手机浏览器、桌面快捷方式、PC 浏览器）版本号记「-」。老版本 APP 记为「安卓完整包 / 未知」。</div>
 
@@ -453,22 +461,21 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
     <div class="h1">三、限制条件</div>
     <table class="t">
       <tr><th style="width:110px">项</th><th>说明</th></tr>
-      <tr><td>适用范围</td><td>只对弹窗消息生效，滚动消息不受影响</td></tr>
+      <tr><td>适用范围</td><td>投放对象只加在「弹窗消息」，滚动消息不加</td></tr>
       <tr><td>强制程度</td><td>只能提醒，用户关掉后照常使用</td></tr>
       <tr><td>配置范围</td><td>每个站点各自配置弹窗消息</td></tr>
       <tr><td>历史数据</td><td>访问端统计只有上线之后的数据，上线前没有</td></tr>
-      <tr><td>权限</td><td>升级公告跟着弹窗消息现有权限；会员前台访问端统计新加菜单权限</td></tr>
+      <tr><td>权限</td><td>投放对象跟着弹窗消息现有权限；会员前台访问端统计新加菜单权限</td></tr>
     </table>
 
     <div class="h1">四、开发注意事项</div>
     <ol class="dev">
-      <li>老版本 APP 的前端打包在 APP 里，改不了；这次只改后端「弹窗消息」接口返回哪些消息，老后台页面也不改。</li>
-      <li>固定标题写死在后端。判断要用后台保存的<b>英文主标题</b>，不能用返回给前台的标题（那个已经按会员语种翻译过了）；比较时不区分大小写、去掉前后空格，标题里的 ⚠️ 也要一起比。</li>
+      <li>老版本 APP 的前端打包在 APP 里，改不了；这次只改后端「弹窗消息」接口返回哪些消息，老版本 APP 用现有的弹窗显示。</li>
       <li>识别老版本 APP：请求里没有版本号，并且页面来源地址不是站点域名（老版本 APP 的页面在手机本地）；套壳包、浏览器、桌面快捷方式的来源地址都是站点域名。开发前先用真实的老版本 APP 登录一次，从接口日志里核对它的请求头，再定判断条件。</li>
-      <li>弹窗消息现在按语种整份缓存，缓存不用拆：取出缓存后按「是不是老版本 APP」把固定标题那条去掉或留下；缓存里每条要带上「是否固定标题」。</li>
-      <li>发版脚本给每个站点插一条预置公告（禁用、排序 9999、各语种内容），站点已经有同标题的就不重复插。</li>
+      <li>弹窗消息现在按语种整份缓存、所有人拿到一样的；加了投放对象后，「普通」和「老版本 APP」要分开缓存，不能让网页用户拿到带升级公告的那份。</li>
+      <li>老数据的投放对象全部按「全部会员」；列表、编辑页、保存都要带上这个字段。</li>
       <li>公告里的下载链接，要用真实的老版本 APP 点一次，确认能下载安装包；点了没反应的话，链接改成下载中心页面地址。</li>
-      <li>访问端统计：现在只有完整包会带版本号，现有登录记录的设备类型也只分 PC / 安卓 / iOS，分不出 APP 还是网页。新版前端要在登录和打开时把访问端和版本号报给后端；老版本 APP 报不了，由后端按第 3 条识别后记为「安卓完整包 / 未知」。</li>
+      <li>访问端统计：现在只有完整包会带版本号，现有登录记录的设备类型也只分 PC / 安卓 / iOS，分不出 APP 还是网页。新版前端要在登录和打开时把访问端和版本号报给后端；老版本 APP 报不了，由后端按第 2 条识别后记为「安卓完整包 / 未知」。</li>
       <li>每个会员只保留一份「最近一次使用」（访问端、版本号、设备类型、最后使用时间）+ 首次使用时间，按会员覆盖写，不用每次打开都存一条。</li>
     </ol>
   </div>
@@ -488,21 +495,19 @@ document.querySelectorAll('.pswitch a').forEach(a=>a.onclick=()=>{if(a.dataset.p
 
 /* ===== 弹窗消息数据 ===== */
 const UPG=`<p style="color:#e53935;font-weight:700">🎉 A new version is ready for a better and smoother experience!</p><p>Your current app version is outdated. Please update to the latest version to enjoy faster loading and more stable gameplay.</p><p><b><a data-dl="1">👉 Download the latest APP</a></b></p><p>Your account, balance and records will stay the same after updating.</p>`;
-const FIXED_TITLE='⚠️ Update for a better experience';
-const isFixed=m=>m.t.trim().toLowerCase()===FIXED_TITLE.toLowerCase();
 let MSGS=[
-  {id:93,t:FIXED_TITLE,m:UPG,st:1,so:9999,tm:'2026-10-28 02:00:00',preset:1},
-  {id:88,t:'Daily Deposit Bonus',m:'<div class="ban">Daily Deposit Bonus</div><p>Deposit every day and get up to 5% extra bonus.</p>',st:0,so:100,tm:'2026-10-20 18:02:41'},
-  {id:85,t:'Welcome to 91club',m:'<p>Welcome to 91club! Official customer service is online 24 hours. Please do not trust anyone who claims to be staff in private messages.</p>',st:0,so:50,tm:'2026-09-30 12:11:09'},
-  {id:80,t:'Diwali Event',m:'<div class="ban">Diwali Event</div><p>The event has ended.</p>',st:1,so:0,tm:'2026-09-02 09:40:33'}
+  {id:92,t:'⚠️ Update for a better experience',m:UPG,st:0,tg:'old',so:9999,tm:'2026-10-27 10:20:15'},
+  {id:88,t:'Daily Deposit Bonus',m:'<div class="ban">Daily Deposit Bonus</div><p>Deposit every day and get up to 5% extra bonus.</p>',st:0,tg:'all',so:100,tm:'2026-10-20 18:02:41'},
+  {id:85,t:'Welcome to 91club',m:'<p>Welcome to 91club! Official customer service is online 24 hours. Please do not trust anyone who claims to be staff in private messages.</p>',st:0,tg:'all',so:50,tm:'2026-09-30 12:11:09'},
+  {id:80,t:'Diwali Event',m:'<div class="ban">Diwali Event</div><p>The event has ended.</p>',st:1,tg:'all',so:0,tm:'2026-09-02 09:40:33'}
 ];
-const tagOf=m=>isFixed(m)?'<span class="tg old">只给老版本 APP</span>':'<span class="tg all">所有人</span>';
+const TG_TXT={all:'全部会员',old:'仅老版本 APP'};
 const strip=h=>h.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 function renderList(){
   const kw=$('#qKw').value.trim().toLowerCase(),st=$('#qSt').value;
   const rows=MSGS.filter(m=>(!kw||(m.t+' '+strip(m.m)).toLowerCase().includes(kw))&&(st===''||String(m.st)===st))
     .sort((a,b)=>a.st-b.st||(a.st===0?(b.so-a.so||b.tm.localeCompare(a.tm)):b.tm.localeCompare(a.tm)));
-  $('#listBody').innerHTML=rows.map(m=>`<tr><td>${m.id}</td><td>${m.t}</td><td class="msgcell">${strip(m.m)}</td><td class="${m.st?'st-off':'st-on'}">${m.st?'禁用':'启用'}</td><td>${m.so}</td><td>${m.tm}</td><td><button class="lbtn" data-e="${m.id}">编辑</button> <button class="lbtn red">删除</button></td></tr>`).join('')||'<tr><td colspan="8">暂无数据</td></tr>';
+  $('#listBody').innerHTML=rows.map(m=>`<tr><td>${m.id}</td><td>${m.t}</td><td class="msgcell">${strip(m.m)}</td><td class="${m.st?'st-off':'st-on'}">${m.st?'禁用':'启用'}</td><td><span class="tg ${m.tg}">${TG_TXT[m.tg]}</span></td><td>${m.so}</td><td>${m.tm}</td><td><button class="lbtn" data-e="${m.id}">编辑</button> <button class="lbtn red">删除</button></td></tr>`).join('')||'<tr><td colspan="8">暂无数据</td></tr>';
   document.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>openEdit(+b.dataset.e));
 }
 $('#qGo').onclick=renderList;
@@ -515,7 +520,7 @@ function openEdit(id){
   editing=id;const m=MSGS.find(x=>x.id===id);
   $('#edTitle').textContent=id?'弹窗消息更新':'弹窗消息新增';
   $('#eSave').textContent=id?'✔ 修 改':'＋ 新 增';
-  $('#eTitle').value=m?m.t:'';$('#eSort').value=m?m.so:0;$('#eState').value=m?m.st:0;$('#eMsg').innerHTML=m?m.m:'';
+  $('#eTitle').value=m?m.t:'';$('#eSort').value=m?m.so:0;$('#eState').value=m?m.st:0;$('#eTarget').value=m?m.tg:'all';$('#eMsg').innerHTML=m?m.m:'';
   go('pgEdit');
 }
 document.querySelectorAll('#mlLangs span').forEach(s=>s.onclick=()=>{document.querySelectorAll('#mlLangs span').forEach(x=>x.classList.toggle('on',x===s))});
@@ -524,9 +529,9 @@ $('#eSave').onclick=()=>{
   if(!t){toast('<b>请填写标题</b>');return}
   const now=new Date(),p=n=>String(n).padStart(2,'0');
   const tm=`${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())} ${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
-  const d={t,so:+$('#eSort').value||0,st:+$('#eState').value,m:$('#eMsg').innerHTML,tm};
+  const d={t,so:+$('#eSort').value||0,st:+$('#eState').value,tg:$('#eTarget').value,m:$('#eMsg').innerHTML,tm};
   if(editing){Object.assign(MSGS.find(x=>x.id===editing),d)}else{MSGS.push({id:Math.max(...MSGS.map(x=>x.id))+1,...d})}
-  toast(`<b>${editing?'修改':'新增'}成功</b>`);
+  toast(`<b>${editing?'修改':'新增'}成功</b>投放对象：${TG_TXT[d.tg]}`);
   renderList();go('pgList');
 };
 $('#eBack').onclick=()=>go('pgList');
@@ -597,7 +602,7 @@ document.querySelectorAll('.scb[data-i]').forEach(b=>b.onclick=()=>{
 function phToast(t){const e=$('#phToast');e.textContent=t;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',1800)}
 function setRs(pop,why){$('#rs').className='rs '+(pop?'pop':'no');$('#rs').innerHTML=(pop?'🔔 ':'✅ ')+why}
 function renderQ(){
-  $('#qlist').innerHTML=queue.length?queue.map((m,i)=>`<div class="${i<qi?'done':i===qi?'cur':''}"><span class="n">${i+1}</span><span><b>${m.t}</b>　${tagOf(m)}　排序 ${m.so}</span></div>`).join(''):'<div>没有启用的弹窗消息</div>';
+  $('#qlist').innerHTML=queue.length?queue.map((m,i)=>`<div class="${i<qi?'done':i===qi?'cur':''}"><span class="n">${i+1}</span><span><b>${m.t}</b>　<span class="tg ${m.tg}">${TG_TXT[m.tg]}</span>　排序 ${m.so}</span></div>`).join(''):'<div>没有启用的弹窗消息</div>';
 }
 function showMsg(){
   if(qi>=queue.length){$('#phMask').classList.remove('on');$('#vdHolder').innerHTML='';renderQ();return}
@@ -612,26 +617,18 @@ function run(s){
   cur=s;
   $('#phTag').textContent=`当前：${s.dev} · ${s.n}`;
   $('#phone').classList.toggle('web',s.k==='web');
-  queue=MSGS.filter(m=>m.st===0&&(!isFixed(m)||s.old)).sort((a,b)=>b.so-a.so||b.tm.localeCompare(a.tm));
+  queue=MSGS.filter(m=>m.st===0&&(m.tg==='all'||(m.tg==='old'&&s.old))).sort((a,b)=>b.so-a.so||b.tm.localeCompare(a.tm));
   qi=0;
-  const hasOld=queue.some(isFixed);
-  const oldCnt=MSGS.filter(m=>m.st===0&&isFixed(m)).length;
-  syncPreset();
-  if(s.old)setRs(hasOld,hasOld?'老版本 APP：标题是固定标题的升级公告也会弹（排序最大，第一个弹）':'老版本 APP，但升级公告是禁用的，只弹普通消息');
-  else setRs(false,(s.k==='newfull'?'新版本 APP：':'不是老版本 APP：')+(oldCnt?'看不到固定标题的升级公告，':'')+'只弹普通消息'+(s.k==='newfull'?'；版本升级走现有升级弹窗':''));
+  const hasOld=queue.some(m=>m.tg==='old');
+  const oldCnt=MSGS.filter(m=>m.st===0&&m.tg==='old').length;
+  if(s.old)setRs(hasOld,hasOld?'老版本 APP：先弹「仅老版本 APP」的升级公告，再弹全部会员的消息':'老版本 APP，但没有启用的「仅老版本 APP」消息，只弹全部会员的消息');
+  else setRs(false,(s.k==='newfull'?'新版本 APP：':'不是老版本 APP：')+(oldCnt?'看不到升级公告，':'')+'只弹全部会员的消息'+(s.k==='newfull'?'；版本升级走现有升级弹窗':''));
   $('#kv').innerHTML=`<tr><td>访问端</td><td>${s.type}</td></tr><tr><td>版本号</td><td>${s.ver||'没有'}</td></tr><tr><td>是否老版本 APP</td><td>${s.old?'是':'否'}</td></tr>`;
   showMsg();
 }
 $('#reopen').onclick=()=>run(cur);
-function syncPreset(){
-  const p=MSGS.find(m=>m.preset);
-  $('#presetSt').textContent='';
-  document.querySelectorAll('#presetSeg a').forEach(a=>a.classList.toggle('on',p&&String(p.st)===a.dataset.v));
-}
-document.querySelectorAll('#presetSeg a').forEach(a=>a.onclick=()=>{const p=MSGS.find(m=>m.preset);if(p){p.st=+a.dataset.v;renderList();run(cur)}});
 
-let demoFirst=true;
-function openDemo(){if(demoFirst){demoFirst=false;const p=MSGS.find(m=>m.preset);if(p&&p.st===1){p.st=0;renderList();toast('<b>演示已自动启用预置升级公告</b>发版后默认是禁用的，需要运营手动启用')}}$('#mmask').style.display='block';$('#demo').style.display='flex';run(cur)}
+function openDemo(){$('#mmask').style.display='block';$('#demo').style.display='flex';run(cur)}
 function closeDemo(){$('#mmask').style.display='none';$('#demo').style.display='none'}
 $('#demoOpen').onclick=openDemo;$('#demoX').onclick=closeDemo;$('#mmask').onclick=closeDemo;
 
