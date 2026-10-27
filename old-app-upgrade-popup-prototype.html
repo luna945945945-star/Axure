@@ -287,7 +287,7 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
   <div id="pgEdit" style="display:none">
     <div class="crumb" id="edTitle">弹窗消息更新</div>
     <div class="card ed">
-      <div class="erow"><label>语种：</label><div class="f"><div class="ml" id="mlLangs"><span class="on">English</span><span>हिन्दी</span><span>বাংলা</span></div></div></div>
+      <div class="erow"><label>语种：</label><div class="f"><div class="ml" id="mlLangs"></div></div></div>
       <div class="erow"><label>标题：</label><div class="f"><input class="fc" id="eTitle" maxlength="50" autocomplete="off"></div></div>
       <div class="erow"><label>排序：</label><div class="f"><input class="fc" id="eSort" type="number" min="0" step="1"></div></div>
       <div class="erow"><label>启用：</label><div class="f"><select class="fc" id="eState"><option value="0"> 启用</option><option value="1">关闭</option></select></div></div>
@@ -349,7 +349,7 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
 <div class="demo" id="demo">
   <div class="dh"><div><span class="pt">原型演示</span><b>登录后首页弹窗消息：谁能看到升级公告</b></div><span class="x" id="demoX">✕</span></div>
   <div class="db">
-    <div class="cfgline">弹窗消息数据和「弹窗消息」页同步：在列表或编辑页改了投放对象、排序、启用，这里重新登录就按新的弹。</div>
+    <div class="cfgline">会员语言：<select id="demoLang" style="height:26px;border:1px solid #d9d0fb;border-radius:3px;padding:0 6px;font:inherit"></select>　弹窗消息数据和「弹窗消息」页同步：在列表或编辑页改了投放对象、排序、启用、各语种内容，这里重新登录就按新的弹；某个语种没填就显示英语。</div>
     <div class="ddemo">
       <div class="box">
         <h4>① 选择用什么登录</h4>
@@ -502,6 +502,10 @@ let MSGS=[
   {id:80,t:'Diwali Event',m:'<div class="ban">Diwali Event</div><p>The event has ended.</p>',st:1,tg:'all',so:0,tm:'2026-09-02 09:40:33'}
 ];
 const TG_TXT={all:'全部会员',old:'仅老版本 APP'};
+const LANGS=[["en", "英语"], ["id", "印尼"], ["vi", "越南语"], ["pt", "巴西"], ["th", "泰语"], ["zh", "中文简体"], ["my", "缅甸"], ["bn", "孟加拉"], ["hi", "印地语"], ["ms", "马来语"], ["ur", "巴基斯坦语"], ["ar", "阿拉伯语"], ["ta", "泰米尔语"]];
+const RTL=['ur','ar'];
+const UPG_ML={"id": {"t": "⚠️ Perbarui aplikasi Anda", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 Versi baru sudah tersedia untuk pengalaman yang lebih baik dan lancar!</p><p>Versi aplikasi Anda sudah usang. Silakan perbarui ke versi terbaru untuk menikmati pemuatan lebih cepat dan permainan lebih stabil.</p><p><b><a data-dl=\"1\">👉 Unduh aplikasi terbaru</a></b></p><p>Akun, saldo, dan riwayat Anda tetap sama setelah pembaruan.</p>"}, "vi": {"t": "⚠️ Hãy cập nhật ứng dụng", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 Phiên bản mới đã sẵn sàng, mang lại trải nghiệm tốt và mượt mà hơn!</p><p>Phiên bản ứng dụng hiện tại của bạn đã cũ. Vui lòng cập nhật lên phiên bản mới nhất để tải nhanh hơn và chơi ổn định hơn.</p><p><b><a data-dl=\"1\">👉 Tải ứng dụng mới nhất</a></b></p><p>Tài khoản, số dư và lịch sử của bạn vẫn giữ nguyên sau khi cập nhật.</p>"}, "pt": {"t": "⚠️ Atualize para jogar melhor", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 Uma nova versão está pronta para uma experiência melhor e mais fluida!</p><p>A versão do seu app está desatualizada. Atualize para a versão mais recente e aproveite carregamento mais rápido e jogos mais estáveis.</p><p><b><a data-dl=\"1\">👉 Baixar o app mais recente</a></b></p><p>Sua conta, saldo e histórico continuam os mesmos após a atualização.</p>"}, "th": {"t": "⚠️ อัปเดตเพื่อประสบการณ์ที่ดีกว่า", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 เวอร์ชันใหม่พร้อมแล้ว ใช้งานได้ดีและลื่นไหลกว่าเดิม!</p><p>แอปของคุณเป็นเวอร์ชันเก่า กรุณาอัปเดตเป็นเวอร์ชันล่าสุดเพื่อโหลดเร็วขึ้นและเล่นได้เสถียรกว่าเดิม</p><p><b><a data-dl=\"1\">👉 ดาวน์โหลดแอปเวอร์ชันล่าสุด</a></b></p><p>บัญชี ยอดเงิน และประวัติของคุณจะยังคงเหมือนเดิมหลังอัปเดต</p>"}, "zh": {"t": "⚠️ 更新版本，体验更好", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 新版本已上线，体验更流畅！</p><p>您当前的 APP 版本已过旧，请更新到最新版本，享受更快的加载速度和更稳定的游戏体验。</p><p><b><a data-dl=\"1\">👉 下载最新版 APP</a></b></p><p>更新后账号、余额和记录都不变。</p>"}, "my": {"t": "⚠️ APP ကို အပ်ဒိတ်လုပ်ပါ", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 ပိုကောင်းပြီး ပိုချောမွေ့သော ဗားရှင်းအသစ် ရောက်ရှိလာပါပြီ!</p><p>သင့် APP ဗားရှင်း ဟောင်းနေပါပြီ။ ပိုမြန်သော ဖွင့်ချိန်နှင့် ပိုတည်ငြိမ်သော ကစားမှုအတွက် နောက်ဆုံးဗားရှင်းသို့ အပ်ဒိတ်လုပ်ပါ။</p><p><b><a data-dl=\"1\">👉 နောက်ဆုံး APP ကို ဒေါင်းလုဒ်လုပ်ရန်</a></b></p><p>အပ်ဒိတ်လုပ်ပြီးနောက် သင့်အကောင့်၊ လက်ကျန်ငွေနှင့် မှတ်တမ်းများ မပြောင်းလဲပါ။</p>"}, "bn": {"t": "⚠️ অ্যাপ আপডেট করুন", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 আরও ভালো ও মসৃণ অভিজ্ঞতার জন্য নতুন সংস্করণ এসে গেছে!</p><p>আপনার অ্যাপের সংস্করণটি পুরোনো। দ্রুত লোডিং ও আরও স্থিতিশীল খেলার জন্য সর্বশেষ সংস্করণে আপডেট করুন।</p><p><b><a data-dl=\"1\">👉 সর্বশেষ অ্যাপ ডাউনলোড করুন</a></b></p><p>আপডেটের পরে আপনার অ্যাকাউন্ট, ব্যালেন্স ও রেকর্ড একই থাকবে।</p>"}, "hi": {"t": "⚠️ बेहतर अनुभव के लिए अपडेट करें", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 बेहतर और स्मूद अनुभव के लिए नया वर्ज़न आ गया है!</p><p>आपके ऐप का वर्ज़न पुराना हो गया है। तेज़ लोडिंग और ज़्यादा स्थिर गेमप्ले के लिए नए वर्ज़न में अपडेट करें।</p><p><b><a data-dl=\"1\">👉 नया ऐप डाउनलोड करें</a></b></p><p>अपडेट के बाद आपका अकाउंट, बैलेंस और रिकॉर्ड वैसे ही रहेंगे।</p>"}, "ms": {"t": "⚠️ Kemas kini aplikasi anda", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 Versi baharu sudah sedia untuk pengalaman yang lebih baik dan lancar!</p><p>Versi aplikasi anda sudah lama. Sila kemas kini ke versi terkini untuk pemuatan lebih pantas dan permainan lebih stabil.</p><p><b><a data-dl=\"1\">👉 Muat turun aplikasi terkini</a></b></p><p>Akaun, baki dan rekod anda kekal sama selepas kemas kini.</p>"}, "ur": {"t": "⚠️ بہتر تجربے کے لیے اپ ڈیٹ کریں", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 بہتر اور ہموار تجربے کے لیے نیا ورژن آ گیا ہے!</p><p>آپ کی ایپ کا ورژن پرانا ہو چکا ہے۔ تیز لوڈنگ اور زیادہ مستحکم گیم پلے کے لیے تازہ ترین ورژن میں اپ ڈیٹ کریں۔</p><p><b><a data-dl=\"1\">👉 تازہ ترین ایپ ڈاؤن لوڈ کریں</a></b></p><p>اپ ڈیٹ کے بعد آپ کا اکاؤنٹ، بیلنس اور ریکارڈ ویسے ہی رہیں گے۔</p>"}, "ar": {"t": "⚠️ حدّث للحصول على تجربة أفضل", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 إصدار جديد متاح لتجربة أفضل وأكثر سلاسة!</p><p>إصدار تطبيقك الحالي قديم. يرجى التحديث إلى أحدث إصدار للاستمتاع بتحميل أسرع ولعب أكثر استقرارًا.</p><p><b><a data-dl=\"1\">👉 تنزيل أحدث إصدار من التطبيق</a></b></p><p>سيبقى حسابك ورصيدك وسجلاتك كما هي بعد التحديث.</p>"}, "ta": {"t": "⚠️ ஆப்பை புதுப்பிக்கவும்", "m": "<p style=\"color:#e53935;font-weight:700\">🎉 சிறந்த, சீரான அனுபவத்திற்கு புதிய பதிப்பு தயார்!</p><p>உங்கள் ஆப் பதிப்பு பழையதாகிவிட்டது. வேகமான ஏற்றம் மற்றும் நிலையான விளையாட்டுக்கு சமீபத்திய பதிப்புக்கு புதுப்பிக்கவும்.</p><p><b><a data-dl=\"1\">👉 சமீபத்திய ஆப்பை பதிவிறக்கவும்</a></b></p><p>புதுப்பித்த பிறகு உங்கள் கணக்கு, இருப்பு மற்றும் பதிவுகள் மாறாது.</p>"}};
+MSGS.find(m=>m.id===92).ml=UPG_ML;
 const strip=h=>h.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 function renderList(){
   const kw=$('#qKw').value.trim().toLowerCase(),st=$('#qSt').value;
@@ -516,20 +520,28 @@ $('#qAdd').onclick=()=>openEdit(0);
 
 /* ===== 新增 / 编辑 ===== */
 let editing=0;
+let edLang='en',edBuf={};
+function renderLangs(){
+  $('#mlLangs').innerHTML=LANGS.map(([k,n])=>`<span data-l="${k}" class="${k===edLang?'on':''}">${n}</span>`).join('');
+  document.querySelectorAll('#mlLangs span').forEach(s=>s.onclick=()=>{edBuf[edLang]={t:$('#eTitle').value,m:$('#eMsg').innerHTML};edLang=s.dataset.l;loadLang();renderLangs()});
+}
+function loadLang(){const b=edBuf[edLang]||{t:'',m:''};$('#eTitle').value=b.t;$('#eMsg').innerHTML=b.m;$('#eTitle').dir=$('#eMsg').dir=RTL.includes(edLang)?'rtl':'ltr'}
 function openEdit(id){
   editing=id;const m=MSGS.find(x=>x.id===id);
+  edLang='en';edBuf={en:{t:m?m.t:'',m:m?m.m:''}};if(m&&m.ml)Object.keys(m.ml).forEach(k=>edBuf[k]={...m.ml[k]});
   $('#edTitle').textContent=id?'弹窗消息更新':'弹窗消息新增';
   $('#eSave').textContent=id?'✔ 修 改':'＋ 新 增';
-  $('#eTitle').value=m?m.t:'';$('#eSort').value=m?m.so:0;$('#eState').value=m?m.st:0;$('#eTarget').value=m?m.tg:'all';$('#eMsg').innerHTML=m?m.m:'';
+  renderLangs();loadLang();$('#eSort').value=m?m.so:0;$('#eState').value=m?m.st:0;$('#eTarget').value=m?m.tg:'all';
   go('pgEdit');
 }
-document.querySelectorAll('#mlLangs span').forEach(s=>s.onclick=()=>{document.querySelectorAll('#mlLangs span').forEach(x=>x.classList.toggle('on',x===s))});
 $('#eSave').onclick=()=>{
-  const t=$('#eTitle').value.trim();
-  if(!t){toast('<b>请填写标题</b>');return}
+  edBuf[edLang]={t:$('#eTitle').value,m:$('#eMsg').innerHTML};
+  const t=(edBuf.en?.t||'').trim();
+  if(!t){toast('<b>请填写英语标题</b>');edLang='en';renderLangs();loadLang();return}
+  const ml={};Object.keys(edBuf).filter(k=>k!=='en'&&(edBuf[k].t.trim()||edBuf[k].m.trim())).forEach(k=>ml[k]={t:edBuf[k].t.trim(),m:edBuf[k].m});
   const now=new Date(),p=n=>String(n).padStart(2,'0');
   const tm=`${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())} ${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
-  const d={t,so:+$('#eSort').value||0,st:+$('#eState').value,tg:$('#eTarget').value,m:$('#eMsg').innerHTML,tm};
+  const d={t,so:+$('#eSort').value||0,st:+$('#eState').value,tg:$('#eTarget').value,m:edBuf.en.m,ml,tm};
   if(editing){Object.assign(MSGS.find(x=>x.id===editing),d)}else{MSGS.push({id:Math.max(...MSGS.map(x=>x.id))+1,...d})}
   toast(`<b>${editing?'修改':'新增'}成功</b>投放对象：${TG_TXT[d.tg]}`);
   renderList();go('pgList');
@@ -606,8 +618,9 @@ function renderQ(){
 }
 function showMsg(){
   if(qi>=queue.length){$('#phMask').classList.remove('on');$('#vdHolder').innerHTML='';renderQ();return}
-  const m=queue[qi];
-  $('#vdHolder').innerHTML=`<div class="vd"><div class="vd-h">${m.t}</div><div class="vd-c">${m.m}</div><div class="vd-f"><button id="vdOk">Confirm</button></div></div>`;
+  const m=queue[qi];const L=$('#demoLang').value,x=(m.ml&&m.ml[L])||{},dir=RTL.includes(L)?'rtl':'ltr';
+  const tt=x.t||m.t,mm=(x.m&&x.m.trim())?x.m:m.m;
+  $('#vdHolder').innerHTML=`<div class="vd"><div class="vd-h" dir="${dir}">${tt}</div><div class="vd-c" dir="${dir}">${mm}</div><div class="vd-f"><button id="vdOk">Confirm</button></div></div>`;
   $('#phMask').classList.add('on');
   $('#vdOk').onclick=()=>{qi++;showMsg()};
   document.querySelectorAll('#vdHolder [data-dl]').forEach(a=>a.onclick=()=>phToast('打开安卓完整包下载地址'));
@@ -627,6 +640,8 @@ function run(s){
   showMsg();
 }
 $('#reopen').onclick=()=>run(cur);
+$('#demoLang').innerHTML=LANGS.map(([k,n])=>`<option value="${k}">${n}</option>`).join('');
+$('#demoLang').onchange=()=>run(cur);
 
 function openDemo(){$('#mmask').style.display='block';$('#demo').style.display='flex';run(cur)}
 function closeDemo(){$('#mmask').style.display='none';$('#demo').style.display='none'}
