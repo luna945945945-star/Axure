@@ -308,13 +308,13 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
     <div class="card">
       <div class="qbar">
         <div class="it">最后使用时间 <input type="date" id="qS" value="2026-10-20"> ~ <input type="date" id="qE" value="2026-10-26"></div>
-        <div class="it">访问端 <select id="qT"><option value="">全部</option><option>安卓完整包</option><option>安卓套壳包</option><option>老套壳包</option><option>iOS 包</option><option>手机浏览器（H5）</option><option>桌面快捷方式（PWA）</option><option>PC 浏览器</option></select></div>
+        <div class="it">访问端 <select id="qT"><option value="">全部</option><option>安卓完整包</option><option>安卓套壳包</option><option>其他 APP</option><option>网页</option><option>PC 浏览器</option></select></div>
         <div class="it">设备类型 <select id="qD"><option value="">全部</option><option>Android</option><option>iOS</option><option>PC</option></select></div>
-        <div class="it">版本号 <input id="qV" placeholder="如 1.2.3 / 未知" style="width:130px"></div>
+        <div class="it">版本号 <input id="qV" placeholder="如 1.2.3 / --" style="width:130px"></div>
         <button class="bbtn" id="qBtn">查询</button>
         <button class="bbtn gray" id="qReset">重置</button>
       </div>
-      <div class="stnote">📌 说明：「安卓完整包」中，<b>能取到包名、但版本号显示「未知」</b>的会员，就是还没升级的<b>老版本 APP 用户</b>（标了「老版本 APP」）；包名取不到的显示「--」。</div>
+      <div class="stnote">📌 说明：「安卓完整包」中，<b>能取到包名、但取不到版本号</b>的会员，就是还没升级的<b>老版本 APP 用户</b>（标了「老版本 APP」）；包名、版本号取不到的都显示「--」。</div>
       <div class="sum" id="sum"></div>
       <div class="scroll-x">
       <table class="tb">
@@ -418,7 +418,7 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
       <div class="kf">弹窗消息用户可以关掉，只能提醒，不能强制升级</div>
     </div>
 
-    <div class="br key"><span class="bn">01</span><b>老版本 APP</b><span class="kb">核心</span>：指没有版本号的安卓完整包。其他端都不算：
+    <div class="br key"><span class="bn">01</span><b>老版本 APP</b><span class="kb">核心</span>：指没有版本号的安卓完整包。它的代码改不了，不会上报访问端；后端认定规则：<b>没有上报访问端、没有版本号、登录时带了包名</b>。其他端都不算：
       <table class="t">
         <tr><th style="width:190px">登录用的端</th><th>能不能看到「仅老版本 APP」的消息</th></tr>
         <tr><td>老版本 APP（安卓完整包，没有版本号）</td><td><b>能</b></td></tr>
@@ -443,24 +443,22 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
 
     <div class="br"><span class="bn">05</span><b>升级公告内容</b>：在编辑页配标题和内容，内容里放安卓完整包的下载链接；每个语种分别填，跟现有弹窗消息一样。</div>
 
-    <div class="br key"><span class="bn">06</span><b>记录访问端</b><span class="kb">核心</span>：会员登录成功时、已登录状态下打开时，记下访问端、包名（packId）、版本号、设备类型和时间；APP 和网页都记，没登录的不记。APP 取不到版本号的记「未知」；网页类（手机浏览器、桌面快捷方式、PC 浏览器）版本号记「-」。老版本 APP 记为「安卓完整包 / 未知」。</div>
+    <div class="br key"><span class="bn">06</span><b>记录访问端</b><span class="kb">核心</span>：会员登录成功时、已登录状态下打开时，记下访问端、包名（packId）、版本号、设备类型和时间；APP 和网页都记，没登录的不记。包名、版本号取不到的都记「--」。</div>
 
     <div class="br key"><span class="bn">07</span><b>统计口径</b><span class="kb">核心</span>：每个会员只算一次，按他<b>最近一次</b>用的访问端和版本统计；会员换端或升级后，自动算到新的那一行。「最后使用时间」按会员最近一次使用的时间筛选。列表按访问端、包名、设备类型、版本号分行，显示会员数和最近使用时间。</div>
 
-    <div class="br key"><span class="bn">08</span><b>访问端</b><span class="kb">核心</span>：共 7 种：
+    <div class="br key"><span class="bn">08</span><b>访问端</b><span class="kb">核心</span>：共 5 种，由前端上报（老版本 APP 除外）：
       <table class="t">
-        <tr><th style="width:170px">访问端</th><th>判断依据</th><th style="width:110px">版本号</th></tr>
-        <tr><td>安卓完整包</td><td>APP 说自己是完整包；老版本 APP 也算这一类</td><td>有就显示，没有记「未知」</td></tr>
-        <tr><td>安卓套壳包</td><td>APP 说自己是套壳包</td><td>有就显示，没有记「未知」</td></tr>
-        <tr><td>老套壳包</td><td>在 APP 里，但 APP 没说是哪种包、也没有包ID（安卓）</td><td>未知</td></tr>
-        <tr><td>iOS 包</td><td>iOS 手机上装的 APP，不再细分</td><td>有就显示，没有记「未知」</td></tr>
-        <tr><td>手机浏览器（H5）</td><td>手机上用浏览器打开</td><td>-</td></tr>
-        <tr><td>桌面快捷方式（PWA）</td><td>网页添加到主屏幕后打开（安卓、iOS 都有）</td><td>-</td></tr>
-        <tr><td>PC 浏览器</td><td>电脑上打开</td><td>-</td></tr>
+        <tr><th style="width:120px">访问端</th><th>包括</th><th>前端怎么认</th></tr>
+        <tr><td>安卓完整包</td><td>新版完整包；老版本 APP 也算这一类</td><td>APP 告诉网页「我是完整包」；老版本 APP 按第 01 条由后端认定</td></tr>
+        <tr><td>安卓套壳包</td><td>现在下载中心发的套壳包</td><td>APP 告诉网页「我是套壳包」</td></tr>
+        <tr><td>其他 APP</td><td>2025-08 之前的老套壳包、iOS 上装的 APP</td><td>在 APP 里，但 APP 没说是哪种包</td></tr>
+        <tr><td>网页</td><td>手机浏览器、添加到主屏幕的桌面快捷方式、Facebook / 微信等 APP 里打开的网页</td><td>手机上打开，不在 APP 里</td></tr>
+        <tr><td>PC 浏览器</td><td>电脑上打开</td><td>不是手机（iPad 默认按电脑算）</td></tr>
       </table>
     </div>
 
-    <div class="br key"><span class="bn">09</span><b>包名和老版本 APP</b><span class="kb">核心</span>：包名（packId）能取到就显示，取不到显示「--」。「安卓完整包」中能取到包名、但版本号是「未知」的，就是还没升级的老版本 APP 用户：列表里在版本号旁标「老版本 APP」，表格上方加一行说明。</div>
+    <div class="br key"><span class="bn">09</span><b>包名和老版本 APP</b><span class="kb">核心</span>：包名（packId）、版本号能取到就显示，取不到都显示「--」。「安卓完整包」中能取到包名、但取不到版本号的，就是还没升级的老版本 APP 用户：列表里在版本号旁标「老版本 APP」，表格上方加一行说明。</div>
 
     <div class="br"><span class="bn">10</span><b>会员明细</b>：点会员数打开，显示该行全部会员；导出内容和明细一致。列表默认按最后使用时间倒序。</div>
 
@@ -477,12 +475,14 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
     <div class="h1">四、开发注意事项</div>
     <ol class="dev">
       <li>老版本 APP 的前端打包在 APP 里，改不了；这次只改后端「弹窗消息」接口返回哪些消息，老版本 APP 用现有的弹窗显示。</li>
-      <li>识别老版本 APP：请求里没有版本号，并且页面来源地址不是站点域名（老版本 APP 的页面在手机本地）；套壳包、浏览器、桌面快捷方式的来源地址都是站点域名。开发前先用真实的老版本 APP 登录一次，从接口日志里核对它的请求头，再定判断条件。</li>
+      <li>识别老版本 APP：新版前端在<b>每个请求</b>里都带上访问端（5 种之一）；老版本 APP 的代码改不了，不会带。后端认定为老版本 APP：请求里没有访问端、没有版本号，并且这个会员登录时带了包名。</li>
       <li>弹窗消息现在按语种整份缓存、所有人拿到一样的；加了投放对象后，「普通」和「老版本 APP」要分开缓存，不能让网页用户拿到带升级公告的那份。</li>
       <li>老数据的投放对象全部按「全部会员」；列表、编辑页、保存都要带上这个字段。</li>
       <li>公告里的下载链接，要用真实的老版本 APP 点一次，确认能下载安装包；点了没反应的话，链接改成下载中心页面地址。</li>
-      <li>访问端统计：现在只有完整包会带版本号，现有登录记录的设备类型也只分 PC / 安卓 / iOS，分不出 APP 还是网页。新版前端要在登录和打开时把访问端和版本号报给后端；老版本 APP 报不了，由后端按第 2 条识别后记为「安卓完整包 / 未知」。</li>
-      <li>每个会员只保留一份「最近一次使用」（访问端、版本号、设备类型、最后使用时间）+ 首次使用时间，按会员覆盖写，不用每次打开都存一条。</li>
+      <li>访问端统计：现在前端只在登录时传设备类型（PC / 安卓 / iOS）和包名，只有完整包会带版本号，分不出是不是 APP、是哪种包。新版前端按第 08 条的判断方式在每个请求里带上访问端；套壳包、老套壳包、网页打开的都是线上最新前端，前端发版就生效。</li>
+      <li>每个会员只保留一份「最近一次使用」（访问端、包名、版本号、设备类型、最后使用时间）+ 首次使用时间，按会员覆盖写，不用每次打开都存一条。</li>
+      <li>上线顺序：先上前端的访问端上报，确认网页、套壳包都带上了，再上后端的老版本 APP 识别和升级公告；否则还没带访问端的网页用户会被当成老版本 APP。</li>
+      <li>上线前拿 iPad、iOS 上装的 APP、老套壳包各试一次，确认访问端判断正确。</li>
     </ol>
   </div>
 </div>
@@ -560,19 +560,17 @@ const ROWS=[
   ['安卓完整包','Android','1.2.3',1286,'2026-10-26 17:20:11','com.sitinr.app'],
   ['安卓完整包','Android','1.2.2',734,'2026-10-26 17:18:40','com.sitinr.app'],
   ['安卓完整包','Android','1.1.0',215,'2026-10-26 16:52:03','com.sitinr.app'],
-  ['安卓完整包','Android','未知',1932,'2026-10-26 17:21:56','com.sitinr.app'],
+  ['安卓完整包','Android','--',1932,'2026-10-26 17:21:56','com.sitinr.app'],
   ['安卓套壳包','Android','1.0.6',2104,'2026-10-26 17:21:30','com.sitinr.lite'],
-  ['安卓套壳包','Android','未知',1306,'2026-10-26 17:19:12','com.sitinr.lite'],
-  ['老套壳包','Android','未知',802,'2026-10-26 17:11:25','--'],
-  ['iOS 包','iOS','未知',831,'2026-10-26 17:05:47','--'],
-  ['手机浏览器（H5）','Android','-',5120,'2026-10-26 17:22:08','--'],
-  ['手机浏览器（H5）','iOS','-',1462,'2026-10-26 17:20:44','--'],
-  ['桌面快捷方式（PWA）','Android','-',948,'2026-10-26 17:16:31','--'],
-  ['桌面快捷方式（PWA）','iOS','-',1207,'2026-10-26 17:18:02','--'],
-  ['PC 浏览器','PC','-',386,'2026-10-26 16:58:19','--']
+  ['安卓套壳包','Android','--',1306,'2026-10-26 17:19:12','com.sitinr.lite'],
+  ['其他 APP','Android','--',802,'2026-10-26 17:11:25','--'],
+  ['其他 APP','iOS','--',831,'2026-10-26 17:05:47','--'],
+  ['网页','Android','--',6068,'2026-10-26 17:22:08','--'],
+  ['网页','iOS','--',2669,'2026-10-26 17:20:44','--'],
+  ['PC 浏览器','PC','--',386,'2026-10-26 16:58:19','--']
 ];
 let shown=[];
-const isOldRow=r=>r[0]==='安卓完整包'&&r[5]!=='--'&&r[2]==='未知';
+const isOldRow=r=>r[0]==='安卓完整包'&&r[5]!=='--'&&r[2]==='--';
 function renderStat(){
   const t=$('#qT').value,d=$('#qD').value,v=$('#qV').value.trim();
   shown=ROWS.filter(r=>(!t||r[0]===t)&&(!d||r[1]===d)&&(!v||r[2].includes(v)));
@@ -590,7 +588,7 @@ function openMd(r){
   for(let k=0;k<10;k++){
     const id=2250000+((r[3]*7+k*131)%9000);
     const mm=String(59-k*5).padStart(2,'0');
-    h+=`<tr><td>${id}</td><td>${r[0]}</td><td>${r[5]}</td><td>${r[2]}</td><td>${r[1]}</td><td>2026-${r[2]==='1.2.3'||r[2]==='1.0.6'?'10-1'+(k%9):'10-2'+(k%6)} 0${k%9}:12:${mm}</td><td>2026-10-26 17:${mm}:0${k}</td></tr>`;
+    h+=`<tr><td>${id}</td><td>${r[0]}</td><td>${r[5]}</td><td>${r[2]}</td><td>${r[1]}</td><td>2026-${r[2]!=='--'?'10-1'+(k%9):'10-2'+(k%6)} 0${k%9}:12:${mm}</td><td>2026-10-26 17:${mm}:0${k}</td></tr>`;
   }
   $('#mdBody').innerHTML=h;
   $('#mdPager').textContent=`第 1 / ${Math.ceil(r[3]/10)} 页`;
@@ -604,13 +602,13 @@ renderStat();
 
 /* ===== 前台演示 ===== */
 const SC=[
-  {k:'oldfull',n:'老版本 APP（安卓完整包）',d:'没有版本号，页面在手机本地',type:'安卓完整包',dev:'Android',ver:'',old:true,pack:'com.sitinr.app'},
-  {k:'newfull',n:'新版本 APP（安卓完整包）',d:'版本号 1.2.3',type:'安卓完整包',dev:'Android',ver:'1.2.3',pack:'com.sitinr.app'},
-  {k:'quick',n:'安卓套壳包',d:'加载线上网页',type:'安卓套壳包',dev:'Android',ver:'',pack:'com.sitinr.lite'},
-  {k:'oldquick',n:'老套壳包（2025-08 前）',d:'加载线上网页，没有包ID',type:'老套壳包',dev:'Android',ver:''},
-  {k:'ios',n:'iOS 包',d:'iOS 上装的 APP',type:'iOS 包',dev:'iOS',ver:''},
-  {k:'pwa',n:'桌面快捷方式（PWA）',d:'网页添加到主屏幕后打开',type:'桌面快捷方式（PWA）',dev:'iOS',ver:''},
-  {k:'web',n:'手机浏览器（H5）',d:'用浏览器打开网站',type:'手机浏览器（H5）',dev:'Android',ver:''}
+  {k:'oldfull',n:'老版本 APP（安卓完整包）',d:'没有版本号，代码打包在 APP 里',type:'安卓完整包',rep:'不上报（代码改不了）',dev:'Android',ver:'',old:true,pack:'com.sitinr.app'},
+  {k:'newfull',n:'新版本 APP（安卓完整包）',d:'版本号 1.2.3',type:'安卓完整包',rep:'安卓完整包',dev:'Android',ver:'1.2.3',pack:'com.sitinr.app'},
+  {k:'quick',n:'安卓套壳包',d:'加载线上网页',type:'安卓套壳包',rep:'安卓套壳包',dev:'Android',ver:'',pack:'com.sitinr.lite'},
+  {k:'oldquick',n:'老套壳包（2025-08 前）',d:'加载线上网页，没有包名',type:'其他 APP',rep:'其他 APP',dev:'Android',ver:''},
+  {k:'ios',n:'iOS 包',d:'iOS 上装的 APP',type:'其他 APP',rep:'其他 APP',dev:'iOS',ver:''},
+  {k:'pwa',n:'桌面快捷方式（PWA）',d:'网页添加到主屏幕后打开',type:'网页',rep:'网页',dev:'iOS',ver:''},
+  {k:'web',n:'手机浏览器（H5）',d:'用浏览器打开网站',type:'网页',rep:'网页',dev:'Android',ver:''}
 ];
 let cur=SC[0],queue=[],qi=0;
 $('#scList').innerHTML=SC.map((s,i)=>`<button class="scb${i?'':' on'}" data-i="${i}">${s.n}<small>${s.d}</small></button>`).join('');
@@ -643,7 +641,7 @@ function run(s){
   const oldCnt=MSGS.filter(m=>m.st===0&&m.tg==='old').length;
   if(s.old)setRs(hasOld,hasOld?'老版本 APP：先弹「仅老版本 APP」的升级公告，再弹全部会员的消息':'老版本 APP，但没有启用的「仅老版本 APP」消息，只弹全部会员的消息');
   else setRs(false,(s.k==='newfull'?'新版本 APP：':'不是老版本 APP：')+(oldCnt?'看不到升级公告，':'')+'只弹全部会员的消息'+(s.k==='newfull'?'；版本升级走现有升级弹窗':''));
-  $('#kv').innerHTML=`<tr><td>访问端</td><td>${s.type}</td></tr><tr><td>包名（packId）</td><td>${s.pack||'--'}</td></tr><tr><td>版本号</td><td>${s.ver||'没有'}</td></tr><tr><td>是否老版本 APP</td><td>${s.old?'是':'否'}</td></tr>`;
+  $('#kv').innerHTML=`<tr><td>前端上报访问端</td><td>${s.rep}</td></tr><tr><td>包名（packId）</td><td>${s.pack||'--'}</td></tr><tr><td>版本号</td><td>${s.ver||'--'}</td></tr><tr><td>统计里记为</td><td>${s.type}</td></tr><tr><td>是否老版本 APP</td><td>${s.old?'是（有包名、没版本号、没上报访问端）':'否'}</td></tr>`;
   showMsg();
 }
 $('#reopen').onclick=()=>run(cur);
