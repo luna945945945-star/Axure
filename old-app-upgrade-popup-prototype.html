@@ -62,6 +62,9 @@ table.tb td.l{text-align:left}
 .bbtn.gray{background:#99abb4}
 .bbtn.blue{background:#1e88e5}
 .sum{margin:0 0 10px;color:#464a53}
+.stnote{position:relative;background:#fff7e6;border:1px solid #ffd591;border-radius:4px;padding:8px 12px;margin:0 0 10px;color:#874d00;font-size:12.5px}
+.stnote::after{content:"NEW";position:absolute;top:-7px;right:-4px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px}
+.oldtag{display:inline-block;margin-left:6px;font-size:11px;color:#d4380d;border:1px solid #ffbb96;background:#fff2e8;border-radius:3px;padding:0 5px;line-height:18px}
 .sum b{color:#333}
 a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
 .newpage{position:relative;display:inline-block}
@@ -311,10 +314,11 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
         <button class="bbtn" id="qBtn">查询</button>
         <button class="bbtn gray" id="qReset">重置</button>
       </div>
+      <div class="stnote">📌 说明：「安卓完整包」中，<b>能取到包名、但版本号显示「未知」</b>的会员，就是还没升级的<b>老版本 APP 用户</b>（标了「老版本 APP」）；包名取不到的显示「--」。</div>
       <div class="sum" id="sum"></div>
       <div class="scroll-x">
       <table class="tb">
-        <thead><tr><th style="width:60px">序号</th><th>访问端</th><th>设备类型</th><th>版本号</th><th>会员数</th><th>占比</th><th>最近使用时间</th></tr></thead>
+        <thead><tr><th style="width:60px">序号</th><th>访问端</th><th class="th-new">包名（packId）</th><th>设备类型</th><th>版本号</th><th>会员数</th><th>最近使用时间</th></tr></thead>
         <tbody id="statBody"></tbody>
       </table>
       </div>
@@ -333,7 +337,7 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
     </div>
     <div class="scroll-x">
     <table class="tb">
-      <thead><tr><th>会员ID</th><th>访问端</th><th>版本号</th><th>设备类型</th><th>首次使用时间</th><th>最后使用时间</th></tr></thead>
+      <thead><tr><th>会员ID</th><th>访问端</th><th>包名（packId）</th><th>版本号</th><th>设备类型</th><th>首次使用时间</th><th>最后使用时间</th></tr></thead>
       <tbody id="mdBody"></tbody>
     </table>
     </div>
@@ -439,9 +443,9 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
 
     <div class="br"><span class="bn">05</span><b>升级公告内容</b>：在编辑页配标题和内容，内容里放安卓完整包的下载链接；每个语种分别填，跟现有弹窗消息一样。</div>
 
-    <div class="br key"><span class="bn">06</span><b>记录访问端</b><span class="kb">核心</span>：会员登录成功时、已登录状态下打开时，记下访问端、版本号、设备类型和时间；APP 和网页都记，没登录的不记。APP 取不到版本号的记「未知」；网页类（手机浏览器、桌面快捷方式、PC 浏览器）版本号记「-」。老版本 APP 记为「安卓完整包 / 未知」。</div>
+    <div class="br key"><span class="bn">06</span><b>记录访问端</b><span class="kb">核心</span>：会员登录成功时、已登录状态下打开时，记下访问端、包名（packId）、版本号、设备类型和时间；APP 和网页都记，没登录的不记。APP 取不到版本号的记「未知」；网页类（手机浏览器、桌面快捷方式、PC 浏览器）版本号记「-」。老版本 APP 记为「安卓完整包 / 未知」。</div>
 
-    <div class="br key"><span class="bn">07</span><b>统计口径</b><span class="kb">核心</span>：每个会员只算一次，按他<b>最近一次</b>用的访问端和版本统计；会员换端或升级后，自动算到新的那一行。「最后使用时间」按会员最近一次使用的时间筛选。占比 = 该行会员数 ÷ 当前筛选结果的会员总数，不筛选时所有行加起来是全站 100%。</div>
+    <div class="br key"><span class="bn">07</span><b>统计口径</b><span class="kb">核心</span>：每个会员只算一次，按他<b>最近一次</b>用的访问端和版本统计；会员换端或升级后，自动算到新的那一行。「最后使用时间」按会员最近一次使用的时间筛选。列表按访问端、包名、设备类型、版本号分行，显示会员数和最近使用时间。</div>
 
     <div class="br key"><span class="bn">08</span><b>访问端</b><span class="kb">核心</span>：共 7 种：
       <table class="t">
@@ -456,7 +460,9 @@ a.cnt{color:#1e88e5;cursor:pointer;text-decoration:underline}
       </table>
     </div>
 
-    <div class="br"><span class="bn">09</span><b>会员明细</b>：点会员数打开，显示该行全部会员；导出内容和明细一致。列表默认按最后使用时间倒序。</div>
+    <div class="br key"><span class="bn">09</span><b>包名和老版本 APP</b><span class="kb">核心</span>：包名（packId）能取到就显示，取不到显示「--」。「安卓完整包」中能取到包名、但版本号是「未知」的，就是还没升级的老版本 APP 用户：列表里在版本号旁标「老版本 APP」，表格上方加一行说明。</div>
+
+    <div class="br"><span class="bn">10</span><b>会员明细</b>：点会员数打开，显示该行全部会员；导出内容和明细一致。列表默认按最后使用时间倒序。</div>
 
     <div class="h1">三、限制条件</div>
     <table class="t">
@@ -551,27 +557,28 @@ renderList();
 
 /* ===== 版本统计 ===== */
 const ROWS=[
-  ['安卓完整包','Android','1.2.3',1286,'2026-10-26 17:20:11'],
-  ['安卓完整包','Android','1.2.2',734,'2026-10-26 17:18:40'],
-  ['安卓完整包','Android','1.1.0',215,'2026-10-26 16:52:03'],
-  ['安卓完整包','Android','未知',1932,'2026-10-26 17:21:56'],
-  ['安卓套壳包','Android','1.0.6',2104,'2026-10-26 17:21:30'],
-  ['安卓套壳包','Android','未知',1306,'2026-10-26 17:19:12'],
-  ['老套壳包','Android','未知',802,'2026-10-26 17:11:25'],
-  ['iOS 包','iOS','未知',831,'2026-10-26 17:05:47'],
-  ['手机浏览器（H5）','Android','-',5120,'2026-10-26 17:22:08'],
-  ['手机浏览器（H5）','iOS','-',1462,'2026-10-26 17:20:44'],
-  ['桌面快捷方式（PWA）','Android','-',948,'2026-10-26 17:16:31'],
-  ['桌面快捷方式（PWA）','iOS','-',1207,'2026-10-26 17:18:02'],
-  ['PC 浏览器','PC','-',386,'2026-10-26 16:58:19']
+  ['安卓完整包','Android','1.2.3',1286,'2026-10-26 17:20:11','com.sitinr.app'],
+  ['安卓完整包','Android','1.2.2',734,'2026-10-26 17:18:40','com.sitinr.app'],
+  ['安卓完整包','Android','1.1.0',215,'2026-10-26 16:52:03','com.sitinr.app'],
+  ['安卓完整包','Android','未知',1932,'2026-10-26 17:21:56','com.sitinr.app'],
+  ['安卓套壳包','Android','1.0.6',2104,'2026-10-26 17:21:30','com.sitinr.lite'],
+  ['安卓套壳包','Android','未知',1306,'2026-10-26 17:19:12','com.sitinr.lite'],
+  ['老套壳包','Android','未知',802,'2026-10-26 17:11:25','--'],
+  ['iOS 包','iOS','未知',831,'2026-10-26 17:05:47','--'],
+  ['手机浏览器（H5）','Android','-',5120,'2026-10-26 17:22:08','--'],
+  ['手机浏览器（H5）','iOS','-',1462,'2026-10-26 17:20:44','--'],
+  ['桌面快捷方式（PWA）','Android','-',948,'2026-10-26 17:16:31','--'],
+  ['桌面快捷方式（PWA）','iOS','-',1207,'2026-10-26 17:18:02','--'],
+  ['PC 浏览器','PC','-',386,'2026-10-26 16:58:19','--']
 ];
 let shown=[];
+const isOldRow=r=>r[0]==='安卓完整包'&&r[5]!=='--'&&r[2]==='未知';
 function renderStat(){
   const t=$('#qT').value,d=$('#qD').value,v=$('#qV').value.trim();
   shown=ROWS.filter(r=>(!t||r[0]===t)&&(!d||r[1]===d)&&(!v||r[2].includes(v)));
   const tot=shown.reduce((s,r)=>s+r[3],0);
   $('#sum').innerHTML='最后使用时间 '+$('#qS').value+' ~ '+$('#qE').value+'，合计会员数：<b>'+tot.toLocaleString()+'</b>';
-  $('#statBody').innerHTML=shown.length?shown.map((r,i)=>`<tr><td>${i+1}</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td><a class="cnt" data-i="${i}">${r[3].toLocaleString()}</a></td><td>${(r[3]/tot*100).toFixed(2)}%</td><td>${r[4]}</td></tr>`).join(''):'<tr><td colspan="7">暂无数据</td></tr>';
+  $('#statBody').innerHTML=shown.length?shown.map((r,i)=>`<tr><td>${i+1}</td><td>${r[0]}</td><td>${r[5]}</td><td>${r[1]}</td><td>${r[2]}${isOldRow(r)?'<span class="oldtag">老版本 APP</span>':''}</td><td><a class="cnt" data-i="${i}">${r[3].toLocaleString()}</a></td><td>${r[4]}</td></tr>`).join(''):'<tr><td colspan="7">暂无数据</td></tr>';
   document.querySelectorAll('a.cnt').forEach(a=>a.onclick=()=>openMd(shown[+a.dataset.i]));
 }
 $('#qBtn').onclick=renderStat;
@@ -583,7 +590,7 @@ function openMd(r){
   for(let k=0;k<10;k++){
     const id=2250000+((r[3]*7+k*131)%9000);
     const mm=String(59-k*5).padStart(2,'0');
-    h+=`<tr><td>${id}</td><td>${r[0]}</td><td>${r[2]}</td><td>${r[1]}</td><td>2026-${r[2]==='1.2.3'||r[2]==='1.0.6'?'10-1'+(k%9):'10-2'+(k%6)} 0${k%9}:12:${mm}</td><td>2026-10-26 17:${mm}:0${k}</td></tr>`;
+    h+=`<tr><td>${id}</td><td>${r[0]}</td><td>${r[5]}</td><td>${r[2]}</td><td>${r[1]}</td><td>2026-${r[2]==='1.2.3'||r[2]==='1.0.6'?'10-1'+(k%9):'10-2'+(k%6)} 0${k%9}:12:${mm}</td><td>2026-10-26 17:${mm}:0${k}</td></tr>`;
   }
   $('#mdBody').innerHTML=h;
   $('#mdPager').textContent=`第 1 / ${Math.ceil(r[3]/10)} 页`;
@@ -597,9 +604,9 @@ renderStat();
 
 /* ===== 前台演示 ===== */
 const SC=[
-  {k:'oldfull',n:'老版本 APP（安卓完整包）',d:'没有版本号，页面在手机本地',type:'安卓完整包',dev:'Android',ver:'',old:true},
-  {k:'newfull',n:'新版本 APP（安卓完整包）',d:'版本号 1.2.3',type:'安卓完整包',dev:'Android',ver:'1.2.3'},
-  {k:'quick',n:'安卓套壳包',d:'加载线上网页',type:'安卓套壳包',dev:'Android',ver:''},
+  {k:'oldfull',n:'老版本 APP（安卓完整包）',d:'没有版本号，页面在手机本地',type:'安卓完整包',dev:'Android',ver:'',old:true,pack:'com.sitinr.app'},
+  {k:'newfull',n:'新版本 APP（安卓完整包）',d:'版本号 1.2.3',type:'安卓完整包',dev:'Android',ver:'1.2.3',pack:'com.sitinr.app'},
+  {k:'quick',n:'安卓套壳包',d:'加载线上网页',type:'安卓套壳包',dev:'Android',ver:'',pack:'com.sitinr.lite'},
   {k:'oldquick',n:'老套壳包（2025-08 前）',d:'加载线上网页，没有包ID',type:'老套壳包',dev:'Android',ver:''},
   {k:'ios',n:'iOS 包',d:'iOS 上装的 APP',type:'iOS 包',dev:'iOS',ver:''},
   {k:'pwa',n:'桌面快捷方式（PWA）',d:'网页添加到主屏幕后打开',type:'桌面快捷方式（PWA）',dev:'iOS',ver:''},
@@ -636,7 +643,7 @@ function run(s){
   const oldCnt=MSGS.filter(m=>m.st===0&&m.tg==='old').length;
   if(s.old)setRs(hasOld,hasOld?'老版本 APP：先弹「仅老版本 APP」的升级公告，再弹全部会员的消息':'老版本 APP，但没有启用的「仅老版本 APP」消息，只弹全部会员的消息');
   else setRs(false,(s.k==='newfull'?'新版本 APP：':'不是老版本 APP：')+(oldCnt?'看不到升级公告，':'')+'只弹全部会员的消息'+(s.k==='newfull'?'；版本升级走现有升级弹窗':''));
-  $('#kv').innerHTML=`<tr><td>访问端</td><td>${s.type}</td></tr><tr><td>版本号</td><td>${s.ver||'没有'}</td></tr><tr><td>是否老版本 APP</td><td>${s.old?'是':'否'}</td></tr>`;
+  $('#kv').innerHTML=`<tr><td>访问端</td><td>${s.type}</td></tr><tr><td>包名（packId）</td><td>${s.pack||'--'}</td></tr><tr><td>版本号</td><td>${s.ver||'没有'}</td></tr><tr><td>是否老版本 APP</td><td>${s.old?'是':'否'}</td></tr>`;
   showMsg();
 }
 $('#reopen').onclick=()=>run(cur);
