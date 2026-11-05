@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>优惠券管理 · 未领取券有效期与已过期筛选</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:12px/1.6 "Microsoft YaHei","Helvetica Neue",Helvetica,"PingFang SC",Arial,sans-serif;font-weight:300;background:#f2f3f7;color:#464a53}
+b,strong{font-weight:600}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:44px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:14px;color:#333}
+/* NEW 角标 */
+.nw{position:relative}
+.nw::after{content:"NEW";position:absolute;top:-9px;right:-8px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);z-index:5;pointer-events:none}
+/* 演示切换条 */
+.demobar{background:#fff;border-bottom:1px dashed #9b8cf0;padding:8px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12px}
+.demobar .pt{font-size:11px;color:#6C4FE0;background:#f1edff;border:1px solid #d9d0fb;border-radius:3px;padding:0 6px;font-weight:600}
+.demobar button{height:28px;padding:0 14px;border:1px solid #cfc6f7;border-radius:14px;background:#fff;color:#6C4FE0;cursor:pointer;font:inherit}
+.demobar button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.toast{position:fixed;top:60px;right:30px;background:#fff;border-left:4px solid #36bea6;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:10px 16px;border-radius:3px;z-index:400;font-size:13px;display:none}
+.toast.warn{border-left-color:#ffb22b}
+/* ===== 需求说明抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:310;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:320;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column;font-weight:400}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:300;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff;font-weight:400}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333;font-weight:400}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8;font-weight:400}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+/* 通用 ? 提示 */
+.tip{position:relative;display:inline-flex;align-items:center;vertical-align:middle}
+.tip>b{width:15px;height:15px;border-radius:50%;border:1px solid #d9d9d9;color:#888;font-size:10px;font-weight:600;line-height:13px;text-align:center;cursor:help;background:#fff}
+.tip .tipbox{display:none;position:absolute;left:-6px;top:23px;width:340px;background:#fff;border:1px solid #e8e8e8;border-radius:7px;box-shadow:0 8px 32px rgba(0,0,0,.12);padding:11px 13px;font-size:12px;line-height:1.7;color:#555;z-index:60;font-weight:400}
+.tip:hover .tipbox{display:block}
+.tip .tipbox b{color:#222;font-weight:600}
+.tip .tipbox hr{border:0;border-top:1px solid #e8e8e8;margin:8px 0}
+
+.sb{display:flex;align-items:flex-start;gap:26px;margin-bottom:14px}.fg{display:flex;align-items:center;gap:8px;position:relative}.fg label{color:#464a53;font-weight:400}.fg select{height:30px;width:200px;border:1px solid #e6e6e6;border-radius:2px;padding:0 8px;font:inherit;background:#fff;color:#464a53}.btns{display:flex;gap:10px;margin:0 0 14px 80px}th.nw::after{top:2px;right:2px}.fg.nw::after{right:-14px;top:-10px}
+.view{display:none}.view.on{display:block}
+.pad{padding:16px 22px}
+/* ===== ① 新增券码（照 Opt.cshtml，人工充值） ===== */
+.cardx{background:#fff;border-radius:2px;padding:14px 18px;box-shadow:0 1px 6px rgba(0,0,0,.08);max-width:1060px;margin:0 auto}
+.fr{display:flex;align-items:center;margin-bottom:12px;min-height:32px}
+.fr>label.lb{width:150px;text-align:right;padding-right:14px;color:#464a53;font-weight:400;flex:none}
+.fr .req{color:#c0392b}
+.fr input[type=text],.fr input[type=number],.fr select,.fr textarea{height:32px;border:1px solid #ced4da;border-radius:3px;padding:0 10px;font:inherit;color:#464a53;background:#fff}
+.fr textarea{height:54px;padding:6px 10px;width:420px}
+.fr input.sh{width:110px}
+.rc-section{font-size:13px;font-weight:700;color:#333;margin:14px 0 12px;padding-left:9px;border-left:3px solid #7752fd}
+.two{display:grid;grid-template-columns:7fr 5fr;align-items:start}
+.suf{margin-left:6px;color:#464a53}
+.radios label{margin-right:16px;cursor:pointer;font-weight:400;color:#464a53}
+.radios input{margin-right:4px;accent-color:#7752fd}
+.chan{margin-right:28px;display:inline-block}
+.chan .tt{display:inline-block;background:#f1edff;color:#6C4FE0;border-radius:3px;font-size:11px;padding:0 6px;margin-right:8px}
+.cats label{margin-right:12px;font-weight:400}
+.btn{height:32px;padding:0 16px;border:0;border-radius:3px;background:#7752fd;color:#fff;font:inherit;font-weight:400;cursor:pointer}
+.btn.g{background:#6c757d}
+.rc-preview{border:1px dashed #cfd4da;background:#fafbfc;border-radius:5px;padding:9px 12px;color:#555;max-width:510px;line-height:1.8;font-weight:400}
+.err{color:#c0392b;font-size:12px;margin-left:10px;display:none}
+/* ===== ② 现填券规格弹窗（照 RechargeImport.cshtml #manualSpecDialog） ===== */
+.dlgmask{background:rgba(0,0,0,.35);border-radius:4px;padding:30px 0}
+.dlg{width:760px;margin:0 auto;background:#fff;border-radius:6px;box-shadow:0 8px 32px rgba(0,0,0,.2);font-size:13px;line-height:1.7;color:#222;font-weight:400}
+.dlg .dt{padding:12px 20px;border-bottom:1px solid #eee;font-size:14px;font-weight:600}
+.dlg .db{padding:18px 20px}
+.dlg .dfoot{padding:12px 20px;border-top:1px solid #eee;text-align:right}
+.dlg .form-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.dlg .form-label{font-size:12.5px;color:#555;min-width:96px;text-align:right}
+.dlg .req{color:#c0392b}
+.dlg .fs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;margin-bottom:10px}
+.dlg .input,.dlg .select{height:34px;padding:0 10px;min-width:120px;border:1px solid #d9d9d9;border-radius:5px;background:#fff;color:#222;font-size:12.5px}
+.dlg .input:disabled{background:#f5f5f5;color:#aaa}
+.dlg .fs-num{width:96px}
+.dlg .fs-unit{font-size:12.5px;color:#555}
+.dlg .rd{display:inline-flex;align-items:center;gap:6px;margin-right:22px;cursor:pointer;font-size:12.5px}
+.dlg .rd input{accent-color:#1677ff}
+.dlg .pv{border:1px solid #e8e8e8;background:#fafafa;border-radius:5px;padding:8px 12px;font-size:12.5px;color:#555;flex:1}
+/* ===== ③ 发放明细 ===== */
+table.ud{width:100%;border-collapse:collapse}
+table.ud thead th{background:#f7f8fa;border-bottom:1px solid #eef0f4;color:#5a6072;font-weight:600;text-align:left;padding:12px 14px;white-space:nowrap}
+table.ud tbody td{border-bottom:1px solid #f2f4f7;padding:13px 14px;color:#3c4257;font-weight:400}
+.ud-uid{font-weight:700;color:#2b3245}
+.st{display:inline-block;padding:3px 12px;border-radius:999px;font-size:12px;white-space:nowrap}
+.st-ok{background:#eaf7ee;color:#23a55a;border:1px solid #c6e7cd}
+.st-no{background:#f1f2f5;color:#8a90a0;border:1px solid #e4e6eb}
+.st-wait{background:#eef3ff;color:#3b6fd4;border:1px solid #d3e0fb}
+.st-exp{background:#fff1f0;color:#cf1322;border:1px solid #ffccc7}
+.ud-head{display:flex;align-items:center;padding:8px 0 14px;border-bottom:1px solid #eef0f4;margin-bottom:14px}
+.ud-title{font-size:17px;font-weight:700;color:#2b3245;margin-right:12px}
+.ud-badge{display:inline-block;padding:4px 14px;border-radius:999px;background:#eef3ff;color:#3b6fd4;font-size:13px}
+/* ===== ④ 时间线演示 ===== */
+.tl{background:#fff;border:2px dashed #9b8cf0;border-radius:8px;padding:16px 18px;max-width:1000px;margin:0 auto}
+.tl h4{font-size:14px;margin-bottom:10px;color:#333;font-weight:600}
+.tl .cfg{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:12px;color:#333;font-weight:400}
+.tl .cfg input{width:64px;height:28px;border:1px solid #ccc;border-radius:3px;padding:0 6px;font:inherit}
+.tl input[type=range]{width:100%;accent-color:#6C4FE0}
+.tl table{width:100%;border-collapse:collapse;margin-top:12px}
+.tl th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px;text-align:center;font-weight:600;color:#4b3aa8}
+.tl td{border:1px solid #ebebf2;padding:9px 10px;text-align:center;font-weight:400}
+.tl .now{font-size:13px;color:#6C4FE0;font-weight:600;margin:6px 0}
+.tl .ax{display:flex;justify-content:space-between;font-size:11px;color:#999}
+
+body{background:#f4f5fa;font-size:13px}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:18px 36px 14px;background:#fff;border-bottom:1px solid #eee;margin-bottom:16px}
+.hdr .t{font-size:18px;color:#3b6fd4;font-weight:400}
+.hdr .bc{font-size:12px;color:#8a90a0}
+.lp{margin:0 16px 30px;background:#fff;border-radius:6px;padding:16px 18px;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.sq{display:flex;gap:26px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.sq .it{display:flex;align-items:center;gap:10px;color:#333;font-weight:400}
+.sq input,.sq select{height:34px;border:1px solid #e3e5ec;border-radius:3px;padding:0 10px;font:inherit;background:#fff;color:#666;width:180px}
+.pb{height:32px;padding:0 14px;border:0;border-radius:4px;background:#7752fd;color:#fff;font:inherit;font-weight:400;cursor:pointer;box-shadow:0 3px 8px rgba(119,82,253,.35);margin-right:8px}
+table.lst{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+table.lst th{background:#f2f3f7;padding:14px 8px;text-align:center;font-weight:600;color:#464a53;border-bottom:1px solid #e8e8ee}
+table.lst td{padding:12px 8px;text-align:center;border-bottom:1px solid #f0f0f5;color:#464a53;font-weight:400}
+table.lst td.n{font-weight:700;color:#333}
+.ch{display:inline-block;padding:4px 12px;border-radius:3px;font-size:13px}
+.ch.reg{background:#fff4e5;color:#e6860e;border:1px solid #ffd9a0}
+.ch.red{background:#fff1f0;color:#e5484d;border:1px solid #ffc9c9}
+.ch.man{background:#f1edff;color:#6C4FE0;border:1px solid #d9d0fb}
+.ch.inv{background:#e8f4ff;color:#1677ff;border:1px solid #b6dcff}
+.spec .big{font-size:15px;font-weight:700;color:#d4380d}.spec .big span{color:#333;margin-left:8px}
+.spec .tg{display:inline-block;padding:1px 8px;margin:4px 3px 0;border-radius:3px;font-size:12px;background:#f0f1f5;color:#666}
+.spec .tg.b{background:#e8f0ff;color:#2f6fe4}.spec .tg.g{background:#e8f7ec;color:#2da44e}
+a.lnk{color:#3b6fd4;font-weight:700;text-decoration:underline;cursor:pointer}
+.st1{display:inline-block;padding:4px 14px;border-radius:3px;background:#e6f7ec;color:#2da44e;border:1px solid #c6e7cd}
+.zs{display:inline-block;padding:4px 14px;border-radius:3px;background:#e8f0ff;color:#2f6fe4;border:1px solid #cfe0ff}
+.ob{display:inline-block;padding:4px 10px;border-radius:3px;margin:0 3px;font-size:12px;border:1px solid;background:#fff;cursor:pointer}
+.ob.g{color:#2da44e;border-color:#a6dcb5}.ob.r{color:#e5484d;border-color:#f3a6a8}
+/* 弹窗 */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none}
+.ov.on{display:block}
+.md{position:absolute;left:50%;top:30px;transform:translateX(-50%);width:1000px;max-width:96vw;max-height:calc(100vh - 60px);background:#f7f7fd;border-radius:4px;box-shadow:0 8px 32px rgba(0,0,0,.3);display:flex;flex-direction:column}
+.md .mh{padding:12px 18px;font-size:14px;font-weight:600;color:#333;display:flex;justify-content:space-between;align-items:center;flex:none}
+.md .mh .x{font-size:24px;color:#555;cursor:pointer;line-height:1;font-weight:300}
+.md .mb{overflow:auto;padding:0 22px 22px;flex:1}
+.gcard{background:#fff;border-radius:4px;padding:16px 20px 22px;box-shadow:0 1px 8px rgba(119,82,253,.08)}
+.gcard .cardx{box-shadow:none;padding:0}
+.ud-head{display:flex;align-items:center;padding:6px 0 14px;border-bottom:1px solid #eef0f4;margin-bottom:16px}
+.ud-title{font-size:18px;font-weight:700;color:#2b3245;margin-right:12px}
+.ud-badge{display:inline-block;padding:4px 14px;border-radius:999px;background:#eef3ff;color:#3b6fd4;font-size:13px}
+.sb{display:flex;align-items:center;gap:26px;margin-bottom:12px}
+.fg{display:flex;align-items:center;gap:6px;position:relative}
+.fg label{color:#464a53;font-weight:400}
+.fg select{height:34px;width:200px;border:1px solid #e3e5ec;border-radius:2px;padding:0 8px;font:inherit;background:#fff;color:#666}
+.btns{display:flex;gap:10px;margin:0 0 14px 70px}
+.sm{color:#8a90a0;margin-bottom:8px;font-weight:400}
+.gcard th.nw::after{top:4px;right:6px}.fg.nw::after{right:-14px;top:-10px}
+.hidden-demo{display:none}
+table.lst th.nw::after{top:4px;right:2px}.sq .it.nw::after{right:-14px;top:-10px}
+#ovNew .tip .tipbox{left:auto;right:-6px;width:320px}
+</style>
+</head>
+<body>
+<div class="hdr"><span class="t">优惠券管理</span><span class="bc">活动管理 &nbsp;›&nbsp; 优惠券管理 &nbsp;›&nbsp; 优惠券管理</span></div>
+<div class="lp">
+  <div class="sq">
+    <span class="it">券码/名称 <input placeholder="充值优惠券码/名称"></span>
+    <span class="it">适用渠道 <select><option>全部</option></select></span>
+    <span class="it nw">状态 <select id="stSel" onchange="renderList()"><option value="">全部</option><option value="1">进行中</option><option value="2">已分配完</option><option value="3">已过期</option><option value="4">已停用</option></select></span>
+    <span class="it">上级代理ID <input placeholder="上级代理ID"></span>
+    <span class="it">券来源 <select><option>全部</option></select></span>
+  </div>
+  <div><button class="pb">🔍 查 询</button><button class="pb">⟳ 重 置</button><button class="pb" id="btnNew">＋ 新增券码</button></div>
+  <table class="lst"><thead><tr><th>优惠券名称</th><th>券码</th><th>适用渠道</th><th>券规格</th><th>上级代理ID</th><th>发放进度</th><th>使用进度</th><th>白名单</th><th class="nw">未领取券有效期</th><th>状态</th><th>备注</th><th>券来源</th><th>操作</th></tr></thead><tbody id="lb"></tbody></table>
+</div>
+
+<div class="ov" id="ovNew"><div class="md" style="width:1060px"><div class="mh"><span>新增券码</span><span class="x" data-close="ovNew">×</span></div><div class="mb">
+<div class="cardx">
+  <div class="fr"><label class="lb">适用渠道</label>
+   <div class="radios" id="chans">
+    <span class="chan"><span class="tt">注册领取类</span><label><input type="radio" name="bt" value="2">渠道注册码</label><label><input type="radio" name="bt" value="1">代理邀请链接</label></span>
+    <span class="chan"><span class="tt">定向发放类</span><label><input type="radio" name="bt" value="4" checked>人工充值</label><label><input type="radio" name="bt" value="3">代理红包码</label></span>
+   </div></div>
+  <div class="fr"><label class="lb">优惠券名称 <span class="req">*</span></label><input type="text" style="width:300px" placeholder="英文 / 数字 / - / _，最多 50 字" value="100-15"></div>
+  <div class="rc-section">券规格</div>
+  <div class="two"><div class="fr"><label class="lb">充值赠送比例 <span class="req">*</span></label><input class="sh" type="number" value="10"><span class="suf">%</span></div>
+   <div><div class="fr"><label class="lb">已领取券有效期 <span class="req">*</span></label><input class="sh" id="valid" type="number" value="14" oninput="pv()"><span class="suf">天</span><span class="tip" style="margin-left:8px"><b>?</b><span class="tipbox">领取后可用天数，从会员<b>领到券</b>那一刻起算，不是从发放那一刻。<hr>必填，1 ~ 365 天。</span></span></div>  <div class="fr" id="rowDl"><label class="lb nw" style="position:relative">未领取券有效期</label><input class="sh nw" id="dl" type="number" min="1" max="365" placeholder="不填=不限" oninput="pv()"><span class="suf">天</span>
+     <span class="tip" style="margin-left:8px"><b>?</b><span class="tipbox" id="dlTipBox"></span></span><span class="err" id="dlErr">未领取券有效期应为 1 ~ 365 的整数</span></div></div></div>
+  <div class="two"><div class="fr"><label class="lb">最低充值门槛 <span class="req">*</span></label><input class="sh" type="number" value="1"><span class="suf">₹</span></div>
+   <div class="fr"><label class="lb">打码量倍数 <span class="req">*</span></label><input class="sh" type="number" value="1"><span class="suf">倍</span></div></div>
+  <div class="two"><div class="fr"><label class="lb">充值赠送上限 <span class="req">*</span></label><span class="radios"><label><input type="radio" name="gl">封顶</label><label><input type="radio" name="gl" checked>不限</label></span></div>
+   <div class="fr"><label class="lb">通道赠金关系</label><select style="width:130px"><option>取最高</option><option>优先券</option><option>叠加</option></select></div></div>
+  <div class="rc-section">使用限制</div>
+  <div class="fr"><label class="lb">适用充值大类 <span class="req">*</span></label><span class="cats"><label><input type="checkbox" checked> 全选</label><label><input type="checkbox" checked> UPI</label><label><input type="checkbox" checked> 银行卡</label><label><input type="checkbox" checked> 钱包</label></span></div>
+  <div class="fr"><label class="lb">首充限制</label><label style="font-weight:400"><input type="checkbox"> 仅首充有效</label></div>
+  <div class="fr"><label class="lb">备注</label><textarea placeholder="内部备注（选填，最多 100 字，仅后台可见）"></textarea></div>
+  <div class="fr" style="align-items:flex-start"><label class="lb">实时预览</label><div class="rc-preview" id="pvbox"></div></div>
+  <div class="fr"><label class="lb">充值优惠券码</label><span style="color:#999">点击创建后自动生成</span></div>
+  <div style="text-align:right"><button class="btn" id="btnCreate">✔ 创建充值优惠券码</button> <button class="btn g">↩ 关闭</button></div>
+ </div>
+</div></div></div>
+
+<div class="ov" id="ovGrant"><div class="md"><div class="mh"><span></span><span class="x" data-close="ovGrant">×</span></div><div class="mb"><div class="gcard">
+  <div class="ud-head"><span class="ud-title">发放明细</span><span class="ud-badge" id="gBadge"></span></div>
+  <div class="sb">
+    <div class="fg"><label>领取状态</label><select id="fRecv"><option value="">全部</option><option value="1">已领取</option><option value="0">未领取</option></select></div>
+    <div class="fg nw"><label>使用状态</label><select id="fUse"><option value="">全部</option><option value="3">已使用</option><option value="0">未使用</option><option value="4">已过期</option></select></div>
+  </div>
+  <div class="btns"><button class="pb" id="btnQ">🔍 查询</button><button class="pb" id="btnExp">⬇ 导出</button></div>
+  <div class="sm" id="sum"></div>
+  <table class="ud"><thead><tr><th>会员ID</th><th>手机 / 账号</th><th>发放时间</th><th class="nw">到期时间</th><th>领取状态</th><th>使用状态</th></tr></thead><tbody id="gtb"></tbody></table>
+  <div style="text-align:center;color:#999;padding:40px;display:none;font-size:15px;font-weight:600" id="gnd">暂无发放记录</div>
+</div></div></div></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ================= 需求说明 ================= -->
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>优惠券 · 未领取券有效期与已过期筛选 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:240px">页面</th><th>改动点</th></tr>
+      <tr><td>老后台 → 优惠券管理 → <b>新增券码</b>（四个适用渠道）</td><td>券规格新增「未领取券有效期」，紧挨「已领取券有效期」；提示和预览按渠道显示对应口径</td></tr>
+      <tr><td>老后台 → 优惠券管理 → <b>券列表</b></td><td>状态筛选新增「已过期」；新增列「未领取券有效期」</td></tr>
+      <tr><td>老后台 → 人工充值 → <b>批量导入</b>、<b>单笔发券</b>的「现填券规格」弹窗</td><td>选「弹窗领取」时新增「未领取券有效期」；选「自动领取」时置灰</td></tr>
+      <tr><td>老后台 → 优惠券管理 → <b>发放进度</b>（点开发放明细弹窗）</td><td>「使用状态」新增「已过期」，可与「领取状态」组合查询；「未使用」范围收窄；列表新增「到期时间」列；导出同步</td></tr>
+      <tr><td>会员前台 → 登录弹窗、我的券、点「领取」（人工充值券）</td><td>超过领取截止时间的券不再出现、不能领取</td></tr>
+      <tr><td>会员前台 → 注册、邀请链接注册</td><td>券码到期后不再送券，注册本身照常</td></tr>
+      <tr><td>会员前台 → 红包码兑换</td><td>到期的红包码不能兑换，提示已失效</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">四个适用渠道的券都可以设「未领取券有效期」；选填，不填 = 不限，和现在一样</div>
+      <div class="kf">人工充值（弹窗领取）按每张券算，发放后超过期限没领就作废；代理红包码按每个红包码算，生成后超过期限不能再兑换；注册码、邀请链接按券码算，创建后超过期限整个码不再送券</div>
+      <div class="kf">使用状态筛选变为 全部 / 已使用 / 未使用 / 已过期，四项互不重叠；超时没领作废的券可用「未领取」+「已过期」筛出</div>
+    </div>
+    <div class="br key"><span class="bn">1</span><b>三种算法</b><span class="kb">核心</span>
+      <table class="t"><tr><th>适用渠道</th><th>起算点</th><th>到点之后</th></tr>
+        <tr><td>人工充值（弹窗领取）</td><td>每张券的发放时间；需要审核的，以审核通过的时间为准</td><td>这张券作废，会员看不到、领不到</td></tr>
+        <tr><td>人工充值（自动领取）</td><td>—</td><td>发放即到账，不适用</td></tr>
+        <tr><td>代理红包码</td><td>每个红包码的生成时间</td><td>这个红包码失效，会员兑换时提示已失效；与系统参数「红包有效期」同时生效，先到期的为准</td></tr>
+        <tr><td>渠道注册码、代理邀请链接</td><td>券码的创建时间</td><td>这个券码整体失效：会员再用它注册，不再送券；已经领到的券不受影响</td></tr></table></div>
+    <div class="br key"><span class="bn">2</span><b>截止时间</b><span class="kb">核心</span>　截止时间 = 起算点 + 未领取券有效期 × 24 小时，精确到秒，不按 0 点取整。例：人工充值 11-01 10:00 发放、设 7 天，11-08 10:00:00 截止；注册码 11-01 10:00 创建、设 30 天，12-01 10:00:00 截止。截止时间前有效，到点起失效。</div>
+    <div class="br"><span class="bn">3</span><b>设在哪里</b>　作为券的规格之一，与「已领取券有效期」并列；券码库里的券在新增券码时填，现填券在现填规格弹窗里填。从券码库选券发放时，批量导入页只显示、不能改。</div>
+    <div class="br"><span class="bn">4</span><b>填写规则</b>
+      <table class="t"><tr><th>项</th><th>规则</th></tr>
+        <tr><td>取值</td><td>选填；1 ~ 365 的整数；不填 = 不限</td></tr>
+        <tr><td>人工充值的发放方式</td><td>只对「弹窗领取」有效；现填弹窗里选自动领取时此项置灰并清空</td></tr></table></div>
+    <div class="br"><span class="bn">5</span><b>发放时固化</b>　人工充值每张发出去的券各自记下自己的截止时间，以后再改券规格，只影响之后发出的券。</div>
+    <div class="br"><span class="bn">6</span><b>与已领取券有效期的关系</b>　会员在截止时间前领到券，从领到那一刻起按「已领取券有效期」倒计时；截止时间前没领到，就不再有券。两个期限各管一段，不叠加。</div>
+    <div class="br key"><span class="bn">7</span><b>到期后的券码</b><span class="kb">核心</span>　注册码、邀请链接到期后，券码状态变为「已过期」：在优惠券管理列表可用状态「已过期」筛出，不能恢复、不能编辑、不再有停用按钮，需要重新建券。人工充值、代理红包码的券码状态不变，只是其中到期的券或红包码失效。</div>
+    <div class="br key"><span class="bn">8</span><b>发放明细 · 使用状态筛选</b><span class="kb">核心</span>
+      <table class="t"><tr><th>选项</th><th>包含的券</th></tr>
+        <tr><td>已使用</td><td>已被会员充值核销的券</td></tr>
+        <tr><td>未使用</td><td>会员已领取、没过期、还没用的券，包含正在被一笔充值单锁定的券</td></tr>
+        <tr><td>已过期</td><td>领取后超过有效期没用的券、限首充券会员已首充而失效的券、超过领取截止时间没领而作废的券</td></tr>
+        <tr><td>全部</td><td>不按使用状态筛</td></tr></table></div>
+    <div class="br key"><span class="bn">9</span><b>与「领取状态」组合</b><span class="kb">核心</span>　两个下拉同时选时取交集：
+      <table class="t"><tr><th>领取状态</th><th>使用状态</th><th>查到的券</th></tr>
+        <tr><td>已领取</td><td>已过期</td><td>领取后超过有效期没用的券</td></tr>
+        <tr><td>未领取</td><td>已过期</td><td>没领就失效的券：超过领取截止时间作废的，以及限首充券会员已首充而失效的</td></tr>
+        <tr><td>未领取</td><td>全部</td><td>还没领的券 + 没领就失效的券</td></tr></table>
+      没领就失效的券「领取状态」一律显示「未领」，不算已领取。注册码、邀请链接、红包码没有逐张的待领取券，不会出现这类行（配了手机号白名单时，名单内还没注册的会员仍显示「未领」）。</div>
+    <div class="br"><span class="bn">10</span><b>发放明细列表与导出</b>　「使用状态」列对已过期的券显示红色「已过期」；新增「到期时间」列：已领取的券显示券到期时间，人工充值未领取的券显示领取截止时间，其他显示「—」。导出按当前筛选条件，列与列表一致。</div>
+    <div class="br"><span class="bn">11</span><b>券列表新增列</b>　「未领取券有效期」列显示天数和起算方式：注册码、邀请链接再显示到期时间；没设置的显示「不限」。</div>
+    <div class="br"><span class="bn">12</span><b>对运营的作用</b>　同一会员被不同批次发了多张人工充值券，只有在各自截止时间内领取的才有效，攒着最后一起领的做法不再可行；作废了多少、发给谁，用「未领取」+「已过期」一次查出。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:180px">项</th><th>说明</th></tr>
+      <tr><td>已发出去的老券、老券码</td><td>上线前已发放的券和已创建的券码不补截止时间，维持现状；因此「未领取」+「已过期」只能查到上线后作废的券</td></tr>
+      <tr><td>时间口径</td><td>与「已领取券有效期」一致，都按 24 小时×天数计算，以系统服务器时间为准。系统参数「红包有效期」按自然日计算（第 N 天过完、次日 0 点失效），与本字段口径不同，两者同时设置时先到期的为准</td></tr>
+      <tr><td>失效后</td><td>不能恢复，需要重新发放或重新建券</td></tr>
+      <tr><td>重新建券</td><td>券名称不能和已有券重复（含已过期、已停用的券），重新建券要换名称；「复制新建」会带上天数，起算点从新券创建时间重新算</td></tr>
+      <tr><td>长期使用的券码</td><td>注册码、邀请链接常长期使用，设了未领取券有效期，到点整个码都不能再送券；新增券码页的提示里已写明</td></tr>
+      <tr><td>券码到期后的名单</td><td>已过期的券码不再占用白名单、代理名单，名单可以给新券使用</td></tr>
+      <tr><td>限首充券失效</td><td>因会员已首充而失效的券，「到期时间」仍显示券原本的到期时间，可能晚于当前时间</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>涉及四处，一起上线：老后台（建券、券列表、现填弹窗、发券、发放明细）、会员前台接口、定时任务、数据表（券码表加「未领取券有效期」，会员券表加「领取截止时间」）。顺序：先上数据表和前台接口，最后上老后台，避免后台能填了前台还不认。</li>
+      <li>会员前台要判断截止时间的地方共五处，以截止时间为准，定时任务只负责补状态：登录弹窗和「我的券」的展示；点「领取」（现在是一次领走名下所有待领取的券，每张券都要单独判断）；注册领券；红包码兑换。注册领券到期后，注册本身必须照常成功，只是不送券。</li>
+      <li>注册码、邀请链接到期后，由定时任务直接把券码状态改成「已过期」，不要走现有的「停用」流程：停用会连带下架未领取明细、自动拒绝待审核的发券申请，对自动到期没有意义，也会让运营分不清是自动到期还是手动停的。券列表的状态下拉要放开「已过期」选项（现在被特意过滤掉了），已过期的券码不显示停用按钮。</li>
+      <li>券码已分配完、已用完的状态也要以时间为准判断，不能因为状态是「进行中」才拦；已过期的券码不能被现有的「已分配完翻回进行中」逻辑改回去。</li>
+      <li>代理红包码在兑换处，现有「红包有效期」判断之外再加本字段的判断，两者先到期的失效；失效提示沿用现有的「礼包码已过期」。起算点用红包码自己的生成时间。</li>
+      <li>人工充值超时没领、以及限首充券首充后失效的待领取券，都要打上同一个标记，发放明细里「领取状态」仍按「未领取」统计；现有做法会把后者算成已领取，需要一起改。</li>
+      <li>人工充值发放时算好截止时间写到每张券上；需要审核的发券，以审核通过那一刻为发放时间；批量导入一次发很多张券时，整批使用同一个发放时间。</li>
+      <li>不能只靠会员登录时顺手过期：现有做法只对登录的会员有效，没登录的会员的券会一直留在「待领取」，发放明细筛「已过期」就查不全，所以定时任务要有，只处理已过截止时间、仍未领取的人工充值券，批量更新按批次提交，和现有「未使用券过期」任务互不干扰。</li>
+      <li>发放明细有两处查询入口：普通发放明细、按白名单发放的发放明细，筛选口径要一致；导出和页面查询共用同一套条件。「未使用」要把已过期的券拿掉，不能只新增「已过期」选项。</li>
+      <li>老数据（截止时间为空）一律视为不限，不要被定时任务误置过期。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+var $=function(i){return document.getElementById(i)};
+function toast(m,w){var t=$('toast');t.textContent=m;t.className='toast'+(w?' warn':'');t.style.display='block';setTimeout(function(){t.style.display='none'},1800);}
+function chv(){return document.querySelector('input[name=bt]:checked').value;}
+function isManual(){return document.querySelector('input[name=bt]:checked').value==='4';}
+var TIP_M='仅对<b>弹窗领取</b>方式发出的券生效：从<b>发放那一刻</b>起，超过这个天数会员还没领取，这张券作废，不能再领。<hr>选填，1 ~ 365 天；<b>不填 = 一直可以领</b>。<br>与「已领取券有效期」不冲突：先领取，领取后再按有效期计算可用天数。<br>自动领取的券发放即到账，不受此项影响。';
+var TIP_R='从<b>红包码生成那一刻</b>起，超过这个天数，这个红包码<b>失效</b>，会员兑换时提示已失效；<b>每个红包码各自计算</b>。<hr>选填，1 ~ 365 天；<b>不填 = 不限</b>。<br>与系统参数「红包有效期」同时生效，<b>先到期的为准</b>。<br>已经兑换到手的券不受影响。';
+var TIP_C='从<b>券码创建那一刻</b>起，超过这个天数，这个券码<b>整体失效</b>：会员再用它注册（或兑换）不再送券；已经领到的券不受影响。<hr>选填，1 ~ 365 天；<b>不填 = 券码一直有效</b>。<br>与「已领取券有效期」不冲突：领到券之后，再按有效期计算可用天数。<br>注册码、邀请链接常长期使用，设置后到点整个码都不能再送券。';
+document.querySelectorAll('input[name=bt]').forEach(function(r){r.onchange=function(){pv();}});
+function pv(){var v=$('valid').value||'—',d=$('dl').value,bad=d!==''&&!(/^\d+$/.test(d)&&+d>=1&&+d<=365);
+ $('dlErr').style.display=bad?'inline':'none';$('dlTipBox').innerHTML=isManual()?TIP_M:(chv()==='3'?TIP_R:TIP_C);
+ var h='充值赠送 10% · 不限上限 · 门槛 ₹1 · 打码 1 倍 · 已领取后 '+v+' 天内有效';
+ if(d&&!bad)h+=isManual()?' · <b style="color:#c0392b">发放后 '+d+' 天内未领取则作废</b>':chv()==='3'?' · <b style="color:#c0392b">红包码生成后 '+d+' 天内可兑换</b>':' · <b style="color:#c0392b">券码创建后 '+d+' 天内可领，到期整码失效</b>';
+ $('pvbox').innerHTML=h;}
+
+$('btnCreate').onclick=function(){var d=$('dl').value;if(d!==''&&!(/^\d+$/.test(d)&&+d>=1&&+d<=365)){toast('未领取券有效期应为 1 ~ 365 的整数',1);return;}$('ovNew').classList.remove('on');toast('券码已创建（演示）');};
+/* ===== 列表 ===== */
+var CP=[
+ ['youuhiqan','ZZ3YSBH8DZRH','reg','渠道注册码','—直发.无代理','已发','0','','已用0','不限','30天 · 至 2026-12-01 10:00',1,[]],
+ ['11-REG','4HTK8MQ2W0ZD','reg','渠道注册码','—直发.无代理','已发','126','','已用31','不限','30天 · 至 2026-10-20 18:00',3,[]],
+ ['100-15','9XQ2LMA7T1PC','man','人工充值','—直发.无代理','已发','7','','已用2','不限','3天 · 按发放时间起算',1,'MAN'],
+ ['100-14','5DMP8VDCV0X9','red','代理红包码','2251205','已发','1','/10','已用1','—','7天 · 按红包码生成起算',1,[[100301,'13900139001','2026-10-30 14:20:11','2026-11-13 14:20:11',3]]],
+ ['100-14','5DMP8VDCV0X9','red','代理红包码','2251206','已发','0','/10','已用0','—','7天 · 按红包码生成起算',1,[]],
+ ['100-13','K8BIIZEHWNEG','red','代理红包码','221205','已发','0','/10','已用0','—','不限',1,[]],
+ ['100-13','K8BIIZEHWNEG','red','代理红包码','2251206','已发','0','/10','已用0','—','不限',1,[]],
+ ['100-12','7PRE4F02KLN2','red','代理红包码','221205','已发','0','/10','已用0','—','不限',1,[]],
+ ['100-11','LFZG2CH2X8TE','red','代理红包码','2251205','已发','1','/10','已用1','—','不限',1,[[100302,'13900139002','2026-10-29 09:03:41','2026-11-12 09:03:41',3]]],
+ ['100-10','7NDQ1SU3Y0AX','red','代理红包码','2251205','已发','1','/10','已用1','—','不限',1,[[100303,'13900139003','2026-10-28 18:20:10','2026-11-11 18:20:10',3]]]
+];
+var MAN=[
+ [100231,'13800138001','2026-11-01 10:00:00','2026-11-16 10:00:00',1],
+ [100232,'13800138002','-','2026-11-04 10:00:00',6],
+ [100233,'13800138003','-','2026-11-08 10:00:00',0],
+ [100234,'13800138004','2026-11-01 10:00:00','2026-11-15 12:30:00',3],
+ [100235,'13800138005','2026-10-10 10:00:00','2026-10-24 09:00:00',4],
+ [100236,'13800138006','-','2026-11-04 10:00:00',6],
+ [100237,'13800138007','2026-11-01 10:00:00','2026-11-16 08:00:00',2]
+];
+var STN={1:'<span class="st1">进行中</span>',2:'<span class="zs">已分配完</span>',3:'<span class="st1" style="background:#f1f2f5;color:#8a90a0;border-color:#e4e6eb">已过期</span>',4:'<span class="st1" style="background:#fff1f0;color:#e5484d;border-color:#ffccc7">已停用</span>'};
+function lrow(c,i){return '<tr><td class="n">'+c[0]+'</td><td class="n">'+c[1]+'</td><td><span class="ch '+c[2]+'">'+c[3]+'</span></td>'+
+ '<td class="spec"><div class="big">10%<span>不限上限</span></div><span class="tg">取高</span><span class="tg b">满 ₹1</span><span class="tg g">限14类</span></td>'+
+ '<td>'+c[4]+'</td><td>'+c[5]+'<a class="lnk" onclick="openGrant('+i+')">'+c[6]+'</a>'+c[7]+'</td><td>'+c[8].replace(/(\d+)$/,'<a class="lnk">$1</a>')+'</td><td>'+c[9]+'</td><td style="font-size:12px;line-height:1.6">'+c[10]+'</td><td>'+STN[c[11]]+'</td><td></td><td><span class="zs">正式</span></td><td><span class="ob g">复制新建</span>'+(c[11]==1?'<span class="ob r">停用</span>':'')+'</td></tr>';}
+function renderList(){var v=$('stSel').value;$('lb').innerHTML=CP.map(function(c,i){return (!v||String(c[11])===v)?lrow(c,i):'';}).join('')||'<tr><td colspan="13" style="padding:40px;color:#999">暂无数据</td></tr>';}
+renderList();
+$('btnNew').onclick=function(){$('ovNew').classList.add('on');pv();};
+document.querySelectorAll('[data-close]').forEach(function(x){x.onclick=function(){$(x.dataset.close).classList.remove('on');}});
+/* ===== 发放明细 ===== */
+var GD=[];
+function grow(r){var s=r[4],un=(s==0||s==6);
+ var recv=un?'<span class="st st-no">未领</span>':'<span class="st st-ok">已领</span>';
+ var use=s==0?'<span style="color:#c2c6d0">—</span>':s==3?'<span class="st st-ok">已用</span>':(s==4||s==6)?'<span class="st st-exp">已过期</span>':'<span class="st st-wait">未用</span>';
+ return '<tr><td class="ud-uid">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+recv+'</td><td>'+use+'</td></tr>';}
+function gq(){var rv=$('fRecv').value,us=$('fUse').value;
+ var L=GD.filter(function(r){var s=r[4];
+  if(rv=='1'&&!(s==1||s==2||s==3||s==4))return false;
+  if(rv=='0'&&!(s==0||s==6))return false;
+  if(us=='3'&&s!=3)return false;
+  if(us=='0'&&!(s==1||s==2))return false;
+  if(us=='4'&&!(s==4||s==6))return false;return true;});
+ $('gtb').innerHTML=L.map(grow).join('');$('gnd').style.display=L.length?'none':'block';$('sum').innerHTML=L.length?'共 <b>'+L.length+'</b> 条':'';}
+function openGrant(i){var c=CP[i];GD=c[12]==='MAN'?MAN:c[12];$('gBadge').textContent=c[1]+' · 直发';$('fRecv').value='';$('fUse').value='';gq();$('ovGrant').classList.add('on');}
+$('btnQ').onclick=gq;$('fRecv').onchange=$('fUse').onchange=gq;
+$('btnExp').onclick=function(){toast('已按当前筛选条件导出（演示）');};
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeDoc();}});
+</script>
+</body>
+</html>
