@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IP黑名单 · 会员ID查询</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica Neue",Arial,sans-serif;background:#f2f3f7;color:#464a53}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sub h1{font-size:15px;color:#2b6cb0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:14px 44px 60px 22px}
+
+/* 角标 */
+.nw{position:relative;display:inline-block}
+.nw::after{content:"NEW";position:absolute;top:-12px;right:-16px;color:#fff;font:700 9px/14px Arial,"PingFang SC",sans-serif;padding:0 4px;border-radius:7px;pointer-events:none;z-index:3;background:#ff4d4f;box-shadow:0 1px 3px rgba(255,77,79,.45)}
+
+/* 原型演示条（非产品内容） */
+.demo{margin:0 0 10px;padding:8px 12px;border:1px dashed #c3b8ee;border-radius:6px;background:#f7f5ff;color:#4b3aa8;font-size:12.5px;line-height:1.9}
+.demo a{color:#6C4FE0;text-decoration:underline;cursor:pointer;margin:0 4px 0 6px}
+.demo label{cursor:pointer;margin-left:10px}
+
+/* 照 BlackIpView.cshtml（layuimini 风格） */
+.fs{background:#fff;padding:15px;margin-bottom:15px;border:1px solid #e6e6e6}
+.fi2{display:inline-flex;margin:0 10px 10px 0;vertical-align:top}
+.fl2{width:110px;height:38px;line-height:20px;padding:9px 15px;border:1px solid #e6e6e6;border-right:0;background:#fafafa;text-align:center;font-size:14px;color:#333;font-weight:400}
+.fin2,.fsel2{width:200px;height:38px;border:1px solid #e6e6e6;padding:0 10px;font:inherit;font-size:14px;color:#333;background:#fff}
+.fin2.bad{border-color:#ff5722}
+.tbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.bb{height:36px;line-height:36px;padding:0 16px;font:inherit;font-size:14px;border:0;border-radius:2px;color:#fff;cursor:pointer;background:#009688;white-space:nowrap}
+.bb.n{background:#1E9FFF}.bb.g{background:#2fb44a}
+.redtip{color:#ff5722;font-size:12px;margin-top:10px;line-height:1.7}
+.lt2{border-collapse:collapse;width:100%;font-size:14px;color:#666;background:#fff;min-width:1500px}
+.lt2 th{background:#f2f2f2;font-weight:400;height:39px;border:1px solid #e6e6e6;padding:0 12px;text-align:left;white-space:nowrap}
+.lt2 td{border:1px solid #e6e6e6;padding:6px 12px;height:39px;vertical-align:middle}
+.lt2 tr:hover td{background:#f2f2f2}
+.lt2 .empty td{text-align:center;color:#999;height:90px}
+.lt2 td.nw1{white-space:nowrap}
+.rm{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xs{height:22px;line-height:22px;padding:0 7px;font:inherit;font-size:12px;border:0;border-radius:2px;color:#fff;cursor:pointer;margin:0 2px}
+.xs.n{background:#1E9FFF}.xs.d{background:#FF5722}
+.xs.p{background:#fff;color:#666;border:1px solid #dedede;line-height:20px}
+.forbid{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;line-height:18px;border:1px solid transparent;margin-right:6px}
+.forbid.l{color:#1677ff;background:#e6f4ff;border-color:#91caff}
+.forbid.r{color:#d46b08;background:#fff7e6;border-color:#ffd591}
+.cnt{display:inline-block;background:#1E9FFF;color:#fff;border-radius:2px;padding:0 6px;font-size:12px;line-height:18px;margin:0 4px}
+.mk{display:inline-block;background:#eee;color:#666;border-radius:2px;padding:0 6px;font-size:12px;line-height:18px;margin-right:4px}
+.rid{color:#1e9fff;font-weight:600}.rsep{color:#c9c9c9;margin:0 3px}.racct{color:#666}
+.hit{background:#fff3b0;border-radius:2px;padding:0 2px;outline:1px solid #ffd666}
+.pg2{padding:10px 0;text-align:right;font-size:12px;color:#666}
+
+/* layer 弹窗 */
+.lmask{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150;display:none}
+.layer{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:2px;box-shadow:0 3px 18px rgba(0,0,0,.2);z-index:151;display:none;flex-direction:column;max-width:96vw;max-height:94vh;width:720px;height:460px}
+.layer.on,.lmask.on{display:flex}
+.layer .lh{height:42px;line-height:42px;padding:0 50px 0 15px;border-bottom:1px solid #eee;background:#f8f8f8;color:#333;font-size:14px;font-weight:500;flex:none;position:relative}
+.layer .lx{position:absolute;right:16px;top:0;color:#999;cursor:pointer;font-size:18px}
+.layer .lbd{flex:1;min-height:0;display:flex;flex-direction:column;padding:15px}
+.rbox{flex:1 1 auto;min-height:0;overflow:auto;padding:10px 12px;border:1px solid #e6e6e6;border-radius:2px;background:#fafafa;line-height:26px;word-break:break-all;font-size:13px}
+.rlabel{color:#999;margin:8px 0 2px}.rlabel:first-child{margin-top:0}
+
+/* toast */
+.toast{position:fixed;top:14px;right:14px;z-index:500;width:320px;padding:12px 15px;border-radius:3px;color:#fff;box-shadow:0 0 12px #999;display:none;font-size:13px;line-height:1.6;background:#f89406}
+
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:310;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:320;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column;font:14px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:#333}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:300;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>india82</b></div>
+  <div>当前币种：<b style="color:#c0392b">INR</b> &nbsp; 区号：<b>+91</b></div>
+</div>
+<div class="sub">
+  <h1>IP黑名单</h1>
+  <div class="crumb">用户管理 &nbsp;›&nbsp; <b>IP黑名单</b></div>
+</div>
+
+<div class="wrap">
+
+ <input type="checkbox" id="mask" style="display:none">
+ <div class="fs">
+  <div>
+   <div class="fi2"><span class="fl2">IP</span><input class="fin2" id="fIp" placeholder="请输入IP"></div>
+   <div class="fi2"><span class="fl2">封禁类型</span>
+     <select class="fsel2" id="fType"><option value="">请选择</option><option value="L">禁止登录</option><option value="R">禁止注册</option></select></div>
+   <div class="fi2 nw"><span class="fl2">会员ID</span><input class="fin2" id="fUid" style="width:320px" placeholder="请输入会员ID，多个用逗号或空格隔开" autocomplete="off"></div>
+  </div>
+  <div class="tbar">
+   <button class="bb n" id="bQ">🔍 查询</button>
+   <button class="bb" id="bR">↻ 重置</button>
+   <button class="bb g">＋ 新增</button>
+  </div>
+  <div class="redtip nw" style="display:inline-block">「会员ID」只能查到：该 IP 被风控自动拉黑时，记录在「风控命中账号」里的会员。搜不到，不代表该会员没有被这个 IP 限制；是否影响登录，看「封禁类型」有没有「禁止登录」。</div>
+ </div>
+
+ <div style="overflow-x:auto;background:#fff">
+  <table class="lt2">
+   <thead><tr>
+    <th style="width:60px">序号</th><th style="width:200px">IP地址</th><th style="width:190px">封禁类型</th><th style="width:130px">风控类型</th>
+    <th style="min-width:280px">封禁原因</th><th style="width:300px">风控命中账号</th><th style="width:110px">创建人</th><th style="width:170px">创建时间</th><th style="width:150px;text-align:center">操作</th>
+   </tr></thead>
+   <tbody id="tb"></tbody>
+  </table>
+ </div>
+ <div class="pg2" id="pg"></div>
+</div>
+
+<!-- 查看全部弹层 -->
+<div class="lmask" id="lmask"></div>
+<div class="layer" id="layer">
+ <div class="lh" id="lTitle">风控命中账号<span class="lx" id="lx">✕</span></div>
+ <div class="lbd">
+  <div id="lRemark" style="color:#999;margin-bottom:8px;flex:none"></div>
+  <div id="lMaskTip" style="color:#ff5722;margin-bottom:8px;flex:none;display:none">当前角色没有本模块「查看手机号」权限，账号已脱敏显示；需要明文请联系管理员在 角色管理 中为「IP黑名单」勾选「查看手机号」。</div>
+  <div class="rbox" id="lBox"></div>
+  <div style="margin-top:10px;flex:none"><button class="xs p" style="height:28px;padding:0 12px" id="lCopy">复制全部</button></div>
+ </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+<div class="drawer" id="drawer">
+ <div class="dhead"><b>需求说明 · IP黑名单增加「会员ID」查询</b><span class="x" id="closeDoc">✕</span></div>
+ <div class="dbody prd">
+
+  <div class="h1">一、改造页面</div>
+  <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型。</div>
+  <table class="t">
+   <thead><tr><th style="width:150px">页面</th><th>改动点</th></tr></thead>
+   <tbody>
+    <tr><td>用户管理 › IP黑名单</td><td>① 查询条件新增「会员ID」，可一次填多个。<br>② 查询区下方常驻一条红字提示。<br>③ 按会员ID 查询时，「风控命中账号」列和「查看全部」弹层里，命中的会员ID 黄底高亮。</td></tr>
+   </tbody>
+  </table>
+
+  <div class="h1">二、功能描述与业务规则</div>
+  <div class="keybox">
+   <div class="kt">🎯 核心结论</div>
+   <div class="kf">运营填一个或多个会员ID，列表只保留「风控命中账号」里包含其中任意一个会员的 IP 记录，用来反查这些会员有没有被记在 IP 黑名单上。</div>
+   <div class="kf">只能查到 IP 被风控自动拉黑当时记录下来的会员，页面红字提示这一点。</div>
+  </div>
+
+  <div class="br key"><span class="bn">R1</span><b>输入</b><span class="kb">核心</span><br>
+   ・可填多个，用英文逗号、中文逗号或空格隔开，最多 50 个，重复的只算一个；不支持账号 / 手机号。<br>
+   ・每个会员ID 只能是 1~10 位数字且大于 0（开头带 0 的按数值处理）；有一个不合格就整体提示格式不正确，不发起查询，列表保持原样。<br>
+   ・不填就不按会员ID 过滤。</div>
+
+  <div class="br key"><span class="bn">R2</span><b>匹配</b><span class="kb">核心</span><br>
+   ・会员ID 整个相等才命中，123 不会命中 1234；多个会员ID 之间是「或」，任意一个命中，该 IP 记录就显示。<br>
+   ・「风控命中账号」里登录、注册两段都参与匹配；「封禁原因」文字里的会员ID 不参与。<br>
+   ・和 IP、封禁类型是「且」的关系；点查询回第 1 页，点重置全部清空。</div>
+
+  <div class="br"><span class="bn">R3</span><b>结果显示</b><br>
+   ・满足条件的 IP 记录逐行显示，同一行只显示一次；没有符合条件的显示「无数据」。<br>
+   ・「风控命中账号」列预览仍最多 3 个，命中的会员排在前面并黄底高亮，个数徽章仍是该行全部个数；「查看全部」弹层里命中项黄底高亮，顺序不变。<br>
+   ・查询区下方常驻红字：「会员ID」只能查到：该 IP 被风控自动拉黑时，记录在「风控命中账号」里的会员。搜不到，不代表该会员没有被这个 IP 限制；是否影响登录，看「封禁类型」有没有「禁止登录」。</div>
+
+  <div class="br"><span class="bn">R4</span><b>查不到的记录</b><br>
+   人工添加的记录、没有记录会员ID 的早期记录、账号和会员ID 个数对不上的整行，以及拉黑当时查不到会员的那一项，都不会被会员ID 命中（列表上只显示账号、没有蓝色ID 的就是这类）。</div>
+
+  <div class="br"><span class="bn">R5</span><b>权限</b><br>
+   沿用本页现有查看权限，不新增权限位；会员ID 本来明文，不受「查看手机号」影响，没有该权限的角色账号仍脱敏。</div>
+
+  <div class="h1">三、限制条件</div>
+  <table class="t">
+   <thead><tr><th style="width:150px">项</th><th>说明</th></tr></thead>
+   <tbody>
+    <tr><td>查询范围</td><td>拉黑之后才用这个 IP 的会员，即使被拦了也查不到。</td></tr>
+    <tr><td>结果的含义</td><td>查到只表示曾被记在该记录里，不等于现在被限制；只有「禁止注册」的记录不影响已注册会员登录。</td></tr>
+    <tr><td>IP 段记录</td><td>IPv6 整段（如 /64）封禁，会员的实际 IP 在段内就会被限制；列表按记录显示，不按会员实际 IP 展开。</td></tr>
+    <tr><td>多个会员</td><td>列表不区分每个会员各自命中了哪些行，也不提示哪些会员没查到。</td></tr>
+   </tbody>
+  </table>
+
+  <div class="h1">四、开发注意事项</div>
+  <ol class="dev">
+   <li>会员ID 整个相等才命中，不能用"包含"。命中账号是逗号分隔、登录/注册两段换行隔开的一串文字，要先拆开再比；按文字比较，不要转成整数。</li>
+   <li>账号和会员ID 两列按顺序一一对应，个数对不上的行一律当作没有会员ID，会员ID 为 0 的占位项也不参与匹配。</li>
+   <li>筛选要在分页之前做，总条数、页码与筛选结果一致。</li>
+   <li>列表结果要告诉前端「这一行命中了哪些会员ID」，用于预览排序和高亮；不按会员ID 查询时不带。</li>
+   <li>数量（最多 50 个）和格式后端也要校验；没有「查看手机号」权限时账号仍在服务端脱敏。</li>
+   <li>前后端同时上线，没有数据变更。</li>
+  </ol>
+ </div>
+</div>
+
+<script>
+(function(){
+  function $(i){return document.getElementById(i)}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+  /* 模拟数据：sections=[{label,items:[{id,acct}]}]，id 为空表示「只有账号」 */
+  var D=[
+   {ip:'122.172.84.46',t:'L',risk:'同IP登录账号数',remark:'登录风控自动拉黑 | 规则：同IP 30分钟内登录账号数量 > 30个，直接拉入IP黑名单(禁止登录) | 实际：31个不同账号 | 触发时间：2026-11-04 15:27:01',creator:'system',time:'2026-11-04 15:27:01',
+    sec:[{label:'登录风控命中账号：',items:[{id:'16305907',a:'9170011122'},{id:'4089992',a:'9170022233'},{id:'7980489',a:'9170033344'},{id:'1234',a:'9170044455'},{id:'12345',a:'9170055566'},{id:'123',a:'9170066677'}]}]},
+   {ip:'2409:40c1:414d:1a1d::/64',t:'R',risk:'同IP注册失败次数',remark:'注册风控自动拉黑 | 规则：同IP 10分钟内注册失败次数 > 10次，直接拉入IP黑名单(禁止注册) | 实际：11次 | 触发时间：2026-11-04 15:20:50',creator:'system',time:'2026-11-04 15:20:50',
+    sec:[{label:'注册风控命中账号：',items:[{id:'18557081',a:'9170077788'}]}]},
+   {ip:'223.235.97.3',t:'L',risk:'同IP登录账号数',remark:'登录风控自动拉黑 | 规则：同IP 30分钟内登录账号数量 > 30个 | 实际：31个不同账号 | 触发时间：2026-11-04 15:24:41',creator:'system',time:'2026-11-04 15:24:41',
+    sec:[{label:'登录风控命中账号：',items:[{id:'4089992',a:'9170022233'},{id:'5487214',a:'9170088899'}]}]},
+   {ip:'103.175.4.111',t:'LR',risk:'默认',remark:'人工添加：多号刷活动',creator:'admin_zhang',time:'2026-10-21 10:12:33',sec:[]},
+   {ip:'171.76.81.31',t:'L',risk:'同IP登录账号数',remark:'登录风控自动拉黑 | 规则：同IP 30分钟内登录账号数量 > 30个 | 实际：31个不同账号 | 触发时间：2026-08-20 09:10:11',creator:'system',time:'2026-08-20 09:10:11',
+    sec:[{label:'',items:[{id:'',a:'9170099900'},{id:'',a:'9171100011'},{id:'',a:'9171200022'}]}]},
+   {ip:'49.36.184.61',t:'L',risk:'同IP登录次数',remark:'登录风控自动拉黑 | 规则：同IP 10分钟内登录次数 > 100次 | 实际：136次 | 触发时间：2026-11-04 15:13:32',creator:'system',time:'2026-11-04 15:13:32',
+    sec:[{label:'登录风控命中账号：',items:[{id:'7980489',a:'9170033344'}]}]},
+   {ip:'202.141.52.186',t:'LR',risk:'同IP注册失败次数',remark:'登录风控自动拉黑 | … 实际：32个不同账号 | 触发时间：2026-11-04 15:21:29；\n注册风控自动拉黑 | … 实际：12次 | 触发时间：2026-11-04 15:30:02',creator:'system',time:'2026-11-04 15:21:29',
+    sec:[{label:'登录风控命中账号：',items:[{id:'16305907',a:'9170011122'},{id:'13870618',a:'9171300033'}]},{label:'注册风控命中账号：',items:[{id:'18557081',a:'9170077788'}]}]},
+   {ip:'103.148.38.78',t:'L',risk:'同IP登录账号数',remark:'登录风控自动拉黑 | 规则：同IP 30分钟内登录账号数量 > 30个 | 实际：31个不同账号 | 触发时间：2026-11-04 15:19:57',creator:'system',time:'2026-11-04 15:19:57',
+    sec:[{label:'登录风控命中账号：',items:[{id:'5487214',a:'9170088899'},{id:'16305907',a:'9170011122'},{id:'',a:'9171400044'}]}]}
+  ];
+  var QUICK=['123','1234','16305907','4089992','18557081','99999999','00123','12a','0'];
+  if(/[?&]mask=1/.test(location.search))$('mask').checked=true;
+
+  function maskAcct(a){return $('mask').checked?(a.slice(0,3)+'****'+a.slice(-3)):a}
+  function flat(r){var o=[];r.sec.forEach(function(s){s.items.forEach(function(i){o.push(i)})});return o}
+  function itemHtml(i,hits){
+    var h=i.id?'<span class="rid">'+esc(i.id)+'</span><span class="rsep">/</span><span class="racct">'+esc(maskAcct(i.a))+'</span>':'<span class="racct">'+esc(maskAcct(i.a))+'</span>';
+    return (hits&&hits.length&&i.id&&hits.indexOf(i.id)>=0)?'<span class="hit">'+h+'</span>':h;
+  }
+  var cur=null,curHit='';
+  function cell(r,hits){
+    var all=flat(r); if(!all.length) return '--';
+    var pre=all.slice();
+    if(hits.length){pre=all.filter(function(i){return i.id&&hits.indexOf(i.id)>=0}).concat(all.filter(function(i){return !(i.id&&hits.indexOf(i.id)>=0)}))}
+    var show=pre.slice(0,3);
+    return '<button class="xs p" data-ip="'+esc(r.ip)+'">查看全部</button><span class="cnt">'+all.length+'</span>'+
+      ($('mask').checked?'<span class="mk">已脱敏</span>':'')+show.map(function(i){return itemHtml(i,hits)}).join('<span class="racct">,</span> ')+(all.length>3?' …':'');
+  }
+  function forbid(t){return (t.indexOf('L')>=0?'<span class="forbid l">禁止登录</span>':'')+(t.indexOf('R')>=0?'<span class="forbid r">禁止注册</span>':'')}
+
+  /* 当前查询条件（点查询时才取值，和真实页面一致） */
+  var applied={ip:'',type:'',uids:[]};
+  function render(){
+    var rows=D.filter(function(r){
+      if(applied.ip&&r.ip.indexOf(applied.ip)<0) return false;
+      if(applied.type&&r.t.indexOf(applied.type)<0) return false;
+      if(applied.uids.length){
+        if(!flat(r).some(function(i){return i.id&&applied.uids.indexOf(i.id)>=0})) return false;
+      }
+      return true;
+    });
+    $('tb').innerHTML=rows.length?rows.map(function(r,n){
+      return '<tr><td>'+(n+1)+'</td><td class="nw1">'+esc(r.ip)+'</td><td>'+forbid(r.t)+'</td><td class="nw1">'+esc(r.risk)+'</td>'+
+        '<td><div class="rm" title="'+esc(r.remark)+'">'+esc(r.remark.split('\n')[0])+'</div></td><td>'+cell(r,applied.uids)+'</td>'+
+        '<td>'+esc(r.creator)+'</td><td class="nw1">'+r.time+'</td><td style="text-align:center"><button class="xs n">编辑</button><button class="xs d">删除</button></td></tr>';
+    }).join(''):'<tr class="empty"><td colspan="9">无数据</td></tr>';
+    $('pg').textContent='共 '+rows.length+' 条　第 1 页';
+  }
+
+  function toast(m){var t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display='none'},2600)}
+  function query(){
+    var raw=$('fUid').value.trim(), uids=[];
+    $('fUid').classList.remove('bad');
+    if(raw){
+      var parts=raw.split(/[,，\s]+/).filter(function(x){return x});
+      for(var k=0;k<parts.length;k++){
+        if(!/^\d{1,10}$/.test(parts[k])||/^0+$/.test(parts[k])){ $('fUid').classList.add('bad'); toast('会员ID格式不正确，请输入 1~10 位数字，多个用逗号或空格隔开'); return; }
+        var v=parts[k].replace(/^0+/,''); if(uids.indexOf(v)<0) uids.push(v);
+      }
+      if(uids.length>50){ $('fUid').classList.add('bad'); toast('最多支持 50 个会员ID'); return; }
+    }
+    applied={ip:$('fIp').value.trim(),type:$('fType').value,uids:uids};
+    render();
+  }
+  $('bQ').onclick=query;
+  $('fUid').onkeydown=$('fIp').onkeydown=function(e){if(e.key==='Enter')query()};
+  $('bR').onclick=function(){$('fIp').value='';$('fType').value='';$('fUid').value='';$('fUid').classList.remove('bad');applied={ip:'',type:'',uids:[]};render()};
+  $('mask').onchange=render;
+
+  /* 查看全部 */
+  $('tb').onclick=function(e){
+    var b=e.target.closest('button[data-ip]'); if(!b) return;
+    var r=D.find(function(x){return x.ip===b.getAttribute('data-ip')}); if(!r) return;
+    cur=r;
+    var n=flat(r).length;
+    $('lTitle').firstChild.nodeValue='风控命中账号（'+n+' 个）— IP：'+r.ip;
+    $('lRemark').textContent=r.remark.split('\n')[0];
+    $('lMaskTip').style.display=$('mask').checked?'block':'none';
+    $('lBox').innerHTML=r.sec.map(function(s){
+      return (s.label?'<div class="rlabel">'+esc(s.label)+'</div>':'')+'<div>'+s.items.map(function(i){return itemHtml(i,applied.uids)}).join('<span class="racct">,</span> ')+'</div>';
+    }).join('');
+    $('layer').classList.add('on');$('lmask').classList.add('on');
+  };
+  function closeL(){$('layer').classList.remove('on');$('lmask').classList.remove('on')}
+  $('lx').onclick=closeL;$('lmask').onclick=closeL;
+  $('lCopy').onclick=function(){toast('已复制（演示）')};
+
+  function doc(on){$('drawer').classList.toggle('on',on);$('dmask').classList.toggle('on',on)}
+  $('handleDoc').onclick=function(){doc(true)};$('closeDoc').onclick=function(){doc(false)};$('dmask').onclick=function(){doc(false)};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){doc(false);closeL()}});
+  render();
+})();
+</script>
+</body>
+</html>
