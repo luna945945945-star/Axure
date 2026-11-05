@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>会员账号导入与手机号黑名单</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:13px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica Neue",Arial,sans-serif;background:#eef0f4;color:#464a53}
+:root{--pur:#6c5dd3;--pur2:#5b4cc4;--green:#5fb878;--blue:#2b6cb0;--line:#e3e6ec;--th:#eef0f6}
+
+/* 原型导航（非页面内容） */
+.pnav{background:#2d2a4a;color:#fff;padding:0 18px;display:flex;align-items:center;gap:6px;height:46px;position:sticky;top:0;z-index:90;flex-wrap:wrap}
+.pnav b{font-size:14px;margin-right:14px;letter-spacing:1px}
+.pnav a{padding:5px 14px;border-radius:15px;color:#cfcaf5;cursor:pointer;font-size:13px;white-space:nowrap}
+.pnav a.on{background:#6C4FE0;color:#fff}
+.demo{margin:0 0 12px;padding:8px 12px;border:1px dashed #c3b8ee;border-radius:6px;background:#f7f5ff;color:#4b3aa8;font-size:12.5px;line-height:1.8}
+.demo .dbt{border-collapse:collapse;font-size:12px;margin-top:4px}
+.dbt th,.dbt td{border:1px solid #e3dcfb;padding:3px 10px;text-align:center;white-space:nowrap}
+.dbt th{background:#f5f3ff;color:#4b3aa8;font-weight:600}.dbt td{background:#fff}
+.dbt td.flash{background:#fff3cd}
+.red{color:#e74c3c}.green{color:#27ae60}.grey{color:#98a2b0}
+.demo label{cursor:pointer;margin-left:10px}
+
+/* 角标 */
+.nw,.chg{position:relative;display:inline-block}
+.nw::after,.chg::after{position:absolute;top:-11px;right:-18px;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;pointer-events:none;z-index:3}
+.nw::after{content:"NEW";background:#ff4d4f}
+.chg::after{content:"改";background:#fa8c16;right:-13px}
+
+/* V1 页面骨架 */
+.page{display:none;padding:0 0 60px}.page.on{display:block}
+.ph{background:#fff;display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid #e9ebf0}
+.ph h1{font-size:18px;font-weight:400;color:var(--blue)}
+.crumb{font-size:13px;color:#999}.crumb b{color:#333;font-weight:400}
+.body{padding:16px 18px}
+.card{background:#fff;border-radius:4px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.sf{display:flex;flex-wrap:wrap;gap:12px 28px;margin-bottom:14px}
+.fi{display:flex;align-items:center;gap:10px}
+.fi>span{font-size:14px;color:#333;white-space:nowrap}
+.fin{height:34px;border:1px solid var(--line);border-radius:3px;padding:0 10px;font:inherit;color:#333;width:190px;background:#fff}
+.fin:disabled{background:#f5f6f8;color:#aaa}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pb{height:34px;padding:0 14px;border:0;border-radius:3px;background:var(--pur);color:#fff;font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.pb:hover{background:var(--pur2)}
+.pb.dis{background:#c8c3ea;cursor:not-allowed}
+.pb.ghost{background:#d9d6ee;cursor:default}
+.pb.danger{background:#f56c6c}.pb.danger.dis{background:#f9c0c0}
+.tw{overflow-x:auto;margin-top:14px}
+table.vt{border-collapse:collapse;width:100%;min-width:900px;background:#fff}
+.vt th{background:var(--th);color:#333;font-weight:600;font-size:14px;padding:11px 12px;border:1px solid var(--line);text-align:center;white-space:nowrap}
+.vt td{padding:9px 12px;border:1px solid var(--line);text-align:center;white-space:nowrap;color:#555}
+.vt tbody tr:hover td{background:#f7f8fb}
+.vt .empty td{color:#aaa;height:90px}
+.lk{color:var(--blue);cursor:pointer}
+.ob{height:26px;padding:0 10px;border:1px solid var(--green);color:var(--green);background:#fff;border-radius:3px;font:inherit;font-size:12px;cursor:pointer}
+.tag{display:inline-block;padding:0 7px;border-radius:3px;font-size:12px;line-height:20px;border:1px solid #ffd591;background:#fff7e6;color:#d46b08;margin:1px 2px}
+.tag.b{border-color:#d9d9d9;background:#fafafa;color:#888}
+.pgn{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:12px;font-size:13px;color:#666}
+.pgn span.n{min-width:28px;height:28px;line-height:26px;text-align:center;border:1px solid var(--line);border-radius:3px;background:#fff}
+.pgn span.cur{background:var(--pur);border-color:var(--pur);color:#fff}
+
+
+/* 会员列表查询区（栅格，标签在左） */
+.sg{display:grid;grid-template-columns:repeat(6,minmax(200px,1fr));gap:12px 20px;margin-bottom:14px}
+.gi{display:flex;align-items:center;gap:8px;min-width:0}
+.gi>span{font-size:14px;color:#333;white-space:nowrap;min-width:56px}
+.gi .fin{width:auto;flex:1;min-width:0}
+.gi.rg .fin{flex:0 1 80px}
+.q{display:inline-block;width:14px;height:14px;line-height:14px;border-radius:50%;background:#c0c4cc;color:#fff;font-size:10px;font-style:normal;text-align:center}
+.qd{display:flex;gap:6px;margin-top:14px;align-items:center;flex-wrap:wrap}.qd .sp{flex:1}
+.ob3{height:32px;padding:0 14px;border:1px solid #dcdfe6;background:#fff;color:#555;border-radius:3px;font:inherit;cursor:pointer}
+.ob3.on{border-color:var(--pur);color:var(--pur)}
+.pb{margin-bottom:2px}
+@media (max-width:1500px){.sg{grid-template-columns:repeat(4,minmax(200px,1fr))}}
+/* layer 弹窗（V1：顶部绿线） */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:150;display:none}
+.layer{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#f6f7fb;border-top:3px solid #00a65a;border-radius:5px;box-shadow:1px 1px 50px rgba(0,0,0,.3);z-index:151;display:none;flex-direction:column;max-width:96vw;max-height:92vh}
+.mask.on{display:block}.layer.on{display:flex}
+.layer .lh{height:48px;line-height:46px;padding:0 50px 0 24px;background:#fff;color:#333;font-size:16px;flex:none;position:relative;border-bottom:1px solid #eee;border-radius:5px 5px 0 0}
+.layer .lx{position:absolute;right:18px;top:0;color:#555;cursor:pointer;font-size:20px}
+.layer .lbd{flex:1;overflow:auto;min-height:0;padding:0 28px 24px}
+.layer .lf{flex:none;text-align:right;padding:12px 20px 16px;background:#fff;border-radius:0 0 5px 5px}
+.lf a{display:inline-block;height:32px;line-height:30px;padding:0 18px;margin-left:8px;border-radius:3px;font-size:13px;cursor:pointer;border:1px solid #dcdfe6;background:#fff;color:#333}
+.lf a.b0{background:var(--pur);border-color:var(--pur);color:#fff}
+.inner{background:#fff;padding:18px 20px;box-shadow:0 2px 10px rgba(108,93,211,.08);margin-top:0}
+.ibtn{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.ob2{height:34px;padding:0 12px;border-radius:2px;background:#fff;font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.ob2.g{border:1px solid var(--green);color:var(--green)}
+.ob2.p{border:1px solid var(--pur);color:var(--pur)}
+.ob2.s{border:1px solid #00a65a;color:#fff;background:#00a65a}
+.rtip{color:red;font-size:14px;margin-left:24px}
+.itip{color:red;text-align:right;margin:-6px 0 10px;display:none}
+table.it{border-collapse:collapse;width:100%;background:#fff}
+.it th{background:var(--th);color:#333;font-weight:600;font-size:14px;padding:12px 10px;border:1px solid var(--line);text-align:center;white-space:nowrap;line-height:1.5}
+.it th small{display:block;font-weight:400;color:#888;font-size:12px}
+.it td{padding:8px 10px;border:1px solid var(--line);text-align:center;white-space:nowrap}
+.it td.err{color:#ff0000;text-align:left}
+.it tbody tr:nth-child(even) td{background:#fafbfc}
+
+/* 表单弹窗 */
+.dlg{padding:20px 0 4px}
+.dfi{display:flex;margin-bottom:16px;align-items:flex-start}
+.dfl{width:110px;padding-top:7px;text-align:right;flex:none;font-size:14px;color:#333;margin-right:12px}
+.dfl i{color:#ff4d4f;font-style:normal;margin-left:2px}
+.dfb{flex:1;min-width:0}
+.dfb input,.dfb textarea{width:100%;border:1px solid var(--line);border-radius:3px;padding:7px 10px;font:inherit;font-size:13px;color:#333;background:#fff}
+.dfb textarea{height:150px;resize:vertical;line-height:1.6}
+.dfb input[type=radio]{width:auto;margin-right:4px;vertical-align:-2px}
+#impWay label{display:inline-flex;align-items:center;gap:2px}
+.dfb .sub2{font-size:12px;color:#999;margin-top:4px;line-height:1.7}
+.rs{padding:16px 4px;font-size:13px;line-height:1.9;max-width:600px}
+.ck{display:flex;align-items:center;gap:6px;margin-top:10px;color:#d46b08}
+
+/* 演示 Excel */
+.fsel{display:flex;gap:10px;padding:14px 0 0;flex-wrap:wrap}
+.fsel label{display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid #dcdfe6;border-radius:4px;cursor:pointer;background:#fff}
+.fsel label.on{border-color:#6C4FE0;background:#f7f5ff;color:#4b3aa8}
+.xlnote{padding:8px 0 0;color:#98a2b0;font-size:12px}
+.xlbox{padding:10px 0 0;overflow:auto}
+.xl{border-collapse:collapse;font-size:12px;font-family:Calibri,"Microsoft YaHei",sans-serif;background:#fff}
+.xl th,.xl td{border:1px solid #d4d4d4;height:24px;padding:0 6px;white-space:nowrap;min-width:60px}
+.xl thead th{background:#f3f3f3;color:#666;font-weight:400;text-align:center}
+.xl td.rn{background:#f3f3f3;color:#666;text-align:center;min-width:32px}
+.xl tr.hd td{background:#fff2cc;font-weight:bold;height:30px;white-space:pre-line;vertical-align:top;max-width:420px}
+.xl td[contenteditable]{outline:none}.xl td[contenteditable]:focus{box-shadow:inset 0 0 0 2px #217346}
+.xl td.txt{color:#217346}
+
+/* toastr */
+.toast{position:fixed;top:56px;right:14px;z-index:500;width:330px;padding:12px 15px;border-radius:3px;color:#fff;box-shadow:0 0 12px #999;display:none;font-size:13px;line-height:1.6}
+.toast b{display:block;font-size:14px}
+.toast.suc{background:#51a351}.toast.warn{background:#f89406}.toast.err{background:#bd362f}
+
+/* 前台演示 */
+.phone{width:300px;border:10px solid #1f2430;border-radius:26px;background:#0f1a2b;color:#fff;padding:18px 16px 22px;font-family:Arial,"PingFang SC",sans-serif}
+.phone h4{font-size:16px;margin-bottom:12px;text-align:center}
+.phone .tabs{display:flex;gap:6px;margin-bottom:12px}
+.phone .tabs a{flex:1;text-align:center;padding:6px 0;border-radius:14px;background:#1d2a40;color:#9fb0c8;font-size:11.5px;cursor:pointer}
+.phone .tabs a.on{background:#f7c548;color:#1a1a1a}
+.phone .row{display:flex;align-items:center;background:#1d2a40;border-radius:8px;padding:0 10px;height:40px;margin-bottom:10px}
+.phone .row span{color:#9fb0c8;margin-right:6px;font-size:13px}
+.phone .row input{flex:1;background:transparent;border:0;color:#fff;font-size:14px;outline:none;min-width:0}
+.phone .row button{background:#f7c548;border:0;border-radius:6px;font-size:11px;padding:5px 8px;cursor:pointer}
+.phone .go{width:100%;height:40px;border:0;border-radius:20px;background:linear-gradient(90deg,#f7c548,#f39c12);font-weight:700;cursor:pointer}
+.phone .msg{min-height:38px;margin-top:12px;font-size:12px;line-height:1.6;color:#9fb0c8;text-align:center}
+.phone .msg.bad{color:#ff7875}.phone .msg.ok{color:#73d13d}
+
+/* 抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:310;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:320;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column;font:14px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:#333}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:300;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:36px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd .rqtabs{display:flex;gap:4px;border-bottom:2px solid #e3dcfb;margin:14px 0 4px;position:sticky;top:-18px;background:#fff;z-index:2;padding-top:6px}
+.prd .rqtabs a{padding:8px 16px;font-size:13.5px;color:#666;cursor:pointer;border-radius:5px 5px 0 0;margin-bottom:-2px;border:1px solid transparent;border-bottom:0}
+.prd .rqtabs a.on{color:#4b3aa8;font-weight:700;background:#f7f5ff;border-color:#e3dcfb;border-bottom:2px solid #f7f5ff}
+.prd .rq{display:none}.prd .rq.on{display:block}
+.prd .rq>.h1:first-child{margin-top:16px}
+.prd .h3{font-size:13.5px;font-weight:700;color:#333;margin:16px 0 4px}
+.prd .h2{font-size:14px;font-weight:700;color:#4b3aa8;margin:20px 0 8px;padding:6px 10px;background:#f5f3ff;border-radius:4px}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="pnav" id="pnav"><b>原型</b>
+ <a class="on" data-p="m">① 会员列表 · 导入批量操作</a>
+ <a data-p="a">② 会员活动黑名单 · 批量导入</a>
+ <a data-p="b">③ 风控管理 · 手机号黑名单</a>
+</div>
+
+<!-- ======================= ① 会员列表（照 UserManage.cshtml，页面不改） ======================= -->
+<div class="page on" id="page_m">
+ <div class="ph"><h1>会员列表</h1><div class="crumb">会员管理 &nbsp;&gt;&nbsp; 会员列表 &nbsp;&gt;&nbsp; <b>会员列表</b></div></div>
+ <div class="body"><div class="card">
+  <div class="sg">
+   <div class="gi"><span>会员ID</span><input class="fin" placeholder="会员ID"></div>
+   <div class="gi"><span>代理ID</span><input class="fin" placeholder="代理ID"></div>
+   <div class="gi"><span>会员账号</span><input class="fin" placeholder="会员账号"></div>
+   <div class="gi"><span>注册IP</span><input class="fin" placeholder="注册IP"></div>
+   <div class="gi"><span>备注</span><input class="fin" placeholder="备注"></div>
+   <div class="gi"><span>渠道</span><select class="fin"><option>全部</option></select></div>
+   <div class="gi"><span>注册设备</span><select class="fin"><option>请选择</option></select></div>
+   <div class="gi"><span>用户状态</span><select class="fin"><option>请选择</option></select></div>
+   <div class="gi"><span>代理状态</span><select class="fin"><option>请选择</option></select></div>
+   <div class="gi"><span>邀请码</span><input class="fin" placeholder="邀请码"></div>
+   <div class="gi"><span>VIP等级</span><select class="fin"><option>请选择</option></select></div>
+   <div class="gi"><span>注册时间</span><input class="fin" value="2026-11-05 00:00:00"></div>
+   <div class="gi"><span>结束时间</span><input class="fin" value="2026-11-05 23:59:59"></div>
+   <div class="gi"><span>在线时间</span><input class="fin" placeholder="最后在线时间"></div>
+   <div class="gi"><span>结束时间</span><input class="fin" placeholder="最后在线时间"></div>
+   <div class="gi"><span>会员分组</span><select class="fin"><option>请选择</option></select></div>
+   <div class="gi"><span>注册指纹</span><input class="fin" placeholder="注册浏览器指纹"></div>
+   <div class="gi"><span>黑名单状态</span><select class="fin"><option>全部</option></select></div>
+   <div class="gi"><span>活动黑名单状态</span><select class="fin"><option>全部</option></select></div>
+   <div class="gi rg"><span>充值次数 <i class="q">?</i></span><input class="fin" placeholder="最小"> ~ <input class="fin" placeholder="最大"></div>
+   <div class="gi rg"><span>未登录天数 <i class="q">?</i></span><input class="fin" placeholder="最小"> ~ <input class="fin" placeholder="最大"></div>
+   <div class="gi rg"><span>流水倍数 <i class="q">?</i></span><input class="fin" placeholder="最小"> ~ <input class="fin" placeholder="最大"></div>
+   <div class="gi rg"><span>总盈亏 <i class="q">?</i></span><input class="fin" placeholder="最小"> ~ <input class="fin" placeholder="最大"></div>
+   <div class="gi rg"><span>累计充值金额 <i class="q">?</i></span><input class="fin" placeholder="最小"> ~ <input class="fin" placeholder="最大"></div>
+   <div class="gi"><span>银行卡绑定手机号 <i class="q">?</i></span><input class="fin" placeholder="银行卡绑定手机号"></div>
+  </div>
+  <div class="bar">
+   <button class="pb">🔍 查 询</button><button class="pb">↻ 重 置</button>
+   <button class="pb">👤 批量拉黑</button><button class="pb">🔑 批量拉白</button><button class="pb">👤 批量禁用</button><button class="pb">🔑 批量启用</button>
+   <button class="pb">👤 批量转内部代理</button><button class="pb">🔑 批量转外部代理</button><button class="pb">👤 批量分组</button><button class="pb">📄 导 出</button>
+   <button class="pb" id="openM">📄 导入批量操作</button><button class="pb">＋ 批量添加用户</button><button class="pb">👤 批量隐藏</button><button class="pb">👤 批量转移渠道</button>
+   <button class="pb">👤 批量删除用户备注</button><button class="pb">👤 批量重置Google验证码</button><button class="pb">💰 批量操作是否给上级返佣 ▾</button>
+  </div>
+  <div class="qd"><button class="ob3">⚙ 自定义列</button><span class="sp"></span><button class="ob3">今天</button><button class="ob3">昨天</button><button class="ob3">本周</button><button class="ob3">上周</button><button class="ob3">本月</button><button class="ob3">上月</button><button class="ob3 on">所有</button></div>
+  <div class="tw"><table class="vt" style="min-width:3600px"><thead><tr id="thM"></tr></thead><tbody id="tbM"></tbody></table></div>
+  <div class="pgn"><span>共 <b id="cntM"></b> 条</span><span class="n">‹</span><span class="n cur">1</span><span class="n">›</span><span class="n" style="padding:0 8px">20 / 页</span></div>
+ </div></div>
+</div>
+
+<!-- ======================= ② 会员活动黑名单（照 MemberActivityBlackList.cshtml，页面不改） ======================= -->
+<div class="page" id="page_a">
+ <div class="ph"><h1>会员活动黑名单</h1><div class="crumb">系统管理 &nbsp;&gt;&nbsp; 会员活动黑名单 &nbsp;&gt;&nbsp; <b>会员活动黑名单</b></div></div>
+ <div class="body"><div class="card">
+  <div class="sf">
+   <div class="fi"><span>会员ID</span><input class="fin" placeholder="会员ID"></div>
+   <div class="fi"><span>会员账号</span><input class="fin" placeholder="会员账号"></div>
+   <div class="fi"><span>活动类型</span><select class="fin"><option>请选择</option></select></div>
+  </div>
+  <div class="bar">
+   <button class="pb">🔍 查 询</button><button class="pb">↻ 重 置</button><button class="pb">＋ 新增黑名单</button>
+   <button class="pb" id="openA">📄 批量增加</button><button class="pb">📄 批量删除</button>
+  </div>
+  <div class="tw"><table class="vt"><thead><tr><th>会员ID</th><th>会员账号</th><th>活动禁止类型</th><th>最后更新时间</th><th>操作人</th><th>备注</th><th>操作</th></tr></thead><tbody id="tbA"></tbody></table></div>
+ </div></div>
+</div>
+
+<!-- ======================= ③ 手机号黑名单 ======================= -->
+<div class="page" id="page_b">
+ <div class="ph"><h1>手机号黑名单 <span class="nw"></span></h1><div class="crumb">风控管理 &nbsp;&gt;&nbsp; 手机号黑名单 &nbsp;&gt;&nbsp; <b>手机号黑名单</b></div></div>
+ <div class="body">
+  <div class="card">
+   <div class="sf">
+    <div class="fi"><span>手机号</span><input class="fin" id="sPhone" placeholder="请输入手机号" style="width:240px"></div>
+    <div class="fi"><span>创建时间</span><input class="fin" type="date" id="sFrom" style="width:150px"> — <input class="fin" type="date" id="sTo" style="width:150px"></div>
+   </div>
+   <div class="bar">
+    <button class="pb" id="bQ">🔍 查 询</button><button class="pb" id="bR">↻ 重 置</button>
+    <button class="pb" id="bImp">📋 批量导入手机号</button>
+    <button class="pb" id="bAdd">＋ 添 加</button>
+    <button class="pb danger dis" id="bDelSel">🗑 批量删除</button>
+   </div>
+   <div class="tw"><table class="vt"><thead><tr><th style="width:44px"><input type="checkbox" id="ckAll"></th><th>手机号</th><th>关联会员ID</th><th>备注</th><th>创建时间</th><th>操作人</th><th>操作</th></tr></thead><tbody id="tbB"></tbody></table></div>
+   <div class="pgn" id="pgB"></div>
+  </div>
+
+ </div>
+</div>
+
+<!-- ============ ① 导入批量操作 弹窗（照 UserDataImport.cshtml） ============ -->
+<div class="mask" id="mMask"></div>
+<div class="layer" id="mLayer" style="width:1200px;height:700px">
+ <div class="lh">导入批量操作<span class="lx" data-close="m">✕</span></div>
+ <div class="lbd"><div class="inner">
+  <div class="ibtn">
+   <button class="ob2 g chg" data-tpl="m">⇩ 模板下载</button>
+   <button class="ob2 p" data-up="m">☁ 上传Excel</button>
+   <button class="ob2 s" id="submit_m" style="display:none">✓ 保存提交</button>
+   <span class="rtip">（单次导入限制不超过3千条，文件大小不超过4M）</span>
+  </div>
+  <div class="itip" id="tip_m"></div>
+  <div style="overflow-x:auto"><table class="it" style="min-width:1300px"><thead><tr>
+   <th>会员ID</th><th><span class="nw">会员账号</span></th><th>会员状态<small>（启用/禁用）</small></th><th>会员黑名单<small>（正常/拉黑）</small></th><th>会员返佣<small>（启用/禁用）</small></th><th>是否给上级返佣<small>（启用/禁用）</small></th><th>会员备注</th><th>会员打码量<small>（整数）</small></th><th>按余额比例增加会员打码量<small>（正数）</small></th><th>错误信息</th>
+  </tr></thead><tbody id="tbody_m"></tbody></table></div>
+ </div></div>
+</div>
+
+<!-- ============ ② 批量导入 弹窗（照 ActivityBlackListDataImport.cshtml） ============ -->
+<div class="mask" id="aMask"></div>
+<div class="layer" id="aLayer" style="width:1000px;height:700px">
+ <div class="lh">批量导入<span class="lx" data-close="a">✕</span></div>
+ <div class="lbd"><div class="inner">
+  <div class="ibtn">
+   <button class="ob2 g chg" data-tpl="a">⇩ 模板下载</button>
+   <button class="ob2 p" data-up="a">☁ 上传Excel</button>
+   <button class="ob2 s" id="submit_a" style="display:none">✓ 保存提交</button>
+   <span class="rtip">（单次导入限制不超过15000条，文件大小不超过4M）</span>
+  </div>
+  <div class="itip" id="tip_a"></div>
+  <table class="it"><thead><tr><th>会员ID</th><th><span class="nw">会员账号</span></th><th>活动禁止类型</th><th>备注</th></tr></thead><tbody id="tbody_a"></tbody></table>
+  <table class="it" id="errTbl_a" style="margin-top:14px;display:none"><thead><tr><th>会员ID</th><th><span class="nw">会员账号</span></th><th>活动禁止类型</th><th>备注</th><th>错误信息</th></tr></thead><tbody id="tbodyErr_a"></tbody></table>
+ </div></div>
+</div>
+
+<!-- ============ 演示：选择上传文件 ============ -->
+<div class="mask" id="fMask" style="z-index:160"></div>
+<div class="layer" id="fLayer" style="width:1100px;z-index:161;border-top-color:#6C4FE0">
+ <div class="lh">选择要上传的 Excel（单元格可直接改）<span class="lx" data-close="f">✕</span></div>
+ <div class="lbd" style="padding-bottom:12px"><div class="fsel" id="fsel"></div><div class="xlnote" id="xlnote"></div><div class="xlbox"><table class="xl" id="xl"></table></div></div>
+ <div class="lf"><a data-close="f">取消</a><a class="b0" id="doUpload">上传此文件</a></div>
+</div>
+
+<!-- ============ 模板下载预览 ============ -->
+<div class="mask" id="tMask" style="z-index:160"></div>
+<div class="layer" id="tLayer" style="width:1100px;z-index:161;border-top-color:#6C4FE0">
+ <div class="lh">模板下载「<span id="tplName"></span>」<span class="lx" data-close="t">✕</span></div>
+ <div class="lbd"><div class="xlnote">B 列「会员账号」为新增列，整列设为文本格式（绿色字示意）；其余列内容不变，顺次后移一列。</div><div class="xlbox" style="padding-bottom:14px"><table class="xl" id="tplXl"></table></div></div>
+ <div class="lf"><a class="b0" data-close="t">知道了</a></div>
+</div>
+
+<!-- ============ ③ 添加 / 批量导入手机号 ============ -->
+<div class="mask" id="addMask"></div>
+<div class="layer" id="addLayer" style="width:720px;background:#fff">
+ <div class="lh" id="addTitle">添加手机号黑名单<span class="lx" data-close="add">✕</span></div>
+ <div class="lbd" style="background:#fff"><div class="dlg">
+  <div class="dfi"><span class="dfl" id="addLbl">手机号<i>*</i></span><div class="dfb" id="addBox"></div></div>
+  <div class="dfi" id="impWay" style="display:none"><span class="dfl">导入方式</span><div class="dfb" style="padding-top:7px"><label style="margin-right:22px;cursor:pointer"><input type="radio" name="way" value="paste" checked> 粘贴手机号</label><label style="cursor:pointer"><input type="radio" name="way" value="excel"> <span class="nw">上传Excel</span></label></div></div>
+  <div id="excelBox" style="display:none;margin:0 0 6px"><div class="ibtn" style="margin-bottom:10px"><button class="ob2 g" data-tpl="b">⇩ 模板下载</button><button class="ob2 p" data-up="b">☁ 上传Excel</button><span class="rtip" style="margin-left:10px">（单次导入限制不超过15000条，文件大小不超过4M）</span></div><div class="itip" id="tip_b" style="text-align:left;margin:0 0 8px"></div><div style="max-height:330px;overflow:auto"><table class="it" id="tblB" style="display:none"><thead><tr><th>行号</th><th>手机号（填写）</th><th>统一为</th><th>关联会员ID</th><th>备注</th><th>错误信息</th></tr></thead><tbody id="tbody_b"></tbody></table></div></div>
+  <div class="dfi" id="rmRow"><span class="dfl">备注</span><div class="dfb"><input id="fRemark" maxlength="500" placeholder="选填，最多 500 字，如：薅红包团伙"></div></div>
+ </div></div>
+ <div class="lf"><a data-close="add">取消</a><a class="b0" id="addOk">保存</a></div>
+</div>
+
+<!-- ============ 结果 / 确认 ============ -->
+<div class="mask" id="rsMask" style="z-index:170"></div>
+<div class="layer" id="rsLayer" style="z-index:171;background:#fff">
+ <div class="lh" id="rsTitle">提示<span class="lx" data-close="rs">✕</span></div>
+ <div class="lbd" style="background:#fff"><div class="rs" id="rsBody"></div></div>
+ <div class="lf" id="rsFoot"></div>
+</div>
+
+<div class="toast" id="toast"><b id="toastT"></b><span id="toastM"></span></div>
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>会员账号导入与手机号黑名单 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd" id="dbody">
+    <div class="note" style="margin-top:0">📌 只写业务规则，样子和交互看原型。红色 NEW 是新增，橙色「改」是调整。</div>
+    <div class="rqtabs" id="rqtabs"><a data-q="1" class="on">需求一 · 会员列表导入</a><a data-q="2">需求二 · 活动黑名单导入</a><a data-q="3">需求三 · 手机号黑名单</a></div>
+
+    <!-- ===================== 需求一 ===================== -->
+    <div class="rq on" id="rq1">
+    <div class="h1" id="doc_1">需求一：会员列表「导入批量操作」支持会员账号</div>
+    <table class="t">
+      <tr><th style="width:240px">改造页面</th><th>改动点</th></tr>
+      <tr><td>会员管理 → 会员列表 → 导入批量操作</td><td>模板、校验结果表加「会员账号」列；模板升级 V6</td></tr>
+    </table>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">会员ID、会员账号填一项即可；两个都填必须是同一个会员</div>
+    </div>
+    <div class="br key"><span class="bn">01</span><b>定位会员</b><span class="kb">核心</span>：只填会员ID按ID；只填会员账号按账号；两个都填必须是同一个会员；两个都没填判失败（整行空的忽略）。</div>
+    <div class="br key"><span class="bn">02</span><b>账号匹配</b><span class="kb">核心</span>：去掉空格和开头的 + 后，与会员账号完全一致（不区分大小写）才算匹配；不补也不去区号和开头的 0。科学计数（如 9.19999E+11）判失败。</div>
+    <div class="br"><span class="bn">03</span><b>失败提示</b>：
+      <table class="t">
+        <tr><th style="width:230px">情况</th><th>提示</th></tr>
+        <tr><td>两个都没填</td><td>会员ID和会员账号不能同时为空</td></tr>
+        <tr><td>会员ID不是数字或超出范围</td><td>会员ID格式不对，账号请填在「会员账号」列</td></tr>
+        <tr><td>科学计数</td><td>会员账号被 Excel 转成了科学计数，请把账号列设为文本后重新填写</td></tr>
+        <tr><td>账号查不到</td><td>会员账号不存在</td></tr>
+        <tr><td>两个不是同一会员</td><td>会员ID与会员账号不是同一会员</td></tr>
+        <tr><td>同一会员多行</td><td>与会员ID【xxx】重复</td></tr>
+      </table>
+    </div>
+    <div class="br"><span class="bn">04</span><b>重复</b>：按定位到的会员判断（一行填ID、一行填账号也算）；只在其他校验都通过的行之间比，第一条通过，后面的判失败。</div>
+    <div class="br"><span class="bn">05</span><b>结果表</b>：「会员账号」列在「会员ID」后。通过的行「会员ID」显示定位到的ID；失败的行显示文件原值。</div>
+    <div class="br key"><span class="bn">06</span><b>模板 V6</b><span class="kb">核心</span>：A 会员ID（与账号二选一）、B 会员账号（与会员ID二选一，文本格式），其余列顺移；示例行一行只填ID、一行只填账号（910000000000）。第二列表头不是「会员账号」的整份不导入，提示「导入模板已更新，请重新下载模板后导入」。</div>
+    <div class="h3">限制条件</div>
+    <table class="t">
+      <tr><th style="width:120px">项</th><th>说明</th></tr>
+      <tr><td>未注册</td><td>只处理已注册会员；未注册号码的拦截见需求三</td></tr>
+      <tr><td>匹配范围</td><td>只按登录账号匹配，不按绑定手机号</td></tr>
+      <tr><td>条数</td><td>每次最多提交 3000 条</td></tr>
+    </table>
+    <div class="h3">开发注意事项</div>
+    <ol class="dev">
+      <li>复用人工充值批量导入的「账号 / 会员ID 二选一」逻辑，与需求二共用；文案以本说明为准，科学计数不还原。</li>
+      <li>上传校验时把账号换成会员ID，提交、权限、日志仍按会员ID走。</li>
+      <li>现在首列为空会报错、统计条数也只看首列，都改成两列都空才算空。</li>
+      <li>结果表按列位置填值，加列后后面各列位置都要改。</li>
+      <li>模板改名 V6，下载链接同步改。</li>
+    </ol>
+    </div>
+
+    <!-- ===================== 需求二 ===================== -->
+    <div class="rq" id="rq2">
+    <div class="h1" id="doc_2">需求二：会员活动黑名单「批量导入」支持会员账号</div>
+    <table class="t">
+      <tr><th style="width:240px">改造页面</th><th>改动点</th></tr>
+      <tr><td>系统管理 → 会员活动黑名单 → 批量增加</td><td>模板、通过表、失败表加「会员账号」列；模板升级 V3</td></tr>
+    </table>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">会员ID、会员账号填一项即可，规则同<a class="lk" data-goto="1">需求一</a>；可以只用手机号批量禁领红包等活动</div>
+    </div>
+    <div class="br key"><span class="bn">01</span><b>定位、匹配、失败提示</b><span class="kb">核心</span>：同需求一 01~03，区别是会员ID查不到提示「会员ID不存在」、重复提示「会员ID重复」。活动类型、备注的现有校验不变。</div>
+    <div class="br key"><span class="bn">02</span><b>重复</b><span class="kb">核心</span>：同一会员 + 同一活动类型算重复；同一会员同时有 -1 和具体类型也算重复。只在其他校验都通过的行之间比（「活动黑名单信息已存在」的行不参与），第一条通过。</div>
+    <div class="br"><span class="bn">03</span><b>结果表</b>：同需求一 05。填 -1 的行照现在展开成该会员未拉黑的各活动一行，每行都带会员账号。</div>
+    <div class="br key"><span class="bn">04</span><b>模板 V3</b><span class="kb">核心</span>：A 会员ID*（与账号二选一）、B 会员账号*（与会员ID二选一，文本格式）、C 活动禁止类型*、D 备注*；C、D 表头说明文字照旧；加一行只填账号的示例（910000000000）。旧模板处理同需求一。</div>
+    <div class="h3">限制条件</div>
+    <table class="t">
+      <tr><th style="width:120px">项</th><th>说明</th></tr>
+      <tr><td>未注册 / 匹配范围</td><td>同需求一</td></tr>
+      <tr><td>拉黑范围</td><td>只处理本人，不带下级</td></tr>
+      <tr><td>条数</td><td>每次最多 15000 条</td></tr>
+    </table>
+    <div class="h3">开发注意事项</div>
+    <ol class="dev">
+      <li>与需求一共用账号定位逻辑。</li>
+      <li>「保存提交」按列位置取会员ID、活动类型、备注，加列后取值位置要改。</li>
+      <li>模板改名 V3，下载链接同步改。</li>
+    </ol>
+    </div>
+
+    <!-- ===================== 需求三 ===================== -->
+    <div class="rq" id="rq3">
+    <div class="h1" id="doc_3">需求三：风控管理新增「手机号黑名单」</div>
+    <table class="t">
+      <tr><th style="width:240px">改造页面</th><th>改动点</th></tr>
+      <tr><td>风控管理 → 手机号黑名单（新页面，放在「提现账号黑名单」后）</td><td>查询、添加、批量导入（粘贴 / Excel）、删除、批量删除</td></tr>
+      <tr><td>前台 注册 / 绑定手机 / 更换登录手机号</td><td>名单内号码被拦</td></tr>
+    </table>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">名单内号码不能注册、不能绑定、不能改成登录手机号；未注册的号码也能提前加入</div>
+      <div class="kf">号码已属于会员的，加入时同步拉黑该会员并踢下线</div>
+    </div>
+    <div class="br key"><span class="bn">01</span><b>号码统一</b><span class="kb">核心</span>：去掉非数字字符后统一为「区号 + 号码」，所有录入、查重、查询、前台比对都按这个写法。
+      <table class="t">
+        <tr><th style="width:240px">填写（+91 站）</th><th>统一为</th></tr>
+        <tr><td>+91 9811122233、91-98111-22233、0091 9811122233</td><td>919811122233</td></tr>
+        <tr><td>9811122233</td><td>919811122233（补站点区号）</td></tr>
+        <tr><td>09811122233、91 09811122233</td><td>919811122233（去掉号码前一个 0）</td></tr>
+      </table>
+      位数校验和前台注册一致；多区号站点必须带区号。
+    </div>
+    <div class="br key"><span class="bn">02</span><b>前台拦截</b><span class="kb">核心</span>：
+      <table class="t">
+        <tr><th style="width:150px">操作</th><th>命中时</th></tr>
+        <tr><td>注册</td><td>发注册验证码时拦（不发短信），提交注册时再拦。提示「This phone number cannot be used to register」</td></tr>
+        <tr><td>绑定 / 换绑手机</td><td>给新号码发验证码、提交时拦。提示「This phone number cannot be bound」</td></tr>
+        <tr><td>更换登录手机号</td><td>提交时拦，提示同上</td></tr>
+        <tr><td>登录、忘记密码</td><td>不查名单</td></tr>
+      </table>
+      提示不提黑名单；注册过和没注册过的号码，提示相同。
+    </div>
+    <div class="br key"><span class="bn">03</span><b>已注册号码</b><span class="kb">核心</span>：号码等于会员的登录账号或绑定手机时，照样加入，并处理所有命中的会员：正常的设为拉黑并踢下线（记「本名单拉黑」）；已拉黑的不动（记「加入前已拉黑」，列表灰色）。会员是代理时结果里标出「代理，下级 N 人」。</div>
+    <div class="br"><span class="bn">04</span><b>添加 / 批量导入</b>：
+      <table class="t">
+        <tr><th style="width:110px">方式</th><th>规则</th></tr>
+        <tr><td>添加</td><td>一个号码 + 备注（选填，≤500 字）；格式错误、已在名单在弹窗内提示</td></tr>
+        <tr><td>粘贴手机号</td><td>一行一个，≤1000 个，超出不保存；备注共用；空行忽略</td></tr>
+        <tr><td>上传Excel</td><td>模板「手机号*（文本格式）、备注」，≤15000 条、≤4M；第一列表头不是「手机号」提示「模板不正确，请下载模板后导入」。先逐行校验显示结果，保存只提交通过的行</td></tr>
+        <tr><td>跳过 / 失败原因</td><td>手机号为空、格式错误、科学计数、已在黑名单、本次重复（只在其他校验都通过的行之间比，第一条通过）、备注过长</td></tr>
+        <tr><td>保存结果</td><td>新增几条、同步拉黑哪些会员；粘贴方式另列已在名单 / 重复 / 格式错误的号码，Excel 方式另列未导入条数</td></tr>
+      </table>
+    </div>
+    <div class="br"><span class="bn">05</span><b>列表</b>：手机号、关联会员ID、备注、创建时间、操作人、操作；按创建时间倒序，每页 20 条。查询：手机号（能统一的精确查，否则按数字包含查）、创建时间区间。</div>
+    <div class="br"><span class="bn">06</span><b>打码</b>：没有本页「查看手机号」权限时，页面和提示里的号码都中间打码（如 9198****2233）；操作人自己填的原文照显示。</div>
+    <div class="br key"><span class="bn">07</span><b>删除</b><span class="kb">核心</span>：单条或勾选批量删除（≤200 条），删除后号码恢复可注册、绑定。关联会员中「本名单拉黑」且没被其他记录关联的，确认框可勾「同时解除这些会员的拉黑」，默认不勾。</div>
+    <div class="br"><span class="bn">08</span><b>权限与日志</b>：新增权限位 查看、新增、删除、查看手机号。添加、导入、删除写系统日志（号码、关联会员ID、是否同步拉黑 / 解除、操作人）。</div>
+    <div class="h3">限制条件</div>
+    <table class="t">
+      <tr><th style="width:120px">项</th><th>说明</th></tr>
+      <tr><td>站点范围</td><td>每个站点单独维护</td></tr>
+      <tr><td>不受限制</td><td>后台添加会员、后台改会员手机号；邮箱注册（之后绑定名单号码会被拦）</td></tr>
+      <tr><td>换号</td><td>换新号码注册拦不住</td></tr>
+    </table>
+    <div class="h3">开发注意事项</div>
+    <ol class="dev">
+      <li>号码比对复用提现账号黑名单的「带不带区号 / 前导 0 互认」做法，后台和前台用同一个方法。</li>
+      <li>发验证码只拦「注册验证」「绑定手机号」两种用途（换绑时给旧号码发的不拦）；提交拦注册、绑定手机、更换登录手机号三个接口。注册放在手机号格式校验后、验证码校验前。</li>
+      <li>发验证码接口对已注册号码会伪装成功，名单判断放在频率限制之后、伪装之前。</li>
+      <li>前台读缓存，缓存不可用时回查库，不能默认放行；上线前先全量加载。</li>
+      <li>同步拉黑复用会员列表批量拉黑（删登录令牌踢下线）。前台两条提示补多语言。</li>
+    </ol>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+  function toast(type,t,m){var el=$('toast');el.className='toast '+type;$('toastT').textContent=t;$('toastM').textContent=m;el.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(function(){el.style.display='none'},4000)}
+  function open(k){$(k+'Mask').classList.add('on');$(k+'Layer').classList.add('on')}
+  function close(k){$(k+'Mask').classList.remove('on');$(k+'Layer').classList.remove('on')}
+  document.addEventListener('click',function(e){var c=e.target.getAttribute&&e.target.getAttribute('data-close');if(c) close(c)});
+  function now(){var d=new Date(),z=function(n){return (n<10?'0':'')+n};return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+':'+z(d.getMinutes())+':'+z(d.getSeconds())}
+
+  // ================= 共用模拟会员库 =================
+  var ACT={'-1':'全部活动','1':'每日签到','2':'充值赠送','3':'每日奖励','4':'每周奖励','5':'合伙人奖励','6':'彩金充值','7':'红包','8':'洗码返水','9':'VIP会员每月奖励','10':'邀请奖励','11':'大转盘','13':'大奖奖励','14':'锦标赛','16':'arb提现优惠','17':'新会员负盈利彩金','18':'邀请转盘','20':'ARPAY充值赠送','21':'USDT充值赠送'};
+  var DB=[
+    {id:2103150,acc:'919876543210',b2:'',state:1,block:0,act:[]},
+    {id:2103151,acc:'919123456780',b2:'',state:1,block:0,act:[]},
+    {id:2103152,acc:'rahul88@gmail.com',b2:'919700000555',state:1,block:0,act:[]},
+    {id:2103153,acc:'919988776655',b2:'',state:1,block:1,act:['7']},
+    {id:2103154,acc:'919012345678',b2:'',state:1,block:0,act:[],agent:3},
+    {id:2103156,acc:'919998887776',b2:'',state:1,block:0,act:[]},
+    {id:2103157,acc:'9109811133344',b2:'',state:1,block:0,act:[]},
+    {id:2103158,acc:'ravi.k@gmail.com',b2:'919811133344',state:1,block:0,act:[]}
+  ];
+  var ABLIST=[{id:2103153,t:'2026-09-29 18:38:59',by:'lisa',rm:'刷单',at:'7'}];
+  function byId(id){return DB.filter(function(u){return u.id===id})[0]}
+  function byAcc(a){a=a.toLowerCase();return DB.filter(function(u){return u.acc.toLowerCase()===a})[0]}
+  var COLS=['会员ID','昵称','保险箱余额','会员账号','银行卡绑定手机号','余额','三方余额','积分','红包/券 剩余额度','邀请码','渠道号','注册IP','注册设备','打码量','分组','类型','黑名单','状态','在线状态','最后在线','未登录天数','上级代理id','代理','是否可领取返佣','是否给上级返佣','前台谷歌','后台谷歌','首次登录时间','注册时间','VIP等级','充值次数','充值金额','首充时间','最后充值时间','总流水','总盈亏','流水倍数','操作','备注'];
+  function renderDBM(ch){ch=ch||[];
+    $('thM').innerHTML='<th><input type="checkbox"></th>'+COLS.map(function(c){return '<th>'+c+'</th>'}).join('');
+    $('tbM').innerHTML=DB.map(function(u,i){var f=ch.indexOf(u.id)>-1?' style="background:#fff3cd"':'';
+      var v=['<input type="checkbox">',u.id,'Member'+(48210+i),'0.00',u.acc,'--',(1200+i*37.5).toFixed(2),'0.00','0','0.00','A'+(7713+i),'1001','103.21.'+(40+i)+'.8','Android',(500+i*20).toFixed(2),'默认分组',u.agent?'代理':'会员',u.block?'<span class="red">拉黑</span>':'正常',u.state?'<span class="green">启用</span>':'<span class="red">禁用</span>','离线','2026-11-04 21:1'+i+':05',1,'2103001',u.agent?'是':'否','是','是','未绑定','未绑定','2026-10-2'+(i%9)+' 10:2'+i+':11','2026-10-2'+(i%9)+' 10:20:00','VIP'+(i%4),i+1,(300*(i+1)).toFixed(2),'2026-10-2'+(i%9)+' 11:00:00','2026-11-0'+(1+i%4)+' 09:30:00',(4200+i*310).toFixed(2),(i%2?'-':'')+(120+i*15).toFixed(2),(2.1+i*0.3).toFixed(2),'<span class="lk">详情</span>','--'];
+      return '<tr>'+v.map(function(x){return '<td'+f+'>'+x+'</td>'}).join('')+'</tr>'}).join('');
+    $('cntM').textContent=DB.length;
+  }
+  function renderAB(){var rows=ABLIST.slice().sort(function(a,b){return a.t<b.t?1:-1});
+    $('tbA').innerHTML=rows.map(function(r){var u=byId(r.id);return '<tr><td>'+r.id+'</td><td>'+u.acc+'</td><td>'+ACT[r.at]+'</td><td>'+r.t+'</td><td>'+r.by+'</td><td>'+esc(r.rm)+'</td><td><button class="ob">删除</button></td></tr>'}).join('')}
+  function renderDBB(ch){if(!$('dbB')) return;ch=ch||[];var h='<tr><th>会员ID</th><th>登录账号</th><th>绑定手机</th><th>会员黑名单</th></tr>';
+    DB.forEach(function(u){var f=ch.indexOf(u.id)>-1?' class="flash"':'';h+='<tr><td'+f+'>'+u.id+(u.agent?'（代理）':'')+'</td><td'+f+'>'+u.acc+'</td><td'+f+'>'+(u.b2||'-')+'</td><td'+f+'>'+(u.block?'<span class="red">拉黑</span>':'正常')+'</td></tr>'});$('dbB').innerHTML=h}
+
+  // ================= 页签 =================
+  var curPage='m';
+  function renderAll(){renderDBM();renderAB();renderDBB();renderB()}
+  document.querySelectorAll('#pnav a').forEach(function(a){a.onclick=function(){curPage=this.getAttribute('data-p');
+    document.querySelectorAll('#pnav a').forEach(function(x){x.classList.toggle('on',x===a)});
+    document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('on',p.id==='page_'+curPage)});renderAll();
+    close('m');close('a');if(curPage==='m') openImp('m');if(curPage==='a') openImp('a');}});
+
+  // ================= ① ② 导入 =================
+  var HM6=['会员ID（与账号二选一）','会员账号（与会员ID二选一）','会员状态（启用/禁用）','会员黑名单（正常/拉黑）','会员返佣（启用/禁用）','是否给上级返佣（启用/禁用）','会员备注','会员打码量（整数）','按余额比例增加会员打码量（正数）'];
+  var HM5=['会员ID(*)','会员状态（启用/禁用）','会员黑名单（正常/拉黑）','会员返佣（启用/禁用）','是否给上级返佣（启用/禁用）','会员备注','会员打码量（整数）','按余额比例增加会员打码量（正数）'];
+  var HA3=['会员ID*（与账号二选一）','会员账号*（与会员ID二选一）','活动禁止类型*\n（-1：支持黑名单的全部活动\n1：每日签到 \n2:充值赠送 \n3:每日奖励\n 4:每周奖励 \n5:合伙人奖励\n6:彩金充值\n7:红包\n8:洗码返水\n9:VIP每月奖励\n10:邀请奖励        11：大转盘                13:大奖奖励   14:锦标赛   16:ARB提现优惠 17：新会员负盈利彩金  18：邀请转盘 20：ARPAY充值赠送 21：USDT充值赠送）','备注*\n（填入-1不会提示已经被禁用过的活动，只会补全所有的活动禁用）'];
+  var HA2=['会员ID*','活动禁止类型*\n（-1：支持黑名单的全部活动\n1：每日签到 \n2:充值赠送 \n3:每日奖励\n 4:每周奖励 \n5:合伙人奖励\n6:彩金充值\n7:红包\n8:洗码返水\n9:VIP每月奖励\n10:邀请奖励        11：大转盘                13:大奖奖励   14:锦标赛   16:ARB提现优惠 17：新会员负盈利彩金  18：邀请转盘 20：ARPAY充值赠送 21：USDT充值赠送）','备注*\n（填入-1不会提示已经被禁用过的活动，只会补全所有的活动禁用）'];
+  var FILES={
+    m:[
+      {k:'m6',t:'新模板 V6 · 各种情况',note:'覆盖：只填账号 / 只填ID / 两个都填一致 / 不一致 / 账号不存在 / 账号填进ID列 / 带 + 号和空格 / 科学计数（判失败）/ 同一会员重复 / 漏填ID和账号 / ID不存在。',head:HM6,rows:[
+        ['','919876543210','','拉黑','','','刷单拉黑','',''],
+        ['','rahul88@gmail.com','','拉黑','','','刷单拉黑','',''],
+        ['2103151','','禁用','','','','会员停用','',''],
+        ['2103153','919988776655','','拉黑','','','刷单拉黑','',''],
+        ['2103150','919012345678','','拉黑','','','刷单拉黑','',''],
+        ['','919000000001','','拉黑','','','刷单拉黑','',''],
+        ['919123456780','','','拉黑','','','刷单拉黑','',''],
+        ['','9.19998887776E+11','','拉黑','','','刷单拉黑','',''],
+        ['',' RAHUL88@gmail.com ','','拉黑','','','重复一行','',''],
+        ['2109999','','','拉黑','','','刷单拉黑','',''],
+        ['','+91 99988 87776','','拉黑','','','带加号空格','',''],
+        ['','','','拉黑','','','漏填ID和账号','','']]},
+      {k:'m6b',t:'新模板 V6 · 只用账号批量拉黑',note:'最常见用法：A 列留空，只在 B 列贴账号，黑名单列填「拉黑」。',head:HM6,rows:[
+        ['','919876543210','','拉黑','','','风控拉黑','',''],['','919123456780','','拉黑','','','风控拉黑','',''],['','919012345678','','拉黑','','','风控拉黑','','']]},
+      {k:'m5',t:'旧模板 V5 文件',note:'运营手里的旧模板（第二列是「会员状态」），上传后整份文件不导入。',head:HM5,rows:[['2103150','','拉黑','','','刷单拉黑','',''],['2103151','禁用','','','','会员停用','','']]}
+    ],
+    b:[
+      {k:'b1',t:'手机号黑名单导入模板',note:'含：不带区号、带空格横线、多一个 0、00 前缀、科学计数（判失败）、已在名单、文件里重复、格式错误、已注册会员（会同步拉黑）、备注留空、整行空。',head:['手机号*','备注'],rows:[
+        ['9811200001','薅红包'],['+91 98112-00002','薅红包'],['09811200003','薅红包'],['0091 9811200004',''],['9.19811200005E+11','科学计数'],['919811122233','已在名单'],['9811200001','文件里重复'],['98112','号码太短'],['919123456780','已注册会员'],['',''],['9811200006','']]}
+    ],
+    a:[
+      {k:'a3',t:'新模板 V3 · 只用手机号禁领红包',note:'A 列留空、B 列贴手机号账号，活动禁止类型填 7（红包）。含：科学计数（判失败）、账号不存在、已在名单、同一会员重复、两个都没填、全部活动（-1 会展开成每个活动一行）。',head:HA3,rows:[
+        ['','919876543210','7','薅红包'],['','919123456780','7','薅红包'],['','9.19998887776E+11','7','薅红包'],['','919000000001','7','薅红包'],['','919988776655','7','薅红包'],['2103150','','7','重复一行'],['','','7','漏填账号'],['','rahul88@gmail.com','-1','全部活动禁止']]},
+      {k:'a2',t:'旧模板 V2 文件',note:'运营手里的旧模板（第二列是「活动禁止类型」），上传后整份文件不导入。',head:HA2,rows:[['100000','5','不给派发合伙人'],['100001','4','blacklist，限制了每周奖励']]}
+    ]
+  };
+  var mode='m',cur={m:'m6',a:'a3',b:'b1'};
+  function fileOf(){return FILES[mode].filter(function(f){return f.k===cur[mode]})[0]}
+  function renderXl(tbl,file,editable){
+    var n=file.head.length,h='<thead><tr><th></th>';for(var i=0;i<n;i++) h+='<th>'+String.fromCharCode(65+i)+'</th>';
+    h+='</tr></thead><tbody><tr class="hd"><td class="rn">1</td>';file.head.forEach(function(t){h+='<td>'+esc(t)+'</td>'});h+='</tr>';
+    var accCol=(file.head[1]||'').indexOf('会员账号')===0,phCol=file.head[0]==='手机号*';
+    file.rows.forEach(function(r,ri){h+='<tr><td class="rn">'+(ri+2)+'</td>';r.forEach(function(v,ci){h+='<td class="'+((accCol&&ci===1)||(phCol&&ci===0)?'txt':'')+'"'+(editable?' contenteditable="true"':'')+'>'+esc(v)+'</td>'});h+='</tr>'});
+    tbl.innerHTML=h+'</tbody>';
+  }
+  function renderFsel(){
+    $('fsel').innerHTML=FILES[mode].map(function(f){return '<label class="'+(f.k===cur[mode]?'on':'')+'"><input type="radio" name="f" value="'+f.k+'"'+(f.k===cur[mode]?' checked':'')+'>'+f.t+'</label>'}).join('');
+    $('fsel').querySelectorAll('input').forEach(function(r){r.onchange=function(){cur[mode]=this.value;renderFsel()}});
+    $('xlnote').textContent=fileOf().note;renderXl($('xl'),fileOf(),true);
+  }
+  function resetImp(k){RES[k]=[];['tbody_'+k,'tbodyErr_'+k].forEach(function(id){if($(id)) $(id).innerHTML=''});if($('errTbl_'+k)) $('errTbl_'+k).style.display='none';$('tip_'+k).style.display='none';$('submit_'+k).style.display='none'}
+  function openImp(k){resetImp(k);open(k)}
+  $('openM').onclick=function(){openImp('m')};$('openA').onclick=function(){openImp('a')};
+  document.querySelectorAll('[data-up]').forEach(function(b){b.onclick=function(){mode=this.getAttribute('data-up');renderFsel();open('f')}});
+  var TPL={m:['批量会员状态备注修改模板V6.xlsx',{head:HM6,rows:[['123456789','','启用','正常','启用','启用','会员回归','1000','0'],['','910000000000','禁用','拉黑','禁用','禁用','会员停用','-1000','0']]}],
+           b:['批量导入手机号黑名单模板.xlsx',{head:['手机号*','备注'],rows:[['919800000000','示例：带区号'],['9800000000','示例：不带区号，会补站点区号']]}],
+           a:['批量导入会员活动黑名单模板V3.xlsx',{head:HA3,rows:[['100000','','5','不给派发合伙人'],['100000','','4','blacklist，限制了每周奖励'],['100001','','5','必填备注'],['600853','','-1','“-1”代表全部活动都被禁止'],['','910000000000','7','只填会员账号']]}]};
+  document.querySelectorAll('[data-tpl]').forEach(function(b){b.onclick=function(){var t=TPL[this.getAttribute('data-tpl')];$('tplName').textContent=t[0];renderXl($('tplXl'),t[1],false);open('t')}});
+
+  function normAcc(s){return String(s||'').replace(/\s+/g,'').replace(/^\+/,'')}
+  function isSci(s){return /^[0-9.]+E\+?[0-9]+$/i.test(String(s||'').trim())}
+  function resolve(idT,acc,sep,idMissMsg){
+    var err='',uid=null,ua=null;
+    if(idT&&(!/^\d+$/.test(idT)||Number(idT)>2147483647)) err+='会员ID格式不对，账号请填在「会员账号」列'+sep;
+    if(acc&&isSci(acc)) err+='会员账号被 Excel 转成了科学计数，请把账号列设为文本后重新填写'+sep;
+    else if(acc){ua=byAcc(acc);if(!ua) err+='会员账号不存在'+sep;}
+    if(!err){
+      if(idT&&acc){if(ua.id!==Number(idT)) err+='会员ID与会员账号不是同一会员'+sep;else uid=ua.id;}
+      else if(acc) uid=ua.id;
+      else if(idT){uid=Number(idT);if(!byId(uid)){err+=idMissMsg;uid=null;}}
+    }
+    return {uid:uid,err:err};
+  }
+  function readFile(){var trs=$('xl').querySelectorAll('tbody tr'),rows=[];for(var i=0;i<trs.length;i++){var c=[];trs[i].querySelectorAll('td:not(.rn)').forEach(function(td){c.push(td.textContent.trim())});rows.push(c)}return rows}
+  function blank(c){return c.every(function(v){return !v})}
+  var RES={m:[],a:[]};
+  $('doUpload').onclick=function(){
+    var rows=readFile(),head=rows.shift();close('f');
+    if(mode==='b'){uploadB(rows,head);return}
+    if((head[1]||'').replace(/\s+/g,'').indexOf('会员账号')!==0){toast('warn','操作失败','导入模板已更新，请重新下载模板后导入');return}
+    mode==='m'?uploadM(rows):uploadA(rows);
+  };
+  function tipAndToast(k,total,pass){var fail=total-pass;
+    $('tip_'+k).textContent='总共'+total+'条，验证通过'+pass+'条，验证失败'+fail+'条';$('tip_'+k).style.display='block';
+    $('submit_'+k).style.display=pass>0?'':'none';var m='数据上传成功，校验通过数量'+pass+'条，失败数量'+fail+'条';
+    if(pass&&fail) toast('warn','部分数据校验通过',m);else if(pass) toast('suc','数据校验通过',m);else toast('err','数据校验不通过',m)}
+
+  var STATE=['启用','禁用'],BLK=['拉黑','正常'];
+  function uploadM(rows){
+    var data=[],seen={};
+    rows.forEach(function(c){
+      if(blank(c)) return;
+      var idT=c[0],acc=normAcc(c[1]),err='',r={uid:null};
+      if(!idT&&!acc) err+='会员ID和会员账号不能同时为空;';else{r=resolve(idT,acc,';','该用户不存在');err+=r.err}
+      var us=c[2],bk=c[3],rb=c[4],rp=c[5];
+      if(!us&&!bk&&!rb&&!rp) err+='会员四个状态不能同时为空，至少要填写一个状态;';
+      if(us&&STATE.indexOf(us)<0) err+='会员状态不能为空且必须是启用或禁用;';
+      if(bk&&BLK.indexOf(bk)<0) err+='会员拉黑拉白状态不能为空且必须是拉黑或正常;';
+      if(rb&&STATE.indexOf(rb)<0) err+='会员返佣状态不能为空且必须是启用或禁用;';
+      if(rp&&STATE.indexOf(rp)<0) err+='会员给上级返佣状态必须是启用或禁用;';
+      // 查重只在其他校验都通过的行之间做，以第一条为准
+      if(!err&&r.uid!=null){if(seen[r.uid]) err+='与会员ID【'+r.uid+'】重复;';else seen[r.uid]=1}
+      data.push({id:err?idT:String(r.uid),acc:acc,us:us,bk:bk,rb:rb,rp:rp,remark:c[6],code:c[7]?Number(c[7]).toFixed(2):'0.00',multi:c[8]?Number(c[8]).toFixed(2):'0.00',err:err,uid:err?null:r.uid});
+    });
+    RES.m=data.filter(function(r){return r.err}).concat(data.filter(function(r){return !r.err}));
+    $('tbody_m').innerHTML=RES.m.map(function(r){return '<tr><td>'+esc(r.id)+'</td><td>'+esc(r.acc)+'</td><td>'+r.us+'</td><td>'+r.bk+'</td><td>'+r.rb+'</td><td>'+r.rp+'</td><td>'+esc(r.remark)+'</td><td>'+r.code+'</td><td>'+r.multi+'</td><td class="err">'+esc(r.err)+'</td></tr>'}).join('');
+    tipAndToast('m',RES.m.length,RES.m.filter(function(r){return !r.err}).length);
+  }
+  function uploadA(rows){
+    var data=[],seen={};
+    rows.forEach(function(c){
+      if(blank(c)) return;
+      var idT=c[0],acc=normAcc(c[1]),at=c[2]||'',rm=c[3]||'',err='',r={uid:null};
+      if(!idT&&!acc) err+='会员ID和会员账号不能同时为空,';else{r=resolve(idT,acc,',','会员ID不存在,');err+=r.err}
+      var atN=/^-?\d+$/.test(at)?at:(at?'0':'');
+      if(!at) err+='活动禁止类型不能为空,';else if(atN==='0') err+='活动禁止类型不能为0,';else if(!ACT[atN]) err+='活动禁止类型不存在,';
+      if(!rm) err+='备注信息不能为空,';if(rm.length>500) err+='备注信息过长,';
+      if(!err&&atN!=='-1'&&byId(r.uid).act.indexOf(atN)>-1) err+='活动黑名单信息已存在,';
+      // 查重只在其他校验都通过的行之间做，以第一条为准
+      if(!err){var st=seen[r.uid]||(seen[r.uid]={});
+        if(st[atN]||(atN==='-1'&&Object.keys(st).length)||(atN!=='-1'&&st['-1'])) err+='会员ID重复,';else st[atN]=1;}
+      var base={id:err?idT:String(r.uid),acc:acc,rm:rm,err:err,uid:err?null:r.uid};
+      if(!err&&atN==='-1'){var have=byId(r.uid).act;Object.keys(ACT).forEach(function(k){if(k!=='-1'&&have.indexOf(k)<0) data.push(Object.assign({},base,{at:k,atT:ACT[k]}))})}
+      else data.push(Object.assign(base,{at:atN,atT:ACT[atN]||at}));
+    });
+    RES.a=data;var ok=data.filter(function(r){return !r.err}),bad=data.filter(function(r){return r.err});
+    $('tbody_a').innerHTML=ok.map(function(r){return '<tr><td>'+r.id+'</td><td>'+esc(r.acc)+'</td><td>'+esc(r.atT)+'</td><td>'+esc(r.rm)+'</td></tr>'}).join('');
+    $('tbodyErr_a').innerHTML=bad.map(function(r){return '<tr><td>'+esc(r.id)+'</td><td>'+esc(r.acc)+'</td><td>'+esc(r.atT)+'</td><td>'+esc(r.rm)+'</td><td class="err">'+esc(r.err)+'</td></tr>'}).join('');
+    $('errTbl_a').style.display=bad.length?'':'none';tipAndToast('a',data.length,ok.length);
+  }
+  function confirmBox(title,html,okFn){$('rsTitle').firstChild.nodeValue=title;$('rsBody').innerHTML=html;$('rsFoot').innerHTML='<a data-close="rs">取消</a><a class="b0" id="rsOk">确认</a>';open('rs');$('rsOk').onclick=function(){close('rs');okFn()}}
+  function infoBox(title,html){$('rsTitle').firstChild.nodeValue=title;$('rsBody').innerHTML=html;$('rsFoot').innerHTML='<a class="b0" data-close="rs">知道了</a>';open('rs')}
+  $('submit_m').onclick=function(){var ok=RES.m.filter(function(r){return !r.err});
+    confirmBox('批量提交修改用户信息',"校验错误数量<span style='color:red;'>["+(RES.m.length-ok.length)+"]</span>条，将提交修改用户<span style='color:red;'>状态</span>和<span style='color:red;'>备注</span>数量<span style='color:red;'>["+ok.length+"]</span>条，确认继续？",function(){
+      var ids=[];ok.forEach(function(r){var u=byId(r.uid);if(r.us) u.state=r.us==='启用'?1:0;if(r.bk) u.block=r.bk==='拉黑'?1:0;ids.push(u.id)});
+      toast('suc','操作成功','批量修改会员信息成功！');$('tbody_m').innerHTML='';$('tip_m').style.display='none';$('submit_m').style.display='none';RES.m=[];renderDBM(ids)})};
+  $('submit_a').onclick=function(){var ok=RES.a.filter(function(r){return !r.err});
+    confirmBox('批量导入会员活动黑名单信息',"校验错误数量<span style='color:red;'>["+(RES.a.length-ok.length)+"]</span>条，将提交["+ok.length+"]条，确认继续？",function(){
+      ok.forEach(function(r){var u=byId(r.uid);if(u.act.indexOf(r.at)<0){u.act.push(r.at);ABLIST.push({id:u.id,t:now(),by:'luna',rm:r.rm,at:r.at})}});
+      toast('suc','操作成功','会员活动黑名单批量添加成功！');$('tbody_a').innerHTML='';$('tbodyErr_a').innerHTML='';$('errTbl_a').style.display='none';$('tip_a').style.display='none';$('submit_a').style.display='none';RES.a=[];close('a');renderAB()})};
+
+  // ================= ③ 手机号黑名单 =================
+  var AREA='91',LEN=10;
+  function norm(raw){
+    if(isSci(raw)) return null;
+    var s=String(raw||'').replace(/\D/g,'');
+    if(s.indexOf('00'+AREA)===0) s=s.slice(2); // 00 国际拨号前缀等同 +
+    if(s.indexOf(AREA)===0&&(s.length===AREA.length+LEN||(s.length===AREA.length+LEN+1&&s.charAt(AREA.length)==='0'))) s=s.slice(AREA.length);
+    if(s.length===LEN+1&&s.charAt(0)==='0') s=s.slice(1);
+    if(s.length!==LEN) return null;
+    return AREA+s;
+  }
+  function mask(p){return p.slice(0,4)+'****'+p.slice(-4)} // 无本页「查看手机号」权限时打码
+  var PL=[
+    {p:'919811122233',links:[],rm:'薅红包团伙号码（未注册）',by:'jay3004',t:'2026-10-28 16:09:23'},
+    {p:'919988776655',links:[{id:2103153,by:'before'}],rm:'刷单',by:'carey3004',t:'2026-09-08 15:29:00'},
+    {p:'919811100004',links:[],rm:'',by:'alan3004',t:'2026-09-08 11:14:50'}
+  ];
+  function membersOf(p){return DB.filter(function(u){return norm(u.acc)===p||norm(u.b2)===p})}
+  function memTxt(u){return u.id+'（'+(/^\d+$/.test(u.acc)?mask(u.acc):u.acc)+'）'+(u.agent?' <span class="red">代理，下级 '+u.agent+' 人</span>':'')}
+  var F={p:'',f:'',t:''},SEL={};
+  function renderB(){
+    var rows=PL.slice().sort(function(a,b){return a.t<b.t?1:-1}).filter(function(r){
+      if(F.p){var n=norm(F.p);if(n){if(r.p!==n) return false}else{var q=F.p.replace(/\D/g,'');if(q&&r.p.indexOf(q)<0) return false}}
+      if(F.f&&r.t.slice(0,10)<F.f) return false;if(F.t&&r.t.slice(0,10)>F.t) return false;return true});
+    $('tbB').innerHTML=rows.map(function(r){return '<tr><td><input type="checkbox" class="ckr" data-p="'+r.p+'"'+(SEL[r.p]?' checked':'')+'></td><td>'+mask(r.p)+'</td><td>'+(r.links.length?r.links.map(function(l){return '<span class="tag'+(l.by==='before'?' b':'')+'" title="'+(l.by==='list'?'本名单拉黑':'加入前已拉黑')+'">'+l.id+'</span>'}).join(''):'--')+'</td><td>'+(esc(r.rm)||'--')+'</td><td>'+r.t+'</td><td>'+r.by+'</td><td><span class="lk" data-d="'+r.p+'">删除</span></td></tr>'}).join('')||'<tr class="empty"><td colspan="7">暂无数据</td></tr>';
+    $('pgB').innerHTML='共 '+rows.length+' 条 <span class="n">‹</span><span class="n cur">1</span><span class="n">›</span><span class="n" style="padding:0 8px">20 / 页</span>';
+    document.querySelectorAll('.ckr').forEach(function(c){c.onchange=function(){if(this.checked) SEL[this.getAttribute('data-p')]=1;else delete SEL[this.getAttribute('data-p')];syncSel()}});
+    document.querySelectorAll('[data-d]').forEach(function(b){b.onclick=function(){delRows([this.getAttribute('data-p')||this.getAttribute('data-d')])}});
+    $('ckAll').checked=rows.length&&rows.every(function(r){return SEL[r.p]});syncSel();
+  }
+  function syncSel(){Object.keys(SEL).forEach(function(p){if(!PL.some(function(x){return x.p===p})) delete SEL[p]});$('bDelSel').classList.toggle('dis',!Object.keys(SEL).length)}
+  $('ckAll').onchange=function(){var on=this.checked;document.querySelectorAll('.ckr').forEach(function(c){c.checked=on;if(on) SEL[c.getAttribute('data-p')]=1;else delete SEL[c.getAttribute('data-p')]});syncSel()};
+  $('bQ').onclick=function(){F={p:$('sPhone').value.trim(),f:$('sFrom').value,t:$('sTo').value};renderB()};
+  $('bR').onclick=function(){$('sPhone').value='';$('sFrom').value='';$('sTo').value='';F={p:'',f:'',t:''};renderB()};
+
+  function addOne(p,rm){var synced=[],links=[];
+    membersOf(p).forEach(function(u){if(!u.block){u.block=1;synced.push(u);links.push({id:u.id,by:'list'})}else links.push({id:u.id,by:'before'})});
+    PL.push({p:p,links:links,rm:rm,by:'luna',t:now()});return synced}
+  var addMode='one';
+  $('bAdd').onclick=function(){$('impWay').style.display='none';setWay('paste');addMode='one';$('addTitle').firstChild.nodeValue='添加手机号黑名单';$('addLbl').innerHTML='手机号<i>*</i>';
+    $('addBox').innerHTML='<input id="fPhone" placeholder="请输入手机号，可带 +91 或不带区号" value="+91 98111 00001"><div class="sub2">统一为「区号 + 号码」保存；号码已属于某个会员的，会同时把该会员拉黑并踢下线。</div><div class="sub2 red" id="fErr"></div>';$('fRemark').value='';open('add')};
+  function setWay(w){addMode=w==='excel'?'excel':'batch';var ex=w==='excel';
+    $('addLbl').parentNode.style.display=ex?'none':'';$('rmRow').style.display=ex?'none':'';$('excelBox').style.display=ex?'block':'none';$('addLayer').style.width=ex?'980px':'720px';}
+  document.querySelectorAll('input[name=way]').forEach(function(r){r.onchange=function(){setWay(this.value)}});
+  $('bImp').onclick=function(){$('impWay').style.display='';document.querySelector('input[name=way][value=paste]').checked=true;setWay('paste');RESB=[];$('tbody_b').innerHTML='';$('tblB').style.display='none';$('tip_b').style.display='none';addMode='batch';$('addTitle').firstChild.nodeValue='批量导入手机号黑名单';$('addLbl').innerHTML='手机号列表<i>*</i>';
+    $('addBox').innerHTML='<textarea id="fPhone" placeholder="请输入手机号，多个手机号用回车换行分割，单次最多 1000 个">9811100002\n+91 9876543210\n09811122233\n98111abc\n919700000555\n919012345678\n919811133344\n9811100002</textarea><div class="sub2">号码已属于某个会员的，会同时把该会员拉黑并踢下线。</div><div class="sub2 red" id="fErr"></div>';$('fRemark').value='薅红包';open('add')};
+  $('addOk').onclick=function(){
+    if(addMode==='excel'){saveB();return}
+    var rm=$('fRemark').value.trim(),raw=$('fPhone').value;
+    if(addMode==='one'){
+      if(!raw.trim()){$('fErr').textContent='请输入手机号';return}
+      var p=norm(raw);if(!p){$('fErr').textContent='手机号格式错误';return}
+      if(PL.some(function(x){return x.p===p})){$('fErr').textContent='该手机号已在黑名单中（'+mask(p)+'）';return}
+      var s=addOne(p,rm);close('add');renderB();renderDBB(s.map(function(u){return u.id}));
+      if(s.length) infoBox('添加成功','已添加 '+mask(p)+'<br>同步拉黑会员 <b>'+s.length+'</b> 个：<br>'+s.map(memTxt).join('<br>'));else toast('suc','操作成功','添加成功');
+      return;
+    }
+    var lines=raw.split(/\n/).map(function(x){return x.trim()}).filter(Boolean);
+    if(!lines.length){$('fErr').textContent='请输入手机号';return}
+    if(lines.length>1000){$('fErr').textContent='单次最多 1000 个，当前 '+lines.length+' 个';return}
+    var added=0,exist=[],dup=[],bad=[],syncs=[],seen={};
+    lines.forEach(function(l){var p=norm(l);if(!p){bad.push(l);return}
+      if(seen[p]){dup.push(l);return}seen[p]=1;
+      if(PL.some(function(x){return x.p===p})){exist.push(l);return}
+      syncs=syncs.concat(addOne(p,rm));added++});
+    close('add');renderB();renderDBB(syncs.map(function(u){return u.id}));
+    infoBox('导入结果','新增 <b>'+added+'</b> 条<br>同步拉黑会员 <b>'+syncs.length+'</b> 个'+(syncs.length?'：<br>'+syncs.map(memTxt).join('<br>'):'')+'<br>已在名单 <b>'+exist.length+'</b> 条'+(exist.length?'：'+esc(exist.join('、')):'')+'<br>本次重复 <b>'+dup.length+'</b> 条'+(dup.length?'：'+esc(dup.join('、')):'')+'<br>格式错误 <b>'+bad.length+'</b> 条'+(bad.length?'：'+esc(bad.join('、')):''));
+  };
+  // ---- 上传 Excel ----
+  var RESB=[];
+  function uploadB(rows,head){
+    if((head[0]||'').replace(/\s+/g,'').indexOf('手机号')!==0){toast('warn','操作失败','模板不正确，请下载模板后导入');return}
+    var seen={};RESB=[];
+    rows.forEach(function(c,i){
+      if(blank(c)) return;
+      var raw=c[0]||'',rm=c[1]||'',err='',p=null,us=[];
+      if(!raw) err+='手机号不能为空,';else if(isSci(raw)) err+='手机号被 Excel 转成了科学计数，请把手机号列设为文本后重新填写,';else{p=norm(raw);if(!p) err+='手机号格式错误,';}
+      if(rm.length>500) err+='备注过长,';
+      if(p&&PL.some(function(x){return x.p===p})) err+='该手机号已在黑名单中,';
+      if(!err){if(seen[p]) err+='与第 '+seen[p]+' 行是同一号码,';else seen[p]=i+2;}
+      if(p&&!err) us=membersOf(p);
+      RESB.push({row:i+2,raw:raw,p:p,us:us,rm:rm,err:err});
+    });
+    var ok=RESB.filter(function(r){return !r.err}).length,list=RESB.filter(function(r){return r.err}).concat(RESB.filter(function(r){return !r.err}));
+    $('tbody_b').innerHTML=list.map(function(r){return '<tr><td>'+r.row+'</td><td>'+esc(r.raw)+'</td><td>'+(r.p?mask(r.p):'')+'</td><td>'+(r.us.length?r.us.map(function(u){return '<span class="tag'+(u.block?' b':'')+'">'+u.id+'</span>'+(u.agent?'<span class="red" style="font-size:12px">代理，下级 '+u.agent+' 人</span>':'')+'<span class="grey" style="font-size:12px">'+(u.block?'已是拉黑':'保存后同步拉黑')+'</span>'}).join(' '):(r.err?'':'--'))+'</td><td>'+esc(r.rm)+'</td><td class="err">'+esc(r.err)+'</td></tr>'}).join('');
+    $('tblB').style.display='';$('tip_b').textContent='总共'+RESB.length+'条，验证通过'+ok+'条，验证失败'+(RESB.length-ok)+'条，保存时只提交验证通过的';$('tip_b').style.display='block';
+    toast(ok&&ok<RESB.length?'warn':ok?'suc':'err',ok&&ok<RESB.length?'部分数据校验通过':ok?'数据校验通过':'数据校验不通过','数据上传成功，校验通过数量'+ok+'条，失败数量'+(RESB.length-ok)+'条');
+  }
+  function saveB(){
+    var ok=RESB.filter(function(r){return !r.err});
+    if(!ok.length){toast('warn','操作失败','请先上传Excel，且至少有一条验证通过');return}
+    var syncs=[];ok.forEach(function(r){syncs=syncs.concat(addOne(r.p,r.rm))});
+    close('add');renderB();renderDBB(syncs.map(function(u){return u.id}));
+    infoBox('导入结果','新增 <b>'+ok.length+'</b> 条，验证失败未导入 <b>'+(RESB.length-ok.length)+'</b> 条<br>同步拉黑会员 <b>'+syncs.length+'</b> 个'+(syncs.length?'：<br>'+syncs.map(memTxt).join('<br>'):''));
+    RESB=[];
+  }
+  function delRows(ps){
+    if(ps.length>200){toast('warn','操作失败','一次最多删除 200 条');return}
+    var recs=PL.filter(function(x){return ps.indexOf(x.p)>-1});
+    var can=[];recs.forEach(function(r){r.links.forEach(function(l){if(l.by==='list'&&!PL.some(function(x){return ps.indexOf(x.p)<0&&x.links.some(function(y){return y.id===l.id})})&&can.indexOf(l.id)<0) can.push(l.id)})});
+    var html=(recs.length===1?'确定删除手机号 <b>'+mask(recs[0].p)+'</b>？删除后这个号码可以正常注册、绑定。':'确定删除选中的 <b>'+recs.length+'</b> 个手机号？删除后这些号码可以正常注册、绑定。')+(can.length?'<label class="ck"><input type="checkbox" id="unblk">同时解除这些会员的拉黑：'+can.join('、')+'</label>':'');
+    confirmBox('提示',html,function(){});
+    $('rsOk').onclick=function(){var un=$('unblk')&&$('unblk').checked;close('rs');
+      PL=PL.filter(function(x){return ps.indexOf(x.p)<0});ps.forEach(function(p){delete SEL[p]});
+      if(un) can.forEach(function(id){byId(id).block=0});renderB();renderDBB(un?can:[]);toast('suc','操作成功','删除成功'+(un?'，已解除 '+can.length+' 个会员的拉黑':''))};
+  }
+  $('bDelSel').onclick=function(){if(this.classList.contains('dis')) return;delRows(Object.keys(SEL))};
+
+  // 抽屉：打开时定位到当前页签对应段落
+  function showReq(n){document.querySelectorAll('#rqtabs a').forEach(function(a){a.classList.toggle('on',a.getAttribute('data-q')==n)});
+    document.querySelectorAll('.rq').forEach(function(d){d.classList.toggle('on',d.id==='rq'+n)});$('dbody').scrollTop=0}
+  document.querySelectorAll('#rqtabs a,[data-goto]').forEach(function(a){a.onclick=function(){showReq(this.getAttribute('data-q')||this.getAttribute('data-goto'))}});
+  function doc(on){$('drawer').classList.toggle('on',on);$('dmask').classList.toggle('on',on);if(on) showReq(({m:1,a:2,b:3})[curPage])}
+  $('handleDoc').onclick=function(){doc(true)};$('closeDoc').onclick=function(){doc(false)};$('dmask').onclick=function(){doc(false)};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape') doc(false)});
+
+  renderAll();open('m');
+})();
+</script>
+</body>
+</html>
