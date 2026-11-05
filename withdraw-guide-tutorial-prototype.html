@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>提现教程</title>
+<style>
+:root{--p:#6C4FE0;--p2:#7d63e6;--pl:#f1edff;--bd:#e0e0e6;--tx:#333639;--tx2:#767c82;--ok:#18a058;--err:#d03050}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica Neue",Arial,sans-serif;font-weight:300;background:#f2f3f7;color:#464a53}
+b,strong,th{font-weight:600}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.topbar select{height:26px;border:2px dashed #9b8cf0;border-radius:4px;background:#fff;color:#6C4FE0;font:inherit;font-weight:600;padding:0 6px;margin-left:6px}
+.wrap{padding:14px 44px 90px 16px}
+.card{background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:20px 20px 24px}
+.newpage{position:relative;display:inline-block;font-size:15px;color:#333;font-weight:400;margin-bottom:14px}
+.newpage::after{content:"NEW";position:absolute;top:-8px;right:-34px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px}
+.sbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:14px}
+.sbar label{font-weight:500}
+.sbar select,.fc{height:34px;border:1px solid #ced4da;border-radius:3px;padding:0 10px;font:inherit;color:#495057;background:#fff}
+.fc{width:100%;max-width:320px}.fc.full{max-width:none}.fc[disabled]{background:#f5f5f5;color:#888}
+.btn-info{display:inline-block;background:#1e88e5;color:#fff;border:0;border-radius:3px;padding:7px 18px;font:inherit;font-size:14px;cursor:pointer}
+.btn-inv{display:inline-block;background:#2f3d4a;color:#fff;border:0;border-radius:3px;padding:7px 18px;font:inherit;font-size:14px;cursor:pointer}
+.tipbar{color:#c0392b;margin-bottom:12px}
+.tw{overflow-x:auto}
+table.tb{width:100%;border-collapse:collapse;background:#fff;min-width:980px}
+table.tb th{background:#f7f7fb;border:1px solid #e6e6ee;padding:9px 8px;text-align:center;white-space:nowrap;color:#333}
+table.tb td{border:1px solid #eee;padding:8px;text-align:center;vertical-align:middle}
+table.tb tbody tr:nth-child(odd) td{background:#fbfbfd}
+table.tb td.l{text-align:left;max-width:260px;color:#666}
+.lbtn{display:inline-block;padding:0 10px;height:24px;line-height:24px;border:0;border-radius:2px;font:inherit;color:#fff;cursor:pointer;background:#1E9FFF;margin:0 2px}
+.st-on{color:#28a745}.st-off{color:#999}
+.emask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center}
+.emask.on{display:flex}
+.ebox{width:860px;max-width:96vw;max-height:92vh;background:#fff;border-radius:4px;display:flex;flex-direction:column;box-shadow:0 6px 28px rgba(0,0,0,.25)}
+.eh{flex:none;padding:12px 18px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.eh b{font-size:14px;color:#333}
+.x{cursor:pointer;color:#999;font-size:20px;line-height:1}
+.ebody{flex:1;min-height:0;overflow:auto;padding:16px 18px 4px}
+.ebtns{flex:none;padding:12px 18px;border-top:1px solid #eee;display:flex;gap:10px;justify-content:center}
+.medit{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:18px;align-items:start}
+.erow{display:flex;align-items:flex-start;margin-bottom:14px}
+.erow>label{flex:0 0 96px;text-align:right;padding:7px 12px 0 0;font-weight:500}
+.erow>label i{color:#c0392b;font-style:normal;margin-right:2px}
+.erow .f{flex:1;min-width:0}
+.ex{color:#9aa0a6;margin-top:4px}
+.ml{display:flex;gap:6px;flex-wrap:wrap}
+.ml span{cursor:pointer;border:1px solid #ccc;border-radius:10px;padding:4px 14px;font-size:13px;color:#333;background:#fff;user-select:none;position:relative}
+.ml span.on{border-color:#1E9FFF;background:#cfe8ff;color:#000;font-weight:bold}
+.ml span.has::after{content:"";position:absolute;top:2px;right:4px;width:6px;height:6px;border-radius:50%;background:#28a745}
+.sn{border:1px solid #ccc;border-radius:3px;background:#fff}
+.sn-tb{background:#f5f5f5;border-bottom:1px solid #ddd;padding:5px 6px;display:flex;gap:4px;flex-wrap:wrap}
+.sn-tb i{font-style:normal;min-width:26px;height:24px;line-height:22px;text-align:center;border:1px solid #ccc;border-radius:3px;background:#fff;color:#333;cursor:pointer;padding:0 5px}
+.sn-ed{min-height:210px;max-height:300px;overflow:auto;padding:10px 12px;outline:none;font-size:13px;line-height:1.7;color:#333}
+.sn-ed img{max-width:100%;display:block;margin:4px 0}
+.ck{display:flex;gap:6px;align-items:center;cursor:pointer;padding-top:7px}
+.pv-t{font-weight:600;margin-bottom:6px;text-align:center;color:#333}
+.cmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;display:none;align-items:center;justify-content:center}
+.cbox{background:#fff;border-radius:4px;width:380px;max-width:92vw}
+.cbox .ch{padding:10px 16px;border-bottom:1px solid #eee;font-size:14px;color:#333}
+.cbox .cb{padding:18px 16px;line-height:1.7;color:#333}
+.cbox .cf{padding:8px 16px 14px;text-align:right}
+.cbox .cf button{margin-left:8px;height:30px;padding:0 16px;border:1px solid #ddd;background:#fff;border-radius:2px;font:inherit;cursor:pointer}
+.cbox .cf button.ok{background:#1E9FFF;border-color:#1E9FFF;color:#fff}
+.hint{color:#888}
+.toast{position:fixed;top:70px;right:30px;background:#fff;border-left:4px solid #36bea6;box-shadow:0 4px 16px rgba(0,0,0,.15);padding:12px 18px;border-radius:3px;z-index:400;font-size:13px;display:none;color:#333}
+.toast.err{border-left-color:#ff4d4f}
+/* ===== 原型演示 ===== */
+.demobtn{position:fixed;left:16px;bottom:18px;background:#fff;color:var(--p);border:2px dashed #8fb4dc;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;z-index:60;font-size:13px;box-shadow:0 2px 10px rgba(36,104,172,.18)}
+.demo{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:1080px;max-width:96vw;max-height:94vh;background:#fff;border:2px dashed #8fb4dc;border-radius:8px;z-index:151;display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+.mmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:150;display:none}
+.dh{padding:11px 16px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;flex:none}
+.pt{font-size:11px;color:var(--p);background:var(--pl);border:1px solid #bcd3ec;border-radius:3px;padding:0 6px;margin-right:8px;font-weight:600}
+.db{padding:12px 16px 16px;overflow:auto;min-height:0}
+.ddemo{display:grid;grid-template-columns:240px minmax(320px,1fr) 310px;gap:14px;align-items:start}
+.box{border:1px solid #ebebf2;border-radius:6px;padding:10px 12px;font-size:12.5px}
+.box h4{font-size:12.5px;color:var(--p);margin-bottom:8px;font-weight:600}
+.box .lb{color:#666;margin-bottom:2px}
+.box select{height:28px;border:1px solid var(--bd);border-radius:3px;padding:0 6px;font:inherit;width:100%;margin-bottom:8px;background:#fff}
+.dbtn{display:block;width:100%;height:28px;margin-bottom:6px;border:1px solid var(--p);background:#fff;color:var(--p);border-radius:3px;font:inherit;cursor:pointer}
+.dbtn:hover{background:var(--p);color:#fff}
+.rs{margin-bottom:8px;padding:7px 10px;border-radius:4px;line-height:1.7}
+.rs.pop{background:#fff1f0;border:1px solid #ffccc7;color:#a8071a}
+.rs.no{background:#f6ffed;border:1px solid #b7eb8f;color:#237804}
+.kv{width:100%;border-collapse:collapse}
+.kv td{border:1px solid #eee;padding:5px 8px}
+.kv td:first-child{background:#fafbfc;width:90px;color:#666}
+.lg{border:1px solid #ebebf2;border-radius:5px;max-height:170px;overflow:auto}
+.lg div{padding:4px 10px;border-bottom:1px dashed #eee}
+
+/* ===== 手机：提现页（照 Withdraw/index.vue + 子组件，750 稿 × 0.373） ===== */
+.phone{width:300px;height:600px;border:10px solid #1f1f24;border-radius:34px;position:relative;overflow:hidden;margin:0 auto;--main:#f95959;--bg1:#f7f8ff;--bg2:#fff;--t1:#1e2637;--t2:#768096;--t4:#fff;--dis:#c8cad3;--nav:#fff;--hd:linear-gradient(90deg,#ff8e89,#f95959);--hdt:#fff}
+.phone.dark{--main:#d9ac4f;--bg1:#151515;--bg2:#2c2c2e;--t1:#f2f2f2;--t2:#9a9aa0;--t4:#1b1b1b;--dis:#5a5a5e;--nav:#1f1f1f;--hd:linear-gradient(90deg,#e8c674,#b88a35);--hdt:#2a1f05}
+.phone.small{width:290px;height:560px}
+.states{display:flex;gap:16px;overflow-x:auto;padding-bottom:6px}
+.st{flex:0 0 250px}
+.st-t{font-weight:600;color:#333;font-size:13px}
+.st-d{color:#888;font-size:12px;min-height:36px;margin:2px 0 8px;line-height:1.5}
+.phone.sm{width:250px;height:500px;border-width:8px;border-radius:28px}
+.phone.sm .iv{width:210px}
+.ph-screen{position:absolute;inset:0;display:flex;flex-direction:column;font-family:Arial,sans-serif;color:var(--t1);background:var(--bg1)}
+.navbar{height:34px;flex:none;display:flex;align-items:center;justify-content:center;position:relative;background:var(--nav);font-size:13px;font-weight:600}
+.navbar small{position:absolute;right:8px;font-size:9px;font-weight:400;color:var(--t2)}
+.navbar em{position:absolute;left:10px;font-style:normal;font-size:15px}
+.page{flex:1;overflow-y:auto;padding:7px 8px 46px}
+.page::-webkit-scrollbar{width:0}
+.bal{border-radius:9px;padding:10px 12px;background:linear-gradient(135deg,#ff9c8f,#f95959);color:#fff}
+.phone.dark .bal{background:linear-gradient(135deg,#b88a35,#e8c674);color:#2a1f05}
+.bal small{font-size:9.5px}.bal b{display:block;font-size:19px}
+.way{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.way div{height:56px;border-radius:7px;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9.5px;color:var(--t2);cursor:pointer;text-align:center}
+.way div i{font-style:normal;font-size:17px;line-height:1.3}
+.way div.on{background:var(--main);color:var(--t4);font-weight:600}
+.acct{background:var(--bg2);border-radius:7px;padding:10px;font-size:10.5px;margin-bottom:8px;cursor:pointer}
+.acct small{display:block;color:var(--t2);font-size:9.5px}
+.acct.add{text-align:center;color:var(--t2);padding:12px 8px}
+.acct.add b{display:block;color:var(--main);font-size:11px;margin-bottom:2px}
+.fld{background:var(--bg2);border-radius:7px;padding:9px}
+.fld .inp{height:28px;border-radius:14px;background:var(--bg1);display:flex;align-items:center;padding:0 10px;font-size:10px;color:var(--t2);gap:6px}
+.fld .r{display:flex;justify-content:space-between;font-size:9.5px;margin-top:6px;color:var(--t2)}
+.fld .r b{color:var(--main);font-weight:600}
+.wbtn{height:30px;line-height:30px;border-radius:15px;text-align:center;background:var(--dis);color:var(--t4);font-size:12px;margin-top:9px}
+.wbtn.on{background:var(--main)}
+.ph-mask{position:absolute;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:5;transition:background .35s}
+.ph-mask.on{display:flex}.ph-mask.fade{background:rgba(0,0,0,0)}
+.gd{width:232px;max-height:430px;border-radius:6px;background:var(--bg2);overflow:hidden;display:flex;flex-direction:column;color:var(--t1);transition:transform .38s cubic-bezier(.4,0,.2,1),opacity .38s}
+.gd-h{flex:none;background:var(--hd);color:var(--hdt);text-align:center;height:33px;line-height:33px;font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 10px}
+.gd-c{flex:1;min-height:50px;overflow-y:auto;padding:10px 8px 6px;font-size:10.4px;line-height:1.55}
+.gd-c img{max-width:100%;display:block;margin:0 auto 6px;border-radius:4px}.gd-c p{margin:0 0 6px}
+.gd-f{flex:none;padding:8px 0 11px;display:flex;justify-content:center}
+.gd-f button{width:80%;height:26px;border:0;border-radius:30px;background:var(--hd);color:var(--hdt);font:700 12px Arial,sans-serif;cursor:pointer}
+.ph-toast{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);background:rgba(0,0,0,.78);color:#fff;font-size:10px;padding:5px 11px;border-radius:12px;display:none;z-index:9;white-space:nowrap}
+
+.ups{display:flex;gap:12px;flex-wrap:wrap}
+.up{width:132px;border:1px solid #ddd;border-radius:4px;padding:6px;background:#fafafa;text-align:center}
+.upl{font-weight:600;color:#333;margin-bottom:5px}.upl i{color:#c0392b;font-style:normal;margin-left:2px}
+.up img{width:118px;height:150px;object-fit:cover;object-position:top;border-radius:3px;display:block;margin:0 auto}
+.upe{height:150px;border:1px dashed #bbb;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#1e88e5;cursor:pointer;background:#fff}
+.upb{display:flex;justify-content:center;gap:12px;margin-top:5px}.upb span{color:#1e88e5;cursor:pointer}
+.thumb{width:44px;height:56px;object-fit:cover;object-position:top;border-radius:3px;display:block;margin:0 auto}
+.howto{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--main);margin:-2px 2px 8px;cursor:pointer;position:relative;width:max-content}
+.howto b{font-weight:700}
+.howto::after{content:"NEW";position:absolute;top:-8px;right:-28px;background:#ff4d4f;color:#fff;font:700 8px/12px Arial,sans-serif;padding:0 3px;border-radius:6px}
+.iv{width:240px;max-height:500px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.iv .ivs{width:100%;max-height:440px;overflow-y:auto;border-radius:6px;background:#000}
+.iv .ivs{background:var(--bg2);color:var(--t1);padding:10px 9px;font-size:10.4px;line-height:1.55}
+.iv .ivs img{width:100%;display:block;border-radius:4px;margin:0 0 6px}
+.iv .ivs p{margin:0 0 6px}
+.iv .ivh{width:100%;background:var(--hd);color:var(--hdt);text-align:center;font-weight:700;font-size:13px;height:32px;line-height:32px;border-radius:6px 6px 0 0;margin-bottom:-10px;position:relative;z-index:1}
+.iv button{width:70%;height:28px;border:0;border-radius:14px;background:var(--hd);color:var(--hdt);font:700 12px Arial,sans-serif;cursor:pointer}
+/* ===== 需求说明 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid var(--p);display:flex;justify-content:space-between;align-items:center;flex:none}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--p);color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60}
+.prd{font-size:12.5px}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid var(--p);line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd table.t{width:100%;border-collapse:collapse;margin:10px 0 14px}
+.prd table.t th{background:var(--pl);border:1px solid #cfe0f2;padding:8px 10px;text-align:center;font-weight:600;color:#1d5589;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f4f8fd,#e8f1fa);border:1px solid #c4d9ef;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .kt{font-size:11.5px;color:var(--p);font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .kf{font-size:13px;background:#fff;border:1px solid #cfe0f2;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;line-height:1.8;border-radius:0 4px 4px 0}
+.prd .br>b{color:#1d5589}
+.prd .br.key{background:#f4f8fd;border-left:4px solid var(--p)}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:var(--p);color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700}
+.prd ol.dev{list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:var(--p);color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (max-width:1100px){.ddemo,.medit{grid-template-columns:1fr}}
+@media (max-width:760px){.side{display:none}.ct{padding:12px 16px 90px}.fr{flex-direction:column}.fr .k{text-align:left;flex:none;padding:0 0 4px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<select id="site" title="原型用：切换站点"></select></div>
+  <div>当前币种：<b style="color:#c0392b" id="cur"></b></div>
+</div>
+<div class="wrap">
+  <div class="newpage">消息管理 › 提现引导</div>
+  <div class="card">
+    <div class="sbar">
+      <label>提现方式：</label><select id="qC"></select>
+      <label>引导类型：</label><select id="qK"><option value="">全部</option><option value="bind">绑定引导</option><option value="withdraw">提现引导</option></select>
+      <label>状态：</label><select id="qS"><option value="">全部</option><option value="0">启用</option><option value="1">禁用</option></select>
+      <button class="btn-info" id="qGo">🔍 查 询</button>
+      <button class="btn-info" id="qReset">↻ 重 置</button>
+      <button class="btn-info" id="addBtn">＋ 新 增</button>
+    </div>
+    <div class="tipbar">前台提现页按会员是否已绑定，显示「How to bind」或「How to withdraw」教程链接，可设置首次自动弹出。</div>
+    <div class="tw"><table class="tb">
+      <thead><tr><th>ID</th><th>提现方式</th><th>引导类型</th><th>标题</th><th>内容</th><th>已配语种</th><th>自动弹出</th><th>状态</th><th>最后修改人</th><th>时间</th><th>操作</th></tr></thead>
+      <tbody id="lb"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- 新增 / 修改 / 复制 -->
+<div class="emask" id="eMdl"><div class="ebox">
+  <div class="eh"><b id="eT">新增提现引导</b><span class="x" id="eX">✕</span></div>
+  <div class="ebody">
+    <div class="erow"><label><i>*</i>提现方式：</label><div class="f"><select class="fc" id="eC"></select><div class="ex">读取本站「提现配置」里的提现方式，已关闭的也可以先配</div></div></div>
+    <div class="erow"><label><i>*</i>引导类型：</label><div class="f"><select class="fc" id="eK"></select><div class="ex" id="eKh"></div></div></div>
+    <div class="erow"><label>状态：</label><div class="f"><select class="fc" id="eS"><option value="0">启用</option><option value="1">禁用</option></select></div></div>
+    <div class="erow"><label>自动弹出：</label><div class="f"><label class="ck"><input type="checkbox" id="eA" checked>会员首次进入时自动弹出</label><div class="ex">不勾：前台只显示教程链接，会员点了才看</div></div></div>
+    <div class="erow"><label>语种：</label><div class="f"><div class="ml" id="eL"></div><div class="ex" id="eLh"></div></div></div>
+    <div class="erow"><label>标题：</label><div class="f"><input class="fc full" id="eTi" maxlength="50" autocomplete="off" placeholder="选填，不填则不显示标题栏"></div></div>
+    <div class="erow"><label><i>*</i>内容：</label><div class="f">
+      <div class="sn"><div class="sn-tb"><i data-c="bold"><b>B</b></i><i data-c="underline"><u>U</u></i><i data-c="foreColor">A</i><i data-c="justifyCenter">≡</i><i data-c="img">🖼 图片</i><i data-c="sample">示例图</i></div>
+      <div class="sn-ed" id="eH" contenteditable="true"></div></div>
+      <div class="ex">可输入文字、插入图片；图片支持 jpg / png / gif，单张不超过 2MB，手机上按屏幕宽度显示。</div>
+      <input type="file" id="eF" accept="image/png,image/jpeg,image/gif" style="display:none"></div></div>
+    <div class="erow" id="eRow"><label>重新提醒：</label><div class="f"><label class="ck"><input type="checkbox" id="eRe">会员下次选中该提现方式时再自动弹一次</label><div class="ex">只在图片内容有重要变化时勾选；不勾时已弹过的会员不再自动弹，点链接能看到新图。</div></div></div>
+  </div>
+  <div class="ebtns"><button class="btn-info" id="eOk">✔ 新 增</button><button class="btn-inv" id="eNo">取 消</button></div>
+</div></div>
+<div class="cmask" id="cMdl"><div class="cbox"><div class="ch">信息</div><div class="cb">删除提现引导，对应的已配置的多语言也将一并删除且将不可恢复，您确认删除吗？</div><div class="cf"><button class="ok" id="cOk">确定</button><button id="cNo">取消</button></div></div></div>
+<div class="toast" id="toast"></div>
+<!-- 原型演示 -->
+<div class="demobtn" id="dOpen">▶ 原型演示：前台提现页各状态</div>
+<div class="mmask" id="dMask"></div>
+<div class="demo" id="demo">
+  <div class="dh"><div><span class="pt">原型演示</span><b>前台提现页：各状态下的样子</b></div><span class="x" id="dX">✕</span></div>
+  <div class="db">
+    <p class="hint" style="margin-bottom:10px">以当前站点的配置为例，内容和后台列表同步。提现页其他部分不变，只新增账户区下方的教程链接和教程弹层（红色 NEW）。
+      皮肤（示意）：<select id="dSk" style="height:24px"><option value="dark">深色</option><option value="light">浅色</option></select></p>
+    <div class="states" id="states"></div>
+  </div>
+</div>
+<!-- 需求说明 -->
+<div class="handle" id="hDoc">需求说明</div>
+<div class="dmask" id="dmDoc"></div>
+<div class="drawer" id="drDoc">
+  <div class="dhead"><b>提现引导 · 需求说明</b><span class="x" id="xDoc">✕</span></div>
+  <div class="dbody prd">
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:240px">页面</th><th>改动点</th></tr>
+      <tr><td>老后台 → 消息管理 → <b>提现引导</b>（新页面）</td><td>按提现方式、引导类型配置各语种教程（文字 + 图片）：列表（查询 / 新增 / 修改 / 复制 / 删除）+ 新增修改弹窗</td></tr>
+      <tr><td>前台 → 提现页</td><td>账户区下方新增教程链接「How to bind」/「How to withdraw」，点击查看教程；可设置首次自动弹出一次</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">运营按本站的提现方式配置教程，每种方式可配绑定教程、提现教程各一套，内容是富文本，可放文字和图片</div>
+      <div class="kf">会员在提现页选中提现方式：没绑定显示「How to bind」，已绑定显示「How to withdraw」，点击查看教程</div>
+      <div class="kf">每套教程可勾选「首次进入自动弹出」：勾选的首次自动弹一次，之后只显示链接；不勾只显示链接。每次进入提现页最多自动弹一次。教程不拦截绑定和提现</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>配置维度</b><span class="kb">核心</span>：「提现方式 + 引导类型」在本站唯一。提现方式读本站「提现配置」，和前台提现页一致；修改时这两项不能改。
+      <table class="t">
+        <tr><th style="width:150px">提现方式状态</th><th>后台</th><th>前台</th></tr>
+        <tr><td>开启</td><td>正常</td><td>按规则显示</td></tr>
+        <tr><td>在提现配置里关闭</td><td>新增时仍可选，下拉和列表名称后标「（已关闭）」；已有配置保留</td><td>会员看不到这个提现方式，教程也不出现</td></tr>
+        <tr><td>重新开启</td><td>去掉「（已关闭）」</td><td>教程自动恢复</td></tr>
+      </table>
+      不需要绑定账户的提现方式（如 ARPay）只能配提现引导。
+    </div>
+
+    <div class="br key"><span class="bn">02</span><b>前台显示</b><span class="kb">核心</span>：
+      <table class="t">
+        <tr><th style="width:200px">会员当前选中的提现方式</th><th>教程链接</th><th style="width:240px">首次自动弹（勾选了自动弹出时）</th></tr>
+        <tr><td>没绑定账户</td><td>How to bind</td><td>绑定教程没弹过就自动弹</td></tr>
+        <tr><td>已绑定账户 / 不需要绑定</td><td>How to withdraw</td><td>提现教程没弹过就自动弹</td></tr>
+        <tr><td>对应类型没配置或已禁用</td><td>不显示</td><td>不弹</td></tr>
+      </table>
+      链接显示在账户区下方。进入提现页时默认选中的方式也算选中；切换方式时链接跟着变。会员绑定成功回到提现页后，按已绑定判断。链接文字是前台固定多语言文案。
+    </div>
+
+    <div class="br key"><span class="bn">03</span><b>查看教程</b><span class="kb">核心</span>：自动弹出和点链接打开的是同一个弹层：显示会员语种的标题和内容，标题没填时不显示标题栏；图片按屏幕宽度显示，内容太长可以上下滑动；下方按钮 OK 关闭，留在提现页。</div>
+
+    <div class="br key"><span class="bn">04</span><b>自动弹出与弹过的记录</b><span class="kb">核心</span>：会员每次进入提现页，最多自动弹一次；同一次里切换到其他方式，只显示链接，那条教程留到下次进入再弹。从添加页绑定成功回到提现页，这一次不自动弹。「自动弹出」默认勾选；不勾时前台只显示链接，「重新提醒」不可勾选。之后改为勾选，没被自动弹过的会员下次进入时会弹。弹过的记录按「同一会员 + 同一设备 + 同一套教程」记录。换会员、换设备、清除 APP 数据后，算没弹过。点链接打开不影响记录。</div>
+
+    <div class="br"><span class="bn">05</span><b>语种</b>：读取本站「前台参数配置」里勾选的语言，按语种分别填写标题和内容。默认语种为英语；站点没勾英语时，为第一个勾选的语言。默认语种的内容必填。会员当前语种没填或不在勾选范围内时，显示默认语种。某语种填了内容没填标题时，保存时提示。取消勾选的语种，内容保留但不显示。</div>
+
+    <div class="br key"><span class="bn">06</span><b>修改与重新提醒</b><span class="kb">核心</span>：修改时默认不重新提醒，已弹过的会员不再自动弹，点链接看到的是新内容；勾选「重新提醒」保存后，所有会员下次选中该方式时再自动弹一次。</div>
+
+    <div class="br"><span class="bn">07</span><b>复制</b>：复制已有配置的状态、自动弹出、各语种标题和内容，打开新增弹窗；提现方式和引导类型重新选，只能选本站还没添加的组合。保存后是一条新配置，和原配置互不影响。</div>
+
+    <div class="br"><span class="bn">08</span><b>启用 / 禁用 / 删除</b>：状态在弹窗内切换，禁用后不显示链接、不弹，再启用不重新弹。删除需二次确认，各语种内容一起删除；删除后可以重新添加，重新添加的算新配置。</div>
+
+    <div class="br"><span class="bn">09</span><b>图片</b>：内容里插入的图片支持 jpg、png、gif，单张不超过 2MB；格式不对或超过大小时提示且不插入。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:110px">项</th><th>说明</th></tr>
+      <tr><td>配置范围</td><td>每个站点在自己的老后台配置</td></tr>
+      <tr><td>适用模式</td><td>V1 模式、V3 模式都支持，规则相同</td></tr>
+      <tr><td>显示位置</td><td>只在提现页；添加账户页不显示</td></tr>
+      <tr><td>内容形式</td><td>富文本：文字、图片、加粗、颜色、居中</td></tr>
+      <tr><td>生效版本</td><td>需要前台新版本；老版本完整包 APP 不显示</td></tr>
+      <tr><td>权限</td><td>新增菜单「提现引导」，分查看、新增、修改、删除权限；操作记系统日志</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>教程随提现页现有的「获取提现方式」接口一起返回（这个接口已在返回保险箱引导内容），每种方式带绑定教程、提现教程的标题、内容、是否自动弹出和版本号，按会员语种取，不新开接口。</li>
+      <li>后台下拉和前台提现页读同一份提现配置，语种读前台参数配置里的语言勾选，V1、V3 模式都一样。</li>
+      <li>后台编辑沿用公告消息的富文本编辑器，图片走现有的图片服务器上传，内容里只存图片地址；格式和大小在上传前检查。</li>
+      <li>多语言存多语言表并新增一个类型；默认语种存主表。前台显示富文本前要过滤脚本和事件属性。</li>
+      <li>「提现方式 + 引导类型」唯一，软删除时唯一判断排除已删除的；勾选「重新提醒」时版本号加 1。</li>
+      <li>保存、删除后清前台缓存，否则会员要等缓存过期才看到新图。</li>
+      <li>是否绑定：切换方式后要等该方式的账户列表返回再判断，旧请求的结果晚到要丢弃；快捷提现按当前选中的钱包判断。</li>
+      <li>提现页原有弹窗（如保险箱引导）先出，关闭后再自动弹教程图，不能叠在一起。</li>
+      <li>弹过记录存前台本地，按会员 ID + 配置 ID + 版本号记；「本次进入已弹过」只在当前页面内记，离开提现页就清掉，绑定成功返回时置为已弹过。</li>
+      <li>V1、V3 站点的前台是两条代码线，两边都要上；链接文字「How to bind」「How to withdraw」要补齐前台所有语种。</li>
+      <li>每个站点执行建表脚本，并加菜单和权限。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LN={en:'英语',hi:'印地语',ur:'乌尔都语'};
+const KIND={bind:'绑定引导',withdraw:'提现引导'};
+// 站点、提现方式为示意数据；icon/add 只用于手机画面
+const MER={
+  ar055:{n:'AR055 BDG GAME',cur:'INR',sym:'₹',langs:['en','hi'],cats:[{k:'bank',n:'银行卡',t:'BANK CARD',i:'🏦',add:'Add a bank account number',acct:'State Bank · ****6612'},{k:'upi',n:'UPI',t:'UPI',i:'⓾',add:'Add UPI',acct:'rahul.kumar@ybl'},{k:'usdt',n:'USDT',t:'USDT',i:'₮',add:'Add address',acct:'TRC20 · TXk3…9fQ2'},{k:'arpay',n:'ARPay',t:'ARPay',i:'Ⓐ',nb:1,acct:'ARPay wallet'},{k:'paytm',n:'Paytm',t:'Paytm',i:'Ⓟ',off:1,add:'Add Wallet',acct:'Paytm · 98****1102'}]},
+  pk01:{n:'PK 示例站',cur:'PKR',sym:'Rs',langs:['ur'],cats:[{k:'easypaisa',n:'Easypaisa',t:'Easypaisa',i:'🟢',add:'Add Wallet',acct:'Easypaisa · 0345****221'},{k:'jazzcash',n:'JazzCash',t:'JazzCash',i:'🔴',off:1,add:'Add Wallet',acct:'JazzCash · 0301****908'},{k:'usdt',n:'USDT',t:'USDT',i:'₮',add:'Add address',acct:'TRC20 · TNp8…1aC7'}]}
+};
+const svg=(bg,ac,title,lines,foot)=>{const t=lines.map((x,n)=>`<rect x="40" y="${150+n*120}" width="520" height="96" rx="14" fill="rgba(255,255,255,.07)" stroke="${ac}" stroke-width="2"/><circle cx="88" cy="${198+n*120}" r="24" fill="${ac}"/><text x="88" y="${207+n*120}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="26" fill="${bg}">${n+1}</text><text x="130" y="${207+n*120}" font-family="Arial" font-weight="700" font-size="24" fill="#fff">${x}</text>`).join('');return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="${230+lines.length*120}" viewBox="0 0 600 ${230+lines.length*120}"><rect width="100%" height="100%" fill="${bg}"/><text x="300" y="80" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="40" fill="${ac}">${title}</text><text x="300" y="118" text-anchor="middle" font-family="Arial" font-size="20" fill="#ddd">${foot}</text>${t}</svg>`)};
+const IMG={
+  upiBind:(l='English')=>svg('#241a07','#f5c542','HOW TO BIND UPI',['Use a custom UPI ID','Not your mobile number','Enter UPI ID twice','Tap Save'],'Security notice · '+l),
+  upiBindHi:()=>svg('#241a07','#f5c542','UPI कैसे जोड़ें',['कस्टम UPI ID बनाएं','मोबाइल नंबर न डालें','UPI ID दो बार डालें','Save दबाएं'],'हिन्दी'),
+  upiW:()=>svg('#0f2340','#5fb4ff','HOW TO WITHDRAW',['Enter the amount','Tap Withdraw','Enter withdrawal password','Check Withdrawal history'],'UPI'),
+  usdtBind:()=>svg('#0d2a22','#3ddc97','BIND USDT ADDRESS',['Choose TRC20 network','Paste your address','Check the network again'],'Wrong network = lost funds'),
+  ep:()=>svg('#0c2a17','#36c26b','ایزی پیسہ لنک کریں',['موبائل نمبر درج کریں','اکاؤنٹ کا نام چیک کریں','Save دبائیں'],'Easypaisa')
+};
+let NID=5,VER=10;
+let rows=[
+ {id:1,m:'ar055',c:'upi',k:'bind',st:0,auto:1,ver:1,man:'betty',time:'2026-11-05 10:21:05',title:{en:'How to bind UPI',hi:'UPI कैसे जोड़ें'},html:{en:`<p style="text-align:center"><img src="${IMG.upiBind()}"></p><p>Do not use your mobile number as UPI ID. Create a <b>custom UPI ID</b> in your UPI app first.</p>`,hi:`<p style="text-align:center"><img src="${IMG.upiBindHi()}"></p><p>मोबाइल नंबर को UPI ID न बनाएं। पहले <b>कस्टम UPI ID</b> बनाएं।</p>`}},
+ {id:2,m:'ar055',c:'upi',k:'withdraw',st:0,auto:1,ver:2,man:'betty',time:'2026-11-05 10:25:40',title:{en:'How to withdraw'},html:{en:'<p>1. Enter the amount.</p><p>2. Tap <b>Withdraw</b> and enter your withdrawal password.</p><p>3. Check the status in Withdrawal history.</p>'}},
+ {id:3,m:'ar055',c:'usdt',k:'bind',st:0,auto:0,ver:3,man:'betty',time:'2026-11-05 10:30:12',title:{en:'Bind USDT address'},html:{en:`<p style="text-align:center"><img src="${IMG.usdtBind()}"></p><p>Check the network before adding your address.</p>`}},
+ {id:4,m:'pk01',c:'easypaisa',k:'bind',st:0,auto:1,ver:4,man:'admin',time:'2026-11-05 11:02:33',title:{ur:'ایزی پیسہ لنک کریں'},html:{ur:'<p>ایزی پیسہ اکاؤنٹ میں رجسٹرڈ موبائل نمبر درج کریں۔</p>'}}
+];
+const base=m=>MER[m].langs.includes('en')?'en':MER[m].langs[0];
+const catOf=(m,c)=>MER[m].cats.find(x=>x.k===c);
+const cn=c=>c.n+(c.off?'（已关闭）':'');
+const now=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`};
+function toast(m,e){const t=$('#toast');t.textContent=m;t.className='toast'+(e?' err':'');t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2600)}
+const txt=h=>{const d=document.createElement('div');d.innerHTML=h||'';return d.textContent.trim()};
+const imgs=h=>((h||'').match(/<img/g)||[]).length;
+const has=h=>!!(txt(h)||imgs(h));
+
+/* ---- 列表（只看当前站点） ---- */
+const site=()=>$('#site').value;
+$('#site').innerHTML=Object.entries(MER).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
+function fillQC(){$('#qC').innerHTML='<option value="">全部</option>'+MER[site()].cats.map(c=>`<option value="${c.k}">${cn(c)}</option>`).join('')}
+let Q={};
+function renderList(){
+  $('#cur').textContent=MER[site()].cur;
+  const r=rows.filter(x=>x.m===site()&&(!Q.c||x.c===Q.c)&&(!Q.k||x.k===Q.k)&&(!Q.s||String(x.st)===Q.s)).sort((a,b)=>b.id-a.id);
+  $('#lb').innerHTML=r.map(x=>{const bl=base(x.m),n=imgs(x.html[bl]),t=txt(x.html[bl]);return `<tr><td>${x.id}</td><td${catOf(x.m,x.c).off?' style="color:#999"':''}>${cn(catOf(x.m,x.c))}</td><td>${KIND[x.k]}</td><td>${esc(x.title[bl]||'-')}</td><td class="l">${n?`[图片×${n}] `:''}${esc(t.length>30?t.slice(0,30)+'…':t)}</td><td>${MER[x.m].langs.filter(l=>has(x.html[l])).map(l=>LN[l]).join('、')}</td><td>${x.auto?'是':'否'}</td><td class="${x.st===0?'st-on':'st-off'}">${x.st===0?'启用':'禁用'}</td><td>${esc(x.man)}</td><td>${x.time}</td><td><button class="lbtn" data-e="${x.id}">修改</button><button class="lbtn" data-cp="${x.id}">复制</button><button class="lbtn" data-d="${x.id}">删除</button></td></tr>`}).join('')||'<tr><td colspan="11" style="color:#999;padding:24px">暂无数据</td></tr>';
+  $$('[data-e]').forEach(b=>b.onclick=()=>openEdit(+b.dataset.e));
+  $$('[data-cp]').forEach(b=>b.onclick=()=>openCopy(+b.dataset.cp));
+  $$('[data-d]').forEach(b=>b.onclick=()=>{delId=+b.dataset.d;$('#cMdl').style.display='flex'});
+}
+$('#site').onchange=()=>{Q={};['#qK','#qS'].forEach(s=>$(s).value='');fillQC();renderList()};
+$('#qGo').onclick=()=>{Q={c:$('#qC').value,k:$('#qK').value,s:$('#qS').value};renderList()};
+$('#qReset').onclick=()=>{['#qC','#qK','#qS'].forEach(s=>$(s).value='');Q={};renderList()};
+let delId=0;
+$('#cNo').onclick=()=>$('#cMdl').style.display='none';
+$('#cOk').onclick=()=>{rows=rows.filter(x=>x.id!==delId);$('#cMdl').style.display='none';renderList();toast('删除成功')};
+
+/* ---- 新增 / 修改 / 复制（弹窗） ---- */
+let edit=null,dr=null;
+const showE=o=>$('#eMdl').classList.toggle('on',o);
+const used=(c,k)=>rows.some(x=>x.m===site()&&x.c===c&&x.k===k);
+const freeK=c=>(catOf(site(),c).nb?['withdraw']:['bind','withdraw']).filter(k=>!used(c,k));
+function fillC(){const l=MER[site()].cats.filter(c=>freeK(c.k).length);$('#eC').innerHTML=l.length?l.map(c=>`<option value="${c.k}">${cn(c)}</option>`).join(''):'<option value="">本站的引导都已添加</option>';fillK()}
+function fillK(){const c=$('#eC').value,l=c?freeK(c):[];$('#eK').innerHTML=l.map(k=>`<option value="${k}">${KIND[k]}</option>`).join('');hintK()}
+const hintK=()=>{const k=$('#eK').value,c=catOf(site(),$('#eC').value);$('#eKh').textContent=c&&c.nb?'该提现方式不需要绑定账户，只能配提现引导，前台显示「How to withdraw」':((k==='bind'?'会员还没绑定时，前台显示「How to bind」':k==='withdraw'?'会员已绑定时，前台显示「How to withdraw」':'')+(c&&c.off?'。该提现方式已关闭，开启后前台才显示':''))};
+function openAdd(){edit=null;$('#eT').textContent='新增提现引导';$('#eOk').textContent='✔ 新 增';$('#eRow').style.display='none';['#eC','#eK'].forEach(s=>$(s).disabled=false);fillC();dr={title:{},html:{}};lang=base(site());$('#eS').value='0';$('#eA').checked=true;syncRe();loadLang();showE(true)}
+function openCopy(id){const x=rows.find(r=>r.id===id);if(!MER[site()].cats.some(c=>freeK(c.k).length)){toast('本站的引导都已添加，没有可复制到的提现方式',true);return}openAdd();$('#eT').textContent='复制提现引导';dr={title:{...x.title},html:{...x.html}};lang=base(site());$('#eS').value=String(x.st);$('#eA').checked=!!x.auto;syncRe();loadLang();toast(`已复制「${cn(catOf(x.m,x.c))} · ${KIND[x.k]}」的内容，请选择新的提现方式和引导类型`)}
+function openEdit(id){const x=rows.find(r=>r.id===id);edit=x;$('#eT').textContent='修改提现引导';$('#eOk').textContent='✔ 修 改';$('#eRow').style.display='';$('#eRe').checked=false;$('#eC').innerHTML=`<option value="${x.c}">${cn(catOf(x.m,x.c))}</option>`;$('#eK').innerHTML=`<option value="${x.k}">${KIND[x.k]}</option>`;hintK();['#eC','#eK'].forEach(s=>$(s).disabled=true);$('#eS').value=String(x.st);dr={title:{...x.title},html:{...x.html}};lang=base(site());$('#eA').checked=!!x.auto;syncRe();loadLang();showE(true)}
+let upLang='';
+const syncRe=()=>{const on=$('#eA').checked;$('#eRe').disabled=!on;if(!on)$('#eRe').checked=false};
+$('#eA').onchange=syncRe;
+let lang='';
+function loadLang(){const ls=MER[site()].langs,bl=base(site());
+  $('#eLh').textContent=`语种读取本站「前台参数配置」勾选的语言。绿点表示已填内容。${LN[bl]}必填，会员的语种没填或不在勾选范围内时显示${LN[bl]}。`;
+  $('#eL').innerHTML=ls.map(l=>`<span data-l="${l}" class="${l===lang?'on':''} ${has(dr.html[l])?'has':''}">${LN[l]}</span>`).join('');
+  $$('#eL span').forEach(x=>x.onclick=()=>{keep();lang=x.dataset.l;loadLang()});
+  $('#eTi').value=dr.title[lang]||'';$('#eH').innerHTML=dr.html[lang]||''}
+function keep(){dr.title[lang]=$('#eTi').value.trim();dr.html[lang]=has($('#eH').innerHTML)?$('#eH').innerHTML:''}
+$('#eH').addEventListener('input',()=>{keep();$$('#eL span').forEach(x=>x.classList.toggle('has',has(dr.html[x.dataset.l])))});
+$$('.sn-tb i').forEach(b=>b.onmousedown=e=>{e.preventDefault();const c=b.dataset.c;$('#eH').focus();
+  if(c==='img'){$('#eF').click();return}
+  if(c==='sample')document.execCommand('insertHTML',false,`<p style="text-align:center"><img src="${IMG.upiBind(LN[lang])}"></p>`);
+  else if(c==='foreColor')document.execCommand('foreColor',false,'#e53935');
+  else document.execCommand(c,false,null);
+  $('#eH').dispatchEvent(new Event('input'))});
+$('#eC').onchange=fillK;$('#eK').onchange=hintK;
+$('#eF').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;if(!/^image\/(png|jpe?g|gif)$/.test(f.type)){toast('只支持 jpg / png / gif',true);return}if(f.size>2*1024*1024){toast('图片不能超过 2MB',true);return}const r=new FileReader();r.onload=()=>{$('#eH').focus();document.execCommand('insertHTML',false,`<p style="text-align:center"><img src="${r.result}"></p>`);$('#eH').dispatchEvent(new Event('input'))};r.readAsDataURL(f)};
+$('#eX').onclick=$('#eNo').onclick=()=>showE(false);
+$('#addBtn').onclick=openAdd;
+$('#eOk').onclick=()=>{keep();
+  if(!edit&&(!$('#eC').value||!$('#eK').value)){toast('本站的引导都已添加',true);return}
+  const bl=base(site());if(!has(dr.html[bl])){toast(`请填写${LN[bl]}内容`,true);return}
+  const noT=MER[site()].langs.filter(l=>l!==bl&&has(dr.html[l])&&!dr.title[l]&&dr.title[bl]).map(l=>LN[l]);const tip=noT.length?`；${noT.join('、')}没填标题，该语种不显示标题栏`:'';
+  const st=+$('#eS').value;
+  const auto=$('#eA').checked;
+  if(edit){Object.assign(edit,{st,auto,title:{...dr.title},html:{...dr.html},man:'admin',time:now()});if($('#eRe').checked)edit.ver=++VER;toast(($('#eRe').checked?'修改成功，会员下次会再自动弹一次':'修改成功，已弹过的会员不再自动弹')+tip,!!tip)}
+  else{rows.push({id:NID++,m:site(),c:$('#eC').value,k:$('#eK').value,st,auto,ver:++VER,man:'admin',time:now(),title:{...dr.title},html:{...dr.html}});toast('新增成功'+tip,!!tip)}
+  showE(false);renderList()};
+/* ---- 前台演示：静态状态图 ---- */
+function phone(m,c,acct,link,pop){
+  return `<div class="phone sm ${$('#dSk').value==='dark'?'dark':''}"><div class="ph-screen"><div class="navbar"><em>‹</em>Withdraw<small>Withdrawal history</small></div><div class="page">
+    <div class="bal"><small>Available balance</small><b>${m.sym}0.00</b></div>
+    <div class="way">${m.cats.filter(x=>!x.off).map(x=>`<div class="${x.k===c.k?'on':''}"><i>${x.i}</i>${x.t}</div>`).join('')}</div>
+    ${acct}${link?`<div class="howto"><span>ⓘ</span>${link}<b>›</b></div>`:''}
+    <div class="fld"><div class="inp"><span>${m.sym}</span>Please enter the amount</div><div class="r"><span>Withdrawable balance</span><b>${m.sym}0.00</b></div></div>
+    <div class="wbtn ${acct.includes('add')?'':'on'}">Withdraw</div></div></div>
+    ${pop?`<div class="ph-mask on"><div class="iv">${pop.title?`<div class="ivh">${esc(pop.title)}</div>`:''}<div class="ivs">${pop.html}</div><button>OK</button></div></div>`:''}</div>`}
+function drawStates(){
+  const mk=site(),m=MER[mk],bl=base(mk),live=m.cats.filter(x=>!x.off);
+  const on=(c,k)=>rows.find(x=>x.m===mk&&x.c===c&&x.k===k&&x.st===0);
+  const c=live.find(x=>on(x.k,'bind'))||live[0],rb=on(c.k,'bind'),rw=on(c.k,'withdraw');
+  const none=live.find(x=>!x.nb&&!on(x.k,'bind'))||live.find(x=>x!==c)||c;
+  const add=x=>`<div class="acct add"><b>＋ ${x.add||'Add'}</b>Need to add beneficiary information to be able to withdraw money</div>`;
+  const has_=x=>`<div class="acct"><small>${x.t}</small>${x.acct}</div>`;
+  const P=r=>r?{title:r.title[bl]||'',html:r.html[bl]}:{title:'',html:'<p style="color:#999">（该方式还没配置提现教程）</p>'};
+  const S=[
+    ['① 没绑定','显示「How to bind」，点击查看绑定教程',phone(m,c,add(c),'How to bind')],
+    ['② 首次进入，自动弹出','勾选了自动弹出的教程，首次进入弹一次；点 OK 关闭。每次进入提现页最多弹一次',phone(m,c,add(c),'How to bind',P(rb))],
+    ['③ 已绑定','显示「How to withdraw」，点击查看提现教程。不需要绑定的方式（如 ARPay）也显示这个',phone(m,c,has_(c),'How to withdraw')],
+    ['④ 点链接查看','和自动弹出是同一个弹层；内容长可上下滑动',phone(m,c,has_(c),'How to withdraw',P(rw))],
+    ['⑤ 没配置或已禁用','不显示链接，也不弹',phone(m,none,add(none),'')]
+  ];
+  $('#states').innerHTML=S.map(([t,d,h])=>`<div class="st"><div class="st-t">${t}</div><div class="st-d">${d}</div>${h}</div>`).join('');
+}
+$('#dSk').onchange=drawStates;
+function oD(o){$('#demo').style.display=o?'flex':'none';$('#dMask').style.display=o?'block':'none';if(o)drawStates()}
+$('#dOpen').onclick=()=>oD(true);$('#dX').onclick=$('#dMask').onclick=()=>oD(false);
+function doc(o){$('#drDoc').classList.toggle('on',o);$('#dmDoc').classList.toggle('on',o)}
+$('#hDoc').onclick=()=>doc(true);$('#xDoc').onclick=$('#dmDoc').onclick=()=>doc(false);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){doc(false);oD(false);$('#cMdl').style.display='none'}});
+fillQC();renderList();
+</script>
+</body>
+</html>
