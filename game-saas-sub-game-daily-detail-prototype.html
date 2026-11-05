@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>子游戏报表-每日明细原型</title>
+<style>
+:root{
+  --primary:#1677ff; --primary-bg:#e6f4ff;
+  --side-bg:#001529; --side-text:#cfd8e3; --side-active:#1677ff;
+  --bg:#f0f2f5; --card:#fff; --text:#1f2329; --sub:#646a73; --line:#e8eaed; --head-bg:#fafafa;
+  --red:#f5222d; --green:#389e0d; --mask:rgba(0,0,0,.45); --tab-bg:#fff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --primary-bg:#111a2c; --bg:#141414; --card:#1f1f1f; --text:#e6e6e6; --sub:#9aa0a6; --line:#303030; --head-bg:#262626; --tab-bg:#1f1f1f;
+    --red:#ff6b6b; --green:#73d13d;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--bg);min-width:1100px}
+.app{display:flex;min-height:100vh}
+.side{width:180px;background:var(--side-bg);color:var(--side-text);flex:none;padding-top:8px}
+.logo{height:48px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;letter-spacing:2px}
+.side .m{padding:11px 20px;display:flex;justify-content:space-between;font-size:13px}
+.side .s{padding:10px 20px 10px 36px;font-size:13px}
+.side .s.on{background:var(--side-active);color:#fff;border-radius:4px;margin:2px 4px;padding-left:32px}
+.main{flex:1;min-width:0}
+.top{height:48px;background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);color:var(--sub);font-size:13px}
+.tabs{display:flex;gap:6px;padding:10px 16px 0;overflow:hidden}
+.tab{background:var(--tab-bg);padding:5px 12px;border-radius:4px;font-size:13px;white-space:nowrap}
+.tab.on{background:var(--primary);color:#fff}
+.page{padding:12px 48px 12px 40px}
+.card{background:var(--card);border-radius:6px;padding:16px 20px;margin-bottom:12px}
+h2{margin:0 0 14px;font-size:16px}
+.form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 40px}
+.f{display:flex;align-items:center;gap:10px}
+.f label{width:72px;text-align:right;color:var(--sub);flex:none}
+.inp{flex:1;border:1px solid var(--line);border-radius:6px;padding:5px 10px;min-height:32px;background:var(--card);color:var(--text);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.chip{background:var(--head-bg);border:1px solid var(--line);padding:0 6px;border-radius:4px;font-size:12px}
+.btnrow{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:6px;padding:5px 16px;cursor:pointer;font-size:14px}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.tools{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:10px 8px;text-align:center;font-size:13px}
+th{background:var(--head-bg);font-weight:600}
+a.lk{color:var(--primary);cursor:pointer}
+.tag{background:var(--primary-bg);color:var(--primary);border-radius:4px;padding:0 6px;font-size:12px}
+.neg{color:var(--red);font-weight:600}.pos{color:var(--green);font-weight:600}.dash{color:var(--sub)}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:12px;color:var(--sub);font-size:13px}
+.pg{min-width:28px;height:28px;border:1px solid var(--line);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);background:var(--card)}
+.pg.on{border-color:var(--primary);color:var(--primary)}
+.pg.dis{opacity:.4;cursor:not-allowed}
+.pager select,.pager input{border:1px solid var(--line);border-radius:6px;height:28px;background:var(--card);color:var(--text);padding:0 6px}
+.pager input{width:52px}
+
+.form2{display:grid;grid-template-columns:1fr 1.15fr;gap:14px 28px}
+.form2 .f{min-width:0}
+.form2 .f label{width:68px}
+.inp.sel{position:relative;padding-right:24px;flex-wrap:nowrap;white-space:nowrap}
+.inp .ph{color:var(--sub);opacity:.7}
+.inp .cv{position:absolute;right:8px;font-style:normal;color:var(--sub)}
+.inp.dt{justify-content:space-between;padding:5px 14px}
+.f.r2{gap:10px}.grow{flex:1}
+.rt{display:flex;align-items:center;gap:12px}
+.quick{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:13px}
+.quick span{padding:3px 8px;border-right:1px solid var(--line);cursor:pointer}.quick span:last-child{border:0}
+.sw{width:38px;height:20px;border-radius:10px;background:var(--line);display:inline-block;position:relative}
+.sw::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff}
+.ic{color:var(--sub);font-size:16px}
+.so{font-style:normal;color:var(--sub);font-size:11px;margin-left:2px}
+.tscroll{overflow-x:auto}
+/* modal */
+.mask{position:fixed;inset:0;background:var(--mask);display:none;align-items:center;justify-content:center;z-index:20}
+.mask.show{display:flex}
+.modal{background:var(--card);border-radius:8px;padding:20px 24px;max-height:92vh;display:flex;flex-direction:column;width:min(1320px,calc(100vw - 48px))}
+.modal.old{width:960px}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mh b{font-size:16px}
+.x{cursor:pointer;font-size:20px;color:var(--sub);border:0;background:none}
+.mbody{overflow:auto;margin-top:12px;border:1px solid var(--line);border-radius:6px;min-height:0}
+.mbody table{table-layout:fixed}
+.mbody th,.mbody td{border-width:0 0 1px 0;border-right:1px solid var(--line)}
+.mbody thead th{position:sticky;top:0;z-index:2}
+.modal.old .mbody table{min-width:1300px}
+.modal.old th:last-child,.modal.old td:last-child{position:sticky;right:0;background:var(--card);box-shadow:-2px 0 4px rgba(0,0,0,.08)}
+.modal.old thead th:last-child{background:var(--head-bg)}
+.modal.old .newc{display:none}
+th{position:relative}
+.nb{position:absolute;top:-7px;right:-6px;background:#f5222d;color:#fff;font-size:10px;font-weight:700;line-height:1;padding:2px 4px;border-radius:3px;z-index:3;font-style:normal;letter-spacing:.3px}
+.chg-wrap{position:relative;display:inline-block}
+.mh b{position:relative;display:inline-block}
+.demo{margin:0 0 10px;border:1px dashed var(--primary);border-radius:6px;padding:8px 14px;color:var(--sub);font-size:12px;background:var(--card)}
+.demo b{color:var(--primary)}
+.ptabs{display:flex;gap:6px;margin:0 0 10px}
+.ptab{padding:5px 14px;border:1px solid var(--line);border-radius:6px;background:var(--card);cursor:pointer;font-size:13px}
+.ptab.on{background:var(--primary);color:#fff;border-color:var(--primary)}
+/* drawer */
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:40;background:var(--primary);color:#fff;writing-mode:vertical-rl;letter-spacing:4px;padding:16px 8px;border-radius:8px 0 0 8px;cursor:pointer;font-size:14px;box-shadow:-2px 2px 8px rgba(0,0,0,.15)}
+.dmask{position:fixed;inset:0;background:var(--mask);z-index:60;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:820px;max-width:92vw;background:var(--card);z-index:61;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;box-shadow:-4px 0 16px rgba(0,0,0,.15)}
+.dopen .dmask{display:block}.dopen .drawer{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--line);font-size:16px;font-weight:600}
+.db{overflow:auto;padding:20px 24px 40px;line-height:1.7}
+.db h3{font-size:15px;margin:26px 0 10px;padding-left:10px;border-left:3px solid var(--primary)}
+.db h3:first-of-type{margin-top:8px}
+.pin{background:var(--primary-bg);color:var(--primary);padding:6px 12px;border-radius:6px;font-size:13px;margin:0 0 10px}
+.db table th,.db table td{text-align:left;padding:8px 10px}
+.db table th{text-align:center}
+.core{border:1px solid var(--primary);background:var(--primary-bg);border-radius:8px;padding:10px 16px;margin-bottom:12px}
+.core b{color:var(--primary)}
+.core ul{margin:6px 0 0;padding-left:20px}
+.rule{display:flex;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px}
+.rule.c{border-color:var(--primary);background:var(--primary-bg)}
+.rule .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+.rule .tg{background:var(--primary);color:#fff;font-size:11px;border-radius:3px;padding:0 5px;margin-right:6px}
+.dev{margin:0;padding-left:22px}.dev li{margin-bottom:6px}
+.hint{font-size:12px;color:var(--sub);margin-top:8px}
+/* floating panel */
+.panel{position:fixed;right:16px;bottom:16px;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.12);max-width:260px}
+.seg{display:inline-flex;border:1px solid var(--primary);border-radius:6px;overflow:hidden;margin-top:6px}
+.seg span{padding:3px 12px;cursor:pointer;color:var(--primary)}
+.seg span.on{background:var(--primary);color:#fff}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);box-shadow:0 4px 16px rgba(0,0,0,.15);padding:8px 18px;border-radius:6px;z-index:50;display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">AR</div>
+    <div class="m"><span>游戏管理</span><span>⌄</span></div>
+    <div class="m"><span>彩票管理</span><span>⌄</span></div>
+    <div class="m"><span>商户管理</span><span>⌄</span></div>
+    <div class="m"><span>代理管理</span><span>⌄</span></div>
+    <div class="m"><span>会员管理</span><span>⌄</span></div>
+    <div class="m"><span>报表管理</span><span>⌃</span></div>
+    <div class="s">总数据报表</div><div class="s">商户报表</div><div class="s">游戏厂商报表</div>
+    <div class="s on">子游戏报表</div>
+    <div class="s">会员报表</div><div class="s">对账报表</div><div class="s">游戏费用报表</div><div class="s">策略报表</div>
+    <div class="m"><span>系统设置</span><span>⌄</span></div>
+  </aside>
+  <div class="main">
+    <div class="top"><span>报表管理 / 子游戏报表</span><span>默认当前时区 (UTC+4) &nbsp;|&nbsp; aradmin</span></div>
+    <div class="tabs"><span class="tab">Welcome ×</span><span class="tab">会员投注记录 ×</span><span class="tab">游戏映射管理 ×</span><span class="tab">日志管理 ×</span><span class="tab on">子游戏报表 ×</span></div>
+    <div class="page">
+      <div class="demo"><b>原型演示</b>　数据为演示数据；2026-06-04 当天无人投注，用来演示分母为 0 显示「-」。右侧边缘「需求说明」可展开需求。</div>
+      <div class="ptabs"><span class="ptab on" id="tMain" onclick="showTab('main')">原型页面切换：主列表</span><span class="ptab" id="tNew" onclick="showTab('new')">明细弹窗（改后）</span><span class="ptab" id="tOld" onclick="showTab('old')">明细弹窗（改前）</span></div>
+      <div class="card">
+        <h2>子游戏报表</h2>
+        <div class="form2">
+          <div class="f"><label>商户名称</label><div class="inp sel" id="fMerchant"></div><div class="inp sel" id="fAgent"></div></div>
+          <div class="f"><label>游戏厂商</label><div class="inp sel" id="fVendor"></div><div class="inp sel" id="fGame"></div><div class="inp sel" id="fChannel"></div></div>
+          <div class="f"><label>报表日期</label><div class="inp dt"><span id="dFrom"></span><span class="dash">→</span><span id="dTo"></span><span class="dash">▢</span></div></div>
+          <div class="f r2">
+            <label style="width:auto">币种</label><div class="inp sel" id="fCur" style="max-width:240px"></div>
+            <label style="width:auto">供应商</label><div class="inp sel" id="fSup" style="max-width:240px"></div>
+            <span class="grow"></span>
+            <button class="btn p" onclick="query()">查询</button><button class="btn" onclick="resetQ()">重置</button><a class="lk">收起 ⌃</a>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tools">
+          <button class="btn p" onclick="toast('原型：主列表导出不在本次范围')">导出</button>
+          <div class="rt">
+            <span class="quick"><span>今天</span><span>昨天</span><span>上周</span><span>上月</span><span>前一日</span><span>后一日</span></span>
+            <span class="sw"></span><span class="ic">⟳</span><span class="ic">Ⓘ</span><span class="ic">⚙</span>
+          </div>
+        </div>
+        <div class="tscroll"><table>
+          <thead><tr>
+            <th>子游戏名称</th><th>所属厂商</th><th>币种</th><th>投注人数 <i class="so">↓</i></th><th>投注笔数</th><th>投注金额 <i class="so">↓</i></th><th>税费</th><th>有效投注金额</th><th>派彩金额 <i class="so">↓</i></th><th>输赢额</th><th>盈利率 <i class="so">↓</i></th><th>操作</th>
+          </tr></thead>
+          <tbody id="mainBody"></tbody>
+        </table></div>
+        <div class="pager"><span id="mainTotal"></span><span class="pg dis">‹</span><span class="pg on">1</span><span class="pg dis">›</span><select><option>20 / 页</option></select>跳至 <input value="1"></div>
+        <div class="hint">说明：主列表字段与真实页面一致（含税费）。本次不加 3 个新指标，是否同步待确认；合计行的「投注人数」是去重后的人数，不是每天相加。点「重置」可看无数据状态，点「查询」恢复演示数据。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal" id="modal">
+    <div class="mh"><b id="mTitle"></b><span class="nb chg" style="top:-9px;right:-30px">改</span><button class="x" onclick="closeModal()" aria-label="关闭">×</button></div>
+    <div><span class="chg-wrap"><button class="btn p" onclick="doExport()">导出</button><span class="nb chg">改</span></span></div>
+    <div class="mbody"><table><colgroup id="cols"></colgroup><thead id="mHead"></thead><tbody id="mBody"></tbody></table></div>
+    <div class="pager" id="pager"></div>
+    <div class="hint" id="mHint"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 演示数据（2026-06-12 起为截图真值，之前为模拟）=====
+const real = {
+  '2026-06-29':[87,28507,401344.50,392667.30],'2026-06-28':[63,31081,362733.60,363066.40],
+  '2026-06-27':[71,39652,510054.60,495325.90],'2026-06-26':[69,21484,148580.70,137022.80],
+  '2026-06-25':[69,30531,284600.90,282749.60],'2026-06-24':[84,35768,272301.50,272939.30],
+  '2026-06-23':[79,25737,167924.10,159408.50],'2026-06-22':[72,29151,229776.20,224779.80],
+  '2026-06-21':[75,35744,277861.90,268226.80],'2026-06-20':[60,22945,198075.60,190395.24],
+  '2026-06-19':[47,19335,191751.70,183140.12]
+};
+let seed = 20260601;
+const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+const rows = [];
+for (let d = 29; d >= 1; d--) {
+  const date = '2026-06-' + String(d).padStart(2, '0');
+  let r = real[date];
+  if (!r) {
+    if (d === 4) r = [0, 0, 0, 0];
+    else {
+      const people = 40 + Math.floor(rnd() * 50);
+      const bets = Math.round(people * (250 + rnd() * 250));
+      const amt = Math.round(bets * (6 + rnd() * 9) * 10) / 10;
+      const rate = -0.07 + rnd() * 0.08;
+      r = [people, bets, amt, Math.round(amt * (1 + rate) * 100) / 100];
+    }
+  }
+  const [people, bets, amt, pay] = r;
+  rows.push({ date, people, bets, bet: amt, tax: 0, eff: amt, pay, win: Math.round((pay - amt) * 100) / 100 });
+}
+const sum = k => rows.reduce((a, r) => a + r[k], 0);
+const DISTINCT_PEOPLE = 312; // 合计行：去重人数，不是每天相加
+
+// ===== 工具 =====
+const fmt = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const div = (a, b) => b === 0 ? null : a / b;
+const show = n => n === null ? '-' : fmt(n);
+function rateOf(r) { const v = div(r.win, r.eff); return v === null ? null : v * 100; }
+function rateHtml(v) {
+  if (v === null) return '<span class="dash">-</span>';
+  return `<span class="${v < 0 ? 'neg' : v > 0 ? 'pos' : ''}">${v.toFixed(2)}%</span>`;
+}
+// 弹窗列定义：展示和导出共用这一份，保证所见即所得、顺序一致
+const COLS = [
+  { h: '日期',            w: 110, v: r => r.date,                       csv: r => r.date },
+  { h: '投注人数',        w: 90,  v: r => r.people,                     csv: r => r.people },
+  { h: '投注笔数',        w: 90,  v: r => r.bets,                       csv: r => r.bets },
+  { h: '投注金额',        w: 120, v: r => fmt(r.bet),                   csv: r => r.bet.toFixed(2) },
+  { h: '税费',            w: 80,  v: r => fmt(r.tax),                   csv: r => r.tax.toFixed(2) },
+  { h: '有效投注金额',    w: 120, v: r => fmt(r.eff),                   csv: r => r.eff.toFixed(2) },
+  { h: '派彩金额',        w: 120, v: r => fmt(r.pay),                   csv: r => r.pay.toFixed(2) },
+  { h: '输赢额',          w: 110, v: r => fmt(r.win),                   csv: r => r.win.toFixed(2) },
+  { h: '盈利率',          w: 90,  html: r => rateHtml(rateOf(r)),       csv: r => { const v = rateOf(r); return v === null ? '-' : v.toFixed(2) + '%'; } },
+  { h: '人均投注笔数',    w: 110, n: 1, v: r => show(div(r.bets, r.people)), csv: r => { const v = div(r.bets, r.people); return v === null ? '-' : v.toFixed(2); } },
+  { h: '人均有效投注金额', w: 130, n: 1, v: r => show(div(r.eff, r.people)),  csv: r => { const v = div(r.eff, r.people); return v === null ? '-' : v.toFixed(2); } },
+  { h: '平均每笔有效投注金额', w: 150, n: 1, v: r => show(div(r.eff, r.bets)), csv: r => { const v = div(r.eff, r.bets); return v === null ? '-' : v.toFixed(2); } }
+];
+
+// ===== 筛选 + 主列表 =====
+const ph = t => `<span class="ph">${t}</span><i class="cv">⌄</i>`;
+const val = t => `<span class="chip">${t} ×</span><i class="cv">⌄</i>`;
+function renderMain(filled) {
+  const set = (id, h) => document.getElementById(id).innerHTML = h;
+  set('fMerchant', filled ? val('AR041-bigm--1041') : ph('请选择所属商户'));
+  set('fAgent', ph('请选择所属代理'));
+  set('fVendor', filled ? val('JILI电子') : ph('请选择游戏厂商'));
+  set('fGame', filled ? val('Mega Fishing') : ph('请选择子游戏'));
+  set('fChannel', ph('请选择通道'));
+  set('fCur', ph('请选择币种'));
+  set('fSup', ph('请选择供应商'));
+  document.getElementById('dFrom').textContent = filled ? '2026-06-01' : '2026-10-29';
+  document.getElementById('dTo').textContent = filled ? '2026-06-29' : '2026-11-04';
+  const body = document.getElementById('mainBody');
+  if (!filled) {
+    body.innerHTML = '<tr><td colspan="12" style="padding:48px;color:var(--sub)">无数据</td></tr>';
+    document.getElementById('mainTotal').textContent = '共 0 条';
+    return;
+  }
+  const t = { people: DISTINCT_PEOPLE, bets: sum('bets'), bet: sum('bet'), tax: 0, eff: sum('eff'), pay: sum('pay'), win: Math.round(sum('win') * 100) / 100 };
+  const rate = rateOf(t);
+  const nums = `<td>${t.people}</td><td>${t.bets}</td><td>${fmt(t.bet)}</td><td>${fmt(t.tax)}</td><td>${fmt(t.eff)}</td><td>${fmt(t.pay)}</td><td>${fmt(t.win)}</td><td>${rateHtml(rate)}</td>`;
+  body.innerHTML = `
+    <tr><td>CN:王者捕鱼<br>N:Mega Fishing</td><td><span class="tag">JILI</span></td><td><span class="tag">INR</span></td>${nums}<td><a class="lk" onclick="openModal()">明细</a></td></tr>
+    <tr><td>合计</td><td></td><td>INR</td>${nums}<td></td></tr>`;
+  document.getElementById('mainTotal').textContent = '共 1 条';
+}
+const query = () => renderMain(true);
+const resetQ = () => renderMain(false);
+renderMain(true);
+
+// ===== 弹窗 =====
+let page = 1, size = 20, ver = 'new';
+const modal = document.getElementById('modal');
+function openModal() { setTabUI(ver); page = 1; render(); document.getElementById('mask').classList.add('show'); }
+function closeModal() { document.getElementById('mask').classList.remove('show'); setTabUI('main'); }
+document.getElementById('mask').addEventListener('click', e => { if (e.target.id === 'mask') closeModal(); });
+function setTabUI(t) { ['Main', 'New', 'Old'].forEach(k => document.getElementById('t' + k).classList.toggle('on', k.toLowerCase() === t)); }
+function showTab(t) {
+  setTabUI(t);
+  if (t === 'main') { document.getElementById('mask').classList.remove('show'); return; }
+  ver = t; page = 1; render(); document.getElementById('mask').classList.add('show');
+}
+function activeCols() { return ver === 'old' ? COLS.filter(c => !c.n) : COLS; }
+function render() {
+  modal.classList.toggle('old', ver === 'old');
+  document.getElementById('mTitle').textContent = '每日明细 (Mega Fishing)-INR';
+  document.querySelectorAll('.chg').forEach(e => e.style.display = ver === 'new' ? '' : 'none');
+  const cols = activeCols();
+  document.getElementById('cols').innerHTML = cols.map(c => `<col style="width:${c.w}px">`).join('');
+  document.getElementById('mHead').innerHTML = '<tr>' + cols.map(c => `<th class="${c.n ? 'newc' : ''}">${c.h}${c.n ? '<i class="nb">NEW</i>' : ''}</th>`).join('') + '</tr>';
+  const start = (page - 1) * size;
+  document.getElementById('mBody').innerHTML = rows.slice(start, start + size).map(r =>
+    '<tr>' + cols.map(c => `<td class="${c.n ? 'newc' : ''}">${c.html ? c.html(r) : c.v(r)}</td>`).join('') + '</tr>').join('');
+  const pages = Math.ceil(rows.length / size);
+  let pg = `共 ${rows.length} 条 <span class="pg ${page === 1 ? 'dis' : ''}" onclick="go(${page - 1})">‹</span>`;
+  for (let i = 1; i <= pages; i++) pg += `<span class="pg ${i === page ? 'on' : ''}" onclick="go(${i})">${i}</span>`;
+  pg += `<span class="pg ${page === pages ? 'dis' : ''}" onclick="go(${page + 1})">›</span>
+    <select onchange="size=+this.value;page=1;render()">${[10, 20, 50].map(s => `<option value="${s}" ${s === size ? 'selected' : ''}>${s} / 页</option>`).join('')}</select>
+    跳至 <input value="${page}" onkeydown="if(event.key==='Enter')go(+this.value)">`;
+  document.getElementById('pager').innerHTML = pg;
+  document.getElementById('mHint').textContent = ver === 'old'
+    ? '改前：弹窗固定 960px，12 列放不下，需横向滚动，盈利率列固定在右侧并遮住后面的列（改前没有 3 个新指标，此处仅显示原有 9 列）。'
+    : '改后：弹窗随屏幕加宽，12 列一屏显示，无横向滚动；蓝底三列为新增指标。导出文件的列、顺序与此表一致，导出全部 ' + rows.length + ' 行。';
+}
+function go(p) { const pages = Math.ceil(rows.length / size); if (p >= 1 && p <= pages) { page = p; render(); } else render(); }
+
+// ===== 导出：用同一份 COLS，全部日期，不只当前页 =====
+function doExport() {
+  const cols = activeCols();
+  const esc = s => { s = String(s); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const lines = [cols.map(c => esc(c.h)).join(',')].concat(rows.map(r => cols.map(c => esc(c.csv(r))).join(',')));
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '每日明细_Mega Fishing_INR_20260601-20260629.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('已导出 ' + rows.length + ' 行 × ' + cols.length + ' 列（与弹窗顺序一致）');
+}
+function toast(m) {
+  const t = document.getElementById('toast'); t.textContent = m; t.style.display = 'block';
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', 2400);
+}
+</script>
+
+<div class="handle" onclick="toggleDrawer(true)">需求说明</div>
+<div class="dmask" onclick="toggleDrawer(false)"></div>
+<aside class="drawer" aria-label="需求说明">
+  <div class="dh"><span>需求说明 · 子游戏报表-每日明细优化 <span style="font-weight:400;font-size:12px;color:var(--sub)">2026-11-05</span></span><button class="x" onclick="toggleDrawer(false)" aria-label="关闭">×</button></div>
+  <div class="db">
+    <h3>一、改造页面</h3>
+    <div class="pin">📌 本说明只写业务规则本身，样子和交互直接看原型</div>
+    <table><thead><tr><th style="width:34%">页面</th><th>改动点</th></tr></thead><tbody>
+      <tr><td>报表管理 › 子游戏报表 › 每日明细弹窗</td><td>弹窗展示完整字段；新增人均投注笔数、人均投注金额、平均每笔投注金额 3 列；导出与弹窗所见一致</td></tr>
+    </tbody></table>
+
+    <h3>二、功能描述与业务规则</h3>
+    <div class="core"><b>🎯 核心结论</b><ul>
+      <li>每日明细共 12 列，全部一屏可见，不出现横向滚动。</li>
+      <li>新增 3 个指标：人均投注笔数、人均投注金额、平均每笔投注金额。</li>
+      <li>导出内容与弹窗一致，列顺序相同，导出全部日期。</li>
+    </ul></div>
+    <div class="rule c"><span class="n">1</span><div><span class="tg">核心</span>新增指标的算法：人均投注笔数 = 投注笔数 ÷ 投注人数；人均投注金额 = 有效投注金额 ÷ 投注人数；平均每笔投注金额 = 有效投注金额 ÷ 投注笔数。表头分别叫「人均投注笔数」「人均有效投注金额」「平均每笔有效投注金额」。</div></div>
+    <div class="rule"><span class="n">2</span><div>分母为 0 时，该指标显示「-」。</div></div>
+    <div class="rule"><span class="n">3</span><div>3 个指标保留 2 位小数，四舍五入；金额带千分位。</div></div>
+    <div class="rule"><span class="n">4</span><div>列顺序：日期、投注人数、投注笔数、投注金额、税费、有效投注金额、派彩金额、输赢额、盈利率、人均投注笔数、人均有效投注金额、平均每笔有效投注金额。</div></div>
+    <div class="rule c"><span class="n">5</span><div><span class="tg">核心</span>导出的列名、列顺序、数值与弹窗完全一致（含新增 3 列）；导出当前查询条件下全部日期，不只当前页。</div></div>
+    <div class="rule"><span class="n">6</span><div>导出文件里金额、笔数、人数为数值；盈利率带 % 号；分母为 0 的显示「-」。文件名为「每日明细_游戏名_币种_起止日期」。</div></div>
+
+    <h3>三、限制条件</h3>
+    <table><thead><tr><th style="width:24%">项</th><th>说明</th></tr></thead><tbody>
+      <tr><td>主列表</td><td>本期不新增这 3 个指标</td></tr>
+      <tr><td>合计行</td><td>每日明细不设合计行</td></tr>
+      <tr><td>币种</td><td>弹窗和导出的金额均为该子游戏所属币种，不做跨币种折算</td></tr>
+    </tbody></table>
+
+    <h3>四、开发注意事项</h3>
+    <ol class="dev">
+      <li>弹窗和导出用同一套列定义，以后加列、调序两边同时生效。</li>
+      <li>导出的是全部日期的数据，别只导当前页。</li>
+      <li>分母为 0 时不要出现 NaN、Infinity 或 0，统一显示「-」。</li>
+      <li>弹窗宽度随屏幕自适应；盈利率列不再固定在右侧，不遮挡其他列。</li>
+    </ol>
+  </div>
+</aside>
+<script>
+function toggleDrawer(o) { document.body.classList.toggle('dopen', o); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleDrawer(false); });
+</script>
+</body>
+</html>
