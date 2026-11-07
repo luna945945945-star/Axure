@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>代理后台 · 下级会员列表加红包/彩金列</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:400 12px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f0f2f5;color:#606266}
+
+/* 原型切换条（非产品内容） */
+.proto{position:sticky;top:0;z-index:50;background:#2d2366;color:#fff;display:flex;align-items:center;gap:10px;padding:8px 18px;font-size:12.5px;flex-wrap:wrap}
+.proto b{font-weight:600}
+.proto .tip{margin-left:auto;font-size:11.5px;opacity:.8}
+
+/* NEW 角标 */
+.nw{position:relative}
+.nw::after{content:"NEW";position:absolute;top:-8px;right:-4px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;pointer-events:none;z-index:3;letter-spacing:.3px;box-shadow:0 1px 3px rgba(255,77,79,.45)}
+
+/* ===== 代理后台（照真实截图） ===== */
+.app{display:flex;min-height:calc(100vh - 36px)}
+.side{width:128px;flex:none;background:#0a1628;color:#bfcbd9;font-size:12px}
+.side .brand{height:48px;display:flex;align-items:center;gap:6px;padding:0 10px;color:#fff;font-size:13px}
+.side .mi{height:36px;display:flex;align-items:center;gap:7px;padding:0 12px;cursor:default}
+.side .mi i{font-style:normal;font-size:11px;opacity:.8}
+.side .mi.open{color:#fff}
+.side .mi .ar{margin-left:auto;font-size:9px}
+.side .sub .si{height:34px;line-height:34px;padding-left:26px;background:#050d19;color:#bfcbd9;white-space:nowrap}
+.side .sub .si.on{background:#409eff;color:#fff}
+.main{flex:1;min-width:0}
+.top{height:48px;background:#0a1628;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:12px}
+.top .r{display:flex;align-items:center;gap:20px}
+.top .lang{background:#fff;color:#606266;border-radius:12px;padding:2px 12px}
+.top .av{width:32px;height:32px;border-radius:50%;background:#d8c9a8;display:inline-block}
+.page{padding:12px 14px 60px}
+.card{background:#fff;border-radius:4px;padding:14px 12px 20px}
+.filters{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 28px;margin-bottom:12px}
+.fg{display:flex;align-items:center;min-width:0}
+.fg label{flex:none;width:58px;text-align:right;padding-right:8px;font-size:12px;color:#606266;white-space:nowrap}
+.fc{flex:1;min-width:0;height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 8px;font:inherit;font-size:12px;color:#606266;background:#fff}
+.fc:focus{outline:none;border-color:#409eff}
+.btns{display:flex;gap:8px;margin:2px 0 14px}
+.btn{height:28px;padding:0 14px;border:0;border-radius:3px;background:#409eff;color:#fff;font:inherit;font-size:12px;cursor:pointer}
+.btn:hover{background:#66b1ff}
+.tbl{overflow-x:auto}
+table.dl{border-collapse:collapse;width:100%;min-width:2400px;font-size:12px}
+.dl th{height:38px;padding:0 10px;border-bottom:1px solid #ebeef5;color:#909399;font-weight:600;text-align:center;white-space:nowrap;position:relative}
+.dl td{height:40px;padding:0 10px;border-bottom:1px solid #ebeef5;text-align:center;white-space:nowrap;color:#606266}
+.dl tbody tr:hover>td{background:#f5f7fa}
+.dl .empty td{height:110px;color:#909399}
+.dl tr.sum>td{background:#f5f7fa;font-weight:600;color:#303133}
+.dl th.nw::after{top:2px;right:0}
+.pg{margin-top:12px;font-size:12px;color:#909399}
+
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:4px;color:#fff;font-size:13px;z-index:400;display:none;line-height:1.7;background:#2d2366;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+
+/* 抽屉（需求说明） */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column;color:#333}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.4)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="proto">
+  <b>原型</b>
+  <span>代理后台 · 用户 › 下级会员列表</span>
+  <a id="demoOver" style="cursor:pointer;padding:3px 12px;border:1px solid rgba(255,255,255,.4);border-radius:12px">演示：导出超限提示</a>
+  <span class="tip">红色 NEW = 新增；右侧「需求说明」看规则</span>
+</div>
+
+<div class="app">
+  <div class="side">
+    <div class="brand">👤 917001</div>
+    <div class="mi">⌂ 首页</div>
+    <div class="mi">我的推广</div>
+    <div class="mi open">用户 <span class="ar">︿</span></div>
+    <div class="sub">
+      <div class="si on">下级会员列表</div>
+      <div class="si">下级会员登录日志</div>
+      <div class="si">下级游戏输赢</div>
+      <div class="si">Win 游戏记录</div>
+      <div class="si">5D 游戏记录</div>
+      <div class="si">K3 游戏记录</div>
+      <div class="si">Trx Win 游戏记录</div>
+      <div class="si">新彩种游戏记录</div>
+      <div class="si">资金记录</div>
+      <div class="si">充值列表</div>
+      <div class="si">提现列表</div>
+    </div>
+    <div class="mi">游戏 <span class="ar">﹀</span></div>
+    <div class="mi">活动管理 <span class="ar">﹀</span></div>
+    <div class="mi">统计 <span class="ar">﹀</span></div>
+    <div class="mi">设置 <span class="ar">﹀</span></div>
+  </div>
+
+  <div class="main">
+    <div class="top">
+      <div>☰</div>
+      <div class="r"><span>RAXI.WIN</span><span class="lang">中文 ⌄</span><span>17:46:01 &nbsp; 2026年10月25日星期日</span><span class="av"></span></div>
+    </div>
+    <div class="page"><div class="card">
+      <div class="filters">
+        <div class="fg"><label>会员ID：</label><input class="fc" id="fUid" placeholder="会员ID、多个用空格/换行分隔"></div>
+        <div class="fg"><label>代理ID：</label><input class="fc" id="fAg" placeholder="代理ID"></div>
+        <div class="fg"><label>手机号码：</label><input class="fc" id="fPh" placeholder="注册手机号码"></div>
+        <div class="fg"><label>最小层级：</label><select class="fc" id="fMin"></select></div>
+        <div class="fg"><label>最大层级：</label><select class="fc" id="fMax"></select></div>
+        <div class="fg"><label>注册设备：</label><select class="fc"><option>请选择</option></select></div>
+        <div class="fg"><label>使用状态：</label><select class="fc"><option>请选择</option></select></div>
+        <div class="fg nw"><label>数据排序：</label><select class="fc" id="fOrd"><option value="0">默认</option><option value="1">账户余额降序</option><option value="2">账户余额升序</option><option value="3">注册时间降序</option><option value="4">注册时间升序</option><option value="5">返佣降序</option><option value="6">现金红包金额降序</option><option value="7">彩金充值金额降序</option></select></div>
+        <div class="fg"><label>开始时间：</label><input class="fc" value="2026/10/25"></div>
+        <div class="fg"><label>结束时间：</label><input class="fc" value="2026/10/25"></div>
+        <div class="fg"><label>开始时间：</label><input class="fc" value="2026/10/25"></div>
+        <div class="fg"><label>结束时间：</label><input class="fc" value="2026/10/25"></div>
+      </div>
+      <div class="btns"><button class="btn" id="go">查 询</button><button class="btn" id="rs">重 置</button><button class="btn" id="ex">导 出</button></div>
+
+      <div class="tbl">
+        <table class="dl">
+          <thead><tr>
+            <th>会员ID</th><th>注册手机号码</th><th>姓名</th><th>银行卡号</th><th>上级ID</th><th>相对层级</th><th>直属下线人数新增</th><th>下级总数</th><th>注册时间</th><th>在线状态</th><th>注册设备</th>
+            <th>下注/笔数</th><th>充值/笔数</th><th>提现/笔数</th><th>返佣/笔数</th>
+            <th class="nw">现金红包领取金额/笔数</th><th class="nw">彩金充值金额/笔数</th>
+            <th>账户余额</th>
+          </tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+      <div class="pg" id="pg"></div>
+    </div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ======================= 需求说明 ======================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>下级会员列表 · 加现金红包领取 / 彩金充值 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型。</div>
+    <table class="t">
+      <tr><th style="width:260px">页面</th><th>改动点</th></tr>
+      <tr><td>代理后台 › 用户 › <b>下级会员列表</b></td><td>列表在「返佣/笔数」后面新增「现金红包领取金额/笔数」「彩金充值金额/笔数」两列；底部汇总同步新增两个合计</td></tr>
+      <tr><td>代理后台 › 下级会员列表 › <b>数据排序</b></td><td>下拉新增「返佣降序」「现金红包金额降序」「彩金充值金额降序」三个选项</td></tr>
+      <tr><td>代理后台 › 下级会员列表 › <b>导出</b></td><td>导出文件同步新增这两列，位置与页面一致</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">核心结论</div>
+      <div class="kf">代理在下级会员列表里，直接看到每个下级领了多少现金红包、被加了多少彩金（金额和笔数），不用再去别处对账</div>
+      <div class="kf">按层级筛出「等级1 到等级几」的下级后，可以按返佣、现金红包、彩金充值从高到低排序，再直接导出，这两列随文件带出</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>现金红包领取金额/笔数</b><span class="kb">核心</span>：统计时间内，该会员领取的现金红包金额合计，和领取的笔数。<b>不含</b>优惠券红包，<b>不含</b>代理红包码充值。</div>
+
+    <div class="br key"><span class="bn">02</span><b>彩金充值金额/笔数</b><span class="kb">核心</span>：统计时间内，该会员被添加的彩金金额合计，和添加的笔数，即资金记录里的「彩金充值」。<b>不含</b>人工充值。</div>
+
+    <div class="br"><span class="bn">03</span><b>统计时间</b>：和「下注、充值、提现、返佣」同一组统计时间。不选统计时间，显示全部累计。</div>
+
+    <div class="br"><span class="bn">04</span><b>统计对象</b>：只统计该行会员本人，不含他的下级。</div>
+
+    <div class="br"><span class="bn">05</span><b>显示格式</b>：和「下注/笔数」等列一致，写成「金额 / 笔数」；金额保留两位小数，没有记录显示 0.00 / 0。</div>
+
+    <div class="br"><span class="bn">06</span><b>汇总</b>：底部汇总新增两列合计，同样写成「金额 / 笔数」，统计当前全部筛选结果（不是仅当前页），和其他列汇总口径一致。</div>
+
+    <div class="br"><span class="bn">07</span><b>层级筛选</b>：最小层级、最大层级的筛选照旧，筛选后列表、汇总、导出三者的新列数据一致。</div>
+
+    <div class="br key"><span class="bn">08</span><b>新增排序</b><span class="kb">核心</span>：数据排序新增三项，都只有降序：返佣降序、现金红包金额降序、彩金充值金额降序。按金额排，不按笔数排；金额取统计时间内的合计，不选统计时间则按全部累计。金额相同时（如都是 0），按相对层级从小到大，再按注册时间从早到晚。排序对全部筛选结果生效，翻页后顺序保持不变。</div>
+
+    <div class="br"><span class="bn">09</span><b>导出</b>：导出文件按当前筛选条件和所选排序导出，新增两列列名与页面一致。</div>
+
+    <div class="br key"><span class="bn">10</span><b>导出超限提示</b><span class="kb">核心</span>：筛选结果超过 5 万条时不导出，提示「当前筛选共 X 条，导出最多 50,000 条，请缩小层级或时间范围」，X 为实际条数。刚好 5 万条可以导出。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:130px">项</th><th>说明</th></tr>
+      <tr><td>导出条数</td><td>单次最多导出 5 万条，超过按规则 10 提示，需缩小筛选范围</td></tr>
+      <tr><td>红包范围</td><td>只含现金红包，优惠券红包不统计</td></tr>
+      <tr><td>列名</td><td>「返佣/笔数」就是代理佣金，本期不改名</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>老后台的「下级会员列表」和「会员管理 › 代理线」与代理后台共用同一份下级查询。新增的两列只给代理后台用，改动不能让老后台这两处报错或多出列，上线前要把这两处各回归一遍。</li>
+      <li>汇总里这两列的金额和笔数，和现有的下注、充值、提现、返佣合计放在一起算，同一套筛选、同一组统计时间。</li>
+      <li>列表和导出是两个入口，两边都要加，不要只改列表。导出的列顺序和页面一致。</li>
+      <li>新列列名要加进所有语言包，不能只加中文。超限提示文案也要加进所有语言包，文案里的实际条数和上限要能带进去。</li>
+      <li>新增的三种排序，要按全部筛选结果的金额排好再分页，不能只对当前页排序。金额相同时要有固定的次序，否则翻页会重复或漏人。会员很多的代理排序可能变慢，上线前和 5 万条导出一起试。</li>
+      <li>导出现在不带排序选择，永远按默认顺序导出。要改成和页面所选排序一致，列表和导出两处都要传排序。</li>
+      <li>导出上限从 1 万提到 5 万，现有的 1 万限制在导出的取数和超限判断两处都有，两处要一起改，只改一处会出现取不全或误拦。</li>
+      <li>导出时现在是每一行单独查一次银行卡号，条数一多会非常慢。提到 5 万前，必须改成按本批会员一次批量查出来。</li>
+      <li>上线前用下级最多的代理在测试环境试导 5 万条，确认耗时和文件大小可接受；若不可接受，上限以试导结果为准。</li>
+      <li>上线顺序：先发数据库，再发后端，最后发前端。顺序反了，新前端会拿不到数据，旧后端会因多出的参数报错。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(i){return document.getElementById(i);};
+function f2(n){return (+n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function sl(el,def){var h='<option value="">'+def+'</option>';for(var i=1;i<=6;i++)h+='<option value="'+i+'">等级'+i+'</option>';el.innerHTML=h;}
+sl($('fMin'),'请选择');sl($('fMax'),'请选择');
+
+/* 演示数据：[...,返佣,返佣笔,红包,红包笔,彩金,彩金笔,余额] */
+var R=[
+ ['30188','98****1203','Ravi K','6222****0831','917001',1,2,3,'2026-10-02 10:21:08','在线','Android',18420,126,5000,3,3200,1,86.5,4,120,3,50,1,1240.5],
+ ['30192','98****7718','Amit S','6217****5521','917001',1,0,0,'2026-10-05 15:42:30','离线','iOS',2600,34,1000,1,0,0,0,0,30,1,0,0,310],
+ ['30207','97****4406','Neha P','6228****9012','917001',1,1,1,'2026-10-08 09:05:11','离线','Android',9350,71,3000,2,1500,1,42,2,88,2,100,2,860.2],
+ ['30215','96****3382','Karan M','6214****7740','30207',2,0,0,'2026-10-12 20:18:46','离线','Android',5120,40,2000,2,0,0,0,0,66,2,0,0,540],
+ ['30233','98****0059','Pooja D','6226****1183','30188',2,1,1,'2026-10-14 11:30:02','在线','iOS',7800,58,2500,2,1000,1,0,0,45,1,30,1,1980],
+ ['30241','99****2764','Sunil R','6225****3306','30188',2,0,0,'2026-10-15 08:12:55','离线','Android',0,0,0,0,0,0,0,0,0,0,0,0,0],
+ ['30260','97****8851','Mina T','6230****4472','30233',3,0,0,'2026-10-18 21:47:19','离线','Android',1280,15,500,1,0,0,0,0,18,1,20,1,95.8]
+];
+var rows=R.map(function(r){return {id:r[0],ph:r[1],nm:r[2],cd:r[3],pa:r[4],lv:r[5],di:r[6],to:r[7],rt:r[8],ol:r[9],dv:r[10],bet:r[11],betc:r[12],rc:r[13],rcc:r[14],wd:r[15],wdc:r[16],cm:r[17],cmc:r[18],rp:r[19],rpc:r[20],bn:r[21],bnc:r[22],bal:r[23]};});
+var byId={};rows.forEach(function(r){byId[r.id]=r;});
+function isDown(id,top){var p=byId[id];while(p){if(p.id===top)return true;p=byId[p.pa];}return false;}
+
+var cur=rows;
+function render(list){
+  cur=list;var tb=$('tb');
+  if(!list.length){tb.innerHTML='<tr class="empty"><td colspan="18">暂无数据</td></tr>';$('pg').textContent='';return;}
+  var s={bet:0,betc:0,rc:0,rcc:0,wd:0,wdc:0,cm:0,cmc:0,rp:0,rpc:0,bn:0,bnc:0,bal:0};
+  var h=list.map(function(r){
+    ['bet','betc','rc','rcc','wd','wdc','cm','cmc','rp','rpc','bn','bnc','bal'].forEach(function(k){s[k]+=r[k];});
+    return '<tr><td>'+r.id+'</td><td>'+r.ph+'</td><td>'+r.nm+'</td><td>'+r.cd+'</td><td>'+r.pa+'</td><td>'+r.lv+'</td><td>'+r.di+'</td><td>'+r.to+'</td><td>'+r.rt+'</td><td>'+r.ol+'</td><td>'+r.dv+'</td>'
+     +'<td>'+f2(r.bet)+' / '+r.betc+'</td><td>'+f2(r.rc)+' / '+r.rcc+'</td><td>'+f2(r.wd)+' / '+r.wdc+'</td><td>'+f2(r.cm)+' / '+r.cmc+'</td>'
+     +'<td>'+f2(r.rp)+' / '+r.rpc+'</td><td>'+f2(r.bn)+' / '+r.bnc+'</td><td>'+f2(r.bal)+'</td></tr>';
+  }).join('');
+  h+='<tr class="sum"><td>汇总</td><td colspan="10"></td><td>'+f2(s.bet)+' / '+s.betc+'</td><td>'+f2(s.rc)+' / '+s.rcc+'</td><td>'+f2(s.wd)+' / '+s.wdc+'</td><td>'+f2(s.cm)+' / '+s.cmc+'</td><td>'+f2(s.rp)+' / '+s.rpc+'</td><td>'+f2(s.bn)+' / '+s.bnc+'</td><td>'+f2(s.bal)+'</td></tr>';
+  $('tb').innerHTML=h;$('pg').textContent='共 '+list.length+' 条';
+}
+
+function query(){
+  var ids=$('fUid').value.trim().split(/[\s,]+/).filter(Boolean),ph=$('fPh').value.trim();
+  var mn=+$('fMin').value||0,mx=+$('fMax').value||99;
+  var list=rows.filter(function(r){
+    if(ids.length&&!ids.some(function(i){return isDown(r.id,i);}))return false;
+    if(ph&&r.ph.indexOf(ph)<0)return false;
+    return r.lv>=mn&&r.lv<=mx;
+  });
+  var o=$('fOrd').value;
+  function dflt(a,b){return a.lv-b.lv||(a.rt<b.rt?-1:1);}
+  list.sort(function(a,b){
+    if(o==='1')return b.bal-a.bal||dflt(a,b);
+    if(o==='2')return a.bal-b.bal||dflt(a,b);
+    if(o==='3')return a.rt<b.rt?1:-1;
+    if(o==='4')return a.rt<b.rt?-1:1;
+    if(o==='5')return b.cm-a.cm||dflt(a,b);
+    if(o==='6')return b.rp-a.rp||dflt(a,b);
+    if(o==='7')return b.bn-a.bn||dflt(a,b);
+    return dflt(a,b);
+  });
+  render(list);
+}
+$('go').onclick=query;
+$('rs').onclick=function(){['fUid','fAg','fPh'].forEach(function(i){$(i).value='';});$('fMin').value='';$('fMax').value='';$('fOrd').value='0';query();};
+var tt=null;
+function toast(t){var b=$('toast');b.innerHTML=t;b.style.display='block';clearTimeout(tt);tt=setTimeout(function(){b.style.display='none';},3200);}
+$('demoOver').onclick=function(){toast('当前筛选共 62,318 条，导出最多 50,000 条，请缩小层级或时间范围');};
+$('ex').onclick=function(){
+  if(!cur.length){toast('暂无数据可导出');return;}
+  toast('已按当前筛选导出 '+cur.length+' 条，文件含「现金红包领取金额/笔数」「彩金充值金额/笔数」两列');
+};
+
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDoc();});
+
+query();
+})();
+</script>
+</body>
+</html>
