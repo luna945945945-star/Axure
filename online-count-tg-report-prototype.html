@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>在线人数群播报</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f2f3f7;color:#333;min-height:100vh}
+.stage{display:flex;justify-content:center;align-items:flex-start;gap:24px;padding:20px 60px 40px 28px;flex-wrap:wrap}
+.demo{width:420px;background:#fff;border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:12.5px;color:#555}
+.demo h3{font-size:13px;color:#6C4FE0;margin-bottom:6px}
+.demo p{line-height:1.7;margin-bottom:10px;color:#888;font-size:12px}
+.demo .scenes{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.demo .scenes button{font:inherit;font-size:12px;text-align:left;border:1px solid #d3caf5;background:#f7f5ff;color:#4b3aa8;border-radius:6px;padding:6px 10px;cursor:pointer;line-height:1.5}
+.demo .scenes button:hover{border-color:#6C4FE0}
+.demo .scenes button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.demo .scenes small{display:block;opacity:.75;font-size:11px}
+.demo .sub{font-size:11.5px;color:#aaa;margin-top:8px;line-height:1.7}
+.tg{width:560px;height:820px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 6px 28px rgba(0,0,0,.14);display:flex;flex-direction:column;flex:0 0 auto;position:relative}
+.tg-hd{height:56px;background:#517da2;color:#fff;display:flex;align-items:center;gap:10px;padding:0 14px;flex:0 0 auto}
+.tg-hd .av{width:38px;height:38px;border-radius:50%;background:#e8a24a;display:flex;align-items:center;justify-content:center;font-weight:700}
+.tg-hd .nm{font-size:15px;font-weight:600;line-height:1.3}
+.tg-hd .st{font-size:12px;opacity:.75}
+.tg-bd{flex:1;overflow-y:auto;background:#cfdcc5 linear-gradient(160deg,#d6e2c4,#b9cfb0);padding:14px 12px 20px}
+.msg{display:flex;gap:8px;align-items:flex-end;margin-bottom:10px}
+.msg .av{width:32px;height:32px;border-radius:50%;background:#e8a24a;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:700}
+.bub{background:#fff;border-radius:10px 10px 10px 2px;padding:6px 10px 4px;max-width:480px;box-shadow:0 1px 1px rgba(0,0,0,.12)}
+.bub .who{font-size:12.5px;color:#d0851f;font-weight:600;margin-bottom:2px}
+.bub .tm{font-size:10.5px;color:#a0acb6;text-align:right;margin-top:2px}
+.sys{text-align:center;margin:6px 0 10px}
+.sys span{display:inline-block;background:rgba(0,0,0,.18);color:#fff;font-size:11.5px;border-radius:10px;padding:1px 10px}
+pre.tgpre{font:12.5px/1.6 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#1f2d3a;white-space:pre-wrap;word-break:break-all}
+.new{position:absolute;top:8px;right:10px;background:#f5222d;color:#fff;font:700 9px/1 -apple-system,sans-serif;padding:3px 5px;border-radius:8px 8px 8px 2px;box-shadow:0 2px 6px rgba(245,34,45,.35);z-index:6}
+/* 需求说明抽屉（V1 原型统一样式） */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (max-width:900px){.stage{padding-left:16px;padding-right:16px}.demo,.tg{width:100%}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="demo">
+    <h3>原型操作提示</h3>
+    <p>选一个国家，右边是客服群在该国家当地中午 12:00 收到的那一条消息。数字为示例。</p>
+    <div class="scenes" id="scenes"></div>
+    <p class="sub">每个国家当地 12:00 各发一条；同一国家所有已上线站点汇在一条里，每个站点一行。</p>
+  </div>
+  <div class="tg">
+    <span class="new">NEW</span>
+    <div class="tg-hd"><div class="av">在</div><div><div class="nm">在线人数播报（客服）</div><div class="st">预警机器人 · 全部站点</div></div></div>
+    <div class="tg-bd" id="chat"></div>
+  </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>在线人数群播报 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，消息样子直接看原型页面。</div>
+    <table class="t">
+      <tr><th style="width:260px">页面</th><th>改动点</th></tr>
+      <tr><td>TG 客服群「在线人数播报」（新）</td><td>各国家在当地中午 12:00 自动推送该国家全部站点的在线人数，每国一条</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">每个国家在当地时间中午 12:00，把该国家所有站点此刻的在线人数汇成一条消息，推到客服群</div>
+      <div class="kf">客服不用再登录各站后台查在线人数，直接照群消息记录</div>
+    </div>
+    <div class="br key"><span class="bn">01</span><b>推送时间</b><span class="kb">核心</span>：各国家按本国当地时间，每天 12:00 推送一次，取 12:00 这一刻的实时在线人数。时区和对应的迪拜时间见下表。</div>
+    <div class="br key"><span class="bn">02</span><b>在线人数</b><span class="kb">核心</span>：与老后台首页「在线人数」同一口径，只算正式会员，不含测试号。</div>
+    <div class="br key"><span class="bn">03</span><b>消息合并</b><span class="kb">核心</span>：同一国家的所有站点合并成一条消息，每个站点一行（站点名称：在线人数），站点顺序按站点编号从小到大。</div>
+    <div class="br"><span class="bn">04</span><b>站点名称</b>：名称过短的站点前面加国家，如「缅甸6」「马来9」「印尼55」「印度6 club」；其余站点直接显示站点名称。</div>
+    <div class="br"><span class="bn">05</span><b>取不到数据</b>：个别站点取不到在线人数时，该行显示「无数据」，不影响其他站点推送。</div>
+    <div class="br"><span class="bn">06</span><b>播报站点与时间</b>：共 10 个国家、77 个站点。
+      <table class="t">
+        <tr><th style="width:70px">国家</th><th style="width:100px">当地时区</th><th style="width:80px">迪拜时间</th><th>站点（编号 名称）</th></tr>
+        <tr><td>马来</td><td>UTC+8</td><td>08:00</td><td>ar034 马来9、ar046 MZ</td></tr>
+        <tr><td>越南</td><td>UTC+7</td><td>09:00</td><td>ar035 82VN、ar036 vn168、ar042 66club、ar043 92lottery、ar052 VESO</td></tr>
+        <tr><td>印尼</td><td>UTC+7（西部）</td><td>09:00</td><td>ar045 印尼55</td></tr>
+        <tr><td>缅甸</td><td>UTC+6:30</td><td>09:30</td><td>ar033 cklottery、ar044 缅甸6、ar088 777BIGWINGAME、ar107 shwelottery</td></tr>
+        <tr><td>孟加拉</td><td>UTC+6</td><td>10:00</td><td>ar007 HGZY(BDT)、ar081 dkwin、ar085 amarclub、ar091 tigro</td></tr>
+        <tr><td>印度</td><td>UTC+5:30</td><td>10:30</td><td>ar001 82bet、ar008 RajaGame、ar012 BHTCLUB、ar013 okwin、ar014 lottery7、ar015 BDGWIN、ar016 TPPlay、ar021 55club、ar023 51game、ar031 in999、ar037 bounty、ar041 BigMumbai、ar047 Goa、ar048 91club、ar050 daman、ar051 Tiranga、ar055 BDG、ar058 sikkim、ar062 DiuWin、ar064 印度6 club、ar065 DmWin、ar070 dogeclub、ar077 jalwa、ar079 Tashanwin、ar093 jaiclub、ar095 yaarwin、ar096 RAXIWIN、ar101 shreewin、ar102 veergame、ar103 dmfirst、ar104 DmPlay、ar108 khelv</td></tr>
+        <tr><td>巴基斯坦</td><td>UTC+5</td><td>11:00</td><td>ar011 basantclub、ar059 PakGames、ar067 92pkr、ar068 92jeeto、ar069 92r、ar071 Fantasy Gems、ar072 92dadu、ar076 92go、ar078 92coco、ar086 92PAK、ar087 92glory、ar089 92star、ar090 92strike、ar092 YAY.WIN、ar099 92.Game、ar100 Pakvip、ar105 pakworld、ar106 pakwin</td></tr>
+        <tr><td>肯尼亚</td><td>UTC+3</td><td>13:00</td><td>ar109 kespin</td></tr>
+        <tr><td>尼日利亚</td><td>UTC+1</td><td>15:00</td><td>ar004 fb999、ar009 mtn</td></tr>
+        <tr><td>巴西</td><td>UTC-3（巴西利亚时间）</td><td>19:00</td><td>ar002 pop678、ar003 POPPG、ar019 POP555、ar038 pop888、ar040 pop、ar074 poplua、ar080 popbem、ar082 popceu</td></tr>
+      </table>
+    </div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:140px">项</th><th>说明</th></tr>
+      <tr><td>播报名单</td><td>不提供后台配置页，名单由技术直接维护，修改后当天生效，无需发版；只包含已正式上线的站点，建了站但未上线的站不在名单内；新站正式上线后加入名单，站点下线后停止播报</td></tr>
+      <tr><td>推送群</td><td>新建的客服群，群 ID：-5526179270；全部国家推到同一个群</td></tr>
+      <tr><td>推送频率</td><td>每个国家每天 1 条，固定当地 12:00，不可配置</td></tr>
+      <tr><td>语言</td><td>中文</td></tr>
+      <tr><td>本次不做</td><td>当日峰值统计；在线人数预警（高低阈值）；自动写入表格</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>推送时间按各国当地时区计算，不能用服务器时间；巴西统一按巴西利亚时间，印尼统一按西部时间，各国无夏令时。</li>
+      <li>12:00 到点后 2 分钟内发出；个别站点超过这个时间还没取到，按「无数据」处理，不能让整条消息卡住。</li>
+      <li>同一国家同一天只推一条，服务重启或多台服务器同时运行时不能重复推送。</li>
+      <li>发送消息的机器人要先拉进客服群，并有发言权限；群 ID 上线前先发一条测试消息确认能收到。</li>
+      <li>播报名单（站点编号、站点名称、国家、国家时区、是否播报）存成可修改的数据，不能写死在代码里；上线时一次性导入表里的 77 个站点；站点下线时把「是否播报」改为关，不删除。上线检查清单里加一步：新站正式上线后加入播报名单。</li>
+      <li>在线人数以老后台首页「在线人数」为准做核对，上线前挑两个站点对一遍，数字应基本一致。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const C=[
+ {k:'马来',tz:'UTC+8',du:'08:00',s:[['ar034','马来9'],['ar046','MZ']]},
+ {k:'越南',tz:'UTC+7',du:'09:00',s:[['ar035','82VN'],['ar036','vn168'],['ar042','66club'],['ar043','92lottery'],['ar052','VESO']]},
+ {k:'印尼',tz:'UTC+7',du:'09:00',s:[['ar045','印尼55']]},
+ {k:'缅甸',tz:'UTC+6:30',du:'09:30',s:[['ar033','cklottery'],['ar044','缅甸6'],['ar088','777BIGWINGAME'],['ar107','shwelottery']]},
+ {k:'孟加拉',tz:'UTC+6',du:'10:00',s:[['ar007','HGZY(BDT)'],['ar081','dkwin'],['ar085','amarclub'],['ar091','tigro']]},
+ {k:'印度',tz:'UTC+5:30',du:'10:30',s:[['ar001','82bet'],['ar008','RajaGame'],['ar012','BHTCLUB'],['ar013','okwin'],['ar014','lottery7'],['ar015','BDGWIN'],['ar016','TPPlay'],['ar021','55club'],['ar023','51game'],['ar031','in999'],['ar037','bounty'],['ar041','BigMumbai'],['ar047','Goa'],['ar048','91club'],['ar050','daman'],['ar051','Tiranga'],['ar055','BDG'],['ar058','sikkim'],['ar062','DiuWin'],['ar064','印度6 club'],['ar065','DmWin'],['ar070','dogeclub'],['ar077','jalwa'],['ar079','Tashanwin'],['ar093','jaiclub'],['ar095','yaarwin'],['ar096','RAXIWIN'],['ar101','shreewin'],['ar102','veergame'],['ar103','dmfirst'],['ar104','DmPlay'],['ar108','khelv']],nodata:'ar058'},
+ {k:'巴基斯坦',tz:'UTC+5',du:'11:00',s:[['ar011','basantclub'],['ar059','PakGames'],['ar067','92pkr'],['ar068','92jeeto'],['ar069','92r'],['ar071','Fantasy Gems'],['ar072','92dadu'],['ar076','92go'],['ar078','92coco'],['ar086','92PAK'],['ar087','92glory'],['ar089','92star'],['ar090','92strike'],['ar092','YAY.WIN'],['ar099','92.Game'],['ar100','Pakvip'],['ar105','pakworld'],['ar106','pakwin']]},
+ {k:'肯尼亚',tz:'UTC+3',du:'13:00',s:[['ar109','kespin']]},
+ {k:'尼日利亚',tz:'UTC+1',du:'15:00',s:[['ar004','fb999'],['ar009','mtn']]},
+ {k:'巴西',tz:'UTC-3',du:'19:00',s:[['ar002','pop678'],['ar003','POPPG'],['ar019','POP555'],['ar038','pop888'],['ar040','pop'],['ar074','poplua'],['ar080','popbem'],['ar082','popceu']]}
+];
+const num=(id,i)=>{let h=0;for(const ch of id)h=(h*31+ch.charCodeAt(0))%9973;return 40+(h*(i+7))%4800};
+const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+$('scenes').innerHTML=C.map((c,i)=>`<button data-i="${i}">${c.k}<small>${c.s.length} 站 · 迪拜 ${c.du}</small></button>`).join('');
+function show(i){
+  const c=C[i];
+  document.querySelectorAll('#scenes button').forEach((b,j)=>b.classList.toggle('on',j===i));
+  const lines=c.s.map((s,j)=>`${s[0]} ${s[1]}：${c.nodata===s[0]?'无数据':fmt(num(s[0],j))}`);
+  const txt=`【${c.k} 在线人数】11-11 12:00（当地）\n共 ${c.s.length} 站\n\n`+lines.join('\n');
+  $('chat').innerHTML=`<div class="sys"><span>今天</span></div><div class="msg"><div class="av">机</div><div class="bub"><div class="who">预警机器人</div><pre class="tgpre">${esc(txt)}</pre><div class="tm">迪拜 ${c.du}</div></div></div>`;
+}
+document.querySelectorAll('#scenes button').forEach(b=>b.onclick=()=>show(+b.dataset.i));
+show(5);
+const open=()=>{$('drawer').classList.add('on');$('dmask').classList.add('on')},close=()=>{$('drawer').classList.remove('on');$('dmask').classList.remove('on')};
+$('handleDoc').onclick=open;$('closeDoc').onclick=close;$('dmask').onclick=close;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+</script>
+</body>
+</html>
