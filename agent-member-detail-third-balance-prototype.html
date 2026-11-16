@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>代理后台 · 会员详情加三方余额</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:400 12px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;background:#f0f2f5;color:#606266}
+
+/* 原型切换条（非产品内容） */
+.proto{position:sticky;top:0;z-index:95;background:#2d2366;color:#fff;display:flex;align-items:center;gap:10px;padding:8px 18px;font-size:12.5px;flex-wrap:wrap}
+.proto b{font-weight:600}
+.proto .seg{display:inline-flex;border:1px solid rgba(255,255,255,.45);border-radius:12px;overflow:hidden}
+.proto .seg a{padding:3px 12px;cursor:pointer;color:#fff;text-decoration:none}
+.proto .seg a.on{background:#fff;color:#2d2366}
+.proto .tip{margin-left:auto;font-size:11.5px;opacity:.8}
+
+/* NEW 角标 */
+.nw{position:relative}
+.nw::after{content:"NEW";position:absolute;top:-8px;right:-4px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;pointer-events:none;z-index:3;letter-spacing:.3px;box-shadow:0 1px 3px rgba(255,77,79,.45)}
+
+/* ===== 代理后台（照真实截图） ===== */
+.app{display:flex;min-height:calc(100vh - 36px)}
+.side{width:128px;flex:none;background:#0a1628;color:#bfcbd9;font-size:12px}
+.side .brand{height:48px;display:flex;align-items:center;gap:6px;padding:0 10px;color:#fff;font-size:13px}
+.side .mi{height:36px;display:flex;align-items:center;gap:7px;padding:0 12px;cursor:default}
+.side .mi.open{color:#fff}
+.side .mi .ar{margin-left:auto;font-size:9px}
+.side .sub .si{height:34px;line-height:34px;padding-left:26px;background:#050d19;color:#bfcbd9;white-space:nowrap}
+.side .sub .si.on{background:#409eff;color:#fff}
+.main{flex:1;min-width:0}
+.top{height:48px;background:#0a1628;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:12px}
+.top .r{display:flex;align-items:center;gap:20px}
+.top .lang{background:#fff;color:#606266;border-radius:12px;padding:2px 12px}
+.top .av{width:32px;height:32px;border-radius:50%;background:#d8c9a8;display:inline-block}
+.page{padding:12px 14px 60px}
+.card{background:#fff;border-radius:4px;padding:14px 12px 20px}
+.filters{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 28px;margin-bottom:12px}
+.fg{display:flex;align-items:center;min-width:0}
+.fg label{flex:none;width:62px;text-align:right;padding-right:8px;font-size:12px;color:#606266;white-space:nowrap}
+.fc{flex:1;min-width:0;height:28px;border:1px solid #dcdfe6;border-radius:4px;padding:0 8px;font:inherit;font-size:12px;color:#606266;background:#fff}
+.fc::placeholder{color:#c0c4cc}
+.btns{display:flex;gap:8px;margin:2px 0 14px}
+.btn{height:28px;padding:0 14px;border:0;border-radius:3px;background:#409eff;color:#fff;font:inherit;font-size:12px;cursor:pointer}
+.btn:hover{background:#66b1ff}
+.tbl{overflow-x:auto}
+table.dl{border-collapse:collapse;width:100%;min-width:2000px;font-size:12px}
+.dl th{height:40px;padding:0 10px;border-bottom:1px solid #ebeef5;color:#303133;font-weight:600;text-align:left;white-space:nowrap}
+.dl th.c{text-align:center}
+.dl td{height:44px;padding:0 10px;border-bottom:1px solid #ebeef5;white-space:nowrap;color:#303133}
+.dl td.n{text-align:right}
+.dl tbody tr:hover>td{background:#f5f7fa}
+.dl a.uid{color:#409eff;cursor:pointer;text-decoration:none}
+.dl .off{color:#f56c6c}
+.dl tr.sum>td{color:#f56c6c}
+.pg{margin-top:14px;font-size:12px;color:#606266;display:flex;justify-content:flex-end;align-items:center;gap:14px}
+.pg .pn{display:inline-block;min-width:26px;height:26px;line-height:24px;text-align:center;border-radius:3px}
+.pg .pn.on{border:1px solid #409eff;color:#409eff}
+.pg .ps{border:1px solid #dcdfe6;border-radius:3px;padding:2px 10px}
+
+/* ===== 代理用户详细数据（弹窗，照真实截图） ===== */
+.mmask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;display:none;align-items:flex-start;justify-content:center;padding:52px 16px 16px}
+.mmask.on{display:flex}
+.modal{background:#fff;border-radius:4px;width:min(1460px,100%);max-height:calc(100vh - 68px);display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.mhead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 6px;flex:none}
+.mhead b{font-size:14px;color:#303133}
+.mhead .x{cursor:pointer;color:#909399;font-size:18px;line-height:1}
+.mbody{overflow:auto;padding:0 12px 20px;flex:1}
+.mq{background:#f7f8fa;border-radius:4px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+.mq .fg label{width:auto}
+.mq .fc{width:300px;flex:none}
+.mq .cal{position:relative}
+.mq .cal::after{content:"▦";position:absolute;right:9px;top:5px;color:#c0c4cc;font-size:12px}
+
+table.dt{border-collapse:collapse;width:100%;table-layout:auto;margin-bottom:2px}
+.dt th{height:46px;border:2px solid #ebeef5;color:#f00;font-size:15px;font-weight:600;text-align:center}
+.dt td{height:43px;border:2px solid #ebeef5;color:#303133;font-size:12.5px;font-weight:600;text-align:center;padding:0 8px;white-space:nowrap}
+.dt td.g{color:#1a9a1a}
+.dt td.ld{color:#909399;font-weight:500}
+.dt .qi{display:inline-block;width:14px;height:14px;border-radius:50%;background:#909399;color:#fff;font:700 10px/14px Arial,sans-serif;text-align:center;margin-left:4px;vertical-align:1px;cursor:help;position:relative}
+.dt .qi .tp{display:none;position:absolute;right:-8px;bottom:22px;width:230px;background:#303133;color:#fff;font:400 12px/1.6 "PingFang SC","Microsoft YaHei",sans-serif;text-align:left;padding:7px 10px;border-radius:4px;white-space:normal;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.dt .qi:hover .tp{display:block}
+.dt .lb{display:inline-block;position:relative}
+
+.forms{display:grid;grid-template-columns:repeat(3,1fr);gap:26px 28px;margin:40px 0 0;padding:0 12px}
+.forms .it .k{font-size:12px;color:#606266;margin-bottom:12px}
+.forms .it .v{border-bottom:1px solid #c0c4cc;min-height:24px;padding-bottom:4px;font-size:12px;color:#606266}
+.last{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:28px 20px;margin-top:56px;padding:0 10px}
+.last .lt{font-weight:600;color:#303133;font-size:12px;padding-bottom:22px;border-bottom:1px solid #dcdfe6;margin-bottom:10px}
+table.lr{border-collapse:collapse;width:100%;font-size:12px}
+.lr th{height:52px;background:#f7f8fa;color:#303133;font-weight:600;text-align:left;padding:0 14px;border-bottom:1px solid #ebeef5}
+.lr td{height:52px;padding:0 14px;border-bottom:1px solid #ebeef5;color:#303133;white-space:nowrap}
+.lr th{white-space:nowrap}
+table.lr.reg th,table.lr.reg td{border:1px solid #ebeef5;text-align:center;padding:0 6px;line-height:1.5}
+table.lr.reg td.ip{white-space:normal;word-break:break-all}
+
+/* 抽屉（需求说明） */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column;color:#333}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:100;box-shadow:-2px 0 8px rgba(108,79,224,.4)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="proto">
+  <b>原型</b>
+  <span>代理后台 · 用户 › 下级会员列表 › 点会员ID ›「代理用户详细数据」</span>
+  <span>三方余额演示：</span>
+  <span class="seg" id="seg"><a data-s="ok" class="on">有余额</a><a data-s="zero">无三方余额</a><a data-s="fail">查询失败</a></span>
+  <span class="tip">红色 NEW = 新增；鼠标移到 ? 看说明；右侧「需求说明」看规则</span>
+</div>
+
+<div class="app">
+  <div class="side">
+    <div class="brand">👤 2160646</div>
+    <div class="mi">⌂ 首页</div>
+    <div class="mi">我的推广</div>
+    <div class="mi open">用户 <span class="ar">︿</span></div>
+    <div class="sub">
+      <div class="si on">下级会员列表</div>
+      <div class="si">下级会员登录日志</div>
+      <div class="si">下级游戏输赢</div>
+      <div class="si">Win 游戏记录</div>
+      <div class="si">5D 游戏记录</div>
+      <div class="si">K3 游戏记录</div>
+      <div class="si">Trx Win 游戏记录</div>
+      <div class="si">新彩种游戏记录</div>
+      <div class="si">资金记录</div>
+      <div class="si">充值列表</div>
+      <div class="si">提现列表</div>
+    </div>
+    <div class="mi">游戏 <span class="ar">﹀</span></div>
+    <div class="mi">活动管理 <span class="ar">﹀</span></div>
+    <div class="mi">统计 <span class="ar">﹀</span></div>
+    <div class="mi">设置 <span class="ar">﹀</span></div>
+  </div>
+
+  <div class="main">
+    <div class="top">
+      <div>☰</div>
+      <div class="r"><span>RAXI.WIN</span><span class="lang">中文 ⌄</span><span>15:20:06 &nbsp; 2026年11月16日星期一</span><span class="av"></span></div>
+    </div>
+    <div class="page"><div class="card">
+      <div class="filters">
+        <div class="fg"><label>会员ID：</label><input class="fc" placeholder="会员ID，多个用空格/换行分隔"></div>
+        <div class="fg"><label>代理ID：</label><input class="fc" placeholder="代理ID"></div>
+        <div class="fg"><label>手机号码：</label><input class="fc" placeholder="注册手机号码"></div>
+        <div class="fg"><label>最小层级：</label><select class="fc"><option>请选择</option></select></div>
+        <div class="fg"><label>最大层级：</label><select class="fc"><option>请选择</option></select></div>
+        <div class="fg"><label>注册设备：</label><select class="fc"><option>请选择</option></select></div>
+        <div class="fg"><label>使用状态：</label><select class="fc"><option>请选择</option></select></div>
+        <div class="fg"><label>数据排序：</label><select class="fc"><option>请选择</option></select></div>
+        <div class="fg"><label>开始时间：</label><input class="fc" placeholder="注册时间"></div>
+        <div class="fg"><label>结束时间：</label><input class="fc" value="2026/11/16"></div>
+        <div class="fg"><label>开始时间：</label><input class="fc" value="2026/11/16"></div>
+        <div class="fg"><label>结束时间：</label><input class="fc" value="2026/11/16"></div>
+      </div>
+      <div class="btns"><button class="btn">🔍 查 询</button><button class="btn">⟳ 重置</button><button class="btn">⎙ 导出</button></div>
+
+      <div class="tbl">
+        <table class="dl">
+          <thead><tr>
+            <th>会员ID</th><th>注册手机号码</th><th>姓名</th><th>银行卡号</th><th>上级ID</th><th>相对层级</th><th>直属下线人数新增</th><th>下级总数</th><th>注册时间</th><th>在线状态</th><th>注册设备</th>
+            <th class="c" colspan="2">下注/笔数</th><th class="c" colspan="2">充值/笔数</th><th class="c" colspan="2">提现/笔数</th><th class="c" colspan="2">返佣/笔数</th><th>账户余额</th>
+          </tr></thead>
+          <tbody id="tb"></tbody>
+        </table>
+      </div>
+      <div class="pg"><span>总共 29 条</span><span>‹</span><span class="pn on">1</span><span class="pn">2</span><span class="pn">3</span><span>›</span><span class="ps">10 条/页 ⌄</span></div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ======================= 代理用户详细数据 弹窗 ======================= -->
+<div class="mmask" id="mmask">
+  <div class="modal" role="dialog" aria-label="代理用户详细数据">
+    <div class="mhead"><b>代理用户详细数据</b><span class="x" id="mclose">✕</span></div>
+    <div class="mbody">
+      <div class="mq">
+        <div class="fg"><label>会员ID：</label><input class="fc" id="qUid"></div>
+        <div class="fg"><label>开始时间：</label><span class="cal"><input class="fc" placeholder="注册时间"></span></div>
+        <div class="fg"><label>结束时间：</label><span class="cal"><input class="fc" placeholder="注册时间"></span></div>
+        <button class="btn" id="qGo">🔍 查 询</button>
+      </div>
+
+      <table class="dt">
+        <thead><tr><th colspan="4">账户</th><th colspan="4">充值</th><th colspan="2">提现</th><th colspan="4">代理数据</th></tr></thead>
+        <tbody>
+          <tr><td>会员ID</td><td id="dUid"></td><td>用户余额</td><td id="dBal"></td><td>累计充值</td><td>1019268.88/40</td><td>首充金额</td><td>100.00</td><td>累计提现</td><td>4300.00/21</td><td>总获得佣金</td><td>0</td><td>上级代理ID</td><td>2160646</td></tr>
+          <tr><td>账户</td><td id="dAcc"></td><td>用户积分</td><td>0.00</td><td>人工充值</td><td>1000000.00/1</td><td>首充日期</td><td>2025-06-25</td><td>等待出款</td><td>0</td><td>是否领取返佣</td><td>是</td><td>下级数量</td><td>0</td></tr>
+          <tr><td>是否有效</td><td>否</td><td>绑定</td><td></td><td>彩金充值</td><td>0</td><td>次充金额</td><td>900.00</td><td>累计提现手续费</td><td>0</td><td>代理红包充值</td><td>0</td><td></td><td></td></tr>
+          <tr><td>注册时间</td><td>2025-02-22 04:31:55</td><td>首次登录</td><td>2026-08-22</td><td>充值赠送</td><td>769.00</td><td>次充日期</td><td>2025-06-25</td><td>累计充提差</td><td class="g">1014968.88</td><td>已领红包</td><td>0</td><td></td><td></td></tr>
+        </tbody>
+      </table>
+
+      <table class="dt">
+        <thead><tr><th colspan="2">VIP</th><th colspan="2">保险箱</th><th colspan="4">活动奖励</th><th colspan="2">洗码</th><th colspan="2">码量</th><th colspan="2">其他</th></tr></thead>
+        <tbody>
+          <tr><td>viplevel</td><td>4</td><td>保险箱余额</td><td>0</td><td>每日签到</td><td>0</td><td>邀请奖励</td><td>0</td><td>会员洗码量</td><td>0</td><td>累计打码量</td><td>0.00</td>
+            <td><span class="lb nw">未开奖下注金额<span class="qi">?<span class="tp">只统计自营彩票的未开奖注单，不含三方游戏</span></span></span></td><td>0</td></tr>
+          <tr><td>VIP经验值</td><td>960</td><td>已领取收益</td><td>0</td><td>注册送金</td><td>100.00</td><td>锦标赛奖励</td><td>0</td><td>返水金额</td><td>0</td><td>需要打码量</td><td>0.00</td><td>充值等级</td><td>L6</td></tr>
+          <tr><td>VIP每月奖励</td><td>0/0</td><td>待领取收益</td><td>0.00</td><td>超级大奖</td><td>0</td><td>首冲奖励</td><td>0</td><td></td><td></td><td></td><td></td>
+            <td><span class="lb nw">三方余额<span class="qi">?<span class="tp">会员在各三方游戏中的余额合计，打开时实时查询</span></span></span></td><td id="dThird"></td></tr>
+          <tr><td>VIP升级礼包</td><td>0/0</td><td>保险箱利率</td><td>52.00000%</td><td>每周/日奖励</td><td>76.55/60.00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+
+      <div class="forms">
+        <div class="it"><div class="k">用户评论</div><div class="v"></div></div>
+        <div class="it"><div class="k">用户状态</div><div class="v">启用</div></div>
+        <div class="it"><div class="k">打码量</div><div class="v">0.00</div></div>
+        <div class="it"><div class="k">积分</div><div class="v">0.00</div></div>
+      </div>
+
+      <div class="last">
+        <div><div class="lt">最后3次充值信息：</div>
+          <table class="lr"><tr><th>充值时间</th><th>金额</th><th>类型</th></tr>
+            <tr><td>2026-07-13 18:43:39</td><td>0</td><td>To测试</td></tr>
+            <tr><td>2026-04-13 18:50:00</td><td>100</td><td>ArUpiPay-26001</td></tr>
+            <tr><td>2026-04-13 18:22:00</td><td>100</td><td>ArUpiPay-26001</td></tr></table></div>
+        <div><div class="lt">最后3次提现信息：</div>
+          <table class="lr"><tr><th>提现时间</th><th>金额</th><th>类型</th></tr>
+            <tr><td>2026-04-24 16:38:51</td><td>300</td><td>人工确认-8</td></tr>
+            <tr><td>2026-04-22 18:23:54</td><td>200</td><td>FastUPI提现-26004</td></tr>
+            <tr><td>2025-12-19 17:16:55</td><td>200</td><td>FastUPI提现-26003</td></tr></table></div>
+        <div><div class="lt">最后3次登录信息：</div>
+          <table class="lr"><tr><th style="text-align:center">登录日期</th><th style="text-align:center">IP</th><th style="text-align:center">同IP的用户数</th></tr>
+            <tr><td style="text-align:center">2026-08-22 02:14:14</td><td style="text-align:center">::ffff:172.16.48.56</td><td style="text-align:center">75</td></tr></table></div>
+        <div><div class="lt">注册消息：</div>
+          <table class="lr reg"><tr><th>注册时间</th><th>注册 IP</th><th>相同 IP 注册<br>用户数量</th></tr>
+            <tr><td>2025-02-22<br>04:31:55</td><td class="ip">2a00:f29:1118:9284:c164:328c:e8c7:3e8</td><td>5</td></tr></table></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ======================= 需求说明 ======================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>代理用户详细数据 · 加三方余额 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型。</div>
+    <table class="t">
+      <tr><th style="width:280px">页面</th><th>改动点</th></tr>
+      <tr><td>代理后台 › 用户 › 下级会员列表 › 点会员ID › <b>代理用户详细数据</b></td><td>「其他」区第 3 行新增「三方余额」</td></tr>
+      <tr><td>同上</td><td>「未开奖下注金额」「三方余额」名称后各加一个「?」说明图标，鼠标移上去显示说明</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">核心结论</div>
+      <div class="kf">代理在会员详情弹窗里能看到会员放在三方游戏里的钱，和老后台会员详情里的三方余额是同一个数</div>
+      <div class="kf">「未开奖下注金额」本来就有，只统计自营彩票；本期只加说明，统计口径不变</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>三方余额</b><span class="kb">核心</span>：会员在全部三方游戏里的余额合计，取查询那一刻的实时值，和老后台会员详情「保险箱及三方余额」里的三方余额一致。</div>
+
+    <div class="br"><span class="bn">02</span><b>何时查询</b>：每次打开弹窗、每次点弹窗里的「查询」，都重新查一次。不受弹窗里开始时间、结束时间影响。</div>
+
+    <div class="br"><span class="bn">03</span><b>显示格式</b>：保留两位小数，和「用户余额」一致；会员在三方游戏里没有钱，显示 0.00。</div>
+
+    <div class="br key"><span class="bn">04</span><b>查询失败</b><span class="kb">核心</span>：三方余额查不到时显示「-」，不能显示 0。三方余额查得慢或查不到，弹窗其他数据照常显示，不受影响。</div>
+
+    <div class="br"><span class="bn">05</span><b>说明文案</b>：<br>· 三方余额：会员在各三方游戏中的余额合计，打开时实时查询<br>· 未开奖下注金额：只统计自营彩票的未开奖注单，不含三方游戏</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:130px">项</th><th>说明</th></tr>
+      <tr><td>显示范围</td><td>三方余额只在会员详情弹窗显示，下级会员列表和导出不加</td></tr>
+      <tr><td>未开奖下注金额</td><td>只含自营彩票；三方游戏（体育、电子、真人等）的未结算注单查不到，本期不做</td></tr>
+      <tr><td>数据时效</td><td>三方余额只有实时值，不保留历史</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>三方余额照老后台会员详情的取法：向三方游戏服务按会员查余额，再把各家游戏的余额加起来。不要另写一套口径，两边对同一个会员查出来的数要一样。</li>
+      <li>代理后台以前没有调过三方游戏服务。三方游戏服务的地址从系统里已有的地址配置读，不要写死；上线前每个站都要确认代理后台的服务器能访问这个地址。</li>
+      <li>三方余额要设一个短的超时（建议 3 秒）。超时或报错时三方余额显示「-」，弹窗其他数据照常返回，不能因为三方余额查不到让整个弹窗报错或卡住。</li>
+      <li>查询失败要记日志，写清是哪个站、哪个会员、失败原因，方便排查。</li>
+      <li>「三方余额」和两条说明文案要加进所有语言包，不能只加中文。</li>
+      <li>上线顺序：先发后端，再发前端。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(i){return document.getElementById(i);};
+
+/* 列表演示数据（虚构）：[会员ID,手机,姓名,卡号,上级,层级,直属新增,下级总数,注册时间,在线,设备,账户余额,三方余额状态,三方余额] */
+var R=[
+ ['2103149','9119****0020','MemberNNGSFAOY','1058****8888','2160646',1,0,0,'2025-02-22 16:31:55','苹果',1005940.70,'ok',2368.40],
+ ['2160652','9119****2335','MemberNNGQJ7B9','1231****8888','2160646',1,0,0,'2025-04-03 17:15:22','',152.30,'zero',0],
+ ['2234891','9122****2005','MemberNNGOKJQ5','9230****9000','2160646',1,8,10,'2025-06-18 14:27:36','',0.85,'fail',0],
+ ['2243944','9122****2009','MemberNNGZBHZC','7588****8888','2160646',1,0,0,'2025-08-02 10:30:59','',36.00,'ok',512.75],
+ ['2243945','9122****2010','MemberNNGSAKTS','8374****9587','2160646',1,0,0,'2025-08-02 10:37:52','',0,'zero',0],
+ ['2243946','9122****2011','MemberNNGZYF4X','','2160646',1,0,0,'2025-08-02 11:13:26','',12.60,'ok',88.10],
+ ['2243947','9122****2012','MemberNNGG1N8Q','5010****8888','2160646',1,2,2,'2025-08-02 11:40:07','',420.00,'ok',1500.00]
+];
+var byId={};
+var h=R.map(function(r){
+  byId[r[0]]={acc:r[1].replace('****','****'),bal:r[10],st:r[11],tb:r[12]};
+  return '<tr><td><a class="uid" data-id="'+r[0]+'">'+r[0]+'</a></td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td><td>'+r[4]+'</td><td>'+r[5]+'</td><td>'+r[6]+'</td><td>'+r[7]+'</td><td>'+r[8]+'</td><td class="off">Offline</td><td>'+r[9]+'</td>'
+   +'<td class="n">0.00</td><td class="n">0</td><td class="n">0.00</td><td class="n">0</td><td class="n">0.00</td><td class="n">0</td><td class="n">0.00</td><td class="n">0</td><td class="n">'+r[10].toFixed(2)+'</td></tr>';
+}).join('');
+h+='<tr class="sum"><td>总计</td><td colspan="10"></td><td class="n">0.00</td><td class="n">0</td><td class="n">0.00</td><td class="n">0</td><td class="n">0.00</td><td class="n">0</td><td class="n">0.00</td><td class="n">0</td><td class="n">'+R.reduce(function(s,r){return s+r[10];},0).toFixed(2)+'</td></tr>';
+$('tb').innerHTML=h;
+
+var curId=null,demo=null,timer=null;
+function setSeg(s){[].forEach.call($('seg').children,function(a){a.classList.toggle('on',a.getAttribute('data-s')===s);});}
+function loadThird(){
+  var m=byId[curId]||byId['2103149'];
+  var st=demo||m.st, cell=$('dThird');
+  setSeg(st);
+  clearTimeout(timer);
+  cell.className='ld';cell.textContent='查询中…';
+  timer=setTimeout(function(){
+    cell.className='';
+    if(st==='fail'){cell.textContent='-';return;}
+    cell.textContent=(st==='zero'?0:(m.tb||2368.40)).toFixed(2);
+  },700);
+}
+function openDetail(id){
+  curId=id;demo=null;var m=byId[id];
+  $('qUid').value=id;$('dUid').textContent=id;$('dAcc').textContent=m.acc;$('dBal').textContent=m.bal.toFixed(2);
+  $('mmask').classList.add('on');
+  loadThird();
+}
+$('tb').addEventListener('click',function(e){var a=e.target.closest('a.uid');if(a)openDetail(a.getAttribute('data-id'));});
+$('mclose').onclick=function(){$('mmask').classList.remove('on');clearTimeout(timer);};
+$('mmask').addEventListener('click',function(e){if(e.target===$('mmask')){$('mmask').classList.remove('on');clearTimeout(timer);}});
+$('qGo').onclick=function(){var id=$('qUid').value.trim();if(byId[id]){openDetail(id);}else{loadThird();}};
+$('seg').addEventListener('click',function(e){
+  var a=e.target.closest('a');if(!a)return;
+  demo=a.getAttribute('data-s');
+  if(!$('mmask').classList.contains('on')){var keep=demo;openDetail(curId||'2103149');demo=keep;}
+  loadThird();
+});
+
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeDoc();}});
+
+openDetail('2103149');
+})();
+</script>
+</body>
+</html>
