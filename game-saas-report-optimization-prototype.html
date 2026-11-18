@@ -205,7 +205,7 @@ th.srt:hover{color:var(--primary)}
     <div class="m"><span>系统设置</span><span>⌄</span></div>
   </aside>
   <div class="main">
-    <div class="top"><span id="crumb"></span><span class="top-r"><span class="opw"><a class="lk" onclick="go('e-list')">导出记录</a><i class="nb" style="top:-12px;right:-26px">NEW</i></span><span class="cnt" id="expCnt" style="display:none"></span><span class="tsep">|</span>默认当前时区 (UTC+4) &nbsp;|&nbsp; admin</span></div>
+    <div class="top"><span id="crumb"></span><span class="top-r"><span class="opw"><a class="lk" onclick="go('e-list')">导出记录</a><i class="nb" style="top:-12px;right:-26px">NEW</i></span><span class="tsep">|</span>默认当前时区 (UTC+4) &nbsp;|&nbsp; admin</span></div>
     <div class="tabs"><span class="tab">Welcome ×</span><span class="tab" id="tabG" onclick="go('g-new')">子游戏报表 ×</span><span class="tab" id="tabB" onclick="go('b-new')">会员投注记录 ×</span><span class="tab" id="tabE" style="display:none" onclick="go('e-list')">导出记录 ×</span></div>
     <div class="page">
       <!-- ========== 子游戏报表 ========== -->
@@ -252,7 +252,7 @@ th.srt:hover{color:var(--primary)}
             <tbody id="eBody"></tbody>
           </table></div>
           <div class="pager"><span id="eCnt"></span><span class="pg dis">‹</span><span class="pg on">1</span><span class="pg dis">›</span><select><option>20 / 页</option></select></div>
-          <div class="hint">只显示自己提交的导出任务，显示最近 30 天；过期时间 = 完成时间 + 7 天，到期后不能下载；每次点「下载」生成 1 小时内有效的下载链接。</div>
+          <div class="hint">只显示自己提交的导出任务，最近 30 天；文件保留 7 天，过期后不能下载。</div>
         </div>
       </div>
 
@@ -560,8 +560,8 @@ document.getElementById('merMask').addEventListener('click', e => { if (e.target
 const gameCode = g => g.replace('TRX WinGo', 'TRXWinGo').replace(/\s+/g, '_').replace('秒', 'S').replace('分钟', 'M');
 const CURS = [['INR', 'INR(印度卢比)'], ['BRL', 'BRL(巴西雷亚尔)'], ['VND', 'VND(越南盾)'], ['USD', 'USD(美元)']];
 const MER = {
-  INR: { name: 'platformSitINR2-3003', tid: '3003', ch: 1201, min: 10, max: 2000, total: 842 },
-  BRL: { name: 'sitBRL-3005', tid: '3005', ch: 1205, min: 1, max: 200, total: 444 }
+  INR: { name: 'platformSitINR2-3003', tid: '3003', ch: 1201, vm: 'arl_op_01', min: 10, max: 2000, total: 842 },
+  BRL: { name: 'sitBRL-3005', tid: '3005', ch: 1205, vm: 'arl_op_02', min: 1, max: 200, total: 444 }
 };
 const LIMIT = 200000, PAGE_SIZE = 10;
 const p2 = n => String(n).padStart(2, '0');
@@ -576,7 +576,7 @@ Object.keys(MER).forEach(c => {
     const tax = r2(bet * 0.02), eff = r2(bet - tax);
     const pay = rnd() < 0.45 ? r2(eff * 1.96) : 0;
     const acct = String(10000000 + Math.floor(rnd() * 8999999));
-    return { cur: c, t, mname: m.name, ch: m.ch, acct, uid: m.tid + acct.padStart(10, '0'),
+    return { cur: c, t, mname: m.name, ch: m.ch, vm: m.vm, acct, uid: m.tid + acct.padStart(10, '0'),
       ono: `${m.ch}_${t % 100000000}${String(Math.floor(rnd() * 1000)).padStart(3, '0')}`,
       issue: `20261116${String(Math.floor((t % 86400) / 30)).padStart(4, '0')}`,
       k: Math.floor(rnd() * 97), bet, tax, eff, pay, wl: r2(pay - bet) };
@@ -594,7 +594,7 @@ const BCOLS = [
   { h: '游戏订单号', v: r => r.ono }, { h: '会员ID', v: r => r.uid }, { h: '商户会员ID', v: r => r.acct },
   { h: '商户名称', v: r => r.mname }, { h: '游戏厂商', v: r => r.ven },
   { h: '币种', v: r => r.cur, html: r => `<span class="tag">${r.cur}</span>` },
-  { h: '供应商', v: () => 'Official' }, { h: '通道ID', v: r => r.ch },
+  { h: '供应商', v: () => 'Official' }, { h: '通道ID', v: r => r.ch }, { h: '厂商商户号', badge: 'NEW', v: r => r.vm },
   { h: '游戏名称', v: r => r.game }, { h: '游戏编码', v: r => gameCode(r.game) }, { h: '局号', v: r => r.issue },
   { h: '投注金额', k: 'bet' }, { h: '有效投注', k: 'eff' }, { h: '派彩金额', k: 'pay' }, { h: '盈亏', k: 'wl' }, { h: '税收', k: 'tax' },
   { h: '注单状态', v: () => '已结算' }, { h: '完成状态', v: () => '已完成' },
@@ -639,7 +639,7 @@ function sumRow(label, c, s, badge) {
 }
 function renderBetTable() {
   const { rows, curs, total } = betData();
-  document.getElementById('bHead').innerHTML = '<tr>' + BCOLS.map(c => `<th>${c.h}</th>`).join('') + '<th>操作</th></tr>';
+  document.getElementById('bHead').innerHTML = '<tr>' + BCOLS.map(c => c.badge ? `<th style="padding-right:34px">${c.h}<i class="nb" style="top:2px;right:2px">${c.badge}</i></th>` : `<th>${c.h}</th>`).join('') + '<th>操作</th></tr>';
   const body = document.getElementById('bBody'), sumBox = document.getElementById('bSum');
   if (!rows.length) {
     body.innerHTML = `<tr><td colspan="${BCOLS.length + 1}" style="padding:48px;text-align:left;padding-left:40%;color:var(--sub)">无数据</td></tr>`;
@@ -688,7 +688,7 @@ function createTask(n, cond, name) {
     t.st = 'run'; t.pct = Math.min(100, t.pct + 18 + Math.round(rnd() * 15));
     if (t.pct >= 100) {
       Object.assign(t, { st: 'done', size: (n / 5150).toFixed(1) + ' MB', fin: '2026-11-18 15:31:12', exp: '2026-11-25 15:31:12' });
-      renderTasks(); toast(`导出已完成：${name}，可在「导出记录」下载`, 3500); return;
+      renderTasks(); return;
     }
     renderTasks(); setTimeout(tick, 900);
   };
@@ -701,12 +701,10 @@ function retryTask(id) {
   createTask(o.n, o.cond, o.name.replace(/_\d{14}\.xlsx$/, '_20261118153000.xlsx')); toast('已按原条件重新提交');
 }
 function renderTasks() {
-  const n = TASKS.filter(t => t.st === 'queue' || t.st === 'run').length, c = document.getElementById('expCnt');
-  c.textContent = '生成中'; c.style.display = n ? '' : 'none';
   document.getElementById('eCnt').textContent = `共 ${TASKS.length} 条`;
   document.getElementById('eBody').innerHTML = TASKS.map(t => {
     const [label, cls] = ST[t.st];
-    const stHtml = `<span class="stt ${cls}">${label}${t.st === 'run' ? ' ' + t.pct + '%' : ''}</span>` + (t.st === 'fail' ? `<div class="sub-r" title="${t.reason}">${t.short} ⓘ</div>` : '');
+    const stHtml = `<span class="stt ${cls}">${label}</span>` + (t.st === 'fail' ? `<div class="sub-r" title="${t.reason}">${t.short} ⓘ</div>` : '');
     const op = t.st === 'done' ? `<a class="lk" onclick="toast('原型：生成 1 小时内有效的下载链接，开始下载')">下载</a>`
       : t.st === 'fail' ? `<a class="lk" onclick="retryTask(${t.id})">重新导出</a>` : '<span class="dash">-</span>';
     return `<tr><td class="fn">${t.name}</td><td class="cond-c">${t.cond}</td><td>${t.n.toLocaleString('en-US')}</td><td>${t.size}</td><td>${stHtml}</td><td>${t.at}</td><td>${t.fin || '-'}</td><td>${t.exp || '-'}</td><td>${op}</td></tr>`;
@@ -760,7 +758,7 @@ go('g-new');
   <div class="db">
     <h3>一、改造页面</h3>
     <div class="pin">📌 本说明只写业务规则本身，样子和交互直接看原型。</div>
-    <div class="pin">📌 原型只用来看布局和交互：里面的数据、默认值、灰色说明文字、NEW/改角标、带「原型：」的提示都是演示用，不做到页面上；筛选默认值和分页条数沿用现有；改筛选后仍要点「查询」才生效。</div>
+    <div class="pin">📌 原型里的数据、默认值、灰色说明文字、NEW/改角标、带「原型：」的提示都是演示用，不做到页面上；筛选默认值和分页条数沿用现有；改筛选后仍要点「查询」才生效。</div>
     <div class="pin">📌 【核心】只表示重点，没标的条目同样要做。</div>
     <table><thead><tr><th style="width:32%">页面</th><th>改动点</th></tr></thead><tbody>
       <tr><td>报表管理 › 子游戏报表 › 每日明细弹窗</td><td>12 列一屏展示；新增 3 个人均指标；查询区间内没有注单的日子也列一行；导出文件名加商户和厂商</td></tr>
@@ -769,84 +767,69 @@ go('g-new');
       <tr><td>会员管理 › 会员投注记录</td><td>新增「导出」：后台生成文件，单次最多 20 万条</td></tr>
       <tr><td>会员管理 › 会员投注记录</td><td>筛选新增「币种」；子游戏改为可多选；筛选区按 4 列重新排列（见原型）</td></tr>
       <tr><td>会员管理 › 会员投注记录</td><td>小计、合计按币种分行显示</td></tr>
+      <tr><td>会员管理 › 会员投注记录</td><td>列表在「通道ID」右侧新增「厂商商户号」，只有总控后台可见</td></tr>
       <tr><td>导出记录（新页面，入口在右上角）</td><td>查看自己提交的导出任务，下载已生成的文件</td></tr>
     </tbody></table>
     <h3>二、功能描述与业务规则</h3>
     <div class="core"><b>🎯 核心结论</b><ul>
-      <li>子游戏报表：「每日明细」按天看，「商户明细」按商户看；主列表直接显示每个子游戏有几个商户有注单。</li>
-      <li>会员投注记录导出改为后台生成：单次最多 20 万条，生成后到「导出记录」下载。</li>
-      <li>不同币种的金额不相加，不做折算。</li>
-      <li>本次改动只在总控后台生效，商户后台不变。</li>
+      <li>子游戏报表：「每日明细」按天看，「商户明细」按商户看，主列表显示每个子游戏有几个商户有注单。</li>
+      <li>会员投注记录导出改为后台生成，单次最多 20 万条，到「导出记录」下载。</li>
     </ul></div>
     <h4>（一）子游戏报表 · 每日明细</h4>
-    <div class="rule c"><span class="n">1</span><div><span class="tg">核心</span>新增指标的算法：人均投注笔数 = 投注笔数 ÷ 投注人数；人均有效投注金额 = 有效投注金额 ÷ 投注人数；平均每笔有效投注金额 = 有效投注金额 ÷ 投注笔数。</div></div>
-    <div class="rule"><span class="n">2</span><div>分母为 0 时，该指标显示「-」。</div></div>
-    <div class="rule"><span class="n">3</span><div>3 个指标保留 2 位小数，四舍五入；金额带千分位。</div></div>
-    <div class="rule"><span class="n">4</span><div>列顺序：日期、投注人数、投注笔数、投注金额、税费、有效投注金额、派彩金额、输赢额、盈利率、人均投注笔数、人均有效投注金额、平均每笔有效投注金额。屏幕宽度 1440 及以上时一屏显示、不出现横向滚动，更窄时允许横向滚动；盈利率列不再固定在右侧。</div></div>
-    <div class="rule c"><span class="n">5</span><div><span class="tg">核心</span>查询的起止日期之间每天一行，最多列到今天，今天以后的日期不列。没有注单的日子投注人数、投注笔数、各项金额显示 0，比率类（盈利率和 3 个人均指标）显示「-」，日期旁标「无注单」；弹窗和导出都包含这些行。日期按该币种对应的时区切天，与现有报表一致。</div></div>
-    <div class="rule c"><span class="n">6</span><div><span class="tg">核心</span>导出为 Excel，列名、列顺序、数值与弹窗一致，导出全部日期，不只当前页。金额、笔数、人数、人均指标为数值格式，盈利率为百分比格式；分母为 0 的格子写「-」；「无注单」标记不写进文件。</div></div>
-    <div class="rule"><span class="n">7</span><div>文件名为「每日明细_商户_厂商_游戏名_币种_起止日期」，例：每日明细_1041_JILI_Mega Fishing_INR_20260601-20260629。商户：选了 1 个商户写商户 ID，选了多个写「多商户」，没选写「全部商户」；厂商写厂商代码；游戏名用英文名。</div></div>
+    <div class="rule c"><span class="n">1</span><div><span class="tg">核心</span>新增指标：人均投注笔数 = 投注笔数 ÷ 投注人数；人均有效投注金额 = 有效投注金额 ÷ 投注人数；平均每笔有效投注金额 = 有效投注金额 ÷ 投注笔数。分母为 0 时显示「-」。</div></div>
+    <div class="rule"><span class="n">2</span><div>3 个指标保留 2 位小数，四舍五入。</div></div>
+    <div class="rule"><span class="n">3</span><div>列顺序：日期、投注人数、投注笔数、投注金额、税费、有效投注金额、派彩金额、输赢额、盈利率、人均投注笔数、人均有效投注金额、平均每笔有效投注金额。1440 宽的屏幕上不出现横向滚动；盈利率列不再固定在右侧。</div></div>
+    <div class="rule c"><span class="n">4</span><div><span class="tg">核心</span>查询的起止日期之间每天一行（最多到今天）；没有注单的日子数值为 0，比率显示「-」，日期旁标「无注单」。</div></div>
+    <div class="rule c"><span class="n">5</span><div><span class="tg">核心</span>导出 Excel：列、顺序、数值与弹窗一致，导出全部日期；数字按数值写入。</div></div>
+    <div class="rule"><span class="n">6</span><div>文件名：每日明细_商户_厂商_游戏名_币种_起止日期，例：每日明细_1041_JILI_Mega Fishing_INR_20260601-20260629。商户：选 1 个写商户 ID，选多个写「多商户」，没选写「全部商户」；厂商写厂商代码，游戏名用英文名。</div></div>
     <h4>（二）子游戏报表 · 有注单商户数与商户明细</h4>
-    <div class="rule c"><span class="n">8</span><div><span class="tg">核心</span>「有注单商户数」= 该子游戏在当前查询条件下有注单的商户个数，按商户去重；哪些注单计入沿用现有报表的统计口径（现有逻辑，不改）。</div></div>
-    <div class="rule"><span class="n">9</span><div>合计行的有注单商户数为所有子游戏去重后的商户数，按币种分行。验收口径：不小于各行的最大值，不大于各行相加（不需要代码处理）。</div></div>
-    <div class="rule"><span class="n">10</span><div>操作列：原「明细」改名为「每日明细」，功能按第（一）部分；新增「商户明细」。</div></div>
-    <div class="rule c"><span class="n">11</span><div><span class="tg">核心</span>商户明细的统计范围：所点行的子游戏和币种，加上主列表最近一次查询时的报表日期、商户、代理、通道、供应商。一个商户一行，只列有注单的商户。</div></div>
-    <div class="rule"><span class="n">12</span><div>商户明细列：商户名称、投注人数、投注笔数、投注金额、税费、有效投注金额、派彩金额、输赢额、盈利率。默认按投注金额倒序，相同时按商户名称排序；点表头可按其他列排序；可按商户名称搜索（包含即匹配，不区分大小写）；每页 20 条。</div></div>
-    <div class="rule"><span class="n">13</span><div>验收口径：各商户的数值相加等于主列表该行，投注人数也可以相加，因为一个会员只属于一个商户（不需要代码处理）。</div></div>
-    <div class="rule c"><span class="n">14</span><div><span class="tg">核心</span>商户明细可导出 Excel：列与弹窗一致；导出弹窗当前列表的全部商户（含搜索条件），不只当前页；文件名为「商户明细_厂商_游戏名_币种_起止日期」，厂商和游戏名的写法同第 7 条。</div></div>
-    <div class="rule"><span class="n">15</span><div>主列表加列后，屏幕宽度不足 1440 时允许横向滚动。</div></div>
+    <div class="rule c"><span class="n">7</span><div><span class="tg">核心</span>「有注单商户数」= 该子游戏在当前查询条件下有注单的商户个数（去重）；合计行为所有子游戏去重后的商户数。</div></div>
+    <div class="rule"><span class="n">8</span><div>操作列：「明细」改名为「每日明细」；新增「商户明细」。</div></div>
+    <div class="rule c"><span class="n">9</span><div><span class="tg">核心</span>商户明细：所点行的子游戏和币种，加上主列表当前的查询条件；一个商户一行，只列有注单的商户。</div></div>
+    <div class="rule"><span class="n">10</span><div>商户明细列：商户名称、投注人数、投注笔数、投注金额、税费、有效投注金额、派彩金额、输赢额、盈利率。默认按投注金额倒序，可点表头排序，可按商户名称搜索，每页 20 条。</div></div>
+    <div class="rule"><span class="n">11</span><div>商户明细可导出 Excel，列与弹窗一致，导出全部商户；文件名：商户明细_厂商_游戏名_币种_起止日期，写法同第 6 条。</div></div>
     <h4>（三）会员投注记录</h4>
-    <div class="rule c"><span class="n">16</span><div><span class="tg">核心</span>导出改为后台生成：点「导出」后提交导出任务，不在页面上等待；生成完成后到右上角「导出记录」下载。</div></div>
-    <div class="rule c"><span class="n">17</span><div><span class="tg">核心</span>导出范围：最近一次点「查询」时的条件下的全部记录，不只当前页。查询的结束时间晚于提交时刻的，按提交时刻截止；时区按提交时页面选择的时区。</div></div>
-    <div class="rule c"><span class="n">18</span><div><span class="tg">核心</span>单次最多导出 20 万条（含 20 万）。提交前按条数判断，超过不提交，提示「共 X 条，超过 20 万条导出上限，请缩小查询范围后再导出」；后台生成时实际超过 20 万条的，任务失败，原因为「数据超过 20 万条」。</div></div>
-    <div class="rule"><span class="n">19</span><div>同一账号同时只能有 1 个进行中（排队中或生成中）的导出任务，再点「导出」提示「已有导出任务在进行，请完成后再导出」。任务从提交起 30 分钟还没完成的，自动置为失败，原因为「生成超时」。</div></div>
-    <div class="rule"><span class="n">20</span><div>导出文件为 Excel，导出列与列表显示的列一致，不含「操作」列，不受「列设置」里隐藏列的影响，不含小计、合计行。11-17 测试环境页面上的列为：游戏订单号、会员ID、商户会员ID、商户名称、游戏厂商、币种、供应商、通道ID、游戏名称、游戏编码、局号、投注金额、有效投注、派彩金额、盈亏、税收、注单状态、完成状态、投注时间、结算时间、创建时间、更新时间；列表以后增加的列（如助力奖金）一起导出。金额为数值格式；订单号、会员ID、商户会员ID、局号这类长数字按文本写入；时间按提交时的时区显示。</div></div>
-    <div class="rule"><span class="n">21</span><div>文件名为「会员投注记录_开始日期-结束日期_提交时间」。</div></div>
-    <div class="rule"><span class="n">22</span><div>导出单独授权，只分配给总控后台角色。</div></div>
-    <div class="rule"><span class="n">23</span><div>币种：单选，不选为全部币种。</div></div>
-    <div class="rule c"><span class="n">24</span><div><span class="tg">核心</span>小计（当前页）、合计（全部结果）放在表格底部，格式同报表的合计行：每个币种一行，币种列显示币种，金额列显示对应合计；只有一个币种时各一行。</div></div>
-    <div class="rule c"><span class="n">25</span><div><span class="tg">核心</span>游戏大类 → 游戏厂商 → 子游戏逐级选择：先选游戏大类，游戏厂商只列该大类下的厂商；选了游戏厂商才能选子游戏，子游戏只列该厂商在该大类下的子游戏。改上一级时清空下级已选的值。子游戏可多选、可搜索；不选为全部。大类、厂商、子游戏的对应关系取现有游戏列表（每个子游戏已带大类和厂商），不新建对应关系。</div></div>
+    <div class="rule c"><span class="n">12</span><div><span class="tg">核心</span>导出改为后台生成：点「导出」后提交导出任务，生成后到右上角「导出记录」下载；导出最近一次查询条件下的全部记录。</div></div>
+    <div class="rule c"><span class="n">13</span><div><span class="tg">核心</span>单次最多 20 万条；超过不提交，提示「共 X 条，超过 20 万条导出上限，请缩小查询范围后再导出」。</div></div>
+    <div class="rule"><span class="n">14</span><div>同一账号同时只能有 1 个未完成的导出任务；再点「导出」提示「已有导出任务在进行，请完成后再导出」。</div></div>
+    <div class="rule"><span class="n">15</span><div>导出 Excel，列与列表一致（不含「操作」列），不含小计、合计行；文件名：会员投注记录_开始日期-结束日期_提交时间。</div></div>
+    <div class="rule"><span class="n">16</span><div>导出单独授权，只分配给总控后台角色。</div></div>
+    <div class="rule"><span class="n">17</span><div>筛选新增币种：单选，不选为全部币种。</div></div>
+    <div class="rule c"><span class="n">18</span><div><span class="tg">核心</span>小计（当前页）、合计（全部结果）放在表格底部，格式同报表的合计行，每个币种一行。</div></div>
+    <div class="rule c"><span class="n">19</span><div><span class="tg">核心</span>游戏大类 → 游戏厂商 → 子游戏逐级选择，改上一级时清空下级；子游戏可多选、可搜索，不选为全部。对应关系取现有游戏列表。</div></div>
+    <div class="rule c"><span class="n">20</span><div><span class="tg">核心</span>列表在「通道ID」右侧新增「厂商商户号」，显示该注单所走通道在厂商那边的商户号；只有总控后台显示，商户后台接口也不返回。</div></div>
     <h4>（四）导出记录</h4>
-    <div class="rule c"><span class="n">26</span><div><span class="tg">核心</span>入口在页面右上角「导出记录」，有「会员投注记录导出」权限的账号才显示；有进行中的任务时旁边显示「生成中」。只显示当前账号自己提交的任务，显示最近 30 天。</div></div>
-    <div class="rule"><span class="n">27</span><div>列：文件名、查询条件、条数、文件大小、状态、提交时间、完成时间、过期时间、操作，按提交时间倒序。查询条件显示提交时的全部筛选项和时区；条数为文件的实际行数。</div></div>
-    <div class="rule"><span class="n">28</span><div>状态：排队中、生成中（显示进度）、已完成、失败、已过期。失败原因有 3 种：生成超时、数据超过 20 万条、系统异常，显示在状态下方；失败的任务可「重新导出」，按原条件重新提交，仍受第 18、19 条限制。</div></div>
-    <div class="rule c"><span class="n">29</span><div><span class="tg">核心</span>过期时间 = 完成时间 + 7 天；到期后状态立即变为「已过期」，不能再下载。每次点「下载」临时生成 1 小时内有效的下载链接。</div></div>
-    <div class="rule"><span class="n">30</span><div>任务完成或失败时，在总控后台当前页面顶部提示一次。</div></div>
+    <div class="rule c"><span class="n">21</span><div><span class="tg">核心</span>入口在页面右上角，有「会员投注记录导出」权限的账号才显示；只显示自己提交的任务，最近 30 天。</div></div>
+    <div class="rule"><span class="n">22</span><div>列：文件名、查询条件、条数、文件大小、状态、提交时间、完成时间、过期时间、操作，按提交时间倒序。</div></div>
+    <div class="rule"><span class="n">23</span><div>状态：排队中、生成中、已完成、失败、已过期；失败时显示原因，可重新导出。</div></div>
+    <div class="rule c"><span class="n">24</span><div><span class="tg">核心</span>文件保留 7 天（从完成时间算），过期后不能下载。</div></div>
     <h3>三、限制条件</h3>
     <table><thead><tr><th style="width:26%">项</th><th>说明</th></tr></thead><tbody>
-      <tr><td>生效范围</td><td>只改总控后台；商户后台的页面和功能不变</td></tr>
-      <tr><td>币种</td><td>金额均为所属币种，不做跨币种折算</td></tr>
-      <tr><td>子游戏报表主列表</td><td>本期不新增 3 个人均指标</td></tr>
-      <tr><td>弹窗日期范围</td><td>每日明细、商户明细都跟随主列表最近一次查询的条件，弹窗内不能单独修改</td></tr>
-      <tr><td>弹窗合计行</td><td>每日明细、商户明细都不设合计行</td></tr>
-      <tr><td>子游戏报表当天数据</td><td>投注人数和合计行来自会员日报，可能比投注金额等数据晚 1 小时以上更新（现状，不处理）</td></tr>
-      <tr><td>商户明细范围</td><td>开通了该子游戏但没有注单的商户不显示</td></tr>
-      <tr><td>投注记录时间范围</td><td>现有逻辑，不改，只做回归：会员ID、商户会员ID、订单号都不填时最长 15 天；填了会员ID或商户会员ID最长 31 天；填了订单号时不限天数（开始时间为空则默认查最近 45 天），按投注时间查；导出同样适用</td></tr>
-      <tr><td>导出数据时点</td><td>以后台生成时的数据为准，和提交时页面上看到的可能有少量差异（如期间有注单结算）</td></tr>
-      <tr><td>弹窗导出</td><td>每日明细、商户明细数据量小，点了直接下载，不进导出记录</td></tr>
-      <tr><td>导出记录范围</td><td>本期只接会员投注记录，其他报表的导出不接入</td></tr>
-      <tr><td>不改动的部分</td><td>不改现有通用导出；四舍五入和比率空值的处理只针对本需求新增的指标和导出，主列表和其他报表不变</td></tr>
+      <tr><td>生效范围</td><td>只改总控后台，商户后台不变</td></tr>
+      <tr><td>币种</td><td>不做跨币种折算</td></tr>
+      <tr><td>子游戏报表主列表</td><td>本期不加 3 个人均指标</td></tr>
+      <tr><td>弹窗</td><td>每日明细、商户明细跟随主列表的查询条件，不能单独改日期；都不设合计行</td></tr>
+      <tr><td>弹窗导出</td><td>点了直接下载，不进导出记录</td></tr>
+      <tr><td>导出记录</td><td>本期只接会员投注记录</td></tr>
+      <tr><td>不改动的部分</td><td>不改现有通用导出；四舍五入和比率空值的处理只用于本需求新增的指标和导出</td></tr>
     </tbody></table>
     <h3>四、开发注意事项</h3>
     <ol class="dev">
-      <li>子游戏报表接口加「按商户分组」选项：金额、笔数的查询和投注人数的去重查询都加上商户分组，人数匹配回每行时也要带上商户。商户明细用这个选项，只查所点行的游戏厂商、子游戏、币种。</li>
-      <li>有注单商户数在主列表查询里按商户去重计数；合计行在合计查询里按币种去重计数。</li>
-      <li>每日明细、商户明细改为后端一次返回全部数据，前端分页、排序、搜索，并用同一套列定义在前端生成 Excel。不要走现有通用导出（它的列顺序不受控、所有格子写成文本、文件名会被自动拼上时间戳），也不要改它。</li>
-      <li>每日明细现在在数据库里分页；补 0 行要由后端按查询区间生成完整日期序列，再对上每日汇总，所以要先查出全部日期。</li>
-      <li>投注人数是分页后才回填的，后端按人数排序不生效，排序统一交给前端。</li>
-      <li>只针对本需求新增的指标和导出：四舍五入用普通四舍五入（远离零），不要用 .NET 默认的银行家舍入；没有数据时比率返回空值，前端显示「-」，不要返回 0。</li>
-      <li>文件名里文件系统不允许的字符（/ \ : * ? " &lt; &gt; |）要替换。</li>
-      <li>会员投注记录接口商户后台也在用：按币种分行的合计用新增字段返回，原合计字段保留；子游戏多选用新增参数，原单个子游戏参数保留。币种筛选后端已支持，只需前端加。子游戏编码只在同一游戏厂商下唯一，多选必须带上游戏厂商。</li>
-      <li>会员投注记录导出不走现有的同步通用导出，改为后台任务。总控后台的定时任务框架目前没有启用（注册代码被注释），在总控后台内加一个后台服务执行导出任务，不新建独立服务。多台服务器部署时用数据库状态抢任务：把任务从「排队中」改成「生成中」成功的那台才执行，保证一个任务只被执行一次。</li>
-      <li>前后端都按条数校验 20 万上限；同一账号已有进行中的任务时，提交接口直接拒绝。提交时保存完整的查询条件、截止时间和时区。</li>
-      <li>生成时分批查询，每批 1 万条，按投注时间加订单号往后翻，不要用页码深翻；只查导出需要的列，但现有列表的后处理（如 JDB 注单号互换、商户名称、供应商）要保留；按 20 万行加上限兜底。</li>
-      <li>用流式方式写 Excel（现有 Excel 组件 NPOI 2.7 支持），内存不随行数增长；列顺序按第 20 条显式指定。</li>
-      <li>文件上传到现有 OSS 存储空间的 export 目录下，文件设为私有；下载时生成 1 小时有效的签名链接。7 天后删除文件用 OSS 生命周期规则，由运维在 OSS 控制台配置，不写清理代码。</li>
-      <li>全系统同时最多 2 个任务在生成，其余排队；用定时检查把超过 30 分钟未完成的任务置为失败。</li>
-      <li>导出任务表永久保留，同时作为导出日志（账号、查询条件、条数、提交和完成时间、结果、失败原因）；页面只查最近 30 天。</li>
-      <li>有进行中的任务时，前端每 10 秒查一次任务状态，用于右上角「生成中」和完成提示。</li>
-      <li>压测通过标准：20 万条在 10 分钟内生成完成，期间总控后台其他页面的查询没有明显变慢。</li>
-      <li>会员投注记录筛选区按原型固定 4 列排列，桌面端不随屏幕宽度改变列数；「游戏大类」后面的提示图标移到标签旁。</li>
+      <li>子游戏报表接口加「按商户分组」选项（金额、笔数和投注人数去重都按商户分组），商户明细用它；有注单商户数按商户去重计数，合计行按币种去重计数。</li>
+      <li>每日明细、商户明细由后端一次返回全部数据，前端分页、排序、搜索并生成 Excel；不走现有通用导出，也不改它。</li>
+      <li>补 0 行由后端按日期区间生成完整日期序列。</li>
+      <li>本需求新增的指标用普通四舍五入，不用 .NET 默认的银行家舍入；无数据时比率返回空值。</li>
+      <li>文件名里文件系统不允许的字符要替换。</li>
+      <li>会员投注记录接口商户后台也在用：按币种的合计、子游戏多选都用新增字段和参数，原字段和参数保留；币种筛选后端已支持；子游戏多选要带上游戏厂商（子游戏编码只在同一厂商下唯一）。</li>
+      <li>厂商商户号取通道配置里的商户号，只在总控登录时返回，只返回商户号，不返回其他通道配置。</li>
+      <li>会员投注记录导出在总控后台内加后台服务执行，不新建独立服务；多台服务器用数据库状态抢任务，保证一个任务只执行一次。</li>
+      <li>提交时前后端都校验 20 万上限和同账号未完成的任务；保存查询条件、截止时间（不晚于提交时刻）和时区。</li>
+      <li>生成时每批查 1 万条，按投注时间加订单号往后翻；保留现有列表的后处理（如 JDB 注单号互换、商户名称、供应商）；超过 20 万行按失败处理。</li>
+      <li>流式写 Excel；列顺序与列表一致；金额写数值，订单号、会员ID 这类长数字写文本。</li>
+      <li>文件放现有 OSS 存储空间的 export 目录，设为私有；下载时生成 1 小时有效的签名链接；7 天删除由运维配置 OSS 生命周期规则。</li>
+      <li>全系统同时最多 2 个任务在生成；超过 30 分钟未完成的任务置为失败。</li>
+      <li>上线前在测试环境压测一次 20 万条导出。</li>
+      <li>会员投注记录筛选区按原型固定 4 列；「游戏大类」后面的提示图标移到标签旁。</li>
     </ol>
   </div>
 </aside>
