@@ -1,0 +1,1647 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>映射管理原型二版</title>
+<style>
+:root{
+  --primary:#1677ff; --primary-bg:#e6f4ff;
+  --side-bg:#001529; --side-text:#cfd8e3; --side-active:#1677ff;
+  --bg:#f0f2f5; --card:#fff; --text:#1f2329; --sub:#646a73; --line:#e8eaed; --head-bg:#fafafa;
+  --red:#f5222d; --green:#389e0d; --green-bg:#f0f9eb; --bad-bg:#fff1f0;
+  --warn:#ad6800; --warn-bg:#fff7e6; --warn-line:#ffd591;
+  --mask:rgba(0,0,0,.45);
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:14px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--bg);min-width:1100px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+.app{display:flex;height:100%}
+.side{width:180px;background:var(--side-bg);color:var(--side-text);flex:none;padding-top:8px;overflow:auto}
+.app.collapsed .side{display:none}
+.logo{height:44px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;letter-spacing:2px}
+.side .m{padding:9px 20px;display:flex;justify-content:space-between;font-size:13px}
+.side .s{padding:8px 20px 8px 36px;font-size:13px}
+.side .s.nav{cursor:pointer}
+.side .s.on{background:var(--side-active);color:#fff;border-radius:4px;margin:2px 4px;padding-left:32px}
+.main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.top{flex:none;height:48px;background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);color:var(--sub);font-size:13px}
+.top .l{display:flex;gap:14px;align-items:center}
+.top .ib{border:0;background:none;color:var(--sub);font-size:16px;padding:0}
+.tabs{flex:none;display:flex;gap:6px;padding:8px 16px 0;overflow:hidden}
+.tab{background:var(--card);padding:5px 12px;border-radius:4px;font-size:13px;white-space:nowrap;border:0}
+.tab.on{background:var(--primary);color:#fff}
+.page{flex:1;min-height:0;padding:8px 40px 10px 40px;display:flex;flex-direction:column}
+.pg-map,.pg-log{flex:1;min-height:0;display:flex;flex-direction:column}
+.pg-log{overflow:auto}
+.pg-map[hidden],.pg-log[hidden]{display:none}
+h2{margin:0 0 8px;font-size:16px}
+.card{background:var(--card);border-radius:6px}
+.demo{flex:none;margin:0 0 8px;border:1px dashed var(--primary);border-radius:6px;padding:5px 12px;color:var(--sub);font-size:12px;background:var(--card)}
+.demo b{color:var(--primary)}
+.mapgrid{flex:1;min-height:0;display:grid;grid-template-columns:264px minmax(0,1fr);gap:12px}
+.lcard{padding:12px 14px;display:flex;flex-direction:column;min-height:0}
+.rcard{display:flex;flex-direction:column;min-height:0;min-width:0}
+
+/* 红色角标 */
+.nb{position:absolute;top:-8px;right:-7px;background:var(--red);color:#fff;font-size:10px;font-weight:700;line-height:1;padding:2px 4px;border-radius:3px;z-index:6;font-style:normal;letter-spacing:.3px;pointer-events:none}
+.rel{position:relative;display:inline-block}
+
+/* 左：商户站点 */
+.lh{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;margin-bottom:10px}
+.cnt{margin-left:auto;background:var(--primary-bg);color:var(--primary);border-radius:4px;font-size:12px;min-width:22px;text-align:center;padding:0 6px;font-weight:400}
+.lab{color:var(--sub);font-size:13px;margin-bottom:4px}
+.ms{position:relative}
+.ms input{width:100%;border:1px solid var(--line);border-radius:6px;padding:5px 10px;height:32px;background:var(--card)}
+.dd{position:absolute;left:0;right:0;top:36px;background:var(--card);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.14);z-index:30;padding:8px}
+.dd[hidden]{display:none}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.pill{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:0 10px;font-size:12px;color:var(--sub)}
+.pill.on{background:var(--primary-bg);border-color:var(--primary);color:var(--primary)}
+.ddtools{display:flex;gap:14px;font-size:12px;margin-bottom:4px}
+.lk{color:var(--primary);cursor:pointer;background:none;border:0;padding:0}
+.ddl{max-height:210px;overflow:auto}
+.ddi{display:flex;gap:8px;align-items:center;padding:4px 6px;border-radius:4px;cursor:pointer;font-size:13px}
+.ddi:hover{background:var(--head-bg)}
+.ddi input{margin:0;accent-color:var(--primary);width:auto;height:auto}
+.selh{display:flex;justify-content:space-between;align-items:center;margin:12px 0 4px;font-size:13px}
+.selh .rd{color:var(--red);cursor:pointer;background:none;border:0;padding:0;font-size:13px}
+.sl{flex:1;min-height:0;overflow:auto}
+.sr{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.sn{font-family:var(--mono);font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sm{color:var(--sub);font-size:12px;white-space:nowrap}
+.pd{background:var(--primary-bg);color:var(--primary);border:1px solid #91caff;border-radius:9px;font-size:11px;padding:0 6px;white-space:nowrap}
+.sr .rd{color:var(--red);background:none;border:0;padding:0;font-size:13px}
+
+/* 右：映射子游戏 */
+.rh{flex:none;display:flex;align-items:center;gap:10px;padding:10px 14px;flex-wrap:wrap}
+.rh b{font-size:15px}
+.vc{display:inline-block;background:var(--green);color:#fff;font-size:11px;font-weight:600;border-radius:3px;padding:0 5px;line-height:18px;font-family:var(--mono)}
+.vc.src{background:var(--primary)}
+.vc.o{background:#8c939d;font-family:inherit}
+.vc.vf{font-family:inherit;font-weight:500;padding:0 7px}
+.vc.big{font-size:12px;line-height:20px;padding:0 6px}
+.mono{font-family:var(--mono);font-size:12px}
+.vsel{border:1px solid var(--line);border-radius:6px;height:32px;padding:0 8px;background:var(--card);min-width:170px}
+.tag{background:var(--green-bg);color:var(--green);border-radius:4px;padding:0 6px;font-size:12px}
+.arrow{color:var(--sub)}
+.rt{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.inp{border:1px solid var(--line);border-radius:6px;height:32px;padding:0 10px;background:var(--card);width:190px}
+.seg{display:inline-flex;border:1px solid var(--primary);border-radius:6px}
+.seg button{position:relative;border:0;background:var(--card);color:var(--primary);padding:3px 11px;font-size:13px;border-right:1px solid var(--primary)}
+.seg button:first-child{border-radius:5px 0 0 5px}
+.seg button:last-child{border-right:0;border-radius:0 5px 5px 0}
+.seg button:disabled{opacity:.45;cursor:not-allowed}
+.seg button[aria-pressed="true"]{background:var(--primary);color:#fff}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:4px 16px;font-size:14px;height:32px}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.d{border-color:var(--red);color:var(--red)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.leg{flex:none;display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding:0 14px 8px;font-size:12px;color:var(--sub)}
+.leg>span{display:inline-flex;gap:5px;align-items:center}
+.sw2{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+.sw2.on{background:var(--primary-bg);border-color:var(--primary)}
+.sw2.part{background:#f0f7ff;border:1px dashed var(--primary)}
+.sw2.occ{background:#f5f5f6;border:1px dashed #c3c8d0}
+.sw2.wc{background:#fff;border:1px dashed var(--red)}
+
+.cards{flex:1;min-height:0;overflow:auto;padding:4px 14px 14px;border-top:1px solid var(--line)}
+.grp{margin-top:10px;scroll-margin-top:46px}
+.gh{display:flex;align-items:center;gap:8px;background:#f5f7fa;border-radius:4px;padding:6px 10px;margin-bottom:8px}
+.gh .gt{font-weight:600}
+.gh .gr{margin-left:auto;display:flex;gap:12px;align-items:center;color:var(--sub);font-size:13px}
+.gh .or{color:#d46b08}
+.gh .sel{color:var(--primary)}
+.gh .fold{border:0;background:none;color:var(--sub);padding:0 2px;font-size:12px}
+.gl{display:grid;grid-template-columns:repeat(auto-fill,minmax(244px,1fr));gap:8px}
+.c2{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:4px;padding:6px 8px;background:#fff;cursor:pointer;min-width:0}
+.c2:hover{border-color:var(--primary)}
+.c2.man{background:var(--warn-bg);border-color:var(--warn-line)}
+.c2.on{background:var(--primary-bg);border-color:var(--primary)}
+.c2.part{background:#f0f7ff;border:1px dashed var(--primary)}
+.c2.occ{background:#f5f5f6;border:1px dashed #c3c8d0}
+.c2.wc{border:1px dashed var(--red)}
+.c2.bad{border:1px solid var(--red);background:var(--bad-bg)}
+.blk{flex-basis:100%;background:var(--bad-bg);border:1px solid var(--red);color:#a8071a;border-radius:6px;padding:6px 10px;font-size:12.5px;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+.blk .bt{flex:1;min-width:0}
+.blk button{border:0;background:none;color:var(--primary);cursor:pointer;padding:0;font-size:12.5px;white-space:nowrap}
+.toast.bad{border-color:var(--red);color:#a8071a;background:var(--bad-bg)}
+.cb{width:16px;height:16px;border:1.5px solid #bfc5cd;border-radius:3px;background:#fff;flex:none;margin-top:2px;position:relative}
+.cb.on{background:var(--primary);border-color:var(--primary)}
+.cb.on::after{content:"";position:absolute;left:4px;top:0;width:4px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.cb.part{border-color:var(--primary)}
+.cb.part::after{content:"";position:absolute;left:3px;top:6px;width:7px;height:2px;background:var(--primary)}
+.cbody{min-width:0;flex:1}
+.l1{display:flex;gap:4px;align-items:center;flex-wrap:wrap;font-size:12.5px}
+.l2{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--sub);min-height:18px}
+.l2 .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.manx{color:#d46b08;font-size:12px}
+.tg{font-size:11px;border-radius:9px;padding:0 6px;white-space:nowrap;line-height:17px}
+.tg.occ{background:#eceef1;color:#4b5563}
+.tg.part{background:#d6e9ff;color:var(--primary)}
+.tg.pend{background:var(--primary);color:#fff}
+.tg.wc{background:var(--bad-bg);color:var(--red)}
+.empty{padding:48px 16px;text-align:center;color:var(--sub)}
+
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:var(--mask);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.mask.show{display:flex}
+.modal{background:var(--card);border-radius:8px;width:min(760px,100%);max-height:min(88vh,780px);display:flex;flex-direction:column}
+.modal.w{width:min(900px,100%)}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 10px}
+.mh b{font-size:16px;position:relative;display:inline-block}
+.x{cursor:pointer;font-size:20px;color:var(--sub);border:0;background:none;line-height:1}
+.mb{padding:0 20px 12px;overflow:auto;display:flex;flex-direction:column;gap:10px;min-height:0}
+.mb>*{flex:none}
+.mf{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.okbox{background:#f6ffed;border:1px solid #b7eb8f;color:var(--green);border-radius:6px;padding:8px 12px;font-size:13px}
+.badbox{background:var(--bad-bg);border:1px solid #ffa39e;color:var(--red);border-radius:6px;padding:8px 12px;font-size:13px}
+.tipbox{background:var(--primary-bg);border:1px solid #91caff;color:#0958d9;border-radius:6px;padding:8px 12px;font-size:13px}
+.gbox{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:10px 12px;flex-wrap:wrap;background:var(--head-bg)}
+.sb{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.sbh{background:var(--head-bg);padding:6px 12px;display:flex;gap:10px;align-items:center}
+.cr{display:flex;gap:8px;align-items:center;padding:5px 12px;border-top:1px solid var(--line);font-size:13px;flex-wrap:wrap}
+.cr .vn{color:var(--sub);font-size:12px;min-width:64px}
+.cr .gm{min-width:180px}
+.st{margin-left:auto;font-size:12px;border-radius:10px;padding:0 8px}
+.st.ok{background:#f6ffed;color:var(--green)}
+.st.bad{background:var(--bad-bg);color:var(--red)}
+.st.rep{background:var(--bad-bg);color:var(--red)}
+.st.new{background:var(--primary-bg);color:var(--primary)}
+.demo2{margin-right:auto;font-size:12px;color:var(--sub);display:flex;gap:6px;align-items:center}
+.tbl-scroll{max-height:42vh;overflow:auto;border:1px solid var(--line);border-radius:6px}
+
+/* 日志页 */
+.fcard{padding:12px 16px;margin-bottom:12px}
+.frow{display:flex;gap:10px 28px;align-items:center;flex-wrap:wrap}
+.f{display:flex;align-items:center;gap:8px}
+.f label{color:var(--sub);white-space:nowrap}
+.dt{border:1px solid var(--line);border-radius:6px;height:32px;padding:0 12px;display:flex;align-items:center;gap:30px;color:var(--sub);min-width:260px;justify-content:space-between}
+.tcard{padding:12px 16px}
+.tbar{display:flex;justify-content:flex-end;gap:12px;color:var(--sub);margin-bottom:8px;font-size:16px;align-items:center}
+.sw{width:38px;height:20px;border-radius:10px;background:var(--line);display:inline-block;position:relative}
+.sw::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tscroll{overflow-x:auto}
+table.lt{border-collapse:collapse;width:100%;min-width:900px}
+.lt th,.lt td{border:1px solid var(--line);padding:9px 8px;text-align:center;font-size:13px}
+.lt th{background:var(--head-bg);font-weight:600}
+.lt td.w{max-width:230px;word-break:break-all}
+.dir{background:#fff7e6;border:1px solid #ffd591;color:#d46b08;border-radius:4px;padding:1px 8px;white-space:nowrap}
+.ipl{color:var(--primary)}
+.optag{background:var(--primary-bg);color:var(--primary);border-radius:4px;padding:1px 8px}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:12px;color:var(--sub);font-size:13px}
+.pgb{min-width:28px;height:28px;border:1px solid var(--line);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;background:var(--card)}
+.pgb.on{border-color:var(--primary);color:var(--primary)}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;font-size:14px}
+.dgrid span.k{color:var(--sub)}
+.dgrid .full{grid-column:1/-1}
+table.dt2{border-collapse:collapse;width:100%}
+.dt2 th,.dt2 td{border:1px solid var(--line);padding:6px 10px;font-size:13px;text-align:left}
+.dt2 th{background:var(--head-bg);text-align:center;font-weight:600;position:sticky;top:0}
+.sec{font-weight:600;margin:6px 0 4px;position:relative;display:inline-block}
+
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);box-shadow:0 4px 16px rgba(0,0,0,.15);padding:8px 18px;border-radius:6px;z-index:80;display:none;max-width:calc(100vw - 32px)}
+
+/* 抽屉：需求说明 */
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:40;background:var(--primary);color:#fff;writing-mode:vertical-rl;letter-spacing:4px;padding:16px 8px;border-radius:8px 0 0 8px;cursor:pointer;font-size:14px;box-shadow:-2px 2px 8px rgba(0,0,0,.15);border:0}
+.dmask{position:fixed;inset:0;background:var(--mask);z-index:60;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:820px;max-width:92vw;background:var(--card);z-index:61;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;box-shadow:-4px 0 16px rgba(0,0,0,.15)}
+.dopen .dmask{display:block}.dopen .drawer{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--line);font-size:16px;font-weight:600}
+.db{overflow:auto;padding:20px 24px 40px;line-height:1.7}
+.db h3{font-size:15px;margin:26px 0 10px;padding-left:10px;border-left:3px solid var(--primary)}
+.db h3:first-of-type{margin-top:8px}
+.pin{background:var(--primary-bg);color:var(--primary);padding:6px 12px;border-radius:6px;font-size:13px;margin:0 0 10px}
+.db table{border-collapse:collapse;width:100%}
+.db table th,.db table td{border:1px solid var(--line);text-align:left;padding:8px 10px;font-size:13px}
+.db table th{text-align:center;background:var(--head-bg)}
+.core{border:1px solid var(--primary);background:var(--primary-bg);border-radius:8px;padding:10px 16px;margin-bottom:12px}
+.core b{color:var(--primary)}
+.core ul{margin:6px 0 0;padding-left:20px}
+.rule{display:flex;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px}
+.rule.c{border-color:var(--primary);background:var(--primary-bg)}
+.rule .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+.rule .tg2{background:var(--primary);color:#fff;font-size:11px;border-radius:3px;padding:0 5px;margin-right:6px}
+.dev{margin:0;padding-left:22px}.dev li{margin-bottom:6px}
+
+.anc{position:sticky;top:-4px;z-index:5;background:#fff;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:6px 0 8px;border-bottom:1px dashed var(--line)}
+.anc .ch{display:inline-flex;gap:5px;align-items:center;border:1px solid var(--line);background:#fff;border-radius:14px;padding:1px 10px 1px 6px;font-size:12px}
+.anc .ch:hover{border-color:var(--primary);color:var(--primary)}
+.anc .ch .n{color:var(--sub);font-size:11px}
+.anc .ch .pb{background:var(--primary);color:#fff;border-radius:8px;font-size:11px;padding:0 5px}
+.anc .ch.on{border-color:var(--primary);background:var(--primary-bg);color:var(--primary)}
+.oth{margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.oth .t{font-size:12px;color:var(--sub);margin-bottom:2px;position:relative;display:inline-block}
+.sr.off .sn{color:var(--sub)}
+.sg{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 6px}
+.sg .gp{display:inline-flex;border:1px solid var(--primary);border-radius:12px;overflow:hidden}
+.sg .gp button{border:0;background:#fff;color:var(--primary);font-size:12px;padding:0 8px;line-height:20px}
+.sg .gp button:hover{background:var(--primary-bg)}
+.sg .gp .gx{color:var(--sub);padding:0 6px 0 0}
+.sgsave{display:flex;gap:6px;margin-top:6px}
+.sgsave input{flex:1;min-width:0;border:1px solid var(--line);border-radius:4px;height:26px;padding:0 6px;font-size:12px;width:auto}
+.ta{width:100%;min-height:96px;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:12.5px;resize:vertical}
+.bres{font-size:13px;color:var(--sub)}
+.bres .ok{color:var(--green)}
+.bres .bad{color:var(--red)}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chips .sc{font-family:var(--mono);font-size:12px;background:#fff;border:1px solid var(--line);border-radius:4px;padding:0 6px}
+.ovs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ovs .k{border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 14px;cursor:pointer;text-align:center;min-width:92px}
+.ovs .k.on{border-color:var(--primary);background:var(--primary-bg);color:var(--primary)}
+.ovs .k b{display:block;font-size:18px;line-height:1.3}
+.ovs .k span{font-size:12px;color:var(--sub)}
+.lt td.l,.lt th.l{text-align:left}
+.lt tr.gh td{background:var(--primary-bg);text-align:left;font-weight:600;color:var(--primary)}
+.nt{color:var(--sub);font-size:12px}
+.cstat{font-size:12px}
+.cstat.live{color:var(--green)}
+.cstat.chg{color:#d46b08}
+.cstat.no{color:var(--sub)}
+.tl .lk{margin-left:4px}
+.mxw{overflow:auto;max-height:58vh;border:1px solid var(--line);border-radius:6px}
+.mx{border-collapse:separate;border-spacing:0;min-width:100%}
+.mx th,.mx td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:6px 10px;text-align:center;font-size:12px;white-space:nowrap}
+.mx th{position:sticky;top:0;background:var(--head-bg);z-index:2;font-weight:600;line-height:1.3}
+.mx th small{display:block;font-weight:400;color:var(--sub)}
+.mx .rh{position:sticky;left:0;background:#fff;text-align:left;z-index:1;min-width:260px;font-size:13px}
+.mx th.rh{z-index:3;background:var(--head-bg)}
+.mx td.mc{cursor:pointer;min-width:78px}
+.mx td.mc:hover{background:var(--primary-bg)}
+.mx td.mc small{display:block;color:var(--sub);font-size:11px;margin-top:1px}
+.mx td.e{color:#c0c4cc}
+.mx td.dim{opacity:.22}
+.mx td.ct{color:var(--sub)}
+.vleg{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--sub);margin:0 0 8px}
+.vleg label{display:inline-flex;gap:4px;align-items:center;color:var(--text)}
+.mxh{font-weight:600;margin:10px 0 6px}
+.mx th.sh{min-width:78px;vertical-align:bottom}
+.mx th.sh .cn{color:var(--primary);font-weight:600}
+.mx .rh b{font-weight:600}
+.mx .rh small{color:var(--sub);margin-left:6px;font-size:11px}
+.mx td.n1{position:sticky;left:260px;background:#fff;z-index:1;min-width:64px;color:var(--sub)}
+.mx th.n1{position:sticky;left:260px;z-index:3;background:var(--head-bg)}
+.mx td.mc.out{opacity:.2}
+.dgc{border:1px solid var(--line);border-radius:12px;padding:1px 10px;background:#fff;font-size:12px;cursor:pointer;margin:2px 4px 2px 0;display:inline-block}
+.dgc:hover{border-color:var(--primary)}
+.dgc.on{background:var(--primary-bg);border-color:var(--primary);color:var(--primary)}
+.dgc.un{color:var(--sub);border-style:dashed}
+.sit{font-size:12px;border:1px solid var(--line);border-radius:4px;padding:0 6px;background:#fff;display:inline-block;margin:2px 4px 2px 0}
+.dgs{margin:4px 0 6px;padding:6px 8px;background:#f8fafc;border-radius:6px}
+.dgs .tt{font-size:12px;color:var(--sub);margin-bottom:2px}
+.lt td.l{text-align:left;white-space:normal}
+.stseg button .nn{margin-left:4px;font-size:11px;opacity:.8}
+.cs{display:inline-block;border-radius:10px;padding:0 9px;font-size:12px;font-weight:600;line-height:20px}
+.cs.full{background:#f6ffed;color:var(--green);border:1px solid #b7eb8f}
+.cs.part{background:#fff7e6;color:#d46b08;border:1px solid #ffd591}
+.mx th.cb{cursor:pointer;min-width:150px}
+.mx th.cb:hover,.mx th.cb.on{background:var(--primary-bg);color:var(--primary)}
+.mx th.cb .sub{font-weight:400;color:var(--sub);font-size:11px;display:block}
+.mx tr.exr td{background:#f8fafc;text-align:left;white-space:normal;padding:8px 12px}
+.mx td.mc.on{background:var(--primary-bg)}
+.pbar{display:inline-flex;width:64px;height:6px;border-radius:3px;background:#e8eaed;overflow:hidden;margin-right:2px}
+.pbar i{display:block;height:100%}
+.pbar .pg{background:var(--green)}
+.pbar .po{background:#fa8c16}
+.cg{color:var(--green);font-weight:700}
+.co{color:#d46b08;font-weight:600;font-size:11px}
+.gh .sel{color:var(--sub)}
+.gh .sel.sf{color:var(--green);font-weight:700}
+.gh.gfull{background:#f6ffed;box-shadow:inset 3px 0 0 var(--green)}
+.anc .ch .n.cf{color:var(--green);font-weight:700}
+.ksecs{display:flex;flex-wrap:wrap;row-gap:12px;width:100%}
+.kcards .kcard{flex:1 1 190px}
+.ksecw{padding:0 18px;border-left:1px solid var(--line)}
+.ksecw:first-child{padding-left:0;border-left:0}
+.ksec{font-weight:600;margin:0 0 8px;font-size:14px}
+.kcards{display:flex;gap:12px;flex-wrap:wrap}
+.kcard{position:relative;border:1px solid var(--line);border-radius:8px;padding:10px 16px 10px 14px;min-width:200px;background:#fff;cursor:pointer}
+.kcard:hover{border-color:var(--primary)}
+.kcard.on{border-color:var(--primary);background:var(--primary-bg);box-shadow:0 0 0 1px var(--primary) inset}
+.kcard .kdot{position:absolute;top:12px;right:12px;width:9px;height:9px;border-radius:50%}
+.cnt{font-size:15px;font-weight:700;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.cnt.on{background:var(--primary-bg);border-radius:4px;padding:0 6px}
+.lt tbody tr:not(.exr):not(.gh):hover td{background:#fafcff}
+.btr{display:flex;gap:12px;padding:5px 0;align-items:flex-start}
+.btr+.btr{border-top:1px dashed var(--line)}
+.bth{flex:none;width:96px}
+.bth b{color:#434a54}
+.mlist{max-height:68vh;overflow:auto;border:1px solid var(--line);border-radius:6px}
+.mlist .lt{min-width:0;border:0}
+.mlist thead th{position:sticky;top:0;z-index:3;background:var(--head-bg)}
+.info{display:inline-block;width:15px;height:15px;line-height:15px;border-radius:50%;border:1px solid #b5bbc3;color:#8c939d;font-size:11px;text-align:center;cursor:help;margin-left:4px;font-weight:400}
+.cnum{font-size:15px}
+.cpy{opacity:0;cursor:pointer;color:var(--primary);margin-left:6px;font-size:14px;text-decoration:none;transition:opacity .12s}
+tr:hover .cpy,.cpy:focus{opacity:1}
+.mxm td,.mxm th{padding:5px 8px;font-size:12px}
+.mxm th.gcol{min-width:70px;white-space:normal;font-weight:500;line-height:1.25}
+.mxm td.mc{text-align:center;cursor:pointer;min-width:60px}
+.mxm .rh{min-width:170px;left:0}
+.mxm th.n1,.mxm td.n1{position:static;min-width:56px;left:auto}
+.mxm th.n2,.mxm td.n2,.mxm th.n3,.mxm td.n3{min-width:46px}
+.pg-log h2{margin-top:10px}
+.page{padding-right:56px}
+#rcBody td.mono{white-space:nowrap}
+#pgRec .frow{gap:10px 14px}
+#pgRec .frow .inp{width:150px}
+.btc{flex:1;min-width:0}
+.kcard{border-left:4px solid var(--line);border-radius:6px;min-width:190px}
+.kcard .kdot{display:none}
+.kcard .kt{font-size:14px;font-weight:600;margin-bottom:8px}
+.kcard .km{display:flex;align-items:center;gap:18px}
+.kcard .km div{display:flex;flex-direction:column}
+.kcard .km b{font-size:26px;line-height:1.1;color:var(--text)}
+.kcard .km span{font-size:12px;color:var(--sub)}
+.kcard .ksep{width:1px;height:30px;background:var(--line)}
+.kcard .kf{border-top:1px dashed var(--line);padding-top:6px;margin-top:8px}
+.kcard.on .kt{color:var(--primary)}
+.kcard.on .km b{color:var(--primary)}
+.kcard .kn{color:var(--primary);font-size:13px}
+.kcard .kn b{font-size:26px;line-height:1.2}
+.kcard .ks{font-size:13px;margin-top:2px}
+.kcard .kf{font-size:12px;color:var(--sub);margin-top:4px}
+.kcard .kx{font-size:11px;color:#d46b08;margin-top:2px}
+.dh2{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.dh2 .btns{margin-left:auto;display:flex;gap:8px}
+.gqh{flex-basis:100%;font-size:12.5px;color:var(--sub);padding:2px 0}
+.sumc{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin-bottom:8px;background:#fbfcfd}
+.sumh{display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap}
+.sumh .btns{margin-left:auto;display:flex;gap:8px}
+.dtin{width:132px;border:1px solid var(--line);border-radius:6px;height:32px;padding:0 8px;background:var(--card)}
+@media (max-width:900px){
+  body{min-width:0}
+  .side{display:none}
+  .page{padding:8px 16px}
+  .mapgrid{grid-template-columns:1fr;overflow:auto}
+  .cards{max-height:70vh}
+  .lcard{max-height:320px}
+}
+@media (prefers-reduced-motion:reduce){.drawer{transition:none}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side">
+    <div class="logo">AR</div>
+    <div class="m"><span>游戏管理</span><span>⌃</span></div>
+    <div class="s">游戏厂商管理</div><div class="s">商户游戏管理</div><div class="s">子游戏管理</div><div class="s">游戏通道管理</div><div class="s">游戏维护管理</div>
+    <div class="s nav on" data-page="map">游戏映射管理</div>
+    <div class="s nav" data-page="ov" style="position:relative">映射总览<i class="nb" style="top:5px;right:8px">NEW</i></div>
+    <div class="s nav" data-page="rec" style="position:relative">映射变更记录<i class="nb" style="top:5px;right:-2px">NEW</i></div>
+    <div class="s">三方辅助功能</div>
+    <div class="m"><span>彩票管理</span><span>⌄</span></div>
+    <div class="m"><span>商户管理</span><span>⌄</span></div>
+    <div class="m"><span>代理管理</span><span>⌄</span></div>
+    <div class="m"><span>会员管理</span><span>⌄</span></div>
+    <div class="m"><span>报表管理</span><span>⌄</span></div>
+    <div class="m"><span>系统设置</span><span>⌃</span></div>
+    <div class="s">系统用户管理</div><div class="s">角色权限管理</div><div class="s">系统菜单管理</div>
+    <div class="s nav" data-page="log">日志管理</div>
+    <div class="s">Job管理</div><div class="s">财务核销配置</div><div class="s">缓存管理</div><div class="s">服务监控</div>
+  </aside>
+  <div class="main">
+    <div class="top">
+      <div class="l"><button class="ib" id="btnSide" aria-label="收起菜单">☰</button><button class="ib" aria-label="刷新">⟳</button><span id="crumb">游戏管理 / 游戏映射管理</span></div>
+      <span>默认当前时区 (UTC+4) &nbsp;|&nbsp; luna00</span>
+    </div>
+    <div class="tabs">
+      <button class="tab">Welcome ×</button>
+      <button class="tab on" id="tabMap" data-page="map">游戏映射管理 ×</button>
+      <button class="tab" id="tabOv" data-page="ov">映射总览 ×</button>
+      <button class="tab" id="tabRec" data-page="rec">映射变更记录 ×</button>
+      <button class="tab" id="tabLog" data-page="log">日志管理 ×</button>
+    </div>
+
+    <div class="page">
+      <!-- 游戏映射管理 -->
+      <section class="pg-map" id="pgMap">
+        <h2>游戏映射管理</h2>
+        <div class="mapgrid">
+          <aside class="card lcard">
+            <div class="lh">商户站点</div>
+            <div class="lab">选择商户站点（一次选一个）</div>
+            <div class="ms" id="ms">
+              <input id="siteQ" placeholder="搜索商户站点" autocomplete="off" aria-label="搜索商户站点">
+              <div class="dd" id="dd" hidden>
+                <div class="pills" id="pills"></div>
+                <div class="ddl" id="ddl"></div>
+              </div>
+            </div>
+            <div class="selh"><span>当前商户</span><button class="rd" id="selClear">清空</button></div>
+            <div class="sl" id="sl"></div>
+          </aside>
+
+          <section class="card rcard">
+            <div class="rh">
+              <b>原厂厂商</b>
+              <select class="vsel" id="vSel" aria-label="原厂厂商"></select>
+              <span class="arrow">→</span><span class="tag">自营</span>
+              <div class="rt">
+                <input class="inp" id="gameQ" style="width:380px" placeholder="搜索游戏，可输入多个（用逗号隔开，游戏名带空格也可以）" aria-label="搜索游戏">
+                <div class="seg" id="seg">
+                  <button data-f="all" aria-pressed="true">全部</button>
+                  <button data-f="pending" aria-pressed="false">待保存<i class="nb">NEW</i></button>
+                </div>
+                <span class="rel"><button class="btn" id="btnReset">撤销</button><i class="nb">NEW</i></span>
+                <span class="rel"><button class="btn p" id="btnSave">保存</button><i class="nb">改</i></span>
+              </div>
+            </div>
+            <div class="cards" id="cards"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 映射总览 -->
+      <section class="pg-log" id="pgOv" hidden>
+        <h2><span class="rel">映射总览<i class="nb" style="top:-6px;right:-30px">NEW</i></span></h2>
+        <div class="card fcard">
+          <div class="frow">
+            <div class="f"><label>商户</label><div class="ms" id="ovMs" style="width:220px"><button class="btn" id="ovMsBtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0 10px;text-align:left" aria-haspopup="listbox"><span id="ovMsTxt">全部商户</span><span style="color:var(--sub)">▾</span></button>
+              <div class="dd" id="ovDd" hidden style="width:300px;right:auto">
+                <input id="ovMsQ" placeholder="搜索商户，可输入多个（逗号或空格隔开）" autocomplete="off" aria-label="搜索商户">
+                <div class="ddtools" style="margin-top:6px"><button class="lk" id="ovMsAll">全选当前结果</button><button class="lk" id="ovMsNone">清空已选</button></div>
+                <div class="ddl" id="ovMsList"></div>
+              </div></div></div>
+            <div class="f"><label>原厂厂商</label><select class="vsel" id="ovSrc" aria-label="原厂厂商" style="min-width:120px"></select></div>
+            <div class="f"><label>高仿厂商</label><select class="vsel" id="ovTgt" aria-label="高仿厂商" style="min-width:120px"></select></div>
+            <div class="f"><label>子游戏名称/编码</label><input class="inp" id="ovGq" placeholder="游戏ID/名称/编码，多个用逗号隔开" aria-label="子游戏名称或编码" style="width:280px"></div>
+          </div>
+          <div class="frow" style="margin-top:10px">
+            <div class="f"><label>币种</label><select class="vsel" id="ovCur" aria-label="币种" style="min-width:100px"></select></div>
+            <div class="f"><label>切换日期</label><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="ovFrom" aria-label="开始日期" placeholder="开始日期"><span>→</span><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="ovTo" aria-label="结束日期" placeholder="结束日期"></div>
+            <div style="margin-left:auto;display:flex;gap:8px"><button class="btn p" id="ovQuery">查询</button><button class="btn" id="ovReset">重置</button></div>
+          </div>
+        </div>
+        <div class="card tcard" style="margin-bottom:12px">
+          <div id="ovCards"></div>
+          <div class="vleg" id="ovLeg" style="margin:6px 0 0"></div>
+        </div>
+        <div class="card tcard">
+          <div id="ovMat"></div>
+          <div class="pager"><span id="ovTotal"></span></div>
+        </div>
+      </section>
+
+      <!-- 映射变更记录 -->
+      <section class="pg-log" id="pgRec" hidden>
+        <h2><span class="rel">映射变更记录<i class="nb" style="top:-6px;right:-30px">NEW</i></span></h2>
+        <div class="card fcard">
+          <div class="frow">
+            <div class="f"><label>操作时间</label><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="rcFrom" aria-label="开始日期" placeholder="开始日期"><span>→</span><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="rcTo" aria-label="结束日期" placeholder="结束日期"></div>
+            <div class="f"><label>操作人</label><input class="inp" id="rcOp" placeholder="如 luna00" aria-label="操作人" style="width:140px"></div>
+            <div class="f"><label>站点/游戏/批次号</label><input class="inp" id="rcQ" placeholder="如 AR041 / Aviator" aria-label="关键字"></div>
+            <div class="f"><label>结果</label><select class="vsel" id="rcRes" aria-label="结果" style="min-width:110px"><option value="all">全部</option><option value="ok">全部成功</option><option value="bad">含失败</option></select></div>
+            <div style="margin-left:auto;display:flex;gap:8px"><button class="btn p" id="rcGo">查询</button><button class="btn" id="rcReset">重置</button><button class="btn" id="rcExp">导出明细</button></div>
+          </div>
+        </div>
+        <div class="card tcard">
+          <div class="tscroll"><table class="lt">
+            <thead><tr><th>批次号</th><th>操作人</th><th>操作时间</th><th>切换内容</th><th>涉及站点</th><th>变更数</th><th>结果</th><th>操作</th></tr></thead>
+            <tbody id="rcBody"></tbody>
+          </table></div>
+          <div class="pager" id="rcPager"></div>
+        </div>
+      </section>
+
+      <!-- 日志管理 -->
+      <section class="pg-log" id="pgLog" hidden>
+        <h2>日志管理</h2>
+        <div class="card fcard">
+          <div class="frow">
+            <div class="f"><label>操作时间</label><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="logFrom" aria-label="开始日期" placeholder="开始日期"><span>→</span><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="logTo" aria-label="结束日期" placeholder="结束日期"></div>
+            <div class="f"><label>站点/游戏</label><span class="rel"><input class="inp" id="logQ" placeholder="如 AR041 / Aviator" aria-label="站点或游戏关键字"><i class="nb">NEW</i></span></div>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center"><button class="btn p" id="logGo">查询</button><button class="btn" id="logReset">重置</button><a class="lk">收起 ⌃</a></div>
+          </div>
+        </div>
+        <div class="card tcard">
+          <div class="tbar"><span class="sw"></span><span>⟳</span><span>Ｉ</span><span>⚙</span></div>
+          <div class="tscroll"><table class="lt">
+            <thead><tr><th>操作目录/页面</th><th>请求地址</th><th>操作IP</th><th>操作系统</th><th>操作人</th><th>操作详情</th><th>操作时间</th><th>操作</th></tr></thead>
+            <tbody id="logBody"></tbody>
+          </table></div>
+          <div class="pager" id="logPager"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<button class="handle" id="handle">需求说明</button>
+<div class="dmask" id="dmask"></div>
+<aside class="drawer" aria-label="需求说明">
+  <div class="dh"><span>需求说明 · 游戏映射管理优化 <span style="font-weight:400;font-size:12px;color:var(--sub)">2026-11-06</span></span><button class="x" id="dclose" aria-label="关闭">×</button></div>
+  <div class="db">
+    <h3>一、改造页面</h3>
+    <div class="pin">📌 本说明只写业务规则，样子和交互直接看原型</div>
+    <table><thead><tr><th style="width:30%">页面</th><th>改动点</th></tr></thead><tbody>
+      <tr><td>游戏管理 › 游戏映射管理</td><td>一次只选一个商户；映射子游戏按高仿厂商分组并新增「全部」页签；游戏搜索支持一次输入多个；已被其他厂商映射的子游戏可直接选，保存前在确认表里标出替换；已选数量上色并加进度条；保存结果按站点显示</td></tr>
+      <tr><td>游戏管理 › 映射总览（新增）</td><td>按原厂分组的高仿厂商卡片 + 商户列表，查看全部商户现在映射了哪些高仿子游戏、哪天切换的；未切换的游戏可复制或带入映射管理</td></tr>
+      <tr><td>游戏管理 › 映射变更记录（新增）</td><td>每次保存留一条记录：谁、什么时间、改了哪些商户的哪些游戏、改前改后；可筛选、导出</td></tr>
+      <tr><td>系统设置 › 日志管理</td><td>游戏映射保存的日志详情增加变更明细和批次号；列表增加按商户、游戏关键字筛选</td></tr>
+    </tbody></table>
+
+    <h3>二、功能描述与业务规则</h3>
+    <div class="core"><b>🎯 核心结论</b><ul>
+      <li>一个原厂游戏在一个商户同一时间只能映射到一个高仿子游戏。</li>
+      <li>切换到新的高仿厂商时<b>直接替换，不用先取消原映射</b>；确认表里把「替换」的项标红并写明原来在哪个厂商。</li>
+      <li>映射管理<b>一次只选一个商户</b>；游戏可批量搜索、批量全选；多个商户要做同样的切换，逐个商户重复操作。</li>
+      <li>改动先暂存，确认后才保存；每次保存都留变更记录。</li>
+      <li>映射总览一页看清「现在谁映射了什么、哪天映射的」。</li>
+    </ul></div>
+    <div class="rule c"><span class="n">1</span><div><span class="tg2">核心</span>一个原厂游戏在一个商户只有一个映射去向。选了新的高仿子游戏即取代原映射，不用先取消；取消勾选表示该游戏恢复为原厂。</div></div>
+    <div class="rule c"><span class="n">2</span><div><span class="tg2">核心</span>选择商户：左侧下拉一次只能选一个（可搜索、可按币种筛选）。选中后读取该商户现有映射并显示在勾选框上；被取代的原映射标「将取消」。已被其他厂商映射的子游戏可直接勾选，不弹窗。</div></div>
+    <div class="rule c"><span class="n">3</span><div><span class="tg2">核心</span>批量搜索：搜索框可一次输入多个关键词（原厂游戏ID、游戏名称、高仿子游戏编码均可），用逗号或换行隔开，没有逗号时用空格隔开。每个词先按「完全相同」匹配，没有再按「包含」匹配。搜索框下方显示「输入几个词、匹配几款」；没匹配到的词红字列出；按「包含」匹配上的词标橙色并写明匹配到哪款游戏。有搜索或筛选时，分组的「全选」变为「全选筛选结果」，只作用于筛选结果；已全选时再点为取消。</div></div>
+    <div class="rule"><span class="n">4</span><div>暂存：勾选后不立即生效，「保存」按钮显示待保存数量。切换商户、切换原厂时暂存保留；其他商户有待保存改动时，在左侧「当前商户」下方提示，点「选中」切过去。「撤销」清空全部暂存，8 秒内可点「撤回」恢复。</div></div>
+    <div class="rule c"><span class="n">5</span><div><span class="tg2">核心</span>点「保存」后，先读取该商户当前映射，再弹出确认表。确认表顶部写明合计：新增几项、<b style="color:#f5222d">替换几项</b>、取消几项；替换项整行标红，写明「原厂商 → 新厂商」，并汇总如「GameBox → UP 4 项」。有替换项时按钮写「确认保存（含 N 项替换）」。保存到测试站、未上线站不提醒、不拦截。</div></div>
+    <div class="rule c"><span class="n">6</span><div><span class="tg2">核心</span>点「确认保存」后：保存成功则关闭弹窗并提示「保存成功」；保存失败则弹窗保留，显示失败商户及原因，失败的改动仍留在待保存，可重试。重试生成新批次，注明「重试自」哪个批次，原批次注明「已由」哪个批次重试。</div></div>
+    <div class="rule c"><span class="n">7</span><div><span class="tg2">核心</span>每次保存生成一个变更批次（有批次号），记录操作人、操作时间，以及每个游戏的改前去向、改后去向和结果，失败的也记录。日志管理同步一条日志，详情与变更记录一致。</div></div>
+    <div class="rule c"><span class="n">8</span><div><span class="tg2">核心</span>映射变更记录：按批次倒序，每页 20 条；可按操作时间、操作人、商户/游戏/批次号、结果筛选（开始日期不能晚于结束日期）。列表直接写出切换内容（原厂→高仿、哪几款游戏、哪几个商户）。详情默认按游戏合并（一个游戏一行，列出改前改后和涉及的商户），可切换为逐条明细；从商户或游戏搜索进入时默认只显示相关部分，可切换为全部。列表和详情可导出 CSV。记录只增不改，不能删除。</div></div>
+    <div class="rule"><span class="n">9</span><div>单个映射的「历史」：列出该商户该游戏的每次变更（时间、操作人、批次号、改前、改后、结果）。可把某次变更之前的去向放入待保存（还原为改前），仍需确认后保存；「去调整」跳到映射管理并选中该商户。不提供整批改回。</div></div>
+    <div class="rule c"><span class="n">10</span><div><span class="tg2">核心</span>映射总览展示<b>全部商户的全部现有映射</b>，包括上线前就有的。分三部分：
+      <br>① <b>筛选</b>（依次）：商户（下拉多选，可搜索，不选表示全部）、原厂厂商、高仿厂商、子游戏名称/编码（可输入多个，规则同第 3 条）、币种、切换日期（开始不能晚于结束）。点「查询」才生效，游戏输入框按回车等同查询，「重置」恢复默认；点卡片、复制立即生效。测试站、未上线站在商户下拉和列表里带标签，照常统计。
+      <br>② <b>卡片</b>：按原厂分组（SPRIBE、JILI、PG 横向排列），每个有映射的高仿厂商一张卡片，显示商户数（去重）、子游戏数、币种分布，数字随筛选变化。点击选中某张卡片（只看这个「原厂→高仿」组合），再点取消。
+      <br>③ <b>商户列表</b>：列为商户、币种、已切换游戏数、未切换游戏数、子游戏及切换日期、操作；表头吸顶，列表在固定高度内滚动。选了卡片后可筛「全部 / 已切换 / 未切换」，<b>筛选决定每行显示什么</b>：全部＝绿色已切换子游戏和灰色未切换子游戏都显示；已切换＝只列没有未切换游戏的商户，只显示已切换子游戏；未切换＝只列还有未切换游戏的商户，只显示灰色未切换子游戏。
+      <br>· <b>批次</b>：同一天切换的子游戏算一批，按日期从早到晚叫第一批、第二批……，每批写日期和款数，超过 24 款先显示一部分、可展开。点子游戏标签看它的历史。
+      <br>· <b>未切换游戏数</b>：选了卡片时，是该商户在这个原厂下还没切到该高仿厂商的游戏数；没选卡片时，是该商户已有切换的「原厂→高仿」组合里还没切的游戏数。
+      <br>· <b>复制</b>：数字旁的「⧉」（鼠标移到该行才显示）复制对应游戏名，逗号隔开，可直接粘贴到映射管理的搜索框。
+      <br>· <b>操作列</b>：有未切换游戏的商户显示「去映射管理」，点击后跳到映射管理，选中该商户和对应原厂，把未切换游戏填入搜索框（选了卡片时同时切到对应高仿厂商分组），再点「全选筛选结果」即可；没有未切换游戏的显示「—」。
+      <br>· 商户列表可复制商户名、导出（按批次）。</div></div>
+    <div class="rule"><span class="n">11</span><div>已选数量：每个高仿厂商分组标题和页签显示「已选 / 总数」，已选数字绿色；全部选中时整行变绿并显示「✓ 已全选」；分组标题带进度条。</div></div>
+
+    <h3>三、限制条件</h3>
+    <table><thead><tr><th style="width:24%">项</th><th>说明</th></tr></thead><tbody>
+      <tr><td>单商户操作</td><td>映射管理一次只选一个商户，不做多商户批量映射</td></tr>
+      <tr><td>暂存范围</td><td>暂存的改动只在当前页面有效，刷新或离开页面后清空</td></tr>
+      <tr><td>历史数据（补录）</td><td>上线前已存在的映射，上线时扫描全部商户补录一次：切换日期取该映射在商户端的最后更新时间，是<b>约数</b>，不一定等于真实切换日；操作人显示「系统补录」；补录的批次在总览里显示「补录 · 约 MM-DD」，历史里注明「取自商户最后更新时间」。上线前的保存日志没有变更明细，不补。运营如有准确的切换登记表，可导入覆盖补录日期，导入的记录标明「导入」</td></tr>
+      <tr><td>还原</td><td>不提供整批改回；单个映射可在「历史」里还原为某次变更之前的去向，仍需确认后保存</td></tr>
+      <tr><td>分页与保留</td><td>变更记录、日志每页 20 条；记录只增不改，保留期限由业务确认</td></tr>
+      <tr><td>总览范围</td><td>只显示已保存的映射，待保存的改动不显示</td></tr>
+    </tbody></table>
+
+    <h3>四、开发注意事项</h3>
+    <ol class="dev">
+      <li><b>保存只提交本次新增和替换的映射</b>（IsMapped=true），没动的游戏不提交。商户端同一个原厂游戏只有一个去向，新映射会覆盖旧映射，所以切换不用先下发取消。商户端收到「未映射」会清空该原厂游戏的映射，不管它当前映射在哪个高仿厂商，所以取消映射时，只有该游戏当前确实映射在这个高仿厂商时才允许下发。</li>
+      <li><b>预检</b>：点保存后，后端读取该商户当前映射（商户端已有读取接口），逐项比对，返回每个游戏是新增、替换（原厂商）还是取消，用于生成确认表。管理端只有一个管理员账号且单点登录，不考虑多人同时修改。</li>
+      <li>映射数据存放在各商户自己的系统里，管理端不存映射、切换时间和操作人，变更记录需在管理端新建存储。<b>映射总览要覆盖全部商户的全部现有映射</b>，不能只取变更记录：现有映射从各商户读取并定时同步成快照，提供「刷新」和「数据截至某时间」；切换时间和操作人取自变更记录。</li>
+      <li><b>补录扫描</b>：商户端现有读取接口只返回原厂游戏、高仿厂商和高仿游戏编码，没有更新时间，需要新增返回「最后更新时间」字段。该时间在映射被其他方式修改时也会变，所以只能作约数；扫描只能得到映射结果，得不到操作人。</li>
+      <li>商户端保存结果目前只返回成功和失败的商户名，没有失败原因，需要补充；保存后回读该商户实际映射做核对，防止「商户端超时但已写入」或「商户端没有这款游戏被静默跳过」造成显示与实际不一致。</li>
+      <li>同一批改动重复提交，结果与提交一次相同。</li>
+      <li>变更记录在保存时一并写入，失败也记录；保存成功后才算「切换时间」，失败不更新。</li>
+      <li>时间按操作人当前时区展示，存储用统一时区；总览「同一天为一批」按同一时区计算。</li>
+      <li>总览的卡片数字、商户列表、复制、导出，以及变更记录的合并显示和导出，数据量大（70 多个商户，每个原厂可能几百上千款子游戏），要由后端聚合、分页、生成，不在前端拼；映射管理页分组游戏很多时需分页或虚拟滚动。</li>
+      <li>测试站、未上线站的标识：商户资料里没有就需新增字段或由运营维护。</li>
+    </ol>
+  </div>
+</aside>
+
+<script>
+(function () {
+  /* ===== 演示数据（SPRIBE 编码取自真实页面截图，JILI/PG 为示例） ===== */
+  var TORDER = ['AR', 'BO', 'GA', 'HE', 'KB', 'TB', 'UP'];
+  var TITLE = {
+    SP: { AR: 'ART', BO: 'BOAN_SPRIBE', GA: 'GameBox', HE: 'HeiBao_SPRIBE', UP: 'UP' },
+    JL: { HE: 'HeiBao_JILI', KB: 'KB', UP: 'UP' },
+    PG: { HE: 'HeiBao_PG', TB: 'TB', UP: 'UP' }
+  };
+  var SPL = [
+    ['aviator', 'Aviator', 0, { AR: 'aviator', BO: 'SPRIBE_aviator', GA: '6', HE: '7001', UP: 'sp_1_aviator' }],
+    ['dice', 'Dice', 0, { BO: 'SPRIBE_dice', GA: '20002', HE: '7009', UP: 'sp_4_dice' }],
+    ['goal', 'Goal', 0, { BO: 'SPRIBE_goal', GA: '20006', HE: '7011', UP: 'sp_3_goal' }],
+    ['hi-lo', 'Hilo', 0, { BO: 'SPRIBE_hi-lo', GA: '20004', HE: '7007', UP: 'sp_6_hi-lo' }],
+    ['hotline', 'Hotline', 0, { BO: 'SPRIBE_hotline', GA: '20008', HE: '7010', UP: 'sp_9_hotline' }],
+    ['keno', 'Keno', 0, { BO: 'SPRIBE_keno', GA: '20007', HE: '7008', UP: 'sp_7_keno' }],
+    ['mines', 'Mines', 0, { BO: 'SPRIBE_mines', GA: '20001', HE: '7004', UP: 'sp_2_mines' }],
+    ['mini-roulette', 'MiniRoulette', 0, { BO: 'SPRIBE_mini-roulette', GA: '20003', HE: '7006', UP: 'sp_8_mini-roulette' }],
+    ['plinko', 'Plinko', 0, { BO: 'SPRIBE_plinko', GA: '20005', HE: '7005', UP: 'sp_5_plinko' }],
+    ['balloon', 'Balloon', 0, { BO: 'SPRIBE_balloon', GA: '20010', HE: '7012', UP: 'sp_10_balloon' }],
+    ['multikeno', 'Keno 80', 0, { BO: 'SPRIBE_multikeno', HE: '7002' }],
+    ['trader', 'Trader', 1, { GA: '20011' }],
+    ['pilot-chicken', 'Pilot Chicken', 1, { GA: '20012' }],
+    ['power-kraken', 'PowerOfTheKraken', 1, { GA: '10003' }],
+    ['art_updown', 'UpDown', 1, { AR: 'art_updown' }],
+    ['art_labubu', 'Labubu', 1, { AR: 'labubu' }],
+    ['art_chicken', 'Chicken', 1, { AR: 'chicken' }],
+    ['DragonGemsClash', 'DragonGemsClash', 1, { UP: 'yb_1056_DragonGemsClash' }],
+    ['pok_351_ronaldinhoDaSorte', 'Ronaldinho Da Sorte', 1, { UP: 'pok_351_ronaldinhoDaSorte' }]
+  ];
+  var JLL = [[134, 'Mega Ace'], [300, 'Fortune Gems 3'], [223, 'Fortune Gems 2'], [77, 'Boxing King'], [103, 'Golden Empire'], [16, 'Jungle King'], [110, 'Ali Baba'], [109, 'Fortune Gems'], [100, 'Super Rich'], [35, 'Crazy 777'], [523, 'Fortune Coins'], [47, 'Charge Buffalo'], [51, 'Money Coming'], [49, 'Super Ace'], [45, 'Golden Bank'], [541, 'Money Pot DELUXE'], [187, 'Rummy'], [42, 'Jackpot Fishing']];
+  var PGL = [['fortune-tiger', 'Fortune Tiger'], ['mahjong-ways', 'Mahjong Ways'], ['fortune-ox', 'Fortune Ox'], ['lucky-neko', 'Lucky Neko'], ['wild-bandito', 'Wild Bandito'], ['treasures-aztec', 'Treasures of Aztec']];
+  function slug(n) { return n.split(' ').map(function (w) { return w[0]; }).join('').toLowerCase(); }
+  var SRC = {
+    SP: { n: 'SPRIBE', chip: 'SP', g: SPL.map(function (x) { return { id: x[0], name: x[1], manual: !!x[2], m: x[3] }; }) },
+    JL: { n: 'JILI', chip: 'JI', g: JLL.map(function (x, i) { var m = { UP: 'jili_' + x[0] + '_' + slug(x[1]) }; if (i < 10) m.HE = String(15300 + i * 3); if (i < 14) m.KB = String(5100 + i * 2); return { id: String(x[0]), name: x[1], manual: false, m: m }; }) },
+    PG: { n: 'PG', chip: 'PG', g: PGL.map(function (x, i) { var m = { UP: 'pg_' + (i + 1) + '_' + x[0], TB: 'tb_' + x[0] }; if (i !== 3 && i !== 4) m.HE = String(9001 + i); return { id: x[0], name: x[1], manual: false, m: m }; }) }
+  };
+  var GROUPS = {};
+  Object.keys(SRC).forEach(function (v) {
+    GROUPS[v] = {};
+    TORDER.forEach(function (t) {
+      var list = [];
+      SRC[v].g.forEach(function (g) { if (g.m[t]) list.push({ gid: g.id, name: g.name, code: g.m[t], manual: g.manual }); });
+      if (list.length) GROUPS[v][t] = list;
+    });
+  });
+  function find(v, gid) { return SRC[v].g.filter(function (g) { return g.id === gid; })[0]; }
+  function pick(v, gid, t) { return t + ':' + find(v, gid).m[t]; }
+
+  // 站点：已知名称取自实际截图；未知名称的只显示编号
+  var SMETA = {}, SITES = [];
+  (function () {
+    var named = 'AR001-82lottery,AR008-RAJA,AR012-Bharat,AR013-OKOwin,AR014-lottery7,AR015-BDGWIN,AR016-TPPaly,AR021-55club,AR023-51game,AR031-in999,AR037-bounty,AR041-bigm,AR047-goa,AR048-91club,AR050-daman,AR051-Tiranga,AR055-BDG,AR058-sikkim,AR062-DiuWin,AR064-6club,AR065-Dmwin,AR070-DGCLUB,AR077-jalwa,AR079-Tashanwin,AR093-Jaiclub,AR095-YaarWin,AR096-RAXIWIN,AR101-shreewin,AR102-veergame'.split(',');
+    var pkr = 'AR011-basantclub,AR059-PakGames,AR067-92pkr,AR085,AR090'.split(',');
+    var other = 'AR002,AR003,AR019,AR038,AR040,AR074,AR080,AR082,AR097,AR098,AR103,AR104,AR004,AR005,AR006,AR007,AR009,AR010,AR017,AR018,AR020,AR022,AR024,AR025,AR026,AR027,AR028,AR029,AR030,AR032,AR033,AR034,AR035,AR036,AR039,AR042,AR043,AR044,demoINR9901'.split(',');
+    var all = [];
+    named.concat(other).forEach(function (n) { all.push([n, 'INR']); });
+    pkr.forEach(function (n) { all.push([n, 'PKR']); });
+    var num = function (n) { var m = /^AR(\d+)/.exec(n); return m ? +m[1] : 99999; };
+    all.sort(function (a, b) { return num(a[0]) - num(b[0]); });
+    all.forEach(function (x) { SITES.push(x[0]); SMETA[x[0]] = { cur: x[1], country: x[1] === 'INR' ? '印度' : '巴基斯坦' }; });
+    SMETA.demoINR9901.flag = '测试站';
+    ['AR097', 'AR098', 'AR104'].forEach(function (c) { SITES.forEach(function (n) { if (n === c) SMETA[n].flag = '未上线'; }); });
+  })();
+  var SCODE = {}; SITES.forEach(function (s) { SCODE[s.split('-')[0]] = s; });
+  function S(c) { return SCODE[c]; }
+  // 上线前已存在的映射（没有变更记录，映射时间显示为「上线前已有」）
+  var saved = {};
+  SITES.forEach(function (s) { saved[s] = {}; });
+  saved[S('AR098')]['PG:fortune-ox'] = pick('PG', 'fortune-ox', 'HE');
+  saved[S('AR043')]['SP:dice'] = pick('SP', 'dice', 'BO');
+  saved[S('AR044')]['JL:134'] = pick('JL', '134', 'KB');
+  var pending = {};
+  var URL_ = '/api/TenantAdmin/BatchUpdateTenantMappingGameList';
+  var LOGS = [
+    { id: '01a1a4fe1c2d7f3e9b0a4c5d6e7f8091', time: '2026-11-04 09:17:20', menu: '登录系统', page: '登录系统', url: '/api/Login/Login', ip: '47.84.216.51', os: 'Windows NT', op: 'kefu08', detail: '[登录系统]-kefu08' },
+    { id: '01a1a4fd1a2b3c4d5e6f7a8b9c0d1e2f', time: '2026-10-27 16:16:50', menu: '游戏管理', page: '游戏映射管理', url: URL_, ip: '8.211.42.128', os: 'Mac', op: 'aradmin', detail: '[游戏映射保存]' },
+    { id: '01a1a4fc9d8e7f6a5b4c3d2e1f0a9b8c', time: '2026-10-27 16:16:36', menu: '游戏管理', page: '游戏映射管理', url: URL_, ip: '8.211.42.128', os: 'Mac', op: 'aradmin', detail: '[游戏映射保存]' }
+  ];
+  var RECS = [], LAST = {};
+  function addRec(r) {
+    var d = r.time.slice(0, 10).replace(/-/g, ''), n = RECS.filter(function (x) { return x.no.indexOf('MP' + d) === 0; }).length + 1;
+    r.no = 'MP' + d + '-' + (n < 10 ? '00' : n < 100 ? '0' : '') + n;
+    var bad = r.items.filter(function (i) { return !i.ok; }).length, sn = {};
+    r.items.forEach(function (i) { sn[i.site] = 1; });
+    RECS.unshift(r);
+    r.items.forEach(function (i) { if (i.ok) LAST[i.site + '|' + i.v + ':' + i.gid] = { time: r.time, op: r.op, no: r.no, it: i }; });
+    LOGS.unshift({ id: r.id, no: r.no, time: r.time, menu: '游戏管理', page: '游戏映射管理', url: URL_, ip: '8.211.42.128', os: 'Mac', op: r.op,
+      detail: '[游戏映射保存] ' + Object.keys(sn).length + ' 个站点 · ' + r.items.length + ' 项变更' + (bad ? ' · ' + bad + ' 项失败' : '') + (r.retry ? '（重试）' : ''), items: r.items });
+  }
+  // 按时间顺序回放历史批次，同时得到当前已保存的映射
+  function seedRec(time, op, rows) {
+    var items = rows.map(function (r) {
+      var k = key(r[1], r[2]), from = (saved[r[0]] || {})[k] || '', to = r[3] ? pick(r[1], r[2], r[3]) : '', ok = !r[4];
+      if (ok) { if (to === '') delete saved[r[0]][k]; else saved[r[0]][k] = to; }
+      return { site: r[0], v: r[1], gid: r[2], gname: find(r[1], r[2]).name, from: from, to: to, ok: ok, reason: ok ? '' : '请求超时' };
+    });
+    addRec({ id: hex(32), time: time, op: op, items: items });
+  }
+  /* ===== 状态与工具 ===== */
+  var sel = {}; sel[S('AR041')] = 1;
+  var tabT = 'ALL', vendor = 'SP', filt = 'all', gq = '', sq = '', curF = 'ALL', lq = '', modal = null, folded = {};
+
+  function $(id) { return document.getElementById(id); }
+  function key(v, gid) { return v + ':' + gid; }
+  function cur(s) { return (SMETA[s] || {}).cur || ''; }
+  function eff(s, k) { var p = pending[s]; if (p && k in p) return p[k]; return (saved[s] || {})[k] || ''; }
+  function selected() { return SITES.filter(function (s) { return sel[s]; }); }
+  function pcount(s) { return pending[s] ? Object.keys(pending[s]).length : 0; }
+  function ptotal() { return SITES.reduce(function (a, s) { return a + pcount(s); }, 0); }
+  function psites() { return SITES.filter(function (s) { return pcount(s) > 0; }); }
+  var VFULL = { AR: 'ART', BO: 'BOAN', GA: 'GameBox', HE: 'HeiBao', KB: 'KB', TB: 'TB', UP: 'UP' };
+  var VCOL0 = { AR: '#722ed1', BO: '#fa8c16', GA: '#13c2c2', HE: '#eb2f96', KB: '#2f54eb', TB: '#fa541c', UP: '#52c41a' };
+  // 厂商标签配色：低饱和的浅底深字，避开「手动」用的黄/橙色系；{底色, 文字色}
+  var VSTY = { AR: ['#efeaf7', '#5a4391'], BO: ['#e3eef7', '#2f5f86'], GA: ['#e3f0ef', '#2d6f6d'], HE: ['#f6e6ee', '#8e3a61'], KB: ['#e6e9ef', '#3e4a63'], TB: ['#ececec', '#555a63'], UP: ['#e8f1e2', '#4a7335'] };
+  function vstyle(t) { var c = VSTY[t] || ['#eceef1', '#4b5563']; return 'background:' + c[0] + ';color:' + c[1] + ';box-shadow:inset 0 0 0 1px ' + c[1] + '2b'; }
+  // 高仿厂商全称：知道原厂时用页面上的完整名称（如 HeiBao_SPRIBE），否则用通用全称
+  function vname(t, v) { return (v && TITLE[v] && TITLE[v][t]) || ((VFULL[t] || t) + ''); }
+  function vhtml(v, src) {
+    if (v === '') return '<span class="vc o">原厂</span>';
+    var p = v.split(':');
+    return '<span class="vc vf" style="' + vstyle(p[0]) + '">' + vname(p[0], src) + '</span> <span class="mono">' + p[1] + '</span>';
+  }
+  function now() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+  function hex(n) { var s = ''; while (s.length < n) s += Math.floor(Math.random() * 16).toString(16); return s; }
+  var tt;
+  function toast(m, bad) { var t = $('toast'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = m; t.style.display = 'block'; clearTimeout(tt); tt = setTimeout(function () { t.style.display = 'none'; }, bad ? 5000 : 3200); }
+  function toastAct(m, label, fn) {
+    var t = $('toast'); t.className = 'toast'; t.innerHTML = esc(m) + '　<button class="lk" id="toastAct">' + label + '</button>'; t.style.display = 'block';
+    $('toastAct').onclick = function () { t.style.display = 'none'; fn(); };
+    clearTimeout(tt); tt = setTimeout(function () { t.style.display = 'none'; }, 8000);
+  }
+  function setSite(s, k, val) {
+    var sv = (saved[s] || {})[k] || '';
+    if (!pending[s]) pending[s] = {};
+    if (val === sv) delete pending[s][k]; else pending[s][k] = val;
+    if (!Object.keys(pending[s]).length) delete pending[s];
+  }
+  function setCell(k, val) { selected().forEach(function (x) { setSite(x, k, val); }); }
+  function esc(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  // 只有「已保存且未被本次改动动过」的映射才算会被覆盖；本次自己刚选、还没保存的，改选时不打扰
+  function hard(s, k, val) { var p = pending[s]; if (p && k in p) return false; var sv = (saved[s] || {})[k] || ''; return sv !== '' && sv !== val; }
+  // 多个关键词：每个词先找完全相同的（ID、名称、编码），找不到再按包含找
+  function splitG(x) { return (/[,，;；、\n\r]/.test(x) ? x.split(/[,，;；、\n\r]+/) : x.split(/\s+/)).map(function (t) { return t.trim(); }).filter(Boolean); }
+  function toksG(x) { return splitG(x).map(function (t) { return t.toLowerCase(); }); }
+  function gqSet() {
+    var tk = toksG(gq); if (!tk.length) return null;
+    var list = SRC[vendor].g, hit = {};
+    tk.forEach(function (t) {
+      var ex = list.filter(function (g) { return gameExact(g, t); });
+      (ex.length ? ex : list.filter(function (g) { return gameText(g).indexOf(t) > -1; })).forEach(function (g) { hit[g.id] = 1; });
+    });
+    return hit;
+  }
+  // 搜索词的匹配情况：完全相同、模糊（包含）、没找到；以及按高仿编码精确匹配到的那张卡
+  function gqInfo() {
+    var raw = splitG(gq);
+    if (!raw.length) return null;
+    var list = SRC[vendor].g, miss = [], fuzzy = [], codes = {}, n = {};
+    raw.forEach(function (rt) {
+      var t = rt.toLowerCase(), ex = list.filter(function (g) { return gameExact(g, t); });
+      if (ex.length) {
+        ex.forEach(function (g) { n[g.id] = 1; Object.keys(g.m).forEach(function (x) { if (String(g.m[x]).toLowerCase() === t) codes[key(vendor, g.id) + '|' + x + ':' + g.m[x]] = 1; }); });
+        return;
+      }
+      var fz = list.filter(function (g) { return gameText(g).indexOf(t) > -1; });
+      if (fz.length) { fz.forEach(function (g) { n[g.id] = 1; }); fuzzy.push({ t: rt, names: fz.map(function (g) { return g.name; }) }); } else miss.push(rt);
+    });
+    return { total: raw.length, matched: Object.keys(n).length, miss: miss, fuzzy: fuzzy, codes: codes };
+  }
+  function gqHtml(gi) {
+    if (!gi) return '';
+    var h = '<div class="gqh">已输入 ' + gi.total + ' 个词，匹配到 ' + gi.matched + ' 款游戏';
+    if (gi.miss.length) h += '；<span style="color:var(--red)">没有找到：' + esc(gi.miss.join('、')) + '</span>';
+    if (gi.fuzzy.length) h += '；<span style="color:#d46b08">模糊匹配（不是完全相同，请确认）：' + gi.fuzzy.map(function (f) { return esc(f.t) + ' → ' + esc(f.names.slice(0, 3).join('、')) + (f.names.length > 3 ? ' 等 ' + f.names.length + ' 款' : ''); }).join('；') + '</span>';
+    return h + '</div>';
+  }
+  function visibleCards(t) {
+    var S = selected(), gs = gqSet();
+    return (GROUPS[vendor][t] || []).filter(function (c) {
+      var k = key(vendor, c.gid);
+      if (gs && !gs[c.gid]) return false;
+      if (filt === 'manual' && !c.manual) return false;
+      if (filt === 'pending' && !S.some(function (s) { return pending[s] && k in pending[s]; })) return false;
+      return true;
+    });
+  }
+
+  /* ===== 渲染：站点 ===== */
+  function renderSites() {
+    var curs = ['ALL'].concat(SITES.map(cur).filter(function (c, i, a) { return a.indexOf(c) === i; }));
+    $('pills').innerHTML = curs.map(function (c) { return '<button class="pill' + (curF === c ? ' on' : '') + '" data-c="' + c + '">' + (c === 'ALL' ? '全部币种' : c) + '</button>'; }).join('');
+    var list = SITES.filter(function (s) { return (curF === 'ALL' || cur(s) === curF) && s.toLowerCase().indexOf(sq.toLowerCase()) > -1; });
+    $('ddl').innerHTML = list.map(function (s) { return '<label class="ddi"><input type="radio" name="siteSel" data-s="' + s + '"' + (sel[s] ? ' checked' : '') + '><span class="sn">' + s + flagTag(s) + '</span></label>'; }).join('') || '<div class="empty" style="padding:16px">没有匹配的站点</div>';
+    var S = selected();
+    $('sl').innerHTML = S.map(function (s) {
+      var sw = SRC[vendor].g.filter(function (g) { return eff(s, key(vendor, g.id)) !== ''; }).length, pc = pcount(s);
+      return '<div class="sr"><span class="sn" title="' + s + '">' + s + flagTag(s) + '</span>' + '<span class="sm" title="当前原厂厂商下已映射的游戏数">已映射 ' + sw + '</span>' + (pc ? '<span class="pd">待保存 ' + pc + '</span>' : '') + '<button class="rd" data-del="' + s + '">删除</button></div>';
+    }).join('') || '<div class="empty" style="padding:24px 0">先在上方选择站点</div>';
+    var oth = psites().filter(function (s) { return !sel[s]; });
+    if (oth.length) {
+      $('sl').innerHTML += '<div class="oth"><div class="t">其他站点还有待保存的改动（' + oth.length + '）<i class="nb" style="top:-8px;right:-28px">NEW</i></div>' +
+        oth.map(function (s) { return '<div class="sr off"><span class="sn" title="' + s + '">' + s + '</span><span class="pd">待保存 ' + pcount(s) + '</span><button class="lk" data-add="' + s + '">选中</button></div>'; }).join('') + '</div>';
+    }
+  }
+
+  /* ===== 渲染：顶部 ===== */
+  function renderTop() {
+    $('vSel').innerHTML = Object.keys(SRC).map(function (v) {
+      var n = 0;
+      SITES.forEach(function (s) { if (pending[s]) Object.keys(pending[s]).forEach(function (k) { if (k.indexOf(v + ':') === 0) n++; }); });
+      return '<option value="' + v + '"' + (v === vendor ? ' selected' : '') + '>' + SRC[v].n + (n ? '（待保存 ' + n + '）' : '') + '</option>';
+    }).join('');
+    var n = ptotal();
+    $('btnSave').textContent = n ? '保存 (' + n + ')' : '保存';
+    $('btnSave').disabled = !n; $('btnReset').disabled = !n;
+    Array.prototype.forEach.call($('seg').children, function (b) { b.setAttribute('aria-pressed', b.dataset.f === filt); });
+  }
+
+  /* ===== 渲染：按高仿厂商分组的卡片（保持原交互，增加状态） ===== */
+  function stateOf(S, k, val) {
+    var tot = S.length, n = 0, occ = [], wc = 0, pend = false, anyPend = false;
+    S.forEach(function (s) {
+      var e = eff(s, k);
+      if (e === val) n++; else if (e !== '') occ.push(e);
+      if ((saved[s] || {})[k] === val && e !== val) wc++;
+      if (pending[s] && pending[s][k] === val) pend = true;
+      if (pending[s] && k in pending[s]) anyPend = true;
+    });
+    return { n: n, tot: tot, occ: occ, wc: wc, pend: pend, anyPend: anyPend };
+  }
+  // 已选数量：全选中的游戏数用绿色，全部选中时整体绿色并打勾；部分站点选中的另用橙色标出；配一条进度条
+  function cntHtml(full, len) {
+    if (len && full === len) return '<span class="n cf">✓ ' + full + '/' + len + '</span>';
+    return '<span class="n">' + (full ? '<b class="cg">' + full + '</b>' : '0') + '/' + len + '</span>';
+  }
+  function selHtml(full, len) {
+    var g = len ? full / len * 100 : 0;
+    var bar = '<span class="pbar"><i class="pg" style="width:' + g + '%"></i></span>';
+    if (len && full === len) return bar + '<span class="sel sf">✓ 已全选 ' + full + '/' + len + '</span>';
+    return bar + '<span class="sel">已选 ' + (full ? '<b class="cg">' + full + '</b>' : '0') + '/' + len + '</span>';
+  }
+  function renderCards() {
+    var S = selected(), V = SRC[vendor], tot = S.length, gs = gqSet(), gi0 = gqInfo();
+    if (!tot) { $('cards').innerHTML = '<div class="empty">先在左侧选择至少一个站点，再进行勾选。</div>'; return; }
+    var html = '', anc = [];
+    if (tabT !== 'ALL' && !GROUPS[vendor][tabT]) tabT = 'ALL';
+    TORDER.forEach(function (t) {
+      var cards = GROUPS[vendor][t]; if (!cards) return;
+      var sts = cards.map(function (c) { return stateOf(S, key(vendor, c.gid), t + ':' + c.code); });
+      var full = sts.filter(function (x) { return x.n === tot; }).length, man = cards.filter(function (c) { return c.manual; }).length;
+      var allOn = full === cards.length;
+      var vc = visibleCards(t), filtered = vc.length !== cards.length;
+      var visAllOn = vc.length > 0 && vc.every(function (c) { return sts[cards.indexOf(c)].n === tot; });
+      var allLabel = filtered ? (visAllOn ? '取消勾选筛选结果' : '全选筛选结果') : (allOn ? '取消全选' : '全选');
+      anc.push({ t: t, full: full, len: cards.length, p: sts.filter(function (x) { return x.pend || (x.wc && x.n === 0); }).length });
+      if (tabT !== 'ALL' && t !== tabT) return;
+      var items = cards.map(function (c, i) {
+        var st = sts[i];
+        if (gs && !gs[c.gid]) return '';
+        if (filt === 'manual' && !c.manual) return '';
+        if (filt === 'pending' && !st.anyPend) return '';
+        var cls = 'c2' + (c.manual ? ' man' : '') + (st.n === tot ? ' on' : st.occ.length ? ' occ' : '') + (st.wc && st.n === 0 ? ' wc' : '') + (blk && blk.marks[key(vendor, c.gid) + '|' + t + ':' + c.code] ? ' bad' : '');
+        var cb = st.n === tot ? 'on' : '';
+        var tags = '';
+        if (gi0 && gi0.codes[key(vendor, c.gid) + '|' + t + ':' + c.code]) tags += '<span class="tg" style="background:#fffbe6;color:#ad6800;border:1px solid #ffe58f">编码匹配</span>';
+        if (st.n === 0 && st.occ.length) {
+          var dests = st.occ.map(function (e) { return e.split(':')[0]; }).filter(function (d, j, a) { return a.indexOf(d) === j; });
+          tags += '<span class="tg occ" title="' + S.filter(function (s) { var e = eff(s, key(vendor, c.gid)); return e !== '' && e !== t + ':' + c.code; }).map(function (s) { return s + '：' + eff(s, key(vendor, c.gid)).replace(':', ' '); }).join('\n') + '">已在 ' + (dests.length === 1 ? vname(dests[0], vendor) : '多个厂商') + (st.occ.length < tot ? ' ' + st.occ.length + '/' + tot : '') + '</span>';
+        }
+        if (st.wc && st.n === 0) tags += '<span class="tg wc">将取消</span>';
+        if (st.pend) tags += '<span class="tg pend">待保存</span>';
+        if (blk && blk.marks[key(vendor, c.gid) + '|' + t + ':' + c.code]) tags += '<span class="tg wc" style="background:var(--red);color:#fff">需先取消</span>';
+        var label = c.gid + ' → ' + t + ' ' + c.code;
+        return '<div class="' + cls + '" role="checkbox" tabindex="0" aria-checked="' + (st.n === tot ? 'true' : st.n > 0 ? 'mixed' : 'false') + '" aria-label="' + label + '" data-k="' + key(vendor, c.gid) + '" data-v="' + t + ':' + c.code + '">' +
+          '<i class="cb ' + cb + '"></i><div class="cbody"><div class="l1"><span class="vc vf" style="' + vstyle(t) + '">' + vname(t, vendor) + '</span><span class="mono">' + c.gid + '</span><span class="arrow">→</span><span class="mono">' + c.code + '</span>' + (c.manual ? '<span class="manx">·手动</span>' : '') + '</div>' +
+          '<div class="l2"><span class="nm">' + c.name + '</span>' + tags + '</div></div></div>';
+      }).join('');
+      html += '<div class="grp" id="g-' + t + '"><div class="gh' + (full === cards.length && cards.length ? ' gfull' : '') + '"><span class="gt">' + TITLE[vendor][t] + '</span>' +
+        '<span class="gr"><span>共 ' + cards.length + '</span>' + (man ? '<span class="or">手动 ' + man + ' 款</span>' : '') + selHtml(full, cards.length) +
+        '<button class="lk" data-all="' + t + '">' + allLabel + '</button><button class="fold" data-fold="' + t + '" aria-label="折叠">' + (folded[vendor + t] ? '▸' : '▾') + '</button></span></div>' +
+        (folded[vendor + t] ? '' : '<div class="gl">' + (items || '<div class="empty" style="grid-column:1/-1;padding:16px">没有符合筛选条件的游戏</div>') + '</div>') + '</div>';
+    });
+    var totP = anc.reduce(function (x, a) { return x + a.p; }, 0);
+    var gi = gqInfo();
+    var bar = '<div class="anc"><span class="rel" style="margin-right:6px;font-size:12px;color:var(--sub)">高仿厂商<i class="nb" style="top:-8px;right:-22px">改</i></span>' +
+      '<button class="ch' + (tabT === 'ALL' ? ' on' : '') + '" data-tab="ALL">全部<span class="n">' + anc.length + ' 个厂商</span>' + (totP ? '<span class="pb">' + totP + '</span>' : '') + '</button>' +
+      anc.map(function (a) { return '<button class="ch' + (tabT === a.t ? ' on' : '') + '" data-tab="' + a.t + '">' + TITLE[vendor][a.t] + cntHtml(a.full, a.len) + (a.p ? '<span class="pb">' + a.p + '</span>' : '') + '</button>'; }).join('') +
+      gqHtml(gi) + '</div>';
+    $('cards').innerHTML = bar + html;
+  }
+  function renderAll() { renderSites(); renderTop(); renderCards(); }
+
+  /* ===== 交互：勾选（被占用的不弹窗，标红并提示） ===== */
+  var blk = null; // B 阶段不再拦截被占用的子游戏，保留变量仅为兼容
+  function cardClick(k, val) {
+    if (!selected().length) { toast('先选择站点'); return; }
+    if (eff(selected()[0], k) === val) setCell(k, ''); else setCell(k, val);
+    renderAll();
+  }
+  // 把一批卡片勾到某个高仿厂商
+  function applyPick(t, cards) {
+    cards.forEach(function (c) { setCell(key(vendor, c.gid), t + ':' + c.code); });
+    renderAll(); toast('已勾选 ' + vname(t, vendor) + ' 的 ' + cards.length + ' 个游戏（待保存）');
+  }
+  function groupAll(t) {
+    var S = selected(); if (!S.length) { toast('先选择站点'); return; }
+    var v = vendor, cards = visibleCards(t);
+    if (!cards.length) { toast('当前筛选下没有游戏'); return; }
+    var allOn = cards.every(function (c) { return S.every(function (x) { return eff(x, key(v, c.gid)) === t + ':' + c.code; }); });
+    if (allOn) { cards.forEach(function (c) { setCell(key(v, c.gid), ''); }); renderAll(); toast('已取消勾选 ' + TITLE[v][t] + ' 的 ' + cards.length + ' 个游戏（待保存）'); return; }
+    applyPick(t, cards);
+  }
+  function parseBatch(text, t) {
+    var toks = text.split(/[\s,，;；、]+/).filter(Boolean).filter(function (x, i, a) { return a.indexOf(x) === i; });
+    var list = GROUPS[vendor][t] || [], cards = [], miss = [];
+    toks.forEach(function (tk) {
+      var l = tk.toLowerCase();
+      var c = list.filter(function (x) { return x.gid.toLowerCase() === l || x.code.toLowerCase() === l; })[0];
+      if (c) { if (cards.indexOf(c) < 0) cards.push(c); } else miss.push(tk);
+    });
+    return { cards: cards, miss: miss, n: toks.length };
+  }
+  function refreshBatch() {
+    var m = modal; m.t = $('bT').value;
+    var r = parseBatch($('bTa').value, m.t); m.cards = r.cards;
+    $('bRes').innerHTML = r.n ? '<div class="ok">识别 ' + r.cards.length + ' 个：' + r.cards.map(function (c) { return esc(c.gid); }).join('、') + '</div>' +
+      (r.miss.length ? '<div class="bad">未找到 ' + r.miss.length + ' 个（不会勾选）：' + r.miss.map(esc).join('、') + '</div>' : '') : '输入游戏ID后，这里显示识别结果';
+    $('bGo').disabled = !r.cards.length; $('bGo').textContent = '勾选 (' + r.cards.length + ')';
+  }
+
+  /* ===== 弹窗 ===== */
+  function changesOf(s) {
+    return Object.keys(pending[s] || {}).map(function (k) {
+      var p = k.split(':'), g = find(p[0], p[1]);
+      var from = (saved[s] || {})[k] || '', to = pending[s][k];
+      return { site: s, v: p[0], gid: p[1], gname: g.name, from: from, to: to, type: from === '' ? 'new' : to === '' ? 'cancel' : 'replace' };
+    }).sort(function (a, b) { return (a.v + a.gid) < (b.v + b.gid) ? -1 : 1; });
+  }
+  var TYPETAG = { replace: '<span class="st rep">替换已有映射</span>', new: '<span class="st new">新增</span>', cancel: '<span class="st" style="background:#f5f5f6;color:var(--sub)">取消映射</span>', };
+  function crow(c, st) {
+    return '<div class="cr"' + (c.type === 'replace' && !st ? ' style="background:#fff1f0"' : '') + '><span class="vn">' + SRC[c.v].n + '</span><span class="gm">' + c.gid + (c.gname !== c.gid ? ' · ' + c.gname : '') + '</span>' + vhtml(c.from, c.v) + '<span class="arrow">→</span>' + vhtml(c.to, c.v) +
+      (st ? '<span class="st ' + (st.ok ? 'ok' : 'bad') + '">' + (st.ok ? '成功' : '失败：' + st.reason) + '</span>' : (c.type ? TYPETAG[c.type] : '')) + '</div>';
+  }
+  var lastFocus = null;
+  function focusModal() {
+    setTimeout(function () {
+      if (!$('mask').classList.contains('show') || $('modal').contains(document.activeElement)) return;
+      var f = $('modal').querySelector('.btn.p:not(:disabled), button:not(:disabled), a.lk'); if (f) f.focus();
+    }, 0);
+  }
+  function openMask(cls) {
+    $('modal').className = 'modal' + (cls ? ' ' + cls : ''); if (!$('mask').classList.contains('show')) lastFocus = document.activeElement; $('mask').classList.add('show');
+    focusModal();
+  }
+  function closeMask() { $('mask').classList.remove('show'); modal = null; if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) {} } }
+  // 弹窗打开时，Tab 键焦点只在弹窗内循环
+  $('mask').addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab') return;
+    var els = [].filter.call($('modal').querySelectorAll('button:not(:disabled), a.lk, input:not(:disabled), select, textarea'), function (x) { return x.offsetParent !== null; });
+    if (!els.length) return;
+    var first = els[0], last = els[els.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    else if (els.indexOf(document.activeElement) < 0) { e.preventDefault(); first.focus(); }
+  });
+  function head(title, nb) { return '<div class="mh"><b>' + title + (nb ? '<i class="nb" style="top:-8px;right:-30px">NEW</i>' : '') + '</b><button class="x" data-m="close" aria-label="关闭">×</button></div>'; }
+  function renderModal() {
+    var m = modal, body, foot, title;
+    if (m.stage === 'checking') {
+      $('modal').innerHTML = head('保存前检查') + '<div class="mb"><div class="empty" style="padding:30px">正在检查 ' + psites().length + ' 个站点当前的映射，用来生成确认表……</div></div><div class="mf"><button class="btn" data-m="close">取消</button></div>';
+      return;
+    }
+    if (m.stage === 'swap') {
+      var S = selected(), v = m.k.split(':')[0], gid = m.k.split(':')[1];
+      var rows = S.filter(function (s) { return hard(s, m.k, m.val); }).map(function (s) { return { s: s, from: eff(s, m.k) }; });
+      var nfree = S.length - rows.length;
+      title = '该子游戏已被映射，请先取消';
+      body = '<div class="gbox"><span class="vc src">' + SRC[v].chip + '</span><b class="mono" style="font-size:13px">' + gid + '</b><span style="color:var(--sub)">' + find(v, gid).name + '</span><span class="arrow">想映射到</span>' + vhtml(m.val, v) + '</div>' +
+        '<div class="tipbox">同一游戏同一时间只能映射到一个高仿厂商。下面站点里，它已经映射到别的厂商了，请先到对应厂商下取消勾选，再选当前这个。本次没有做任何改动。</div>' +
+        '<div class="tbl-scroll"><table class="dt2"><thead><tr><th>站点</th><th>已被映射到</th><th>需要先取消的位置</th></tr></thead><tbody>' +
+        rows.map(function (r) { return '<tr><td><span class="mono">' + r.s + '</span></td><td>' + vhtml(r.from, v) + '</td><td>' + TITLE[v][r.from.split(':')[0]] + ' 下的 ' + r.from.split(':')[1] + '</td></tr>'; }).join('') + '</tbody></table></div>';
+      foot = '<button class="btn" data-m="close">知道了</button>' + (nfree ? '<button class="btn p" data-m="swapfree">只选其余 ' + nfree + ' 个没被占用的站点</button>' : '');
+    } else if (m.stage === 'all') {
+      var S2 = selected(), t = m.t;
+      title = (m.kind === 'batch' ? '批量勾选到 ' : '全选 ') + TITLE[vendor][t] + '：有子游戏已被映射，请先取消';
+      body = '<div class="gbox"><b>' + TITLE[vendor][t] + '</b><span style="color:var(--sub)">共 ' + m.total + ' 个游戏 × ' + S2.length + ' 个站点</span></div>' +
+        '<div class="tipbox">其中 <b>' + m.confs.length + '</b> 项已被映射到其他高仿厂商，请先取消（本次不会改动它们）；另有 <b>' + m.adds.length + '</b> 项没被占用，可以直接选。</div>' +
+        '<div class="tbl-scroll"><table class="dt2"><thead><tr><th>站点</th><th>游戏</th><th>已被映射到</th><th>想映射到</th></tr></thead><tbody>' +
+        m.confs.map(function (x) { return '<tr><td><span class="mono">' + x.s + '</span></td><td>' + x.gid + '</td><td>' + vhtml(x.from, x.v) + '</td><td>' + vhtml(x.val, x.v) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+      foot = '<button class="btn" data-m="close">知道了</button><button class="btn p" data-m="free"' + (m.adds.length ? '' : ' disabled') + '>只选没被占用的（' + m.adds.length + ' 项）</button>';
+    } else if (m.stage === 'batch') {
+      title = '批量勾选游戏';
+      var bopts = TORDER.filter(function (t2) { return GROUPS[vendor][t2]; }).map(function (t2) { return '<option value="' + t2 + '"' + (t2 === m.t ? ' selected' : '') + '>' + TITLE[vendor][t2] + '</option>'; }).join('');
+      var sample = vendor === 'JL' ? '134 300 223 77 103' : vendor === 'SP' ? 'aviator dice goal hi-lo hotline' : 'fortune-tiger fortune-ox';
+      body = '<div class="gbox"><span>勾选到</span><select class="vsel" id="bT" aria-label="目标高仿厂商">' + bopts + '</select><span style="color:var(--sub)">原厂：' + SRC[vendor].n + '　已选 ' + selected().length + ' 个站点</span></div>' +
+        '<textarea class="ta" id="bTa" aria-label="游戏ID" placeholder="粘贴原厂游戏ID或高仿编码，用空格、逗号或换行分隔，例如：' + sample + '"></textarea><div class="bres" id="bRes">输入游戏ID后，这里显示识别结果</div>';
+      foot = '<button class="btn" data-m="close">取消</button><button class="btn p" id="bGo" data-m="bgo" disabled>勾选 (0)</button>';
+    } else if (m.stage === 'confirm') {
+      var ss = psites(), sig = {}, order = [], cnt = { new: 0, replace: 0, cancel: 0 }, rp = {};
+      ss.forEach(function (s) {
+        var cs = changesOf(s), sg = JSON.stringify(cs.map(function (c) { return [c.v, c.gid, c.from, c.to]; }));
+        cs.forEach(function (c) { cnt[c.type]++; if (c.type === 'replace') { var rk = vname(c.from.split(':')[0], c.v) + ' → ' + vname(c.to.split(':')[0], c.v); rp[rk] = (rp[rk] || 0) + 1; } });
+        if (!sig[sg]) { sig[sg] = { sites: [], cs: cs }; order.push(sg); }
+        sig[sg].sites.push(s);
+      });
+      var eff2 = cnt.new + cnt.replace + cnt.cancel;
+      title = '确认变更：' + eff2 + ' 项，' + ss.length + ' 个站点';
+      var sumLine = '共 <b>' + eff2 + '</b> 项：新增 <b>' + cnt.new + '</b>' + (cnt.replace ? '，<b style="color:var(--red)">替换已有映射 ' + cnt.replace + '</b>' : '') + (cnt.cancel ? '，取消映射 ' + cnt.cancel : '');
+      var note = cnt.replace ? '<div class="badbox">' + sumLine + '<div style="margin-top:3px;font-size:12px">替换明细：' + Object.keys(rp).map(function (k) { return k + ' ' + rp[k] + ' 项'; }).join('；') + '。确认保存后原映射会被新的取代，已在下表整行标红。</div></div>' : '<div class="tipbox">' + sumLine + '</div>';
+      body = note + order.map(function (g) {
+        var o = sig[g];
+        return '<div class="sb"><div class="sbh"><div class="chips">' + o.sites.map(function (s) { return '<span class="sc">' + s + '</span>'; }).join('') + '</div><span class="sm" style="margin-left:auto;white-space:nowrap">' + (o.sites.length > 1 ? o.sites.length + ' 个站点 × ' : '') + o.cs.length + ' 项</span></div>' + o.cs.map(function (c) { return crow(c); }).join('') + '</div>';
+      }).join('');
+      foot = '<label class="demo2"><input type="checkbox" id="demoFail"> 演示：让最后一个站点保存失败</label><button class="btn" data-m="close">返回修改</button><button class="btn p" data-m="ok"' + (eff2 ? '' : ' disabled') + '>' + (cnt.replace ? '确认保存（含 ' + cnt.replace + ' 项替换）' : '确认保存') + '</button>';
+    } else {
+      var rs = m.sites, okN = rs.filter(function (s) { return m.res[s].ok; }).length, bad = rs.length - okN;
+      title = '保存结果：成功 ' + okN + ' 个站点' + (bad ? '，失败 ' + bad + ' 个' : '');
+      body = (bad ? '<div class="badbox">失败的站点没有被修改，改动仍保留在待保存里，可以只重试这些站点。</div>' : '<div class="okbox">全部站点保存成功。</div>') +
+        rs.map(function (s) {
+          var r = m.res[s];
+          return '<div class="sb"><div class="sbh"><span class="sn" style="flex:none">' + s + '</span><span class="st ' + (r.ok ? 'ok' : 'bad') + '">' + (r.ok ? '成功' : '失败：' + r.reason) + '</span></div>' + (r.ok ? m.done[s] : changesOf(s)).map(function (c) { return crow(c); }).join('') + '</div>';
+        }).join('');
+      foot = (bad ? '<button class="btn p" data-m="retry">重试失败的站点</button>' : '') + '<button class="btn" data-m="log">查看日志</button><button class="btn' + (bad ? '' : ' p') + '" data-m="close">关闭</button>';
+    }
+    $('modal').innerHTML = head(title, m.stage !== 'result') + '<div class="mb">' + body + '</div><div class="mf">' + foot + '</div>';
+    focusModal();
+  }
+  function submit(list, fail) {
+    var failSite = fail ? list[list.length - 1] : null, items = [];
+    modal.res = modal.res || {}; modal.done = modal.done || {};
+    list.forEach(function (s) {
+      var ok = s !== failSite, cs = changesOf(s);
+      cs.forEach(function (c) { items.push({ site: s, v: c.v, gid: c.gid, gname: c.gname, from: c.from, to: c.to, ok: ok, reason: ok ? '' : '请求超时' }); });
+      modal.res[s] = { ok: ok, reason: ok ? '' : '请求超时' };
+      if (ok) {
+        modal.done[s] = cs;
+        cs.forEach(function (c) { var k = key(c.v, c.gid); saved[s] = saved[s] || {}; if (c.to === '') delete saved[s][k]; else saved[s][k] = c.to; });
+        delete pending[s];
+      }
+    });
+    addRec({ id: hex(32), time: now(), op: 'luna00', retry: !!modal.retry, retryOf: modal.retry ? modal.lastNo : '', items: items });
+    modal.lastNo = RECS[0].no;
+    blk = null;
+    modal.stage = 'result';
+    modal.sites = Object.keys(modal.res).sort(function (a, b) { return SITES.indexOf(a) - SITES.indexOf(b); });
+    renderAll(); renderLogs(); renderRecs(); renderOv();
+    if (!items.some(function (i) { return !i.ok; })) {
+      var n = items.length, sn = list.length, again = !!modal.retry;
+      closeMask(); toast((again ? '重试成功：' : '保存成功：') + sn + ' 个站点，' + n + ' 项变更，已记入映射变更记录' + (again ? '；这一批的站点已全部保存成功' : ''));
+    } else renderModal();
+  }
+
+  /* ===== 日志页 ===== */
+  var PG = { rec: 1, log: 1 }, PSZ = 20;
+  function pagerHtml(name, total) {
+    var pages = Math.max(1, Math.ceil(total / PSZ)), c = Math.min(PG[name], pages); PG[name] = c;
+    var h = '<span>共 ' + total + ' 条，每页 ' + PSZ + ' 条</span><button class="pgb" data-pg="' + name + '|' + (c - 1) + '"' + (c <= 1 ? ' disabled' : '') + '>‹</button>';
+    for (var i = 1; i <= pages; i++) h += '<button class="pgb' + (i === c ? ' on' : '') + '" data-pg="' + name + '|' + i + '">' + i + '</button>';
+    return h + '<button class="pgb" data-pg="' + name + '|' + (c + 1) + '"' + (c >= pages ? ' disabled' : '') + '>›</button>';
+  }
+  function inDate(time, f, t) { var d = time.slice(0, 10); return (!f || d >= f) && (!t || d <= t); }
+  var lf = { from: '', to: '' };
+  function renderLogs() {
+    var q = lq.toLowerCase();
+    var list = LOGS.slice().sort(function (a, b) { return a.time < b.time ? 1 : -1; }).filter(function (l) { return inDate(l.time, lf.from, lf.to) && (!q || (l.items || []).some(function (i) { return (i.site + i.gname + i.gid).toLowerCase().indexOf(q) > -1; })); });
+    var html = pagerHtml('log', list.length), c = PG.log;
+    $('logBody').innerHTML = list.slice((c - 1) * PSZ, c * PSZ).map(function (l) {
+      return '<tr><td><span class="dir">' + l.menu + ',' + l.page + '</span></td><td class="w">' + l.url + '</td><td><span class="ipl">' + l.ip + '</span></td><td>' + l.os + '</td><td><span class="optag">' + l.op + '</span></td><td>' + l.detail + '</td><td>' + l.time + '</td><td><a class="lk" data-log="' + l.id + '">详情</a></td></tr>';
+    }).join('') || '<tr><td colspan="8" class="empty">无数据</td></tr>';
+    $('logPager').innerHTML = html;
+  }
+  function openLog(id) {
+    var l = LOGS.filter(function (x) { return x.id === id; })[0]; if (!l) return;
+    var items = '';
+    if (l.items) {
+      items = '<div><span class="sec">变更明细<i class="nb" style="top:-8px;right:-30px">NEW</i></span><div class="tbl-scroll"><table class="dt2"><thead><tr><th>站点</th><th>原厂厂商</th><th>游戏</th><th>改前去向</th><th>改后去向</th><th>结果</th></tr></thead><tbody>' +
+        l.items.map(function (i) { return '<tr><td><span class="mono">' + i.site + '</span></td><td>' + SRC[i.v].n + '</td><td>' + i.gid + '</td><td>' + vhtml(i.from, i.v) + '</td><td>' + vhtml(i.to, i.v) + '</td><td><span class="st ' + (i.ok ? 'ok' : 'bad') + '" style="margin:0">' + (i.ok ? '成功' : '失败：' + i.reason) + '</span></td></tr>'; }).join('') + '</tbody></table></div></div>';
+    }
+    $('modal').innerHTML = '<div class="mh"><b>日志详情</b><button class="x" data-m="close" aria-label="关闭">×</button></div><div class="mb"><div class="dgrid">' +
+      '<div><span class="k">日志编号：</span>' + l.id + '</div><div><span class="k">操作目录：</span><span class="optag">' + l.menu + '</span></div>' +
+      '<div><span class="k">操作页面：</span><span class="optag">' + l.page + '</span></div><div><span class="k">请求地址：</span>' + l.url + '</div>' +
+      '<div><span class="k">操作IP：</span>' + l.ip + '</div><div><span class="k">操作系统：</span>' + l.os + '</div>' +
+      '<div><span class="k">操作人：</span>' + l.op + '</div><div><span class="k">操作详情：</span>' + l.detail + '</div>' + (l.no ? '<div><span class="k">变更批次号：</span>' + l.no + '</div><div><a class="lk" data-recno="' + l.id + '">在映射变更记录中查看 →</a></div>' : '') +
+      '<div class="full"><span class="k">创建时间：</span>' + l.time + '</div></div>' + items + '</div>';
+    openMask('w');
+  }
+
+  /* ===== 映射信息：最近一次把该映射设置成现值的变更 ===== */
+  function lastSet(site, k) { return LAST[site + '|' + k] || null; }
+  function restore(list, label) {
+    if (!list.length) return;
+    list.forEach(function (x) { setSite(x.site, key(x.v, x.gid), x.val); });
+    sel = {}; sel[list[0].site] = 1; vendor = list[0].v; tabT = 'ALL';
+    closeMask(); go('map'); renderAll();
+    toast('已把 ' + list.length + ' 项' + label + '放入待保存，点保存可预览确认');
+  }
+
+  /* ===== 映射总览 ===== */
+  var ov = { src: 'ALL', cur: 'ALL', tgt: 'ALL', ms: {}, gq: '', from: '', to: '', test: false, open: {}, sel: '', dtab: 'site', st: 'all', view: 'batch' };
+  var dr = { src: 'ALL', cur: 'ALL', tgt: 'ALL', ms: {}, gq: '', from: '', to: '', test: false }; // 筛选区里改动但还没点「查询」的内容
+  var VCOL = { AR: '#722ed1', BO: '#fa8c16', GA: '#13c2c2', HE: '#eb2f96', KB: '#2f54eb', TB: '#fa541c', UP: '#52c41a' };
+  function chip(t, v) { return '<span class="vc vf" style="' + vstyle(t) + '">' + vname(t, v) + '</span>'; }
+  function toks(x) { return x.split(/[\s,，;；、]+/).map(function (t) { return t.trim().toLowerCase(); }).filter(Boolean); }
+  function inRange(li) { if (!ov.from && !ov.to) return true; if (!li) return false; var d = li.time.slice(0, 10); return (!ov.from || d >= ov.from) && (!ov.to || d <= ov.to); }
+  function gameText(g) { return (g.id + ' ' + g.name + ' ' + Object.keys(g.m).map(function (t) { return g.m[t]; }).join(' ')).toLowerCase(); }
+  function gameExact(g, t) { return g.id.toLowerCase() === t || g.name.toLowerCase() === t || Object.keys(g.m).some(function (x) { return String(g.m[x]).toLowerCase() === t; }); }
+  // 输入的每个词：先找「完全相同」的，找不到再按「包含」找
+  function pickGames(list, tk) {
+    var hit = {};
+    tk.forEach(function (t) {
+      var ex = list.filter(function (x) { return gameExact(x.g, t); });
+      (ex.length ? ex : list.filter(function (x) { return gameText(x.g).indexOf(t) > -1; })).forEach(function (x) { hit[x.k] = 1; });
+    });
+    return list.filter(function (x) { return hit[x.k]; });
+  }
+  function pickSites(list, tk) {
+    var hit = {};
+    tk.forEach(function (t) {
+      var ex = list.filter(function (s) { return s.toLowerCase() === t || s.split('-')[0].toLowerCase() === t; });
+      (ex.length ? ex : list.filter(function (s) { return s.toLowerCase().indexOf(t) > -1; })).forEach(function (s) { hit[s] = 1; });
+    });
+    return list.filter(function (s) { return hit[s]; });
+  }
+  function mdate(li) { return li ? li.time.slice(5, 10) : '上线前'; }
+  function flagTag(s) { var f = (SMETA[s] || {}).flag; return f ? ' <span class="tg wc" style="background:#fff7e6;color:#d46b08">' + f + '</span>' : ''; }
+  function sitChip(s, k, li, gray) {
+    return '<span class="sit" data-hist="' + s + '|' + k + '"' + (gray ? ' style="color:var(--sub)"' : '') + ' title="' + (li ? li.time + '　' + li.op : gray ? '仍是原厂' : '上线前已有') + '">' + s + (gray ? '' : ' <b style="color:var(--green);font-weight:500">' + mdate(li) + '</b>') + '</span>';
+  }
+  function chipBox(id, list, n) {
+    var open = ov.open[id], shown = open ? list : list.slice(0, n);
+    return shown.join('') + (list.length > n ? '<a class="lk" data-more="' + id + '" style="margin-left:4px;font-size:12px">' + (open ? '收起' : '展开全部 ' + list.length + ' 个') + '</a>' : '');
+  }
+  function dRange(ds) {
+    var a = ds.filter(function (d) { return d !== '上线前'; }).sort();
+    if (!a.length) return ds.length ? '上线前已有' : '—';
+    var f = a[0].slice(5), l = a[a.length - 1].slice(5);
+    return (f === l ? f : f + ' ~ ' + l) + (ds.length > a.length ? '（另有上线前已有的）' : '');
+  }
+  function ovGamesNow() {
+    var gt = toksG(ov.gq), srcs = ov.src === 'ALL' ? Object.keys(SRC) : [ov.src];
+    var all = []; srcs.forEach(function (v) { SRC[v].g.forEach(function (g) { all.push({ v: v, g: g, k: key(v, g.id) }); }); });
+    return gt.length ? pickGames(all, gt) : all;
+  }
+  function msCount() { return Object.keys(ov.ms).length; }
+  function msSummary() { var k = SITES.filter(function (s) { return dr.ms[s]; }); return !k.length ? '全部商户' : k.length <= 2 ? k.map(function (s) { return s.split('-')[0]; }).join('、') : '已选 ' + k.length + ' 个商户'; }
+  function renderOvMs() {
+    var q = toks($('ovMsQ').value);
+    var list = SITES.filter(function (s) { return !q.length || q.some(function (t) { return s.toLowerCase().indexOf(t) > -1; }); });
+    $('ovMsList').innerHTML = list.map(function (s) { return '<label class="ddi"><input type="checkbox" data-ms="' + s + '"' + (dr.ms[s] ? ' checked' : '') + '><span class="sn">' + s + flagTag(s) + '</span></label>'; }).join('') || '<div class="empty" style="padding:16px">没有匹配的商户</div>';
+    $('ovMsTxt').textContent = msSummary();
+  }
+  function ovPool() { return SITES.filter(function (s) { return ov.cur === 'ALL' || cur(s) === ov.cur; }); }
+  // 站点范围：搜商户时按商户；否则默认不含测试站、未上线站
+  function ovSitesNow() {
+    var pool = ovPool();
+    if (msCount()) return pool.filter(function (s) { return ov.ms[s]; });
+    return pool;
+  }
+  // 某个「原厂→高仿」组合：哪些站点切了、切了几款、哪几天
+  function comboInfo(v, t, games, sites) {
+    var gs = games.filter(function (x) { return x.v === v && x.g.m[t]; }), N = gs.length; if (!N) return null;
+    var rows = [];
+    sites.forEach(function (s) {
+      var n = 0, ds = [], items = [];
+      gs.forEach(function (x) {
+        var val = (saved[s] || {})[x.k] || '', li = lastSet(s, x.k);
+        if (val.indexOf(t + ':') === 0 && inRange(li)) { n++; ds.push(li ? li.time.slice(0, 10) : '上线前'); items.push({ x: x, li: li }); }
+      });
+      if (n) rows.push({ s: s, n: n, ds: ds, items: items });
+    });
+    return { v: v, t: t, N: N, rows: rows, gs: gs };
+  }
+  function renderOv() {
+    $('ovSrc').innerHTML = '<option value="ALL">全部原厂</option>' + Object.keys(SRC).map(function (v) { return '<option value="' + v + '"' + (dr.src === v ? ' selected' : '') + '>' + SRC[v].n + '</option>'; }).join('');
+    $('ovTgt').innerHTML = '<option value="ALL">全部高仿</option>' + TORDER.map(function (t) { return '<option value="' + t + '"' + (dr.tgt === t ? ' selected' : '') + '>' + vname(t) + '</option>'; }).join('');
+    var curs = SITES.map(cur).filter(function (c, i, a) { return a.indexOf(c) === i; });
+    $('ovCur').innerHTML = '<option value="ALL">全部币种</option>' + curs.map(function (c) { return '<option' + (dr.cur === c ? ' selected' : '') + '>' + c + '</option>'; }).join('');
+    var gt = toksG(ov.gq), merchant = msCount() > 0;
+    $('ovMsTxt').textContent = msSummary();
+    var srcs = ov.src === 'ALL' ? Object.keys(SRC) : [ov.src];
+    var all = []; srcs.forEach(function (v) { SRC[v].g.forEach(function (g) { all.push({ v: v, g: g, k: key(v, g.id) }); }); });
+    var games = ovGamesNow(), sites = ovSitesNow(), pool = ovPool();
+    var missG = gt.filter(function (t) { return !pickGames(all, [t]).length; });
+    // ---- 卡片：按原厂分组，每个高仿厂商一张 ----
+    var cardsHtml = '', any = false, selOk = false;
+    srcs.forEach(function (v) {
+      var cs = '', none = [];
+      TORDER.forEach(function (t) {
+        if (!GROUPS[v][t] || (ov.tgt !== 'ALL' && t !== ov.tgt)) return;
+        var info = comboInfo(v, t, games, sites);
+        if (!info || !info.rows.length) { none.push(vname(t, v)); return; }
+        var byCur = {}; info.rows.forEach(function (r) { var c = cur(r.s); byCur[c] = (byCur[c] || 0) + 1; });
+        var id = v + '|' + t, on = ov.sel === id; if (on) selOk = true; any = true;
+        var gset = {}; info.rows.forEach(function (r) { r.items.forEach(function (it) { gset[it.x.k] = 1; }); });
+        cs += '<div class="kcard' + (on ? ' on' : '') + '" data-card="' + id + '" role="button" tabindex="0" aria-pressed="' + on + '" style="border-left-color:' + ((VSTY[t] || [0, '#8c939d'])[1]) + '">' +
+          '<div class="kt">' + vname(t, v) + '</div><div class="km"><div><b>' + info.rows.length + '</b><span>个站点</span></div><i class="ksep"></i><div><b>' + Object.keys(gset).length + '</b><span>款子游戏</span></div></div>' +
+          '<div class="kf">' + Object.keys(byCur).map(function (c) { return c + ' ' + byCur[c]; }).join(' · ') + '</div></div>';
+      });
+      if (cs) cardsHtml += '<div class="ksecw" style="flex:' + (cs.split('data-card=').length - 1) + ' 1 ' + ((cs.split('data-card=').length - 1) * 210) + 'px"><div class="ksec">' + SRC[v].n + ' 切换到</div><div class="kcards">' + cs + '</div>' + '</div>';
+    });
+    if (cardsHtml) cardsHtml = '<div class="ksecs">' + cardsHtml + '</div>';
+    if (!selOk) ov.sel = '';
+    $('ovCards').innerHTML = cardsHtml || '<div class="empty" style="padding:24px">没有符合条件的映射</div>';
+    var notes = [];
+    if (gt.length) notes.push('已输入 ' + gt.length + ' 个游戏词，匹配到 ' + games.length + ' 款游戏');
+    if (ov.from || ov.to) notes.push('只统计该日期范围内切换的映射');
+    var warn = (missG.length ? '　<span style="color:var(--red)">没有找到游戏：' + esc(missG.join('、')) + '</span>' : '') + '';
+    $('ovLeg').innerHTML = (notes.length ? notes.join('；') : '点击任意一张卡片，查看站点明细和子游戏明细') + warn;
+    // ---- 明细 ----
+    renderMerchantList(games, sites);
+  }
+  /* 商户列表：商户 | 币种 | 已切换游戏数 | 未切换游戏数 | 子游戏及切换日期 */
+  function merchantRows(games, sites) {
+    var sp = ov.sel ? ov.sel.split('|') : null, merchant = msCount() > 0;
+    var cand = games.filter(function (x) { return sp ? (x.v === sp[0] && x.g.m[sp[1]]) : (ov.tgt === 'ALL' || x.g.m[ov.tgt]); });
+    var rows = [];
+    sites.forEach(function (s) {
+      var on = [], ds = [], onK = {}, combos = {};
+      cand.forEach(function (x) {
+        var val = (saved[s] || {})[x.k] || '', t = val ? val.split(':')[0] : '';
+        var li = val ? lastSet(s, x.k) : null;
+        var hit = val && (sp ? t === sp[1] : (ov.tgt === 'ALL' || t === ov.tgt)) && inRange(li);
+        if (hit) { on.push({ x: x, t: t, li: li }); ds.push(li ? li.time.slice(0, 10) : '上线前'); onK[x.k] = 1; combos[x.v + '|' + t] = 1; }
+      });
+      // 未切换：选了卡片时是这个组合下还没切的；没选卡片时，只算这个商户已有切换的「原厂 → 高仿」组合里还没切的
+      var un = cand.filter(function (x) {
+        if (onK[x.k]) return false;
+        if (sp) return true;
+        return Object.keys(combos).some(function (c) { var p = c.split('|'); return p[0] === x.v && x.g.m[p[1]]; });
+      });
+      if (on.length || merchant) rows.push({ s: s, on: on, un: un, ds: ds, n: on.length, m: on.length + un.length });
+    });
+    return { rows: rows, cand: cand, sp: sp };
+  }
+  // 按批次：同一天切换的子游戏算一批，从早到晚排第一批、第二批……
+  var CN = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+  function batchesOf(r) {
+    var by = {}, ord = [];
+    r.on.forEach(function (it) {
+      var d = it.li ? it.li.time.slice(0, 10) + (it.li.approx ? '~' : '') : '上线前'; if (!by[d]) { by[d] = []; ord.push(d); } by[d].push(it);
+    });
+    ord.sort(function (a, b) { return a.slice(0, 10) < b.slice(0, 10) ? -1 : a.slice(0, 10) > b.slice(0, 10) ? 1 : 0; });
+    var n = 0;
+    return ord.map(function (d) {
+      var ap = d.slice(-1) === '~', dd = d.slice(0, 10);
+      return { d: dd, approx: ap, items: by[d], name: d === '上线前' ? '上线前已有' : ap ? '补录' : '第' + (CN[n] || (n + 1)) + '批', num: ap ? 0 : ++n };
+    });
+  }
+  function rowChips(r, sp, mode) {
+    var bs = mode === 'un' ? [] : batchesOf(r), html = '';
+    html += bs.map(function (b) {
+      var by = {}, ord = [];
+      b.items.forEach(function (it) { var k = it.x.v + '|' + it.t; if (!by[k]) { by[k] = []; ord.push(k); } by[k].push(it); });
+      var bid = 'mb|' + r.s + '|' + b.d, bopen = ov.open[bid], blim = bopen ? 1e9 : 24, bshown = 0, bhid = 0;
+      var inner = ord.map(function (k) {
+        var p = k.split('|'), vis = by[k].filter(function () { return bshown++ < blim; });
+        bhid += by[k].length - vis.length;
+        return '<div>' + (sp ? '' : '<span class="nt" style="margin-right:4px">' + SRC[p[0]].n + ' → ' + vname(p[1], p[0]) + '：</span>') + vis.map(function (it) {
+          return '<span class="sit" data-hist="' + r.s + '|' + it.x.k + '" title="' + (it.li ? it.li.time + '　' + it.li.op : '上线前已有') + '" style="border-color:#b7eb8f;background:#f6ffed">' + it.x.g.name + '</span>';
+        }).join('') + '</div>';
+      }).join('') + ((bhid || (bopen && b.items.length > 24)) ? '<a class="lk" data-more="' + bid + '" style="font-size:12px">' + (bopen ? '收起' : '展开全部 ' + b.items.length + ' 款') + '</a>' : '');
+      return '<div class="btr"><div class="bth"><b>' + b.name + '</b><div class="nt">' + (b.d === '上线前' ? '无记录' : (b.approx ? '约 ' : '') + b.d.slice(5)) + ' · ' + b.items.length + ' 款</div></div><div class="btc">' + inner + '</div></div>';
+    }).join('');
+    if (r.un.length && mode !== 'on') {
+      var id = 'mu|' + r.s, open = ov.open[id], list = open ? r.un : r.un.slice(0, 14);
+      html += '<div class="btr"><div class="bth"><b style="color:var(--sub)">未切换</b><div class="nt">' + r.un.length + ' 款</div></div><div class="btc">' + list.map(function (x) {
+        return '<span class="sit" data-hist="' + r.s + '|' + x.k + '" title="' + SRC[x.v].n + (((saved[r.s] || {})[x.k]) ? '（已切到别的高仿厂商）' : '') + '" style="color:var(--sub);background:#f5f5f6;border-color:#e3e5e8">' + x.g.name + '</span>';
+      }).join('') + (r.un.length > 14 ? '<a class="lk" data-more="' + id + '" style="font-size:12px">' + (open ? '收起' : '展开全部 ' + r.un.length + ' 款') + '</a>' : '') + '</div></div>';
+    }
+    return html || '<span class="nt">没有符合条件的映射</span>';
+  }
+  function renderMerchantList(games, sites) {
+    var res = merchantRows(games, sites), sp = res.sp, rows = res.rows;
+    var full = rows.filter(function (r) { return r.un.length === 0 && r.n > 0; }).length, part = rows.length - full;
+    var list = rows.filter(function (r) { return !sp || ov.st === 'all' || (ov.st === 'full' && r.un.length === 0) || (ov.st === 'part' && r.un.length > 0); });
+    ov.lastRows = list; ov.lastSp = sp;
+    var seg = sp ? '<div class="seg stseg"><button data-st="all" aria-pressed="' + (ov.st === 'all') + '">全部 ' + rows.length + '</button><button data-st="full" title="这个组合下的游戏已经全部切换（未切换游戏数为 0）的商户" aria-pressed="' + (ov.st === 'full') + '">已切换 ' + full + '</button><button data-st="part" title="这个组合下还有游戏没切换（未切换游戏数大于 0）的商户" aria-pressed="' + (ov.st === 'part') + '">未切换 ' + part + '</button></div>' : '';
+    var vseg = '';
+    var title = sp ? '<span style="font-size:15px"><b>' + SRC[sp[0]].n + ' → ' + vname(sp[1], sp[0]) + '</b></span>' : '<span style="font-size:15px"><b>全部商户</b></span><span class="nt">没选卡片时列出所有有切换的商户；点上方卡片可只看某个高仿厂商</span>';
+    var head = '<div class="dh2">' + title + seg + vseg + '<span class="btns"><button class="btn" data-copy="1" style="height:28px;padding:0 10px;font-size:12px">复制商户名</button><button class="btn" data-exp="1" style="height:28px;padding:0 10px;font-size:12px">导出</button></span></div>';
+    var info = '<span class="info" title="同一天切换的子游戏算一批，按时间从早到晚排第一批、第二批……；绿色标签=已切换，灰色标签=未切换。点标签看这个映射的历史。">ⓘ</span>';
+    var table;
+    {
+      var body = list.map(function (r) {
+        var m = SMETA[r.s];
+        return '<tr><td class="l" style="vertical-align:top;white-space:nowrap"><b>' + r.s + '</b>' + flagTag(r.s) + '</td><td style="vertical-align:top" title="' + m.country + '">' + m.cur + '</td>' +
+          '<td style="vertical-align:top"><b class="cnum" style="color:var(--green)">' + r.n + '</b><a class="cpy" data-copyg="on|' + r.s + '" tabindex="0" title="复制 ' + r.n + ' 款已切换游戏名">⧉</a></td>' +
+          '<td style="vertical-align:top"><b class="cnum" style="color:' + (r.un.length ? '#d46b08' : 'var(--sub)') + '">' + r.un.length + '</b>' + (r.un.length ? '<a class="cpy" data-copyg="un|' + r.s + '" tabindex="0" title="复制 ' + r.un.length + ' 款未切换游戏名">⧉</a>' : '') + '</td>' +
+          '<td class="l">' + rowChips(r, sp, sp ? (ov.st === 'part' ? 'un' : ov.st === 'full' ? 'on' : '') : '') + '</td>' +
+          '<td style="vertical-align:top;white-space:nowrap">' + (r.un.length ? '<a class="lk" data-gomap="' + r.s + '">去映射管理</a>' : '<span class="nt">—</span>') + '</td></tr>';
+      }).join('');
+      table = '<div class="mlist"><table class="lt"><thead><tr><th class="l" style="width:170px">商户</th><th style="width:64px">币种</th><th style="width:96px">已切换游戏数</th><th style="width:96px">未切换游戏数</th><th class="l">子游戏及切换日期 ' + info + '</th><th style="width:96px">操作</th></tr></thead><tbody>' + (body || '<tr><td colspan="6" class="empty">没有符合条件的商户</td></tr>') + '</tbody></table></div>';
+    }
+    $('ovMat').innerHTML = head + '<div style="margin-top:8px"></div>' + table;
+    $('ovTotal').textContent = '共 ' + list.length + ' 个商户' + (sp ? '；未切换 = 该组合下还没切到这个高仿厂商的游戏（含已切到别的厂商的）' : '；未切换 = 该商户已有切换的「原厂 → 高仿」组合里还没切的游戏') + '（仅显示已保存的映射）';
+  }
+  /* 子游戏明细（选了卡片后可切换到这里） */
+  function renderGameTab(games, sites) {
+    var p = ov.sel.split('|'), v = p[0], t = p[1], info = comboInfo(v, t, games, sites); if (!info) { $('ovMat').innerHTML = ''; return; }
+    var head = '<div class="dh2"><span style="font-size:15px"><b>' + SRC[v].n + ' → ' + vname(t, v) + '</b></span><div class="seg" id="ovTab"><button data-dtab="site" aria-pressed="false">商户列表</button><button data-dtab="game" aria-pressed="true">子游戏明细 ' + info.gs.length + '</button></div></div>';
+    var rowsG = info.gs.map(function (x) {
+      var on = [], un = [], other = 0, ds = [];
+      sites.forEach(function (s) {
+        var val = (saved[s] || {})[x.k] || '', li = lastSet(s, x.k);
+        if (val.indexOf(t + ':') === 0) { if (inRange(li)) { on.push(sitChip(s, x.k, li, false)); ds.push(li ? li.time.slice(0, 10) : '上线前'); } }
+        else if (val) other++; else un.push(sitChip(s, x.k, null, true));
+      });
+      return '<tr><td class="l"><b>' + x.g.name + '</b><div class="nt mono">' + x.g.id + '</div></td><td class="mono">' + (x.g.m[t]) + '</td><td class="l"><b>' + on.length + '</b> 个商户<div>' + chipBox('gx|' + x.k + '|on', on, 6) + '</div></td><td class="l"><b>' + un.length + '</b> 个商户' + (other ? '<span class="nt">（另有 ' + other + ' 个商户在别的高仿厂商）</span>' : '') + '<div>' + chipBox('gx|' + x.k + '|un', un, 6) + '</div></td><td>' + dRange(ds) + '</td></tr>';
+    }).join('');
+    $('ovMat').innerHTML = head + '<div class="nt" style="margin:8px 0 6px">已切商户后面的日期是切换日期（月-日）；「未切商户」是这款游戏仍是原厂的商户。</div><div class="tscroll"><table class="lt"><thead><tr><th class="l" style="width:170px">子游戏</th><th style="width:150px">高仿编码</th><th class="l">已切商户</th><th class="l">未切商户</th><th style="width:170px">切换日期</th></tr></thead><tbody>' + rowsG + '</tbody></table></div>';
+    $('ovTotal').textContent = '共 ' + info.gs.length + ' 款子游戏 · 商户范围 ' + sites.length + ' 个（仅显示已保存的映射）';
+  }
+  function selInfo() { return { rows: ov.lastRows || [], sp: ov.lastSp }; }
+  function copyText(txt, okMsg) {
+    var done = function () { toast(okMsg); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () { fb(); });
+    else fb();
+    function fb() { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { toast('复制失败，请手动选择站点名复制', true); } ta.remove(); }
+  }
+  function csvOf(rows) { return '﻿' + rows.map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n'); }
+  // 导出：线上查看时通过 downloads 能力让用户确认保存；本地直接打开时用普通下载
+  function download(name, text, okMsg) {
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    var plain = function () {
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 800); toast(okMsg);
+    };
+    if (window.claude && window.claude.use) {
+      window.claude.use('downloads').then(function (d) {
+        if (!d) { plain(); return; }
+        d.save({ filename: name, data: blob }).then(function () { toast(okMsg); }, function (e) { if (!e || e.code !== 'declined') toast('导出没有成功，请稍后再试', true); });
+      }, plain);
+    } else plain();
+  }
+  function exportSel() {
+    var info = selInfo(), rows = [['商户', '币种', '国家', '已切换游戏数', '未切换游戏数', '子游戏（按批次）']];
+    info.rows.forEach(function (r) {
+      rows.push([r.s, SMETA[r.s].cur, SMETA[r.s].country, r.n, r.un.length, batchesOf(r).map(function (b) { return b.name + '（' + (b.d === '上线前' ? '无记录' : (b.approx ? '约 ' : '') + b.d) + '）：' + b.items.map(function (it) { return SRC[it.x.v].n + ' → ' + vname(it.t, it.x.v) + ' ' + it.x.g.name; }).join('、'); }).join('；')]);
+    });
+    download('商户映射清单.csv', csvOf(rows), '已导出 ' + info.rows.length + ' 个商户');
+  }
+  function openHist(site, k) {
+    var p = k.split(':'), g = find(p[0], p[1]), curV = (saved[site] || {})[k] || '', li = lastSet(site, k), rows = [];
+    RECS.forEach(function (r) { r.items.forEach(function (it) { if (it.site === site && it.v + ':' + it.gid === k) rows.push({ r: r, it: it }); }); });
+    modal = { stage: 'view' };
+    $('modal').innerHTML = head('映射历史') + '<div class="mb"><div class="gbox"><span class="mono">' + site + '</span><span class="vc src">' + SRC[p[0]].chip + '</span><b class="mono" style="font-size:13px">' + p[1] + '</b><span style="color:var(--sub)">' + g.name + '</span><span class="arrow">现在：</span>' + vhtml(curV, p[0]) +
+      '<span class="sm" style="margin-left:auto">' + (li ? (li.approx ? '补录：约 ' + li.time.slice(0, 10) + '（取自站点最后更新时间，不一定是切换日期）' : '由 ' + li.op + ' 于 ' + li.time + ' 设置') : '上线前已有，无记录') + '</span></div>' +
+      '<div class="tbl-scroll"><table class="dt2"><thead><tr><th>时间</th><th>操作人</th><th>批次号</th><th>改前</th><th>改后</th><th>结果</th><th>操作</th></tr></thead><tbody>' +
+      (rows.map(function (x) {
+        var can = x.it.ok && x.it.from !== curV;
+        return '<tr><td>' + x.r.time + '</td><td><span class="optag">' + x.r.op + '</span></td><td class="mono">' + x.r.no + '</td><td>' + vhtml(x.it.from, x.it.v) + '</td><td>' + vhtml(x.it.to, x.it.v) + '</td><td><span class="st ' + (x.it.ok ? 'ok' : 'bad') + '" style="margin:0">' + (x.it.ok ? '成功' : '失败') + '</span></td><td class="tl">' +
+          (can ? '<a class="lk" data-rv="' + x.r.no + '">还原为改前</a>' : '<span class="nt">—</span>') + '</td></tr>';
+      }).join('') || '<tr><td colspan="7" class="empty" style="padding:20px">没有变更记录（该映射是上线前已有的）</td></tr>') + '</tbody></table></div>' +
+      '<div class="nt">「还原为改前」只是把该版本放入待保存，仍需预览确认后保存。</div></div><div class="mf"><button class="btn" data-m="edit">去调整该站点</button><button class="btn p" data-m="close">关闭</button></div>';
+    modal.site = site; modal.k = k; modal.rows = rows;
+    openMask('w');
+  }
+
+  /* ===== 映射变更记录 ===== */
+  var rc = { op: '', q: '', res: 'all', from: '', to: '' };
+  // 一个批次的「切换内容」：例如 SPRIBE → GameBox，Dice、Balloon、Mines 等 9 款 × AR001、AR012、AR016 等 8 站
+  function listNames(arr, n, unit) { return arr.slice(0, n).join('、') + (arr.length > n ? ' 等 ' + arr.length + ' ' + unit : (arr.length > 1 ? '（共 ' + arr.length + ' ' + unit + '）' : '')); }
+  function recSum(r) {
+    var g = {}, ord = [];
+    r.items.forEach(function (i) {
+      var t = i.to ? i.to.split(':')[0] : '', k = i.v + '|' + t;
+      if (!g[k]) { g[k] = { v: i.v, t: t, s: [], g: [] }; ord.push(k); }
+      if (g[k].s.indexOf(i.site.split('-')[0]) < 0) g[k].s.push(i.site.split('-')[0]);
+      if (g[k].g.indexOf(i.gname) < 0) g[k].g.push(i.gname);
+    });
+    var parts = ord.slice(0, 2).map(function (k) {
+      var x = g[k];
+      return '<div style="margin-bottom:3px"><span style="white-space:nowrap"><b>' + SRC[x.v].n + '</b> ' + (x.t ? '→ ' + chip(x.t, x.v) : '<span style="color:var(--red)">切回原厂</span>') + '</span>' +
+        '<div class="nt">' + listNames(x.g, 3, '款') + ' × ' + listNames(x.s, 3, '站') + '</div></div>';
+    });
+    return parts.join('') + (ord.length > 2 ? '<span class="nt">等 ' + ord.length + ' 项</span>' : '');
+  }
+  function lbl(v, src) { if (v === '') return '原厂'; var p = v.split(':'); return vname(p[0], src) + ' ' + p[1]; }
+  function recRows(r) {
+    return r.items.map(function (i) { return [r.no, r.op, r.time, i.site, cur(i.site), SRC[i.v].n, i.gid, i.gname, lbl(i.from, i.v), lbl(i.to, i.v), i.ok ? '成功' : '失败', i.reason || '']; });
+  }
+  var RHEAD = ['批次号', '操作人', '操作时间', '站点', '币种', '原厂厂商', '游戏ID', '游戏名', '改前', '改后', '结果', '失败原因'];
+  var lastRecList = [];
+  function itemState(r, i) {
+    var k = i.v + ':' + i.gid, curV = (saved[i.site] || {})[k] || '';
+    if (!i.ok) return { c: 'no', t: '未生效（保存失败）', live: false };
+    if (curV === i.to) return { c: 'live', t: '仍在生效', live: true };
+    var li = lastSet(i.site, k);
+    return { c: 'chg', t: '之后已改为 ' + (curV === '' ? '原厂' : vname(curV.split(':')[0], i.v)) + (li && li.no !== r.no ? '（' + li.op + '，' + li.time.slice(5, 16) + '）' : ''), live: false };
+  }
+  function renderRecs() {
+    var q = rc.q.toLowerCase();
+    var list = RECS.filter(function (r) {
+      var bad = r.items.some(function (i) { return !i.ok; });
+      if (!inDate(r.time, rc.from, rc.to)) return false;
+      if (rc.res === 'ok' && bad) return false; if (rc.res === 'bad' && !bad) return false;
+      if (rc.op && r.op.toLowerCase().indexOf(rc.op.toLowerCase()) < 0) return false;
+      if (q && r.no.toLowerCase().indexOf(q) < 0 && !r.items.some(function (i) { return (i.site + i.gname + i.gid).toLowerCase().indexOf(q) > -1; })) return false;
+      return true;
+    });
+    var html = pagerHtml('rec', list.length), c = PG.rec;
+    lastRecList = list;
+    $('rcBody').innerHTML = list.slice((c - 1) * PSZ, c * PSZ).map(function (r) {
+      var sn = {}, bad = r.items.filter(function (i) { return !i.ok; }).length; r.items.forEach(function (i) { sn[i.site] = 1; });
+      var by = RECS.filter(function (x) { return x.retryOf === r.no; })[0];
+      return '<tr><td class="mono">' + r.no + (r.retry ? '<div class="nt">重试自 ' + r.retryOf + '</div>' : '') + (by ? '<div class="nt">已由 ' + by.no + ' 重试</div>' : '') + '</td><td><span class="optag">' + r.op + '</span></td><td>' + r.time + '</td><td class="l">' + recSum(r) + '</td><td>' + Object.keys(sn).length + '</td><td>' + r.items.length + '</td><td>' +
+        (bad ? '<span class="st bad" style="margin:0">' + bad + ' 项失败</span>' : '<span class="st ok" style="margin:0">全部成功</span>') + '</td><td><a class="lk" data-rec="' + r.id + '">详情</a></td></tr>';
+    }).join('') || '<tr><td colspan="8" class="empty">无数据</td></tr>';
+    $('rcPager').innerHTML = html;
+  }
+  function openRec(id, view, rel) {
+    var r = RECS.filter(function (x) { return x.id === id; })[0]; if (!r) return;
+    view = view || 'g';
+    var q = rc.q.trim().toLowerCase(), hasQ = !!q;
+    var match = function (i) { return (i.site + i.gname + i.gid).toLowerCase().indexOf(q) > -1; };
+    var relCount = hasQ ? r.items.filter(match).length : 0;
+    var useRel = rel === undefined ? (hasQ && relCount > 0) : (rel && relCount > 0);
+    var items = useRel ? r.items.filter(match) : r.items;
+    var sn = {}, gn = {}, bad = r.items.filter(function (i) { return !i.ok; }).length;
+    r.items.forEach(function (i) { sn[i.site] = 1; gn[i.v + i.gid] = 1; });
+    var table;
+    if (view === 'g') {
+      var gp = {}, ord = [];
+      items.forEach(function (i) { var k = [i.v, i.gid, i.from, i.to, i.ok].join('|'); if (!gp[k]) { gp[k] = { i: i, sites: [] }; ord.push(k); } gp[k].sites.push(i.site); });
+      table = '<div class="tbl-scroll"><table class="dt2"><thead><tr><th>原厂游戏</th><th>改前 → 改后</th><th>涉及站点</th><th>保存结果</th></tr></thead><tbody>' + ord.map(function (k) {
+        var o = gp[k], i = o.i;
+        return '<tr><td><b>' + i.gname + '</b><div class="nt mono">' + SRC[i.v].n + ' · ' + i.gid + '</div></td><td>' + vhtml(i.from, i.v) + ' <span class="arrow">→</span> ' + vhtml(i.to, i.v) + '</td><td><div class="nt">' + o.sites.length + ' 个站</div>' + o.sites.map(function (x) { return '<span class="sit">' + x + '</span>'; }).join('') + '</td><td><span class="st ' + (i.ok ? 'ok' : 'bad') + '" style="margin:0">' + (i.ok ? '成功' : '失败：' + i.reason) + '</span></td></tr>';
+      }).join('') + '</tbody></table></div>';
+    } else {
+      table = '<div class="tbl-scroll"><table class="dt2"><thead><tr><th>站点</th><th>原厂厂商</th><th>原厂游戏</th><th>改前</th><th>改后</th><th>保存结果</th></tr></thead><tbody>' + items.map(function (i) {
+        return '<tr><td><span class="mono">' + i.site + '</span></td><td>' + SRC[i.v].n + '</td><td>' + i.gid + (i.gname !== i.gid ? ' · ' + i.gname : '') + '</td><td>' + vhtml(i.from, i.v) + '</td><td>' + vhtml(i.to, i.v) + '</td><td><span class="st ' + (i.ok ? 'ok' : 'bad') + '" style="margin:0">' + (i.ok ? '成功' : '失败：' + i.reason) + '</span></td></tr>';
+      }).join('') + '</tbody></table></div>';
+    }
+    modal = { stage: 'view', recId: id, view: view, rel: useRel, relCount: relCount };
+    var banner = hasQ && relCount > 0 ? '<div class="tipbox">' + (useRel ? '当前只显示与「' + esc(rc.q.trim()) + '」相关的 ' + items.length + ' 项（本批次共 ' + r.items.length + ' 项）。<a class="lk" data-rall="1">显示本批次全部</a>' : '本批次共 ' + r.items.length + ' 项，其中与「' + esc(rc.q.trim()) + '」相关的有 ' + relCount + ' 项。<a class="lk" data-rall="1">只看相关的</a>') + '</div>' : '';
+    $('modal').innerHTML = head('变更批次 ' + r.no) + '<div class="mb"><div class="dgrid"><div><span class="k">操作人：</span><span class="optag">' + r.op + '</span></div><div><span class="k">操作时间：</span>' + r.time + '</div>' +
+      '<div><span class="k">涉及游戏：</span>' + Object.keys(gn).length + ' 款</div><div><span class="k">涉及站点：</span>' + Object.keys(sn).length + ' 个</div>' +
+      '<div class="full"><span class="k">变更数：</span>' + r.items.length + ' 项' + (bad ? '，其中 ' + bad + ' 项失败' : '') + '　<span class="k">切换内容：</span>' + recSum(r).replace(/<br>/g, ' ') + '</div>' +
+      (r.retryOf ? '<div class="full"><span class="k">重试自：</span>' + r.retryOf + '（本批次是对该批次失败站点的重试）</div>' : '') +
+      (RECS.filter(function (x) { return x.retryOf === r.no; })[0] ? '<div class="full"><span class="k">后续重试：</span>已由 ' + RECS.filter(function (x) { return x.retryOf === r.no; })[0].no + ' 重试</div>' : '') + '</div>' +
+      banner + '<div style="display:flex;gap:12px;align-items:center"><span class="sec" style="margin:0">' + (view === 'g' ? '按游戏合并显示' : '逐条明细') + '</span><a class="lk" data-rview="1">' + (view === 'g' ? '切换为逐条明细（' + items.length + ' 行）' : '切换为按游戏合并显示') + '</a></div>' + table +
+      '</div><div class="mf"><button class="btn" data-m="rexp" style="margin-right:auto">导出本批次明细</button><button class="btn p" data-m="close">关闭</button></div>';
+    openMask('w');
+  }
+
+  /* ===== 页面切换与事件 ===== */
+  var PGS = { map: 'pgMap', ov: 'pgOv', rec: 'pgRec', log: 'pgLog' };
+  var CRUMB = { map: '游戏管理 / 游戏映射管理', ov: '游戏管理 / 映射总览', rec: '游戏管理 / 映射变更记录', log: '系统设置 / 日志管理' };
+  function go(p) {
+    Object.keys(PGS).forEach(function (k) { $(PGS[k]).hidden = k !== p; });
+    Array.prototype.forEach.call(document.querySelectorAll('.side .nav, .tab[data-page]'), function (e) { e.classList.toggle('on', e.dataset.page === p); });
+    $('crumb').textContent = CRUMB[p];
+    if (p === 'log') renderLogs(); else if (p === 'ov') renderOv(); else if (p === 'rec') renderRecs();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-page]'), function (e) { e.addEventListener('click', function () { go(e.dataset.page); }); });
+  $('btnSide').onclick = function () { $('app').classList.toggle('collapsed'); };
+
+  var dd = $('dd');
+  $('siteQ').onfocus = function () { dd.hidden = false; };
+  $('siteQ').oninput = function (e) { sq = e.target.value; dd.hidden = false; renderSites(); };
+  document.addEventListener('mousedown', function (e) { if (!$('ms').contains(e.target)) dd.hidden = true; });
+  $('pills').onclick = function (e) { var b = e.target.closest('[data-c]'); if (b) { curF = b.dataset.c; renderSites(); } };
+  function visibleSites() { return SITES.filter(function (s) { return (curF === 'ALL' || cur(s) === curF) && s.toLowerCase().indexOf(sq.toLowerCase()) > -1; }); }
+  $('ddl').onchange = function (e) { var x = e.target.dataset.s; if (!x) return; sel = {}; sel[x] = 1; dd.hidden = true; $('siteQ').value = ''; sq = ''; renderAll(); };
+  $('sl').onclick = function (e) {
+    var x = e.target.dataset.del; if (x) { delete sel[x]; renderAll(); return; }
+    var a = e.target.dataset.add; if (a) { sel = {}; sel[a] = 1; renderAll(); }
+  };
+  $('selClear').onclick = function () { sel = {}; renderAll(); };
+  $('vSel').onchange = function (e) { vendor = e.target.value; renderAll(); if (blk) toast('还有 ' + blk.items.length + ' 项因被其他厂商映射没有选上（标红），回到对应原厂可继续处理；保存预览里也会提醒', true); };
+  $('gameQ').oninput = function (e) { gq = e.target.value; renderCards(); };
+  $('seg').onclick = function (e) { var b = e.target.closest('[data-f]'); if (b) { filt = b.dataset.f; renderTop(); renderCards(); } };
+  $('cards').onclick = function (e) {
+    var tb = e.target.closest('[data-tab]'); if (tb) { tabT = tb.dataset.tab; renderCards(); return; }
+    if (e.target.closest('[data-blkall]')) {
+      var bn = blk.items.length; blk.items.forEach(function (x) { setSite(x.s, x.k, x.val); }); blk = null; renderAll();
+      toast('已取消 ' + bn + ' 项占用并切换（待保存），请在保存预览里核对'); return;
+    }
+    if (e.target.closest('[data-blkx]')) { blk = null; renderCards(); return; }
+    if (e.target.closest('[data-blkopen]')) { blk.open = !blk.open; renderCards(); return; }
+    var a = e.target.closest('[data-all]'); if (a) { groupAll(a.dataset.all); return; }
+    var f = e.target.closest('[data-fold]'); if (f) { var fk = vendor + f.dataset.fold; folded[fk] = !folded[fk]; renderCards(); return; }
+    var c = e.target.closest('.c2'); if (c) cardClick(c.dataset.k, c.dataset.v);
+  };
+  $('cards').onkeydown = function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var c = e.target.closest('.c2'); if (c) { e.preventDefault(); cardClick(c.dataset.k, c.dataset.v); }
+  };
+  $('modal').addEventListener('input', function () { if (modal && modal.stage === 'batch') refreshBatch(); });
+  $('modal').addEventListener('change', function () { if (modal && modal.stage === 'batch') refreshBatch(); });
+  $('btnReset').onclick = function () {
+    var n = ptotal(); if (!n) return;
+    var snap = JSON.parse(JSON.stringify(pending));
+    pending = {}; blk = null; renderAll();
+    toastAct('已撤销全部待保存的改动（' + n + ' 项）', '撤回', function () { pending = snap; renderAll(); });
+  };
+  $('btnSave').onclick = function () {
+    if (!ptotal()) return; modal = { stage: 'checking' }; renderModal(); openMask('');
+    setTimeout(function () { if (modal && modal.stage === 'checking') { modal.stage = 'confirm'; renderModal(); } }, 700);
+  };
+  $('mask').onclick = function (e) {
+    if (e.target.id === 'mask') { closeMask(); return; }
+    var b = e.target.closest('[data-m]'); if (!b || b.disabled) return;
+    var a = b.dataset.m, m = modal;
+    if (a === 'close') closeMask();
+    else if (a === 'swapfree') { var kk = m.k, vv = m.val; selected().forEach(function (x) { if (!hard(x, kk, vv)) setSite(x, kk, vv); }); closeMask(); renderAll(); toast('已选中没被占用的站点（待保存）'); }
+    else if (a === 'free') { m.adds.forEach(function (x) { setSite(x.s, x.k, x.val); }); closeMask(); renderAll(); toast('已只选未被占用的 ' + m.adds.length + ' 项（待保存）'); }
+    else if (a === 'ok') submit(psites(), $('demoFail').checked);
+    else if (a === 'retry') { m.retry = true; submit(psites(), false); }
+    else if (a === 'bgo') { var bc = m.cards, bt = m.t; closeMask(); applyPick(bt, bc); }
+    else if (a === 'log') { closeMask(); go('log'); }
+    else if (a === 'rexp') { var rr = RECS.filter(function (x) { return x.id === m.recId; })[0]; download(rr.no + '_明细.csv', csvOf([RHEAD].concat(recRows(rr))), '已导出 ' + rr.items.length + ' 条明细'); }
+    else if (a === 'edit') goEdit(m.site, m.k.split(':')[0]);
+  };
+  $('logBody').onclick = function (e) { var a = e.target.closest('[data-log]'); if (a) openLog(a.dataset.log); };
+  // 筛选区：改动先存到草稿，点「查询」才生效（和其他页面一致）
+  function ovApply() {
+    if (dr.from && dr.to && dr.from > dr.to) { toast('开始日期不能晚于结束日期', true); return; }
+    ov.src = dr.src; ov.cur = dr.cur; ov.tgt = dr.tgt; ov.gq = dr.gq; ov.from = dr.from; ov.to = dr.to;
+    ov.ms = {}; Object.keys(dr.ms).forEach(function (k) { ov.ms[k] = 1; }); ov.open = {}; renderOv();
+  }
+  $('ovSrc').onchange = function (e) { dr.src = e.target.value; };
+  $('ovTgt').onchange = function (e) { dr.tgt = e.target.value; };
+  $('ovCur').onchange = function (e) { dr.cur = e.target.value; };
+  $('ovMsBtn').onclick = function () { var h = $('ovDd').hidden; $('ovDd').hidden = !h; if (h) { renderOvMs(); $('ovMsQ').focus(); } };
+  $('ovMsQ').oninput = renderOvMs;
+  $('ovMsList').onchange = function (e) { var x = e.target.dataset.ms; if (!x) return; if (e.target.checked) dr.ms[x] = 1; else delete dr.ms[x]; $('ovMsTxt').textContent = msSummary(); };
+  $('ovMsAll').onclick = function () { [].forEach.call($('ovMsList').querySelectorAll('input'), function (i) { dr.ms[i.dataset.ms] = 1; }); renderOvMs(); };
+  $('ovMsNone').onclick = function () { dr.ms = {}; renderOvMs(); };
+  document.addEventListener('mousedown', function (e) { if (!$('ovMs').contains(e.target)) $('ovDd').hidden = true; });
+  $('ovGq').oninput = function (e) { dr.gq = e.target.value; };
+  $('ovGq').onkeydown = function (e) { if (e.key === 'Enter') ovApply(); };
+  $('ovFrom').onchange = function (e) { dr.from = e.target.value; };
+  $('ovTo').onchange = function (e) { dr.to = e.target.value; };
+  $('ovQuery').onclick = ovApply;
+  $('ovReset').onclick = function () {
+    ov = { src: 'ALL', cur: 'ALL', tgt: 'ALL', ms: {}, gq: '', from: '', to: '', test: false, open: {}, sel: '', dtab: 'site', st: 'all', view: 'batch' };
+    dr = { src: 'ALL', cur: 'ALL', tgt: 'ALL', ms: {}, gq: '', from: '', to: '', test: false };
+    $('ovMsQ').value = ''; $('ovDd').hidden = true; ['ovGq', 'ovFrom', 'ovTo'].forEach(function (i) { $(i).value = ''; if (i !== 'ovGq') $(i).type = 'text'; }); renderOv();
+  };
+  function ovClick(e) {
+    var cd = e.target.closest('[data-card]'); if (cd) { ov.sel = ov.sel === cd.dataset.card ? '' : cd.dataset.card; ov.dtab = 'site'; ov.st = 'all'; ov.open = {}; renderOv(); return; }
+    var tb = e.target.closest('[data-dtab]'); if (tb) { ov.dtab = tb.dataset.dtab; renderOv(); return; }
+    var stt = e.target.closest('[data-st]'); if (stt) { ov.st = stt.dataset.st; renderOv(); return; }
+    var sx = e.target.closest('[data-sx]'); if (sx) { var xi = sx.dataset.sx; ov.open[xi] = !ov.open[xi]; renderOv(); return; }
+    if (e.target.closest('[data-copy]')) { var inf = selInfo(); copyText(inf.rows.map(function (r) { return r.s; }).join('\n'), '已复制 ' + inf.rows.length + ' 个商户名（一行一个）'); return; }
+    if (e.target.closest('[data-exp]')) { exportSel(); return; }
+    var gm = e.target.closest('[data-gomap]');
+    if (gm) {
+      var gr = (ov.lastRows || []).filter(function (r) { return r.s === gm.dataset.gomap; })[0]; if (!gr || !gr.un.length) return;
+      var gsp = ov.lastSp, gv = gsp ? gsp[0] : gr.un[0].x.v;
+      var gn2 = gr.un.filter(function (x) { return x.v === gv; }).map(function (x) { return x.g.name; }).filter(function (n, i, a) { return a.indexOf(n) === i; });
+      sel = {}; sel[gr.s] = 1; vendor = gv; gq = gn2.join(', '); tabT = gsp ? gsp[1] : 'ALL'; filt = 'all'; sq = ''; $('gameQ').value = gq;
+      go('map'); renderAll();
+      toast('已带到映射管理：' + gr.s + '，原厂 ' + SRC[gv].n + '，已填入 ' + gn2.length + ' 款未切换游戏；' + (gsp ? '点「' + vname(gsp[1], gv) + '」分组的「全选筛选结果」即可' : '选择要切换到的高仿厂商分组，点「全选筛选结果」即可')); return;
+    }
+    var cg = e.target.closest('[data-copyg]');
+    if (cg) {
+      var cz = cg.dataset.copyg.split('|'), row = (ov.lastRows || []).filter(function (r) { return r.s === cz[1]; })[0]; if (!row) return;
+      var names = (cz[0] === 'on' ? row.on.map(function (it) { return it.x.g.name; }) : row.un.map(function (x) { return x.g.name; })).filter(function (n, i, a) { return a.indexOf(n) === i; });
+      copyText(names.join(', '), '已复制 ' + names.length + ' 款游戏名（逗号隔开，可直接粘贴到映射管理的游戏搜索框）'); return;
+    }
+    var mo = e.target.closest('[data-more]'); if (mo) { var id = mo.dataset.more; ov.open[id] = !ov.open[id]; renderOv(); return; }
+    var d = e.target.closest('[data-edit]'); if (d) { var y = d.dataset.edit.split('|'); goEdit(y[0], y[1]); return; }
+    var h = e.target.closest('[data-hist]'); if (h) { var x = h.dataset.hist.split('|'); openHist(x[0], x[1]); }
+  }
+  function goEdit(site, v) { sel = {}; sel[site] = 1; vendor = v; closeMask(); go('map'); renderAll(); toast('已选中 ' + site + '，可在此调整'); }
+  $('ovMat').onclick = ovClick; $('ovCards').onclick = ovClick;
+  $('ovCards').onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { var c = e.target.closest('[data-card]'); if (c) { e.preventDefault(); ovClick(e); } } };
+  $('rcGo').onclick = function () { if ($('rcFrom').value && $('rcTo').value && $('rcFrom').value > $('rcTo').value) { toast('开始日期不能晚于结束日期', true); return; } rc.op = $('rcOp').value; rc.q = $('rcQ').value; rc.res = $('rcRes').value; rc.from = $('rcFrom').value; rc.to = $('rcTo').value; PG.rec = 1; renderRecs(); };
+  $('rcReset').onclick = function () { $('rcOp').value = ''; $('rcQ').value = ''; $('rcRes').value = 'all'; $('rcFrom').value = ''; $('rcTo').value = ''; $('rcFrom').type = 'text'; $('rcTo').type = 'text'; rc = { op: '', q: '', res: 'all', from: '', to: '' }; PG.rec = 1; renderRecs(); };
+  $('rcExp').onclick = function () { var rows = [RHEAD]; lastRecList.forEach(function (r) { rows = rows.concat(recRows(r)); }); download('映射变更记录明细.csv', csvOf(rows), '已导出 ' + lastRecList.length + ' 个批次、' + (rows.length - 1) + ' 条明细'); };
+  $('rcBody').onclick = function (e) { var a = e.target.closest('[data-rec]'); if (a) openRec(a.dataset.rec); };
+  $('modal').addEventListener('click', function (e) {
+    var a = e.target.closest('[data-recno]'); if (a) { closeMask(); go('rec'); openRec(a.dataset.recno); return; }
+    if (e.target.closest('[data-rview]') && modal && modal.recId) { openRec(modal.recId, modal.view === 'g' ? 'd' : 'g', modal.rel); return; }
+    if (e.target.closest('[data-rall]') && modal && modal.recId) { openRec(modal.recId, modal.view, !modal.rel); return; }
+    var r = e.target.closest('[data-rv]');
+    if (r && modal && modal.rows) {
+      var x = modal.rows.filter(function (q) { return q.r.no === r.dataset.rv; })[0]; if (!x) return;
+      restore([{ site: x.it.site, v: x.it.v, gid: x.it.gid, val: x.it.from }], '映射还原');
+    }
+  });
+  $('logGo').onclick = function () { if ($('logFrom').value && $('logTo').value && $('logFrom').value > $('logTo').value) { toast('开始日期不能晚于结束日期', true); return; } lq = $('logQ').value; lf = { from: $('logFrom').value, to: $('logTo').value }; PG.log = 1; renderLogs(); };
+  $('logReset').onclick = function () { $('logQ').value = ''; lq = ''; $('logFrom').value = ''; $('logTo').value = ''; $('logFrom').type = 'text'; $('logTo').type = 'text'; lf = { from: '', to: '' }; PG.log = 1; renderLogs(); };
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-pg]'); if (!b || b.disabled) return; var x = b.dataset.pg.split('|'); PG[x[0]] = +x[1]; if (x[0] === 'rec') renderRecs(); else renderLogs(); });
+  $('logQ').onkeydown = function (e) { if (e.key === 'Enter') $('logGo').click(); };
+
+  function drawer(o) { document.body.classList.toggle('dopen', o); }
+  $('handle').onclick = function () { drawer(true); };
+  $('dmask').onclick = function () { drawer(false); };
+  $('dclose').onclick = function () { drawer(false); };
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { drawer(false); if ($('mask').classList.contains('show')) closeMask(); dd.hidden = true; } });
+
+  /* ===== 演示历史：按截图的口径生成（GameBox 切 SPRIBE，UP 切 PG / JILI / SPRIBE，TB 测试） ===== */
+  var EV = [];
+  function ev(d, codes, v, gids, to) { codes.forEach(function (c) { gids.forEach(function (g) { EV.push({ d: d, s: S(c), v: v, g: g, to: to }); }); }); }
+  var GA4 = ['trader', 'pilot-chicken', 'aviator', 'power-kraken'], GA9 = ['dice', 'balloon', 'mines', 'mini-roulette', 'hi-lo', 'plinko', 'goal', 'keno', 'hotline'];
+  var four = ['AR008', 'AR013', 'AR014', 'AR015', 'AR021', 'AR037', 'AR048', 'AR050', 'AR051', 'AR055', 'AR077', 'AR093', 'AR095', 'AR096'];
+  var thirteen = ['AR001', 'AR012', 'AR016', 'AR023', 'AR031', 'AR041', 'AR047', 'AR058', 'AR062', 'AR064', 'AR065', 'AR070', 'AR079', 'AR101', 'AR102'];
+  ev('2026-10-10', four.slice(0, 10).concat(thirteen.slice(0, 6)), 'SP', GA4, 'GA');
+  ev('2026-10-17', four.slice(10).concat(thirteen.slice(6)), 'SP', GA4, 'GA');
+  ev('2026-10-24', thirteen.slice(0, 8), 'SP', GA9, 'GA');
+  ev('2026-10-27', thirteen.slice(8, 13), 'SP', GA9, 'GA');
+  ev('2026-11-03', thirteen.slice(13), 'SP', GA9, 'GA');
+  ev('2026-10-31', ['AR011', 'AR059'], 'SP', ['trader', 'pilot-chicken', 'aviator'], 'GA');
+  ev('2026-10-31', ['AR067'], 'SP', ['trader', 'pilot-chicken'], 'GA');
+  var d0425 = { AR080: '2026-04-25', AR082: '2026-05-04', AR019: '2026-05-08', AR074: '2026-05-15', AR003: '2026-05-19', AR002: '2026-05-23', AR040: '2026-05-26', AR038: '2026-05-26' };
+  Object.keys(d0425).forEach(function (c) {
+    ev(d0425[c], [c], 'PG', ['fortune-tiger', 'mahjong-ways'], 'UP');
+    ev('2026-05-28', [c], 'PG', ['fortune-ox', 'lucky-neko'], 'UP');
+    ev(c === 'AR080' ? '2026-06-02' : '2026-06-03', [c], 'PG', ['wild-bandito'], 'UP');
+    ev(c === 'AR080' ? '2026-06-08' : '2026-06-09', [c], 'PG', ['treasures-aztec'], 'UP');
+  });
+  var J16 = SRC.JL.g.slice(0, 16).map(function (g) { return g.id; });
+  ev('2026-09-22', ['AR014', 'AR021', 'AR037', 'AR047', 'AR023', 'AR096', 'AR008', 'AR097', 'AR058', 'AR062', 'AR065', 'AR098', 'AR077', 'AR079', 'AR093', 'AR095', 'AR101', 'AR102', 'AR103', 'AR104'], 'JL', J16, 'UP');
+  ev('2026-09-28', ['AR051', 'AR055', 'AR015', 'AR050', 'AR048'], 'JL', J16, 'UP');
+  ev('2026-09-23', ['AR016', 'AR070', 'AR012'], 'JL', ['187'], 'UP');
+  ev('2026-09-24', ['AR064'], 'JL', ['42'], 'UP');
+  ev('2026-10-08', ['AR064'], 'JL', ['42'], '');
+  ev('2026-09-28', ['AR101', 'AR102', 'AR103'], 'SP', ['pok_351_ronaldinhoDaSorte', 'DragonGemsClash'], 'UP');
+  ev('2026-09-28', ['demoINR9901'], 'PG', ['fortune-tiger', 'mahjong-ways', 'fortune-ox', 'lucky-neko', 'wild-bandito', 'treasures-aztec'], 'TB');
+  (function () {
+    var g = {}, ord = [];
+    EV.forEach(function (e) { var k = e.d + '|' + e.v + '|' + e.to; if (!g[k]) { g[k] = []; ord.push(k); } g[k].push([e.s, e.v, e.g, e.to]); });
+    ord.sort();
+    var ops = ['luna00', 'kefu08', 'aradmin'];
+    ord.forEach(function (k, i) { seedRec(k.split('|')[0] + ' ' + (10 + (i % 8)) + ':' + (10 + (i * 7) % 50) + ':' + (10 + (i * 13) % 50), ops[i % 3], g[k]); });
+  })();
+  // 上线前就存在的映射：上线时一次性扫描补录，日期取站点端的最后更新时间（近似），操作人记为「系统补录」
+  [['AR098', 'PG:fortune-ox', '2026-03-12'], ['AR043', 'SP:dice', '2026-02-27'], ['AR044', 'JL:134', '2026-04-02']].forEach(function (x) {
+    LAST[S(x[0]) + '|' + x[1]] = { time: x[2] + ' 00:00:00', op: '系统补录', no: '', approx: true, it: null };
+  });
+  renderAll(); renderLogs(); renderRecs(); renderOv();
+})();
+</script>
+</body>
+</html>
