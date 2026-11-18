@@ -234,7 +234,7 @@ th.srt:hover{color:var(--primary)}
           </div>
           <div class="tscroll"><table class="main-t">
             <thead><tr>
-              <th>子游戏名称</th><th>所属厂商</th><th>币种</th><th style="padding-right:34px">有注单商户数<i class="nb" style="top:2px;right:2px">NEW</i></th><th>投注人数 <i class="so">↓</i></th><th>投注笔数</th><th>投注金额 <i class="so">↓</i></th><th>税费</th><th>有效投注金额</th><th>派彩金额 <i class="so">↓</i></th><th>输赢额</th><th>盈利率 <i class="so">↓</i></th><th>操作</th>
+              <th>子游戏名称</th><th>所属厂商</th><th>币种</th><th style="padding-right:34px">有注单商户数<i class="nb" style="top:2px;right:2px">NEW</i></th><th>投注人数 <i class="so">↓</i></th><th style="padding-right:28px">投注笔数 <i class="so">↓</i><i class="nb" style="top:2px;right:2px">改</i></th><th>投注金额 <i class="so">↓</i></th><th>税费</th><th>有效投注金额</th><th>派彩金额 <i class="so">↓</i></th><th style="padding-right:28px">输赢额 <i class="so">↓</i><i class="nb" style="top:2px;right:2px">改</i></th><th>盈利率 <i class="so">↓</i></th><th>操作</th>
             </tr></thead>
             <tbody id="gBody"></tbody>
           </table></div>
@@ -762,7 +762,7 @@ go('g-new');
     <div class="pin">📌 【核心】只表示重点，没标的条目同样要做。</div>
     <table><thead><tr><th style="width:32%">页面</th><th>改动点</th></tr></thead><tbody>
       <tr><td>报表管理 › 子游戏报表 › 每日明细弹窗</td><td>12 列一屏展示；新增 3 个人均指标；查询区间内没有注单的日子也列一行；导出文件名加商户和厂商</td></tr>
-      <tr><td>报表管理 › 子游戏报表</td><td>新增「有注单商户数」列</td></tr>
+      <tr><td>报表管理 › 子游戏报表</td><td>新增「有注单商户数」列；「投注笔数」「输赢额」两列加排序</td></tr>
       <tr><td>报表管理 › 子游戏报表</td><td>操作列新增「商户明细」，弹窗按商户展示该子游戏的数据，可导出；原「明细」改名为「每日明细」</td></tr>
       <tr><td>会员管理 › 会员投注记录</td><td>新增「导出」：后台生成文件，单次最多 20 万条</td></tr>
       <tr><td>会员管理 › 会员投注记录</td><td>筛选新增「币种」；子游戏改为可多选；筛选区按 4 列重新排列（见原型）</td></tr>
@@ -788,21 +788,22 @@ go('g-new');
     <div class="rule c"><span class="n">9</span><div><span class="tg">核心</span>商户明细：所点行的子游戏和币种，加上主列表当前的查询条件；一个商户一行，只列有注单的商户。</div></div>
     <div class="rule"><span class="n">10</span><div>商户明细列：商户名称、投注人数、投注笔数、投注金额、税费、有效投注金额、派彩金额、输赢额、盈利率。默认按投注金额倒序，可点表头排序，可按商户名称搜索，每页 20 条。</div></div>
     <div class="rule"><span class="n">11</span><div>商户明细可导出 Excel，列与弹窗一致，导出全部商户；文件名：商户明细_厂商_游戏名_币种_起止日期，写法同第 6 条。</div></div>
+    <div class="rule"><span class="n">12</span><div>主列表「投注笔数」「输赢额」两列加排序，用法和现有可排序的列一致。</div></div>
     <h4>（三）会员投注记录</h4>
-    <div class="rule c"><span class="n">12</span><div><span class="tg">核心</span>导出改为后台生成：点「导出」后提交导出任务，生成后到右上角「导出记录」下载；导出最近一次查询条件下的全部记录。</div></div>
-    <div class="rule c"><span class="n">13</span><div><span class="tg">核心</span>单次最多 20 万条；超过不提交，提示「共 X 条，超过 20 万条导出上限，请缩小查询范围后再导出」。</div></div>
-    <div class="rule"><span class="n">14</span><div>同一账号同时只能有 1 个未完成的导出任务；再点「导出」提示「已有导出任务在进行，请完成后再导出」。</div></div>
-    <div class="rule"><span class="n">15</span><div>导出 Excel，列与列表一致（不含「操作」列），不含小计、合计行；文件名：会员投注记录_开始日期-结束日期_提交时间。</div></div>
-    <div class="rule"><span class="n">16</span><div>导出单独授权，只分配给总控后台角色。</div></div>
-    <div class="rule"><span class="n">17</span><div>筛选新增币种：单选，不选为全部币种。</div></div>
-    <div class="rule c"><span class="n">18</span><div><span class="tg">核心</span>小计（当前页）、合计（全部结果）放在表格底部，格式同报表的合计行，每个币种一行。</div></div>
-    <div class="rule c"><span class="n">19</span><div><span class="tg">核心</span>游戏大类 → 游戏厂商 → 子游戏逐级选择，改上一级时清空下级；子游戏可多选、可搜索，不选为全部。对应关系取现有游戏列表。</div></div>
-    <div class="rule c"><span class="n">20</span><div><span class="tg">核心</span>列表在「通道ID」右侧新增「厂商商户号」，显示该注单所走通道在厂商那边的商户号；只有总控后台显示，商户后台接口也不返回。</div></div>
+    <div class="rule c"><span class="n">13</span><div><span class="tg">核心</span>导出改为后台生成：点「导出」后提交导出任务，生成后到右上角「导出记录」下载；导出最近一次查询条件下的全部记录。</div></div>
+    <div class="rule c"><span class="n">14</span><div><span class="tg">核心</span>单次最多 20 万条；超过不提交，提示「共 X 条，超过 20 万条导出上限，请缩小查询范围后再导出」。</div></div>
+    <div class="rule"><span class="n">15</span><div>同一账号同时只能有 1 个未完成的导出任务；再点「导出」提示「已有导出任务在进行，请完成后再导出」。</div></div>
+    <div class="rule"><span class="n">16</span><div>导出 Excel，列与列表一致（不含「操作」列），不含小计、合计行；文件名：会员投注记录_开始日期-结束日期_提交时间。</div></div>
+    <div class="rule"><span class="n">17</span><div>导出单独授权，只分配给总控后台角色。</div></div>
+    <div class="rule"><span class="n">18</span><div>筛选新增币种：单选，不选为全部币种。</div></div>
+    <div class="rule c"><span class="n">19</span><div><span class="tg">核心</span>小计（当前页）、合计（全部结果）放在表格底部，格式同报表的合计行，每个币种一行。</div></div>
+    <div class="rule c"><span class="n">20</span><div><span class="tg">核心</span>游戏大类 → 游戏厂商 → 子游戏逐级选择，改上一级时清空下级；子游戏可多选、可搜索，不选为全部。对应关系取现有游戏列表。</div></div>
+    <div class="rule c"><span class="n">21</span><div><span class="tg">核心</span>列表在「通道ID」右侧新增「厂商商户号」，显示该注单所走通道在厂商那边的商户号；只有总控后台显示，商户后台接口也不返回。</div></div>
     <h4>（四）导出记录</h4>
-    <div class="rule c"><span class="n">21</span><div><span class="tg">核心</span>入口在页面右上角，有「会员投注记录导出」权限的账号才显示；只显示自己提交的任务，最近 30 天。</div></div>
-    <div class="rule"><span class="n">22</span><div>列：文件名、查询条件、条数、文件大小、状态、提交时间、完成时间、过期时间、操作，按提交时间倒序。</div></div>
-    <div class="rule"><span class="n">23</span><div>状态：排队中、生成中、已完成、失败、已过期；失败时显示原因，可重新导出。</div></div>
-    <div class="rule c"><span class="n">24</span><div><span class="tg">核心</span>文件保留 7 天（从完成时间算），过期后不能下载。</div></div>
+    <div class="rule c"><span class="n">22</span><div><span class="tg">核心</span>入口在页面右上角，有「会员投注记录导出」权限的账号才显示；只显示自己提交的任务，最近 30 天。</div></div>
+    <div class="rule"><span class="n">23</span><div>列：文件名、查询条件、条数、文件大小、状态、提交时间、完成时间、过期时间、操作，按提交时间倒序。</div></div>
+    <div class="rule"><span class="n">24</span><div>状态：排队中、生成中、已完成、失败、已过期；失败时显示原因，可重新导出。</div></div>
+    <div class="rule c"><span class="n">25</span><div><span class="tg">核心</span>文件保留 7 天（从完成时间算），过期后不能下载。</div></div>
     <h3>三、限制条件</h3>
     <table><thead><tr><th style="width:26%">项</th><th>说明</th></tr></thead><tbody>
       <tr><td>生效范围</td><td>只改总控后台，商户后台不变</td></tr>
@@ -815,7 +816,7 @@ go('g-new');
     </tbody></table>
     <h3>四、开发注意事项</h3>
     <ol class="dev">
-      <li>子游戏报表接口加「按商户分组」选项（金额、笔数和投注人数去重都按商户分组），商户明细用它；有注单商户数按商户去重计数，合计行按币种去重计数。</li>
+      <li>子游戏报表接口加「按商户分组」选项（金额、笔数和投注人数去重都按商户分组），商户明细用它；有注单商户数按商户去重计数，合计行按币种去重计数。主列表按投注笔数、输赢额排序后端已支持，只需前端开启。</li>
       <li>每日明细、商户明细由后端一次返回全部数据，前端分页、排序、搜索并生成 Excel；不走现有通用导出，也不改它。</li>
       <li>补 0 行由后端按日期区间生成完整日期序列。</li>
       <li>本需求新增的指标用普通四舍五入，不用 .NET 默认的银行家舍入；无数据时比率返回空值。</li>
