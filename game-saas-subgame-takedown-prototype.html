@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>子游戏厂商下架原型</title>
+<style>
+:root{
+  --primary:#1677ff; --primary-bg:#e6f4ff;
+  --side-bg:#001529; --side-text:#cfd8e3; --side-active:#1677ff;
+  --bg:#f0f2f5; --card:#fff; --text:#1f2329; --sub:#646a73; --line:#e8eaed; --head-bg:#fafafa;
+  --red:#f5222d; --green:#389e0d; --mask:rgba(0,0,0,.45); --tab-bg:#fff; --ro:#f5f6f7;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --primary-bg:#111a2c; --bg:#141414; --card:#1f1f1f; --text:#e6e6e6; --sub:#9aa0a6; --line:#303030; --head-bg:#262626; --tab-bg:#1f1f1f; --ro:#262626;
+    --red:#ff6b6b; --green:#73d13d;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);background:var(--bg);min-width:1100px}
+.app{display:flex;min-height:100vh}
+.side{width:180px;background:var(--side-bg);color:var(--side-text);flex:none;padding-top:8px}
+.logo{height:48px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;letter-spacing:2px}
+.side .m{padding:11px 20px;display:flex;justify-content:space-between;font-size:13px}
+.side .s{padding:10px 20px 10px 36px;font-size:13px}
+.side .s.on{background:var(--side-active);color:#fff;border-radius:4px;margin:2px 4px;padding-left:32px}
+.main{flex:1;min-width:0}
+.top{height:48px;background:var(--card);display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);color:var(--sub);font-size:13px}
+.tabs{display:flex;gap:6px;padding:10px 16px 0;overflow:hidden}
+.tab{background:var(--tab-bg);padding:5px 12px;border-radius:4px;font-size:13px;white-space:nowrap}
+.tab.on{background:var(--primary);color:#fff}
+.page{padding:12px 48px 24px 40px}
+.card{background:var(--card);border-radius:6px;padding:16px 20px;margin-bottom:12px}
+h2{margin:0 0 14px;font-size:16px}
+.f{display:flex;align-items:center;gap:10px;min-width:0}
+.f label{flex:none;color:var(--sub);text-align:right;width:78px}
+.f label.a{width:auto}
+.inp{flex:1;min-width:0;border:1px solid var(--line);border-radius:6px;padding:5px 10px;min-height:32px;background:var(--card);color:var(--text);display:flex;gap:6px;align-items:center;position:relative;padding-right:24px;white-space:nowrap;overflow:hidden}
+.inp .ph{color:var(--sub);opacity:.7}
+.inp .cv{position:absolute;right:8px;font-style:normal;color:var(--sub)}
+.chip{background:var(--head-bg);border:1px solid var(--line);padding:0 6px;border-radius:4px;font-size:12px}
+.grid{display:grid;gap:12px 28px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.btnrow{grid-column:1/-1;display:flex;justify-content:flex-end;align-items:center;gap:8px}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:6px;padding:5px 16px;cursor:pointer;font-size:14px}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.s{padding:3px 10px;font-size:12px}
+a.lk{color:var(--primary);cursor:pointer}
+.tscroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:10px 8px;text-align:center;font-size:13px}
+th{background:var(--head-bg);font-weight:600;position:relative;white-space:nowrap}
+td{word-break:break-all}
+.tag{background:var(--primary-bg);color:var(--primary);border:1px solid var(--primary);border-radius:4px;padding:0 6px;font-size:12px}
+.st{border-radius:4px;padding:0 8px;font-size:12px;border:1px solid}
+.st.on{color:var(--green);border-color:var(--green)}
+.st.off{color:var(--red);border-color:var(--red)}
+.st.mt{color:#d48806;border-color:#d48806}
+.neg{color:var(--red);font-weight:600}.pos{color:var(--green);font-weight:600}.dash{color:var(--sub)}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:12px;color:var(--sub);font-size:13px}
+.pg{min-width:28px;height:28px;border:1px solid var(--line);border-radius:6px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);background:var(--card)}
+.pg.on{border-color:var(--primary);color:var(--primary)}
+.pg.dis{opacity:.4;cursor:not-allowed}
+.pager select,.pager input{border:1px solid var(--line);border-radius:6px;height:28px;background:var(--card);color:var(--text);padding:0 6px}
+.pager input{width:52px}
+/* markers */
+.nb{position:absolute;top:-7px;right:-6px;background:#f5222d;color:#fff;font-size:10px;font-weight:700;line-height:1;padding:2px 4px;border-radius:3px;z-index:3;font-style:normal;letter-spacing:.3px}
+.lb{position:relative;display:inline-block}
+.mf>label.lb{align-self:flex-start}
+.lb .nb{right:-30px}
+/* demo / tabs */
+.demo{margin:0 0 10px;border:1px dashed var(--primary);border-radius:6px;padding:8px 14px;color:var(--sub);font-size:12px;background:var(--card);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.demo b{color:var(--primary)}
+.hint{font-size:12px;color:var(--sub);margin-top:8px}
+/* modal */
+.mask{position:fixed;inset:0;background:var(--mask);display:none;align-items:center;justify-content:center;z-index:20}
+.mask.show{display:flex}
+.modal{background:var(--card);border-radius:8px;padding:20px 24px;max-height:94vh;overflow:auto;width:min(900px,calc(100vw - 48px))}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.mh b{font-size:16px}
+.x{cursor:pointer;font-size:20px;color:var(--sub);border:0;background:none}
+.mf{display:flex;flex-direction:column;gap:4px;min-width:0}
+.mf>label{color:var(--text);font-size:13px}
+.mf .req{color:var(--red)}
+.mi{border:1px solid var(--line);border-radius:6px;padding:5px 10px;min-height:32px;background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:space-between;width:100%;font:inherit}
+.mi.ro{background:var(--ro);color:var(--text)}
+select.mi{appearance:auto}
+.chips{border:1px solid var(--line);border-radius:6px;padding:6px;display:flex;flex-wrap:wrap;gap:6px;background:var(--ro);height:100%;align-content:flex-start}
+.mapbox{border:1px solid var(--line);border-radius:6px;padding:10px 14px;margin:2px 0 12px}
+.mapbox .row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.mapbox .row span.l{color:var(--text)}
+.mapbox .mi{width:150px;color:var(--sub)}
+.mfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.sec{margin:6px 0 6px;font-size:13px}
+/* drawer */
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:40;background:var(--primary);color:#fff;writing-mode:vertical-rl;letter-spacing:4px;padding:16px 8px;border-radius:8px 0 0 8px;cursor:pointer;font-size:14px;box-shadow:-2px 2px 8px rgba(0,0,0,.15)}
+.dmask{position:fixed;inset:0;background:var(--mask);z-index:60;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:820px;max-width:92vw;background:var(--card);z-index:61;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;box-shadow:-4px 0 16px rgba(0,0,0,.15)}
+.dopen .dmask{display:block}.dopen .drawer{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--line);font-size:16px;font-weight:600}
+.db{overflow:auto;padding:20px 24px 40px;line-height:1.7}
+.db h3{font-size:15px;margin:26px 0 10px;padding-left:10px;border-left:3px solid var(--primary)}
+.db h3:first-of-type{margin-top:8px}
+.db h4{font-size:14px;margin:18px 0 8px}
+.pin{background:var(--primary-bg);color:var(--primary);padding:6px 12px;border-radius:6px;font-size:13px;margin:0 0 10px}
+.db table th,.db table td{text-align:left;padding:8px 10px}
+.db table th{text-align:center}
+.core{border:1px solid var(--primary);background:var(--primary-bg);border-radius:8px;padding:10px 16px;margin-bottom:12px}
+.core b{color:var(--primary)}
+.core ul{margin:6px 0 0;padding-left:20px}
+.rule{display:flex;gap:10px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px}
+.rule.c{border-color:var(--primary);background:var(--primary-bg)}
+.rule .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;margin-top:2px}
+.rule .tg{background:var(--primary);color:#fff;font-size:11px;border-radius:3px;padding:0 5px;margin-right:6px}
+.dev{margin:0;padding-left:22px}.dev li{margin-bottom:6px}
+.toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);box-shadow:0 4px 16px rgba(0,0,0,.15);padding:8px 18px;border-radius:6px;z-index:80;display:none;max-width:80vw}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side" id="side"></aside>
+  <div class="main">
+    <div class="top"><span id="crumb"></span><span>默认当前时区 (UTC+4) &nbsp;|&nbsp; aradmin</span></div>
+    <div class="tabs" id="topTabs"></div>
+    <div class="page">
+
+      <!-- 页面1 子游戏管理 -->
+      <div id="p1">
+        <div class="demo"><b>原型演示</b>数据为演示数据。模拟在「游戏厂商管理」对 BGAMING电子 点击「同步子游戏」：
+          <button class="btn s" onclick="syncOffline()">厂商已下架 Joker Mask</button>
+          <button class="btn s" onclick="syncBack()">厂商重新上架 Joker Mask</button>
+          <button class="btn s" onclick="resetGames()">重置演示</button>
+        </div>
+        <div class="card">
+          <h2>子游戏管理</h2>
+          <div class="grid g3">
+            <div class="f"><label>游戏名称</label><div class="inp"><span class="ph">游戏名称</span></div></div>
+            <div class="f"><label>游戏厂商</label><div class="inp"><span class="ph">请选择游戏厂商</span><i class="cv">⌄</i></div></div>
+            <div class="f"><label style="position:relative">游戏状态<i class="nb" style="right:-12px">改</i></label><select class="inp" id="fState" style="padding-right:10px"><option value="">请选择</option><option value="1">启用</option><option value="0">禁用</option><option value="2">维护中</option><option value="x">厂商下架</option></select></div>
+            <div class="f"><label>游戏子类</label><div class="inp"><span class="ph">请选择游戏分类</span><i class="cv">⌄</i></div></div>
+            <div class="f"><label>创建时间</label><div class="inp"><span class="ph">开始日期 → 结束日期</span></div></div>
+            <div class="f"><label>是否映射</label><div class="inp"><span class="ph">请选择</span><i class="cv">⌄</i></div></div>
+            <div class="btnrow"><button class="btn p" onclick="renderGames()">查询</button><button class="btn" onclick="resetFilter()">重置</button><a class="lk">收起 ⌃</a></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tscroll"><table>
+            <thead><tr><th>游戏ID</th><th>游戏名称</th><th>游戏编码</th><th>映射配置</th><th>状态<i class="nb">改</i></th><th>更新日期</th><th>操作</th></tr></thead>
+            <tbody id="gBody"></tbody>
+          </table></div>
+          <div class="pager"><span id="gTotal">共 7 条</span><span class="pg dis">‹</span><span class="pg on">1</span><span class="pg dis">›</span><select><option>20 / 页</option></select></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 子游戏编辑弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="mh"><b id="mTitle"></b><button class="x" onclick="closeEdit()" aria-label="关闭">×</button></div>
+    <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:12px 22px">
+      <div class="mf"><label><span class="req">*</span> 游戏中文名称:</label><div class="mi" id="eCn"></div></div>
+      <div class="mf"><label><span class="req">*</span> 游戏英文名称:</label><div class="mi" id="eEn"></div></div>
+      <div class="mf"><label>自定义分类:</label><div class="mi">slots</div></div>
+      <div class="mf"><label><span class="req">*</span> 游戏子类:</label><div class="mi">Slot <span class="dash">⌄</span></div></div>
+    </div>
+    <div class="grid g3" style="gap:12px 22px;margin-top:12px">
+      <div class="mf"><label>最大倍数:</label><div class="mi">0 <span class="dash">− +</span></div></div>
+      <div class="mf"><label>最大倍数投注额:</label><div class="mi">0 <span class="dash">− +</span></div></div>
+      <div class="mf"><label>RTP:</label><div class="mi">0 <span class="dash">− +</span></div></div>
+    </div>
+    <div class="sec" style="margin-top:12px">映射配置</div>
+    <div class="mapbox">
+      <div class="row"><span class="l">官方游戏ID/Code</span><div class="mi">游戏ID/Code</div><span class="l">官方游戏名称</span><div class="mi">游戏名称</div><span class="l">官方游戏厂商</span><div class="mi"><span></span><span class="dash">⌄</span></div></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn s" style="background:#ff9c8f;color:#fff;border-color:#ff9c8f">清除</button><button class="btn s p">查询</button></div>
+      <div class="row" style="justify-content:space-between"><span>总数: <span class="tag">0</span></span><span><span class="pg dis">‹</span> <span class="pg on">1</span> <span class="pg dis">›</span></span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px 22px">
+      <div class="mf" style="grid-row:1/3"><label><span class="req">*</span> 币种:</label>
+        <div class="chips"><span class="chip">THB(泰铢) ×</span><span class="chip">MMK(缅甸元) ×</span><span class="chip">NGN(奈拉) ×</span><span class="chip">BDT(塔卡) ×</span><span class="chip">VND(越南盾) ×</span><span class="chip">MXN(墨西哥比索) ×</span><span class="chip">EGP(埃及镑) ×</span><span class="chip">MYR(马来西亚林吉特) ×</span><span class="chip">KES(肯尼亚先令) ×</span><span class="chip">INR(印度卢比) ×</span><span class="chip">BRL(巴西雷亚尔) ×</span></div></div>
+      <div class="mf"><label>排序:</label><div class="mi">0 <span class="dash">− +</span></div></div>
+      <div class="mf"><label>状态:</label><select class="mi" id="eState"><option value="0">禁用</option><option value="1">启用</option><option value="2">维护中</option></select></div>
+      <div class="mf" style="grid-column:2/4"><label class="lb">系统备注:<i class="nb">NEW</i></label><div class="mi ro" id="eSys"></div></div>
+    </div>
+    <div class="mf" style="margin-top:12px"><label class="lb">人工备注:<i class="nb">改</i></label><input class="mi" id="eRemark" placeholder="请输入备注"></div>
+    <div class="mfoot"><button class="btn" onclick="closeEdit()">取消</button><button class="btn p" onclick="saveEdit()">保存</button></div>
+    <div class="hint">说明：系统备注只读；人工备注由运营手填。</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="handle" onclick="toggleDrawer(true)">需求说明</div>
+<div class="dmask" onclick="toggleDrawer(false)"></div>
+<aside class="drawer" aria-label="需求说明">
+  <div class="dh"><span>需求说明 · GameSaaS 本期需求 <span style="font-weight:400;font-size:12px;color:var(--sub)">2026-11-18</span></span><button class="x" onclick="toggleDrawer(false)" aria-label="关闭">×</button></div>
+  <div class="db">
+    <h3>一、改造页面</h3>
+    <div class="pin">📌 原型只看布局和交互；演示数据、页面顶部演示按钮、灰色说明文字、「原型：」提示、NEW/改角标均为演示，不做到页面上；默认值和分页沿用现有。「核心」只表示重点，没标的同样要做。本需求只针对所列页面，不改其他页面。</div>
+    <table><thead><tr><th style="width:30%">页面</th><th>改动点</th></tr></thead><tbody>
+      <tr><td>游戏管理 › 子游戏管理</td><td>列表「状态」列、「游戏状态」筛选增加「厂商下架」；编辑弹窗新增「系统备注」，原「备注」改名「人工备注」</td></tr>
+      <tr><td>游戏管理 › 游戏厂商管理</td><td>「同步子游戏」自动处理厂商已下架的子游戏；同步成功提示增加厂商下架数量</td></tr>
+    </tbody></table>
+
+    <h3>二、功能描述与业务规则</h3>
+
+    <div class="core"><b>🎯 核心结论</b><ul>
+      <li>同步子游戏时，厂商已不再提供的启用子游戏，自动置为禁用，并标记「厂商下架」。</li>
+      <li>列表「状态」列和「游戏状态」筛选能识别厂商下架。</li>
+    </ul></div>
+    <div class="rule c"><span class="n">1</span><div><span class="tg">核心</span>在「游戏厂商管理」点击某厂商的「同步子游戏」时，该厂商下状态为启用、非手动添加（沿用现有手动添加标记）、且不在厂商本次返回列表中的子游戏，置为禁用，系统备注写入「厂商子游戏下架」，效果与运营手动禁用一致（含推送给各商户平台）。</div></div>
+    <div class="rule c"><span class="n">2</span><div><span class="tg">核心</span>列表「状态」列：状态为禁用且有系统备注的子游戏，在「禁用」后显示「厂商下架」标签。</div></div>
+    <div class="rule"><span class="n">3</span><div>「游戏状态」筛选增加「厂商下架」选项，选中后只显示状态为禁用且有系统备注的子游戏；选「禁用」时包含这些子游戏。</div></div>
+    <div class="rule"><span class="n">4</span><div>同步成功提示在现有内容后追加「厂商下架 N 条」，N 为本次自动置为禁用的数量，为 0 时也显示。</div></div>
+    <div class="rule c"><span class="n">5</span><div><span class="tg">核心</span>系统备注清除：①同步时发现该子游戏重新出现在厂商返回列表中，系统备注清空，状态保持禁用；②运营在子游戏编辑中将状态改为启用或维护中并保存，系统备注清空。</div></div>
+    <div class="rule"><span class="n">6</span><div>系统备注由系统写入，页面只读。系统写入、清除系统备注，不改变人工备注内容；保存人工备注，不改变系统备注内容。</div></div>
+    <div class="rule"><span class="n">7</span><div>人工备注的修改，沿用现有操作日志（可查操作人、修改前内容、修改后内容），现有逻辑，不改，只做回归。</div></div>
+
+    <h3>三、限制条件</h3>
+    <table><thead><tr><th style="width:30%">项</th><th>说明</th></tr></thead><tbody>
+      <tr><td>系统备注、「厂商下架」标签及筛选</td><td>仅平台后台「子游戏管理」展示；商户游戏管理及商户后台不改</td></tr>
+    </tbody></table>
+  </div>
+</aside>
+
+<script>
+const $ = id => document.getElementById(id);
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',3200)}
+function toggleDrawer(o){document.body.classList.toggle('dopen',o)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){toggleDrawer(false);closeEdit()}});
+
+/* ===== 外壳：侧栏 / 面包屑 / 顶部页签 ===== */
+const MENU=[
+  {n:'游戏管理',k:1,s:['游戏厂商管理','商户游戏管理','子游戏管理','游戏通道管理','游戏维护管理','游戏映射管理','三方辅助功能']},
+  {n:'彩票管理'},{n:'商户管理'},{n:'代理管理'},
+  {n:'会员管理'},
+  {n:'报表管理'},
+  {n:'系统设置'}
+];
+const PAGES={
+  1:{crumb:'游戏管理 / 子游戏管理',act:'子游戏管理',tabs:['Welcome','游戏厂商管理','商户游戏管理','游戏维护管理','子游戏管理'],on:4}
+};
+function goPage(p){
+  const c=PAGES[p];
+  $('crumb').textContent=c.crumb;
+  $('topTabs').innerHTML=c.tabs.map((t,i)=>`<span class="tab ${i===c.on?'on':''}">${t} ${i?'×':'×'}</span>`).join('');
+  $('side').innerHTML='<div class="logo">AR</div>'+MENU.map(m=>{
+    const open=m.k===p;
+    let h=`<div class="m"><span>${m.n}</span><span>${m.s?(open?'⌃':'⌄'):'⌄'}</span></div>`;
+    if(open)h+=m.s.map(s=>`<div class="s ${s===c.act?'on':''}">${s}</div>`).join('');
+    return h;
+  }).join('');
+}
+
+/* ===== 页面1：子游戏管理 ===== */
+const SYS_TXT='厂商子游戏下架';
+const INIT=()=>[
+  {id:27680,cn:'Joker Mask',en:'Joker Mask',code:'JokerMask',map:'',state:1,sys:'',remark:'活动期间重点关注',vendor:'BGAMING电子',bg:1},
+  {id:27679,cn:'Formula x10000',en:'Formula x10000',code:'FormulaX10000',map:'',state:0,sys:'',remark:'',vendor:'BGAMING电子',bg:1},
+  {id:27678,cn:'Bling Blitz Power Nudge',en:'Bling Blitz Power Nudge',code:'BlingBlitzPower',map:'',state:0,sys:'',remark:'',vendor:'BGAMING电子',bg:1},
+  {id:27677,cn:'Fortune Gems Legend',en:'Fortune Gems Legend',code:'jili_812',map:'JILI电子-812',state:1,sys:'',remark:'',vendor:'JILI电子'},
+  {id:27676,cn:'AndarBahar',en:'AndarBahar',code:'jili_79_andar',map:'JILI电子-79',state:1,sys:'',remark:'',vendor:'JILI电子'},
+  {id:27675,cn:'Killer Night',en:'Killer Night',code:'vs15killerp',map:'',state:1,sys:'',remark:'',vendor:'PP电子'},
+  {id:27674,cn:'Super Golden Spins',en:'Super Golden Spins',code:'vs10gwheelst',map:'',state:1,sys:'',remark:'',vendor:'PP电子'}
+];
+let games=INIT(), cur=null;
+const stHtml=s=>s===1?'<span class="st on">启用</span>':s===2?'<span class="st mt">维护中</span>':'<span class="st off">禁用</span>';
+const fillSt=g=>g.state===0&&g.sys?stHtml(0)+' <span class="st" style="margin-left:4px;color:#722ed1;border-color:#722ed1">厂商下架</span>':stHtml(g.state);
+function renderGames(){
+  const f=$('fState').value;
+  const list=games.filter(g=>f===''||(f==='x'?(g.state===0&&g.sys):String(g.state)===f));
+  $('gBody').innerHTML=list.length?list.map(g=>`<tr><td>${g.id}</td><td>CN: ${g.cn}<br>EN: ${g.en}</td><td><span class="tag">${g.code}</span></td><td>${g.map?'<span class="tag">'+g.map+'</span>':'--'}</td><td>${fillSt(g)}</td><td>2026-11-09 15:03:11</td><td><a class="lk" onclick="openEdit(${g.id})">编辑</a></td></tr>`).join(''):'<tr><td colspan="7" style="padding:40px;color:var(--sub)">无数据</td></tr>';
+  $('gTotal').textContent='共 '+list.length+' 条';
+}
+function resetFilter(){$('fState').value='';renderGames()}
+function openEdit(id){
+  cur=games.find(g=>g.id===id);
+  $('mTitle').textContent=`子游戏编辑 - (厂商:${cur.vendor} 编码:${cur.code})`;
+  $('eCn').textContent=cur.cn;$('eEn').textContent=cur.en;
+  $('eState').value=cur.state;
+  $('eSys').textContent=cur.sys;
+  $('eRemark').value=cur.remark;
+  $('mask').classList.add('show');
+}
+function closeEdit(){$('mask').classList.remove('show')}
+$('mask').addEventListener('click',e=>{if(e.target.id==='mask')closeEdit()});
+function saveEdit(){
+  const s=+$('eState').value;
+  cur.remark=$('eRemark').value;
+  if(s!==0&&cur.sys)cur.sys='';
+  cur.state=s;
+  closeEdit();renderGames();toast('保存成功');
+}
+function syncOffline(){
+  // 模拟：厂商返回列表不含 BGAMING 的这 3 个游戏
+  let hit=0;
+  games.filter(g=>g.bg).forEach(g=>{
+    if(g.state===1){g.state=0;g.sys=SYS_TXT;hit++}
+  });
+  renderGames();
+  toast(`同步成功：新增 0 条，更新 ${hit} 条，厂商下架 ${hit} 条！`);
+}
+function syncBack(){
+  const g=games.find(x=>x.code==='JokerMask');
+  if(g.sys){g.sys='';renderGames();toast('同步成功：新增 0 条，更新 1 条，厂商下架 0 条！')}
+  else toast('原型：Joker Mask 当前没有系统备注，请先点「厂商已下架 Joker Mask」');
+}
+function resetGames(){games=INIT();$('fState').value='';renderGames();toast('已重置')}
+
+renderGames();goPage(1);
+</script>
+</body>
+</html>
