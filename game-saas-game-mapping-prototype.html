@@ -494,7 +494,10 @@ tr:hover .cpy,.cpy:focus{opacity:1}
           <div class="frow">
             <div class="f"><label>操作时间</label><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="rcFrom" aria-label="开始日期" placeholder="开始日期"><span>→</span><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="rcTo" aria-label="结束日期" placeholder="结束日期"></div>
             <div class="f"><label>操作人</label><input class="inp" id="rcOp" placeholder="如 luna00" aria-label="操作人" style="width:140px"></div>
-            <div class="f"><label>商户</label><select class="vsel" id="rcM" aria-label="商户" style="min-width:150px"></select></div>
+            <div class="f"><label>商户</label><div class="ms" id="rcMs" style="width:200px"><button class="btn" id="rcMsBtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0 10px;text-align:left" aria-haspopup="listbox"><span id="rcMsTxt">全部商户</span><span style="color:var(--sub)">▾</span></button>
+              <div class="dd" id="rcDd" hidden style="width:300px;right:auto"><input id="rcMsQ" placeholder="搜索商户，可输入多个（逗号或空格隔开）" autocomplete="off" aria-label="搜索商户">
+                <div class="ddtools" style="margin-top:6px"><button class="lk" id="rcMsAll">全选当前结果</button><button class="lk" id="rcMsNone">清空已选</button></div>
+                <div class="ddl" id="rcMsList"></div></div></div></div>
             <div class="f"><label>子游戏名称/编码</label><input class="inp" id="rcG" placeholder="如 Aviator" aria-label="子游戏名称或编码" style="width:150px"></div>
             <div class="f"><label>批次号</label><input class="inp" id="rcNo" placeholder="如 MP20261118-001" aria-label="批次号" style="width:170px"></div>
             <div class="f"><label>结果</label><select class="vsel" id="rcRes" aria-label="结果" style="min-width:110px"><option value="all">全部</option><option value="ok">全部成功</option><option value="bad">含失败</option></select></div>
@@ -503,7 +506,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
         </div>
         <div class="card tcard">
           <div class="tscroll"><table class="lt">
-            <thead><tr><th>批次号</th><th>操作人</th><th>操作时间</th><th>切换内容</th><th>涉及商户</th><th>变更数</th><th>结果</th><th>操作</th></tr></thead>
+            <thead><tr><th>批次号</th><th>操作人</th><th>操作时间</th><th>商户</th><th>切换内容</th><th>变更数</th><th>结果</th><th>操作</th></tr></thead>
             <tbody id="rcBody"></tbody>
           </table></div>
           <div class="pager" id="rcPager"></div>
@@ -516,7 +519,10 @@ tr:hover .cpy,.cpy:focus{opacity:1}
         <div class="card fcard">
           <div class="frow">
             <div class="f"><label>操作时间</label><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="logFrom" aria-label="开始日期" placeholder="开始日期"><span>→</span><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="logTo" aria-label="结束日期" placeholder="结束日期"></div>
-            <div class="f"><label>商户</label><select class="vsel" id="logM" aria-label="商户" style="min-width:150px"></select></div>
+            <div class="f"><label>商户</label><div class="ms" id="logMs" style="width:200px"><button class="btn" id="logMsBtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0 10px;text-align:left" aria-haspopup="listbox"><span id="logMsTxt">全部商户</span><span style="color:var(--sub)">▾</span></button>
+              <div class="dd" id="logDd" hidden style="width:300px;right:auto"><input id="logMsQ" placeholder="搜索商户，可输入多个（逗号或空格隔开）" autocomplete="off" aria-label="搜索商户">
+                <div class="ddtools" style="margin-top:6px"><button class="lk" id="logMsAll">全选当前结果</button><button class="lk" id="logMsNone">清空已选</button></div>
+                <div class="ddl" id="logMsList"></div></div></div></div>
             <div class="f"><label>子游戏名称/编码</label><span class="rel"><input class="inp" id="logQ" placeholder="如 Aviator" aria-label="子游戏名称或编码" style="width:150px"><i class="nb">NEW</i></span></div>
             <div style="margin-left:auto;display:flex;gap:8px;align-items:center"><button class="btn p" id="logGo">查询</button><button class="btn" id="logReset">重置</button><a class="lk">收起 ⌃</a></div>
           </div>
@@ -547,8 +553,8 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     <table><thead><tr><th style="width:30%">页面</th><th>改动点</th></tr></thead><tbody>
       <tr><td>游戏管理 › 游戏映射管理</td><td>一次只选一个商户；映射子游戏按高仿厂商分组并新增「全部」页签；游戏搜索支持一次输入多个；已被其他厂商映射的子游戏可直接选，保存前在确认表里标出替换；已选数量上色并加进度条；保存结果按商户显示</td></tr>
       <tr><td>游戏管理 › 映射总览（新增）</td><td>按原厂分组的高仿厂商卡片 + 商户列表，查看全部商户现在映射了哪些高仿子游戏、哪天切换的；未切换的游戏可复制或带入映射管理</td></tr>
-      <tr><td>游戏管理 › 映射变更记录（新增）</td><td>每次保存留一条记录：谁、什么时间、改了哪些商户的哪些游戏、改前改后；可筛选、导出</td></tr>
-      <tr><td>系统设置 › 日志管理</td><td>游戏映射保存的日志详情增加变更明细和批次号；列表增加按商户（下拉）、子游戏名称/编码筛选</td></tr>
+      <tr><td>游戏管理 › 映射变更记录（新增）</td><td>每次保存留一条记录：谁、什么时间、改了哪个商户的哪些游戏、改前改后；可筛选、导出</td></tr>
+      <tr><td>系统设置 › 日志管理</td><td>游戏映射保存的日志详情增加变更明细和批次号；列表增加按商户（下拉多选）、子游戏名称/编码筛选</td></tr>
     </tbody></table>
 
     <h3>二、功能描述与业务规则</h3>
@@ -562,11 +568,11 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     <div class="rule c"><span class="n">1</span><div><span class="tg2">核心</span>一个原厂游戏在一个商户只有一个映射去向。选了新的高仿子游戏即取代原映射，不用先取消；取消勾选表示该游戏恢复为原厂。</div></div>
     <div class="rule c"><span class="n">2</span><div><span class="tg2">核心</span>选择商户：左侧下拉一次只能选一个（可搜索、可按币种筛选）。选中后读取该商户现有映射并显示在勾选框上；被取代的原映射标「将取消」。已被其他厂商映射的子游戏可直接勾选，不弹窗。</div></div>
     <div class="rule c"><span class="n">3</span><div><span class="tg2">核心</span>批量搜索：搜索框可一次输入多个关键词（原厂游戏ID、游戏名称、高仿子游戏编码均可），用逗号或换行隔开，没有逗号时用空格隔开。每个词先按「完全相同」匹配，没有再按「包含」匹配。搜索框下方显示「输入几个词、匹配几款」；没匹配到的词红字列出；按「包含」匹配上的词标橙色并写明匹配到哪款游戏。有搜索或筛选时，分组的「全选」变为「全选筛选结果」，只作用于筛选结果；已全选时再点为取消。</div></div>
-    <div class="rule"><span class="n">4</span><div>暂存：勾选后不立即生效，「保存」按钮显示待保存数量。切换商户、切换原厂时暂存保留；其他商户有待保存改动时，在左侧「当前商户」下方提示，点「选中」切过去。「撤销」清空全部暂存，8 秒内可点「撤回」恢复。</div></div>
-    <div class="rule c"><span class="n">5</span><div><span class="tg2">核心</span>点「保存」后，先读取该商户当前映射，再弹出确认表。确认表顶部写明合计：新增几项、<b style="color:#f5222d">替换几项</b>、取消几项；替换项整行标红，写明「原厂商 → 新厂商」，并汇总如「GameBox → UP 4 项」。有替换项时按钮写「确认保存（含 N 项替换）」。</div></div>
-    <div class="rule c"><span class="n">6</span><div><span class="tg2">核心</span>点「确认保存」后：保存成功则关闭弹窗并提示「保存成功」；保存失败则弹窗保留，显示失败商户及原因，失败的改动仍留在待保存，可重试。重试生成新批次，注明「重试自」哪个批次，原批次注明「已由」哪个批次重试。</div></div>
-    <div class="rule c"><span class="n">7</span><div><span class="tg2">核心</span>每次保存生成一个变更批次（有批次号），记录操作人、操作时间，以及每个游戏的改前去向、改后去向和结果，失败的也记录。日志管理同步一条日志，详情与变更记录一致。</div></div>
-    <div class="rule c"><span class="n">8</span><div><span class="tg2">核心</span>映射变更记录：按批次倒序，每页 20 条；筛选项依次为操作时间、操作人、商户（下拉单选）、子游戏名称/编码（输入框）、批次号（输入框）、结果，开始日期不能晚于结束日期；批次号是每次保存自动生成的编号，同一次保存的所有变更共用一个。列表直接写出切换内容（原厂→高仿、哪几款游戏、哪几个商户）。详情默认按游戏合并（一个游戏一行，列出改前改后和涉及的商户），可切换为逐条明细；从商户或游戏搜索进入时默认只显示相关部分，可切换为全部。列表和详情可导出 CSV。记录只增不改，不能删除。</div></div>
+    <div class="rule"><span class="n">4</span><div>暂存：勾选后不立即生效，「保存」按钮显示当前商户的待保存数量。切换商户、切换原厂时暂存保留；其他商户有待保存改动时，在左侧「当前商户」下方提示，点「选中」切过去再保存。「保存」「撤销」只作用于当前商户；「撤销」清空当前商户的暂存，8 秒内可点「撤回」恢复。</div></div>
+    <div class="rule c"><span class="n">5</span><div><span class="tg2">核心</span>点「保存」后（只保存当前商户），先读取该商户当前映射，再弹出确认表。确认表顶部写明合计：新增几项、<b style="color:#f5222d">替换几项</b>、取消几项；替换项整行标红，写明「原厂商 → 新厂商」，并汇总如「GameBox → UP 4 项」。有替换项时按钮写「确认保存（含 N 项替换）」。</div></div>
+    <div class="rule c"><span class="n">6</span><div><span class="tg2">核心</span>点「确认保存」后：保存成功则关闭弹窗并提示「保存成功」；保存失败则弹窗保留，显示失败原因，改动仍留在待保存，可重试。重试生成新批次，注明「重试自」哪个批次，原批次注明「已由」哪个批次重试。</div></div>
+    <div class="rule c"><span class="n">7</span><div><span class="tg2">核心</span>每次保存生成一个变更批次（有批次号），<b>一个批次只涉及一个商户</b>，记录操作人、商户、操作时间，以及每个游戏的改前去向、改后去向和结果，失败的也记录。日志管理同步一条日志，详情与变更记录一致。</div></div>
+    <div class="rule c"><span class="n">8</span><div><span class="tg2">核心</span>映射变更记录：按批次倒序，每页 20 条；筛选项依次为操作时间、操作人、商户（下拉多选，可搜索，不选表示全部）、子游戏名称/编码（输入框）、批次号（输入框）、结果，开始日期不能晚于结束日期；批次号是每次保存自动生成的编号，同一次保存的所有变更共用一个。列表列为批次号、操作人、操作时间、商户、切换内容（原厂→高仿、哪几款游戏）、变更数、结果。详情一个游戏一行，列出改前改后和保存结果；按子游戏搜索进入时默认只显示相关的游戏，可切换为本批次全部。列表和详情可导出 CSV。记录只增不改，不能删除。</div></div>
     <div class="rule"><span class="n">9</span><div>单个映射的「历史」：列出该商户该游戏的每次变更（时间、操作人、批次号、改前、改后、结果）。可把某次变更之前的去向放入待保存（还原为改前），仍需确认后保存；「去调整」跳到映射管理并选中该商户。不提供整批改回。</div></div>
     <div class="rule c"><span class="n">10</span><div><span class="tg2">核心</span>映射总览展示<b>全部商户的全部现有映射</b>，包括上线前就有的。分三部分：
       <br>① <b>筛选</b>（依次）：商户（下拉多选，可搜索，不选表示全部）、原厂厂商、高仿厂商、子游戏名称/编码（可输入多个，规则同第 3 条）、币种、切换日期（开始不能晚于结束）。点「查询」才生效，游戏输入框按回车等同查询，「重置」恢复默认；点卡片、复制立即生效。
@@ -581,7 +587,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
 
     <h3>三、限制条件</h3>
     <table><thead><tr><th style="width:24%">项</th><th>说明</th></tr></thead><tbody>
-      <tr><td>单商户操作</td><td>映射管理一次只选一个商户，不做多商户批量映射</td></tr>
+      <tr><td>单商户操作</td><td>映射管理一次只选一个商户，一次保存只保存当前商户，一个变更批次只涉及一个商户；不做多商户批量映射</td></tr>
       <tr><td>暂存范围</td><td>暂存的改动只在当前页面有效，刷新或离开页面后清空</td></tr>
       <tr><td>历史数据（补录）</td><td>上线前已存在的映射，上线时扫描全部商户补录一次：切换日期取该映射在商户端的最后更新时间，是<b>约数</b>，不一定等于真实切换日；操作人显示「系统补录」；补录的批次在总览里显示「补录 · 约 MM-DD」，历史里注明「取自商户最后更新时间」。上线前的保存日志没有变更明细，不补。运营如有准确的切换登记表，可导入覆盖补录日期，导入的记录标明「导入」</td></tr>
       <tr><td>还原</td><td>不提供整批改回；单个映射可在「历史」里还原为某次变更之前的去向，仍需确认后保存</td></tr>
@@ -599,7 +605,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
       <li>同一批改动重复提交，结果与提交一次相同。</li>
       <li>变更记录在保存时一并写入，失败也记录；保存成功后才算「切换时间」，失败不更新。</li>
       <li>时间按操作人当前时区展示，存储用统一时区；总览「同一天为一批」按同一时区计算。</li>
-      <li>总览的卡片数字、商户列表、复制、导出，以及变更记录的合并显示和导出，数据量大（70 多个商户，每个原厂可能几百上千款子游戏），要由后端聚合、分页、生成，不在前端拼；映射管理页分组游戏很多时需分页或虚拟滚动。</li>
+      <li>总览的卡片数字、商户列表、复制、导出，以及变更记录的导出，数据量大（70 多个商户，每个原厂可能几百上千款子游戏），要由后端聚合、分页、生成，不在前端拼；映射管理页分组游戏很多时需分页或虚拟滚动。</li>
     </ol>
   </div>
 </aside>
@@ -691,7 +697,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     RECS.unshift(r);
     r.items.forEach(function (i) { if (i.ok) LAST[i.site + '|' + i.v + ':' + i.gid] = { time: r.time, op: r.op, no: r.no, it: i }; });
     LOGS.unshift({ id: r.id, no: r.no, time: r.time, menu: '游戏管理', page: '游戏映射管理', url: URL_, ip: '8.211.42.128', os: 'Mac', op: r.op,
-      detail: '[游戏映射保存] ' + Object.keys(sn).length + ' 个商户 · ' + r.items.length + ' 项变更' + (bad ? ' · ' + bad + ' 项失败' : '') + (r.retry ? '（重试）' : ''), items: r.items });
+      detail: '[游戏映射保存] 商户 ' + r.items[0].site + ' · ' + r.items.length + ' 项变更' + (bad ? ' · ' + bad + ' 项失败' : '') + (r.retry ? '（重试）' : ''), items: r.items });
   }
   // 按时间顺序回放历史批次，同时得到当前已保存的映射
   function seedRec(time, op, rows) {
@@ -714,6 +720,8 @@ tr:hover .cpy,.cpy:focus{opacity:1}
   function pcount(s) { return pending[s] ? Object.keys(pending[s]).length : 0; }
   function ptotal() { return SITES.reduce(function (a, s) { return a + pcount(s); }, 0); }
   function psites() { return SITES.filter(function (s) { return pcount(s) > 0; }); }
+  function csites() { return selected().filter(function (s) { return pcount(s) > 0; }); } // 保存只针对当前选中的一个商户
+  function ctotal() { return csites().reduce(function (a, s) { return a + pcount(s); }, 0); }
   var VFULL = { AR: 'ART', BO: 'BOAN', GA: 'GameBox', HE: 'HeiBao', KB: 'KB', TB: 'TB', UP: 'UP' };
   var VCOL0 = { AR: '#722ed1', BO: '#fa8c16', GA: '#13c2c2', HE: '#eb2f96', KB: '#2f54eb', TB: '#fa541c', UP: '#52c41a' };
   // 厂商标签配色：低饱和的浅底深字，避开「手动」用的黄/橙色系；{底色, 文字色}
@@ -819,7 +827,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
       SITES.forEach(function (s) { if (pending[s]) Object.keys(pending[s]).forEach(function (k) { if (k.indexOf(v + ':') === 0) n++; }); });
       return '<option value="' + v + '"' + (v === vendor ? ' selected' : '') + '>' + SRC[v].n + (n ? '（待保存 ' + n + '）' : '') + '</option>';
     }).join('');
-    var n = ptotal();
+    var n = ctotal();
     $('btnSave').textContent = n ? '保存 (' + n + ')' : '保存';
     $('btnSave').disabled = !n; $('btnReset').disabled = !n;
     Array.prototype.forEach.call($('seg').children, function (b) { b.setAttribute('aria-pressed', b.dataset.f === filt); });
@@ -972,7 +980,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
   function renderModal() {
     var m = modal, body, foot, title;
     if (m.stage === 'checking') {
-      $('modal').innerHTML = head('保存前检查') + '<div class="mb"><div class="empty" style="padding:30px">正在检查 ' + psites().length + ' 个商户当前的映射，用来生成确认表……</div></div><div class="mf"><button class="btn" data-m="close">取消</button></div>';
+      $('modal').innerHTML = head('保存前检查') + '<div class="mb"><div class="empty" style="padding:30px">正在检查商户 ' + csites()[0] + ' 当前的映射，用来生成确认表……</div></div><div class="mf"><button class="btn" data-m="close">取消</button></div>';
       return;
     }
     if (m.stage === 'swap') {
@@ -1001,7 +1009,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
         '<textarea class="ta" id="bTa" aria-label="游戏ID" placeholder="粘贴原厂游戏ID或高仿编码，用空格、逗号或换行分隔，例如：' + sample + '"></textarea><div class="bres" id="bRes">输入游戏ID后，这里显示识别结果</div>';
       foot = '<button class="btn" data-m="close">取消</button><button class="btn p" id="bGo" data-m="bgo" disabled>勾选 (0)</button>';
     } else if (m.stage === 'confirm') {
-      var ss = psites(), sig = {}, order = [], cnt = { new: 0, replace: 0, cancel: 0 }, rp = {};
+      var ss = csites(), sig = {}, order = [], cnt = { new: 0, replace: 0, cancel: 0 }, rp = {};
       ss.forEach(function (s) {
         var cs = changesOf(s), sg = JSON.stringify(cs.map(function (c) { return [c.v, c.gid, c.from, c.to]; }));
         cs.forEach(function (c) { cnt[c.type]++; if (c.type === 'replace') { var rk = vname(c.from.split(':')[0], c.v) + ' → ' + vname(c.to.split(':')[0], c.v); rp[rk] = (rp[rk] || 0) + 1; } });
@@ -1009,23 +1017,23 @@ tr:hover .cpy,.cpy:focus{opacity:1}
         sig[sg].sites.push(s);
       });
       var eff2 = cnt.new + cnt.replace + cnt.cancel;
-      title = '确认变更：' + eff2 + ' 项，' + ss.length + ' 个商户';
+      title = '确认变更：' + ss[0] + '，' + eff2 + ' 项';
       var sumLine = '共 <b>' + eff2 + '</b> 项：新增 <b>' + cnt.new + '</b>' + (cnt.replace ? '，<b style="color:var(--red)">替换已有映射 ' + cnt.replace + '</b>' : '') + (cnt.cancel ? '，取消映射 ' + cnt.cancel : '');
       var note = cnt.replace ? '<div class="badbox">' + sumLine + '<div style="margin-top:3px;font-size:12px">替换明细：' + Object.keys(rp).map(function (k) { return k + ' ' + rp[k] + ' 项'; }).join('；') + '。确认保存后原映射会被新的取代，已在下表整行标红。</div></div>' : '<div class="tipbox">' + sumLine + '</div>';
       body = note + order.map(function (g) {
         var o = sig[g];
-        return '<div class="sb"><div class="sbh"><div class="chips">' + o.sites.map(function (s) { return '<span class="sc">' + s + '</span>'; }).join('') + '</div><span class="sm" style="margin-left:auto;white-space:nowrap">' + (o.sites.length > 1 ? o.sites.length + ' 个商户 × ' : '') + o.cs.length + ' 项</span></div>' + o.cs.map(function (c) { return crow(c); }).join('') + '</div>';
+        return '<div class="sb"><div class="sbh"><div class="chips">' + o.sites.map(function (s) { return '<span class="sc">' + s + '</span>'; }).join('') + '</div><span class="sm" style="margin-left:auto;white-space:nowrap">' + o.cs.length + ' 项</span></div>' + o.cs.map(function (c) { return crow(c); }).join('') + '</div>';
       }).join('');
-      foot = '<label class="demo2"><input type="checkbox" id="demoFail"> 演示：让最后一个商户保存失败</label><button class="btn" data-m="close">返回修改</button><button class="btn p" data-m="ok"' + (eff2 ? '' : ' disabled') + '>' + (cnt.replace ? '确认保存（含 ' + cnt.replace + ' 项替换）' : '确认保存') + '</button>';
+      foot = '<label class="demo2"><input type="checkbox" id="demoFail"> 演示：让本次保存失败</label><button class="btn" data-m="close">返回修改</button><button class="btn p" data-m="ok"' + (eff2 ? '' : ' disabled') + '>' + (cnt.replace ? '确认保存（含 ' + cnt.replace + ' 项替换）' : '确认保存') + '</button>';
     } else {
       var rs = m.sites, okN = rs.filter(function (s) { return m.res[s].ok; }).length, bad = rs.length - okN;
-      title = '保存结果：成功 ' + okN + ' 个商户' + (bad ? '，失败 ' + bad + ' 个' : '');
-      body = (bad ? '<div class="badbox">失败的商户没有被修改，改动仍保留在待保存里，可以只重试这些商户。</div>' : '<div class="okbox">全部商户保存成功。</div>') +
+      title = '保存结果：' + (bad ? '失败' : '成功');
+      body = (bad ? '<div class="badbox">该商户没有被修改，改动仍保留在待保存里，可以重试。</div>' : '<div class="okbox">保存成功。</div>') +
         rs.map(function (s) {
           var r = m.res[s];
           return '<div class="sb"><div class="sbh"><span class="sn" style="flex:none">' + s + '</span><span class="st ' + (r.ok ? 'ok' : 'bad') + '">' + (r.ok ? '成功' : '失败：' + r.reason) + '</span></div>' + (r.ok ? m.done[s] : changesOf(s)).map(function (c) { return crow(c); }).join('') + '</div>';
         }).join('');
-      foot = (bad ? '<button class="btn p" data-m="retry">重试失败的商户</button>' : '') + '<button class="btn" data-m="log">查看日志</button><button class="btn' + (bad ? '' : ' p') + '" data-m="close">关闭</button>';
+      foot = (bad ? '<button class="btn p" data-m="retry">重试</button>' : '') + '<button class="btn" data-m="log">查看日志</button><button class="btn' + (bad ? '' : ' p') + '" data-m="close">关闭</button>';
     }
     $('modal').innerHTML = head(title, m.stage !== 'result') + '<div class="mb">' + body + '</div><div class="mf">' + foot + '</div>';
     focusModal();
@@ -1051,7 +1059,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     renderAll(); renderLogs(); renderRecs(); renderOv();
     if (!items.some(function (i) { return !i.ok; })) {
       var n = items.length, sn = list.length, again = !!modal.retry;
-      closeMask(); toast((again ? '重试成功：' : '保存成功：') + sn + ' 个商户，' + n + ' 项变更，已记入映射变更记录' + (again ? '；这一批的商户已全部保存成功' : ''));
+      closeMask(); toast((again ? '重试成功：' : '保存成功：') + list[0] + '，' + n + ' 项变更，已记入映射变更记录');
     } else renderModal();
   }
 
@@ -1064,10 +1072,10 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     return h + '<button class="pgb" data-pg="' + name + '|' + (c + 1) + '"' + (c >= pages ? ' disabled' : '') + '>›</button>';
   }
   function inDate(time, f, t) { var d = time.slice(0, 10); return (!f || d >= f) && (!t || d <= t); }
-  var lf = { from: '', to: '' }, lm = '';
+  var lf = { from: '', to: '' }, lm = [];
   function renderLogs() {
     var q = lq.toLowerCase();
-    var list = LOGS.slice().sort(function (a, b) { return a.time < b.time ? 1 : -1; }).filter(function (l) { return inDate(l.time, lf.from, lf.to) && ((!q && !lm) || (l.items || []).some(function (i) { return (!lm || i.site === lm) && (!q || (i.gname + i.gid).toLowerCase().indexOf(q) > -1); })); });
+    var list = LOGS.slice().sort(function (a, b) { return a.time < b.time ? 1 : -1; }).filter(function (l) { return inDate(l.time, lf.from, lf.to) && ((!q && !lm.length) || (l.items || []).some(function (i) { return (!lm.length || lm.indexOf(i.site) > -1) && (!q || (i.gname + i.gid).toLowerCase().indexOf(q) > -1); })); });
     var html = pagerHtml('log', list.length), c = PG.log;
     $('logBody').innerHTML = list.slice((c - 1) * PSZ, c * PSZ).map(function (l) {
       return '<tr><td><span class="dir">' + l.menu + ',' + l.page + '</span></td><td class="w">' + l.url + '</td><td><span class="ipl">' + l.ip + '</span></td><td>' + l.os + '</td><td><span class="optag">' + l.op + '</span></td><td>' + l.detail + '</td><td>' + l.time + '</td><td><a class="lk" data-log="' + l.id + '">详情</a></td></tr>';
@@ -1078,8 +1086,8 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     var l = LOGS.filter(function (x) { return x.id === id; })[0]; if (!l) return;
     var items = '';
     if (l.items) {
-      items = '<div><span class="sec">变更明细<i class="nb" style="top:-8px;right:-30px">NEW</i></span><div class="tbl-scroll"><table class="dt2"><thead><tr><th>商户</th><th>原厂厂商</th><th>游戏</th><th>改前去向</th><th>改后去向</th><th>结果</th></tr></thead><tbody>' +
-        l.items.map(function (i) { return '<tr><td><span class="mono">' + i.site + '</span></td><td>' + SRC[i.v].n + '</td><td>' + i.gid + '</td><td>' + vhtml(i.from, i.v) + '</td><td>' + vhtml(i.to, i.v) + '</td><td><span class="st ' + (i.ok ? 'ok' : 'bad') + '" style="margin:0">' + (i.ok ? '成功' : '失败：' + i.reason) + '</span></td></tr>'; }).join('') + '</tbody></table></div></div>';
+      items = '<div><span class="sec">变更明细<i class="nb" style="top:-8px;right:-30px">NEW</i></span><div class="tbl-scroll"><table class="dt2"><thead><tr><th>原厂厂商</th><th>游戏</th><th>改前去向</th><th>改后去向</th><th>结果</th></tr></thead><tbody>' +
+        l.items.map(function (i) { return '<tr><td>' + SRC[i.v].n + '</td><td>' + i.gid + '</td><td>' + vhtml(i.from, i.v) + '</td><td>' + vhtml(i.to, i.v) + '</td><td><span class="st ' + (i.ok ? 'ok' : 'bad') + '" style="margin:0">' + (i.ok ? '成功' : '失败：' + i.reason) + '</span></td></tr>'; }).join('') + '</tbody></table></div></div>';
     }
     $('modal').innerHTML = '<div class="mh"><b>日志详情</b><button class="x" data-m="close" aria-label="关闭">×</button></div><div class="mb"><div class="dgrid">' +
       '<div><span class="k">日志编号：</span>' + l.id + '</div><div><span class="k">操作目录：</span><span class="optag">' + l.menu + '</span></div>' +
@@ -1362,7 +1370,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
   }
 
   /* ===== 映射变更记录 ===== */
-  var rc = { op: '', m: '', g: '', no: '', res: 'all', from: '', to: '' };
+  var rc = { op: '', m: [], g: '', no: '', res: 'all', from: '', to: '' };
   // 一个批次的「切换内容」：例如 SPRIBE → GameBox，Dice、Balloon、Mines 等 9 款 × AR001、AR012、AR016 等 8 站
   function listNames(arr, n, unit) { return arr.slice(0, n).join('、') + (arr.length > n ? ' 等 ' + arr.length + ' ' + unit : (arr.length > 1 ? '（共 ' + arr.length + ' ' + unit + '）' : '')); }
   function recSum(r) {
@@ -1376,7 +1384,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     var parts = ord.slice(0, 2).map(function (k) {
       var x = g[k];
       return '<div style="margin-bottom:3px"><span style="white-space:nowrap"><b>' + SRC[x.v].n + '</b> ' + (x.t ? '→ ' + chip(x.t, x.v) : '<span style="color:var(--red)">切回原厂</span>') + '</span>' +
-        '<div class="nt">' + listNames(x.g, 3, '款') + ' × ' + listNames(x.s, 3, '站') + '</div></div>';
+        '<div class="nt">' + listNames(x.g, 3, '款') + '</div></div>';
     });
     return parts.join('') + (ord.length > 2 ? '<span class="nt">等 ' + ord.length + ' 项</span>' : '');
   }
@@ -1401,7 +1409,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
       if (rc.res === 'ok' && bad) return false; if (rc.res === 'bad' && !bad) return false;
       if (rc.op && r.op.toLowerCase().indexOf(rc.op.toLowerCase()) < 0) return false;
       if (qn && r.no.toLowerCase().indexOf(qn) < 0) return false;
-      if ((rc.m || q) && !r.items.some(function (i) { return (!rc.m || i.site === rc.m) && (!q || (i.gname + i.gid).toLowerCase().indexOf(q) > -1); })) return false;
+      if ((rc.m.length || q) && !r.items.some(function (i) { return (!rc.m.length || rc.m.indexOf(i.site) > -1) && (!q || (i.gname + i.gid).toLowerCase().indexOf(q) > -1); })) return false;
       return true;
     });
     var html = pagerHtml('rec', list.length), c = PG.rec;
@@ -1409,16 +1417,16 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     $('rcBody').innerHTML = list.slice((c - 1) * PSZ, c * PSZ).map(function (r) {
       var sn = {}, bad = r.items.filter(function (i) { return !i.ok; }).length; r.items.forEach(function (i) { sn[i.site] = 1; });
       var by = RECS.filter(function (x) { return x.retryOf === r.no; })[0];
-      return '<tr><td class="mono">' + r.no + (r.retry ? '<div class="nt">重试自 ' + r.retryOf + '</div>' : '') + (by ? '<div class="nt">已由 ' + by.no + ' 重试</div>' : '') + '</td><td><span class="optag">' + r.op + '</span></td><td>' + r.time + '</td><td class="l">' + recSum(r) + '</td><td>' + Object.keys(sn).length + '</td><td>' + r.items.length + '</td><td>' +
+      return '<tr><td class="mono">' + r.no + (r.retry ? '<div class="nt">重试自 ' + r.retryOf + '</div>' : '') + (by ? '<div class="nt">已由 ' + by.no + ' 重试</div>' : '') + '</td><td><span class="optag">' + r.op + '</span></td><td>' + r.time + '</td><td class="mono">' + r.items[0].site + '</td><td class="l">' + recSum(r) + '</td><td>' + r.items.length + '</td><td>' +
         (bad ? '<span class="st bad" style="margin:0">' + bad + ' 项失败</span>' : '<span class="st ok" style="margin:0">全部成功</span>') + '</td><td><a class="lk" data-rec="' + r.id + '">详情</a></td></tr>';
     }).join('') || '<tr><td colspan="8" class="empty">无数据</td></tr>';
     $('rcPager').innerHTML = html;
   }
   function openRec(id, view, rel) {
     var r = RECS.filter(function (x) { return x.id === id; })[0]; if (!r) return;
-    view = view || 'g';
-    var q = rc.g.trim().toLowerCase(), hasQ = !!(q || rc.m), qLab = [rc.m, rc.g.trim()].filter(Boolean).join(' / ');
-    var match = function (i) { return (!rc.m || i.site === rc.m) && (!q || (i.gname + i.gid).toLowerCase().indexOf(q) > -1); };
+    view = 'd';
+    var q = rc.g.trim().toLowerCase(), hasQ = !!q, qLab = rc.g.trim();
+    var match = function (i) { return (i.gname + i.gid).toLowerCase().indexOf(q) > -1; };
     var relCount = hasQ ? r.items.filter(match).length : 0;
     var useRel = rel === undefined ? (hasQ && relCount > 0) : (rel && relCount > 0);
     var items = useRel ? r.items.filter(match) : r.items;
@@ -1428,23 +1436,23 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     if (view === 'g') {
       var gp = {}, ord = [];
       items.forEach(function (i) { var k = [i.v, i.gid, i.from, i.to, i.ok].join('|'); if (!gp[k]) { gp[k] = { i: i, sites: [] }; ord.push(k); } gp[k].sites.push(i.site); });
-      table = '<div class="tbl-scroll"><table class="dt2"><thead><tr><th>原厂游戏</th><th>改前 → 改后</th><th>涉及商户</th><th>保存结果</th></tr></thead><tbody>' + ord.map(function (k) {
+      table = '<div class="tbl-scroll"><table class="dt2"><thead><tr><th>原厂游戏</th><th>改前 → 改后</th><th>保存结果</th></tr></thead><tbody>' + ord.map(function (k) {
         var o = gp[k], i = o.i;
         return '<tr><td><b>' + i.gname + '</b><div class="nt mono">' + SRC[i.v].n + ' · ' + i.gid + '</div></td><td>' + vhtml(i.from, i.v) + ' <span class="arrow">→</span> ' + vhtml(i.to, i.v) + '</td><td><div class="nt">' + o.sites.length + ' 个站</div>' + o.sites.map(function (x) { return '<span class="sit">' + x + '</span>'; }).join('') + '</td><td><span class="st ' + (i.ok ? 'ok' : 'bad') + '" style="margin:0">' + (i.ok ? '成功' : '失败：' + i.reason) + '</span></td></tr>';
       }).join('') + '</tbody></table></div>';
     } else {
-      table = '<div class="tbl-scroll"><table class="dt2"><thead><tr><th>商户</th><th>原厂厂商</th><th>原厂游戏</th><th>改前</th><th>改后</th><th>保存结果</th></tr></thead><tbody>' + items.map(function (i) {
-        return '<tr><td><span class="mono">' + i.site + '</span></td><td>' + SRC[i.v].n + '</td><td>' + i.gid + (i.gname !== i.gid ? ' · ' + i.gname : '') + '</td><td>' + vhtml(i.from, i.v) + '</td><td>' + vhtml(i.to, i.v) + '</td><td><span class="st ' + (i.ok ? 'ok' : 'bad') + '" style="margin:0">' + (i.ok ? '成功' : '失败：' + i.reason) + '</span></td></tr>';
+      table = '<div class="tbl-scroll"><table class="dt2"><thead><tr><th>原厂厂商</th><th>原厂游戏</th><th>改前</th><th>改后</th><th>保存结果</th></tr></thead><tbody>' + items.map(function (i) {
+        return '<tr><td>' + SRC[i.v].n + '</td><td>' + i.gid + (i.gname !== i.gid ? ' · ' + i.gname : '') + '</td><td>' + vhtml(i.from, i.v) + '</td><td>' + vhtml(i.to, i.v) + '</td><td><span class="st ' + (i.ok ? 'ok' : 'bad') + '" style="margin:0">' + (i.ok ? '成功' : '失败：' + i.reason) + '</span></td></tr>';
       }).join('') + '</tbody></table></div>';
     }
     modal = { stage: 'view', recId: id, view: view, rel: useRel, relCount: relCount };
     var banner = hasQ && relCount > 0 ? '<div class="tipbox">' + (useRel ? '当前只显示与「' + esc(qLab) + '」相关的 ' + items.length + ' 项（本批次共 ' + r.items.length + ' 项）。<a class="lk" data-rall="1">显示本批次全部</a>' : '本批次共 ' + r.items.length + ' 项，其中与「' + esc(qLab) + '」相关的有 ' + relCount + ' 项。<a class="lk" data-rall="1">只看相关的</a>') + '</div>' : '';
     $('modal').innerHTML = head('变更批次 ' + r.no) + '<div class="mb"><div class="dgrid"><div><span class="k">操作人：</span><span class="optag">' + r.op + '</span></div><div><span class="k">操作时间：</span>' + r.time + '</div>' +
-      '<div><span class="k">涉及游戏：</span>' + Object.keys(gn).length + ' 款</div><div><span class="k">涉及商户：</span>' + Object.keys(sn).length + ' 个</div>' +
+      '<div><span class="k">涉及游戏：</span>' + Object.keys(gn).length + ' 款</div><div><span class="k">商户：</span><span class="mono">' + r.items[0].site + '</span></div>' +
       '<div class="full"><span class="k">变更数：</span>' + r.items.length + ' 项' + (bad ? '，其中 ' + bad + ' 项失败' : '') + '　<span class="k">切换内容：</span>' + recSum(r).replace(/<br>/g, ' ') + '</div>' +
-      (r.retryOf ? '<div class="full"><span class="k">重试自：</span>' + r.retryOf + '（本批次是对该批次失败商户的重试）</div>' : '') +
+      (r.retryOf ? '<div class="full"><span class="k">重试自：</span>' + r.retryOf + '（本批次是对该批次失败保存的重试）</div>' : '') +
       (RECS.filter(function (x) { return x.retryOf === r.no; })[0] ? '<div class="full"><span class="k">后续重试：</span>已由 ' + RECS.filter(function (x) { return x.retryOf === r.no; })[0].no + ' 重试</div>' : '') + '</div>' +
-      banner + '<div style="display:flex;gap:12px;align-items:center"><span class="sec" style="margin:0">' + (view === 'g' ? '按游戏合并显示' : '逐条明细') + '</span><a class="lk" data-rview="1">' + (view === 'g' ? '切换为逐条明细（' + items.length + ' 行）' : '切换为按游戏合并显示') + '</a></div>' + table +
+      banner + '<div><span class="sec" style="margin:0">变更明细</span></div>' + table +
       '</div><div class="mf"><button class="btn" data-m="rexp" style="margin-right:auto">导出本批次明细</button><button class="btn p" data-m="close">关闭</button></div>';
     openMask('w');
   }
@@ -1495,13 +1503,13 @@ tr:hover .cpy,.cpy:focus{opacity:1}
   $('modal').addEventListener('input', function () { if (modal && modal.stage === 'batch') refreshBatch(); });
   $('modal').addEventListener('change', function () { if (modal && modal.stage === 'batch') refreshBatch(); });
   $('btnReset').onclick = function () {
-    var n = ptotal(); if (!n) return;
+    var n = ctotal(); if (!n) return;
     var snap = JSON.parse(JSON.stringify(pending));
-    pending = {}; blk = null; renderAll();
-    toastAct('已撤销全部待保存的改动（' + n + ' 项）', '撤回', function () { pending = snap; renderAll(); });
+    csites().forEach(function (x) { delete pending[x]; }); blk = null; renderAll();
+    toastAct('已撤销当前商户待保存的改动（' + n + ' 项）', '撤回', function () { pending = snap; renderAll(); });
   };
   $('btnSave').onclick = function () {
-    if (!ptotal()) return; modal = { stage: 'checking' }; renderModal(); openMask('');
+    if (!ctotal()) return; modal = { stage: 'checking' }; renderModal(); openMask('');
     setTimeout(function () { if (modal && modal.stage === 'checking') { modal.stage = 'confirm'; renderModal(); } }, 700);
   };
   $('mask').onclick = function (e) {
@@ -1511,8 +1519,8 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     if (a === 'close') closeMask();
     else if (a === 'swapfree') { var kk = m.k, vv = m.val; selected().forEach(function (x) { if (!hard(x, kk, vv)) setSite(x, kk, vv); }); closeMask(); renderAll(); toast('已选中没被占用的商户（待保存）'); }
     else if (a === 'free') { m.adds.forEach(function (x) { setSite(x.s, x.k, x.val); }); closeMask(); renderAll(); toast('已只选未被占用的 ' + m.adds.length + ' 项（待保存）'); }
-    else if (a === 'ok') submit(psites(), $('demoFail').checked);
-    else if (a === 'retry') { m.retry = true; submit(psites(), false); }
+    else if (a === 'ok') submit(csites(), $('demoFail').checked);
+    else if (a === 'retry') { m.retry = true; submit(csites(), false); }
     else if (a === 'bgo') { var bc = m.cards, bt = m.t; closeMask(); applyPick(bt, bc); }
     else if (a === 'log') { closeMask(); go('log'); }
     else if (a === 'rexp') { var rr = RECS.filter(function (x) { return x.id === m.recId; })[0]; download(rr.no + '_明细.csv', csvOf([RHEAD].concat(recRows(rr))), '已导出 ' + rr.items.length + ' 条明细'); }
@@ -1573,8 +1581,8 @@ tr:hover .cpy,.cpy:focus{opacity:1}
   function goEdit(site, v) { sel = {}; sel[site] = 1; vendor = v; closeMask(); go('map'); renderAll(); toast('已选中 ' + site + '，可在此调整'); }
   $('ovMat').onclick = ovClick; $('ovCards').onclick = ovClick;
   $('ovCards').onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { var c = e.target.closest('[data-card]'); if (c) { e.preventDefault(); ovClick(e); } } };
-  $('rcGo').onclick = function () { if ($('rcFrom').value && $('rcTo').value && $('rcFrom').value > $('rcTo').value) { toast('开始日期不能晚于结束日期', true); return; } rc.op = $('rcOp').value; rc.m = $('rcM').value; rc.g = $('rcG').value; rc.no = $('rcNo').value; rc.res = $('rcRes').value; rc.from = $('rcFrom').value; rc.to = $('rcTo').value; PG.rec = 1; renderRecs(); };
-  $('rcReset').onclick = function () { $('rcOp').value = ''; $('rcM').value = ''; $('rcG').value = ''; $('rcNo').value = ''; $('rcRes').value = 'all'; $('rcFrom').value = ''; $('rcTo').value = ''; $('rcFrom').type = 'text'; $('rcTo').type = 'text'; rc = { op: '', m: '', g: '', no: '', res: 'all', from: '', to: '' }; PG.rec = 1; renderRecs(); };
+  $('rcGo').onclick = function () { if ($('rcFrom').value && $('rcTo').value && $('rcFrom').value > $('rcTo').value) { toast('开始日期不能晚于结束日期', true); return; } rc.op = $('rcOp').value; rc.m = MS.rc.get(); rc.g = $('rcG').value; rc.no = $('rcNo').value; rc.res = $('rcRes').value; rc.from = $('rcFrom').value; rc.to = $('rcTo').value; PG.rec = 1; renderRecs(); };
+  $('rcReset').onclick = function () { $('rcOp').value = ''; MS.rc.clear(); $('rcG').value = ''; $('rcNo').value = ''; $('rcRes').value = 'all'; $('rcFrom').value = ''; $('rcTo').value = ''; $('rcFrom').type = 'text'; $('rcTo').type = 'text'; rc = { op: '', m: [], g: '', no: '', res: 'all', from: '', to: '' }; PG.rec = 1; renderRecs(); };
   $('rcExp').onclick = function () { var rows = [RHEAD]; lastRecList.forEach(function (r) { rows = rows.concat(recRows(r)); }); download('映射变更记录明细.csv', csvOf(rows), '已导出 ' + lastRecList.length + ' 个批次、' + (rows.length - 1) + ' 条明细'); };
   $('rcBody').onclick = function (e) { var a = e.target.closest('[data-rec]'); if (a) openRec(a.dataset.rec); };
   $('modal').addEventListener('click', function (e) {
@@ -1587,10 +1595,28 @@ tr:hover .cpy,.cpy:focus{opacity:1}
       restore([{ site: x.it.site, v: x.it.v, gid: x.it.gid, val: x.it.from }], '映射还原');
     }
   });
-  $('logGo').onclick = function () { if ($('logFrom').value && $('logTo').value && $('logFrom').value > $('logTo').value) { toast('开始日期不能晚于结束日期', true); return; } lq = $('logQ').value; lm = $('logM').value; lf = { from: $('logFrom').value, to: $('logTo').value }; PG.log = 1; renderLogs(); };
-  $('logReset').onclick = function () { $('logQ').value = ''; $('logM').value = ''; lm = ''; lq = ''; $('logFrom').value = ''; $('logTo').value = ''; $('logFrom').type = 'text'; $('logTo').type = 'text'; lf = { from: '', to: '' }; PG.log = 1; renderLogs(); };
+  $('logGo').onclick = function () { if ($('logFrom').value && $('logTo').value && $('logFrom').value > $('logTo').value) { toast('开始日期不能晚于结束日期', true); return; } lq = $('logQ').value; lm = MS.log.get(); lf = { from: $('logFrom').value, to: $('logTo').value }; PG.log = 1; renderLogs(); };
+  $('logReset').onclick = function () { $('logQ').value = ''; MS.log.clear(); lm = []; lq = ''; $('logFrom').value = ''; $('logTo').value = ''; $('logFrom').type = 'text'; $('logTo').type = 'text'; lf = { from: '', to: '' }; PG.log = 1; renderLogs(); };
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-pg]'); if (!b || b.disabled) return; var x = b.dataset.pg.split('|'); PG[x[0]] = +x[1]; if (x[0] === 'rec') renderRecs(); else renderLogs(); });
-  ['rcM', 'logM'].forEach(function (id) { $(id).innerHTML = '<option value="">全部商户</option>' + SITES.map(function (x) { return '<option value="' + x + '">' + x + '</option>'; }).join(''); });
+  var MS = {};
+  function mkMs(p) {
+    var st = {};
+    function txt() { var k = SITES.filter(function (s) { return st[s]; }); $(p + 'MsTxt').textContent = !k.length ? '全部商户' : k.length <= 2 ? k.join('、') : '已选 ' + k.length + ' 个商户'; }
+    function draw() {
+      var q = toks($(p + 'MsQ').value);
+      var list = SITES.filter(function (s) { return !q.length || q.some(function (t) { return s.toLowerCase().indexOf(t) > -1; }); });
+      $(p + 'MsList').innerHTML = list.map(function (s) { return '<label class="ddi"><input type="checkbox" data-s="' + s + '"' + (st[s] ? ' checked' : '') + '><span class="sn">' + s + '</span></label>'; }).join('') || '<div class="empty" style="padding:16px">没有匹配的商户</div>';
+      txt();
+    }
+    $(p + 'MsBtn').onclick = function () { var h = $(p + 'Dd').hidden; $(p + 'Dd').hidden = !h; if (h) { draw(); $(p + 'MsQ').focus(); } };
+    $(p + 'MsQ').oninput = draw;
+    $(p + 'MsList').onchange = function (e) { var x = e.target.dataset.s; if (!x) return; if (e.target.checked) st[x] = 1; else delete st[x]; txt(); };
+    $(p + 'MsAll').onclick = function () { [].forEach.call($(p + 'MsList').querySelectorAll('input'), function (i) { st[i.dataset.s] = 1; }); draw(); };
+    $(p + 'MsNone').onclick = function () { st = {}; draw(); };
+    document.addEventListener('mousedown', function (e) { if (!$(p + 'Ms').contains(e.target)) $(p + 'Dd').hidden = true; });
+    MS[p] = { get: function () { return SITES.filter(function (s) { return st[s]; }); }, clear: function () { st = {}; $(p + 'MsQ').value = ''; $(p + 'Dd').hidden = true; txt(); } };
+  }
+  mkMs('rc'); mkMs('log');
   $('logQ').onkeydown = function (e) { if (e.key === 'Enter') $('logGo').click(); };
 
   function drawer(o) { document.body.classList.toggle('dopen', o); }
@@ -1629,10 +1655,14 @@ tr:hover .cpy,.cpy:focus{opacity:1}
   ev('2026-09-28', ['demoINR9901'], 'PG', ['fortune-tiger', 'mahjong-ways', 'fortune-ox', 'lucky-neko', 'wild-bandito', 'treasures-aztec'], 'TB');
   (function () {
     var g = {}, ord = [];
-    EV.forEach(function (e) { var k = e.d + '|' + e.v + '|' + e.to; if (!g[k]) { g[k] = []; ord.push(k); } g[k].push([e.s, e.v, e.g, e.to]); });
+    EV.forEach(function (e) { var k = e.d + '|' + e.s; if (!g[k]) { g[k] = []; ord.push(k); } g[k].push([e.s, e.v, e.g, e.to]); });
     ord.sort();
     var ops = ['luna00', 'kefu08', 'aradmin'];
-    ord.forEach(function (k, i) { seedRec(k.split('|')[0] + ' ' + (10 + (i % 8)) + ':' + (10 + (i * 7) % 50) + ':' + (10 + (i * 13) % 50), ops[i % 3], g[k]); });
+    var dayN = {};
+    ord.forEach(function (k, i) {
+      var d = k.split('|')[0], n = dayN[d] = (dayN[d] || 0) + 1, mins = 9 * 60 + n * 3;
+      seedRec(d + ' ' + ('0' + Math.floor(mins / 60) % 24).slice(-2) + ':' + ('0' + mins % 60).slice(-2) + ':' + ('0' + (10 + (i * 13) % 50)).slice(-2), ops[i % 3], g[k]);
+    });
   })();
   // 上线前就存在的映射：上线时一次性扫描补录，日期取商户端的最后更新时间（近似），操作人记为「系统补录」
   [['AR098', 'PG:fortune-ox', '2026-03-12'], ['AR043', 'SP:dice', '2026-02-27'], ['AR044', 'JL:134', '2026-04-02']].forEach(function (x) {
