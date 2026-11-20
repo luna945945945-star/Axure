@@ -372,6 +372,26 @@ tr:hover .cpy,.cpy:focus{opacity:1}
 .sumc{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin-bottom:8px;background:#fbfcfd}
 .sumh{display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap}
 .sumh .btns{margin-left:auto;display:flex;gap:8px}
+
+.rng{position:relative;display:inline-block}
+.rng .rb{display:flex;align-items:center;gap:8px;height:32px;min-width:250px;padding:0 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);cursor:pointer;color:var(--text);text-align:left}
+.rng .rb:hover,.rng.open .rb{border-color:var(--primary)}
+.rng .rb .ph{color:#a6adb8}.rng .rb .ar{color:var(--sub)}.rng .rb .ic{margin-left:auto;color:var(--sub)}
+.rng .pop{position:absolute;left:0;top:36px;z-index:40;background:var(--card);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.14);padding:10px;display:none}
+.rng.open .pop{display:block}
+.rng .ms2{display:flex;gap:16px}
+.rng .mo{width:210px}
+.rng .mh2{display:flex;align-items:center;justify-content:space-between;height:28px;font-weight:600}
+.rng .mh2 button{border:0;background:none;width:24px;height:24px;color:var(--sub);cursor:pointer;border-radius:4px}
+.rng .mh2 button:hover{background:var(--head-bg)}
+.rng .wk,.rng .dg{display:grid;grid-template-columns:repeat(7,1fr)}
+.rng .wk span{text-align:center;color:var(--sub);font-size:12px;line-height:24px}
+.rng .dg button{border:0;background:none;height:28px;cursor:pointer;font-size:13px;position:relative}
+.rng .dg button.o{visibility:hidden}
+.rng .dg button.in{background:var(--primary-bg)}
+.rng .dg button.se{background:var(--primary);color:#fff;border-radius:4px}
+.rng .dg button:not(.se):not(.o):hover{outline:1px solid var(--primary);outline-offset:-1px;border-radius:4px}
+.rng .ft{display:flex;justify-content:space-between;align-items:center;margin-top:8px;color:var(--sub);font-size:12px}
 .dtin{width:132px;border:1px solid var(--line);border-radius:6px;height:32px;padding:0 8px;background:var(--card)}
 @media (max-width:900px){
   body{min-width:0}
@@ -492,14 +512,15 @@ tr:hover .cpy,.cpy:focus{opacity:1}
         <h2><span class="rel">映射变更记录<i class="nb" style="top:-6px;right:-30px">NEW</i></span></h2>
         <div class="card fcard">
           <div class="frow">
-            <div class="f"><label>操作时间</label><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="rcFrom" aria-label="开始日期" placeholder="开始日期"><span>→</span><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="rcTo" aria-label="结束日期" placeholder="结束日期"></div>
-            <div class="f"><label>操作人</label><input class="inp" id="rcOp" placeholder="如 luna00" aria-label="操作人" style="width:140px"></div>
             <div class="f"><label>商户</label><div class="ms" id="rcMs" style="width:200px"><button class="btn" id="rcMsBtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:0 10px;text-align:left" aria-haspopup="listbox"><span id="rcMsTxt">全部商户</span><span style="color:var(--sub)">▾</span></button>
               <div class="dd" id="rcDd" hidden style="width:300px;right:auto"><input id="rcMsQ" placeholder="搜索商户，可输入多个（逗号或空格隔开）" autocomplete="off" aria-label="搜索商户">
                 <div class="ddtools" style="margin-top:6px"><button class="lk" id="rcMsAll">全选当前结果</button><button class="lk" id="rcMsNone">清空已选</button></div>
                 <div class="ddl" id="rcMsList"></div></div></div></div>
+            <div class="f"><label>操作人</label><input class="inp" id="rcOp" placeholder="如 luna00" aria-label="操作人" style="width:140px"></div>
             <div class="f"><label>子游戏名称/编码</label><input class="inp" id="rcG" placeholder="如 Aviator" aria-label="子游戏名称或编码" style="width:150px"></div>
             <div class="f"><label>结果</label><select class="vsel" id="rcRes" aria-label="结果" style="min-width:110px"><option value="all">全部</option><option value="ok">全部成功</option><option value="bad">含失败</option></select></div>
+            
+            <div class="f"><label>操作时间</label><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="rcFrom" aria-label="开始日期" placeholder="开始日期"><span>→</span><input type="text" class="dtin" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'" id="rcTo" aria-label="结束日期" placeholder="结束日期"></div>
             <div style="margin-left:auto;display:flex;gap:8px"><button class="btn p" id="rcGo">查询</button><button class="btn" id="rcReset">重置</button><button class="btn" id="rcExp">导出明细</button></div>
           </div>
         </div>
@@ -571,7 +592,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     <div class="rule c"><span class="n">5</span><div><span class="tg2">核心</span>点「保存」后（只保存当前商户），先读取该商户当前映射，再弹出确认表。确认表顶部写明合计：新增几项、<b style="color:#f5222d">替换几项</b>、取消几项；替换项整行标红，写明「原厂商 → 新厂商」，并汇总如「GameBox → UP 4 项」。有替换项时按钮写「确认保存（含 N 项替换）」。</div></div>
     <div class="rule c"><span class="n">6</span><div><span class="tg2">核心</span>点「确认保存」后：保存成功则关闭弹窗并提示「保存成功」；保存失败则弹窗保留，显示失败原因，改动仍留在待保存，可重试。重试生成新批次，注明「重试自」哪个批次，原批次注明「已由」哪个批次重试。</div></div>
     <div class="rule c"><span class="n">7</span><div><span class="tg2">核心</span>每次保存生成一个变更批次（有批次号），<b>一个批次只涉及一个商户</b>，记录操作人、商户、操作时间，以及每个游戏的改前去向、改后去向和结果，失败的也记录。日志管理同步一条日志，详情与变更记录一致。</div></div>
-    <div class="rule c"><span class="n">8</span><div><span class="tg2">核心</span>映射变更记录：按批次倒序，每页 20 条；筛选项依次为操作时间、操作人、商户（下拉多选，可搜索，不选表示全部）、子游戏名称/编码（输入框）、结果，开始日期不能晚于结束日期。列表列为批次号、操作人、操作时间、商户、切换内容（原厂→高仿、哪几款游戏）、变更数、结果。详情一个游戏一行，列出改前改后和保存结果；按子游戏搜索进入时默认只显示相关的游戏，可切换为本批次全部。列表和详情可导出 CSV。记录只增不改，不能删除。</div></div>
+    <div class="rule c"><span class="n">8</span><div><span class="tg2">核心</span>映射变更记录：按批次倒序，每页 20 条；筛选项依次为商户（下拉多选，可搜索，不选表示全部）、操作人、子游戏名称/编码（输入框）、结果、操作时间（一个控件选开始和结束日期）。列表列为批次号、操作人、操作时间、商户、切换内容（原厂→高仿、哪几款游戏）、变更数、结果。详情一个游戏一行，列出改前改后和保存结果；按子游戏搜索进入时默认只显示相关的游戏，可切换为本批次全部。列表和详情可导出 CSV。记录只增不改，不能删除。</div></div>
     <div class="rule"><span class="n">9</span><div>单个映射的「历史」：列出该商户该游戏的每次变更（时间、操作人、批次号、改前、改后、结果）。可把某次变更之前的去向放入待保存（还原为改前），仍需确认后保存；「去调整」跳到映射管理并选中该商户。不提供整批改回。</div></div>
     <div class="rule c"><span class="n">10</span><div><span class="tg2">核心</span>映射总览展示<b>全部商户的全部现有映射</b>，包括上线前就有的。分三部分：
       <br>① <b>筛选</b>（依次）：商户（下拉多选，可搜索，不选表示全部）、原厂厂商、高仿厂商、子游戏名称/编码（可输入多个，规则同第 3 条）、币种、切换日期（开始不能晚于结束）。点「查询」才生效，游戏输入框按回车等同查询，「重置」恢复默认；点卡片、复制立即生效。
@@ -1596,6 +1617,57 @@ tr:hover .cpy,.cpy:focus{opacity:1}
   $('logGo').onclick = function () { if ($('logFrom').value && $('logTo').value && $('logFrom').value > $('logTo').value) { toast('开始日期不能晚于结束日期', true); return; } lq = $('logQ').value; lm = MS.log.get(); lf = { from: $('logFrom').value, to: $('logTo').value }; PG.log = 1; renderLogs(); };
   $('logReset').onclick = function () { $('logQ').value = ''; MS.log.clear(); lm = []; lq = ''; $('logFrom').value = ''; $('logTo').value = ''; $('logFrom').type = 'text'; $('logTo').type = 'text'; lf = { from: '', to: '' }; PG.log = 1; renderLogs(); };
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-pg]'); if (!b || b.disabled) return; var x = b.dataset.pg.split('|'); PG[x[0]] = +x[1]; if (x[0] === 'rec') renderRecs(); else renderLogs(); });
+
+  /* ===== 日期范围：一个控件选开始和结束 ===== */
+  function mkRange(fid, tid) {
+    var fi = $(fid), ti = $(tid), vals = { f: '', t: '' }, view = new Date(), step = 0;
+    view = new Date(view.getFullYear(), view.getMonth() - 1, 1);
+    var sp = fi.nextElementSibling; if (sp && sp.tagName === 'SPAN') sp.style.display = 'none';
+    fi.style.display = 'none'; ti.style.display = 'none';
+    var box = document.createElement('div'); box.className = 'rng';
+    box.innerHTML = '<button type="button" class="rb" aria-haspopup="dialog"><span class="a"></span><span class="ar">→</span><span class="b"></span><span class="ic">📅</span></button><div class="pop" role="dialog"></div>';
+    ti.parentNode.insertBefore(box, ti.nextSibling);
+    var btn = box.querySelector('.rb'), pop = box.querySelector('.pop');
+    function pad(n) { return ('0' + n).slice(-2); }
+    function ymd(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
+    function paintBtn() {
+      var a = box.querySelector('.a'), b = box.querySelector('.b');
+      a.textContent = vals.f || '开始日期'; a.className = 'a' + (vals.f ? '' : ' ph');
+      b.textContent = vals.t || '结束日期'; b.className = 'b' + (vals.t ? '' : ' ph');
+    }
+    function month(y, m, first, last) {
+      var lead = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate(), h = '';
+      for (var i = 0; i < lead; i++) h += '<button class="o" tabindex="-1"></button>';
+      for (var d = 1; d <= days; d++) {
+        var k = ymd(y, m, d), c = '';
+        if (k === vals.f || k === vals.t) c = 'se'; else if (vals.f && vals.t && k > vals.f && k < vals.t) c = 'in';
+        h += '<button type="button" class="' + c + '" data-d="' + k + '">' + d + '</button>';
+      }
+      return '<div class="mo"><div class="mh2">' + (first ? '<button type="button" data-nav="-1" aria-label="上个月">‹</button>' : '<span></span>') + '<span>' + y + ' 年 ' + (m + 1) + ' 月</span>' + (last ? '<button type="button" data-nav="1" aria-label="下个月">›</button>' : '<span></span>') + '</div><div class="wk"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="dg">' + h + '</div></div>';
+    }
+    function draw() {
+      var y = view.getFullYear(), m = view.getMonth(), n = new Date(y, m + 1, 1);
+      pop.innerHTML = '<div class="ms2">' + month(y, m, true, false) + month(n.getFullYear(), n.getMonth(), false, true) + '</div><div class="ft"><span>' + (step === 1 ? '请选择结束日期' : '请选择开始日期，再选结束日期') + '</span><button type="button" class="lk" data-clr="1">清除</button></div>';
+    }
+    function fire() { fi.dispatchEvent(new Event('change')); ti.dispatchEvent(new Event('change')); }
+    function open() { box.classList.add('open'); step = 0; if (vals.f) { var p = vals.f.split('-'); view = new Date(+p[0], +p[1] - 1, 1); } draw(); }
+    function close() { box.classList.remove('open'); }
+    btn.onclick = function () { box.classList.contains('open') ? close() : open(); };
+    pop.onclick = function (e) {
+      var n = e.target.closest('[data-nav]'); if (n) { view = new Date(view.getFullYear(), view.getMonth() + (+n.dataset.nav), 1); draw(); return; }
+      if (e.target.closest('[data-clr]')) { vals.f = ''; vals.t = ''; step = 0; paintBtn(); fire(); draw(); return; }
+      var d = e.target.closest('[data-d]'); if (!d) return; var k = d.dataset.d;
+      if (step === 0) { vals.f = k; vals.t = ''; step = 1; paintBtn(); draw(); }
+      else { if (k < vals.f) { vals.t = vals.f; vals.f = k; } else vals.t = k; step = 0; paintBtn(); fire(); close(); }
+    };
+    document.addEventListener('mousedown', function (e) { if (!box.contains(e.target)) close(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    [['f', fi], ['t', ti]].forEach(function (x) {
+      Object.defineProperty(x[1], 'value', { get: function () { return vals[x[0]]; }, set: function (v) { vals[x[0]] = v || ''; paintBtn(); } });
+    });
+    paintBtn();
+  }
+  mkRange('rcFrom', 'rcTo'); mkRange('logFrom', 'logTo'); mkRange('ovFrom', 'ovTo');
   var MS = {};
   function mkMs(p) {
     var st = {};
