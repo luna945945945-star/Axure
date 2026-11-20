@@ -499,7 +499,6 @@ tr:hover .cpy,.cpy:focus{opacity:1}
                 <div class="ddtools" style="margin-top:6px"><button class="lk" id="rcMsAll">全选当前结果</button><button class="lk" id="rcMsNone">清空已选</button></div>
                 <div class="ddl" id="rcMsList"></div></div></div></div>
             <div class="f"><label>子游戏名称/编码</label><input class="inp" id="rcG" placeholder="如 Aviator" aria-label="子游戏名称或编码" style="width:150px"></div>
-            <div class="f"><label>批次号</label><input class="inp" id="rcNo" placeholder="如 MP20261118-001" aria-label="批次号" style="width:170px"></div>
             <div class="f"><label>结果</label><select class="vsel" id="rcRes" aria-label="结果" style="min-width:110px"><option value="all">全部</option><option value="ok">全部成功</option><option value="bad">含失败</option></select></div>
             <div style="margin-left:auto;display:flex;gap:8px"><button class="btn p" id="rcGo">查询</button><button class="btn" id="rcReset">重置</button><button class="btn" id="rcExp">导出明细</button></div>
           </div>
@@ -572,7 +571,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     <div class="rule c"><span class="n">5</span><div><span class="tg2">核心</span>点「保存」后（只保存当前商户），先读取该商户当前映射，再弹出确认表。确认表顶部写明合计：新增几项、<b style="color:#f5222d">替换几项</b>、取消几项；替换项整行标红，写明「原厂商 → 新厂商」，并汇总如「GameBox → UP 4 项」。有替换项时按钮写「确认保存（含 N 项替换）」。</div></div>
     <div class="rule c"><span class="n">6</span><div><span class="tg2">核心</span>点「确认保存」后：保存成功则关闭弹窗并提示「保存成功」；保存失败则弹窗保留，显示失败原因，改动仍留在待保存，可重试。重试生成新批次，注明「重试自」哪个批次，原批次注明「已由」哪个批次重试。</div></div>
     <div class="rule c"><span class="n">7</span><div><span class="tg2">核心</span>每次保存生成一个变更批次（有批次号），<b>一个批次只涉及一个商户</b>，记录操作人、商户、操作时间，以及每个游戏的改前去向、改后去向和结果，失败的也记录。日志管理同步一条日志，详情与变更记录一致。</div></div>
-    <div class="rule c"><span class="n">8</span><div><span class="tg2">核心</span>映射变更记录：按批次倒序，每页 20 条；筛选项依次为操作时间、操作人、商户（下拉多选，可搜索，不选表示全部）、子游戏名称/编码（输入框）、批次号（输入框）、结果，开始日期不能晚于结束日期；批次号是每次保存自动生成的编号，同一次保存的所有变更共用一个。列表列为批次号、操作人、操作时间、商户、切换内容（原厂→高仿、哪几款游戏）、变更数、结果。详情一个游戏一行，列出改前改后和保存结果；按子游戏搜索进入时默认只显示相关的游戏，可切换为本批次全部。列表和详情可导出 CSV。记录只增不改，不能删除。</div></div>
+    <div class="rule c"><span class="n">8</span><div><span class="tg2">核心</span>映射变更记录：按批次倒序，每页 20 条；筛选项依次为操作时间、操作人、商户（下拉多选，可搜索，不选表示全部）、子游戏名称/编码（输入框）、结果，开始日期不能晚于结束日期。列表列为批次号、操作人、操作时间、商户、切换内容（原厂→高仿、哪几款游戏）、变更数、结果。详情一个游戏一行，列出改前改后和保存结果；按子游戏搜索进入时默认只显示相关的游戏，可切换为本批次全部。列表和详情可导出 CSV。记录只增不改，不能删除。</div></div>
     <div class="rule"><span class="n">9</span><div>单个映射的「历史」：列出该商户该游戏的每次变更（时间、操作人、批次号、改前、改后、结果）。可把某次变更之前的去向放入待保存（还原为改前），仍需确认后保存；「去调整」跳到映射管理并选中该商户。不提供整批改回。</div></div>
     <div class="rule c"><span class="n">10</span><div><span class="tg2">核心</span>映射总览展示<b>全部商户的全部现有映射</b>，包括上线前就有的。分三部分：
       <br>① <b>筛选</b>（依次）：商户（下拉多选，可搜索，不选表示全部）、原厂厂商、高仿厂商、子游戏名称/编码（可输入多个，规则同第 3 条）、币种、切换日期（开始不能晚于结束）。点「查询」才生效，游戏输入框按回车等同查询，「重置」恢复默认；点卡片、复制立即生效。
@@ -1370,7 +1369,7 @@ tr:hover .cpy,.cpy:focus{opacity:1}
   }
 
   /* ===== 映射变更记录 ===== */
-  var rc = { op: '', m: [], g: '', no: '', res: 'all', from: '', to: '' };
+  var rc = { op: '', m: [], g: '', res: 'all', from: '', to: '' };
   // 一个批次的「切换内容」：例如 SPRIBE → GameBox，Dice、Balloon、Mines 等 9 款 × AR001、AR012、AR016 等 8 站
   function listNames(arr, n, unit) { return arr.slice(0, n).join('、') + (arr.length > n ? ' 等 ' + arr.length + ' ' + unit : (arr.length > 1 ? '（共 ' + arr.length + ' ' + unit + '）' : '')); }
   function recSum(r) {
@@ -1402,13 +1401,12 @@ tr:hover .cpy,.cpy:focus{opacity:1}
     return { c: 'chg', t: '之后已改为 ' + (curV === '' ? '原厂' : vname(curV.split(':')[0], i.v)) + (li && li.no !== r.no ? '（' + li.op + '，' + li.time.slice(5, 16) + '）' : ''), live: false };
   }
   function renderRecs() {
-    var q = rc.g.toLowerCase(), qn = rc.no.trim().toLowerCase();
+    var q = rc.g.toLowerCase();
     var list = RECS.filter(function (r) {
       var bad = r.items.some(function (i) { return !i.ok; });
       if (!inDate(r.time, rc.from, rc.to)) return false;
       if (rc.res === 'ok' && bad) return false; if (rc.res === 'bad' && !bad) return false;
       if (rc.op && r.op.toLowerCase().indexOf(rc.op.toLowerCase()) < 0) return false;
-      if (qn && r.no.toLowerCase().indexOf(qn) < 0) return false;
       if ((rc.m.length || q) && !r.items.some(function (i) { return (!rc.m.length || rc.m.indexOf(i.site) > -1) && (!q || (i.gname + i.gid).toLowerCase().indexOf(q) > -1); })) return false;
       return true;
     });
@@ -1581,8 +1579,8 @@ tr:hover .cpy,.cpy:focus{opacity:1}
   function goEdit(site, v) { sel = {}; sel[site] = 1; vendor = v; closeMask(); go('map'); renderAll(); toast('已选中 ' + site + '，可在此调整'); }
   $('ovMat').onclick = ovClick; $('ovCards').onclick = ovClick;
   $('ovCards').onkeydown = function (e) { if (e.key === 'Enter' || e.key === ' ') { var c = e.target.closest('[data-card]'); if (c) { e.preventDefault(); ovClick(e); } } };
-  $('rcGo').onclick = function () { if ($('rcFrom').value && $('rcTo').value && $('rcFrom').value > $('rcTo').value) { toast('开始日期不能晚于结束日期', true); return; } rc.op = $('rcOp').value; rc.m = MS.rc.get(); rc.g = $('rcG').value; rc.no = $('rcNo').value; rc.res = $('rcRes').value; rc.from = $('rcFrom').value; rc.to = $('rcTo').value; PG.rec = 1; renderRecs(); };
-  $('rcReset').onclick = function () { $('rcOp').value = ''; MS.rc.clear(); $('rcG').value = ''; $('rcNo').value = ''; $('rcRes').value = 'all'; $('rcFrom').value = ''; $('rcTo').value = ''; $('rcFrom').type = 'text'; $('rcTo').type = 'text'; rc = { op: '', m: [], g: '', no: '', res: 'all', from: '', to: '' }; PG.rec = 1; renderRecs(); };
+  $('rcGo').onclick = function () { if ($('rcFrom').value && $('rcTo').value && $('rcFrom').value > $('rcTo').value) { toast('开始日期不能晚于结束日期', true); return; } rc.op = $('rcOp').value; rc.m = MS.rc.get(); rc.g = $('rcG').value; rc.res = $('rcRes').value; rc.from = $('rcFrom').value; rc.to = $('rcTo').value; PG.rec = 1; renderRecs(); };
+  $('rcReset').onclick = function () { $('rcOp').value = ''; MS.rc.clear(); $('rcG').value = ''; $('rcRes').value = 'all'; $('rcFrom').value = ''; $('rcTo').value = ''; $('rcFrom').type = 'text'; $('rcTo').type = 'text'; rc = { op: '', m: [], g: '', res: 'all', from: '', to: '' }; PG.rec = 1; renderRecs(); };
   $('rcExp').onclick = function () { var rows = [RHEAD]; lastRecList.forEach(function (r) { rows = rows.concat(recRows(r)); }); download('映射变更记录明细.csv', csvOf(rows), '已导出 ' + lastRecList.length + ' 个批次、' + (rows.length - 1) + ' 条明细'); };
   $('rcBody').onclick = function (e) { var a = e.target.closest('[data-rec]'); if (a) openRec(a.dataset.rec); };
   $('modal').addEventListener('click', function (e) {
