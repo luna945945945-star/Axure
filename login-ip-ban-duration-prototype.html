@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>登录风控 · 封禁时长</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica Neue",Arial,sans-serif;background:#f2f3f7;color:#464a53}
+
+/* 页面切换（原型外） */
+.views{display:flex;gap:8px;align-items:center;padding:12px 60px 0 22px;flex-wrap:wrap}
+.views button{font:inherit;font-size:13px;border:1px solid #d3caf5;background:#fff;color:#4b3aa8;border-radius:6px;padding:6px 16px;cursor:pointer}
+.views button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.views span{color:#9a9aa8;font-size:12px;margin-left:6px}
+.view{display:none}.view.on{display:block}
+
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e;margin-top:12px}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sub h1{font-size:15px;color:#2b6cb0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:14px 44px 60px 22px}
+
+/* NEW 角标 */
+.nw{position:relative;display:inline-block}
+.nw::after{content:"NEW";position:absolute;top:-12px;right:-16px;color:#fff;font:700 9px/14px Arial,"PingFang SC",sans-serif;padding:0 4px;border-radius:7px;pointer-events:none;z-index:3;background:#ff4d4f;box-shadow:0 1px 3px rgba(255,77,79,.45)}
+
+/* 原型演示区（非产品内容） */
+.demo{margin:0 0 12px;padding:9px 12px;border:1px dashed #c3b8ee;border-radius:6px;background:#f7f5ff;color:#4b3aa8;font-size:12.5px;line-height:2.1}
+.demo b{font-weight:700}
+.demo a{color:#6C4FE0;text-decoration:underline;cursor:pointer;margin:0 6px}
+.demo select{font:inherit;font-size:12.5px;height:24px;border:1px solid #c3b8ee;border-radius:3px;background:#fff;color:#333;padding:0 4px;max-width:300px}
+.demo .dk{color:#8a7fc4}
+.demo .ok{color:#1a7f37;font-weight:600}.demo .no{color:#cf1322;font-weight:600}
+.dlog{margin-top:4px;padding:4px 10px;background:#fff;border:1px solid #e3dcfb;border-radius:4px;max-height:110px;overflow:auto;line-height:1.9;color:#555;font-size:12px}
+.dlog .e{color:#aaa}
+
+/* ===== 参数配置（照 uat ParameterConfig.cshtml） ===== */
+.adm-scroll{overflow-x:auto;background:#fff}
+.adm{min-width:1500px;padding:10px 10px 30px;font-size:14px;color:#000}
+.omit{color:#aaa;font-size:12px;padding:10px 6px;border-bottom:1px dashed #e6e6e6}
+.ttlw{margin-top:18px}
+.ob{display:inline-block;width:6px;height:18px;background:#FFB800;border-radius:2px;vertical-align:middle;margin-right:4px}
+.ttl{display:inline-block;background:#eee;color:#000;font-size:24px;font-weight:540;padding:0 8px;line-height:34px;border-radius:2px;vertical-align:middle}
+.adm hr{border:0;border-top:1px solid #e6e6e6;margin:8px 0 14px}
+.crow{display:flex;align-items:center;min-height:38px;margin-bottom:8px}
+.clb{flex:none;width:183px;text-align:right;padding-right:20px;font-weight:500;line-height:20px}
+.ctx{flex:none;padding:0 10px;line-height:38px;white-space:nowrap}
+.cin{display:inline-block;width:90px;height:38px;margin:0 6px;text-align:center;vertical-align:middle;border:1px solid #e6e6e6;border-radius:2px;font:inherit;font-size:14px;color:#333;background:#fff}
+.cin:focus{outline:none;border-color:#5FB878}
+.cin.bad{border-color:#ff5722}
+.ctx .nw::after{top:-7px;right:-10px}
+.chint{flex:none;width:330px;padding:8px 10px;font-weight:500;line-height:20px;color:#76838f;white-space:normal}
+.chint .nw::after{top:-13px;right:-14px}
+.cop{margin-left:auto;padding-right:50px;flex:none}
+.lbtn{height:38px;line-height:38px;padding:0 18px;border:0;border-radius:2px;background:#1E9FFF;color:#fff;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.lbtn:hover{opacity:.85}
+
+/* ===== IP黑名单（照 uat BlackIpView.cshtml） ===== */
+.fs{background:#fff;padding:15px;margin-bottom:15px;border:1px solid #e6e6e6}
+.fi2{display:inline-flex;margin:0 10px 10px 0;vertical-align:top}
+.fl2{width:110px;height:38px;line-height:20px;padding:9px 15px;border:1px solid #e6e6e6;border-right:0;background:#fafafa;text-align:center;font-size:14px;color:#333;font-weight:400}
+.fin2,.fsel2{width:200px;height:38px;border:1px solid #e6e6e6;padding:0 10px;font:inherit;font-size:14px;color:#333;background:#fff}
+.fin2.bad{border-color:#ff5722}
+.tbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.bb{height:36px;line-height:36px;padding:0 16px;font:inherit;font-size:14px;border:0;border-radius:2px;color:#fff;cursor:pointer;background:#009688;white-space:nowrap}
+.bb.n{background:#1E9FFF}.bb.g{background:#2fb44a}
+.redtip{color:#ff5722;font-size:12px;margin-top:10px;line-height:1.7}
+.lt2{border-collapse:collapse;width:100%;font-size:14px;color:#666;background:#fff;min-width:1780px}
+.lt2 th{background:#f2f2f2;font-weight:400;height:39px;border:1px solid #e6e6e6;padding:0 12px;text-align:left;white-space:nowrap}
+.lt2 th .nw::after{top:-10px;right:-22px}
+.lt2 td{border:1px solid #e6e6e6;padding:6px 12px;height:39px;vertical-align:middle}
+.lt2 tr:hover td{background:#f2f2f2}
+.lt2 tr.flash td{background:#fffbe6}
+.lt2 .empty td{text-align:center;color:#999;height:90px}
+.lt2 td.nw1{white-space:nowrap}
+.rm{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xs{height:22px;line-height:22px;padding:0 7px;font:inherit;font-size:12px;border:0;border-radius:2px;color:#fff;cursor:pointer;margin:0 2px}
+.xs.n{background:#1E9FFF}.xs.d{background:#FF5722}
+.xs.p{background:#fff;color:#666;border:1px solid #dedede;line-height:20px}
+.forbid{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;line-height:18px;border:1px solid transparent;margin-right:6px}
+.forbid.l{color:#1677ff;background:#e6f4ff;border-color:#91caff}
+.forbid.r{color:#d46b08;background:#fff7e6;border-color:#ffd591}
+.forbid.u{color:#8c8c8c;background:#f5f5f5;border-color:#d9d9d9}
+.ub{white-space:nowrap}
+.ub .gr{color:#aaa}
+.ub .un{display:inline-block;margin-left:6px;padding:0 6px;border-radius:2px;background:#f5f5f5;border:1px solid #d9d9d9;color:#8c8c8c;font-size:12px;line-height:18px}
+.cnt{display:inline-block;background:#1E9FFF;color:#fff;border-radius:2px;padding:0 6px;font-size:12px;line-height:18px;margin:0 4px}
+.rid{color:#1e9fff;font-weight:600}.rsep{color:#c9c9c9;margin:0 3px}.racct{color:#666}
+.hit{background:#fff3b0;border-radius:2px;padding:0 2px;outline:1px solid #ffd666}
+.pg2{padding:10px 0;text-align:right;font-size:12px;color:#666}
+
+/* layer 弹窗 */
+.lmask{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150;display:none}
+.layer{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:2px;box-shadow:0 3px 18px rgba(0,0,0,.2);z-index:151;display:none;flex-direction:column;max-width:96vw;max-height:94vh}
+.layer.on,.lmask.on{display:flex}
+.layer .lh{height:42px;line-height:42px;padding:0 50px 0 15px;border-bottom:1px solid #eee;background:#f8f8f8;color:#333;font-size:14px;font-weight:500;flex:none;position:relative}
+.layer .lx{position:absolute;right:16px;top:0;color:#999;cursor:pointer;font-size:18px}
+.layer .lbd{flex:1;min-height:0;overflow:auto}
+.layer .lft{flex:none;padding:0 15px 12px;text-align:right}
+.layer .lft.c{text-align:center}
+.lb{height:28px;line-height:28px;padding:0 15px;margin:5px 5px 0;border:1px solid #dedede;background:#fff;color:#333;border-radius:2px;font:inherit;font-size:12px;cursor:pointer}
+.lb.pr{border-color:#1E9FFF;background:#1E9FFF;color:#fff}
+#riskLayer{width:720px;height:460px}
+#riskLayer .lbd{display:flex;flex-direction:column;padding:15px;overflow:hidden}
+.rbox{flex:1 1 auto;min-height:0;overflow:auto;padding:10px 12px;border:1px solid #e6e6e6;border-radius:2px;background:#fafafa;line-height:26px;word-break:break-all;font-size:13px}
+.rlabel{color:#999;margin:8px 0 2px}.rlabel:first-child{margin-top:0}
+#editLayer{width:820px;height:470px}
+.ef{padding:15px 20px 0 20px}
+.efi{margin-bottom:18px}
+.efl{display:block;line-height:22px;margin:0 0 8px;font-size:14px;color:#666;font-weight:400}
+.req{color:#ff5722;margin-right:3px}
+.ein{width:100%;height:36px;border:1px solid #e6e6e6;border-radius:2px;padding:0 10px;font:inherit;font-size:14px;color:#333}
+.ein[readonly]{background:#fafafa}
+.ecg{display:flex;align-items:center;gap:16px;min-height:36px;flex-wrap:wrap}
+.ck{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:#666;cursor:pointer;white-space:nowrap}
+.ck input{width:16px;height:16px;accent-color:#16b777;cursor:pointer}
+.eub{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-height:36px;padding:0 12px;border:1px solid #e6e6e6;border-radius:2px;background:#fafafa;font-size:14px;color:#333}
+.eub .eleft{color:#999;font-size:13px}
+.tw{position:relative}
+.tw textarea{width:100%;min-height:120px;border:1px solid #e6e6e6;border-radius:2px;padding:8px 10px;font:inherit;font-size:14px;color:#333;resize:vertical;line-height:1.6}
+.tw .th{position:absolute;right:10px;bottom:8px;color:#bbb;font-size:12px}
+#confirmLayer{width:300px}
+#confirmLayer .lbd{padding:22px 20px 14px;font-size:14px;color:#333;display:flex;gap:10px;align-items:center}
+#confirmLayer .ico{width:22px;height:22px;border-radius:50%;background:#FFB800;color:#fff;font-weight:700;text-align:center;line-height:22px;flex:none}
+
+/* layer.msg */
+.msg{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.72);color:#fff;padding:12px 25px;border-radius:2px;z-index:600;font-size:14px;display:none;max-width:520px;line-height:1.6;text-align:center}
+
+/* 需求说明抽屉 */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:310;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:320;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column;font:14px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:#333}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:300;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="views">
+ <button class="on" data-v="cfg">① 参数配置 › 登录风控配置</button>
+ <button data-v="ip">② 用户管理 › IP黑名单</button>
+ <span>页面切换是原型用的；两页共用一份配置，改完封禁分钟数可到 ② 触发拉黑看效果</span>
+</div>
+
+<!-- ================= ① 参数配置 ================= -->
+<div class="view on" id="v-cfg">
+ <div class="topbar"><div>☰ &nbsp; 当前站点：<b>india82</b></div><div>当前币种：<b style="color:#c0392b">INR</b> &nbsp; 区号：<b>+91</b></div></div>
+ <div class="sub"><h1>参数配置</h1><div class="crumb">配置管理 &nbsp;›&nbsp; <b>参数配置</b></div></div>
+ <div class="wrap">
+  <div class="demo"><b>原型演示</b>（不是页面内容）　保存成功后写入的系统日志：<div class="dlog" id="cfgLog"><span class="e">还没有保存过</span></div></div>
+
+  <div class="adm-scroll"><div class="adm">
+   <div class="omit">…… 上方：机器人、彩票投注手续费、注册风控配置 等（本次不改，省略）……</div>
+
+   <div class="ttlw"><span class="ob"></span><span class="ttl">登录风控配置</span></div>
+   <hr>
+
+   <div class="crow">
+    <span class="clb">同一个IP</span>
+    <span class="ctx"><input type="number" class="cin" id="uWin" min="0" step="1" value="30">分钟内 登录账号数量 &gt;<input type="number" class="cin" id="uMax" min="0" step="1" value="30">个，直接拉入IP黑名单（禁止登录）<span class="nw">，封禁<input type="number" class="cin" id="uBan" min="0" step="1" value="30">分钟</span></span>
+    <span class="chint">(阈值填 0 = 该条不启用; <span class="nw">封禁填 0 = 永久, 到期自动解封;</span> 被拉黑的 IP 到 会员管理→IP黑名单 查看 / 解封;)</span>
+    <span class="cop"><button class="lbtn" data-save="users">确认保存</button></span>
+   </div>
+
+   <div class="crow">
+    <span class="clb">同一个IP</span>
+    <span class="ctx"><input type="number" class="cin" id="tWin" min="0" step="1" value="30">分钟内 登录次数 &gt;<input type="number" class="cin" id="tMax" min="0" step="1" value="50">次，直接拉入IP黑名单（禁止登录）<span class="nw">，封禁<input type="number" class="cin" id="tBan" min="0" step="1" value="30">分钟</span></span>
+    <span class="chint">(阈值填 0 = 该条不启用; <span class="nw">封禁填 0 = 永久, 到期自动解封;</span> 被拉黑的 IP 到 会员管理→IP黑名单 查看 / 解封;)</span>
+    <span class="cop"><button class="lbtn" data-save="times">确认保存</button></span>
+   </div>
+
+   <div class="crow">
+    <span class="clb">同一个账号</span>
+    <span class="ctx">一天（24小时）内 密码错误次数累计 &gt;=<input type="number" class="cin" id="eCnt" min="0" step="1" value="10">次，直接禁用会员账号</span>
+    <span class="chint">(密码错误按"该账号 24 小时内累计"计; 被禁用的账号到 会员列表 启用;)</span>
+    <span class="cop"><button class="lbtn" data-save="err">确认保存</button></span>
+   </div>
+
+   <div class="omit" style="margin-top:14px">…… 下方：同浏览器指纹注册数、每日红包领取次数 等（本次不改，省略）……</div>
+  </div></div>
+ </div>
+</div>
+
+<!-- ================= ② IP黑名单 ================= -->
+<div class="view" id="v-ip">
+ <div class="topbar"><div>☰ &nbsp; 当前站点：<b>india82</b></div><div>当前币种：<b style="color:#c0392b">INR</b> &nbsp; 区号：<b>+91</b></div></div>
+ <div class="sub"><h1>IP黑名单</h1><div class="crumb">用户管理 &nbsp;›&nbsp; <b>IP黑名单</b></div></div>
+ <div class="wrap">
+  <div class="demo">
+   <b>原型演示</b>（不是页面内容）　模拟当前时间：<b id="dNow"></b>
+   <a data-ff="5">快进 5 分钟</a><a data-ff="30">快进 30 分钟</a><a data-ff="1440">快进 1 天</a>　<a id="dReset">重置演示</a><br>
+   <span class="dk">触发登录风控：</span>IP <select id="dIp"></select> 规则 <select id="dRule"><option value="users">登录账号数量</option><option value="times">登录次数</option></select><a id="dTrig">触发拉黑</a><span class="dk" id="dCfg"></span><br>
+   <span class="dk">模拟会员登录：</span>IP <select id="dLoginIp"></select><a id="dLogin">登录</a><span id="dLoginRes"></span>
+   <div class="dlog" id="dLog"></div>
+  </div>
+
+  <div class="fs">
+   <div>
+    <div class="fi2"><span class="fl2">IP</span><input class="fin2" id="fIp" placeholder="请输入IP"></div>
+    <div class="fi2"><span class="fl2">封禁类型</span><select class="fsel2" id="fType" style="width:180px"><option value="">请选择</option><option value="L">禁止登录</option><option value="R">禁止注册</option></select></div>
+    <div class="fi2"><span class="fl2">会员ID</span><input class="fin2" id="fUid" style="width:300px" placeholder="请输入会员ID，多个用逗号或空格隔开" autocomplete="off"></div>
+   </div>
+   <div class="tbar">
+    <button class="bb n" id="bQ">🔍 查询</button>
+    <button class="bb" id="bR">↻ 重置</button>
+    <button class="bb g" id="bAdd">＋ 新增</button>
+   </div>
+   <div class="redtip">「会员ID」只能查到：该 IP 被风控自动拉黑时，记录在「风控命中账号」里的会员。搜不到，不代表该会员没有被这个 IP 限制；是否影响登录，看「封禁类型」有没有「禁止登录」。</div>
+  </div>
+
+  <div style="overflow-x:auto;background:#fff">
+   <table class="lt2">
+    <thead><tr>
+     <th style="width:70px;text-align:center">序号</th><th style="width:200px">IP地址</th><th style="width:200px">封禁类型</th><th style="width:130px">风控类型</th>
+     <th style="min-width:280px">封禁原因</th><th style="width:260px">风控命中账号</th><th style="width:110px">创建人</th><th style="width:170px">创建时间</th>
+     <th style="width:250px"><span class="nw">解封时间</span></th><th style="width:150px;text-align:center">操作</th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+   </table>
+  </div>
+  <div class="pg2" id="pg"></div>
+ </div>
+</div>
+
+<!-- 风控命中账号 查看全部 -->
+<div class="lmask" id="lmask"></div>
+<div class="layer" id="riskLayer">
+ <div class="lh"><span id="rTitle">风控命中账号</span><span class="lx" data-close>✕</span></div>
+ <div class="lbd">
+  <div id="rRemark" style="color:#999;margin-bottom:8px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+  <div class="rbox" id="rBox"></div>
+  <div style="margin-top:10px;flex:none"><button class="xs p" style="height:28px;padding:0 12px" id="rCopy">复制全部</button></div>
+ </div>
+</div>
+
+<!-- 新增 / 编辑 -->
+<div class="layer" id="editLayer">
+ <div class="lh"><span id="eTitle">编辑IP黑名单</span><span class="lx" data-close>✕</span></div>
+ <div class="lbd">
+  <div class="ef">
+   <div class="efi"><label class="efl"><span class="req">*</span>IP地址</label><input class="ein" id="eIp" placeholder="请输入IP地址，支持IPv4和IPv6" autocomplete="off"></div>
+   <div class="efi"><label class="efl"><span class="req">*</span>封禁类型</label>
+    <div class="ecg"><label class="ck"><input type="checkbox" id="eL">禁止登录</label><label class="ck"><input type="checkbox" id="eR">禁止注册</label></div></div>
+   <div class="efi" id="eUbRow"><label class="efl"><span class="nw">解封时间</span></label>
+    <div class="eub"><span id="eUntil"></span><span class="eleft" id="eLeft"></span><label class="ck"><input type="checkbox" id="ePerm">改为永久</label></div></div>
+   <div class="efi"><label class="efl"><span class="req">*</span>封禁原因</label>
+    <div class="tw"><textarea id="eRm" maxlength="1024" placeholder="请输入封禁原因，便于后续追溯"></textarea><span class="th">最大1024</span></div></div>
+  </div>
+ </div>
+ <div class="lft"><button class="lb pr" id="eOk">确定</button><button class="lb" data-close>取消</button></div>
+</div>
+
+<!-- 删除确认 -->
+<div class="layer" id="confirmLayer">
+ <div class="lh">提示<span class="lx" data-close>✕</span></div>
+ <div class="lbd"><span class="ico">?</span><span>确定 删除该IP黑名单数据</span></div>
+ <div class="lft c"><button class="lb pr" id="cOk">确定</button><button class="lb" data-close>取消</button></div>
+</div>
+
+<div class="msg" id="msg"></div>
+
+<!-- ================= 需求说明 ================= -->
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+<div class="drawer" id="drawer">
+ <div class="dhead"><b>需求说明 · 登录风控拉黑增加封禁时长</b><span class="x" id="closeDoc">✕</span></div>
+ <div class="dbody prd">
+
+  <div class="h1">一、改造页面</div>
+  <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型。</div>
+  <table class="t">
+   <thead><tr><th style="width:170px">页面</th><th>改动点</th></tr></thead>
+   <tbody>
+    <tr><td>配置管理 › 参数配置<br>（登录风控配置）</td><td>① 「同一个IP … 登录账号数量」「同一个IP … 登录次数」两行，各加一个「封禁 N 分钟」输入框。<br>② 这两行右侧提示加一句「封禁填 0 = 永久, 到期自动解封」。</td></tr>
+    <tr><td>用户管理 › IP黑名单</td><td>① 列表在「创建时间」后面加「解封时间」列。<br>② 封禁类型已全部解除的记录，「封禁类型」列显示「已解封」。<br>③ 编辑弹窗：自动拉黑且还没到期的记录，多一行「解封时间」，可勾「改为永久」。</td></tr>
+   </tbody>
+  </table>
+
+  <div class="h1">二、功能描述与业务规则</div>
+  <div class="keybox">
+   <div class="kt">🎯 核心结论</div>
+   <div class="kf">登录风控两条规则各自设置封禁分钟数，默认 30；到期自动解除该 IP 的「禁止登录」；填 0 = 永久。</div>
+   <div class="kf">到期只解除拦截、不删除记录，「风控命中账号」「封禁原因」都保留；同一 IP 再次命中，在原记录上重新封禁。</div>
+  </div>
+
+  <div class="br key"><span class="bn">R1</span><b>封禁分钟数</b><span class="kb">核心</span><br>
+   ・两条规则各配各的，只能填 0 或 1~43200 的整数（43200 分钟 = 30 天），不能为空；0 = 永久。<br>
+   ・没配置过的站点按 30 分钟。<br>
+   ・该规则阈值填 0（不启用）时，封禁分钟数不起作用，照常可以保存。<br>
+   ・保存后只对之后新拉黑的 IP 生效；已在黑名单里的，按拉黑当时算好的解封时间走。<br>
+   ・保存时，系统日志在原有内容后面加「封禁分钟数：【旧值】→【新值】」。</div>
+
+  <div class="br key"><span class="bn">R2</span><b>拉黑</b><span class="kb">核心</span><br>
+   ・解封时间 = 拉黑时间 + 命中规则的封禁分钟数；封禁分钟数为 0 时没有解封时间（永久）。<br>
+   ・封禁原因里写明封禁时长和解封时间；解封方式写「到期自动解封，或在本页删除该记录」，永久的写「在本页删除该记录」。</div>
+
+  <div class="br key"><span class="bn">R3</span><b>到期解封</b><span class="kb">核心</span><br>
+   ・到了解封时间，自动解除该 IP 的「禁止登录」，最迟晚 1 分钟。<br>
+   ・只解除「禁止登录」，同一记录里的「禁止注册」不受影响；记录本身不删除。<br>
+   ・解除后，该 IP 的登录风控计数从零重新算。<br>
+   ・每次自动解封记一条系统日志，操作人 system。</div>
+
+  <div class="br"><span class="bn">R4</span><b>再次触发</b><br>
+   ・已解封的 IP 再次命中登录风控：在原记录上重新加「禁止登录」，按当时的配置算新的解封时间；封禁原因、风控命中账号往后追加，风控类型更新为最新一次，创建时间不变。<br>
+   ・每次封禁时长都按当时的配置，重复触发不加长。</div>
+
+  <div class="br"><span class="bn">R5</span><b>解封时间显示</b><br>
+   ・还没到期：显示解封时间；同一记录还有「禁止注册」时，后面加灰字「仅禁止登录」。<br>
+   ・没有解封时间：显示「永久」。人工新增的、注册风控拉黑的、封禁分钟数为 0 时拉黑的、上线前已有的记录都是永久。<br>
+   ・封禁类型已全部解除：灰色显示原解封时间，后面加「已解封」；「封禁类型」列显示「已解封」。<br>
+   ・封禁类型选「禁止登录」查询时，只查出现在还在禁止登录的记录。</div>
+
+  <div class="br"><span class="bn">R6</span><b>编辑</b><br>
+   ・自动拉黑且还没到期的记录，编辑弹窗显示解封时间和剩余分钟；勾「改为永久」保存后变为永久。<br>
+   ・编辑时把原本没有的「禁止登录」勾上，算人工封禁，永久。<br>
+   ・「禁止登录」原本就有、没勾「改为永久」，保存后解封时间不变。</div>
+
+  <div class="h1">三、限制条件</div>
+  <table class="t">
+   <thead><tr><th style="width:150px">项</th><th>说明</th></tr></thead>
+   <tbody>
+    <tr><td>解封精度</td><td>到期后最迟 1 分钟内解除。</td></tr>
+    <tr><td>适用范围</td><td>只有登录风控两条规则自动拉黑的「禁止登录」会到期，其他封禁都是永久。</td></tr>
+    <tr><td>上线默认值</td><td>上线后，没配置过的站点由永久变为 30 分钟；要保持永久的站点，把封禁分钟数改成 0。</td></tr>
+    <tr><td>上线前的记录</td><td>上线前已在黑名单里的记录没有解封时间，按永久处理。</td></tr>
+    <tr><td>会员提示</td><td>封禁期间会员登录的提示不变，不显示剩余时间。</td></tr>
+    <tr><td>已解封记录</td><td>一直留在列表里，不需要的手动删除。</td></tr>
+   </tbody>
+  </table>
+
+  <div class="h1">四、开发注意事项</div>
+  <ol class="dev">
+   <li>到期解封要同时处理黑名单缓存和列表记录：只去掉「禁止登录」，保留其他封禁类型，记录不删。</li>
+   <li>解封后清掉该 IP 的两个登录风控计数（账号数、次数），否则一解封马上又被拉黑。</li>
+   <li>解封任务每分钟跑一次；多台机器同时跑、同一条被重复处理都不能出错。</li>
+   <li>解封前再确认一次该记录的解封时间确实已到：任务读出后、动手前，运营可能已改成永久，或 IP 又被重新拉黑（解封时间变了），这两种不能解封。</li>
+   <li>前台和后台的默认值（30 分钟）要一致；老配置里没有封禁分钟数的按 30 处理。</li>
+   <li>上线顺序：先加数据库字段，再同时发前台 API、后台和解封任务。</li>
+  </ol>
+ </div>
+</div>
+
+<script>
+(function(){
+  function $(i){return document.getElementById(i)}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function f2(n){return (n<10?'0':'')+n}
+  function fmt(d){return d.getFullYear()+'-'+f2(d.getMonth()+1)+'-'+f2(d.getDate())+' '+f2(d.getHours())+':'+f2(d.getMinutes())+':'+f2(d.getSeconds())}
+  function T(s){var m=s.match(/(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)/);return new Date(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6])}
+  function addMin(d,m){return new Date(d.getTime()+m*60000)}
+  var msgT;function msg(t){var e=$('msg');e.textContent=t;e.style.display='block';clearTimeout(msgT);msgT=setTimeout(function(){e.style.display='none'},2200)}
+
+  /* ---------- 页面切换 ---------- */
+  document.querySelectorAll('.views button').forEach(function(b){b.onclick=function(){
+    document.querySelectorAll('.views button').forEach(function(x){x.classList.toggle('on',x===b)});
+    document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id==='v-'+b.getAttribute('data-v'))});
+    renderAll();
+  }});
+
+  /* ---------- 配置（两页共用） ---------- */
+  var cfg={usersWin:30,maxUsers:30,usersBan:30,timesWin:30,maxTimes:50,timesBan:30,errCnt:10};
+  var cfgLogs=[];
+  function isInt(v){return /^-?\d+$/.test(String(v).trim())}
+  function save(rule){
+    if(rule==='err'){
+      var v=$('eCnt').value;
+      if(!isInt(v)||+v<0||+v>1000){msg('只能填 0 或 1~1000 的整数');return}
+      cfg.errCnt=+v;msg('更新成功');return;
+    }
+    var u=rule==='users',w=$(u?'uWin':'tWin'),m=$(u?'uMax':'tMax'),b=$(u?'uBan':'tBan');
+    [w,m,b].forEach(function(x){x.classList.remove('bad')});
+    if(!isInt(w.value)||!isInt(m.value)||!isInt(b.value)){[w,m,b].forEach(function(x){if(!isInt(x.value))x.classList.add('bad')});msg('分钟数、阈值与封禁分钟数必须填写整数');return}
+    var wv=+w.value,mv=+m.value,bv=+b.value;
+    if(wv<0||mv<0){msg('分钟数与阈值必须是 0 或正整数');return}
+    if(mv>0&&mv<2){m.classList.add('bad');msg('启用时阈值必须 ≥ 2');return}
+    if(mv>0&&(wv<1||wv>1440)){w.classList.add('bad');msg('启用时分钟数必须在 1~1440 之间');return}
+    if(bv<0||bv>43200){b.classList.add('bad');msg('封禁分钟数必须是 0（永久）或 1~43200 之间的整数');return}
+    var name=u?'登录账号数规则':'登录次数规则',parts=[];
+    var ow=u?cfg.usersWin:cfg.timesWin,om=u?cfg.maxUsers:cfg.maxTimes,ob=u?cfg.usersBan:cfg.timesBan;
+    if(ow!==wv)parts.push(name+'-分钟数：【'+ow+'】→【'+wv+'】');
+    if(om!==mv)parts.push(name+'-'+(u?'账号数':'次数')+'阈值：【'+om+'】→【'+mv+'】');
+    if(ob!==bv)parts.push('<b>'+name+'-封禁分钟数：【'+ob+'】→【'+bv+'】</b>');
+    if(u){cfg.usersWin=wv;cfg.maxUsers=mv;cfg.usersBan=bv}else{cfg.timesWin=wv;cfg.maxTimes=mv;cfg.timesBan=bv}
+    if(parts.length){cfgLogs.unshift(fmt(now)+'　参数配置【同IP登录限制】，'+parts.join('')+'。')}
+    $('cfgLog').innerHTML=cfgLogs.length?cfgLogs.join('<br>'):'<span class="e">保存了，但内容没变化，不写日志</span>';
+    msg('更新成功');
+  }
+  document.querySelectorAll('[data-save]').forEach(function(b){b.onclick=function(){save(b.getAttribute('data-save'))}});
+
+  /* ---------- IP黑名单数据 ---------- */
+  var BASE=T('2026-11-23 15:30:00'),now=new Date(BASE),D,LOG,seq,acSeq;
+  function A(arr){return arr.map(function(x){return {id:x[0],a:x[1]}})}
+  function rmLogin(isU,win,max,ban,trig,actual,until,ip,trigUser){
+    var rule=isU?'同一IP '+win+' 分钟内登录账号数量 > '+max+' 个':'同一IP '+win+' 分钟内登录次数 > '+max+' 次';
+    var dur=ban>0?'封禁 '+ban+' 分钟,解封时间 '+fmt(until):'永久';
+    return '登录风控自动拉黑｜规则：'+rule+',直接拉入IP黑名单(禁止登录)｜封禁时长：'+dur+'｜实际：'+actual+'｜触发时间：'+fmt(trig)+'｜拉黑对象：'+ip+'｜触发时登录账号：'+trigUser+'｜解封：'+(ban>0?'到期自动解封,或在本页删除该记录':'在本页删除该记录');
+  }
+  function seed(){
+    seq=100;acSeq=0;LOG=[];
+    var t1=T('2026-11-23 15:20:11'),t2=T('2026-11-23 15:03:40'),t3=T('2026-11-23 14:10:02'),t5=T('2026-11-23 15:21:29'),t8=T('2026-11-23 09:13:32');
+    D=[
+     {id:1,ip:'45.118.32.7',L:{until:addMin(t1,30)},R:false,risk:'同IP登录账号数',creator:'system',time:t1,
+      remark:[rmLogin(true,30,30,30,t1,'31 个不同账号',addMin(t1,30),'45.118.32.7','16305907/9170011122')],
+      sec:[{label:'登录风控命中账号：',items:A([['16305907','9170011122'],['4089992','9170022233'],['7980489','9170033344'],['5487214','9170088899']])}]},
+     {id:2,ip:'103.211.6.90',L:{until:addMin(t2,30)},R:false,risk:'同IP登录次数',creator:'system',time:t2,
+      remark:[rmLogin(false,30,50,30,t2,'51 次',addMin(t2,30),'103.211.6.90','13870618/9171300033')],
+      sec:[{label:'登录风控命中账号：',items:A([['13870618','9171300033']])}]},
+     {id:3,ip:'122.172.84.46',L:null,R:false,lastUnban:addMin(t3,30),risk:'同IP登录账号数',creator:'system',time:t3,
+      remark:[rmLogin(true,30,30,30,t3,'31 个不同账号',addMin(t3,30),'122.172.84.46','1234/9170044455')],
+      sec:[{label:'登录风控命中账号：',items:A([['1234','9170044455'],['12345','9170055566'],['123','9170066677']])}]},
+     {id:4,ip:'2409:40c1:414d:1a1d::/64',L:null,R:true,risk:'同IP注册失败次数',creator:'system',time:T('2026-11-23 13:20:50'),
+      remark:['注册风控自动拉黑｜规则：同一IP 10 分钟内注册失败次数 > 10 次,直接拉入IP黑名单(禁止注册)｜实际：11 次｜触发时间：2026-11-23 13:20:50'],
+      sec:[{label:'注册风控命中账号：',items:A([['18557081','9170077788']])}]},
+     {id:5,ip:'202.141.52.186',L:{until:addMin(t5,30)},R:true,risk:'同IP注册失败次数',creator:'system',time:t5,
+      remark:[rmLogin(true,30,30,30,t5,'31 个不同账号',addMin(t5,30),'202.141.52.186','16305907/9170011122'),'注册风控自动拉黑｜规则：同一IP 10 分钟内注册失败次数 > 10 次,直接拉入IP黑名单(禁止注册)｜实际：11 次｜触发时间：2026-11-23 15:26:02'],
+      sec:[{label:'登录风控命中账号：',items:A([['16305907','9170011122'],['13870618','9171300033']])},{label:'注册风控命中账号：',items:A([['18557081','9170077788']])}]},
+     {id:6,ip:'49.36.184.61',L:{until:null},R:false,risk:'同IP登录次数',creator:'system',time:t8,
+      remark:[rmLogin(false,30,50,0,t8,'51 次',null,'49.36.184.61','7980489/9170033344')],
+      sec:[{label:'登录风控命中账号：',items:A([['7980489','9170033344']])}]},
+     {id:7,ip:'103.175.4.111',L:{until:null},R:true,risk:'默认',creator:'admin_zhang',time:T('2026-11-20 10:12:33'),remark:['人工添加：多号刷活动'],sec:[]},
+     {id:8,ip:'171.76.81.31',L:{until:null},R:false,risk:'同IP登录账号数',creator:'system',time:T('2026-08-20 09:10:11'),
+      remark:['登录风控自动拉黑｜规则：同一IP 60 分钟内登录账号数量 > 20 个,直接拉入IP黑名单(禁止登录)｜实际：21 个不同账号｜触发时间：2026-08-20 09:10:11｜解封：在本页删除该记录'],
+      sec:[{label:'',items:A([['','9170099900'],['','9171100011'],['','9171200022']])}]}
+    ];
+  }
+  seed();
+  function byIp(ip){for(var i=0;i<D.length;i++)if(D[i].ip===ip)return D[i];return null}
+
+  /* ---------- 到期解封（模拟每分钟的任务） ---------- */
+  function expire(){
+    var n=[];
+    D.slice().sort(function(a,b){return (a.L&&a.L.until||0)-(b.L&&b.L.until||0)}).forEach(function(r){
+      if(r.L&&r.L.until&&r.L.until<=now){
+        r.lastUnban=r.L.until;r.L=null;n.push(r.ip);
+        LOG.unshift(fmt(r.lastUnban)+'　system　自动解封 IP【'+r.ip+'】禁止登录'+(r.R?'（禁止注册保留）':'')+'，该 IP 登录风控计数清零');
+      }
+    });
+    return n;
+  }
+
+  /* ---------- 触发拉黑 ---------- */
+  function genAccts(k){var o=[];for(var i=0;i<k;i++){acSeq++;o.push({id:String(19000000+acSeq*713),a:'91725'+f2(acSeq)+'0'+f2(acSeq*3%100)})}return o}
+  function trigger(ip,rule){
+    var u=rule==='users',win=u?cfg.usersWin:cfg.timesWin,max=u?cfg.maxUsers:cfg.maxTimes,ban=u?cfg.usersBan:cfg.timesBan;
+    if(max===0){msg('「'+(u?'登录账号数量':'登录次数')+'」规则阈值为 0，没启用，不会拉黑');return}
+    var r=byIp(ip);
+    if(r&&r.L){msg('该 IP 正在禁止登录，登录请求在最前面就被拦下，不会再触发风控');return}
+    var until=ban>0?addMin(now,ban):null,accts=genAccts(u?3:1);
+    var seg=rmLogin(u,win,max,ban,now,u?(max+1)+' 个不同账号':(max+1)+' 次',until,ip,accts[0].id+'/'+accts[0].a);
+    var risk=u?'同IP登录账号数':'同IP登录次数';
+    if(!r){r={id:++seq,ip:ip,L:{until:until},R:false,risk:risk,creator:'system',time:new Date(now),remark:[seg],sec:[{label:'登录风控命中账号：',items:accts}]};D.push(r);msg('已拉黑新 IP '+ip+'，'+(ban>0?'封禁 '+ban+' 分钟':'永久'))}
+    else{r.L={until:until};r.risk=risk;r.remark.push(seg);r.sec.push({label:'登录风控命中账号：',items:accts});msg('在原记录上重新封禁 '+ip+'，'+(ban>0?'封禁 '+ban+' 分钟':'永久')+'，创建时间不变')}
+    flashId=r.id;renderAll();
+  }
+  var flashId=null;
+
+  /* ---------- 渲染 ---------- */
+  function flat(r){var o=[];r.sec.forEach(function(s){s.items.forEach(function(i){o.push(i)})});return o}
+  function itemHtml(i,hits){
+    var h=i.id?'<span class="rid">'+esc(i.id)+'</span><span class="rsep">/</span><span class="racct">'+esc(i.a)+'</span>':'<span class="racct">'+esc(i.a)+'</span>';
+    return (hits.length&&i.id&&hits.indexOf(i.id)>=0)?'<span class="hit">'+h+'</span>':h;
+  }
+  function riskCell(r,hits){
+    var all=flat(r);if(!all.length)return '--';
+    var pre=all.slice();
+    if(hits.length){pre=all.filter(function(i){return i.id&&hits.indexOf(i.id)>=0}).concat(all.filter(function(i){return !(i.id&&hits.indexOf(i.id)>=0)}))}
+    return '<button class="xs p" data-risk="'+r.id+'">查看全部</button><span class="cnt">'+all.length+'</span>'+pre.slice(0,3).map(function(i){return itemHtml(i,hits)}).join('<span class="racct">,</span> ')+(all.length>3?' …':'');
+  }
+  function forbidCell(r){
+    if(!r.L&&!r.R)return '<span class="forbid u nw">已解封</span>';
+    return (r.L?'<span class="forbid l">禁止登录</span>':'')+(r.R?'<span class="forbid r">禁止注册</span>':'');
+  }
+  function unbanCell(r){
+    if(r.L&&r.L.until)return '<span class="ub">'+fmt(r.L.until)+(r.R?' <span class="gr">仅禁止登录</span>':'')+'</span>';
+    if(r.L||r.R)return '<span class="ub">永久</span>';
+    return '<span class="ub"><span class="gr">'+(r.lastUnban?fmt(r.lastUnban):'--')+'</span><span class="un">已解封</span></span>';
+  }
+  var applied={ip:'',type:'',uids:[]};
+  function rows(){
+    return D.filter(function(r){
+      if(applied.ip&&r.ip.indexOf(applied.ip)<0)return false;
+      if(applied.type==='L'&&!r.L)return false;
+      if(applied.type==='R'&&!r.R)return false;
+      if(applied.uids.length&&!flat(r).some(function(i){return i.id&&applied.uids.indexOf(i.id)>=0}))return false;
+      return true;
+    }).sort(function(a,b){return b.time-a.time});
+  }
+  function renderTable(){
+    var L=rows();
+    $('tb').innerHTML=L.length?L.map(function(r,n){
+      var full=r.remark.join('\n');
+      return '<tr class="'+(r.id===flashId?'flash':'')+'"><td style="text-align:center">'+(n+1)+'</td><td class="nw1">'+esc(r.ip)+'</td><td>'+forbidCell(r)+'</td><td class="nw1">'+esc(r.risk)+'</td>'+
+        '<td><div class="rm" title="'+esc(full)+'">'+esc(full)+'</div></td><td>'+riskCell(r,applied.uids)+'</td>'+
+        '<td>'+esc(r.creator)+'</td><td class="nw1">'+fmt(r.time)+'</td><td>'+unbanCell(r)+'</td>'+
+        '<td style="text-align:center;white-space:nowrap"><button class="xs n" data-edit="'+r.id+'">✎ 编辑</button><button class="xs d" data-del="'+r.id+'">🗑 删除</button></td></tr>';
+    }).join(''):'<tr class="empty"><td colspan="10">无数据</td></tr>';
+    $('pg').textContent='共 '+L.length+' 条　第 1 页';
+  }
+  function renderDemo(){
+    $('dNow').textContent=fmt(now);
+    var keep=$('dIp').value,keep2=$('dLoginIp').value;
+    var opts='<option value="45.79.12.8">45.79.12.8（新 IP）</option>'+D.slice().sort(function(a,b){return b.time-a.time}).map(function(r){
+      var st=r.L?(r.L.until?'禁止登录中':'永久禁止登录'):(r.R?'只有禁止注册':'已解封');
+      return '<option value="'+esc(r.ip)+'">'+esc(r.ip)+'（'+st+'）</option>';
+    }).join('');
+    $('dIp').innerHTML=opts;$('dLoginIp').innerHTML=opts;
+    if(keep)$('dIp').value=keep;if(keep2)$('dLoginIp').value=keep2;
+    if(!$('dIp').value)$('dIp').selectedIndex=0;if(!$('dLoginIp').value)$('dLoginIp').selectedIndex=0;
+    $('dCfg').textContent='　当前配置：账号数量规则 '+(cfg.maxUsers?(cfg.usersBan?'封禁 '+cfg.usersBan+' 分钟':'永久'):'未启用')+'；次数规则 '+(cfg.maxTimes?(cfg.timesBan?'封禁 '+cfg.timesBan+' 分钟':'永久'):'未启用')+'（在 ① 修改保存）';
+    $('dLog').innerHTML='<b>自动解封记录（系统日志）</b><br>'+(LOG.length?LOG.join('<br>'):'<span class="e">还没有到期的，点「快进」看看</span>');
+  }
+  function renderAll(){renderTable();renderDemo()}
+
+  /* ---------- 演示操作 ---------- */
+  document.querySelectorAll('[data-ff]').forEach(function(a){a.onclick=function(){
+    now=addMin(now,+a.getAttribute('data-ff'));flashId=null;
+    var n=expire();renderAll();
+    msg(n.length?'自动解封了 '+n.length+' 个 IP：'+n.join('、'):'快进到 '+fmt(now)+'，没有到期的');
+  }});
+  $('dReset').onclick=function(){now=new Date(BASE);seed();flashId=null;$('dIp').value='';$('dLoginIp').value='';$('dLoginRes').innerHTML='';renderAll();msg('已重置演示数据（配置保留）')};
+  $('dTrig').onclick=function(){trigger($('dIp').value,$('dRule').value)};
+  $('dLogin').onclick=function(){
+    var r=byIp($('dLoginIp').value);
+    $('dLoginRes').innerHTML=r&&r.L?'<span class="no">→ 拦截：该 IP 在 IP 黑名单（禁止登录），'+(r.L.until?'到 '+fmt(r.L.until)+' 自动解封':'永久')+'</span>':'<span class="ok">→ 放行，正常登录'+(r&&r.R?'（只有禁止注册，不影响登录）':'')+'</span>';
+  };
+
+  /* ---------- 查询 ---------- */
+  function query(){
+    var raw=$('fUid').value.trim(),uids=[];$('fUid').classList.remove('bad');
+    if(raw){
+      var parts=raw.split(/[,，\s]+/).filter(function(x){return x});
+      for(var k=0;k<parts.length;k++){
+        if(!/^\d{1,10}$/.test(parts[k])||/^0+$/.test(parts[k])){$('fUid').classList.add('bad');msg('会员ID格式不正确，请输入 1~10 位数字，多个用逗号或空格隔开');return}
+        var v=parts[k].replace(/^0+/,'');if(uids.indexOf(v)<0)uids.push(v);
+      }
+      if(uids.length>50){$('fUid').classList.add('bad');msg('最多支持 50 个会员ID');return}
+    }
+    applied={ip:$('fIp').value.trim(),type:$('fType').value,uids:uids};flashId=null;renderTable();
+  }
+  $('bQ').onclick=query;
+  $('fUid').onkeydown=$('fIp').onkeydown=function(e){if(e.key==='Enter')query()};
+  $('bR').onclick=function(){$('fIp').value='';$('fType').value='';$('fUid').value='';$('fUid').classList.remove('bad');applied={ip:'',type:'',uids:[]};renderTable()};
+
+  /* ---------- 弹层 ---------- */
+  function openL(id){$(id).classList.add('on');$('lmask').classList.add('on')}
+  function closeL(){['riskLayer','editLayer','confirmLayer'].forEach(function(i){$(i).classList.remove('on')});$('lmask').classList.remove('on')}
+  document.querySelectorAll('[data-close]').forEach(function(x){x.onclick=closeL});
+  $('lmask').onclick=closeL;
+  $('rCopy').onclick=function(){msg('已复制')};
+
+  var editing=null,deleting=null;
+  function openEdit(r){
+    editing=r;
+    $('eTitle').textContent=r?'编辑IP黑名单':'新增IP黑名单';
+    $('eIp').value=r?r.ip:'';$('eL').checked=!!(r&&r.L);$('eR').checked=!!(r&&r.R);
+    $('eRm').value=r?r.remark.join('\n'):'';$('ePerm').checked=false;
+    var show=!!(r&&r.L&&r.L.until);
+    $('eUbRow').style.display=show?'':'none';
+    if(show){$('eUntil').textContent=fmt(r.L.until);$('eLeft').textContent='（还剩 '+Math.max(1,Math.ceil((r.L.until-now)/60000))+' 分钟，到期自动解除「禁止登录」）'}
+    openL('editLayer');
+  }
+  $('bAdd').onclick=function(){openEdit(null)};
+  $('eOk').onclick=function(){
+    var ip=$('eIp').value.trim(),L=$('eL').checked,R=$('eR').checked,rm=$('eRm').value.trim();
+    if(!ip){msg('请输入IP地址');return}
+    if(!editing&&!/^(\d{1,3}\.){3}\d{1,3}$|:/.test(ip)){msg('IP地址格式不正确');return}
+    if(!L&&!R){msg('请至少选择一个封禁类型');return}
+    if(!rm){msg('请输入封禁原因');return}
+    if(!editing){
+      if(byIp(ip)){msg('该IP黑名单配置已存在');return}
+      D.push({id:++seq,ip:ip,L:L?{until:null}:null,R:R,risk:'默认',creator:'admin',time:new Date(now),remark:[rm],sec:[]});
+    }else{
+      var r=editing;r.ip=ip;r.remark=rm.split('\n');
+      if(L){if(!r.L)r.L={until:null};else if($('ePerm').checked)r.L.until=null}
+      else if(r.L){r.lastUnban=new Date(now);r.L=null}
+      r.R=R;
+    }
+    closeL();flashId=null;renderAll();msg('保存成功');
+  };
+  $('cOk').onclick=function(){if(deleting){D=D.filter(function(x){return x!==deleting})}closeL();renderAll();msg('操作成功')};
+
+  $('tb').onclick=function(e){
+    var b=e.target.closest('button');if(!b)return;
+    var id=+(b.getAttribute('data-risk')||b.getAttribute('data-edit')||b.getAttribute('data-del'));
+    var r=D.filter(function(x){return x.id===id})[0];if(!r)return;
+    if(b.hasAttribute('data-edit')){openEdit(r);return}
+    if(b.hasAttribute('data-del')){deleting=r;openL('confirmLayer');return}
+    $('rTitle').textContent='风控命中账号（'+flat(r).length+' 个）— IP：'+r.ip;
+    $('rRemark').textContent=r.remark[r.remark.length-1];
+    $('rBox').innerHTML=r.sec.map(function(s){return (s.label?'<div class="rlabel">'+esc(s.label)+'</div>':'')+'<div>'+s.items.map(function(i){return itemHtml(i,applied.uids)}).join('<span class="racct">,</span> ')+'</div>'}).join('');
+    openL('riskLayer');
+  };
+
+  /* ---------- 需求说明 ---------- */
+  function doc(on){$('drawer').classList.toggle('on',on);$('dmask').classList.toggle('on',on)}
+  $('handleDoc').onclick=function(){doc(true)};$('closeDoc').onclick=function(){doc(false)};$('dmask').onclick=function(){doc(false)};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){doc(false);closeL()}});
+
+  if(/[#&?]ip\b/.test(location.hash+location.search)){document.querySelector('[data-v="ip"]').click()}
+  renderAll();
+})();
+</script>
+</body>
+</html>
