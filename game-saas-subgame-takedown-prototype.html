@@ -130,6 +130,7 @@ select.mi{appearance:auto}
       <div id="p1">
         <div class="demo"><b>原型演示</b>数据为演示数据。模拟在「游戏厂商管理」对 BGAMING电子 点击「同步子游戏」：
           <button class="btn s" onclick="syncOffline()">厂商已下架 Joker Mask</button>
+          <button class="btn s" onclick="syncBack()">厂商重新上架 Joker Mask 和 Formula x10000</button>
           <button class="btn s" onclick="resetGames()">重置演示</button>
         </div>
         <div class="card">
@@ -137,7 +138,7 @@ select.mi{appearance:auto}
           <div class="grid g3">
             <div class="f"><label>游戏名称</label><div class="inp"><span class="ph">游戏名称</span></div></div>
             <div class="f"><label>游戏厂商</label><div class="inp"><span class="ph">请选择游戏厂商</span><i class="cv">⌄</i></div></div>
-            <div class="f"><label style="position:relative">游戏状态<i class="nb" style="right:-12px">改</i></label><select class="inp" id="fState" style="padding-right:10px"><option value="">请选择</option><option value="1">启用</option><option value="0">禁用</option><option value="2">维护中</option><option value="x">厂商下架</option></select></div>
+            <div class="f"><label style="position:relative">游戏状态<i class="nb" style="right:-12px">改</i></label><select class="inp" id="fState" style="padding-right:10px"><option value="">请选择</option><option value="1">启用</option><option value="0">禁用</option><option value="2">维护中</option><option value="v">厂商下架</option><option value="m">手动下架</option></select></div>
             <div class="f"><label>游戏子类</label><div class="inp"><span class="ph">请选择游戏分类</span><i class="cv">⌄</i></div></div>
             <div class="f"><label>创建时间</label><div class="inp"><span class="ph">开始日期 → 结束日期</span></div></div>
             <div class="f"><label>是否映射</label><div class="inp"><span class="ph">请选择</span><i class="cv">⌄</i></div></div>
@@ -182,7 +183,7 @@ select.mi{appearance:auto}
         <div class="chips"><span class="chip">THB(泰铢) ×</span><span class="chip">MMK(缅甸元) ×</span><span class="chip">NGN(奈拉) ×</span><span class="chip">BDT(塔卡) ×</span><span class="chip">VND(越南盾) ×</span><span class="chip">MXN(墨西哥比索) ×</span><span class="chip">EGP(埃及镑) ×</span><span class="chip">MYR(马来西亚林吉特) ×</span><span class="chip">KES(肯尼亚先令) ×</span><span class="chip">INR(印度卢比) ×</span><span class="chip">BRL(巴西雷亚尔) ×</span></div></div>
       <div class="mf"><label>排序:</label><div class="mi">0 <span class="dash">− +</span></div></div>
       <div class="mf"><label>状态:</label><select class="mi" id="eState" onchange="onStateChange()"><option value="0">禁用</option><option value="1">启用</option><option value="2">维护中</option></select></div>
-      <div style="grid-column:2/4;display:grid;grid-template-columns:130px 1fr;gap:12px 22px"><div class="mf"><label class="lb">厂商下架:<i class="nb">NEW</i></label><label style="display:flex;align-items:center;gap:8px;min-height:32px"><input type="checkbox" id="eDown" style="width:16px;height:16px"> 是</label></div><div class="mf"><label class="lb">系统备注:<i class="nb">NEW</i></label><div class="mi ro" id="eSys"></div></div></div>
+      <div style="grid-column:2/4;display:grid;grid-template-columns:130px 1fr;gap:12px 22px"><div class="mf"><label class="lb">手动下架:<i class="nb">NEW</i></label><label style="display:flex;align-items:center;gap:8px;min-height:32px"><input type="checkbox" id="eDown" style="width:16px;height:16px"> 是</label></div><div class="mf"><label class="lb">系统备注:<i class="nb">NEW</i></label><div class="mi ro" id="eSys"></div></div></div>
     </div>
     <div class="mf" style="margin-top:12px"><label class="lb">人工备注:<i class="nb">改</i></label><input class="mi" id="eRemark" placeholder="请输入备注"></div>
     <div class="mfoot"><button class="btn" onclick="closeEdit()">取消</button><button class="btn p" onclick="saveEdit()">保存</button></div>
@@ -199,27 +200,28 @@ select.mi{appearance:auto}
     <h3>一、改造页面</h3>
     <div class="pin">📌 原型只看布局和交互；演示数据、页面顶部演示按钮、灰色说明文字、「原型：」提示、NEW/改角标均为演示，不做到页面上；默认值和分页沿用现有。「核心」只表示重点，没标的同样要做。本需求只针对所列页面，不改其他页面。</div>
     <table><thead><tr><th style="width:30%">页面</th><th>改动点</th></tr></thead><tbody>
-      <tr><td>游戏管理 › 子游戏管理</td><td>列表「状态」列、「游戏状态」筛选增加「厂商下架」；编辑弹窗新增「厂商下架」勾选项、「系统备注」，原「备注」改名「人工备注」</td></tr>
+      <tr><td>游戏管理 › 子游戏管理</td><td>列表「状态」列、「游戏状态」筛选增加「厂商下架」「手动下架」；编辑弹窗新增「手动下架」勾选项、「系统备注」，原「备注」改名「人工备注」</td></tr>
       <tr><td>游戏管理 › 游戏厂商管理</td><td>「同步子游戏」自动处理厂商已下架的子游戏；同步成功提示增加厂商下架数量</td></tr>
     </tbody></table>
 
     <h3>二、功能描述与业务规则</h3>
     <div class="core"><b>🎯 核心结论</b><ul>
-      <li>子游戏可标记为「厂商下架」：同步时自动标记，运营也可在编辑中手动勾选；标记内容写入系统备注。</li>
-      <li>列表「状态」列和「游戏状态」筛选能识别厂商下架。</li>
+      <li>子游戏下架分两种：厂商下架（同步时发现厂商不再提供，自动标记）和手动下架（运营在编辑中手动标记，同步不处理）；标记内容写入系统备注。</li>
+      <li>列表「状态」列和「游戏状态」筛选能区分这两种。</li>
     </ul></div>
     <div class="rule c"><span class="n">1</span><div><span class="tg">核心</span>在「游戏厂商管理」点击某厂商的「同步子游戏」时，该厂商下状态为启用、非手动添加（沿用现有手动添加标记）、且不在厂商本次返回列表中的子游戏，置为禁用，系统备注写入「厂商子游戏下架」，效果与运营手动禁用一致（含推送给各商户平台）。</div></div>
-    <div class="rule c"><span class="n">2</span><div><span class="tg">核心</span>子游戏编辑新增「厂商下架」勾选项：状态为禁用时可勾选，状态为启用、维护中时不可勾选；勾选并保存后，系统备注写入「厂商子游戏下架」。</div></div>
-    <div class="rule"><span class="n">3</span><div>系统备注清除：①编辑中取消勾选并保存；②编辑中将状态改为启用或维护中并保存。</div></div>
-    <div class="rule c"><span class="n">4</span><div><span class="tg">核心</span>列表「状态」列：状态为禁用且有系统备注的子游戏，在「禁用」后显示「厂商下架」标签。</div></div>
-    <div class="rule"><span class="n">5</span><div>「游戏状态」筛选增加「厂商下架」选项，选中后只显示状态为禁用且有系统备注的子游戏；选「禁用」时包含这些子游戏。</div></div>
-    <div class="rule"><span class="n">6</span><div>同步成功提示在现有内容后追加「厂商下架 N 条」，N 为本次自动置为禁用的数量，为 0 时也显示。</div></div>
-    <div class="rule"><span class="n">7</span><div>系统备注只读，只随同步或「厂商下架」勾选项的保存变化。系统备注的写入、清除，不改变人工备注内容；保存人工备注，不改变系统备注内容。</div></div>
-    <div class="rule"><span class="n">8</span><div>人工备注的修改，沿用现有操作日志（可查操作人、修改前内容、修改后内容），现有逻辑，不改，只做回归。</div></div>
+    <div class="rule c"><span class="n">2</span><div><span class="tg">核心</span>同步时，系统备注为「厂商子游戏下架」的子游戏重新出现在厂商返回列表中，系统备注清空，状态保持禁用。系统备注为「手动下架」的子游戏，同步时不处理，不受返回列表影响。</div></div>
+    <div class="rule c"><span class="n">3</span><div><span class="tg">核心</span>子游戏编辑新增「手动下架」勾选项：状态为禁用时可勾选，状态为启用、维护中时不可勾选；勾选并保存后，系统备注写入「手动下架」，原系统备注被覆盖。</div></div>
+    <div class="rule"><span class="n">4</span><div>系统备注清除：①编辑中取消勾选「手动下架」并保存；②编辑中将状态改为启用或维护中并保存。</div></div>
+    <div class="rule c"><span class="n">5</span><div><span class="tg">核心</span>列表「状态」列：状态为禁用且有系统备注的子游戏，在「禁用」后按系统备注显示「厂商下架」或「手动下架」标签。</div></div>
+    <div class="rule"><span class="n">6</span><div>「游戏状态」筛选增加「厂商下架」「手动下架」两个选项，选中后分别只显示状态为禁用且系统备注为对应内容的子游戏；选「禁用」时包含这两类子游戏。</div></div>
+    <div class="rule"><span class="n">7</span><div>同步成功提示在现有内容后追加「厂商下架 N 条」，N 为本次自动置为禁用的数量，为 0 时也显示。</div></div>
+    <div class="rule"><span class="n">8</span><div>系统备注只读，只随同步或「手动下架」勾选项的保存变化。系统备注的写入、清除，不改变人工备注内容；保存人工备注，不改变系统备注内容。</div></div>
+    <div class="rule"><span class="n">9</span><div>人工备注的修改，沿用现有操作日志（可查操作人、修改前内容、修改后内容），现有逻辑，不改，只做回归。</div></div>
 
     <h3>三、限制条件</h3>
     <table><thead><tr><th style="width:30%">项</th><th>说明</th></tr></thead><tbody>
-      <tr><td>系统备注、「厂商下架」标签、筛选及勾选项</td><td>仅平台后台「子游戏管理」展示；商户游戏管理及商户后台不改</td></tr>
+      <tr><td>系统备注、「厂商下架」「手动下架」标签、筛选及勾选项</td><td>仅平台后台「子游戏管理」展示；商户游戏管理及商户后台不改</td></tr>
     </tbody></table>
   </div>
 </aside>
@@ -254,10 +256,10 @@ function goPage(p){
 }
 
 /* ===== 页面1：子游戏管理 ===== */
-const SYS_TXT='厂商子游戏下架';
+const SYS_TXT='厂商子游戏下架', MAN_TXT='手动下架';
 const INIT=()=>[
   {id:27680,cn:'Joker Mask',en:'Joker Mask',code:'JokerMask',map:'',state:1,sys:'',remark:'活动期间重点关注',vendor:'BGAMING电子',bg:1},
-  {id:27679,cn:'Formula x10000',en:'Formula x10000',code:'FormulaX10000',map:'',state:0,sys:'',remark:'',vendor:'BGAMING电子',bg:1},
+  {id:27679,cn:'Formula x10000',en:'Formula x10000',code:'FormulaX10000',map:'',state:0,sys:'手动下架',remark:'',vendor:'BGAMING电子',bg:1},
   {id:27678,cn:'Bling Blitz Power Nudge',en:'Bling Blitz Power Nudge',code:'BlingBlitzPower',map:'',state:0,sys:'',remark:'',vendor:'BGAMING电子',bg:1},
   {id:27677,cn:'Fortune Gems Legend',en:'Fortune Gems Legend',code:'jili_812',map:'JILI电子-812',state:1,sys:'',remark:'',vendor:'JILI电子'},
   {id:27676,cn:'AndarBahar',en:'AndarBahar',code:'jili_79_andar',map:'JILI电子-79',state:1,sys:'',remark:'',vendor:'JILI电子'},
@@ -266,10 +268,10 @@ const INIT=()=>[
 ];
 let games=INIT(), cur=null;
 const stHtml=s=>s===1?'<span class="st on">启用</span>':s===2?'<span class="st mt">维护中</span>':'<span class="st off">禁用</span>';
-const fillSt=g=>g.state===0&&g.sys?stHtml(0)+' <span class="st" style="margin-left:4px;color:#722ed1;border-color:#722ed1">厂商下架</span>':stHtml(g.state);
+const fillSt=g=>{if(!(g.state===0&&g.sys))return stHtml(g.state);const m=g.sys===MAN_TXT;return stHtml(0)+` <span class="st" style="margin-left:4px;color:${m?'#08979c':'#722ed1'};border-color:${m?'#08979c':'#722ed1'}">${m?'手动下架':'厂商下架'}</span>`};
 function renderGames(){
   const f=$('fState').value;
-  const list=games.filter(g=>f===''||(f==='x'?(g.state===0&&g.sys):String(g.state)===f));
+  const list=games.filter(g=>f===''||(f==='v'?(g.state===0&&g.sys===SYS_TXT):f==='m'?(g.state===0&&g.sys===MAN_TXT):String(g.state)===f));
   $('gBody').innerHTML=list.length?list.map(g=>`<tr><td>${g.id}</td><td>CN: ${g.cn}<br>EN: ${g.en}</td><td><span class="tag">${g.code}</span></td><td>${g.map?'<span class="tag">'+g.map+'</span>':'--'}</td><td>${fillSt(g)}</td><td>2026-11-09 15:03:11</td><td><a class="lk" onclick="openEdit(${g.id})">编辑</a></td></tr>`).join(''):'<tr><td colspan="7" style="padding:40px;color:var(--sub)">无数据</td></tr>';
   $('gTotal').textContent='共 '+list.length+' 条';
 }
@@ -279,7 +281,7 @@ function openEdit(id){
   $('mTitle').textContent=`子游戏编辑 - (厂商:${cur.vendor} 编码:${cur.code})`;
   $('eCn').textContent=cur.cn;$('eEn').textContent=cur.en;
   $('eState').value=cur.state;
-  $('eSys').textContent=cur.sys;$('eDown').checked=!!cur.sys;$('eDown').disabled=cur.state!==0;
+  $('eSys').textContent=cur.sys;$('eDown').checked=cur.sys===MAN_TXT;$('eDown').disabled=cur.state!==0;
   $('eRemark').value=cur.remark;
   $('mask').classList.add('show');
 }
@@ -289,7 +291,7 @@ $('mask').addEventListener('click',e=>{if(e.target.id==='mask')closeEdit()});
 function saveEdit(){
   const s=+$('eState').value;
   cur.remark=$('eRemark').value;
-  cur.sys=(s===0&&$('eDown').checked)?SYS_TXT:'';
+  if(s!==0)cur.sys='';else if($('eDown').checked)cur.sys=MAN_TXT;else if(cur.sys===MAN_TXT)cur.sys='';
   cur.state=s;
   closeEdit();renderGames();toast('保存成功');
 }
@@ -301,6 +303,12 @@ function syncOffline(){
   });
   renderGames();
   toast(`同步成功：新增 0 条，更新 ${hit} 条，厂商下架 ${hit} 条！`);
+}
+function syncBack(){
+  let n=0;
+  games.filter(g=>g.bg&&(g.code==='JokerMask'||g.code==='FormulaX10000')).forEach(g=>{if(g.sys===SYS_TXT){g.sys='';n++}});
+  renderGames();
+  toast(`同步成功：新增 0 条，更新 ${n} 条，厂商下架 0 条！`);
 }
 function resetGames(){games=INIT();$('fState').value='';renderGames();toast('已重置')}
 
