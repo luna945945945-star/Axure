@@ -518,7 +518,7 @@ body.h5mode .topbar,body.h5mode .tabs{display:none}
     </table>
 
     <div class="br key"><span class="bn">01</span><b>可选的钱包</b><span class="kb">核心</span>：列出会员当前绑定的电子钱包，类型为 UPI、E-Wallet、WavePay、KBZPay、RSNWallet、Easypaisa、JazzCash、FastUPI、PKPay、NOPay；AR Pay 不列出。每个钱包一行，显示钱包名称和账号，账号打码方式与会员在提现页看到的一致（保留前 3 位和后 3 位）。</div>
-    <div class="br key"><span class="bn">02</span><b>只删勾选的</b><span class="kb">核心</span>：自动化工单处理时，只删除会员勾选的钱包；人工工单客服点「确认」后选「自动执行」，同样只删除会员勾选的钱包。同一类型绑了多个时，只删勾选的那个。</div>
+    <div class="br key"><span class="bn">02</span><b>只删勾选的</b><span class="kb">核心</span>：只删除会员勾选的钱包，没勾选的保留；同一类型绑了多个时，只删勾选的那个。删除有两种方式：<br>· 系统删除：自动化工单处理时、人工工单客服点「确认」后选「自动执行」时，由彩票（V1）按会员勾选删除。<br>· 人工删除：人工工单选「人工执行」后，客服在老后台「会员 → 电子钱包列表」或中台「会员 → 银行卡管理」的「电子钱包 / UPI / 第三方钱包」页签，按工单详情里会员勾选的钱包逐条删除；PKPay、NOPay 在中台「第三方钱包」页签删除。</div>
     <div class="br key"><span class="bn">03</span><b>进入提交页与加载</b><span class="kb">核心</span>：每次进入提交页都重新加载会员当前绑定的电子钱包，不保留上次的勾选。加载中显示加载状态；加载失败显示「Load failed, tap to retry」，点击重新加载；没有可删除的电子钱包时显示「No e-wallet available to delete」。只有加载成功且有钱包时「Confirm」才可点。</div>
     <div class="br key"><span class="bn">04</span><b>勾选校验</b><span class="kb">核心</span>：至少勾选 1 个。点「Confirm」时没勾选，钱包选择下方显示「Please select the e-wallet to delete」，和其它必填项一起校验、一起提示「The information is incomplete」，页面滚到第一个出错的位置。自动化版点「Send Verification Code」前同样校验勾选，没勾选不发送验证码。勾选后红字提示消失。</div>
     <div class="br"><span class="bn">05</span><b>处理时钱包已不在</b>：勾选的钱包在处理时已经解绑的跳过，其余照删，按成功处理。勾选的钱包一个都不在了：自动化工单按现有「未绑定电子钱包」原因驳回；人工工单「自动执行」提示失败，客服改用人工执行或驳回。</div>
@@ -541,9 +541,9 @@ body.h5mode .topbar,body.h5mode .tabs{display:none}
       <li>会员提交时记下勾选的每一条绑定记录，以及当时的钱包名称和账号；删除按这几条记录删，不能按钱包类型删。后台显示用提交时记下的内容，不受会员之后换绑影响。</li>
       <li>彩票系统删除前逐条核对：这条记录属于这个会员、类型在规则 01 的范围内；不符合的不删。</li>
       <li>彩票系统的删除要兼容没带勾选的请求（旧工单），按原来的方式删。上线顺序：彩票系统先上，工单后端和两个前端后上。</li>
-      <li>每删一条都要照现在一样写会员资料变更记录，来源为工单、带工单号。</li>
+      <li>彩票（V1）每删一条都要照现在一样写会员资料变更记录，来源为工单、带工单号，记录内容和老后台、中台删除时一致。中台「会员 → 银行卡管理」各页签已能按条删除（含 PKPay、NOPay），这次不用改。</li>
       <li>「限制类型」除了弹窗里不能选，保存时后端也要拦。上线前查一下现有这两类工单有没有配成「未登录」的，有就改成「已登录」。</li>
-      <li>自测用巴基斯坦测试会员，同时绑 Easypaisa、JazzCash、NOPay：从首页入口走两条分流各一遍；只勾 NOPay 提交，只有 NOPay 被删；勾两个，两个都删；不勾直接点「Confirm」和「Send Verification Code」，都出红字且不发送；提交后先在老后台删掉勾选的那个再处理，自动化工单按未绑定驳回；没绑电子钱包的会员打开提交页，显示空提示且「Confirm」不可点；断网打开提交页显示加载失败，点击能重新加载；人工工单点「自动执行」只删勾选的；会员端切到乌尔都语看新增文案。</li>
+      <li>自测用巴基斯坦测试会员，同时绑 Easypaisa、JazzCash、NOPay：从首页入口走两条分流各一遍；只勾 NOPay 提交，只有 NOPay 被删；勾两个，两个都删；不勾直接点「Confirm」和「Send Verification Code」，都出红字且不发送；提交后先在老后台或中台删掉勾选的那个再处理，自动化工单按未绑定驳回；人工工单选「人工执行」后，在中台「第三方钱包」页签能删掉会员勾选的 NOPay；没绑电子钱包的会员打开提交页，显示空提示且「Confirm」不可点；断网打开提交页显示加载失败，点击能重新加载；人工工单点「自动执行」只删勾选的；会员端切到乌尔都语看新增文案。</li>
     </ol>
   </div>
 </div>
