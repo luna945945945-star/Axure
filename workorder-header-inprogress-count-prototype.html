@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>顶栏新增「处理中」数量</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.5 -apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;background:#f5f7f9;color:#333639}
+
+/* ===== 顶栏（照工单管理端 Header：64px、横向菜单） ===== */
+.topbar{height:64px;background:#fff;display:flex;align-items:center;box-shadow:0 1px 4px rgba(0,21,41,.08);position:relative;z-index:5}
+.logo{min-width:260px;height:64px;display:flex;align-items:center;padding-left:10px;white-space:nowrap}
+.logo .img{width:32px;height:32px;border-radius:50%;background:#e03a3e;margin-right:10px;position:relative;flex:0 0 auto}
+.logo .img::after{content:"";position:absolute;left:10px;top:10px;width:12px;height:12px;border-radius:50%;background:#fff}
+.logo h2{font-size:20px;font-weight:600;color:#1f2225;line-height:20px;margin-right:30px}
+.logo p{font-size:14px;color:#333639;line-height:20px}
+.menu{display:flex;align-items:stretch;height:64px;margin-left:8px}
+.menu span{display:flex;align-items:center;gap:8px;padding:0 20px;color:#333639;white-space:nowrap;cursor:pointer;border-bottom:2px solid transparent}
+.menu span.on{color:#117BEA;border-bottom-color:#117BEA}
+.menu .ic{display:inline-block;width:16px;height:16px;border:1.5px solid currentColor;border-radius:3px;opacity:.75}
+.hright{margin-left:auto;display:flex;align-items:center;margin-right:20px;height:64px;white-space:nowrap}
+.workCount{display:flex;align-items:center}
+.workCount .swl{display:flex;align-items:center;gap:6px;cursor:pointer}
+.sw{width:40px;height:22px;border-radius:11px;background:rgba(0,0,0,.14);position:relative;display:inline-block;transition:background .2s}
+.sw::after{content:"";position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:left .2s}
+.sw.on{background:#117BEA}.sw.on::after{left:20px}
+.workCount p{margin-left:20px;position:relative}
+.workCount p span{color:#d03050;margin-left:8px}
+.trig{padding:0 12px;height:64px;display:flex;align-items:center;cursor:pointer;color:#515a6e}
+.trig:hover{background:#f8f8f9}
+.ifs{width:16px;height:16px;position:relative;display:inline-block}
+.ifs i{position:absolute;width:6px;height:6px;border-color:#515a6e;border-style:solid;border-width:0}
+.ifs i:nth-child(1){left:0;top:0;border-left-width:2px;border-top-width:2px}
+.ifs i:nth-child(2){right:0;top:0;border-right-width:2px;border-top-width:2px}
+.ifs i:nth-child(3){left:0;bottom:0;border-left-width:2px;border-bottom-width:2px}
+.ifs i:nth-child(4){right:0;bottom:0;border-right-width:2px;border-bottom-width:2px}
+.bellw{position:relative;padding-top:6px}
+.bell{width:20px;height:20px;border:2px solid #515a6e;border-radius:10px 10px 3px 3px;display:inline-block;position:relative}
+.bell::after{content:"";position:absolute;left:5px;bottom:-6px;width:6px;height:3px;border-radius:0 0 3px 3px;background:#515a6e}
+.badge{position:absolute;top:-4px;left:12px;background:#d03050;color:#fff;font-size:12px;line-height:18px;min-width:18px;text-align:center;border-radius:9px;padding:0 5px}
+.avatar{display:flex;align-items:center;height:64px}
+.av{width:34px;height:34px;border-radius:50%;background:#f0757a;display:inline-flex;align-items:center;justify-content:center}
+.av::after{content:"";width:14px;height:10px;border-radius:7px;background:#fff}
+.vd{width:1px;height:16px;background:#efeff5;margin:0 8px}
+.igear{width:18px;height:18px;border:3px dotted #515a6e;border-radius:50%;display:inline-block}
+
+/* NEW 角标（统一规格：只挂角标，不加背景色） */
+.nw::after{content:"NEW";position:absolute;top:-12px;right:-14px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);pointer-events:none;z-index:3;letter-spacing:.3px}
+
+/* ===== 多页签（照工单管理端） ===== */
+.tabs{height:44px;background:#fff;border-top:1px solid #efeff5;display:flex;align-items:center;padding:0 12px;gap:8px}
+.tab{height:32px;display:inline-flex;align-items:center;gap:8px;padding:0 12px;border:1px solid #e0e0e6;border-radius:3px;background:#fff;font-size:13px;color:#333639;cursor:pointer}
+.tab.on{background:#117BEA;border-color:#117BEA;color:#fff}
+.tab .x{font-size:12px;opacity:.75}
+
+/* ===== 内容区 ===== */
+.wrap{padding:12px 44px 60px 12px}
+.card{background:#fff;border-radius:3px;padding:20px 24px}
+.card + .card{margin-top:8px}
+.ctitle{font-size:18px;font-weight:500;color:#1f2225;margin-bottom:20px}
+
+/* 原型演示条 */
+.hint{background:#fff;border:2px dashed #7fb4f5;border-radius:6px;padding:10px 16px;margin-bottom:12px}
+.hint .hr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:#555}
+.pt{display:inline-block;font-size:11px;color:#117BEA;background:#e9f2fd;border:1px solid #c6ddf8;border-radius:3px;padding:0 6px;font-weight:600}
+.tabb{height:30px;padding:0 12px;border:1px solid #c9cdd4;background:#fff;color:#333;font:inherit;font-size:12.5px;cursor:pointer;border-radius:3px}
+.tabb.on{background:#117BEA;border-color:#117BEA;color:#fff;box-shadow:0 2px 5px rgba(17,123,234,.35)}
+
+/* 搜索表单（照 BasicForm：12 栅格，每项占 2） */
+.form{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px 12px}
+.fi{grid-column:span 2;display:flex;align-items:center;min-width:0}
+.fi.s4{grid-column:span 4}
+.fi label{flex:0 0 80px;width:80px;padding-right:12px;text-align:right;font-size:14px;color:#333639;line-height:1.3;word-break:break-all}
+.fc{flex:1;min-width:0;height:34px;border:1px solid #e0e0e6;border-radius:3px;background:#fff;padding:0 10px;font-size:14px;color:#c2c2c2;display:flex;align-items:center;justify-content:space-between;gap:6px;overflow:hidden;white-space:nowrap}
+.fc .v{color:#333639;overflow:hidden;text-overflow:ellipsis}
+.fc .ph{overflow:hidden;text-overflow:ellipsis}
+.fc.sel::after{content:"";flex:0 0 auto;border:5px solid transparent;border-top-color:#c2c2c2;margin-top:5px}
+.fc.rng .ar{color:#c2c2c2;padding:0 6px}
+.fc.amt{padding:0;border:0;gap:6px}
+.fc.amt span{flex:1;height:34px;border:1px solid #e0e0e6;border-radius:3px;display:flex;align-items:center;padding:0 8px;min-width:0}
+.fc.amt i{font-style:normal;color:#999;flex:0 0 auto}
+.fbtn{grid-column:span 2;display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.btn{height:34px;padding:0 14px;border-radius:3px;border:1px solid #e0e0e6;background:#fff;font:inherit;font-size:14px;color:#333639;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn.pri{background:#117BEA;border-color:#117BEA;color:#fff}
+.btn.info{background:#2080f0;border-color:#2080f0;color:#fff}
+.btn.info[disabled]{opacity:.5;cursor:not-allowed}
+.btn.txt{border-color:transparent;color:#117BEA;padding:0 4px}
+
+/* 表格（照 BasicTable） */
+.tbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.tbar .l{display:flex;flex-wrap:wrap;gap:10px}
+.tbar .r{display:flex;gap:16px;color:#515a6e}
+.tbar .r i{width:16px;height:16px;border:1.5px solid #8a8f99;border-radius:3px;display:inline-block}
+.tbl{overflow-x:auto;position:relative}
+table.rt{border-collapse:separate;border-spacing:0;font-size:14px;font-variant-numeric:tabular-nums;table-layout:fixed}
+.rt th,.rt td{border-right:1px solid #efeff5;border-bottom:1px solid #efeff5;padding:0 10px;text-align:center;white-space:nowrap;height:48px;overflow:hidden;text-overflow:ellipsis}
+.rt th{background:#fafafc;font-weight:500;color:#1f2225}
+.rt th:first-child,.rt td:first-child{border-left:1px solid #efeff5}
+.rt thead th{border-top:1px solid #efeff5}
+.rt tbody tr:hover td{background:#f3f3f5}
+.rt .fx{position:sticky;right:0;background:#fff;box-shadow:-3px 0 6px rgba(0,0,0,.06)}
+.rt th.fx{background:#fafafc}
+.rt tbody tr:hover td.fx{background:#f3f3f5}
+.cb{width:14px;height:14px;border:1px solid #c2c2c2;border-radius:2px;display:inline-block;vertical-align:middle}
+.st{display:inline-block;padding:0 8px;border-radius:3px;font-size:12px;line-height:22px}
+.st1{background:#fafafc;color:#333639;border:1px solid #e0e0e6}
+.st2{background:#fef6e7;color:#f0a020;border:1px solid #f9dca3}
+.st3{background:#fdeef1;color:#d03050;border:1px solid #f3bcc8}
+.st4{background:#e7f5ee;color:#18a058;border:1px solid #a6dcbf}
+.st5{background:#e9f2fe;color:#2080f0;border:1px solid #b6d3fa}
+.idc{line-height:1.4;font-size:13px}
+.kc{display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.3;padding:6px 0}
+.kt{display:inline-block;padding:0 7px;border-radius:3px;font-size:12px;line-height:20px;cursor:pointer}
+.kt.ok{background:#e7f5ee;color:#18a058;border:1px solid #a6dcbf}
+.kt.no{background:#fdeef1;color:#d03050;border:1px solid #f3bcc8}
+.idc div:last-child{color:#888}
+.ab{display:inline-flex;gap:6px}
+.ab b{font-weight:400;font-size:12px;height:24px;line-height:22px;padding:0 8px;border-radius:3px;border:1px solid #e0e0e6;background:#fff;cursor:pointer}
+.ab b.warning{background:#f0a020;border-color:#f0a020;color:#fff}
+.ab b.success{background:#18a058;border-color:#18a058;color:#fff}
+.ab b.info{background:#2080f0;border-color:#2080f0;color:#fff}
+.pager{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:16px 0 0;font-size:14px;color:#333639}
+.pager .pb{min-width:28px;height:28px;padding:0 4px;border:1px solid #e0e0e6;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;background:#fff}
+.pager .pb.cur{border-color:#117BEA;color:#117BEA}
+.pager .pb.dis{color:#c2c2c2}
+.pager .ps{height:28px;border:1px solid #e0e0e6;border-radius:3px;padding:0 10px;display:inline-flex;align-items:center;gap:8px}
+.pager .ps::after{content:"";border:4px solid transparent;border-top-color:#c2c2c2;margin-top:4px}
+
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#fff;border-radius:3px;padding:10px 16px;box-shadow:0 3px 12px rgba(0,0,0,.14);z-index:300;font-size:14px;display:none;color:#333639}
+
+/* ===== 需求说明抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #117BEA;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#117BEA;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(17,123,234,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #117BEA;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#eef5fd;border:1px solid #cfe3fa;padding:8px 10px;text-align:center;font-weight:600;color:#1a5fa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd table.t td.c{text-align:center}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f3f8ff,#e9f2fe);border:1px solid #c6ddf7;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#117BEA;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#1d3c63;background:#fff;border:1px solid #cfe3fa;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#1a5fa8}
+.prd .br.key{background:#f3f8ff;border-left:4px solid #117BEA}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#117BEA;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#117BEA;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (max-width:900px){
+.topbar{overflow-x:auto}
+.tabs{overflow-x:auto}
+.wrap{padding:12px 36px 50px 16px}
+.card{padding:16px}
+.form{grid-template-columns:1fr;gap:12px}
+.fi,.fi.s4,.fbtn{grid-column:span 1}
+.fbtn{justify-content:flex-start}
+.tbar{flex-direction:column;align-items:flex-start}
+.pager{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- 顶栏：照 Header/index.vue 横向菜单模式还原 -->
+<div class="topbar">
+  <div class="logo"><span class="img"></span><h2>AR</h2><p id="today"></p></div>
+  <div class="menu">
+    <span><i class="ic"></i>PWA管理</span>
+    <span class="on"><i class="ic"></i>工单管理</span>
+    <span><i class="ic"></i>KYC模块</span>
+    <span><i class="ic"></i>内容管理</span>
+    <span><i class="ic"></i>系统设置</span>
+  </div>
+  <div class="hright">
+    <div class="workCount">
+      <div class="swl" id="swAuto"><span class="sw" id="sw"></span> 自动刷新</div>
+      <p>系统处理中:<span id="cSys">1205</span></p>
+      <p>待处理:<span id="cPend">1978</span></p>
+      <p class="nw">处理中:<span id="cProc">46</span></p>
+    </div>
+    <div class="trig" title="全屏"><span class="ifs"><i></i><i></i><i></i><i></i></span></div>
+    <div class="trig"><span class="bellw"><span class="bell"></span><span class="badge">0</span></span></div>
+    <div class="trig"><div class="avatar"><span class="av"></span><span class="vd"></span><span id="uname">admin</span></div></div>
+    <div class="trig" title="项目配置"><span class="igear"></span></div>
+  </div>
+</div>
+<div class="tabs">
+  <span class="tab">Welcome <span class="x">✕</span></span>
+  <span class="tab">待处理工单 <span class="x">✕</span></span>
+  <span class="tab on">工单列表 <span class="x">✕</span></span>
+</div>
+
+<div class="wrap">
+
+  <div class="hint">
+    <div class="hr">
+      <span class="pt">原型页面切换</span>
+      <button class="tabb on" type="button" data-acc="zk">总控端</button>
+      <button class="tabb" type="button" data-acc="sh">商户端（ar048-91club）</button>
+      <span class="pt" style="margin-left:12px">原型演示</span>
+      <span>顶栏带红色 NEW 角标的「处理中」是本次新增；切换看总控端、商户端的数字。</span>
+    </div>
+  </div>
+
+  <!-- 工单列表：照 workOrderManager/index.vue + columns.ts + zh 语言包还原 -->
+  <div class="card">
+    <div class="ctitle">工单管理</div>
+    <div class="form" id="form"></div>
+  </div>
+
+  <div class="card">
+    <div class="tbar">
+      <div class="l">
+        <button class="btn info" type="button">导出</button>
+        <button class="btn info" type="button" disabled>批量三方查询</button>
+        <button class="btn info" type="button">批量驳回</button>
+        <button class="btn info" type="button" disabled>批量生成</button>
+        <button class="btn info" type="button" disabled>模版下载</button>
+        <button class="btn info" type="button" disabled>批量转发</button>
+        <button class="btn pri" type="button">提交工单</button>
+      </div>
+      <div class="r"><i></i><i></i><i></i></div>
+    </div>
+    <div class="tbl">
+      <table class="rt" id="rt"><colgroup id="cg"></colgroup><thead><tr id="th"></tr></thead><tbody id="tb"></tbody></table>
+    </div>
+    <div class="pager">
+      <span id="total"></span>
+      <span class="pb dis">‹</span><span class="pb cur">1</span><span class="pb">2</span><span class="pb">3</span><span class="pb">…</span><span class="pb" id="lastPg"></span><span class="pb">›</span>
+      <span class="ps">10 / 页</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>顶栏新增「处理中」数量 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
+    <table class="t">
+      <tr><th style="width:260px">页面</th><th>改动点</th></tr>
+      <tr><td>工单管理端 → 页面顶栏（所有页面）</td><td>「待处理」后面新增「处理中」数量；总控端、商户端都显示</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">处理中数量 = 提交时间在最近 3 天内、当前状态为「处理中」的工单数</div>
+      <div class="kf">总控端显示所有商户的合计；商户端只显示该商户自己的数量</div>
+      <div class="kf">统计时间范围、刷新时机和「系统处理中」「待处理」完全一致</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>统计口径</b><span class="kb">核心</span>：只算当前状态为「处理中」的工单，即客服已锁定、还没提交处理结果的工单；提交时间在最近 3 天（72 小时）内。
+      <table class="t">
+        <tr><th>工单情况</th><th style="width:150px">计入处理中</th></tr>
+        <tr><td>客服锁定后还没提交处理结果</td><td class="c">计入</td></tr>
+        <tr><td>客服解锁，或锁定超时被系统自动解锁（回到待处理）</td><td class="c">不计</td></tr>
+        <tr><td>系统处理中、待处理、已处理、已驳回</td><td class="c">不计</td></tr>
+        <tr><td>处理中，但提交时间超过 3 天</td><td class="c">不计</td></tr>
+      </table>
+    </div>
+
+    <div class="br key"><span class="bn">02</span><b>统计范围（总控端 / 商户端）</b><span class="kb">核心</span>：总控端（总控账号登录）显示所有商户的处理中数量合计；商户端（商户账号登录）只显示该商户自己的处理中数量，不含其他商户。「系统处理中」「待处理」也按同样的范围统计。
+      <table class="t">
+        <tr><th style="width:160px">登录端</th><th>处理中显示</th></tr>
+        <tr><td>总控端</td><td>所有商户的处理中工单数相加</td></tr>
+        <tr><td>商户端（例：ar048）</td><td>只算 ar048 的处理中工单数</td></tr>
+      </table>
+    </div>
+
+    <div class="br"><span class="bn">03</span><b>刷新</b>：和旁边两个数同时取、同时刷新：进入页面时取一次，打开「自动刷新」后每 30 秒刷新一次。</div>
+
+    <div class="br"><span class="bn">04</span><b>显示</b>：放在「待处理」后面，样式和旁边两个数相同；没有符合条件的工单时显示 0。</div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:130px">项</th><th>说明</th></tr>
+      <tr><td>点击</td><td>三个数字都只显示，不能点击跳转</td></tr>
+      <tr><td>和工单列表对数</td><td>工单列表默认只查昨天和今天、按商户时区；顶栏按最近 3 天统计，两边数量可能不一致</td></tr>
+      <tr><td>实时性</td><td>数字有最长约 1 分钟的延迟，锁定或解锁后不会立刻变化</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>处理中数量和现有两个数在同一次统计里一起算、一起返回，统计时间范围和账号范围直接沿用，不要另起一次查询。</li>
+      <li>顶栏数字现在有约 30 秒的缓存，缓存里只存了两个数。加上第三个数后，发版那一小段时间里读到的旧缓存还只有两个数，读取时要兼容（或者换一个缓存名），不能报错，也不能显示空白。</li>
+      <li>「处理中」三种语言（中文、英文、缅甸语）都已有现成文案，直接复用。</li>
+      <li>顶栏多一项后右侧更挤，要在 1366 宽的屏幕上检查：菜单、三个数字、铃铛和用户名不能换行或互相遮挡。</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function pad(n){return n<10?'0'+n:''+n;}
+var d=new Date();
+$('today').textContent=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+var ymd=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+var y=new Date(d.getTime()-864e5);var yd=y.getFullYear()+'-'+pad(y.getMonth()+1)+'-'+pad(y.getDate());
+
+/* 两种账号：顶栏数字、用户名、商户筛选和商户名称列不同 */
+var ACC={
+  zk:{user:'admin',sys:1205,pend:1978,proc:46,total:3219,super:true},
+  sh:{user:'ar048kfzz01',sys:87,pend:152,proc:6,total:245,super:false}
+};
+
+/* 搜索表单：字段顺序、文案、占位照真实页面 */
+function form(zk){
+  var f=[
+    ['会员账号','请输入会员账号,Id,邮箱查询'],
+    ['工单号','请输入工单号'],
+    ['三方名称','请输入三方名称'],
+    ['订单号','请输入订单号'],
+    ['查询结果','请输入查询结果'],
+    ['UTR','请输入UTR'],
+    ['状态','全部','sel',1],
+    ['后台驳回原因','模糊搜索'],
+    ['KYC连接','请选择状态','sel'],
+    ['是否匹配收款人UPI ID','请选择状态','sel'],
+    ['是否匹配 UTR','请选择状态','sel']
+  ];
+  if(zk) f.push(['商户','请选择商户','sel']);
+  f=f.concat([
+    ['工单名称','工单名称'],
+    ['工单类型','请选择工单类型','sel'],
+    ['工单限制类型','请选择状态','sel'],
+    ['vip等级','请选择Vip等级','sel'],
+    ['金额区间','','amt'],
+    ['附件类型','请选择状态','sel'],
+    ['操作人','请输入操作人'],
+    ['操作时间','','rng0'],
+    ['提交时间','','rng1']
+  ]);
+  return f.map(function(x){
+    var cls='fi',inner;
+    if(x[2]==='amt'){inner='<span class="fc amt"><span>最小金额</span><i>-</i><span>最大金额</span></span>';}
+    else if(x[2]==='rng0'){cls+=' s4';inner='<span class="fc rng"><span class="ph">开始日期时间</span><span class="ar">→</span><span class="ph">结束日期时间</span></span>';}
+    else if(x[2]==='rng1'){cls+=' s4';inner='<span class="fc rng"><span class="v">'+yd+' 00:00:00</span><span class="ar">→</span><span class="v">'+ymd+' 23:59:59</span></span>';}
+    else {inner='<span class="fc'+(x[2]==='sel'?' sel':'')+'">'+(x[3]?'<span class="v">'+x[1]+'</span>':'<span class="ph">'+x[1]+'</span>')+'</span>';}
+    return '<div class="'+cls+'"><label>'+x[0]+'</label>'+inner+'</div>';
+  }).join('')+'<div class="fbtn"><button class="btn pri" type="button" data-t="查询成功">查询</button><button class="btn" type="button" data-t="已重置">重置</button><button class="btn txt" type="button">收起 ︿</button></div>';
+}
+
+/* 表格列：照 columns.ts（商户名称仅总控显示） */
+function cols(zk){
+  var c=[['',40],['商户名称',130,1],['工单号 / 订单号',280],['工单类型',140],['工单名称',220],['vip等级',80],['会员id',180],['状态',118],['后台驳回原因',180],['三方名称',200],['是否匹配 UTR',120],['三方映射码',160],['三方通道ID',120],['KYC连接 / 验证时间',190],['收款账号',160],['订单金额',90],['催单次数',100],['附件类型',140],['提交时间',190],['操作时间',190],['操作人',120],['备注',220],['操作',220]];
+  return c.filter(function(x){return zk||!x[2];});
+}
+var SN={1:'待处理',2:'处理中',3:'已驳回',4:'已处理',5:'系统处理中'};
+/* 演示数据 */
+var rows=[
+  ['ar048-91club','1993412873520128001','RC20261124183520741','存款未到账','Deposit not received',3,'78213456',2,'','MovPay','否','MV8821','12017',[1,ymd+' 18:40:12'],'','5,000',2,'图片',ymd+' 18:35:20',ymd+' 18:52:03','kf_wendy',''],
+  ['ar048-91club','1993412873520128002','RC20261124181102336','存款未到账','Deposit not received',1,'78119024',1,'','YayaPay','否','YY3307','10503',[0,''],'','1,200',0,'图片',ymd+' 18:11:02','','',''],
+  ['ar052-luckyin','1993412873520128003','RC20261124175948112','存款未到账','Deposit not received',5,'90213378',5,'','PAYTM','否','PT1190','10317',[0,''],'','800',0,'空',ymd+' 17:59:48','','',''],
+  ['ar048-91club','1993412873520128004','','一对一客服','One-to-one support',2,'78002931',2,'','','--','','',null,'','--',1,'空',ymd+' 17:40:31',ymd+' 17:41:10','ar048kfzz01',''],
+  ['ar052-luckyin','1993412873520128005','WD20261124171533680','提现未到账','Withdrawal not received',4,'90118457',4,'','RsPay-QR','--','RS0215','10265',null,'','3,000',1,'PDF',ymd+' 17:15:33',ymd+' 17:30:46','kf_amy','已与三方核实到账'],
+  ['ar048-91club','1993412873520128006','RC20261124165012479','存款未到账','Deposit not received',1,'78340018',3,'UTR 与订单不符','QR','否','QR0098','10725',[0,''],'','2,500',0,'图片',ymd+' 16:50:12',ymd+' 17:05:19','kf_wendy','请提供正确的 UTR'],
+  ['ar052-luckyin','1993412873520128007','RC20261124163801257','存款未到账','Deposit not received',4,'90256613',2,'','Super','是','SP7012','10311',[1,ymd+' 16:39:55'],'8812****3310','10,000',0,'图片',ymd+' 16:38:01',ymd+' 16:44:20','kf_amy',''],
+  ['ar048-91club','1993412873520128008','','会员账号解冻','Unfreeze account',0,'78198865',1,'','','--','','',null,'','--',0,'空',ymd+' 16:20:45','','','']
+];
+function kyc(v){
+  if(!v)return '--';
+  return '<div class="kc"><span class="kt '+(v[0]?'ok':'no')+'">'+(v[0]?'已连接':'未连接')+' ↗</span>'+(v[1]?'<span>'+v[1]+'</span>':'')+'</div>';
+}
+function act(st,man,acc){
+  var a=['<b>查看</b>'];
+  var own=man===acc.user;
+  if(st===3||st===4)a.push('<b class="warning">修改备注</b>');
+  if(st===5||(st===2&&(acc.super||own)))a.push('<b>编辑</b>');
+  if(st===1)a.push('<b class="success">锁定</b>');
+  if(st===2&&(acc.super||own))a.push('<b class="info">解锁</b>');
+  return '<span class="ab">'+a.join('')+'</span>';
+}
+function render(k){
+  var zk=k==='zk',acc=ACC[k];
+  $('uname').textContent=acc.user;
+  $('cSys').textContent=acc.sys;$('cPend').textContent=acc.pend;$('cProc').textContent=acc.proc;
+  $('form').innerHTML=form(zk);
+  var c=cols(zk),w=0;
+  $('cg').innerHTML=c.map(function(x){w+=x[1];return '<col style="width:'+x[1]+'px">';}).join('');
+  $('rt').style.width=w+'px';
+  $('th').innerHTML=c.map(function(x,i){return '<th'+(i===c.length-1?' class="fx"':'')+'>'+(i===0?'<span class="cb"></span>':x[0])+'</th>';}).join('');
+  var list=rows.filter(function(r){return zk||r[0]==='ar048-91club';});
+  $('tb').innerHTML=list.map(function(r){
+    var st=r[7];
+    var cells=['<span class="cb"></span>'];
+    if(zk)cells.push(r[0]);
+    cells.push('<div class="idc"><div>'+r[1]+'</div><div>'+(r[2]||'--')+'</div></div>');
+    cells.push(r[3],r[4],'VIP '+r[5],r[6],'<span class="st st'+st+'">'+SN[st]+'</span>',r[8]||'--',r[9]||'--',r[10],r[11]||'--',r[12]||'--',kyc(r[13]),r[14]||'--',r[15],r[16],r[17],r[18],r[19]||'--',r[20]||'--',r[21]||'--');
+    cells.push(act(st,r[20],acc));
+    return '<tr>'+cells.map(function(x,i){return '<td'+(i===cells.length-1?' class="fx"':'')+'>'+x+'</td>';}).join('')+'</tr>';
+  }).join('');
+  $('total').textContent='共 '+acc.total.toLocaleString('en-US')+' 条';
+  $('lastPg').textContent=Math.ceil(acc.total/10);
+}
+document.querySelectorAll('[data-acc]').forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll('[data-acc]').forEach(function(x){x.classList.toggle('on',x===b);});
+    render(b.getAttribute('data-acc'));
+  };
+});
+render('zk');
+
+var tm=null;
+function toast(msg){var t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(tm);tm=setTimeout(function(){t.style.display='none';},2000);}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-t]');if(b)toast(b.getAttribute('data-t'));});
+$('swAuto').onclick=function(){$('sw').classList.toggle('on');};
+
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDoc();});
+})();
+</script>
+</body>
+</html>
