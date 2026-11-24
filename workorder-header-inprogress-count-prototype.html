@@ -144,7 +144,6 @@ table.rt{border-collapse:separate;border-spacing:0;font-size:14px;font-variant-n
 .prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
 .prd table.t th{background:#eef5fd;border:1px solid #cfe3fa;padding:8px 10px;text-align:center;font-weight:600;color:#1a5fa8;white-space:nowrap}
 .prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
-.prd table.t td.c{text-align:center}
 .prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
 .prd .keybox{background:linear-gradient(135deg,#f3f8ff,#e9f2fe);border:1px solid #c6ddf7;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
 .prd .keybox .kt{font-size:11.5px;color:#117BEA;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
@@ -155,7 +154,6 @@ table.rt{border-collapse:separate;border-spacing:0;font-size:14px;font-variant-n
 .prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
 .prd .br.key .bn{background:#117BEA;color:#fff}
 .prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
-.prd .br table.t{margin:8px 0 2px}
 .prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
 .prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
 .prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#117BEA;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
@@ -260,53 +258,24 @@ table.rt{border-collapse:separate;border-spacing:0;font-size:14px;font-variant-n
     <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW 角标的是新增。</div>
     <table class="t">
       <tr><th style="width:260px">页面</th><th>改动点</th></tr>
-      <tr><td>工单管理端 → 页面顶栏（所有页面）</td><td>「待处理」后面新增「处理中」数量；总控端、商户端都显示</td></tr>
+      <tr><td>工单管理端 → 页面顶栏（所有页面）</td><td>「待处理」后面新增「处理中」数量，总控端、商户端都显示</td></tr>
     </table>
 
     <div class="h1">二、功能描述与业务规则</div>
     <div class="keybox">
       <div class="kt">🎯 核心结论</div>
       <div class="kf">处理中数量 = 提交时间在最近 3 天内、当前状态为「处理中」的工单数</div>
-      <div class="kf">总控端显示所有商户的合计；商户端只显示该商户自己的数量</div>
-      <div class="kf">统计时间范围、刷新时机和「系统处理中」「待处理」完全一致</div>
+      <div class="kf">总控端（总控账号登录）显示所有商户的合计；商户端（商户账号登录）只显示该商户自己的数量</div>
     </div>
 
-    <div class="br key"><span class="bn">01</span><b>统计口径</b><span class="kb">核心</span>：只算当前状态为「处理中」的工单，即客服已锁定、还没提交处理结果的工单；提交时间在最近 3 天（72 小时）内。
-      <table class="t">
-        <tr><th>工单情况</th><th style="width:150px">计入处理中</th></tr>
-        <tr><td>客服锁定后还没提交处理结果</td><td class="c">计入</td></tr>
-        <tr><td>客服解锁，或锁定超时被系统自动解锁（回到待处理）</td><td class="c">不计</td></tr>
-        <tr><td>系统处理中、待处理、已处理、已驳回</td><td class="c">不计</td></tr>
-        <tr><td>处理中，但提交时间超过 3 天</td><td class="c">不计</td></tr>
-      </table>
-    </div>
+    <div class="br key"><span class="bn">01</span><b>「处理中」</b><span class="kb">核心</span>：客服已锁定、还没提交处理结果的工单，即工单列表状态筛选里的「处理中」。</div>
 
-    <div class="br key"><span class="bn">02</span><b>统计范围（总控端 / 商户端）</b><span class="kb">核心</span>：总控端（总控账号登录）显示所有商户的处理中数量合计；商户端（商户账号登录）只显示该商户自己的处理中数量，不含其他商户。「系统处理中」「待处理」也按同样的范围统计。
-      <table class="t">
-        <tr><th style="width:160px">登录端</th><th>处理中显示</th></tr>
-        <tr><td>总控端</td><td>所有商户的处理中工单数相加</td></tr>
-        <tr><td>商户端（例：ar048）</td><td>只算 ar048 的处理中工单数</td></tr>
-      </table>
-    </div>
-
-    <div class="br"><span class="bn">03</span><b>刷新</b>：和旁边两个数同时取、同时刷新：进入页面时取一次，打开「自动刷新」后每 30 秒刷新一次。</div>
-
-    <div class="br"><span class="bn">04</span><b>显示</b>：放在「待处理」后面，样式和旁边两个数相同；没有符合条件的工单时显示 0。</div>
-
-    <div class="h1">三、限制条件</div>
-    <table class="t">
-      <tr><th style="width:130px">项</th><th>说明</th></tr>
-      <tr><td>点击</td><td>三个数字都只显示，不能点击跳转</td></tr>
-      <tr><td>和工单列表对数</td><td>工单列表默认只查昨天和今天、按商户时区；顶栏按最近 3 天统计，两边数量可能不一致</td></tr>
-      <tr><td>实时性</td><td>数字有最长约 1 分钟的延迟，锁定或解锁后不会立刻变化</td></tr>
-    </table>
-
-    <div class="h1">四、开发注意事项</div>
+    <div class="h1">三、开发注意事项</div>
     <ol class="dev">
-      <li>处理中数量和现有两个数在同一次统计里一起算、一起返回，统计时间范围和账号范围直接沿用，不要另起一次查询。</li>
-      <li>顶栏数字现在有约 30 秒的缓存，缓存里只存了两个数。加上第三个数后，发版那一小段时间里读到的旧缓存还只有两个数，读取时要兼容（或者换一个缓存名），不能报错，也不能显示空白。</li>
-      <li>「处理中」三种语言（中文、英文、缅甸语）都已有现成文案，直接复用。</li>
-      <li>顶栏多一项后右侧更挤，要在 1366 宽的屏幕上检查：菜单、三个数字、铃铛和用户名不能换行或互相遮挡。</li>
+      <li>处理中数量和「系统处理中」「待处理」在同一次统计里一起算、一起返回，不要另起一次查询。</li>
+      <li>顶栏数字有短时缓存，现在只存了两个数。发版后短时间内会读到只有两个数的旧缓存，要能兼容，不能报错或显示空白。</li>
+      <li>「处理中」的中文、英文、缅甸语文案都已有，直接复用。</li>
+      <li>顶栏右侧多了一项，在 1366 宽的屏幕上不能换行或互相遮挡。</li>
     </ol>
   </div>
 </div>
