@@ -493,57 +493,43 @@ body.h5mode .topbar,body.h5mode .tabs{display:none}
   <div class="dbody prd">
 
     <div class="h1">一、改造页面</div>
-    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型；红色「NEW」是新增内容，红色「改」是改动位置。会员端的完整操作流程见原型第一页左侧「交互流程」。</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型；红色「NEW」是新增内容，红色「改」是改动位置。原型第一页左侧「交互流程」里，只有提交页的钱包勾选是新增，其余是现有交互。</div>
     <table class="t">
       <tr><th style="width:270px">页面</th><th>改动点</th></tr>
-      <tr><td>会员端 → 首页 Self Service →「Delete E-wallet」→ <b>删除电子钱包（自动化）</b>/ <b>删除电子钱包</b> 提交页</td><td>提交页新增「选择要删除的电子钱包」：列出会员已绑定的电子钱包，勾选后提交</td></tr>
-      <tr><td>工单管理端 → 工单管理 → <b>工单详情</b>弹窗</td><td>这两类工单新增显示会员勾选的电子钱包；删除电子钱包工单点「确认」后的提示弹窗里列出「自动执行」要删的钱包</td></tr>
+      <tr><td>会员端 → 首页 Self Service →「Delete E-wallet」→ <b>删除电子钱包（自动化）</b>/ <b>删除电子钱包</b> 提交页</td><td>新增「选择要删除的电子钱包」：列出会员已绑定的电子钱包，勾选后提交</td></tr>
+      <tr><td>工单管理端 → 工单管理 → <b>工单详情</b>弹窗</td><td>这两类工单显示会员勾选的电子钱包；删除电子钱包工单点「确认」后的提示弹窗里列出「自动执行」要删的钱包</td></tr>
       <tr><td>工单管理端 → 工单配置 → <b>添加 / 编辑工单类型</b>弹窗</td><td>工单类型为这两类时，「限制类型」只能选「已登录」</td></tr>
     </table>
 
     <div class="h1">二、功能描述与业务规则</div>
     <div class="keybox">
       <div class="kt">🎯 核心结论</div>
-      <div class="kf">会员提交前自己勾选要删的电子钱包，可多选；只删勾选的，没勾选的保留</div>
-      <div class="kf">NOPay、PKPay 纳入可删除范围；自动化和人工两类删除电子钱包工单都按会员的勾选删除</div>
+      <div class="kf">会员提交前勾选要删除的电子钱包（可多选），只删勾选的</div>
+      <div class="kf">NOPay、PKPay 纳入可删除范围；自动化和人工两类删除电子钱包工单都按勾选删除</div>
     </div>
 
-    <div class="h2">会员端操作流程</div>
-    <table class="t">
-      <tr><th style="width:44px">步骤</th><th style="width:150px">页面 / 操作</th><th>结果</th></tr>
-      <tr><td class="c">1</td><td>首页 Self Service 列表，点「Delete E-wallet」</td><td>两类都开启：首页只显示一个入口，点击弹出「Cannot received verification code?」。只开一类：直接进入该类提交页。未登录会员首页没有这个入口</td></tr>
-      <tr><td class="c">2</td><td>选择能否接收验证码</td><td>「Can Receive」进入自动化版提交页；「Cannot Receive」进入人工版提交页；点遮罩关闭弹窗，留在首页</td></tr>
-      <tr><td class="c">3</td><td>提交页<span class="nt">NEW</span></td><td>加载并勾选要删除的钱包（规则 03、04），再填写运营配置的其它项</td></tr>
-      <tr><td class="c">4</td><td>点「Confirm」</td><td>校验不过：停在提交页（规则 04）。已有处理中的同类工单：提示「The same type of work order is in progress, please do not submit it repeatedly.」，停在提交页。成功：提示「Submitted successfully, customer service will process it as soon as possible」后回到首页</td></tr>
-    </table>
-
-    <div class="br key"><span class="bn">01</span><b>可选的钱包</b><span class="kb">核心</span>：列出会员当前绑定的电子钱包，类型为 UPI、E-Wallet、WavePay、KBZPay、RSNWallet、Easypaisa、JazzCash、FastUPI、PKPay、NOPay；AR Pay 不列出。每个钱包一行，显示钱包名称和账号，账号打码方式与会员在提现页看到的一致（保留前 3 位和后 3 位）。</div>
-    <div class="br key"><span class="bn">02</span><b>只删勾选的</b><span class="kb">核心</span>：只删除会员勾选的钱包，没勾选的保留；同一类型绑了多个时，只删勾选的那个。删除有两种方式：<br>· 系统删除：自动化工单处理时、人工工单客服点「确认」后选「自动执行」时，由彩票（V1）按会员勾选删除。<br>· 人工删除：人工工单选「人工执行」后，客服在老后台「会员 → 电子钱包列表」或中台「会员 → 银行卡管理」的「电子钱包 / UPI / 第三方钱包」页签，按工单详情里会员勾选的钱包逐条删除；PKPay、NOPay 在中台「第三方钱包」页签删除。</div>
-    <div class="br key"><span class="bn">03</span><b>进入提交页与加载</b><span class="kb">核心</span>：每次进入提交页都重新加载会员当前绑定的电子钱包，不保留上次的勾选。加载中显示加载状态；加载失败显示「Load failed, tap to retry」，点击重新加载；没有可删除的电子钱包时显示「No e-wallet available to delete」。只有加载成功且有钱包时「Confirm」才可点。</div>
-    <div class="br key"><span class="bn">04</span><b>勾选校验</b><span class="kb">核心</span>：至少勾选 1 个。点「Confirm」时没勾选，钱包选择下方显示「Please select the e-wallet to delete」，和其它必填项一起校验、一起提示「The information is incomplete」，页面滚到第一个出错的位置。自动化版点「Send Verification Code」前同样校验勾选，没勾选不发送验证码。勾选后红字提示消失。</div>
-    <div class="br"><span class="bn">05</span><b>处理时钱包已不在</b>：勾选的钱包在处理时已经解绑的跳过，其余照删，按成功处理。勾选的钱包一个都不在了：自动化工单按现有「未绑定电子钱包」原因驳回；人工工单「自动执行」提示失败，客服改用人工执行或驳回。</div>
-    <div class="br"><span class="bn">06</span><b>后台显示</b>：工单详情和「自动执行」提示弹窗里显示会员提交时勾选的钱包（钱包名称 + 账号）。有工单详情现有手机号查看权限的客服看完整账号，没有的看打码账号。</div>
-    <div class="br"><span class="bn">07</span><b>仅限已登录</b>：这两类工单只对已登录会员开放，配置时「限制类型」固定为「已登录」。</div>
+    <div class="br key"><span class="bn">01</span><b>可选的钱包</b><span class="kb">核心</span>：列出会员当前绑定的 UPI、E-Wallet、WavePay、KBZPay、RSNWallet、Easypaisa、JazzCash、FastUPI、PKPay、NOPay；账号打码与会员提现页一致（保留前 3 位和后 3 位）。</div>
+    <div class="br key"><span class="bn">02</span><b>按勾选删除</b><span class="kb">核心</span>：只删会员勾选的那几条，同一类型绑了多个时只删勾选的。<br>· 系统删除：自动化工单处理、人工工单「确认」后选「自动执行」，由彩票（V1）删除。<br>· 人工删除：人工工单选「人工执行」，由客服在老后台「会员 → 电子钱包列表」或中台「会员 → 银行卡管理」按勾选逐条删除，PKPay、NOPay 在中台「第三方钱包」页签删除。</div>
+    <div class="br"><span class="bn">03</span><b>加载</b>：每次进入提交页重新加载钱包，不保留上次的勾选；加载失败或没有可删除的钱包时不能提交。</div>
+    <div class="br"><span class="bn">04</span><b>校验</b>：钱包勾选是必填项，至少勾 1 个，和提交页其它必填项一起校验；自动化版点「Send Verification Code」前也校验勾选。</div>
+    <div class="br"><span class="bn">05</span><b>处理时钱包已解绑</b>：已解绑的跳过，其余照删；勾选的全部已解绑时按删除失败处理，自动化工单按现有「未绑定电子钱包」原因驳回。</div>
+    <div class="br"><span class="bn">06</span><b>后台显示</b>：工单详情和「自动执行」提示弹窗里的钱包按会员提交时的内容显示；账号是否打码沿用工单详情现有的手机号查看权限。</div>
 
     <div class="h1">三、限制条件</div>
     <table class="t">
       <tr><th style="width:110px">项</th><th>说明</th></tr>
-      <tr><td>范围</td><td>只改「删除电子钱包（自动化）」「删除电子钱包」两类工单；「全部取款方式」不在本次范围</td></tr>
-      <tr><td>不做</td><td>不新增工单类型；不在提交页修改或新增钱包</td></tr>
+      <tr><td>范围</td><td>只改「删除电子钱包（自动化）」「删除电子钱包」两类工单；「全部取款方式」、老后台和中台的删除功能不改</td></tr>
       <tr><td>多语言</td><td>会员端新增文案在会员端所有语言里补齐，含乌尔都语</td></tr>
-      <tr><td>旧工单</td><td>上线前提交、上线时还没处理完的工单没有会员勾选，按原来的方式删除</td></tr>
     </table>
 
     <div class="h1">四、开发注意事项</div>
     <ol class="dev">
-      <li>钱包列表每次打开提交页时实时向彩票系统取该会员当前绑定的钱包；账号在彩票系统那边打好码再给会员端，会员端拿不到完整账号。</li>
-      <li>钱包勾选要接进提交页现有的表单必填校验，跟其它必填项一起出红字、一起提示「The information is incomplete」；自动化版「Send Verification Code」前的必填校验也要包含它。</li>
-      <li>会员提交时记下勾选的每一条绑定记录，以及当时的钱包名称和账号；删除按这几条记录删，不能按钱包类型删。后台显示用提交时记下的内容，不受会员之后换绑影响。</li>
-      <li>彩票系统删除前逐条核对：这条记录属于这个会员、类型在规则 01 的范围内；不符合的不删。</li>
-      <li>彩票系统的删除要兼容没带勾选的请求（旧工单），按原来的方式删。上线顺序：彩票系统先上，工单后端和两个前端后上。</li>
-      <li>彩票（V1）每删一条都要照现在一样写会员资料变更记录，来源为工单、带工单号，记录内容和老后台、中台删除时一致。中台「会员 → 银行卡管理」各页签已能按条删除（含 PKPay、NOPay），这次不用改。</li>
-      <li>「限制类型」除了弹窗里不能选，保存时后端也要拦。上线前查一下现有这两类工单有没有配成「未登录」的，有就改成「已登录」。</li>
-      <li>自测用巴基斯坦测试会员，同时绑 Easypaisa、JazzCash、NOPay：从首页入口走两条分流各一遍；只勾 NOPay 提交，只有 NOPay 被删；勾两个，两个都删；不勾直接点「Confirm」和「Send Verification Code」，都出红字且不发送；提交后先在老后台或中台删掉勾选的那个再处理，自动化工单按未绑定驳回；人工工单选「人工执行」后，在中台「第三方钱包」页签能删掉会员勾选的 NOPay；没绑电子钱包的会员打开提交页，显示空提示且「Confirm」不可点；断网打开提交页显示加载失败，点击能重新加载；人工工单点「自动执行」只删勾选的；会员端切到乌尔都语看新增文案。</li>
+      <li>钱包列表实时向彩票（V1）取，账号在彩票那边打码后再给会员端。</li>
+      <li>提交时记下勾选的绑定记录及当时的钱包名称、账号，删除和后台显示都用这份记录。</li>
+      <li>彩票删除前逐条核对：记录属于该会员、类型在规则 01 范围内，不符合的不删；每删一条照现有方式写会员资料变更记录（来源工单、带工单号）。</li>
+      <li>彩票的删除兼容没带勾选的请求，上线前已提交、还没处理完的工单按原方式删除。上线顺序：彩票先上，工单后端和两个前端后上。</li>
+      <li>「限制类型」保存时后端也要校验；上线前把现有配成「未登录」的这两类工单改成「已登录」。</li>
+      <li>自测用同时绑 Easypaisa、JazzCash、NOPay 的巴基斯坦测试会员：只勾 NOPay，只删 NOPay；勾两个，两个都删；提交后先解绑勾选的钱包再处理，自动化工单按未绑定驳回；人工工单「自动执行」只删勾选的。</li>
     </ol>
   </div>
 </div>
