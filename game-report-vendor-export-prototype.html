@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>游戏报表 · 分类厂商筛选与导出</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica Neue",Arial,sans-serif;background:#f2f3f7;color:#464a53}
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sub h1{font-size:15px;color:#2b6cb0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:14px 44px 60px 22px}
+.card{background:#fff;border-radius:4px;padding:20px 14px 22px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+
+/* ===== 查询区（照 D_/C_/M_Report_Game.cshtml） ===== */
+.searchbox{display:flex;flex-wrap:wrap;row-gap:16px}
+.fg{position:relative;display:flex;align-items:center;min-width:250px;padding-right:18px}
+.fg label{flex:none;width:76px;text-align:right;padding-right:8px;font-size:13px;color:#333;white-space:nowrap}
+.fg label.wl{width:104px}
+.fc{width:178px;height:30px;border:1px solid #d9d9d9;border-radius:2px;padding:0 8px;font:inherit;font-size:12px;color:#444;background:#fff}
+.fc:focus{outline:none;border-color:#7460ee}
+.fc::placeholder{color:#999}
+.lsel{position:relative;width:178px}
+.lsel select{width:100%;appearance:none;-webkit-appearance:none;padding-right:24px;color:#333}
+.lsel::after{content:"";position:absolute;right:9px;top:13px;border:5px solid transparent;border-top-color:#888;pointer-events:none}
+.bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:16px}
+.gbtn{display:flex;gap:8px;flex-wrap:wrap}
+.btn{position:relative;display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 13px;border:0;border-radius:3px;background:#7460ee;color:#fff;font:inherit;font-size:13px;font-weight:600;letter-spacing:1px;cursor:pointer;box-shadow:0 2px 6px rgba(116,96,238,.45)}
+.btn:hover{background:#6352d6}
+.navr{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tabb{height:30px;padding:0 12px;border:1px solid #808080;background:#fff;color:#333;font:inherit;font-size:12.5px;cursor:pointer;border-radius:2px}
+.tabb.on{background:#7460ee;border-color:#7460ee;color:#fff;box-shadow:0 2px 5px rgba(116,96,238,.45)}
+.navr .gap{width:28px}
+
+/* ===== 表格（真实页面左对齐、无分页） ===== */
+.tbl{overflow-x:auto;margin-top:6px;padding-top:12px}
+table.dl{border-collapse:collapse;width:100%;min-width:1180px;font-size:12.5px}
+.dl th{position:relative;background:#e9ebf1;color:#333;font-weight:600;height:40px;border:1px solid #dfe2e8;padding:0 10px;text-align:left;white-space:nowrap}
+.dl td{border:1px solid #e6e8ed;height:30px;padding:2px 10px;text-align:left;white-space:nowrap;color:#464a53}
+.dl tbody tr:nth-child(odd)>td{background:#f8f9fb}
+.dl tbody tr:hover>td{background:#f1f2f6}
+.dl tr.sum>td{background:#EBEFF5;color:red}
+
+/* NEW / 改名 角标 */
+.nw::after{content:"NEW";position:absolute;top:-9px;right:6px;background:#ff4d4f;color:#fff;font:700 9px/14px Arial,"PingFang SC",sans-serif;padding:0 4px;border-radius:7px;box-shadow:0 1px 3px rgba(255,77,79,.45);pointer-events:none;z-index:3;letter-spacing:.3px}
+.nw.rn::after{content:"改名"}
+.fg.nw::after{right:12px;top:-12px}
+.btn.nw::after{right:-8px;top:-10px}
+.fg.nw .fc{border-color:#ffa39e}
+
+/* jquery toast */
+.toast{position:fixed;top:16px;right:20px;width:300px;color:#fff;border-radius:4px;padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:300;font-size:12.5px;display:none}
+.toast.suc{background:#2bbf6a}.toast.warn{background:#f0a020}.toast.err{background:#e74c3c}
+.toast b{display:block;font-size:13.5px;margin-bottom:2px}
+
+/* ===== 原型演示区（非产品内容） ===== */
+.demo{margin:0 0 12px;padding:9px 12px;border:1px dashed #c3b8ee;border-radius:6px;background:#f7f5ff;color:#4b3aa8;font-size:12.5px;line-height:2.1}
+.demo b{font-weight:700}
+.demo a{color:#6C4FE0;text-decoration:underline;cursor:pointer;margin:0 6px}
+.demo .dk{color:#8a7fc4}
+.demo label{cursor:pointer;margin-left:6px}
+.demo input{vertical-align:-2px;margin-right:3px}
+
+/* 导出文件预览（原型演示） */
+.xls{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.xls.on{display:flex}
+.xbox{background:#fff;border-radius:6px;width:1060px;max-width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.2);border-top:3px solid #6C4FE0}
+.xh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid #eee;color:#333}
+.xh b{font-size:13.5px;font-weight:600}.xh .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.xm{padding:8px 16px 0;color:#4b3aa8;font-size:12.5px;line-height:1.8}
+.xm code{background:#f1edff;border:1px solid #e3dcfb;border-radius:3px;padding:0 5px;font-family:Menlo,Consolas,monospace;font-size:12px;color:#333}
+.xw{overflow:auto;padding:8px 16px 16px}
+.xw table{border-collapse:collapse;font:12.5px/1.4 Calibri,"Microsoft YaHei",Arial,sans-serif;color:#222}
+.xw th{background:#f3f3f3;border:1px solid #d4d4d4;padding:3px 10px;font-weight:400;color:#555;min-width:60px}
+.xw td{border:1px solid #e1e1e1;padding:3px 8px;white-space:nowrap}
+.xw tr:nth-child(2) td{font-weight:600}
+.xw .rn{background:#f3f3f3;color:#555;text-align:center;min-width:34px;border-color:#d4d4d4}
+.xw td.hl{background:#fff9c4}
+
+/* ===== 抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:110;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:120;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column;color:#333;font-weight:400}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:60;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd p,.prd li{font-size:13px;line-height:1.85;color:#333}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd .br table.t{margin:8px 0 2px}
+.prd ul.sl{margin:4px 0 2px 18px}
+.prd ul.sl li{font-size:12.5px;line-height:1.8}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (max-width:700px){.wrap{padding:12px 16px 50px}.fg{min-width:0;width:100%}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>☰ &nbsp; 当前站点：<b>india82</b></div>
+  <div>当前币种：<b style="color:#c0392b">INR</b></div>
+</div>
+<div class="sub">
+  <h1>游戏报表</h1>
+  <div class="crumb">报表管理 &nbsp;›&nbsp; <b>游戏报表</b></div>
+</div>
+
+<div class="wrap">
+ <div class="demo">
+  <b>原型演示</b><span class="dk">（非页面内容）</span>：
+  <a data-demo="name">搜 aviator（同名不同厂商）</a>
+  <a data-demo="code">搜编号 1807</a>
+  <a data-demo="cat">分类选 视讯游戏（看厂商下拉联动）</a>
+  <a data-demo="switch">先选 JILI 再改分类为视讯</a>
+  <a data-demo="lottery">分类选 彩票</a>
+  <span class="dk">｜</span><label><input type="checkbox" id="dmRole" checked>当前账号有「游戏报表-导出」权限（上线默认只有系统管理员）</label>
+ </div>
+
+ <div class="card">
+  <div class="searchbox" id="searchbox"></div>
+  <div class="bar">
+   <div class="gbtn">
+    <button class="btn" id="btnSearch" type="button">🔍 查 询</button>
+    <button class="btn" id="btnReset" type="button">↻ 重 置</button>
+    <button class="btn nw" id="btnExport" type="button">⇩ 导 出</button>
+   </div>
+   <div class="navr" id="navr"></div>
+  </div>
+
+  <div class="tbl">
+   <table class="dl">
+    <thead><tr>
+     <th class="nw rn" style="width:110px">游戏编号</th>
+     <th style="width:250px">游戏名称</th>
+     <th class="nw" style="width:110px">游戏分类</th>
+     <th class="nw" style="width:120px">厂商</th>
+     <th>投注金额</th>
+     <th>手续费</th>
+     <th>派奖金额</th>
+     <th>游戏输赢总额</th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+   </table>
+  </div>
+ </div>
+</div>
+
+<div class="toast" id="toast"><b id="toastT"></b><span id="toastM"></span></div>
+
+<!-- 原型演示：导出文件预览（非页面内容） -->
+<div class="xls" id="xls">
+ <div class="xbox">
+  <div class="xh"><b>原型演示 · 导出的 Excel 文件</b><span class="x" id="xlsX">✕</span></div>
+  <div class="xm">文件名：<code id="xlsName"></code><br><span id="xlsLog"></span></div>
+  <div class="xw"><table id="xlsTb"></table></div>
+ </div>
+</div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="dhead"><b>游戏报表 · 分类、厂商、筛选与导出 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+  <div class="dbody prd">
+
+    <div class="h1">一、改造页面</div>
+    <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型，带红色 NEW / 改名 角标的是改动。</div>
+    <table class="t">
+      <tr><th style="width:240px">页面</th><th>改动点</th></tr>
+      <tr><td rowspan="3">报表管理 → 游戏报表 → <b>日 / 日区间 / 月</b></td><td>查询条件：去掉「游戏类型」下拉，新增「游戏分类」「厂商」「游戏名称/编号」</td></tr>
+      <tr><td>按钮：新增「导出」</td></tr>
+      <tr><td>列表：「游戏类型」列改名「游戏编号」；「游戏名称」后新增「游戏分类」「厂商」两列</td></tr>
+      <tr><td>系统管理 → 角色</td><td>「游戏报表」下新增「导出」权限</td></tr>
+    </table>
+
+    <div class="h1">二、功能描述与业务规则</div>
+    <div class="keybox">
+      <div class="kt">🎯 核心结论</div>
+      <div class="kf">列表新增游戏分类、厂商两列，彩票的厂商为 ARLottery</div>
+      <div class="kf">查询条件换成 游戏分类（联动厂商）/ 厂商 / 游戏名称或编号</div>
+      <div class="kf">新增导出，需导出权限，上线只开给系统管理员</div>
+    </div>
+
+    <div class="br key"><span class="bn">01</span><b>游戏分类</b><span class="kb">核心</span>：彩票、电子游戏、视讯游戏、体育游戏、棋牌游戏 5 类，与「会员游戏分类报表」一致。取游戏所属厂商的大类，彩票固定为「彩票」。</div>
+
+    <div class="br key"><span class="bn">02</span><b>厂商</b><span class="kb">核心</span>：显示厂商代码；彩票（Win Go、TrxWinGo、5D、K3 等）显示 ARLottery。</div>
+
+    <div class="br key"><span class="bn">03</span><b>查询条件</b><span class="kb">核心</span>：
+      <ul class="sl">
+        <li>厂商下拉列出全部厂商（含已停用）；选了游戏分类只列该分类下的厂商，原选厂商不在该分类下时清空</li>
+        <li>游戏名称/编号：按名称或编号模糊匹配，不区分大小写</li>
+        <li>切换 日 / 日区间 / 月 时三项条件带过去；「重置」清空</li>
+      </ul>
+    </div>
+
+    <div class="br key"><span class="bn">04</span><b>导出</b><span class="kb">核心</span>：
+      <ul class="sl">
+        <li>按当前查询条件导出，列与列表一致，不含「页面总计」行</li>
+        <li>有「导出」权限才显示导出按钮；上线只给「系统管理员」角色开通，其他角色由管理员在「系统管理 › 角色」里自行勾选</li>
+      </ul>
+    </div>
+
+    <div class="h1">三、限制条件</div>
+    <table class="t">
+      <tr><th style="width:120px">项</th><th>说明</th></tr>
+      <tr><td>适用页面</td><td>只改「报表管理 › 游戏报表」的日 / 日区间 / 月</td></tr>
+    </table>
+
+    <div class="h1">四、开发注意事项</div>
+    <ol class="dev">
+      <li>厂商和分类：游戏编号小于 1000 的是彩票，厂商为 ARLottery；其余的编号除以 1000 取整就是厂商编号，到厂商配置里取厂商代码和大类，找不到的显示「-」。</li>
+      <li>报表统计不改：按全部游戏取数后，再按分类、厂商、名称/编号过滤，页面总计按过滤后的结果算。</li>
+      <li>导出照「会员游戏报表」的导出做（权限校验、无数据提示、文件名、操作日志）。</li>
+      <li>导出权限照 10-06「系统日志」加导出权限的做法：菜单加「导出」项，上线脚本只给「系统管理员」角色授权。</li>
+    </ol>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+function pad(n){return n<10?'0'+n:''+n;}
+function fmtD(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function parseD(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+(p[2]||1));}
+function addDay(s,n){var d=parseD(s);d.setDate(d.getDate()+n);return fmtD(d);}
+function addMonth(s,n){var d=parseD(s+'-01');d.setMonth(d.getMonth()+n);return d.getFullYear()+'-'+pad(d.getMonth()+1);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+var TODAY=fmtD(new Date()),THIS_MONTH=TODAY.slice(0,7);
+
+/* ================= 厂商配置（厂商编号 → 厂商代码、大类） ================= */
+var CATS=['彩票','电子游戏','视讯游戏','体育游戏','棋牌游戏'];
+/* 大类：电子 / 视讯 / 体育 / 棋牌；未列出的按电子 */
+var VENDORS={1:'TB',2:'CQ9',3:'HB',4:'MG',5:'PG',6:'JDB',7:'DG',8:'CMD',10:'AG_Video',11:'AG_Fish',12:'AG_Electronic',13:'AG_Sport',14:'SaBa',15:'IM',16:'EVO_Video',17:'EVO_Electronic',18:'JILI',19:'Card365',20:'SPRIBE',21:'V8Card',22:'PP',23:'TB_Chess',24:'EVOPlay',25:'Wickets9',26:'WM_Video',27:'SEXY_Video',28:'BG_Electronic',29:'BetSoft',30:'YGG',31:'JOKER',32:'PlayNgo',33:'Hacksaw',34:'HackMD',35:'Marbles',36:'Spribe2',37:'MG_Fish',38:'MG_Video',39:'BSQP',40:'ARLottery',41:'G9',42:'GameBox',43:'UP',44:'KoolBet',45:'INOUT',46:'BGAMING',47:'TURBO',48:'KB',49:'NG',50:'ARBET',51:'ART',52:'POPOK',53:'Habanero',54:'MiniGame',55:'Ezugi',100:'ARGame'};
+var VENDOR_CAT={7:'视讯游戏',10:'视讯游戏',16:'视讯游戏',26:'视讯游戏',27:'视讯游戏',38:'视讯游戏',55:'视讯游戏',8:'体育游戏',13:'体育游戏',14:'体育游戏',15:'体育游戏',25:'体育游戏',50:'体育游戏',19:'棋牌游戏',21:'棋牌游戏',39:'棋牌游戏',44:'棋牌游戏',40:'彩票'};
+function vendorCatById(id){return VENDOR_CAT[id]||'电子游戏';}
+/* 厂商下拉：按厂商编号；选了游戏分类只列该分类下的厂商 */
+function vendorOpts(cat){
+  return Object.keys(VENDORS).map(Number).sort(function(a,b){return a-b;})
+    .filter(function(id){return !cat||vendorCatById(id)===cat;})
+    .map(function(id){return VENDORS[id];});
+}
+function fillVendor(keepVal){
+  var cat=$('GameCategory').value,list=vendorOpts(cat);
+  $('VendorCode').innerHTML='<option value="">请选择</option>'+list.map(function(v){return '<option value="'+v+'">'+v+'</option>';}).join('');
+  $('VendorCode').value=list.indexOf(keepVal)>=0?keepVal:'';   /* 原选的厂商不在新分类里 → 回到请选择 */
+}
+
+/* ================= 新增：厂商、游戏分类取值 ================= */
+function vendorOf(id){return id<1000?'ARLottery':(VENDORS[Math.floor(id/1000)]||'-');}
+function catOf(id){
+  if(id<1000)return '彩票';
+  var v=Math.floor(id/1000);
+  if(!VENDORS[v])return '-';
+  return VENDOR_CAT[v]||'电子游戏';
+}
+
+/* ================= 演示数据（金额为随机生成，非真实数据） ================= */
+var GAMES=[
+ [1,'Win 1 minute',60],[2,'Win 3 minute',8],[3,'Win 5 minute',4],[4,'Win 10 minute',1.2],[30,'30 second',90],
+ [5,'5D 1 Minute',2.5],[6,'5D 3 Minute',.6],[7,'5D 5 Minute',.4],[8,'5D 10 Minute',.2],
+ [9,'K3 1 Minute',6],[10,'K3 3 Minute',1.1],[11,'K3 5 Minute',.6],[12,'K3 10 Minute',.3],
+ [6068,'Cai Shen Fishing 财神捕鱼',4],[6069,'五龙捕鱼',2.4],
+ [7001,'百家乐',2],
+ [14001,'SABA Sports',3.6],
+ [16005,'Auto-Roulette',5],[16036,'Crazy Time',3],[16043,'Dragon Tiger',3],[16085,'Speed Baccarat A',8],[16095,'Speed Baccarat B',6.5],
+ [18001,'Royal fishing 钱龙捕鱼',6],[18041,'炸鱼来了',2],[18070,'JackPot Fishing 极速彩金捕鱼',16],[18078,'Dinosaur Tycoon 猎龙大亨',5],[18097,'王者捕鱼',3],[18101,'開心捕魚',2.3],[18216,'Circus Jackpot',4],[18233,'Jackpot Fishing 2',3.2],
+ [19001,'Teen Patti',1.8],
+ [23001,'Mines',6.5],[23013,'Aviator',20],[23023,'Cricket',6.2],[23026,'Mines Pro',2.5],[23027,'DragonTiger',2.1],[23038,'Spribe Aviator',11],[23045,'Chicken Road 2',2.5],[23048,'Vortex',4.1],
+ [42001,'Aviator',85],
+ [43001,'Golden Empire',2],[43002,'Fortune Gems',20],[43003,'Fortune Gems 3',6.3],[43006,'Charge Buffalo',2],[43007,'Super Ace',4.2],[43010,'Money Coming',20],[43012,'Fortune Gems 2',14],[43046,'Wild Bounty Showdown',2.6],[43053,'GoRush',3.5],[43066,'Fortune Gems 500',3.2],[43068,'Fortune Garuda 500',6.2],[43093,'Jackpot Fishing',5.3]
+];
+function hash(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function rnd(s){var t=hash(s)+0x6D2B79F5|0;t=Math.imul(t^t>>>15,1|t);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}
+var cache={};
+function dayRow(g,date){
+  var k=g[0]+'|'+date;if(cache[k])return cache[k];
+  var own=g[0]<1000,bet=g[2]*1e5*(0.6+0.8*rnd(k+'b'));
+  bet=own?Math.round(bet):Math.round(bet*100)/100;
+  var ratio=own?0.955+0.02*rnd(k+'r'):0.92+0.11*rnd(k+'r');
+  var r={bet:bet,fee:own?Math.round(bet*2)/100:0,bonus:Math.round(bet*ratio*100)/100};
+  cache[k]=r;return r;
+}
+function datesOf(c){
+  var list=[],d,end;
+  if(view==='D')return [c.Date];
+  if(view==='C'){d=c.StartTime;end=c.EndTime;}
+  else{d=c.Month+'-01';end=c.Month===THIS_MONTH?TODAY:addDay(addMonth(c.Month,1)+'-01',-1);}
+  if(end>TODAY)end=TODAY;
+  var guard=0;while(d<=end&&guard++<400){list.push(d);d=addDay(d,1);}
+  return list;
+}
+
+/* ================= 页面状态 ================= */
+var view='M',applied=null,canExport=true;
+
+function buildSearch(keep){
+  keep=keep||{};
+  var catOpts='<option value="">请选择</option>'+CATS.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join('');
+  var h='<div class="fg nw"><label for="GameCategory">游戏分类</label><span class="lsel"><select class="fc" id="GameCategory">'+catOpts+'</select></span></div>'+
+    '<div class="fg nw"><label for="VendorCode">厂商</label><span class="lsel"><select class="fc" id="VendorCode"></select></span></div>'+
+    '<div class="fg nw"><label for="GameName" class="wl">游戏名称/编号</label><input class="fc" id="GameName" placeholder="游戏名称或编号" autocomplete="off"></div>';
+  if(view==='D')h+='<div class="fg"><label for="Date">日期</label><input class="fc" id="Date" type="date" max="'+TODAY+'"></div>';
+  else if(view==='C')h+='<div class="fg"><label for="StartTime">开始时间</label><input class="fc" id="StartTime" type="date" max="'+TODAY+'"></div>'+
+    '<div class="fg"><label for="EndTime">结束时间</label><input class="fc" id="EndTime" type="date" max="'+TODAY+'"></div>';
+  else h+='<div class="fg"><label for="Month">月份</label><input class="fc" id="Month" type="month" max="'+THIS_MONTH+'"></div>';
+  $('searchbox').innerHTML=h;
+  $('GameCategory').value=keep.GameCategory||'';
+  fillVendor(keep.VendorCode||'');
+  $('GameCategory').addEventListener('change',function(){fillVendor($('VendorCode').value);});
+  $('GameName').value=keep.GameName||'';
+  if(view==='D')$('Date').value=TODAY;
+  else if(view==='C'){$('StartTime').value=TODAY;$('EndTime').value=TODAY;}
+  else $('Month').value=THIS_MONTH;
+  $('GameName').addEventListener('keydown',function(e){if(e.key==='Enter')search();});
+
+  var nav='';
+  if(view==='D')nav='<button class="tabb" type="button" data-s="-1">上一日</button><button class="tabb" type="button" data-s="1">下一日</button><span class="gap"></span>';
+  if(view==='M')nav='<button class="tabb" type="button" data-s="-1">上个月</button><button class="tabb" type="button" data-s="1">下个月</button><span class="gap"></span>';
+  [['D','日'],['C','日区间'],['M','月']].forEach(function(x){nav+='<button class="tabb'+(view===x[0]?' on':'')+'" type="button" data-v="'+x[0]+'">'+x[1]+'</button>';});
+  $('navr').innerHTML=nav;
+}
+function filters(){return {GameCategory:$('GameCategory').value,VendorCode:$('VendorCode').value,GameName:$('GameName').value};}
+function cond(){
+  var c=filters();
+  c.GameName=c.GameName.trim();
+  if(view==='D')c.Date=$('Date').value||TODAY;
+  else if(view==='C'){c.StartTime=$('StartTime').value||TODAY;c.EndTime=$('EndTime').value||TODAY;}
+  else c.Month=$('Month').value||THIS_MONTH;
+  return c;
+}
+function rowsOf(c){
+  var ds=datesOf(c),kw=c.GameName.toLowerCase();
+  return GAMES.filter(function(g){
+    if(c.GameCategory&&catOf(g[0])!==c.GameCategory)return false;
+    if(c.VendorCode&&vendorOf(g[0])!==c.VendorCode)return false;
+    if(kw&&g[1].toLowerCase().indexOf(kw)<0&&String(g[0]).indexOf(kw)<0)return false;   /* 名称或编号包含即匹配 */
+    return true;
+  }).map(function(g){
+    var s={id:g[0],name:g[1],bet:0,fee:0,bonus:0};
+    ds.forEach(function(d){var r=dayRow(g,d);s.bet+=r.bet;s.fee+=r.fee;s.bonus+=r.bonus;});
+    s.profit=s.bet-s.bonus;
+    return s;
+  }).filter(function(s){return s.bet>0;}).sort(function(a,b){return a.id-b.id;});
+}
+function m2(v){return (Math.round(v*100)/100).toFixed(2);}
+var lastRows=[];
+function render(){
+  var rows=lastRows=rowsOf(applied),tb=$('tb');
+  if(!rows.length){tb.innerHTML='';return;}   /* 真实页面无数据时表体为空 */
+  var S={bet:0,fee:0,bonus:0,profit:0};
+  tb.innerHTML=rows.map(function(r){
+    S.bet+=r.bet;S.fee+=r.fee;S.bonus+=r.bonus;S.profit+=r.profit;
+    return '<tr><td>'+r.id+'</td><td>'+esc(r.name)+'</td><td>'+catOf(r.id)+'</td><td>'+vendorOf(r.id)+'</td><td>'+m2(r.bet)+'</td><td>'+m2(r.fee)+'</td><td>'+m2(r.bonus)+'</td><td>'+m2(r.profit)+'</td></tr>';
+  }).join('')+
+  '<tr class="sum"><td>页面总计</td><td></td><td></td><td></td><td>'+m2(S.bet)+'</td><td>'+m2(S.fee)+'</td><td>'+m2(S.bonus)+'</td><td>'+m2(S.profit)+'</td></tr>';
+}
+function search(){applied=cond();render();}
+
+/* ================= toast ================= */
+var toastTm=null;
+function toast(kind,title,msg){
+  var t=$('toast');t.className='toast '+kind;$('toastT').textContent=title;$('toastM').textContent=msg;
+  t.style.display='block';clearTimeout(toastTm);toastTm=setTimeout(function(){t.style.display='none';},3000);
+}
+
+/* ================= 按钮 ================= */
+$('btnSearch').onclick=search;
+$('btnReset').onclick=function(){buildSearch({});search();};
+$('navr').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;
+  if(b.getAttribute('data-v')){          /* 切页签：带上三个筛选条件 */
+    var k=filters();view=b.getAttribute('data-v');buildSearch(k);search();return;
+  }
+  var n=+b.getAttribute('data-s');
+  if(view==='D'){var d=addDay($('Date').value||TODAY,n);if(d>TODAY){toast('warn','消息提示','当前已是最新数据！');return;}$('Date').value=d;}
+  else{var m=addMonth($('Month').value||THIS_MONTH,n);if(m>THIS_MONTH){toast('warn','消息提示','当前已是最新数据！');return;}$('Month').value=m;}
+  search();
+});
+
+/* ================= 导出（新增） ================= */
+function stamp(){var d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+pad(d.getHours()%12)+pad(d.getMinutes())+pad(d.getSeconds());}
+$('btnExport').onclick=function(){
+  var c=cond(),rows=rowsOf(c);           /* 按当前条件导出（与页面查询相同） */
+  if(!rows.length){toast('err','导出数据','没有需要导出的数据！');return;}
+  var name,kind;
+  if(view==='D'){name='['+c.Date+']游戏报表日报';kind='日报';}
+  else if(view==='C'){name='['+c.StartTime+'-'+c.EndTime+']游戏报表日区间报';kind='日区间报';}
+  else{name='['+c.Month+']游戏报表月报';kind='月报';}
+  var head=['游戏编号','游戏名称','游戏分类','厂商','投注金额','手续费','派奖金额','游戏输赢总额'];
+  var lines=[head].concat(rows.map(function(r){return [r.id,r.name,catOf(r.id),vendorOf(r.id),m2(r.bet),m2(r.fee),m2(r.bonus),m2(r.profit)];}));
+  var h='<tr><th class="rn"></th>'+'ABCDEFGH'.split('').map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr>';
+  lines.forEach(function(l,i){h+='<tr><td class="rn">'+(i+1)+'</td>'+l.map(function(v,j){return '<td'+(i>0&&(j===2||j===3)?' class="hl"':'')+'>'+esc(v)+'</td>';}).join('')+'</tr>';});
+  $('xlsTb').innerHTML=h;
+  $('xlsName').textContent=name+stamp()+'.xlsx';
+  $('xlsLog').textContent='共 '+rows.length+' 行，不含页面总计；同时记操作日志「导出游戏报表'+kind+'   操作人:admin01」';
+  $('xls').classList.add('on');
+};
+$('xlsX').onclick=function(){$('xls').classList.remove('on');};
+$('xls').onclick=function(e){if(e.target===this)this.classList.remove('on');};
+
+/* ================= 原型演示 ================= */
+document.querySelector('.demo').addEventListener('click',function(e){
+  var a=e.target.closest('a[data-demo]');if(!a)return;
+  var t=a.getAttribute('data-demo');
+  function setCat(c){$('GameCategory').value=c;fillVendor($('VendorCode').value);}
+  setCat('');$('VendorCode').value='';$('GameName').value='';
+  if(t==='name')$('GameName').value='aviator';
+  if(t==='code')$('GameName').value='1807';
+  if(t==='cat')setCat('视讯游戏');
+  if(t==='lottery')setCat('彩票');
+  if(t==='switch'){$('VendorCode').value='JILI';search();toast('suc','原型演示','已选厂商 JILI，1 秒后把分类改成视讯游戏');setTimeout(function(){setCat('视讯游戏');search();},1000);return;}
+  search();
+});
+$('dmRole').onchange=function(){canExport=this.checked;$('btnExport').style.display=canExport?'':'none';};
+
+/* ================= 需求说明抽屉 ================= */
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeDoc();$('xls').classList.remove('on');}});
+
+buildSearch({});search();
+})();
+</script>
+</body>
+</html>
