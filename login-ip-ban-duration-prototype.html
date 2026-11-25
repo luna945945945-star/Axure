@@ -121,6 +121,9 @@ body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica
 .tw{position:relative}
 .tw textarea{width:100%;min-height:120px;border:1px solid #e6e6e6;border-radius:2px;padding:8px 10px;font:inherit;font-size:14px;color:#333;resize:vertical;line-height:1.6}
 .tw .th{position:absolute;right:10px;bottom:8px;color:#bbb;font-size:12px}
+.eap{display:none;margin-top:10px;padding:8px 12px;border:1px dashed #ffb3b3;border-radius:2px;background:#fff7f7;font-size:13px;color:#666;line-height:1.7;word-break:break-all}
+.eap.on{display:block}
+.eap #eApT{color:#333}
 #confirmLayer{width:300px}
 #confirmLayer .lbd{padding:22px 20px 14px;font-size:14px;color:#333;display:flex;gap:10px;align-items:center}
 #confirmLayer .ico{width:22px;height:22px;border-radius:50%;background:#FFB800;color:#fff;font-weight:700;text-align:center;line-height:22px;flex:none}
@@ -268,7 +271,8 @@ body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica
    <div class="efi" id="eUbRow"><label class="efl"><span class="nw">解封时间</span></label>
     <div class="eub"><span id="eUntil"></span><span class="eleft" id="eLeft"></span><label class="ck"><input type="checkbox" id="ePerm">改为永久</label></div></div>
    <div class="efi"><label class="efl"><span class="req">*</span>封禁原因</label>
-    <div class="tw"><textarea id="eRm" maxlength="1024" placeholder="请输入封禁原因，便于后续追溯"></textarea><span class="th">最大1024</span></div></div>
+    <div class="tw"><textarea id="eRm" maxlength="1024" placeholder="请输入封禁原因，便于后续追溯"></textarea><span class="th">最大1024</span></div>
+    <div class="eap" id="eAp"><span class="nw" id="eApL"></span><br><span id="eApT"></span></div></div>
   </div>
  </div>
  <div class="lft"><button class="lb pr" id="eOk">确定</button><button class="lb" data-close>取消</button></div>
@@ -296,69 +300,60 @@ body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica
    <thead><tr><th style="width:170px">页面</th><th>改动点</th></tr></thead>
    <tbody>
     <tr><td>配置管理 › 参数配置<br>（登录风控配置）</td><td>① 「同一个IP … 登录账号数量」「同一个IP … 登录次数」两行，各加一个「封禁 N 分钟」输入框。<br>② 这两行右侧提示加一句「封禁填 0 = 永久, 到期自动解封」。</td></tr>
-    <tr><td>用户管理 › IP黑名单</td><td>① 列表在「创建时间」后面加「解封时间」列。<br>② 封禁类型已全部解除的记录，「封禁类型」列显示「已解封」。<br>③ 编辑弹窗：自动拉黑且还没到期的记录，多一行「解封时间」，可勾「改为永久」。</td></tr>
+    <tr><td>用户管理 › IP黑名单</td><td>① 列表在「创建时间」后面加「解封时间」列。<br>② 封禁类型已全部解除的记录，「封禁类型」列显示「已解封」。<br>③ 编辑弹窗：自动拉黑且还没到期的记录，多一行「解封时间」，可勾「改为永久」；改成永久时，封禁原因下方显示保存后的改动。</td></tr>
    </tbody>
   </table>
 
   <div class="h1">二、功能描述与业务规则</div>
   <div class="keybox">
    <div class="kt">🎯 核心结论</div>
-   <div class="kf">登录风控两条规则各自设置封禁分钟数，默认 30；到期自动解除该 IP 的「禁止登录」；填 0 = 永久。</div>
-   <div class="kf">到期只解除拦截、不删除记录，「风控命中账号」「封禁原因」都保留；同一 IP 再次命中，在原记录上重新封禁。</div>
+   <div class="kf">登录风控自动拉黑改为按分钟封禁，到期自动解除「禁止登录」、记录保留（R1~R4）；运营可把单条改为永久（R6）。</div>
   </div>
 
   <div class="br key"><span class="bn">R1</span><b>封禁分钟数</b><span class="kb">核心</span><br>
-   ・两条规则各配各的，只能填 0 或 1~43200 的整数（43200 分钟 = 30 天），不能为空；0 = 永久。<br>
-   ・没配置过的站点按 30 分钟。<br>
-   ・该规则阈值填 0（不启用）时，封禁分钟数不起作用，照常可以保存。<br>
-   ・保存后只对之后新拉黑的 IP 生效；已在黑名单里的，按拉黑当时算好的解封时间走。<br>
-   ・保存时，系统日志在原有内容后面加「封禁分钟数：【旧值】→【新值】」。</div>
+   ・两条规则各配各的，只能填 0 或 1~43200 的整数，不能为空；0 = 永久；没配置过的站点按 30 分钟。<br>
+   ・保存后只对之后新拉黑的 IP 生效。</div>
 
   <div class="br key"><span class="bn">R2</span><b>拉黑</b><span class="kb">核心</span><br>
-   ・解封时间 = 拉黑时间 + 命中规则的封禁分钟数；封禁分钟数为 0 时没有解封时间（永久）。<br>
+   ・解封时间 = 拉黑时间 + 命中规则的封禁分钟数。<br>
    ・封禁原因里写明封禁时长和解封时间；解封方式写「到期自动解封，或在本页删除该记录」，永久的写「在本页删除该记录」。</div>
 
   <div class="br key"><span class="bn">R3</span><b>到期解封</b><span class="kb">核心</span><br>
-   ・到了解封时间，自动解除该 IP 的「禁止登录」，最迟晚 1 分钟。<br>
-   ・只解除「禁止登录」，同一记录里的「禁止注册」不受影响；记录本身不删除。<br>
-   ・解除后，该 IP 的登录风控计数从零重新算。<br>
-   ・每次自动解封记一条系统日志，操作人 system。</div>
+   ・到了解封时间，自动解除该 IP 的「禁止登录」；同一记录里的「禁止注册」不受影响，记录不删除。<br>
+   ・解除后，该 IP 的登录风控计数从零重新算。</div>
 
   <div class="br"><span class="bn">R4</span><b>再次触发</b><br>
-   ・已解封的 IP 再次命中登录风控：在原记录上重新加「禁止登录」，按当时的配置算新的解封时间；封禁原因、风控命中账号往后追加，风控类型更新为最新一次，创建时间不变。<br>
-   ・每次封禁时长都按当时的配置，重复触发不加长。</div>
+   ・记录里已没有「禁止登录」的 IP（已解封的、只有禁止注册的）再次命中登录风控：在原记录上重新加「禁止登录」，按当时的配置算新的解封时间，重复触发不加长。</div>
 
   <div class="br"><span class="bn">R5</span><b>解封时间显示</b><br>
    ・还没到期：显示解封时间；同一记录还有「禁止注册」时，后面加灰字「仅禁止登录」。<br>
-   ・没有解封时间：显示「永久」。人工新增的、注册风控拉黑的、封禁分钟数为 0 时拉黑的、上线前已有的记录都是永久。<br>
-   ・封禁类型已全部解除：灰色显示原解封时间，后面加「已解封」；「封禁类型」列显示「已解封」。<br>
-   ・封禁类型选「禁止登录」查询时，只查出现在还在禁止登录的记录。</div>
+   ・没有解封时间：显示「永久」。<br>
+   ・封禁类型已全部解除：灰色显示原解封时间，后面加「已解封」。</div>
 
   <div class="br"><span class="bn">R6</span><b>编辑</b><br>
-   ・自动拉黑且还没到期的记录，编辑弹窗显示解封时间和剩余分钟；勾「改为永久」保存后变为永久。<br>
-   ・编辑时把原本没有的「禁止登录」勾上，算人工封禁，永久。<br>
-   ・「禁止登录」原本就有、没勾「改为永久」，保存后解封时间不变。</div>
+   ・自动拉黑且还没到期的记录，编辑弹窗显示解封时间和剩余分钟；勾「改为永久」保存后变为永久，之后不能改回到期解封。<br>
+   ・把原本没有的「禁止登录」勾上，算人工封禁，永久。<br>
+   ・「禁止登录」原本就有、没勾「改为永久」，保存后解封时间不变。<br>
+   ・改为永久保存时，系统改掉封禁原因里这次封禁那一段的两处：「封禁时长」改为「永久(原封禁 N 分钟,操作人 于 操作时间 改为永久)」，「解封」改为「在本页删除该记录」。原文被改过、找不到这一段时，改为在末尾追加「人工改为永久｜封禁时长：永久(原解封时间 xxx 作废)｜操作人：xxx｜操作时间：xxx｜解封：在本页删除该记录」。<br>
+   ・勾上禁止登录保存时，在封禁原因末尾追加「人工加禁止登录｜封禁时长：永久｜操作人：xxx｜操作时间：xxx｜解封：在本页删除该记录」。</div>
 
   <div class="h1">三、限制条件</div>
   <table class="t">
    <thead><tr><th style="width:150px">项</th><th>说明</th></tr></thead>
    <tbody>
     <tr><td>解封精度</td><td>到期后最迟 1 分钟内解除。</td></tr>
-    <tr><td>适用范围</td><td>只有登录风控两条规则自动拉黑的「禁止登录」会到期，其他封禁都是永久。</td></tr>
-    <tr><td>上线默认值</td><td>上线后，没配置过的站点由永久变为 30 分钟；要保持永久的站点，把封禁分钟数改成 0。</td></tr>
-    <tr><td>上线前的记录</td><td>上线前已在黑名单里的记录没有解封时间，按永久处理。</td></tr>
-    <tr><td>会员提示</td><td>封禁期间会员登录的提示不变，不显示剩余时间。</td></tr>
-    <tr><td>已解封记录</td><td>一直留在列表里，不需要的手动删除。</td></tr>
+    <tr><td>适用范围</td><td>只有登录风控两条规则自动拉黑的「禁止登录」会到期；人工新增、注册风控拉黑的都是永久。</td></tr>
+    <tr><td>上线影响</td><td>上线后没配置过的站点不再永久拉黑，要保持永久的站点改成 0；上线前已在黑名单里的记录按永久处理。</td></tr>
    </tbody>
   </table>
 
   <div class="h1">四、开发注意事项</div>
   <ol class="dev">
-   <li>到期解封要同时处理黑名单缓存和列表记录：只去掉「禁止登录」，保留其他封禁类型，记录不删。</li>
-   <li>解封后清掉该 IP 的两个登录风控计数（账号数、次数），否则一解封马上又被拉黑。</li>
-   <li>解封任务每分钟跑一次；多台机器同时跑、同一条被重复处理都不能出错。</li>
-   <li>解封前再确认一次该记录的解封时间确实已到：任务读出后、动手前，运营可能已改成永久，或 IP 又被重新拉黑（解封时间变了），这两种不能解封。</li>
-   <li>前台和后台的默认值（30 分钟）要一致；老配置里没有封禁分钟数的按 30 处理。</li>
+   <li>到期解封要同时改黑名单缓存和列表记录。</li>
+   <li>解封任务多台机器同时跑、同一条被重复处理都不能出错；解封前再查一次，已改成永久或已重新拉黑（解封时间变了）的不解封。</li>
+   <li>前台 API 和后台对没配置过的站点用同一个默认值。</li>
+   <li>系统日志：参数配置保存照现有分钟数、阈值的写法带上封禁分钟数；每次自动解封记一条，操作人 system。</li>
+   <li>后台改封禁原因：按记录当前的解封时间找「这次封禁那一段」；改完最长 1024 字，超长照前台 API 再次拉黑的截法，保留改动的内容、截掉其他旧内容；放在「无查看手机号权限时还原账号」那一步之后。</li>
    <li>上线顺序：先加数据库字段，再同时发前台 API、后台和解封任务。</li>
   </ol>
  </div>
@@ -581,8 +576,39 @@ body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica
     var show=!!(r&&r.L&&r.L.until);
     $('eUbRow').style.display=show?'':'none';
     if(show){$('eUntil').textContent=fmt(r.L.until);$('eLeft').textContent='（还剩 '+Math.max(1,Math.ceil((r.L.until-now)/60000))+' 分钟，到期自动解除「禁止登录」）'}
+    apUpd();
     openL('editLayer');
   }
+  /* 改成永久时系统改封禁原因（操作人、时间由系统写）：
+     改为永久 = 按当前解封时间找到这次封禁那一段，就地改「封禁时长」「解封」两处；找不到（原文被改过）才在末尾追加一行
+     勾上禁止登录 = 末尾追加一行 */
+  var DEL_TIP='｜解封：在本页删除该记录';
+  function isPerm(){var r=editing;return !!(r&&r.L&&r.L.until&&$('eL').checked&&$('ePerm').checked)}
+  function isReAdd(){var r=editing;return !!(r&&!r.L&&$('eL').checked)}
+  function permEdit(lines){
+    var u=fmt(editing.L.until),op='admin 于 '+fmt(now)+' 改为永久',key='封禁时长：封禁 ',tail=' 分钟,解封时间 '+u;
+    for(var i=lines.length-1;i>=0;i--){
+      var a=lines[i].indexOf(key),b=a<0?-1:lines[i].indexOf(tail,a);
+      var n=b<0?'':lines[i].slice(a+key.length,b);
+      if(/^\d+$/.test(n)){
+        var dur='永久(原封禁 '+n+' 分钟,'+op+')',nl=lines.slice();
+        nl[i]=lines[i].replace(key+n+tail,'封禁时长：'+dur).replace('｜解封：到期自动解封,或在本页删除该记录',DEL_TIP);
+        return {lines:nl,dur:dur};
+      }
+    }
+    return {lines:lines.concat(['人工改为永久｜封禁时长：永久(原解封时间 '+u+' 作废)｜操作人：admin｜操作时间：'+fmt(now)+DEL_TIP])};
+  }
+  function reAddLine(){return '人工加禁止登录｜封禁时长：永久｜操作人：admin｜操作时间：'+fmt(now)+DEL_TIP}
+  function apUpd(){
+    var lab='',html='';
+    if(isPerm()){
+      var res=permEdit($('eRm').value.split('\n'));
+      if(res.dur){lab='保存后，封禁原因里这次封禁的两处改为：';html='封禁时长：<b>'+esc(res.dur)+'</b><br>解封：<b>在本页删除该记录</b>'}
+      else{lab='原文里找不到这次封禁的内容，保存后在封禁原因末尾追加：';html=esc(res.lines[res.lines.length-1])}
+    }else if(isReAdd()){lab='保存后在封禁原因末尾追加：';html=esc(reAddLine())}
+    $('eApL').textContent=lab;$('eApT').innerHTML=html;$('eAp').classList.toggle('on',!!html);
+  }
+  $('ePerm').onchange=apUpd;$('eL').onchange=apUpd;$('eRm').oninput=apUpd;
   $('bAdd').onclick=function(){openEdit(null)};
   $('eOk').onclick=function(){
     var ip=$('eIp').value.trim(),L=$('eL').checked,R=$('eR').checked,rm=$('eRm').value.trim();
@@ -594,7 +620,9 @@ body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica
       if(byIp(ip)){msg('该IP黑名单配置已存在');return}
       D.push({id:++seq,ip:ip,L:L?{until:null}:null,R:R,risk:'默认',creator:'admin',time:new Date(now),remark:[rm],sec:[]});
     }else{
-      var r=editing;r.ip=ip;r.remark=rm.split('\n');
+      var r=editing,lines=rm.split('\n');
+      if(isPerm())lines=permEdit(lines).lines;else if(isReAdd())lines.push(reAddLine());
+      r.ip=ip;r.remark=lines;
       if(L){if(!r.L)r.L={until:null};else if($('ePerm').checked)r.L.until=null}
       else if(r.L){r.lastUnban=new Date(now);r.L=null}
       r.R=R;
@@ -610,7 +638,7 @@ body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica
     if(b.hasAttribute('data-edit')){openEdit(r);return}
     if(b.hasAttribute('data-del')){deleting=r;openL('confirmLayer');return}
     $('rTitle').textContent='风控命中账号（'+flat(r).length+' 个）— IP：'+r.ip;
-    $('rRemark').textContent=r.remark[r.remark.length-1];
+    $('rRemark').textContent=r.remark.filter(function(s){return /^(登录|注册)风控/.test(s)}).pop()||r.remark[r.remark.length-1];
     $('rBox').innerHTML=r.sec.map(function(s){return (s.label?'<div class="rlabel">'+esc(s.label)+'</div>':'')+'<div>'+s.items.map(function(i){return itemHtml(i,applied.uids)}).join('<span class="racct">,</span> ')+'</div>'}).join('');
     openL('riskLayer');
   };
