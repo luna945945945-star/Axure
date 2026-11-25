@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>新游戏 NEW 分类 · 交互原型</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:300 12px/1.5 "Microsoft YaHei","微软雅黑","PingFang SC","Helvetica Neue",Arial,sans-serif;background:#f2f3f7;color:#464a53}
+
+/* 页面切换（原型外） */
+.views{display:flex;gap:8px;align-items:center;padding:12px 60px 0 22px;flex-wrap:wrap}
+.views button{font:inherit;font-size:13px;border:1px solid #d3caf5;background:#fff;color:#4b3aa8;border-radius:6px;padding:6px 16px;cursor:pointer}
+.views button.on{background:#6C4FE0;color:#fff;border-color:#6C4FE0}
+.view{display:none}.view.on{display:block}
+
+/* 原型演示区（非产品内容） */
+.demo{margin:10px 60px 0 22px;padding:8px 12px;border:1px dashed #c3b8ee;border-radius:6px;background:#f7f5ff;color:#4b3aa8;font-size:12.5px;line-height:2.1}
+.demo b{font-weight:700}
+.demo a{color:#6C4FE0;text-decoration:underline;cursor:pointer;margin:0 5px}
+.demo .dk{color:#8a7fc4}
+.demo .clk{display:inline-block;background:#fff;border:1px solid #d3caf5;border-radius:4px;padding:0 8px;color:#2d2366;font-weight:600;line-height:22px}
+.dlog{margin-top:4px;padding:4px 10px;background:#fff;border:1px solid #e3dcfb;border-radius:4px;max-height:92px;overflow:auto;line-height:1.9;color:#555;font-size:12px}
+.dlog .e{color:#aaa}
+
+/* 老后台外框 */
+.topbar{background:#dcd98a;padding:0 22px;display:flex;align-items:center;justify-content:space-between;height:48px;font-size:13px;color:#4a4a2e;margin-top:12px}
+.topbar b{font-size:15px;color:#333}
+.sub{background:#fff;border-bottom:1px solid #eaeaf0;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sub h1{font-size:15px;color:#2b6cb0;font-weight:600}
+.crumb{font-size:12px;color:#9a9aa8}.crumb b{color:#555;font-weight:600}
+.wrap{padding:14px 60px 60px 22px}
+
+/* 原型标记：后台新增项红色悬浮 NEW 角标 */
+.nw{position:relative;display:inline-block}
+.nw::after{content:"NEW";position:absolute;top:-12px;right:-18px;color:#fff;font:700 9px/14px Arial,"PingFang SC",sans-serif;padding:0 4px;border-radius:7px;pointer-events:none;z-index:3;background:#ff4d4f;box-shadow:0 1px 3px rgba(255,77,79,.45)}
+
+/* ===== layui 查询区（layui-form-pane） ===== */
+.fs{background:#fff;padding:15px 15px 5px;margin-bottom:12px;border:1px solid #e6e6e6}
+.fi{display:inline-flex;margin:0 10px 10px 0;vertical-align:top}
+.fl{height:38px;line-height:20px;padding:9px 12px;border:1px solid #e6e6e6;border-right:0;background:#fafafa;text-align:center;font-size:14px;color:#333;font-weight:400;white-space:nowrap}
+.fl.w80{width:80px}.fl.w100{width:110px}.fl.w120{width:126px}
+.fin,.fsel{height:38px;border:1px solid #e6e6e6;padding:0 10px;font:inherit;font-size:14px;color:#333;background:#fff;border-radius:0 2px 2px 0}
+.fin{width:185px}.fsel{width:150px}
+.fin::placeholder{color:#aaa}
+.lbtn2{height:30px;line-height:30px;padding:0 12px;margin:4px 8px 10px 0;font:inherit;font-size:12px;border:0;border-radius:2px;color:#fff;cursor:pointer;background:#009688;vertical-align:top}
+.lbtn2:first-of-type{margin-left:30px}
+
+/* ===== layui 表格 ===== */
+.tw{overflow-x:auto;background:#fff;border:1px solid #e6e6e6}
+.lt{border-collapse:separate;border-spacing:0;width:100%;font-size:14px;color:#666;background:#fff}
+.lt th{background:#f2f2f2;font-weight:400;height:39px;border-right:1px solid #e6e6e6;border-bottom:1px solid #e6e6e6;padding:0 12px;text-align:center;white-space:nowrap;color:#666}
+.lt td{border-right:1px solid #e6e6e6;border-bottom:1px solid #e6e6e6;padding:6px 12px;height:39px;vertical-align:middle;white-space:nowrap;text-align:left}
+.lt tr:hover td{background:#f8f8f8}
+.lt tr.flash td{background:#fffbe6}
+.lt .op{position:sticky;right:0;background:#fff;box-shadow:-3px 0 6px rgba(0,0,0,.06);z-index:2}
+.lt th.op{background:#f2f2f2}
+.lt th .nw::after{top:-11px;right:-20px}
+.lt .empty td{text-align:center;color:#999;height:80px}
+.ico{display:inline-block;width:25px;height:25px;border-radius:3px;vertical-align:middle}
+.xs{height:30px;line-height:30px;padding:0 10px;font:inherit;font-size:12px;border:0;border-radius:2px;color:#fff;cursor:pointer;background:#1E9FFF}
+.pg{padding:10px 4px;font-size:12px;color:#666}
+.gray{color:#bbb}
+.dt-on{color:#333}
+
+/* layui switch */
+.sw{position:relative;display:inline-block;height:22px;line-height:22px;min-width:35px;padding:0 5px 0 24px;border:1px solid #d2d2d2;border-radius:20px;background:#fff;color:#999;font-size:12px;cursor:pointer;user-select:none;vertical-align:middle;transition:.1s}
+.sw i{position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#d2d2d2;transition:.1s}
+.sw.on{border-color:#5FB878;background:#5FB878;color:#fff;padding:0 24px 0 5px}
+.sw.on i{left:auto;right:3px;background:#fff}
+.sw.dis{opacity:.5;cursor:not-allowed}
+
+/* ===== 游戏分类 ===== */
+.lt.cat td{height:92px}
+.cimg{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:10px;font-size:28px;background:#fff3f3;border:1px solid #f3d6d6;vertical-align:middle}
+.cimg.new{font:800 15px/1 Arial,sans-serif;color:#fff;background:linear-gradient(135deg,#ff3d3d,#ff8a00);border:0;letter-spacing:.5px}
+
+/* ===== 参数配置（照 uat ParameterConfig.cshtml） ===== */
+.adm-scroll{overflow-x:auto;background:#fff}
+.adm{min-width:1100px;padding:10px 10px 30px;font-size:14px;color:#000}
+.omit{color:#aaa;font-size:12px;padding:10px 6px;border-bottom:1px dashed #e6e6e6}
+.ttlw{margin-top:18px}
+.ob{display:inline-block;width:6px;height:18px;background:#FFB800;border-radius:2px;vertical-align:middle;margin-right:4px}
+.ttl{display:inline-block;background:#eee;color:#000;font-size:24px;font-weight:540;padding:0 8px;line-height:34px;border-radius:2px;vertical-align:middle}
+.ttl.nw::after{top:-10px;right:-22px}
+.adm hr{border:0;border-top:1px solid #e6e6e6;margin:8px 0 14px}
+.crow{display:flex;align-items:center;min-height:38px;margin-bottom:8px}
+.clb{flex:none;width:250px;text-align:right;padding-right:20px;font-weight:500;line-height:20px}
+.cin{display:inline-block;width:190px;height:38px;margin:0 6px;padding:0 10px;vertical-align:middle;border:1px solid #e6e6e6;border-radius:2px;font:inherit;font-size:14px;color:#333;background:#fff}
+.cin:focus{outline:none;border-color:#5FB878}
+.cin.bad{border-color:#ff5722}
+.chint{flex:none;padding:8px 10px;font-weight:500;line-height:20px;color:#76838f}
+.cop{margin-left:auto;padding-right:50px;flex:none}
+.lbtn{height:38px;line-height:38px;padding:0 18px;border:0;border-radius:2px;background:#1E9FFF;color:#fff;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+
+/* layer 弹窗 */
+.lmask{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150;display:none}
+.layer{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:2px;box-shadow:0 3px 18px rgba(0,0,0,.2);z-index:151;display:none;flex-direction:column;max-width:96vw;max-height:94vh;width:760px}
+.layer.on,.lmask.on{display:flex}
+.layer .lh{height:42px;line-height:42px;padding:0 50px 0 15px;border-bottom:1px solid #eee;background:#f8f8f8;color:#333;font-size:14px;font-weight:500;flex:none;position:relative}
+.layer .lx{position:absolute;right:16px;top:0;color:#999;cursor:pointer;font-size:18px}
+.layer .lbd{flex:1;min-height:0;overflow:auto;padding:24px 30px}
+.frow{display:flex;align-items:flex-start;margin-bottom:18px;font-size:14px;color:#333}
+.frow>label{flex:none;width:120px;padding-top:7px;font-weight:400}
+.frow .fv{padding-top:7px}
+.frow input{width:300px;height:36px;border:1px solid #ced4da;border-radius:3px;padding:0 10px;font:inherit;font-size:14px;color:#333}
+.fsub{color:#99abb4;font-size:12px;margin-top:6px}
+.fsub code{color:#e83e8c;font-size:12px}
+.bigimg{width:148px;height:148px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:64px;background:#fff3f3;border:1px solid #f3d6d6}
+.bigimg.new{font:800 34px/1 Arial,sans-serif;color:#fff;background:linear-gradient(135deg,#ff3d3d,#ff8a00);border:0}
+.btn-info{height:36px;padding:0 16px;border:0;border-radius:3px;background:#1e88e5;color:#fff;font:inherit;font-size:14px;cursor:pointer;margin-left:120px}
+
+/* layer.msg */
+.msg{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.72);color:#fff;padding:12px 25px;border-radius:2px;z-index:600;font-size:14px;display:none;max-width:520px;line-height:1.6;text-align:center}
+
+/* ===== 前台（以 RedHome 皮肤为例） ===== */
+.fwrap{display:flex;gap:28px;align-items:flex-start;padding:16px 60px 60px 22px;flex-wrap:wrap}
+.phone{width:390px;height:800px;border-radius:38px;background:#111;padding:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none}
+.screen{width:100%;height:100%;border-radius:28px;overflow:hidden;background:#f7f8ff;display:flex;flex-direction:column;font:400 13px/1.4 "Roboto","Helvetica Neue",Arial,sans-serif;color:#1e2637}
+.ph-top{flex:none;height:50px;background:linear-gradient(90deg,#f95959,#ff9a8e);display:flex;align-items:center;justify-content:space-between;padding:0 16px;color:#fff;font-weight:700;font-size:16px}
+.ph-top small{font-weight:400;font-size:12px;opacity:.9}
+.ph-body{flex:1;overflow-y:auto}
+.ph-banner{margin:10px 12px 0;height:120px;border-radius:12px;background:linear-gradient(135deg,#ff8a80,#f95959 60%,#d84343);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;opacity:.9}
+.ph-notice{margin:8px 12px 0;height:30px;border-radius:15px;background:#fff;display:flex;align-items:center;padding:0 12px;color:#768096;font-size:11.5px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.ph-games{display:flex;gap:8px;padding:12px 10px 20px}
+.side{flex:none;width:74px;display:flex;flex-direction:column;gap:7px}
+.si{position:relative;height:66px;border-radius:10px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.06);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11.5px;color:#768096;cursor:pointer}
+.si .em{font-size:22px;line-height:24px}
+.si .em.new{font:800 11px/22px Arial,sans-serif;color:#fff;background:linear-gradient(135deg,#ff3d3d,#ff8a00);border-radius:11px;padding:0 6px}
+.si.on{background:linear-gradient(180deg,#ff8a80,#f95959);color:#fff;box-shadow:0 3px 8px rgba(249,89,89,.35)}
+.si.on .em.new{background:#fff;color:#f95959}
+.si .mk{position:absolute;top:-6px;right:-6px;background:#6C4FE0;color:#fff;font:700 9px/14px "PingFang SC",Arial,sans-serif;padding:0 4px;border-radius:7px;z-index:2}
+.mainc{flex:1;min-width:0}
+.ch{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 8px;font-weight:700;font-size:14px;color:#1e2637}
+.ch span{font-weight:400;font-size:11px;color:#9aa3b5}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gt{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:6px 7px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.gt b{font-size:12px;line-height:1.25;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.gt small{font-size:10px;opacity:.85}
+.gt .tag{position:absolute;left:0;top:0;background:linear-gradient(90deg,#ff2e2e,#ff8a00);color:#fff;font:800 10px/17px Arial,sans-serif;padding:0 7px;border-radius:10px 0 10px 0;letter-spacing:.4px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.gt .mt{position:absolute;inset:0;background:rgba(20,20,30,.55);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.vt{height:62px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;margin-bottom:8px}
+.viewall{display:block;width:100%;height:36px;margin-top:10px;border:0;border-radius:18px;background:linear-gradient(90deg,#ff8a80,#f95959);color:#fff;font:600 13px/36px inherit;cursor:pointer}
+.ph-allhead{flex:none;height:46px;background:#fff;display:flex;align-items:center;padding:0 12px;font-weight:700;font-size:15px;border-bottom:1px solid #eef0f5}
+.ph-allhead a{font-size:22px;color:#1e2637;margin-right:12px;cursor:pointer;line-height:1}
+.ph-all{padding:12px}
+.fnote{flex:1;min-width:280px;max-width:520px;background:#fff;border:1px solid #e3dcfb;border-radius:8px;padding:14px 16px;color:#4b3aa8;font-size:12.5px;line-height:1.9}
+.fnote b{color:#2d2366}
+.fnote table{border-collapse:collapse;width:100%;margin-top:6px;font-size:12px;color:#333}
+.fnote th,.fnote td{border:1px solid #ebebf2;padding:4px 6px;text-align:left;white-space:nowrap}
+.fnote th{background:#f5f3ff;color:#4b3aa8;text-align:center;font-weight:600}
+.fnote .in{color:#1a7f37;font-weight:600}.fnote .out{color:#aaa}
+
+/* ===== 需求说明抽屉 ===== */
+.dmask{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:310;opacity:0;pointer-events:none;transition:.22s}
+.dmask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:820px;max-width:92vw;background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.16);z-index:320;transform:translateX(100%);transition:transform .24s;display:flex;flex-direction:column;font:14px/1.5 "Helvetica Neue",Helvetica,"PingFang SC","Microsoft YaHei",Arial,sans-serif;color:#333}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:13px 20px;border-bottom:1px solid #eee;border-top:3px solid #6C4FE0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.dhead b{font-size:14px}.dhead .x{cursor:pointer;color:#aaa;font-size:20px;line-height:1}
+.dbody{padding:18px 20px 40px;overflow-y:auto;flex:1}
+.handle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:#6C4FE0;color:#fff;writing-mode:vertical-rl;padding:14px 7px;border-radius:5px 0 0 5px;font-size:12.5px;letter-spacing:2px;cursor:pointer;z-index:300;box-shadow:-2px 0 8px rgba(108,79,224,.3)}
+.prd .h1{font-size:16px;font-weight:700;margin:28px 0 12px;padding-left:10px;border-left:4px solid #6C4FE0;color:#222;line-height:1.4}
+.prd .h1:first-child{margin-top:0}
+.prd table.t{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 14px}
+.prd table.t th{background:#f5f3ff;border:1px solid #e3dcfb;padding:8px 10px;text-align:center;font-weight:600;color:#4b3aa8;white-space:nowrap}
+.prd table.t td{border:1px solid #ebebf2;padding:8px 10px;vertical-align:top;line-height:1.7;text-align:left;background:#fff}
+.prd .note{background:#fffbe6;border:1px solid #ffe58f;border-radius:5px;padding:10px 13px;font-size:12.5px;color:#874d00;margin:10px 0;line-height:1.75}
+.prd .keybox{background:linear-gradient(135deg,#f7f5ff,#efeaff);border:1px solid #d3caf5;border-radius:8px;padding:14px 18px 8px;margin:12px 0 8px}
+.prd .keybox .kt{font-size:11.5px;color:#6C4FE0;font-weight:700;letter-spacing:1.5px;margin-bottom:10px}
+.prd .keybox .kf{font-size:13px;color:#2d2366;background:#fff;border:1px solid #e3dcfb;border-radius:5px;padding:8px 12px;margin-bottom:7px;line-height:1.6}
+.prd .br{background:#fafbfc;border-left:3px solid #d4d7dd;padding:10px 14px;margin:7px 0;font-size:12.5px;line-height:1.8;border-radius:0 4px 4px 0;color:#333}
+.prd .br>b{color:#4b3aa8}
+.prd .br.key{background:#f7f5ff;border-left:4px solid #6C4FE0}
+.prd .bn{display:inline-block;background:#e5e6eb;color:#4e5969;font-size:10.5px;font-weight:700;border-radius:3px;padding:1px 6px;margin-right:8px;font-family:Menlo,Consolas,monospace}
+.prd .br.key .bn{background:#6C4FE0;color:#fff}
+.prd .kb{font-size:9.5px;background:#fff1f0;color:#cf1322;border-radius:3px;padding:0 5px;margin-left:6px;font-weight:700;vertical-align:1px}
+.prd ul.sl{margin:4px 0 2px 18px}
+.prd ul.sl li{font-size:12.5px;line-height:1.8}
+.prd ol.dev{padding-left:0;list-style:none;counter-reset:d}
+.prd ol.dev li{counter-increment:d;position:relative;padding:8px 12px 8px 40px;background:#fafbfc;border:1px solid #ebebf2;border-radius:5px;margin:7px 0;font-size:12.5px;line-height:1.8}
+.prd ol.dev li::before{content:counter(d);position:absolute;left:12px;top:9px;width:18px;height:18px;border-radius:50%;background:#6C4FE0;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="views">
+ <button class="on" data-v="front">① 前台首页 · New 分类</button>
+ <button data-v="sub">② 游戏厂商 › 子游戏管理</button>
+ <button data-v="cat">③ 游戏分类</button>
+ <button data-v="cfg">④ 配置管理 › 参数配置</button>
+</div>
+
+<div class="demo">
+ <b>原型演示</b><span class="dk">（不是页面内容，四个页面共用一份数据）</span>：
+ 模拟当前时间 <span class="clk" id="clock"></span>
+ <a data-ff="1">快进 1 天</a><a data-ff="7">快进 7 天</a><a data-ff="30">快进 30 天</a><a data-ff="0">回到 11-24</a>
+ <span class="dk">｜</span><a id="dmSync">模拟 JILI 同步进 2 款新游戏（默认关闭）</a>
+ <span class="dk">｜ 本功能上线时间按 2026-11-01 演示；「新游戏」分类原型里已替你启用，上线默认禁用</span>
+ <div class="dlog" id="dlog"><span class="e">操作记录：还没有操作。试试到 ② 把 JILI 的「Jackpot Fishing 2」开启状态打开</span></div>
+</div>
+
+<!-- ================= ① 前台 ================= -->
+<div class="view on" id="v-front">
+ <div class="fwrap">
+  <div class="phone"><div class="screen" id="screen"></div></div>
+  <div class="fnote">
+   <b>原型说明</b>（不是页面内容）：前台以 RedHome 皮肤为例，其它首页皮肤按各自样式加同样的分类。游戏图片、Banner、公告为示意。左侧分类栏紫色「新增」是原型标记；游戏卡片左上角的 <b>NEW</b> 标签是要做的功能。
+   <div style="margin-top:8px"><b>当前 NEW 期内的子游戏</b>（按进 NEW 时间倒序）：</div>
+   <div id="newTable"></div>
+  </div>
+ </div>
+</div>
+
+<!-- ================= ② 子游戏管理 ================= -->
+<div class="view" id="v-sub">
+ <div class="topbar"><div>☰ &nbsp; 当前站点：<b>india82</b></div><div>当前币种：<b style="color:#c0392b">INR</b></div></div>
+ <div class="sub"><h1>子游戏管理</h1><div class="crumb">游戏厂商 &nbsp;›&nbsp; <b>子游戏管理（<span id="vname">JILI</span>）</b></div></div>
+ <div class="wrap">
+  <div class="demo" style="margin:0 0 12px">原型演示：真实页面是在「游戏厂商」列表点该厂商的「子游戏管理」打开；这里切换厂商
+   <select id="dmVendor" style="font:inherit;height:24px;border:1px solid #c3b8ee;border-radius:3px;margin-left:4px"><option>JILI</option><option>PG</option><option>SPRIBE</option></select>
+  </div>
+  <div class="fs">
+   <span class="fi"><label class="fl w80">厂商映射</label><select class="fsel"><option>--全部--</option></select></span>
+   <span class="fi"><label class="fl w100">开启状态</label><select class="fsel" id="qState"><option value="-1">请选择</option><option value="1">开启</option><option value="0">关闭</option></select></span>
+   <span class="fi"><label class="fl w100">游戏名称</label><input class="fin" id="qName" placeholder="请输入游戏名称/游戏编码" autocomplete="off"></span>
+   <span class="fi"><label class="fl w120">自定义游戏类型</label><select class="fsel" style="width:185px"><option>--全部--</option></select></span>
+   <span class="fi nw"><label class="fl w100">是否NEW</label><select class="fsel" id="qNew"><option value="-1">请选择</option><option value="1">是</option><option value="0">否</option></select></span>
+   <button class="lbtn2" id="qBtn">🔍 查 询</button><button class="lbtn2" id="rBtn">↻ 重 置</button>
+  </div>
+  <div class="tw"><table class="lt" id="subTb"></table></div>
+  <div class="pg" id="subPg"></div>
+ </div>
+</div>
+
+<!-- ================= ③ 游戏分类 ================= -->
+<div class="view" id="v-cat">
+ <div class="topbar"><div>☰ &nbsp; 当前站点：<b>india82</b></div><div>当前币种：<b style="color:#c0392b">INR</b></div></div>
+ <div class="sub"><h1>游戏分类</h1><div class="crumb"><b>游戏分类</b></div></div>
+ <div class="wrap">
+  <div class="fs"><button class="lbtn2" style="margin-left:10px" id="catQ">🔍 查 询</button></div>
+  <div class="tw"><table class="lt cat" id="catTb"></table></div>
+ </div>
+</div>
+
+<!-- ================= ④ 参数配置 ================= -->
+<div class="view" id="v-cfg">
+ <div class="topbar"><div>☰ &nbsp; 当前站点：<b>india82</b></div><div>当前币种：<b style="color:#c0392b">INR</b></div></div>
+ <div class="sub"><h1>参数配置</h1><div class="crumb">配置管理 &nbsp;›&nbsp; <b>参数配置</b></div></div>
+ <div class="wrap">
+  <div class="adm-scroll"><div class="adm">
+   <div class="omit">…… 上方：机器人、注册风控配置、登录风控配置 等（省略）……</div>
+   <div class="ttlw"><span class="ob"></span><span class="ttl">最低可参与游戏累计充值金额</span></div>
+   <hr>
+   <div class="crow">
+    <span class="clb">最低可参与游戏累计充值金额</span>
+    <input type="number" class="cin" value="0" min="0" step="1">
+    <span class="chint">(累计充值金额不小于此金额才能参与游戏)</span>
+    <span class="cop"><button class="lbtn" id="saveLow">确认保存</button></span>
+   </div>
+
+   <div class="ttlw"><span class="ob"></span><span class="ttl nw">新游戏NEW展示天数</span></div>
+   <hr>
+   <div class="crow">
+    <span class="clb">新游戏NEW展示天数</span>
+    <input type="number" class="cin" id="cfgDays" value="30" min="1" max="365" step="1">
+    <span class="chint">(子游戏进入 NEW 后在前台 New 分类展示的天数，填 1~365)</span>
+    <span class="cop"><button class="lbtn" id="saveDays">确认保存</button></span>
+   </div>
+   <div class="omit" style="border-bottom:0;border-top:1px dashed #e6e6e6;margin-top:14px">…… 下方：留存计算投注金额 等（省略）……</div>
+  </div></div>
+ </div>
+</div>
+
+<!-- 游戏分类 编辑弹窗 -->
+<div class="lmask" id="lmask"></div>
+<div class="layer" id="catLayer">
+ <div class="lh">编辑<span class="lx" data-close>✕</span></div>
+ <div class="lbd">
+  <div class="frow"><label>分类名称：</label><div class="fv" id="eName"></div></div>
+  <div class="frow"><label>图片路径：</label><div><div class="bigimg" id="eImg"></div><div class="fsub">格式：<code>png</code></div></div></div>
+  <div class="frow"><label>排序：</label><input id="eSort" autocomplete="off"></div>
+  <button class="btn-info" id="eSave">✎ 保存</button>
+ </div>
+</div>
+
+<div class="msg" id="msg"></div>
+
+<div class="handle" id="handleDoc">需求说明</div>
+<div class="dmask" id="dmask"></div>
+
+<!-- ================= 需求说明抽屉 ================= -->
+<div class="drawer" id="drawer">
+ <div class="dhead"><b>新游戏 NEW 分类 · 需求说明</b><span class="x" id="closeDoc">✕</span></div>
+ <div class="dbody prd">
+
+  <div class="h1">一、改造页面</div>
+  <div class="note">📌 本说明书只写业务规则本身，样子和交互直接看原型。原型里的数据、图片、时间、默认值和「原型演示」「原型说明」区都是演示，不做到页面上；后台红色悬浮 NEW 角标、前台分类栏紫色「新增」角标是原型标记；<b>前台游戏卡片左上角的 NEW 标签是要做的功能</b>。【核心】只表示重点，没标的同样要做。改筛选后仍要点「查询」。</div>
+  <table class="t">
+   <tr><th style="width:240px">页面</th><th>改动点</th></tr>
+   <tr><td>前台 · 首页</td><td>游戏分类栏新增「New」分类：首页展示 + View All 全部页；分类里每张游戏卡片带 NEW 标签</td></tr>
+   <tr><td>老后台 · 游戏分类</td><td>新增「新游戏」分类，上线默认禁用</td></tr>
+   <tr><td>老后台 · 游戏厂商 › 子游戏管理</td><td>新增筛选「是否NEW」；新增列「NEW」（开关）、「NEW到期时间」</td></tr>
+   <tr><td>老后台 · 配置管理 › 参数配置</td><td>新增「新游戏NEW展示天数」</td></tr>
+  </table>
+
+  <div class="h1">二、功能描述与业务规则</div>
+  <div class="keybox">
+   <div class="kt">🎯 核心结论</div>
+   <div class="kf">新增的子游戏第一次开启自动进 NEW，展示满设定天数自动退出（规则 01、02）</div>
+   <div class="kf">运营可在子游戏管理手动加入或移出 NEW（规则 03）</div>
+   <div class="kf">前台新增 New 分类，只放 NEW 期内的游戏（规则 05）</div>
+  </div>
+
+  <div class="br key"><span class="bn">01</span><b>自动进 NEW</b><span class="kb">核心</span>：本功能上线后新增的子游戏，第一次开启时自动进 NEW，到期时间 = 开启时间 + 展示天数；同步时直接开启的也算。每个子游戏只自动进一次：进过 NEW 的（含手动加入、手动移出），之后关闭再开启不再自动进。上线前已有的子游戏不自动进，需要的在子游戏管理手动打开。</div>
+
+  <div class="br key"><span class="bn">02</span><b>到期退出</b><span class="kb">核心</span>：到期时间一到自动退出 NEW。</div>
+
+  <div class="br key"><span class="bn">03</span><b>手动加入 / 移出</b><span class="kb">核心</span>：子游戏管理的「NEW」开关。打开 = 立即进 NEW，到期时间 = 打开时间 + 展示天数；关闭 = 立即退出，到期时间清空。操作权限同「开启状态」开关。</div>
+
+  <div class="br"><span class="bn">04</span><b>展示天数</b>：参数配置「新游戏NEW展示天数」，默认 30，只能填 1～365 的整数。修改后只对之后进 NEW 的子游戏生效，已在 NEW 期内的到期时间不变。</div>
+
+  <div class="br key"><span class="bn">05</span><b>前台 New 分类</b><span class="kb">核心</span>：
+   <ul class="sl">
+    <li>显示条件：在 NEW 期内、子游戏开启、厂商开启；收录范围同首页 Popular 里的平台推荐游戏（同样的游戏大类，要有游戏图标，带对标的高仿游戏不单独出现）</li>
+    <li>按进 NEW 的时间倒序，最新的在前</li>
+    <li>首页显示数量、View All 全部页，照该皮肤 Mini games 分类的做法</li>
+    <li>分类里每张游戏卡片带 NEW 标签；维护中的游戏照现有维护样式显示</li>
+    <li>分类里没有游戏时，前台不显示 New 分类</li>
+   </ul>
+  </div>
+
+  <div class="br"><span class="bn">06</span><b>新游戏分类</b>：游戏分类新增「新游戏」，分类编码 New，上线默认禁用，各站自己启用、换图标、改排序。前台分类名称英文为 New，其它语言照现有分类补齐。</div>
+
+  <div class="br"><span class="bn">07</span><b>子游戏管理</b>：「是否NEW」筛选，是 = NEW 期内，否 = 其余；「NEW到期时间」只在 NEW 期内显示。</div>
+
+  <div class="h1">三、限制条件</div>
+  <table class="t">
+   <tr><th style="width:120px">项</th><th>说明</th></tr>
+   <tr><td>NEW 标签</td><td>只在 New 分类里显示，其它分类和列表的游戏卡片不加</td></tr>
+   <tr><td>前台皮肤</td><td>所有首页皮肤都要支持 New 分类</td></tr>
+  </table>
+
+  <div class="h1">四、开发注意事项</div>
+  <ol class="dev">
+   <li>所有能把子游戏从关闭改成开启的入口都要按规则 01 判断，包括子游戏管理的「开启状态」开关、同步子游戏时直接开启的新游戏。</li>
+   <li>New 分类的取数照首页 Popular 平台推荐游戏的条件，但不要照搬「不足 6 个随机补位」，也不限 6 个。</li>
+   <li>「NEW」开关照「开启状态」开关的做法清前台游戏缓存、记操作日志。到期退出最迟在前台游戏缓存刷新后消失（验收口径，不需要额外处理）。</li>
+   <li>「新游戏」分类要通过上线脚本加到每个站，状态为禁用。</li>
+  </ol>
+ </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+var DAY=864e5;
+function D(y,m,d,h,mi){return new Date(y,m-1,d,h==null?10:h,mi||0,0).getTime();}
+function pad(n){return n<10?'0'+n:''+n;}
+function fmt(t){var d=new Date(t);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
+function fmtS(t){var d=new Date(t);return pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());}
+function esc(s){return String(s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
+
+var BASE=D(2026,11,24,10,0),now=BASE,days=30;
+var LAUNCH=D(2026,11,1,0,0);   /* 原型演示：功能上线时间 */
+var VENDOR_ON={JILI:true,PG:true,SPRIBE:true};
+var COLORS=[['#ff7e5f','#feb47b'],['#6a11cb','#2575fc'],['#11998e','#38ef7d'],['#f7971e','#ffd200'],['#ee0979','#ff6a00'],['#4568dc','#b06ab3'],['#00b09b','#96c93d'],['#c94b4b','#4b134f'],['#1fa2ff','#12d8fa'],['#e65c00','#f9d423'],['#8e2de2','#4a00e0'],['#fc466b','#3f5efb']];
+var seq=0;
+/* v 厂商, tid TypeId, code 游戏编码, cn 中文名, en 自定义名, sub 游戏子类, sort 排序, clk 点击数, st 开启状态, hot 是否热门, ct 添加时间, o 其它 */
+function G(v,tid,code,cn,en,sub,sort,clk,st,hot,ct,o){
+  o=o||{};
+  var g={id:++seq,v:v,tid:tid,code:code,cn:cn,en:en,sub:sub,sort:sort,clk:clk,st:st,hot:hot,ct:ct,ut:o.ut||ct,
+    newIn:o.newIn||null,newExp:o.newExp||null,ever:!!o.newIn||!!o.ever,maint:!!o.maint,col:COLORS[seq%COLORS.length]};
+  return g;
+}
+var games=[
+ /* JILI */
+ G('JILI',18001,'1','皇家捕鱼','Royal Fishing','捕鱼',90,52310,1,'否',D(2025,3,2)),
+ G('JILI',18002,'49','超级王牌','Super Ace','老虎机',99,198220,1,'是',D(2025,3,2)),
+ G('JILI',18003,'109','宝石之王','Fortune Gems','老虎机',98,151006,1,'是',D(2025,3,2)),
+ G('JILI',18004,'51','钱来了','Money Coming','老虎机',97,90233,1,'否',D(2025,3,2)),
+ G('JILI',18005,'103','黄金帝国','Golden Empire','老虎机',80,40111,1,'否',D(2025,3,2)),
+ G('JILI',18006,'77','拳王','Boxing King','老虎机',70,22040,1,'否',D(2025,3,2)),
+ G('JILI',18007,'35','疯狂777','Crazy777','老虎机',60,9050,0,'否',D(2025,3,2)),
+ G('JILI',18241,'464','宝石之王3','Fortune Gems 3','老虎机',0,1880,1,'否',D(2026,11,10,9,12),{ut:D(2026,11,10,10,0),newIn:D(2026,11,10,10,0),newExp:D(2026,12,10,10,0)}),
+ G('JILI',18242,'470','超级王牌豪华版','Super Ace Deluxe','老虎机',0,960,1,'否',D(2026,11,18,15,30),{ut:D(2026,11,19,11,20),newIn:D(2026,11,19,11,20),newExp:D(2026,12,19,11,20)}),
+ G('JILI',18243,'474','彩金捕鱼2','Jackpot Fishing 2','捕鱼',0,0,0,'否',D(2026,11,18,15,30)),
+ G('JILI',18244,'478','幸运美洲豹','Lucky Jaguar','老虎机',0,0,0,'否',D(2026,11,22,16,5)),
+ /* PG */
+ G('PG',5001,'65','麻将胡了','Mahjong Ways','老虎机',96,120400,1,'否',D(2025,2,11)),
+ G('PG',5002,'74','麻将胡了2','Mahjong Ways 2','老虎机',95,99820,1,'是',D(2025,2,11)),
+ G('PG',5003,'126','虎虎生财','Fortune Tiger','老虎机',99,230500,1,'是',D(2025,2,11)),
+ G('PG',5004,'98','金牛报喜','Fortune Ox','老虎机',90,61020,1,'否',D(2025,2,11)),
+ G('PG',5005,'1543462','兔兔发财','Fortune Rabbit','老虎机',88,44310,1,'否',D(2025,2,11)),
+ G('PG',5006,'87','寻宝黄金城','Treasures of Aztec','老虎机',80,30220,1,'否',D(2025,2,11)),
+ G('PG',5120,'1879752','蛇年发财','Fortune Snake','老虎机',0,2410,1,'否',D(2026,11,5,9,0),{ut:D(2026,11,5,10,0),newIn:D(2026,11,5,10,0),newExp:D(2026,12,5,10,0)}),
+ G('PG',5121,'1932120','狂野猿猴','Wild Ape','老虎机',0,612,1,'否',D(2026,11,20,12,0),{ut:D(2026,11,20,14,0),newIn:D(2026,11,20,14,0),newExp:D(2026,12,20,14,0),maint:true}),
+ G('PG',5122,'1946122','现金狂热','Cash Mania','老虎机',0,301,1,'否',D(2026,11,21,10,0),{ut:D(2026,11,22,9,15),ever:true}),
+ /* SPRIBE 小游戏 */
+ G('SPRIBE',20001,'aviator','飞行员','Aviator','小游戏',99,310200,1,'是',D(2025,1,8)),
+ G('SPRIBE',20002,'mines','扫雷','Mines','小游戏',95,82100,1,'否',D(2025,1,8)),
+ G('SPRIBE',20003,'plinko','弹珠','Plinko','小游戏',90,40230,1,'否',D(2025,1,8)),
+ G('SPRIBE',20004,'dice','骰子','Dice','小游戏',85,21040,1,'否',D(2025,1,8)),
+ G('SPRIBE',20005,'goal','射门','Goal','小游戏',80,18070,1,'否',D(2025,1,8),{ut:D(2026,11,23,16,40),newIn:D(2026,11,23,16,40),newExp:D(2026,12,23,16,40)}),
+ G('SPRIBE',20006,'hi-lo','猜大小','Hi Lo','小游戏',75,9030,1,'否',D(2025,1,8)),
+ G('SPRIBE',20031,'balloon','气球','Balloon','小游戏',0,5120,1,'否',D(2026,11,3,9,0),{ut:D(2026,11,3,10,0),newIn:D(2026,11,3,10,0),newExp:D(2026,12,3,10,0)}),
+ G('SPRIBE',20032,'trader','交易员','Trader','小游戏',0,3310,1,'否',D(2026,10,20,9,0))
+];
+var SYNC_POOL=[['482','黄金银行2','Golden Bank 2','老虎机'],['486','海盗女王2','Pirate Queen 2','老虎机'],['490','财神捕鱼2','Cai Shen Fishing 2','捕鱼'],['494','宝石之王500','Fortune Gems 500','老虎机']];
+var syncIdx=0,nextTid=18245;
+
+var cats=[
+ {id:1,code:'Lottery',name:'彩票',title:'Lottery',em:'🎱',st:1,sort:100,ut:D(2025,6,1,12,0),by:'admin'},
+ {id:2,code:'Popular',name:'热门',title:'Popular',em:'🔥',st:1,sort:95,ut:D(2025,6,1,12,0),by:'admin'},
+ {id:3,code:'Slot',name:'电子',title:'Slots',em:'🎰',st:1,sort:90,ut:D(2025,6,1,12,0),by:'admin'},
+ {id:4,code:'Flash',name:'小游戏',title:'Mini games',em:'🎮',st:1,sort:85,ut:D(2025,6,1,12,0),by:'admin'},
+ {id:5,code:'Fish',name:'捕鱼',title:'Fishing',em:'🐟',st:1,sort:80,ut:D(2025,6,1,12,0),by:'admin'},
+ {id:6,code:'Video',name:'视讯',title:'Casino',em:'🃏',st:1,sort:75,ut:D(2025,6,1,12,0),by:'admin'},
+ {id:7,code:'Sport',name:'体育',title:'Sports',em:'⚽',st:1,sort:70,ut:D(2025,6,1,12,0),by:'admin'},
+ {id:8,code:'New',name:'新游戏',title:'New',em:'NEW',st:1,sort:97,ut:D(2026,11,24,9,30),by:'admin01',isNew:true}
+];
+
+/* ================= 规则 ================= */
+function inNew(g){return !!g.newExp&&g.newExp>now;}
+function legacy(g){return g.ct<LAUNCH;}
+function frontNew(){
+  return games.filter(function(g){return inNew(g)&&g.st===1&&VENDOR_ON[g.v];})
+    .sort(function(a,b){return b.newIn-a.newIn;});
+}
+var logs=[];
+function log(s){logs.unshift('['+fmtS(now)+'] '+s);if(logs.length>40)logs.pop();
+  $('dlog').innerHTML=logs.map(function(x){return '<div>'+esc(x)+'</div>';}).join('');}
+function setState(g,on){
+  if(on===(g.st===1))return;
+  g.st=on?1:0;g.ut=now;
+  if(!on){log(g.v+' · '+g.en+' 已关闭');return;}
+  if(!legacy(g)&&!g.ever){
+    g.ever=true;g.newIn=now;g.newExp=now+days*DAY;
+    log(g.v+' · '+g.en+' 第一次开启 → 自动进 NEW，到期 '+fmt(g.newExp));
+  }else if(legacy(g)&&!g.ever){
+    log(g.v+' · '+g.en+' 已开启（上线前已有的子游戏，不自动进 NEW）');
+  }else{
+    log(g.v+' · '+g.en+' 已开启（进过 NEW，不再自动进）');
+  }
+}
+function setNew(g,on){
+  g.ever=true;g.ut=now;
+  if(on){g.newIn=now;g.newExp=now+days*DAY;log(g.v+' · '+g.en+' 手动加入 NEW，到期 '+fmt(g.newExp));}
+  else{g.newIn=null;g.newExp=null;log(g.v+' · '+g.en+' 手动移出 NEW');}
+}
+
+/* ================= 前台 ================= */
+var fCur=null,fAll=false;
+function frontCats(){
+  var nl=frontNew().length;
+  return cats.filter(function(c){return c.st===1&&(!c.isNew||nl>0);}).sort(function(a,b){return b.sort-a.sort;});
+}
+function tile(g,isNewCat){
+  return '<div class="gt" style="background:linear-gradient(135deg,'+g.col[0]+','+g.col[1]+')">'+
+    (isNewCat?'<span class="tag">NEW</span>':'')+
+    '<b>'+esc(g.en)+'</b><small>'+g.v+'</small>'+
+    (g.maint?'<div class="mt">🔧 维护中</div>':'')+'</div>';
+}
+function vtile(name,c1,c2){return '<div class="vt" style="background:linear-gradient(90deg,'+c1+','+c2+')">'+name+'</div>';}
+function renderFront(){
+  var sc=$('screen');
+  if(fAll){
+    var all=frontNew();
+    if(!all.length){fAll=false;return renderFront();}
+    sc.innerHTML='<div class="ph-allhead"><a id="fBack">‹</a>New</div><div class="ph-body"><div class="ph-all"><div class="grid3">'+
+      all.map(function(g){return tile(g,true);}).join('')+'</div></div></div>';
+    $('fBack').onclick=function(){fAll=false;renderFront();};
+    renderNewTable();return;
+  }
+  var list=frontCats();
+  if(!list.some(function(c){return c.code===fCur;}))fCur=list.length?list[0].code:null;
+  var side=list.map(function(c){
+    return '<div class="si'+(c.code===fCur?' on':'')+'" data-c="'+c.code+'">'+(c.isNew?'<span class="mk">新增</span>':'')+
+      '<span class="em'+(c.isNew?' new':'')+'">'+c.em+'</span>'+esc(c.title)+'</div>';
+  }).join('');
+  var main='';
+  var cur=cats.filter(function(c){return c.code===fCur;})[0];
+  if(cur&&cur.isNew){
+    var nl=frontNew();
+    main='<div class="ch">New<span>'+nl.length+' 款</span></div><div class="grid2">'+nl.slice(0,8).map(function(g){return tile(g,true);}).join('')+'</div>'+
+      '<button class="viewall" id="fAllBtn">View All</button>';
+  }else if(cur){
+    var demoHint='<div class="ch">'+esc(cur.title)+'<span>原型示意</span></div>';
+    if(cur.code==='Popular'){
+      main=demoHint+'<div class="grid2">'+games.filter(function(g){return g.hot==='是'&&g.st===1;}).slice(0,6).map(function(g){return tile(g,false);}).join('')+'</div>';
+    }else if(cur.code==='Flash'){
+      main=demoHint+'<div class="grid2">'+games.filter(function(g){return g.sub==='小游戏'&&g.st===1;}).sort(function(a,b){return b.sort-a.sort||b.clk-a.clk;}).slice(0,8).map(function(g){return tile(g,false);}).join('')+'</div><button class="viewall" type="button">View All</button>';
+    }else if(cur.code==='Fish'){
+      main=demoHint+'<div class="grid2">'+games.filter(function(g){return g.sub==='捕鱼'&&g.st===1;}).map(function(g){return tile(g,false);}).join('')+'</div>';
+    }else if(cur.code==='Slot'){
+      main=demoHint+vtile('JILI','#ff9966','#ff5e62')+vtile('PG','#36d1dc','#5b86e5')+vtile('JDB','#a18cd1','#fbc2eb');
+    }else if(cur.code==='Lottery'){
+      main=demoHint+vtile('Win Go','#f95959','#ff9a8e')+vtile('K3','#5b86e5','#36d1dc')+vtile('5D','#f7971e','#ffd200')+vtile('Trx Win Go','#11998e','#38ef7d');
+    }else{
+      main=demoHint+vtile(cur.code==='Video'?'EVO':'SABA','#434343','#7a7a7a')+vtile(cur.code==='Video'?'SEXY':'CMD','#614385','#516395');
+    }
+  }
+  sc.innerHTML='<div class="ph-top"><span>LOGO</span><small>₹ 1,250.00</small></div>'+
+    '<div class="ph-body"><div class="ph-banner">Banner（示意）</div><div class="ph-notice">📢 公告滚动条（示意）</div>'+
+    '<div class="ph-games"><div class="side">'+side+'</div><div class="mainc">'+main+'</div></div></div>';
+  sc.querySelectorAll('.si').forEach(function(el){el.onclick=function(){fCur=el.getAttribute('data-c');renderFront();};});
+  if($('fAllBtn'))$('fAllBtn').onclick=function(){fAll=true;renderFront();};
+  renderNewTable();
+}
+function renderNewTable(){
+  var all=games.filter(inNew).sort(function(a,b){return b.newIn-a.newIn;});
+  if(!all.length){$('newTable').innerHTML='<div style="color:#999;margin-top:6px">当前没有 NEW 期内的子游戏，前台不显示 New 分类。</div>';return;}
+  $('newTable').innerHTML='<table><tr><th>厂商</th><th>游戏</th><th>进 NEW</th><th>到期</th><th>前台</th></tr>'+
+    all.map(function(g){
+      var show=g.st===1&&VENDOR_ON[g.v];
+      return '<tr><td>'+g.v+'</td><td>'+esc(g.en)+'</td><td>'+fmtS(g.newIn)+'</td><td>'+fmtS(g.newExp)+'</td><td class="'+(show?'in':'out')+'">'+(show?(g.maint?'显示（维护中）':'显示'):'子游戏关闭，不显示')+'</td></tr>';
+    }).join('')+'</table>';
+}
+
+/* ================= 子游戏管理 ================= */
+var curV='JILI',q={st:'-1',name:'',nw:'-1'};
+function sw(on,txt,attr){var t=txt.split('|');return '<span class="sw'+(on?' on':'')+'" '+attr+'><i></i>'+(on?t[0]:t[1])+'</span>';}
+function renderSub(){
+  $('vname').textContent=curV;
+  var kw=q.name.trim().toLowerCase();
+  var rows=games.filter(function(g){
+    if(g.v!==curV)return false;
+    if(q.st!=='-1'&&String(g.st)!==q.st)return false;
+    if(q.nw==='1'&&!inNew(g))return false;
+    if(q.nw==='0'&&inNew(g))return false;
+    if(kw&&(g.cn+' '+g.en+' '+g.code).toLowerCase().indexOf(kw)<0)return false;
+    return true;
+  }).sort(function(a,b){return b.sort-a.sort||a.tid-b.tid;});
+  var h='<thead><tr><th>序号</th><th>厂商名称</th><th>厂商映射</th><th>映射游戏编码</th><th>游戏名称(中文)</th><th>游戏名称(自定义)</th><th>图标1</th><th>图标2</th><th>TypeId</th><th>游戏编码</th><th>游戏子类</th><th>自定义游戏类型</th><th>排序</th><th>点击数</th><th>开启状态</th><th>是否热门</th>'+
+    '<th><span class="nw">NEW</span></th><th><span class="nw">NEW到期时间</span></th><th>添加时间</th><th>最后更新时间</th><th class="op">操作</th></tr></thead><tbody>';
+  if(!rows.length)h+='<tr class="empty"><td colspan="21">无数据</td></tr>';
+  rows.forEach(function(g,i){
+    var ic='<span class="ico" style="background:linear-gradient(135deg,'+g.col[0]+','+g.col[1]+')"></span>';
+    h+='<tr data-id="'+g.id+'"><td>'+(i+1)+'</td><td>'+g.v+'</td><td></td><td></td><td>'+esc(g.cn)+'</td><td>'+esc(g.en)+'</td><td>'+ic+'</td><td>'+ic+'</td><td>'+g.tid+'</td><td>'+esc(g.code)+'</td><td>'+g.sub+'</td><td></td><td>'+g.sort+'</td><td>'+g.clk+'</td>'+
+      '<td>'+sw(g.st===1,'启用|关闭','data-act="st"')+'</td><td>'+g.hot+'</td>'+
+      '<td>'+sw(inNew(g),'是|否','data-act="nw"')+'</td><td class="'+(inNew(g)?'dt-on':'')+'">'+(inNew(g)?fmt(g.newExp):'')+'</td>'+
+      '<td>'+fmt(g.ct)+'</td><td>'+fmt(g.ut)+'</td><td class="op"><button class="xs">✎ 编辑</button></td></tr>';
+  });
+  $('subTb').innerHTML=h+'</tbody>';
+  $('subPg').textContent='共 '+rows.length+' 条';
+}
+$('subTb').addEventListener('click',function(e){
+  var s=e.target.closest('.sw');if(!s)return;
+  var id=+s.closest('tr').getAttribute('data-id'),g=games.filter(function(x){return x.id===id;})[0];
+  if(s.getAttribute('data-act')==='st')setState(g,g.st!==1);
+  else setNew(g,!inNew(g));
+  msg('设置成功');renderAll();
+  var tr=$('subTb').querySelector('tr[data-id="'+id+'"]');if(tr){tr.classList.add('flash');setTimeout(function(){tr.classList.remove('flash');},900);}
+});
+$('qBtn').onclick=function(){q={st:$('qState').value,name:$('qName').value,nw:$('qNew').value};renderSub();};
+$('rBtn').onclick=function(){$('qState').value='-1';$('qName').value='';$('qNew').value='-1';q={st:'-1',name:'',nw:'-1'};renderSub();};
+$('qName').addEventListener('keydown',function(e){if(e.key==='Enter')$('qBtn').click();});
+$('dmVendor').onchange=function(){curV=this.value;renderSub();};
+
+/* ================= 游戏分类 ================= */
+var editCat=null;
+function renderCat(){
+  var rows=cats.slice().sort(function(a,b){return a.id-b.id;});
+  var h='<thead><tr><th>ID</th><th>分类编码</th><th>图标</th><th>分类名称</th><th>开启状态</th><th>排序</th><th>最后更新时间</th><th>最后更新人</th><th class="op">操作</th></tr></thead><tbody>';
+  rows.forEach(function(c){
+    h+='<tr data-id="'+c.id+'"><td>'+c.id+'</td><td>'+(c.isNew?'<span class="nw">'+c.code+'</span>':c.code)+'</td>'+
+      '<td><span class="cimg'+(c.isNew?' new':'')+'">'+c.em+'</span></td><td>'+c.name+'</td>'+
+      '<td>'+sw(c.st===1,'启用|禁用','data-act="cst"')+'</td><td>'+c.sort+'</td><td>'+fmt(c.ut)+'</td><td>'+c.by+'</td>'+
+      '<td class="op"><button class="xs" data-act="edit">✎ 编 辑</button></td></tr>';
+  });
+  $('catTb').innerHTML=h+'</tbody>';
+}
+$('catTb').addEventListener('click',function(e){
+  var t=e.target.closest('[data-act]');if(!t)return;
+  var id=+t.closest('tr').getAttribute('data-id'),c=cats.filter(function(x){return x.id===id;})[0];
+  if(t.getAttribute('data-act')==='cst'){
+    c.st=c.st===1?0:1;c.ut=now;c.by='admin01';msg('设置成功');
+    log('游戏分类「'+c.name+'」'+(c.st?'启用':'禁用'));renderAll();return;
+  }
+  editCat=c;$('eName').textContent=c.name;$('eSort').value=c.sort;
+  $('eImg').className='bigimg'+(c.isNew?' new':'');$('eImg').textContent=c.em;
+  $('lmask').classList.add('on');$('catLayer').classList.add('on');
+});
+$('eSave').onclick=function(){
+  var v=$('eSort').value.trim();
+  if(!/^-?\d+$/.test(v)){msg('排序请输入整数');return;}
+  editCat.sort=+v;editCat.ut=now;editCat.by='admin01';
+  closeLayer();msg('修改成功');log('游戏分类「'+editCat.name+'」排序改为 '+v);renderAll();
+};
+function closeLayer(){$('lmask').classList.remove('on');$('catLayer').classList.remove('on');}
+document.querySelectorAll('[data-close]').forEach(function(x){x.onclick=closeLayer;});
+$('lmask').onclick=closeLayer;
+$('catQ').onclick=renderCat;
+
+/* ================= 参数配置 ================= */
+$('saveDays').onclick=function(){
+  var v=$('cfgDays').value.trim();
+  if(!/^\d+$/.test(v)||+v<1||+v>365){$('cfgDays').classList.add('bad');msg('请填写 1~365 的整数');return;}
+  $('cfgDays').classList.remove('bad');
+  days=+v;msg('保存成功');log('NEW 展示天数改为 '+v+' 天（只对之后进 NEW 的子游戏生效）');
+};
+$('saveLow').onclick=function(){msg('保存成功');};
+
+/* ================= 原型演示 ================= */
+function renderClock(){$('clock').textContent=fmt(now).slice(0,16);}
+document.querySelector('.demo').addEventListener('click',function(e){
+  var a=e.target.closest('a[data-ff]');if(!a)return;
+  var n=+a.getAttribute('data-ff'),before=games.filter(inNew);
+  if(n===0){now=BASE;log('时间回到 '+fmt(now).slice(0,16));}
+  else{now+=n*DAY;
+    var gone=before.filter(function(g){return !inNew(g);});
+    log('快进 '+n+' 天'+(gone.length?'，到期退出 NEW：'+gone.map(function(g){return g.en;}).join('、'):''));}
+  renderAll();
+});
+$('dmSync').onclick=function(){
+  if(syncIdx>=SYNC_POOL.length){msg('原型演示：同步池已用完');return;}
+  var added=[];
+  for(var i=0;i<2&&syncIdx<SYNC_POOL.length;i++,syncIdx++){
+    var p=SYNC_POOL[syncIdx],g=G('JILI',nextTid++,p[0],p[1],p[2],p[3],0,0,0,'否',now);
+    games.push(g);added.push(g.en);
+  }
+  log('JILI 同步新增 '+added.join('、')+'（默认关闭，开启后自动进 NEW）');
+  renderAll();
+};
+
+/* ================= 视图切换 ================= */
+document.querySelectorAll('.views button').forEach(function(b){b.onclick=function(){
+  document.querySelectorAll('.views button').forEach(function(x){x.classList.toggle('on',x===b);});
+  document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id==='v-'+b.getAttribute('data-v'));});
+};});
+
+/* ================= layer.msg ================= */
+var mt=null;
+function msg(s){var m=$('msg');m.textContent=s;m.style.display='block';clearTimeout(mt);mt=setTimeout(function(){m.style.display='none';},1500);}
+
+/* ================= 需求说明抽屉 ================= */
+function openDoc(){$('drawer').classList.add('on');$('dmask').classList.add('on');}
+function closeDoc(){$('drawer').classList.remove('on');$('dmask').classList.remove('on');}
+$('handleDoc').onclick=openDoc;$('closeDoc').onclick=closeDoc;$('dmask').onclick=closeDoc;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeDoc();closeLayer();}});
+
+function renderAll(){renderClock();renderFront();renderSub();renderCat();}
+fCur='New';
+renderAll();
+})();
+</script>
+</body>
+</html>
