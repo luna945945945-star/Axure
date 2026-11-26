@@ -276,9 +276,6 @@ table.c5 td:first-child { font-family: var(--mono); white-space: nowrap; }
   <ul class="tips"><li><b>页面我方自己做</b><span>钱包只给接口。下单拿到的收银台地址里带 token，前端存下后直连钱包接口，做收银台、KYC 和申诉页。</span></li><li><b>下单前先查在途单</b><span>钱包按商户号加会员查在途单，同一商户下同一会员只有一笔。查到在途单就不建新单，把在途单信息带回前端，让会员继续付或取消。</span></li><li><b>下单超时不能删单</b><span>钱包可能已经建单。超时的单要保留，等回调来了能按单号找到它。</span></li><li><b>回调只当通知</b><span>解密后必须用 <code>thirdPartyRecharge/query</code> 反查，状态以反查为准。回调金额要等于反查金额，不等就回 FAIL。</span></li><li><b>按钮位每次重算</b><span>同一笔单会多次回调。回调 1「待支付」/ 5「申诉中」时订单状态不动，只更新按钮位；按钮位从 0 重算，不在旧值上加减；成功后清零。</span></li><li><b>收银台过期不等于订单结束</b><span>钱包订单还在时，会员可以走确认到账或申诉补救。我方定时任务和延时消息都不处理 ArUpi，只认钱包回调的「失败 / 超时取消」。</span></li><li><b>失败单要能改成功</b><span>超时取消后会员补提 UTR，钱包补单成功会再回调。订单要允许从「充值失败」改为「充值成功」，账变记补单。</span></li><li><b>会员取消不直接改状态</b><span>取消接口调成功后订单仍是待支付，等钱包回调再变「充值失败」。</span></li><li><b>倒计时用钱包给的时间</b><span>收银台和在途弹窗的倒计时取钱包返回的有效期，不在我方写死。</span></li></ul>
 </section>
 
-<footer class="foot">
-  <p>本页按以下代码逐条核对：中台 Ar_V3_PayPlatform <code>origin/uat 88b59a2a</code>（2026-11-25），前台 API Ar_V1_LotteryApi <code>origin/uat d007cc87a</code>（2026-11-24），会员前端 V1_vue <code>origin/uat 4987c8cc</code>（2026-11-05）。说的是 V3 模式站点（中台下单）。</p>
-</footer>
 
 </div>
 
