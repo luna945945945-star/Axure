@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>ArUpi 充值对接流程</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 布局：单栏文档，图在前、表在后；黑白为主，只给失败和警示留红色 */
+:root {
+  --bg: #fcfcfb; --fg: #17191c; --muted: #5a606a; --line: #cfd3d9; --rule: #e2e5e9;
+  --lane-a: #f4f5f7; --lane-b: #fcfcfb; --wallet: #eef0f3; --warn: #b42323; --code-bg: #eef0f3;
+  --sans: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15171a; --fg: #e7e9ec; --muted: #a3a9b3; --line: #444a53; --rule: #2c3036;
+  --lane-a: #1b1e22; --lane-b: #15171a; --wallet: #23272d; --warn: #ff7b72; --code-bg: #262a30; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #15171a; --fg: #e7e9ec; --muted: #a3a9b3; --line: #444a53; --rule: #2c3036;
+  --lane-a: #1b1e22; --lane-b: #15171a; --wallet: #23272d; --warn: #ff7b72; --code-bg: #262a30; color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 15px; line-height: 1.7; }
+.wrap { max-width: 960px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top { border-bottom: 2px solid var(--fg); padding-bottom: 20px; margin-bottom: 8px; }
+.eyebrow { margin: 0; font-size: 12px; letter-spacing: .12em; color: var(--muted); }
+h1 { margin: 6px 0 10px; font-size: 30px; line-height: 1.25; text-wrap: balance; }
+.lede { margin: 0; max-width: 46em; color: var(--muted); }
+section { padding-top: 28px; border-bottom: 1px solid var(--rule); padding-bottom: 24px; }
+h2 { font-size: 21px; margin: 0 0 10px; display: flex; align-items: baseline; gap: 10px; text-wrap: balance; }
+h2 .no { font-family: var(--mono); font-size: 13px; border: 1.5px solid var(--fg); border-radius: 4px; padding: 0 6px; line-height: 20px; }
+h3 { font-size: 15px; margin: 22px 0 8px; }
+p { margin: 0 0 10px; max-width: 52em; }
+p.note { font-size: 13.5px; color: var(--muted); margin-top: 8px; }
+code { font-family: var(--mono); font-size: .86em; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; word-break: break-all; }
+figure { margin: 14px 0 6px; }
+figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.scroll { overflow-x: auto; border: 1px solid var(--rule); border-radius: 8px; background: var(--bg); }
+.scroll svg { display: block; width: 100%; min-width: 760px; height: auto; }
+/* SVG */
+svg .box { fill: var(--bg); stroke: var(--fg); stroke-width: 1.2; }
+svg .box.wallet { fill: var(--wallet); }
+svg .box.ok { stroke-width: 2.4; }
+svg .box.bad { stroke: var(--warn); stroke-width: 1.6; }
+svg .box.dashed { stroke-dasharray: 5 4; }
+svg .group { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 6 5; }
+svg .lane-a { fill: var(--lane-a); }
+svg .lane-b { fill: var(--lane-b); }
+svg .rule { stroke: var(--line); stroke-width: 1; }
+svg .t { fill: var(--fg); font-family: var(--sans); font-size: 13px; }
+svg .t.b { font-weight: 600; }
+svg .t.s { fill: var(--muted); font-size: 12px; }
+svg .t.lg { font-size: 15px; }
+svg .t.xl { font-size: 16px; }
+svg .t.mono { font-family: var(--mono); font-size: 11.5px; fill: var(--muted); }
+svg .t.warntxt { fill: var(--warn); }
+svg .e { fill: none; stroke: var(--fg); stroke-width: 1.3; }
+svg .e.warn { stroke: var(--warn); }
+svg .ah { fill: var(--fg); }
+svg .ah.warn { fill: var(--warn); }
+svg .lab { fill: var(--muted); font-family: var(--sans); font-size: 12px; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+svg .lab.mono { font-family: var(--mono); font-size: 11.5px; }
+svg .lab.strong { fill: var(--fg); font-weight: 600; }
+/* 表格 */
+.tbl { overflow-x: auto; margin: 6px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; line-height: 1.6; }
+th, td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+th { background: var(--lane-a); font-weight: 600; white-space: nowrap; }
+table.c4, table.c5 { min-width: 760px; }
+table.c3 { min-width: 640px; }
+table.c2 td:first-child { white-space: nowrap; }
+table.c5 td:first-child { font-family: var(--mono); white-space: nowrap; }
+/* 要点 */
+.tips { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.tips li { border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tips b { font-size: 14.5px; }
+.tips span { font-size: 13.5px; color: var(--muted); }
+.foot { padding-top: 18px; font-size: 12.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">AR 钱包 · UPI 充值通道</p>
+  <h1>ArUpi 充值对接流程</h1>
+  <p class="lede">会员在我方页面怎么操作、我方服务端和 AR 钱包之间怎么交互、订单状态和按钮怎么变。给要接入同一个钱包的团队参考。</p>
+</header>
+
+<section>
+  <h2><span class="no">1</span>三方分工</h2>
+  <p>会员端、我方服务端、AR 钱包三方。钱包只提供接口，<b>所有会员页面都由我方实现</b>：服务端下单拿到收银台地址和 token，前端凭 token 直连钱包接口完成付款、验证和申诉。订单状态由钱包回调驱动，我方收到回调后必须反查。</p>
+  <figure><div class="scroll"><svg viewBox="0 0 980 390" role="img" aria-label="会员端、我方服务端、AR 钱包三方之间的调用关系">
+<defs><marker id="ahA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker><marker id="ahAw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah warn"/></marker></defs>
+<rect x="20" y="70" width="220" height="280" rx="8" class="box"/>
+<text x="130" y="100" class="t b lg" text-anchor="middle">会员端</text>
+<text x="130" y="120" class="t s" text-anchor="middle">页面全部由我方前端实现</text>
+<text x="130" y="162" class="t" text-anchor="middle">充值页 · 在途订单弹窗</text>
+<text x="130" y="190" class="t" text-anchor="middle">收银台</text>
+<text x="130" y="218" class="t" text-anchor="middle">确认到账（KYC）页</text>
+<text x="130" y="246" class="t" text-anchor="middle">申诉页</text>
+<text x="130" y="274" class="t" text-anchor="middle">充值记录</text>
+<rect x="330" y="44" width="300" height="330" rx="10" class="group"/>
+<text x="480" y="64" class="t s b" text-anchor="middle">我方服务端</text>
+<rect x="355.0" y="80.0" width="250" height="96" rx="6" class="box"/>
+<text x="480" y="123.5" class="t b" text-anchor="middle">前台 API（V1）</text>
+<text x="480" y="141.5" class="t s" text-anchor="middle">会员接口 · 订单表在 V1 库</text>
+<rect x="355.0" y="258.0" width="250" height="96" rx="6" class="box"/>
+<text x="480" y="301.5" class="t b" text-anchor="middle">中台（V3）</text>
+<text x="480" y="319.5" class="t s" text-anchor="middle">下单 · 收回调 · 反查 · 上分</text>
+<rect x="740" y="70" width="220" height="280" rx="8" class="box wallet"/>
+<text x="850" y="100" class="t b lg" text-anchor="middle">AR 钱包</text>
+<text x="850" y="120" class="t s" text-anchor="middle">只提供接口</text>
+<text x="850" y="148" class="t mono" text-anchor="middle">/ar-wallet/v4/apiCenter/*</text>
+<text x="850" y="196" class="t" text-anchor="middle">建单 · 查在途 · 反查</text>
+<text x="850" y="224" class="t" text-anchor="middle">收银台 · 短信验证 · 申诉</text>
+<text x="850" y="252" class="t" text-anchor="middle">充值回调 · KYC 通知</text>
+<path d="M240,128 L355,128" class="e" marker-end="url(#ahA)"/>
+<text x="297" y="120" class="lab" text-anchor="middle">会员接口</text>
+<path d="M440,176 L440,258" class="e" marker-end="url(#ahA)"/>
+<text x="432" y="222" class="lab" text-anchor="end">下单</text>
+<path d="M520,258 L520,176" class="e" marker-end="url(#ahA)"/>
+<text x="528" y="214" class="lab" text-anchor="start">直写 V1 库</text>
+<text x="528" y="230" class="lab" text-anchor="start">状态·按钮位·上分</text>
+<path d="M605,112 L740,112" class="e" marker-end="url(#ahA)"/>
+<text x="672" y="90" class="lab" text-anchor="middle">查在途 · 取消 ·</text>
+<text x="672" y="104" class="lab" text-anchor="middle">补提 UTR · 取 token</text>
+<path d="M605,284 L740,284" class="e" marker-end="url(#ahA)"/>
+<text x="672" y="276" class="lab" text-anchor="middle">查在途 · 建单 · 反查</text>
+<path d="M740,330 L605,330" class="e" marker-end="url(#ahA)"/>
+<text x="672" y="346" class="lab" text-anchor="middle">充值回调 · KYC 通知</text>
+<path d="M130,70 L130,26 L850,26 L850,70" class="e" marker-end="url(#ahA)"/>
+<text x="490" y="19" class="lab" text-anchor="middle">前端凭 token 直连：收银台、短信验证、申诉、客服地址</text>
+</svg></div>
+  <figcaption>图 1　调用关系。下单走中台，其他会员操作走前台 API；中台直接写 V1 订单库。</figcaption></figure>
+</section>
+
+<section>
+  <h2><span class="no">2</span>一笔充值的主流程</h2>
+  <p>会员付款并在收银台提交 UTR 后，钱包核实到账再回调我方；我方反查、核对金额后上分。</p>
+  <figure><div class="scroll"><svg viewBox="0 0 900 690" role="img" aria-label="一笔 ArUpi 充值从下单到到账的主流程：会员端、我方服务端、AR 钱包三条泳道">
+<defs><marker id="ahB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker><marker id="ahBw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah warn"/></marker></defs>
+<rect x="0" y="0" width="300" height="690" class="lane-a"/>
+<rect x="300" y="0" width="300" height="690" class="lane-b"/>
+<rect x="600" y="0" width="300" height="690" class="lane-a"/>
+<line x1="0" y1="40" x2="900" y2="40" class="rule"/>
+<line x1="300" y1="0" x2="300" y2="690" class="rule"/>
+<line x1="600" y1="0" x2="600" y2="690" class="rule"/>
+<text x="150" y="26" class="t b" text-anchor="middle">会员端（我方页面）</text>
+<text x="450" y="26" class="t b" text-anchor="middle">我方服务端</text>
+<text x="750" y="26" class="t b" text-anchor="middle">AR 钱包</text>
+<rect x="45.0" y="62.0" width="210" height="56" rx="6" class="box"/>
+<text x="150" y="85.5" class="t b" text-anchor="middle">选 ArUpi、输入金额</text>
+<text x="150" y="103.5" class="t s" text-anchor="middle">点「充值」</text>
+<rect x="345.0" y="142.0" width="210" height="56" rx="6" class="box"/>
+<text x="450" y="165.5" class="t b" text-anchor="middle">下单前查在途单</text>
+<text x="450" y="183.5" class="t mono" text-anchor="middle">queryPendingOrders</text>
+<rect x="45.0" y="222.0" width="210" height="56" rx="6" class="box dashed"/>
+<text x="150" y="245.5" class="t b" text-anchor="middle">在途订单提示</text>
+<text x="150" y="263.5" class="t s" text-anchor="middle">见第 3 节</text>
+<rect x="645.0" y="222.0" width="210" height="56" rx="6" class="box wallet"/>
+<text x="750" y="245.5" class="t b" text-anchor="middle">建单</text>
+<text x="750" y="263.5" class="t mono" text-anchor="middle">thirdPartyRecharge</text>
+<rect x="345.0" y="302.0" width="210" height="56" rx="6" class="box"/>
+<text x="450" y="325.5" class="t b" text-anchor="middle">订单「待支付」</text>
+<text x="450" y="343.5" class="t s" text-anchor="middle">记下收银台地址，按钮位：确认到账</text>
+<rect x="45.0" y="382.0" width="210" height="56" rx="6" class="box"/>
+<text x="150" y="405.5" class="t b" text-anchor="middle">收银台（我方页面）</text>
+<text x="150" y="423.5" class="t s" text-anchor="middle">付款 → 填 UTR → 提交</text>
+<rect x="645.0" y="462.0" width="210" height="56" rx="6" class="box wallet"/>
+<text x="750" y="485.5" class="t b" text-anchor="middle">核实到账</text>
+<text x="750" y="503.5" class="t s" text-anchor="middle">然后回调我方</text>
+<rect x="345.0" y="542.0" width="210" height="56" rx="6" class="box ok"/>
+<text x="450" y="565.5" class="t b" text-anchor="middle">反查、核对金额</text>
+<text x="450" y="583.5" class="t s" text-anchor="middle">上分，订单「充值成功」</text>
+<rect x="45.0" y="622.0" width="210" height="56" rx="6" class="box"/>
+<text x="150" y="654.5" class="t b" text-anchor="middle">充值记录「已完成」</text>
+<path d="M150,118 L150,170 L345,170" class="e" marker-end="url(#ahB)"/>
+<text x="248" y="162" class="lab mono" text-anchor="middle">CreateRechargeOrder</text>
+<path d="M410,198 L410,250 L255,250" class="e" stroke-dasharray="5 4" marker-end="url(#ahB)"/>
+<text x="332" y="242" class="lab" text-anchor="middle">有在途单</text>
+<path d="M490,198 L490,250 L645,250" class="e" marker-end="url(#ahB)"/>
+<text x="567" y="242" class="lab" text-anchor="middle">无在途单</text>
+<path d="M750,278 L750,330 L555,330" class="e" marker-end="url(#ahB)"/>
+<text x="652" y="322" class="lab" text-anchor="middle">返回收银台地址（含 token）</text>
+<path d="M450,358 L450,410 L255,410" class="e" marker-end="url(#ahB)"/>
+<text x="352" y="402" class="lab" text-anchor="middle">收银台地址</text>
+<path d="M150,438 L150,490 L645,490" class="e" marker-end="url(#ahB)"/>
+<text x="398" y="482" class="lab" text-anchor="middle">前端凭 token 直连提交：subUtr</text>
+<path d="M800,518 L800,586 L555,586" class="e" marker-end="url(#ahB)"/>
+<text x="680" y="604" class="lab" text-anchor="middle">回调（下单时给的 notifyUrl）</text>
+<path d="M555,554 L700,554 L700,518" class="e" stroke-dasharray="5 4" marker-end="url(#ahB)"/>
+<text x="628" y="546" class="lab" text-anchor="middle">反查 query</text>
+<path d="M450,598 L450,650 L255,650" class="e" marker-end="url(#ahB)"/>
+<text x="352" y="642" class="lab" text-anchor="middle">会员查看</text>
+</svg></div>
+  <figcaption>图 2　主流程。穿过服务端泳道的那条箭头表示前端直连钱包，不经过我方服务端。</figcaption></figure>
+  <h3>建单结果怎么处理</h3>
+  <div class="tbl"><table class="c3"><thead><tr><th>钱包返回</th><th>我方服务端</th><th>会员看到</th></tr></thead><tbody><tr><td>成功：返回钱包单号、收银台地址（带 token）、有效期</td><td>订单记下钱包单号和收银台地址，按钮位置为「确认到账」（1）</td><td>进入我方收银台页</td></tr><tr><td>已有在途单（下单前 <code>queryPendingOrders</code> 查到）</td><td>不建新单，删掉这笔预订单，把在途单信息带回前端</td><td>有申诉中的单：「存在一笔申诉中订单，无法再次发起充值」<br><code>isCancellable=0</code>：「通道正在确认收款中，请耐心等待」<br>其他：「是否需要取消该笔订单?」，确认后取消在途单</td></tr><tr><td><code>errorCode=10000</code>（请用推荐金额）</td><td>删单，把钱包给的推荐金额带回前端</td><td>弹推荐金额，选一个后重新下单</td></tr><tr><td>请求超时</td><td><b>保留订单</b>（钱包可能已建单），换下一条通道继续试</td><td>看后续通道的结果</td></tr><tr><td>其他失败</td><td>删单，换下一条通道：运营配的备用通道或同大类其他通道（跳过 AR 系通道）</td><td>都没下成时提示失败</td></tr></tbody></table></div>
+  <p class="note">收银台由前端按收银台地址里的 token 打开我方 <code>/arupi</code> 页；站点开了 <code>arUpiInputUtrSwitch</code> 时改用 <code>/arupi/arupi_v2</code>，这一版没有 UTR 输入框，提交调 <code>payWithoutUtr</code>。收银台过期时显示「The payment order has expired」，只能返回充值页。</p>
+</section>
+
+<section>
+  <h2><span class="no">3</span>在途订单</h2>
+  <p>充值页选中 ArUpi 时查一次在途单（服务端转查钱包 <code>queryPendingOrders</code>），有在途单时每 2 秒刷新一次。钱包返回有在途单、且还没提交 UTR（<code>utrSubmitSuccess=0</code>）时，弹「订单未完成」，带订单号、金额和倒计时；倒计时到 0 再查一次。</p>
+  <div class="tbl"><table class="c3"><thead><tr><th>钱包返回</th><th>弹窗文案</th><th>按钮</th></tr></thead><tbody><tr><td><code>paymentPageExpire=0</code><br>收银台未过期</td><td>您在arupi通道上一笔订单暂时还未完成，请先完成或取消该笔订单哦!</td><td>继续充值（回收银台）<br>填写UTR（回收银台，只填 UTR）<br>取消订单（选原因；面板里还有「我已付款」）</td></tr><tr><td><code>paymentPageExpire=1</code><br><code>kycConfirmOrderStatus=0</code></td><td>您没有填写UTR导致无法成功完成订单，您可以链接KYC自动完成订单</td><td>确认到账（去 KYC 页）<br>取消订单</td></tr><tr><td><code>paymentPageExpire=1</code><br><code>kycConfirmOrderStatus=4</code></td><td>由于在arupi通道收银台上我方未收到您填写充值成功的UTR……可以通过申诉补交您的充值UTR凭证哦！</td><td>申诉（去申诉页）<br>取消订单</td></tr></tbody></table></div>
+  <p class="note">取消时按钱包返回的 <code>isCancellable</code> 选接口：为 0 调 <code>noPay</code>，否则调 <code>cancelOrder</code>。</p>
+</section>
+
+<section>
+  <h2><span class="no">4</span>没有直接到账时</h2>
+  <p>收银台里取消、过期没提交 UTR、钱包超时取消，都还有补救入口。入口在在途订单弹窗和充值记录里，显示哪个按钮由第 6 节的按钮位决定。</p>
+  <div class="tbl"><table class="c4"><thead><tr><th>情况</th><th>会员入口</th><th>怎么处理</th><th>结果</th></tr></thead><tbody><tr><td>会员主动取消</td><td>收银台「取消」：先确认「已付款请勿取消」，再选原因<br>在途订单弹窗「取消订单」：选原因</td><td>收银台里：前端直连 <code>noPay</code><br>在途弹窗里：服务端按 <code>isCancellable</code> 选，为 0 调 <code>noPay</code>，否则调 <code>cancelOrder</code>；都带取消原因</td><td>本地不改状态，等钱包回调「失败 / 超时取消」→ 充值失败</td></tr><tr><td>收银台过期，没提交 UTR</td><td>在途订单弹窗或充值记录「确认到账」</td><td>服务端调 <code>getBankListToken</code> 拿 token（订单须有「确认到账」或「KYC 重连」位）→ 我方 KYC 页：选付款钱包 → 填 UTR 和手机号 → 短信验证码 → 关联钱包（前端直连 <code>sendOtp</code>、<code>confirmPayment</code>）</td><td>钱包发 KYC 通知：连上 →「自动确认中」；断连 →「KYC重新链接」；超时 →「我要申诉」。钱包核实到账后回调成功</td></tr><tr><td>要申诉</td><td>在途订单弹窗「申诉」<br>充值记录「我要申诉 / 申诉详情」</td><td>服务端调 <code>rechargeAppealPageInfo</code> 拿申诉页 token → 我方申诉页：选钱包，填 UTR 和手机号、上传付款截图、短信验证（<code>verifyOtp</code>）；或走「其他钱包」填 UTR、原因、图片（<code>submitRechargeAppeal</code>）</td><td>回调带 <code>complainedFlag=1</code> → 记录显示「申诉详情」；结果以钱包回调为准</td></tr><tr><td>钱包超时取消</td><td>充值记录「提交utr」</td><td>会员填 12 位 UTR → 服务端调 <code>reSubUtr</code></td><td>钱包补单成功后回调 → 订单从「充值失败」改为「充值成功」，账变记补单</td></tr><tr><td>钱包要求找客服</td><td>充值记录红字「该笔订单已被系统冻结，请联系客服。」+「联系客服」</td><td>前端调钱包 <code>getCurrentCustomerServiceSystem</code> 拿客服地址打开（不带订单号）</td><td>由钱包客服处理</td></tr></tbody></table></div>
+</section>
+
+<section>
+  <h2><span class="no">5</span>订单状态流转</h2>
+  <p>我方订单只有三个状态，钱包有 5 个 <code>tradeStatus</code>。终态只来自钱包回调，而且以反查结果为准。</p>
+  <figure><div class="scroll"><svg viewBox="0 0 900 330" role="img" aria-label="我方订单状态：待支付、充值成功、充值失败，以及之间的转换条件">
+<defs><marker id="ahD" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker><marker id="ahDw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah warn"/></marker></defs>
+<rect x="70.0" y="142.0" width="210" height="92" rx="6" class="box"/>
+<text x="175" y="183.5" class="t b xl" text-anchor="middle">待支付</text>
+<text x="175" y="201.5" class="t mono" text-anchor="middle">State = 0</text>
+<rect x="620.0" y="40.0" width="220" height="80" rx="6" class="box ok"/>
+<text x="730" y="75.5" class="t b xl" text-anchor="middle">充值成功</text>
+<text x="730" y="93.5" class="t mono" text-anchor="middle">State = 1</text>
+<rect x="620.0" y="240.0" width="220" height="80" rx="6" class="box bad"/>
+<text x="730" y="275.5" class="t b xl warntxt" text-anchor="middle">充值失败</text>
+<text x="730" y="293.5" class="t mono" text-anchor="middle">State = 2</text>
+<path d="M14,188 L70,188" class="e" marker-end="url(#ahD)"/>
+<text x="42" y="178" class="lab" text-anchor="middle">建单成功</text>
+<path d="M140,142 L140,104 L210,104 L210,138" class="e" marker-end="url(#ahD)"/>
+<text x="175" y="44" class="lab" text-anchor="middle">回调 1「待支付」/ 5「申诉中」</text>
+<text x="175" y="62" class="lab" text-anchor="middle">KYC 通知</text>
+<text x="175" y="88" class="lab strong" text-anchor="middle">状态不变，只更新按钮位</text>
+<path d="M280,166 L400,166 L400,80 L620,80" class="e" marker-end="url(#ahD)"/>
+<text x="510" y="72" class="lab" text-anchor="middle">回调 2「已支付」</text>
+<text x="510" y="100" class="lab" text-anchor="middle">或回调表示补单成立</text>
+<path d="M280,210 L400,210 L400,280 L620,280" class="e warn" marker-end="url(#ahDw)"/>
+<text x="510" y="272" class="lab" text-anchor="middle">回调 3「失败」/ 4「超时取消」</text>
+<text x="510" y="300" class="lab" text-anchor="middle">会员取消也是等这条回调</text>
+<path d="M800,240 L800,120" class="e" marker-end="url(#ahD)"/>
+<text x="810" y="176" class="lab" text-anchor="start">补提 UTR 后</text>
+<text x="810" y="192" class="lab" text-anchor="start">钱包补单成功</text>
+<text x="175" y="256" class="lab strong" text-anchor="middle">我方不做超时关单</text>
+<text x="175" y="274" class="lab" text-anchor="middle">收银台过期后仍是待支付</text>
+<text x="175" y="292" class="lab" text-anchor="middle">只认钱包回调的终态</text>
+</svg></div>
+  <figcaption>图 3　订单状态。待支付期间的变化都体现在按钮位上，订单状态不动。</figcaption></figure>
+  <h3>回调怎么映射（以反查结果为准）</h3>
+  <div class="tbl"><table class="c3"><thead><tr><th>钱包回调</th><th>我方订单状态</th><th>按钮位</th></tr></thead><tbody><tr><td><code>tradeStatus=1</code> 待支付</td><td>不变</td><td>未申诉过 → 加 4096「可以申诉」</td></tr><tr><td><code>tradeStatus=5</code> 申诉中</td><td>不变</td><td><code>complainedFlag=1</code> → 加 64「申诉中」</td></tr><tr><td><code>tradeStatus=2</code> 已支付</td><td>充值成功（上分）</td><td>全部清零</td></tr><tr><td><code>tradeStatus=3</code> 失败</td><td>充值失败</td><td><code>autoFailOrderAppealed=1</code> 且未申诉 → 4096；已申诉且 <code>autoFailOrderAppealed=2</code> → 64</td></tr><tr><td><code>tradeStatus=4</code> 超时取消</td><td>充值失败</td><td><code>resubmitUtrFlag=0</code> → 加 8192「可以补提 UTR」</td></tr><tr><td><code>resubmitUtrFlag=2</code>，或 <code>=4</code> 且 <code>autoFailOrderAppealed=3</code></td><td>按补单成功处理 → 充值成功</td><td>全部清零</td></tr><tr><td><code>kycAutoConfirmView=1</code></td><td>—</td><td>置 1「确认到账」，不加 4096；其他位照常算</td></tr><tr><td><code>showRemarkAndCustomeButton=1</code></td><td>—</td><td>加 16384「显示备注和联系客服」</td></tr></tbody></table></div>
+  <p class="note">会员取消后钱包回调的是 3 还是 4，我方代码不区分，都按充值失败处理。</p>
+</section>
+
+<section>
+  <h2><span class="no">6</span>按钮位</h2>
+  <p>订单上存一个按位组合的整数（V1 叫 <code>GroupID</code>，中台叫 <code>ArOrderStatus</code>），前端只按位显示按钮，不自己判断时效。只有「待支付」和「充值失败」的订单显示这些按钮。</p>
+  <div class="tbl"><table class="c5"><thead><tr><th>位</th><th>含义</th><th>什么时候置上</th><th>会员看到</th><th>点了去哪</th></tr></thead><tbody><tr><td>1</td><td>确认到账</td><td>建单成功；回调带 <code>kycAutoConfirmView=1</code></td><td>「确认到账」</td><td>服务端取 KYC token → 我方 KYC 页</td></tr><tr><td>2</td><td>自动确认中</td><td>KYC 通知：连上</td><td>「自动确认中」</td><td>点了没有反应</td></tr><tr><td>4</td><td>KYC 重连</td><td>KYC 通知：断连</td><td>「KYC重新链接」</td><td>同「确认到账」</td></tr><tr><td>64</td><td>申诉中</td><td>回调：已申诉且未成功（失败单仅 <code>autoFailOrderAppealed=2</code>）</td><td>「申诉详情」</td><td>申诉页（显示申诉中）</td></tr><tr><td>4096</td><td>可以申诉</td><td>回调：待支付且未申诉，或自动失败可申诉；KYC 通知：超时</td><td>「我要申诉」（同时有 16384 时不显示）</td><td>服务端取申诉 token → 我方申诉页</td></tr><tr><td>8192</td><td>可以补提 UTR</td><td>回调：超时取消且没补提过</td><td>「提交utr」</td><td>底部弹层填 UTR → <code>reSubUtr</code></td></tr><tr><td>16384</td><td>显示备注和联系客服</td><td>回调：<code>showRemarkAndCustomeButton=1</code></td><td>红字备注 +「联系客服」</td><td>钱包客服地址</td></tr></tbody></table></div>
+  <p class="note">充值回调时按位从 0 重算；KYC 通知只先清掉 1、2、4，再按类型置 2、4 或 4096；订单成功后清零。</p>
+</section>
+
+<section>
+  <h2><span class="no">7</span>接口清单</h2>
+  <p>钱包接口都在 <code>/ar-wallet/v4/apiCenter/</code> 下（客服地址除外）。服务端调用的报文一般先签名再加密，外层是 <code>merchantCode</code>、<code>encryptedData</code>、<code>encryptedKey</code>；<code>noPay</code> 例外，是明文。前端直连的请求带 token。</p>
+  <h3>我方服务端 → 钱包</h3>
+  <div class="tbl"><table class="c2"><thead><tr><th>接口</th><th>用途</th></tr></thead><tbody><tr><td><code>queryPendingOrders</code></td><td>下单前查在途单；充值页查在途单</td></tr><tr><td><code>thirdPartyRecharge</code></td><td>建单，返回钱包单号、收银台地址（带 token）、有效期；带上我方回调地址 notifyUrl</td></tr><tr><td><code>thirdPartyRecharge/query</code></td><td>收到回调后反查订单</td></tr><tr><td><code>checkKycState</code></td><td>收到 KYC 通知后反查</td></tr><tr><td><code>noPay</code> / <code>cancelOrder</code></td><td>在途弹窗里取消订单：钱包返回 <code>isCancellable=0</code>（收银台未过期）用 noPay，否则用 cancelOrder</td></tr><tr><td><code>reSubUtr</code></td><td>超时取消后补提 UTR</td></tr><tr><td><code>getBankListToken</code></td><td>取确认到账（KYC）页用的 token</td></tr><tr><td><code>rechargeAppealPageInfo</code></td><td>取申诉页地址（带 token）</td></tr><tr><td><code>recommendedAmount</code></td><td>钱包通知配置变更后调用，刷新金额区间和快捷金额缓存</td></tr><tr><td><code>buriedPage</code></td><td>页面埋点</td></tr></tbody></table></div>
+  <h3>会员端 → 钱包（前端凭 token 直连）</h3>
+  <div class="tbl"><table class="c2"><thead><tr><th>接口</th><th>用途</th></tr></thead><tbody><tr><td><code>fetchThirdPartyRechargePageInfoEncryption</code></td><td>收银台详情（金额、收款 UPI ID、剩余支付时间；返回内容加密，前端解密）</td></tr><tr><td><code>subUtr</code> / <code>payWithoutUtr</code></td><td>收银台提交 UTR / arupi_v2 收银台不填 UTR 直接提交</td></tr><tr><td><code>status</code> / <code>onPaymentPageExit</code></td><td>收银台每 10 秒查状态 / 每 2 秒报停留</td></tr><tr><td><code>cancellationReasonList</code> / <code>noPay</code></td><td>取消原因列表 / 收银台里取消</td></tr><tr><td><code>subForWakeUp</code></td><td>点 Paytm、PhonePe 唤起时上报</td></tr><tr><td><code>getBanks/forBuyAppeal</code> / <code>sendOtp</code> / <code>confirmPayment</code></td><td>确认到账（KYC）页：钱包列表、发短信、关联钱包</td></tr><tr><td><code>rechargeAppealExist</code> / <code>verifyOtp</code> / <code>submitRechargeAppeal</code></td><td>申诉页：查是否已申诉、短信验证、提交申诉</td></tr><tr><td><code>/ar-wallet/signUp/getCurrentCustomerServiceSystem</code></td><td>客服地址</td></tr></tbody></table></div>
+  <h3>钱包 → 我方</h3>
+  <div class="tbl"><table class="c2"><thead><tr><th>通知</th><th>我方怎么处理</th></tr></thead><tbody><tr><td>充值回调</td><td>推送到下单时给的 notifyUrl。我方解密后反查，按反查结果改状态和按钮位，回 <code>SUCCESS</code> / <code>FAIL</code></td></tr><tr><td>KYC 变更通知</td><td>只带单号和类型；我方用 <code>checkKycState</code> 反查后改按钮位</td></tr><tr><td>充值配置变更通知</td><td>我方收到后调 <code>recommendedAmount</code> 刷新金额配置缓存</td></tr></tbody></table></div>
+</section>
+
+<section>
+  <h2><span class="no">8</span>对接时要注意</h2>
+  <ul class="tips"><li><b>页面我方自己做</b><span>钱包只给接口。下单拿到的收银台地址里带 token，前端存下后直连钱包接口，做收银台、KYC 和申诉页。</span></li><li><b>下单前先查在途单</b><span>钱包按商户号加会员查在途单，同一商户下同一会员只有一笔。查到在途单就不建新单，把在途单信息带回前端，让会员继续付或取消。</span></li><li><b>下单超时不能删单</b><span>钱包可能已经建单。超时的单要保留，等回调来了能按单号找到它。</span></li><li><b>回调只当通知</b><span>解密后必须用 <code>thirdPartyRecharge/query</code> 反查，状态以反查为准。回调金额要等于反查金额，不等就回 FAIL。</span></li><li><b>按钮位每次重算</b><span>同一笔单会多次回调。回调 1「待支付」/ 5「申诉中」时订单状态不动，只更新按钮位；按钮位从 0 重算，不在旧值上加减；成功后清零。</span></li><li><b>收银台过期不等于订单结束</b><span>钱包订单还在时，会员可以走确认到账或申诉补救。我方定时任务和延时消息都不处理 ArUpi，只认钱包回调的「失败 / 超时取消」。</span></li><li><b>失败单要能改成功</b><span>超时取消后会员补提 UTR，钱包补单成功会再回调。订单要允许从「充值失败」改为「充值成功」，账变记补单。</span></li><li><b>会员取消不直接改状态</b><span>取消接口调成功后订单仍是待支付，等钱包回调再变「充值失败」。</span></li><li><b>倒计时用钱包给的时间</b><span>收银台和在途弹窗的倒计时取钱包返回的有效期，不在我方写死。</span></li></ul>
+</section>
+
+<footer class="foot">
+  <p>本页按以下代码逐条核对：中台 Ar_V3_PayPlatform <code>origin/uat 88b59a2a</code>（2026-11-25），前台 API Ar_V1_LotteryApi <code>origin/uat d007cc87a</code>（2026-11-24），会员前端 V1_vue <code>origin/uat 4987c8cc</code>（2026-11-05）。说的是 V3 模式站点（中台下单）。</p>
+</footer>
+
+</div>
+
+</body>
+</html>
